@@ -100,7 +100,9 @@
       <input type="file" id="lhFile" accept=".csv,.txt,.json" multiple hidden></div>`;
     c.marco(cuerpo);
     const m = document.getElementById('fbp');
-    const re = () => { it._sel = sel; E.lakehouse(c); };
+    const sel0 = it._sel;
+    // si un ayudante (Load to Tables, datos de ejemplo, atajo) ya eligió qué mostrar, no se pisa con la selección anterior
+    const re = () => { if (it._sel === sel0) it._sel = sel; E.lakehouse(c); };
     const sube = () => m.querySelector('#lhFile').click();
     m.querySelector('#lhFile').addEventListener('change', async (e) => {
       const dir = sel && sel.tipo === 'carpeta' && sel.n ? sel.n + '/' : '';
@@ -214,7 +216,7 @@
   E.warehouse = (c) => {
     const { esc, ci, it } = c;
     const exp = () => `<div class="fb-exp-t"><b>Explorer</b></div><div class="fb-arbol"><div class="fb-nodo">${ci('chevron-down')} ${ci('server')} <b>${esc(it.nombre)}</b></div><div class="fb-nodo fb-n1">${ci('chevron-down')} ${ci('folder')} Schemas</div><div class="fb-nodo fb-n2">${ci('chevron-down')} ${ci('symbol-namespace')} dbo</div><div class="fb-nodo fb-n3">${ci('chevron-down')} ${ci('folder')} Tables</div>
-      ${Object.keys(it.tablas).sort().map((t) => `<a class="fb-nodo fb-n4" data-sqlt="${esc(t)}">${ci('table')} ${esc(t)} <span class="fb-dim fb-sm">${c.datosTabla(it.tablas[t]).filas.length}</span></a>`).join('') || '<div class="fb-nodo fb-n4 fb-dim">No tables</div>'}<div class="fb-nodo fb-n3">${ci('folder')} Views</div><div class="fb-nodo fb-n3">${ci('folder')} Stored Procedures</div></div>`;
+      ${Object.keys(it.tablas).sort().map((t) => `<a class="fb-nodo fb-n4" data-sqlt="${esc(t)}">${ci('table')} ${esc(t)} <span class="fb-dim fb-sm">${c.datosTabla(it.tablas[t]).filas.length}</span></a>`).join('') || '<div class="fb-nodo fb-n4 fb-dim">No tables</div>'}<div class="fb-nodo fb-n3">${ci('folder')} Views</div>${Object.keys(it.vistas || {}).sort().map((v) => `<a class="fb-nodo fb-n4" data-sqlt="${esc(v)}">${ci('eye')} ${esc(v)}</a>`).join('')}<div class="fb-nodo fb-n3">${ci('folder')} Stored Procedures</div></div>`;
     const cuerpo = `<div class="fb-item-v"><div class="fb-ribbon"><nav class="fb-rtabs"><a class="sel">Home</a></nav><div class="fb-rcmds"><button class="fb-rb" id="whQ">${ci('file-code')}<span>New SQL query</span></button><button class="fb-rb" id="whM">${ci('beaker')}<span>Sample data</span></button><button class="fb-rb" id="whPl">${ci('git-merge')}<span>Get data ▾</span></button><button class="fb-rb" id="whSm">${ci('type-hierarchy')}<span>New semantic model</span></button></div></div>
       <div class="fb-split"><aside class="fb-exp" id="whExp">${exp()}</aside><section class="fb-princ"><div id="whSql" class="fb-sqlwrap"></div>
       <div class="fb-practica">${ci('lightbulb')} <span>El <b>Warehouse</b> es T-SQL completo con escritura (CREATE TABLE, INSERT, UPDATE, DELETE, transacciones). Puedes consultar las tablas de un lakehouse del mismo workspace con tres partes: <code>SELECT * FROM MiLakehouse.dbo.pedidos</code>.</span></div></section></div></div>`;
@@ -393,7 +395,7 @@
       const k = inp.dataset.p, v = inp.value;
       if (k === 'destItem') a.dest.item = v; else if (k === 'destTabla') a.dest.tabla = v.trim(); else if (k === 'destModo') a.dest.modo = v; else a[k] = v;
       if (k === 'srcTipo') a.src = '';
-      c.guardar(); if (k === 'srcTipo' || k === 'nombre') re();
+      c.guardar(); if (k === 'srcTipo' || k === 'nombre') setTimeout(() => { if (inp.isConnected) re(); }, 0);
     }));
     m.querySelector('#plRun').addEventListener('click', async () => {
       if (!it.acts.length) { c.toast('Agrega al menos una actividad'); return; }

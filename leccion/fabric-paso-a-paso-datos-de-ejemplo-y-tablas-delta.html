@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Datos de ejemplo y tablas Delta - propiedades y mantenimiento · Academia de Datos</title><meta name="description" content="Cargas las tablas de Tienda Andina como datos de ejemplo, recorres una tabla Delta grande, lees sus propiedades (dónde vive en OneLake y sus columnas) y conoces el mantenimiento que toda tabla Delta necesita - OPTIMIZE, V-Order y VACUUM - y por qué."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-datos-de-ejemplo-y-tablas-delta.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Datos de ejemplo y tablas Delta - propiedades y mantenimiento · Academia de Datos"><meta property="og:description" content="Cargas las tablas de Tienda Andina como datos de ejemplo, recorres una tabla Delta grande, lees sus propiedades (dónde vive en OneLake y sus columnas) y conoces el mantenimiento que toda tabla Delta necesita - OPTIMIZE, V-Order y VACUUM - y por qué."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-datos-de-ejemplo-y-tablas-delta.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#fabric-paso-a-paso">🟩 Fabric paso a paso</a> · 2 · Básico-intermedio · 35 min</div>
+<h1>Datos de ejemplo y tablas Delta - propiedades y mantenimiento</h1><p class="resumen">Cargas las tablas de Tienda Andina como datos de ejemplo, recorres una tabla Delta grande, lees sus propiedades (dónde vive en OneLake y sus columnas) y conoces el mantenimiento que toda tabla Delta necesita - OPTIMIZE, V-Order y VACUUM - y por qué.</p>
+<a class="cta" href="../index.html#/l/fabric-paso-a-paso-datos-de-ejemplo-y-tablas-delta">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Cargar datos de ejemplo en un lakehouse</li><li>Leer las propiedades de una tabla Delta</li><li>Entender qué es Delta y qué ventajas tiene</li><li>Conocer OPTIMIZE, V-Order y VACUUM</li></ul>
+<h2>Paso 1 — Get data → Sample data</h2>
+<p>En <code>lh_ventas</code>, <strong>Get data</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b05-get-data.webp" alt="Get data - subir archivos, datos de ejemplo, accesos directos y pipelines" loading="lazy"><figcaption>Get data - subir archivos, datos de ejemplo, accesos directos y pipelines</figcaption></figure>
+
+
+<p><strong>Sample data</strong>, marca <code>clientes</code>, <code>productos</code>, <code>pedidos</code> y <code>detalle_pedidos</code>:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b05-muestras.webp" alt="Las tablas de ejemplo de Tienda Andina" loading="lazy"><figcaption>Las tablas de ejemplo de Tienda Andina</figcaption></figure>
+
+
+<p><strong>Load</strong>. Se agregan a Tables y, además, un CSV de ejemplo en <code>Files/raw</code>.</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b05-tabla.webp" alt="Las tablas en el explorador (1) y la tabla pedidos con sus 12 000 filas (2)" loading="lazy"><figcaption>Las tablas en el explorador (1) y la tabla pedidos con sus 12 000 filas (2)</figcaption></figure>
+
+
+<h2>Paso 2 — Qué es Delta</h2>
+<p>Una tabla <strong>Delta</strong> son archivos <strong>Parquet</strong> (columnares y comprimidos) más un <strong>registro de transacciones</strong> (<code>_delta_log</code>). Ese registro agrega lo que un montón de archivos no tiene:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Característica</th>
+<th>Qué significa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Transacciones ACID</strong></td>
+<td>Una escritura queda completa o no queda: nadie lee una tabla a medio escribir</td>
+</tr>
+<tr>
+<td><strong>Esquema</strong></td>
+<td>La tabla rechaza filas que no coinciden con sus columnas</td>
+</tr>
+<tr>
+<td><strong>Time travel</strong></td>
+<td>Consultar la tabla como estaba ayer</td>
+</tr>
+<tr>
+<td><strong>Un formato para todos</strong></td>
+<td>Spark, el endpoint SQL y Power BI (Direct Lake) leen los mismos archivos, sin copias</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — Propiedades</h2>
+<p>En el menú <strong>…</strong> de la tabla:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b05-menu-tabla.webp" alt="Properties, Maintenance, Copy ABFS path y Delete" loading="lazy"><figcaption>Properties, Maintenance, Copy ABFS path y Delete</figcaption></figure>
+
+
+<p><strong>Properties</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b05-propiedades.webp" alt="El tipo (Managed · Delta), la dirección en OneLake (URL y ABFS) y las columnas" loading="lazy"><figcaption>El tipo (Managed · Delta), la dirección en OneLake (URL y ABFS) y las columnas</figcaption></figure>
+
+
+<p>La dirección <code>abfss://…@onelake.dfs.fabric.microsoft.com/…</code> es la misma forma que en ADLS Gen2: OneLake <strong>es</strong> un ADLS Gen2, así que cualquier herramienta que lee ADLS puede leer OneLake.</p>
+<h2>Paso 4 — Mantenimiento</h2>
+<p><strong>Maintenance</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b05-mantenimiento.webp" alt="Optimize (con V-Order) y VACUUM con un umbral de retención" loading="lazy"><figcaption>Optimize (con V-Order) y VACUUM con un umbral de retención</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Qué hace</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>OPTIMIZE</strong></td>
+<td>Une muchos archivos chicos en pocos grandes</td>
+<td>Después de muchas cargas pequeñas: las consultas se aceleran</td>
+</tr>
+<tr>
+<td><strong>V-Order</strong></td>
+<td>Ordena los datos dentro de los Parquet para que Power BI y SQL los lean más rápido</td>
+<td>Al optimizar, sobre todo en tablas que lee Power BI</td>
+</tr>
+<tr>
+<td><strong>VACUUM</strong></td>
+<td>Borra los archivos que ya no usa ninguna versión de la tabla</td>
+<td>Para no pagar almacenamiento de más</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ VACUUM borra el pasado</div>
+
+<p>Después de un VACUUM con retención de 7 días, ya no se puede hacer <em>time travel</em> más atrás de 7 días. No uses retenciones muy cortas en tablas que podrías necesitar restaurar.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Cargaste datos de ejemplo y recorriste una tabla Delta.</li>
+<li>Sabes qué agrega Delta y dónde vive cada tabla en OneLake.</li>
+<li>Conoces el mantenimiento de las tablas.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/fabric-paso-a-paso-datos-de-ejemplo-y-tablas-delta">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fabric-paso-a-paso-proyecto-primera-tabla.html">← Proyecto 1 (guiado) - de un CSV a una tabla Delta</a><a href="fabric-paso-a-paso-sql-analytics-endpoint.html">El SQL analytics endpoint - consultar el lakehouse con T-SQL →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

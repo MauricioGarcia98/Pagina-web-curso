@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tu primer lakehouse - Files y Tables · Academia de Datos</title><meta name="description" content="El lakehouse es el centro de Fabric - un lugar con archivos crudos (Files) y tablas Delta (Tables) que leen Spark, SQL y Power BI. Creas lh_ventas desde New item, chocas con la regla de nombres, recorres el explorador y entiendes la diferencia entre Files y Tables y para qué sirve el endpoint SQL."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-tu-primer-lakehouse.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Tu primer lakehouse - Files y Tables · Academia de Datos"><meta property="og:description" content="El lakehouse es el centro de Fabric - un lugar con archivos crudos (Files) y tablas Delta (Tables) que leen Spark, SQL y Power BI. Creas lh_ventas desde New item, chocas con la regla de nombres, recorres el explorador y entiendes la diferencia entre Files y Tables y para qué sirve el endpoint SQL."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-tu-primer-lakehouse.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#fabric-paso-a-paso">🟩 Fabric paso a paso</a> · 1 · Básico · 35 min</div>
+<h1>Tu primer lakehouse - Files y Tables</h1><p class="resumen">El lakehouse es el centro de Fabric - un lugar con archivos crudos (Files) y tablas Delta (Tables) que leen Spark, SQL y Power BI. Creas lh_ventas desde New item, chocas con la regla de nombres, recorres el explorador y entiendes la diferencia entre Files y Tables y para qué sirve el endpoint SQL.</p>
+<a class="cta" href="../index.html#/l/fabric-paso-a-paso-tu-primer-lakehouse">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un lakehouse desde New item</li><li>Respetar las reglas de nombres</li><li>Distinguir la zona Files de la zona Tables</li><li>Ubicar el explorador, las acciones de inicio y el selector de modo</li></ul>
+<h2>Paso 1 — New item</h2>
+<p>En el workspace, <strong>New item</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b03-nuevo-item.webp" alt="New item - todos los tipos de ítem agrupados, con un filtro arriba" loading="lazy"><figcaption>New item - todos los tipos de ítem agrupados, con un filtro arriba</figcaption></figure>
+
+
+<p>Elige <strong>Lakehouse</strong>. Escribe <code>lh bronze</code> (con espacio) y <strong>Create</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b03-nombre-error.webp" alt="El nombre (1) no es válido - solo letras, números y guiones bajos, empezando con letra (2)" loading="lazy"><figcaption>El nombre (1) no es válido - solo letras, números y guiones bajos, empezando con letra (2)</figcaption></figure>
+
+
+<p>Los nombres de lakehouse y warehouse no admiten espacios ni guiones: se usan en SQL (<code>lh_ventas.dbo.pedidos</code>). Cierra, vuelve a abrir y escribe <code>lh_ventas</code>:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b03-nuevo-lakehouse.webp" alt="El nombre válido (1) y el workspace donde se crea (2)" loading="lazy"><figcaption>El nombre válido (1) y el workspace donde se crea (2)</figcaption></figure>
+
+
+<h2>Paso 2 — El lakehouse</h2>
+<figure class="captura"><img src="assets/img/guias/fabric/b03-lakehouse.webp" alt="El explorador con Tables y Files (1), las formas de traer datos (2) y el selector Lakehouse / SQL analytics endpoint (3)" loading="lazy"><figcaption>El explorador con Tables y Files (1), las formas de traer datos (2) y el selector Lakehouse / SQL analytics endpoint (3)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Zona</th>
+<th>Qué guarda</th>
+<th>Formato</th>
+<th>Quién la usa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Files</strong></td>
+<td>Archivos como llegan: CSV, JSON, Parquet, imágenes</td>
+<td>El original</td>
+<td>Spark, pipelines</td>
+</tr>
+<tr>
+<td><strong>Tables</strong></td>
+<td>Tablas administradas</td>
+<td><strong>Delta</strong> (Parquet + registro de transacciones)</td>
+<td>Spark, <strong>SQL</strong>, <strong>Power BI</strong></td>
+</tr>
+</tbody></table></div>
+<p>El paso típico es: los archivos llegan a <strong>Files</strong>, y con <strong>Load to Tables</strong>, un notebook o un pipeline se convierten en tablas en <strong>Tables</strong>.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La bodega y la góndola</div>
+
+<p><strong>Files</strong> es la bodega: las cajas tal como llegan del proveedor. <strong>Tables</strong> es la góndola: los productos ordenados y etiquetados, listos para que cualquiera los tome. SQL y Power BI solo compran en la góndola.</p>
+</div>
+
+
+<p>Arriba a la derecha, el selector cambia entre <strong>Lakehouse</strong> (archivos y tablas) y <strong>SQL analytics endpoint</strong>: una vista SQL de solo lectura de las mismas tablas, que se crea sola con cada lakehouse (lección 6).</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste <code>lh_ventas</code> respetando las reglas de nombres.</li>
+<li>Sabes qué va en Files y qué en Tables.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/fabric-paso-a-paso-tu-primer-lakehouse">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fabric-paso-a-paso-workspaces.html">← Workspaces - el espacio del equipo, su licencia y sus ajustes</a><a href="fabric-paso-a-paso-proyecto-primera-tabla.html">Proyecto 1 (guiado) - de un CSV a una tabla Delta →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

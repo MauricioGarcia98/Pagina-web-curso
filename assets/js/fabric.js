@@ -125,6 +125,7 @@
       }
     };
     for (const it of Object.values(W.items)) if (it.tablas && (it.tipo === 'lakehouse' || it.tipo === 'warehouse')) for (const [n, t] of Object.entries(it.tablas)) { cargar(clave(it, n), t); if (it === actual) cargar(n.toLowerCase(), t); }
+    if (actual && actual.vistas) for (const q of Object.values(actual.vistas)) { try { db.run(q); } catch (e) { /* una vista que ya no aplica */ } }
     for (const it of Object.values(W.items)) if (it.tipo === 'lakehouse' && it.atajos) for (const a of it.atajos) { const o = itemDe(a.ws, a.item); const t = o && o.tablas[a.tabla]; if (t) { cargar(clave(it, a.nombre), t); if (it === actual) cargar(a.nombre.toLowerCase(), t); } }
     return db;
   }
@@ -175,6 +176,9 @@
       presentes.add(ant.toLowerCase());
     }
     for (const k of Object.keys(item.tablas)) if (!presentes.has(k.toLowerCase())) delete item.tablas[k];
+    // las vistas (CREATE VIEW) se guardan como su definición y se vuelven a crear en cada consulta
+    const vs = db.exec("SELECT name, sql FROM sqlite_master WHERE type='view'");
+    item.vistas = Object.fromEntries(((vs[0] || { values: [] }).values).map(([n, q]) => [n, q]));
     item.mod = ahora(); guardar();
   }
 
@@ -264,7 +268,7 @@
     const f = F();
     const recientes = Object.entries(f.ws).flatMap(([wid, w]) => Object.values(w.items).map((it) => ({ wid, w, it }))).sort((a, b) => String(b.it.mod).localeCompare(String(a.it.mod))).slice(0, 10);
     const cuerpo = `<div class="fb-pag"><h1 class="fb-h1">Welcome to Fabric, Alumno</h1>
-      <div class="fb-practica">${ci('lightbulb')} <span>Fabric junta en un solo lugar lo que en Azure son varios servicios: ingesta (pipelines), almacenamiento (OneLake, lakehouse, warehouse), transformación (notebooks de Spark) y Power BI. Empieza creando un <b>workspace</b> y un <b>lakehouse</b>, carga datos de ejemplo y consúltalos con SQL y con Spark.</span></div>
+      <div class="fb-practica">${ci('lightbulb')} <span>Fabric junta en un solo lugar lo que en Azure son varios servicios: ingesta (pipelines), almacenamiento (OneLake, lakehouse, warehouse), transformación (notebooks de Spark) y Power BI. Empieza creando un <b>workspace</b> y un <b>lakehouse</b>, carga datos de ejemplo y consúltalos con SQL y con Spark. ¿Primera vez? Sigue el <a href="#/m/fabric-paso-a-paso">curso de Fabric paso a paso</a>.</span></div>
       <div class="fb-row-t"><h2 class="fb-h2">Create</h2></div>
       <div class="fb-crear">${['lakehouse', 'warehouse', 'notebook', 'pipeline', 'semanticmodel'].map((t) => `<button class="fb-tile" data-crear="${t}"><span class="fb-ico" style="--c:${TIPOS[t].col}">${ci(TIPOS[t].ico)}</span><b>${TIPOS[t].n}</b><span class="fb-dim">${TIPOS[t].d}</span></button>`).join('')}</div>
       <h2 class="fb-h2">Recent items</h2>${recientes.length ? tablaItems(recientes.map((x) => ({ ...x.it, _ws: x.wid, _wsn: x.w.nombre })), true) : '<p class="fb-dim">Todavía no hay ítems. Crea uno arriba.</p>'}
@@ -305,7 +309,7 @@
     const linaje = () => {
       const nodos = items.map((it) => {
         const T = TIPOS[it.tipo];
-        const usa = it.tipo === 'notebook' && it.lh ? [it.lh] : it.tipo === 'semanticmodel' && it.origen ? [it.origen] : it.tipo === 'pipeline' ? it.acts.flatMap((a) => [a.dest && a.dest.item, a.nb]).filter(Boolean) : [];
+        const usa = it.tipo === 'notebook' && it.lh ? [it.lh] : it.tipo === 'semanticmodel' && it.origen ? [it.origen] : it.tipo === 'pipeline' ? [...new Set(it.acts.flatMap((a) => [a.dest && a.dest.item, a.nb]).filter(Boolean))] : [];
         return `<div class="fb-lin-n"><span class="fb-ico fb-ico-s" style="--c:${T.col}">${ci(T.ico)}</span><b>${esc(it.nombre)}</b><span class="fb-dim">${T.n}</span>${usa.length ? `<span class="fb-dim fb-sm">→ ${usa.map((u) => esc((W.items[u] || {}).nombre || '')).join(', ')}</span>` : ''}</div>`;
       });
       return `<div class="fb-linaje">${nodos.join('') || '<p class="fb-dim">Sin ítems</p>'}</div>`;

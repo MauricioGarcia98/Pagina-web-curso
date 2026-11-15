@@ -31,7 +31,7 @@ for (const app of apps) {
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 760 }, deviceScaleFactor: 1, serviceWorkers: 'block', locale: 'es-AR' });
   const page = await ctx.newPage();
-  const errores = []; page.on('pageerror', (e) => errores.push(e.message));
+  const errores = []; page.on('pageerror', (e) => errores.push(e.message.slice(0, 60) + ' @ ' + ((e.stack || '').split('\n').find((l) => /\.js\b/.test(l)) || '').trim()));
   let n = 0;
   const c = {
     page, BASE,

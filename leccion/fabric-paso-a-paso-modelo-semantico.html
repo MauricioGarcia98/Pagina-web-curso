@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El modelo semántico - de las tablas al modelo de Power BI · Academia de Datos</title><meta name="description" content="El modelo semántico es lo que Power BI usa para los informes - tablas, relaciones y medidas DAX. Creas uno desde el lakehouse, ves sus tablas en modo Direct Lake, agregas la medida Pedidos con COUNTROWS y entiendes qué es Direct Lake y por qué cambia la forma de hacer informes."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-modelo-semantico.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El modelo semántico - de las tablas al modelo de Power BI · Academia de Datos"><meta property="og:description" content="El modelo semántico es lo que Power BI usa para los informes - tablas, relaciones y medidas DAX. Creas uno desde el lakehouse, ves sus tablas en modo Direct Lake, agregas la medida Pedidos con COUNTROWS y entiendes qué es Direct Lake y por qué cambia la forma de hacer informes."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-modelo-semantico.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#fabric-paso-a-paso">🟩 Fabric paso a paso</a> · 4 · Intermedio-avanzado · 40 min</div>
+<h1>El modelo semántico - de las tablas al modelo de Power BI</h1><p class="resumen">El modelo semántico es lo que Power BI usa para los informes - tablas, relaciones y medidas DAX. Creas uno desde el lakehouse, ves sus tablas en modo Direct Lake, agregas la medida Pedidos con COUNTROWS y entiendes qué es Direct Lake y por qué cambia la forma de hacer informes.</p>
+<a class="cta" href="../index.html#/l/fabric-paso-a-paso-modelo-semantico">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un modelo semántico desde un lakehouse</li><li>Entender el modo Direct Lake</li><li>Agregar una medida DAX</li><li>Ubicar las tablas, columnas y medidas del modelo</li></ul>
+<h2>Paso 1 — Crear el modelo</h2>
+<p>En <code>lh_ventas</code>, <strong>New semantic model</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b15-modelo.webp" alt="Las tablas del lakehouse en el modelo (1) y la cinta con Edit tables, New measure, New report y Exportar CSV (2)" loading="lazy"><figcaption>Las tablas del lakehouse en el modelo (1) y la cinta con Edit tables, New measure, New report y Exportar CSV (2)</figcaption></figure>
+
+
+<p>Arriba a la derecha dice <strong>Storage mode: Direct Lake</strong>.</p>
+<h2>Paso 2 — Qué es Direct Lake</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Modo</th>
+<th>Cómo lee Power BI los datos</th>
+<th>Ventaja</th>
+<th>Desventaja</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Import</strong></td>
+<td>Copia los datos al modelo y los actualiza a horario</td>
+<td>Muy rápido</td>
+<td>Copia y refresco programado</td>
+</tr>
+<tr>
+<td><strong>DirectQuery</strong></td>
+<td>Consulta la fuente en cada interacción</td>
+<td>Siempre al día</td>
+<td>Más lento</td>
+</tr>
+<tr>
+<td><strong>Direct Lake</strong></td>
+<td>Lee directo los archivos <strong>Delta</strong> de OneLake</td>
+<td>Rápido como Import y al día como DirectQuery, <strong>sin copiar</strong></td>
+<td>Solo sobre tablas Delta de OneLake</td>
+</tr>
+</tbody></table></div>
+<p>Direct Lake es una de las grandes razones para usar Fabric: el informe lee las mismas tablas que escribe el notebook.</p>
+<h2>Paso 3 — Una medida</h2>
+<p><strong>New measure</strong>:</p>
+<ul>
+<li><strong>Name</strong>: <code>Pedidos</code>.</li>
+<li><strong>DAX</strong>: <code>COUNTROWS(pedidos)</code>.</li>
+</ul>
+<figure class="captura"><img src="assets/img/guias/fabric/b15-medida.webp" alt="El nombre (1) y la expresión DAX (2)" loading="lazy"><figcaption>El nombre (1) y la expresión DAX (2)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/fabric/b15-modelo-medida.webp" alt="La medida Pedidos en la sección Measures del modelo" loading="lazy"><figcaption>La medida Pedidos en la sección Measures del modelo</figcaption></figure>
+
+
+<p>Las medidas viven en el modelo, no en cada informe: todos los informes que usan este modelo comparten la misma definición de &quot;Pedidos&quot;. El curso <a href="#/m/powerbi-paso-a-paso">Power BI paso a paso</a> cubre DAX a fondo.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste un modelo semántico sobre el lakehouse.</li>
+<li>Sabes qué es Direct Lake y por qué importa.</li>
+<li>Agregaste una medida DAX.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/fabric-paso-a-paso-modelo-semantico">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fabric-paso-a-paso-vistas-y-la-capa-de-negocio.html">← Vistas - la capa que consume el negocio</a><a href="fabric-paso-a-paso-proyecto-modelo-de-ventas.html">Proyecto 4 (con poca ayuda) - del lakehouse al informe de ventas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

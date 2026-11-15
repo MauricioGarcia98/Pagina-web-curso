@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>De la práctica a Fabric real - lo que cambia y lo que no · Academia de Datos</title><meta name="description" content="Antes de entrar a un tenant real, repasas qué hace igual la práctica y qué es distinto - cuentas, capacidad, conexiones, Spark real y los ítems que la práctica no simula. Recorres la pantalla Create con todos los tipos de ítem y armas una lista de seguridad para tu primera semana."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-de-la-practica-a-fabric-real.html">
+<meta property="og:type" content="article"><meta property="og:title" content="De la práctica a Fabric real - lo que cambia y lo que no · Academia de Datos"><meta property="og:description" content="Antes de entrar a un tenant real, repasas qué hace igual la práctica y qué es distinto - cuentas, capacidad, conexiones, Spark real y los ítems que la práctica no simula. Recorres la pantalla Create con todos los tipos de ítem y armas una lista de seguridad para tu primera semana."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-de-la-practica-a-fabric-real.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#fabric-paso-a-paso">🟩 Fabric paso a paso</a> · 6 · Avanzado completo · 35 min</div>
+<h1>De la práctica a Fabric real - lo que cambia y lo que no</h1><p class="resumen">Antes de entrar a un tenant real, repasas qué hace igual la práctica y qué es distinto - cuentas, capacidad, conexiones, Spark real y los ítems que la práctica no simula. Recorres la pantalla Create con todos los tipos de ítem y armas una lista de seguridad para tu primera semana.</p>
+<a class="cta" href="../index.html#/l/fabric-paso-a-paso-de-la-practica-a-fabric-real">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Ubicar todos los tipos de ítem en Create</li><li>Saber qué simula la práctica y qué no</li><li>Preparar el acceso a una prueba real sin riesgos</li><li>Armar la lista de la primera semana</li></ul>
+<h2>Paso 1 — Todo lo que se puede crear</h2>
+<figure class="captura"><img src="assets/img/guias/fabric/b23-create.webp" alt="Create - Store data (Lakehouse, Warehouse, Eventhouse, SQL database), Prepare data (Notebook, Spark Job Definition, Environment) y Get data (Pipeline, Dataflow Gen2, Copy job, Eventstream)" loading="lazy"><figcaption>Create - Store data (Lakehouse, Warehouse, Eventhouse, SQL database), Prepare data (Notebook, Spark Job Definition, Environment) y Get data (Pipeline, Dataflow Gen2, Copy job, Eventstream)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Ítem</th>
+<th>Para qué</th>
+<th>Lo viste</th>
+</tr>
+</thead><tbody><tr>
+<td>Lakehouse, Notebook, Pipeline, Warehouse, Semantic model</td>
+<td>El núcleo de la ingeniería de datos</td>
+<td>✅ en este curso</td>
+</tr>
+<tr>
+<td><strong>Dataflow Gen2</strong></td>
+<td>Transformar con Power Query, sin código</td>
+<td>El editor es el de <a href="#/m/powerbi-paso-a-paso">Power BI</a></td>
+</tr>
+<tr>
+<td><strong>Copy job</strong></td>
+<td>Copiar datos (incluso incrementales) sin armar un pipeline</td>
+<td>Similar a Copy data</td>
+</tr>
+<tr>
+<td><strong>Eventstream / Eventhouse</strong></td>
+<td>Datos en tiempo real y consultas KQL</td>
+<td>No</td>
+</tr>
+<tr>
+<td><strong>SQL database</strong></td>
+<td>Base transaccional (OLTP) que se replica sola a OneLake</td>
+<td>No</td>
+</tr>
+<tr>
+<td><strong>Spark Job Definition / Environment</strong></td>
+<td>Trabajos Spark desde archivos y bibliotecas compartidas</td>
+<td>No</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Qué cambia en Fabric real</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En la práctica</th>
+<th>En Fabric real</th>
+</tr>
+</thead><tbody><tr>
+<td>Spark y SQL corren en tu navegador sobre datos chicos</td>
+<td>Corren en la capacidad, con miles de millones de filas</td>
+</tr>
+<tr>
+<td>No hay cuentas</td>
+<td>Entras con una cuenta de trabajo o escuela de Microsoft Entra</td>
+</tr>
+<tr>
+<td>Schedule muestra un aviso</td>
+<td>Las programaciones corren solas</td>
+</tr>
+<tr>
+<td>New report muestra el camino</td>
+<td>Abre el editor de informes</td>
+</tr>
+<tr>
+<td>Git usa el GitHub de práctica</td>
+<td>Necesita un token o conexión con permisos reales</td>
+</tr>
+<tr>
+<td>Los datos son de ejemplo</td>
+<td>Los datos son de la empresa: cuidado con lo que compartes</td>
+</tr>
+</tbody></table></div>
+<p>Lo que <strong>no</strong> cambia: la pantalla, los nombres de los ítems, el orden de los pasos, el SQL, el PySpark y las decisiones de diseño.</p>
+<h2>Paso 3 — Empezar una prueba real con cuidado</h2>
+<ol>
+<li>Necesitas una cuenta de trabajo o escuela (no una personal de Outlook o Gmail). Si tu empresa ya usa Microsoft 365, pide a TI que habilite Fabric para tu usuario.</li>
+<li>En <code>app.fabric.microsoft.com</code>, el administrador o tú (si está permitido) activa la <strong>prueba gratuita</strong>.</li>
+<li>Crea un workspace propio de práctica, nunca uses uno de producción para aprender.</li>
+</ol>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Capturas y datos</div>
+
+<p>Si compartes capturas de tu Fabric real (en un foro, un portafolio o un ticket), <strong>difumina</strong> correos, nombres de tenant, IDs de workspace y de capacidad, rutas ABFS y cualquier dato de clientes.</p>
+</div>
+
+
+<h2>Paso 4 — Tu primera semana</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Pedir acceso con el rol justo (Contributor en desarrollo, Viewer en producción).</li>
+<li><input disabled="" type="checkbox"> Leer el linaje de los workspaces del equipo antes de tocar nada.</li>
+<li><input disabled="" type="checkbox"> Revisar el Monitor y entender qué corre cada noche.</li>
+<li><input disabled="" type="checkbox"> Clonar el repo de Git del workspace y leer los notebooks.</li>
+<li><input disabled="" type="checkbox"> Hacer el primer cambio en desarrollo, con commit y revisión.</li>
+</ul>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Conoces todos los tipos de ítem y cuáles quedan por aprender.</li>
+<li>Sabes qué cambia al pasar a Fabric real.</li>
+<li>Tienes una lista segura para empezar.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/fabric-paso-a-paso-de-la-practica-a-fabric-real">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fabric-paso-a-paso-capacidad-y-costos.html">← Capacidad y costos - cómo se paga Fabric</a><a href="fabric-paso-a-paso-proyecto-final-plataforma-tienda-andina.html">Proyecto final (sin ayuda) - la plataforma de datos de Tienda Andina →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

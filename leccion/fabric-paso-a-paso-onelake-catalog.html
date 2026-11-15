@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OneLake catalog - encontrar datos y sus rutas · Academia de Datos</title><meta name="description" content="OneLake es el único lago de datos de la organización y el catálogo es su buscador. Filtras por tipo de ítem, ves dueño, workspace y última actualización, y copias la ruta ABFS de una carpeta para leerla desde Spark o desde fuera de Fabric."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-onelake-catalog.html">
+<meta property="og:type" content="article"><meta property="og:title" content="OneLake catalog - encontrar datos y sus rutas · Academia de Datos"><meta property="og:description" content="OneLake es el único lago de datos de la organización y el catálogo es su buscador. Filtras por tipo de ítem, ves dueño, workspace y última actualización, y copias la ruta ABFS de una carpeta para leerla desde Spark o desde fuera de Fabric."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-onelake-catalog.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#fabric-paso-a-paso">🟩 Fabric paso a paso</a> · 5 · Avanzado · 35 min</div>
+<h1>OneLake catalog - encontrar datos y sus rutas</h1><p class="resumen">OneLake es el único lago de datos de la organización y el catálogo es su buscador. Filtras por tipo de ítem, ves dueño, workspace y última actualización, y copias la ruta ABFS de una carpeta para leerla desde Spark o desde fuera de Fabric.</p>
+<a class="cta" href="../index.html#/l/fabric-paso-a-paso-onelake-catalog">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es OneLake</li><li>Buscar y filtrar ítems en el catálogo</li><li>Copiar la ruta ABFS o relativa de un archivo</li><li>Entender las pestañas Govern y Secure</li></ul>
+<h2>Paso 1 — Qué es OneLake</h2>
+<div class="callout callout-analogia"><div class="callout-title">🧠 OneDrive para datos</div>
+
+<p>Así como OneDrive guarda los documentos de toda la empresa en un solo lugar, <strong>OneLake</strong> guarda los datos de todos los workspaces. Hay <strong>uno por organización</strong> (por tenant). Cada lakehouse y warehouse es una carpeta dentro de él, y todo se guarda en formato Delta abierto.</p>
+</div>
+
+
+<h2>Paso 2 — Recorrer el catálogo</h2>
+<p>Barra izquierda → <strong>OneLake</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b18-onelake.webp" alt="Los filtros por tipo (1) y los ítems con su tipo, workspace, dueño y última actualización (2)" loading="lazy"><figcaption>Los filtros por tipo (1) y los ítems con su tipo, workspace, dueño y última actualización (2)</figcaption></figure>
+
+
+<p>Las pestañas de arriba:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pestaña</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Explore</strong></td>
+<td>Buscar ítems de datos</td>
+</tr>
+<tr>
+<td><strong>Govern</strong></td>
+<td>Ver el estado de gobierno: etiquetas de sensibilidad, ítems sin descripción, certificados</td>
+</tr>
+<tr>
+<td><strong>Secure</strong></td>
+<td>Revisar quién tiene acceso a qué</td>
+</tr>
+</tbody></table></div>
+<p>Filtra por <strong>Lakehouse</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b18-filtro.webp" alt="El filtro Lakehouse activo - solo quedan lh_ventas y lh_reportes, cada uno con su SQL analytics endpoint" loading="lazy"><figcaption>El filtro Lakehouse activo - solo quedan lh_ventas y lh_reportes, cada uno con su SQL analytics endpoint</figcaption></figure>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Endorsement y Sensitivity</div>
+
+<p><strong>Endorsement</strong> marca un ítem como <em>Promoted</em> o <em>Certified</em> (confiable para usar). <strong>Sensitivity</strong> muestra la etiqueta de Microsoft Purview (Confidencial, General…). En una empresa grande, busca primero lo certificado antes de crear una copia propia.</p>
+</div>
+
+
+<h2>Paso 3 — Copiar la ruta de un archivo</h2>
+<p>En <code>lh_ventas</code>, carpeta <strong>Files/raw</strong>, menú <strong>…</strong> del archivo:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b18-abfs.webp" alt="Load to Tables, Copy ABFS path, Copy relative path for Spark y Delete" loading="lazy"><figcaption>Load to Tables, Copy ABFS path, Copy relative path for Spark y Delete</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Ruta</th>
+<th>Forma</th>
+<th>Dónde se usa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>ABFS</strong></td>
+<td><code>abfss://&lt;workspace&gt;@onelake.dfs.fabric.microsoft.com/&lt;lakehouse&gt;.Lakehouse/Files/raw/pedidos_2024.csv</code></td>
+<td>Desde cualquier lado: otro workspace, Azure Databricks, herramientas con el conector de ADLS</td>
+</tr>
+<tr>
+<td><strong>Relativa</strong></td>
+<td><code>Files/raw/pedidos_2024.csv</code></td>
+<td>En un notebook con ese lakehouse como predeterminado</td>
+</tr>
+</tbody></table></div>
+<pre data-norun><code class="language-python">df = spark.read.option(&quot;header&quot;, True).csv(&quot;Files/raw/pedidos_2024.csv&quot;)</code></pre>
+<p>OneLake habla la misma API que Azure Data Lake Storage Gen2: por eso las herramientas que ya leían ADLS también leen OneLake.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes qué es OneLake y cómo buscar en su catálogo.</li>
+<li>Copiaste rutas ABFS y relativas.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/fabric-paso-a-paso-onelake-catalog">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fabric-paso-a-paso-monitor.html">← Monitor - qué corrió, cuánto tardó y qué falló</a><a href="fabric-paso-a-paso-git-en-fabric.html">Git en Fabric - conectar el workspace a un repositorio →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

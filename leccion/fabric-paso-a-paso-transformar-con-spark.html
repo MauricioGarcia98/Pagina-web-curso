@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transformar con Spark SQL y PySpark - escribir tablas nuevas · Academia de Datos</title><meta name="description" content="Un notebook no solo lee - escribe tablas Delta nuevas en el lakehouse. Creas ventas_por_canal con CREATE OR REPLACE TABLE en Spark SQL y unidades_por_tienda con PySpark y saveAsTable, las ves aparecer en Tables y entiendes los modos de escritura y cuándo usar cada lenguaje."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-transformar-con-spark.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Transformar con Spark SQL y PySpark - escribir tablas nuevas · Academia de Datos"><meta property="og:description" content="Un notebook no solo lee - escribe tablas Delta nuevas en el lakehouse. Creas ventas_por_canal con CREATE OR REPLACE TABLE en Spark SQL y unidades_por_tienda con PySpark y saveAsTable, las ves aparecer en Tables y entiendes los modos de escritura y cuándo usar cada lenguaje."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-transformar-con-spark.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#fabric-paso-a-paso">🟩 Fabric paso a paso</a> · 3 · Intermedio · 40 min</div>
+<h1>Transformar con Spark SQL y PySpark - escribir tablas nuevas</h1><p class="resumen">Un notebook no solo lee - escribe tablas Delta nuevas en el lakehouse. Creas ventas_por_canal con CREATE OR REPLACE TABLE en Spark SQL y unidades_por_tienda con PySpark y saveAsTable, las ves aparecer en Tables y entiendes los modos de escritura y cuándo usar cada lenguaje.</p>
+<a class="cta" href="../index.html#/l/fabric-paso-a-paso-transformar-con-spark">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una tabla con CREATE OR REPLACE TABLE … AS SELECT</li><li>Agregar con PySpark y guardar con saveAsTable</li><li>Elegir el modo de escritura (overwrite, append)</li><li>Verificar las tablas nuevas en el lakehouse</li></ul>
+<h2>Paso 1 — Una tabla con Spark SQL</h2>
+<p>En el notebook, <strong>+ Code</strong> y escribe:</p>
+<pre data-norun><code class="language-sql">%%sql
+CREATE OR REPLACE TABLE ventas_por_canal AS
+SELECT canal, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY canal</code></pre>
+<h2>Paso 2 — Una tabla con PySpark</h2>
+<p>Otra celda:</p>
+<pre data-norun><code class="language-python">df = spark.table(&quot;ventas_tiendas&quot;)
+resumen = df.groupBy(&quot;tienda&quot;).sum(&quot;cantidad&quot;)
+resumen.write.mode(&quot;overwrite&quot;).saveAsTable(&quot;unidades_por_tienda&quot;)
+display(resumen)</code></pre>
+<p><strong>Run all</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b10-celdas.webp" alt="La celda de Spark SQL (1) y la de PySpark (2), con su resultado por tienda" loading="lazy"><figcaption>La celda de Spark SQL (1) y la de PySpark (2), con su resultado por tienda</figcaption></figure>
+
+
+<h2>Paso 3 — Las tablas nuevas</h2>
+<p>Vuelve al lakehouse:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b10-tablas-nuevas.webp" alt="ventas_por_canal y unidades_por_tienda en Tables (1), y el contenido de la segunda (2)" loading="lazy"><figcaption>ventas_por_canal y unidades_por_tienda en Tables (1), y el contenido de la segunda (2)</figcaption></figure>
+
+
+<p>Son tablas <strong>Delta</strong> como cualquier otra: el endpoint SQL y Power BI las ven enseguida.</p>
+<h2>Paso 4 — Modos de escritura</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Modo</th>
+<th>Qué hace</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>overwrite</code></td>
+<td>Reemplaza la tabla entera</td>
+<td>Resúmenes que se recalculan completos</td>
+</tr>
+<tr>
+<td><code>append</code></td>
+<td>Agrega filas</td>
+<td>Cargas incrementales de datos nuevos</td>
+</tr>
+<tr>
+<td><code>MERGE INTO</code> (Spark SQL)</td>
+<td>Inserta lo nuevo y actualiza lo existente</td>
+<td>Mantener una tabla al día sin duplicar</td>
+</tr>
+</tbody></table></div>
+<pre data-norun><code class="language-sql">%%sql
+MERGE INTO clientes AS t
+USING clientes_nuevos AS s
+ON t.cliente_id = s.cliente_id
+WHEN MATCHED THEN UPDATE SET *
+WHEN NOT MATCHED THEN INSERT *</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 ¿SQL o PySpark?</div>
+
+<p>Las dos generan el mismo plan en Spark. <strong>SQL</strong> es más claro para seleccionar, unir y agrupar. <strong>PySpark</strong> conviene cuando hay lógica (bucles, funciones, leer muchos archivos, llamar APIs). En un mismo notebook se mezclan sin problema.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Escribiste tablas Delta con Spark SQL y con PySpark.</li>
+<li>Conoces los modos de escritura y cuándo usar cada lenguaje.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/fabric-paso-a-paso-transformar-con-spark">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fabric-paso-a-paso-notebooks.html">← Notebooks - Spark sobre el lakehouse</a><a href="fabric-paso-a-paso-pipelines.html">Pipelines en Fabric - copiar y ejecutar notebooks en orden →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

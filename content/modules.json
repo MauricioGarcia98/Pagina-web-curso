@@ -367,6 +367,20 @@
     ]
   },
   {
+    "id": "fabric-paso-a-paso",
+    "titulo": "Fabric paso a paso",
+    "icono": "🟩",
+    "color": "#117865",
+    "descripcion": "De cero a dominarlo en 24 lecciones y 6 niveles (básico → avanzado completo), con capturas del Microsoft Fabric de práctica: workspaces, lakehouse con Files y Tables, Load to Tables, datos de ejemplo y tablas Delta, el SQL analytics endpoint, accesos directos, notebooks con PySpark y Spark SQL, pipelines, warehouse con T-SQL y consultas entre ítems, vistas, modelo semántico con Direct Lake y medidas, Monitor, OneLake catalog, Git, licencias, roles, seguridad y costos de capacidad. Cada nivel cierra con un proyecto real de la plataforma de ventas de Tienda Andina con menos ayuda que el anterior, y termina con el paso a Fabric real.",
+    "objetivos": [
+      "Organizar el trabajo en workspaces y guardar datos en un lakehouse con tablas Delta",
+      "Consultar con el SQL analytics endpoint y reutilizar datos con accesos directos",
+      "Transformar con notebooks y automatizar con pipelines",
+      "Construir la capa de negocio con warehouse, vistas y modelo semántico",
+      "Operar, versionar, asegurar y dimensionar la plataforma"
+    ]
+  },
+  {
     "id": "arquitectura",
     "titulo": "Arquitectura de datos",
     "icono": "🏛️",
