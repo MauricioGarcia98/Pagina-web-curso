@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Publicar y compartir - el servicio de Power BI, áreas de trabajo, apps y permisos · Academia de Datos</title><meta name="description" content="Un informe que solo existe en tu computadora no sirve al negocio. Publicar desde Desktop, qué se sube (modelo semántico e informe), el servicio de Power BI - áreas de trabajo y sus roles, el informe en el navegador, compartir con un vínculo, apps para muchas personas - y cuándo usar cada forma de distribución."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-publicar-y-compartir.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Publicar y compartir - el servicio de Power BI, áreas de trabajo, apps y permisos · Academia de Datos"><meta property="og:description" content="Un informe que solo existe en tu computadora no sirve al negocio. Publicar desde Desktop, qué se sube (modelo semántico e informe), el servicio de Power BI - áreas de trabajo y sus roles, el informe en el navegador, compartir con un vínculo, apps para muchas personas - y cuándo usar cada forma de distribución."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-publicar-y-compartir.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi-paso-a-paso">📈 Power BI paso a paso</a> · 5 · Avanzado · 50 min</div>
+<h1>Publicar y compartir - el servicio de Power BI, áreas de trabajo, apps y permisos</h1><p class="resumen">Un informe que solo existe en tu computadora no sirve al negocio. Publicar desde Desktop, qué se sube (modelo semántico e informe), el servicio de Power BI - áreas de trabajo y sus roles, el informe en el navegador, compartir con un vínculo, apps para muchas personas - y cuándo usar cada forma de distribución.</p>
+<a class="cta" href="../index.html#/l/powerbi-paso-a-paso-publicar-y-compartir">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Publicar un informe en un área de trabajo</li><li>Distinguir modelo semántico e informe en el servicio</li><li>Elegir entre compartir, rol en el área de trabajo y app</li><li>Conocer los roles del área de trabajo</li><li>Recorrer el servicio</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Publicar es pasar el plato de la cocina al comedor. El servicio de Power BI es el restaurante: las <strong>áreas de trabajo</strong> son las cocinas de cada equipo, los <strong>roles</strong> dicen quién puede cocinar y quién solo come, y las <strong>apps</strong> son el menú del día que se entrega a cientos de comensales.</p>
+</div>
+
+
+<h2>Paso 1 — Publicar</h2>
+<p><strong>Inicio → Publicar</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b17-publicar.webp" alt="El nombre del informe (1), el área de trabajo de destino (2) y Seleccionar (3)" loading="lazy"><figcaption>El nombre del informe (1), el área de trabajo de destino (2) y Seleccionar (3)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/powerbi/b17-publicado.webp" alt="Publicado - el vínculo abre el informe en el servicio" loading="lazy"><figcaption>Publicado - el vínculo abre el informe en el servicio</figcaption></figure>
+
+
+<p>Al publicar se suben <strong>dos elementos</strong>: el <strong>modelo semántico</strong> (tablas, relaciones, medidas, roles) y el <strong>informe</strong> (las páginas) que lo usa. Un mismo modelo puede alimentar muchos informes.</p>
+<h2>Paso 2 — El informe en el servicio</h2>
+<figure class="captura"><img src="assets/img/guias/powerbi/b17-informe-servicio.webp" alt="El informe en el navegador - Compartir, Modelo semántico, Editar en Desktop y Ver como" loading="lazy"><figcaption>El informe en el navegador - Compartir, Modelo semántico, Editar en Desktop y Ver como</figcaption></figure>
+
+
+<p>Quien lo abre en el navegador puede filtrar, usar segmentaciones, Obtener detalles y marcadores, pero no cambiar el diseño (salvo que tenga permiso de edición).</p>
+<h2>Paso 3 — Áreas de trabajo y roles</h2>
+<figure class="captura"><img src="assets/img/guias/powerbi/b17-areas.webp" alt="Las áreas de trabajo - Mi área de trabajo (personal) y las de cada equipo" loading="lazy"><figcaption>Las áreas de trabajo - Mi área de trabajo (personal) y las de cada equipo</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/powerbi/b17-area-trabajo.webp" alt="Dentro de un área de trabajo - el modelo semántico y el informe publicados" loading="lazy"><figcaption>Dentro de un área de trabajo - el modelo semántico y el informe publicados</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Rol</th>
+<th>Puede</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Administrador</strong></td>
+<td>Todo: miembros, configuración, borrar el área</td>
+</tr>
+<tr>
+<td><strong>Miembro</strong></td>
+<td>Publicar, editar, compartir y gestionar contenido</td>
+</tr>
+<tr>
+<td><strong>Colaborador</strong></td>
+<td>Publicar y editar contenido, sin compartir ni gestionar el área</td>
+</tr>
+<tr>
+<td><strong>Visor</strong></td>
+<td>Solo ver e interactuar (y es el único al que se le aplica la seguridad por filas)</td>
+</tr>
+</tbody></table></div>
+<p><strong>Mi área de trabajo</strong> es personal: sirve para pruebas, no para compartir con el equipo.</p>
+<h2>Paso 4 — Tres formas de distribuir</h2>
+<p><strong>Compartir</strong> en el informe:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b17-compartir.webp" alt="Enviar vínculo - para quién funciona, si pueden volver a compartir y el permiso de compilación" loading="lazy"><figcaption>Enviar vínculo - para quién funciona, si pueden volver a compartir y el permiso de compilación</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Forma</th>
+<th>Para</th>
+<th>Ventaja</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Compartir</strong> (vínculo)</td>
+<td>Pocas personas, puntualmente</td>
+<td>Rápido</td>
+</tr>
+<tr>
+<td><strong>Rol en el área de trabajo</strong></td>
+<td>El equipo que construye</td>
+<td>Trabajan juntos sobre el contenido</td>
+</tr>
+<tr>
+<td><strong>App</strong></td>
+<td>Muchas personas que consumen</td>
+<td>Un paquete ordenado de informes con navegación; se actualiza cuando el equipo la republica</td>
+</tr>
+</tbody></table></div>
+<figure class="captura"><img src="assets/img/guias/powerbi/b17-apps.webp" alt="Apps - el contenido que publicaron las áreas de trabajo para consumir" loading="lazy"><figcaption>Apps - el contenido que publicaron las áreas de trabajo para consumir</figcaption></figure>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 Licencias</div>
+
+<p>En Power BI real, compartir y ver contenido de otros requiere licencia <strong>Pro</strong> o <strong>Premium por usuario</strong> para cada persona, salvo que el área de trabajo esté en una capacidad (Premium o Fabric F64 o superior), donde los lectores no necesitan licencia propia. Es una conversación que tu empresa ya tuvo: pregunta cuál usan.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Publicaste un informe y lo abriste en el servicio.</li>
+<li>Conoces las áreas de trabajo y sus roles.</li>
+<li>Sabes cuándo compartir, dar un rol o armar una app.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-paso-a-paso-publicar-y-compartir">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-paso-a-paso-proyecto-informe-interactivo.html">← Proyecto 4 (con requisitos) - el informe comercial interactivo de tres páginas</a><a href="powerbi-paso-a-paso-actualizacion-gateway-y-credenciales.html">Que los datos se actualicen solos - actualización programada, puerta de enlace y credenciales →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

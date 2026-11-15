@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power Query - el editor, los pasos aplicados y el lenguaje M · Academia de Datos</title><meta name="description" content="Power Query es donde se limpian los datos antes de que lleguen al modelo. Las zonas del editor (cinta, consultas, vista previa, barra de fórmulas, pasos aplicados), el menú de cada columna para ordenar, quitar y filtrar, cómo cada clic se graba como un paso en lenguaje M, el perfil de columna para medir la calidad y el Editor avanzado con la consulta completa."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-power-query.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Power Query - el editor, los pasos aplicados y el lenguaje M · Academia de Datos"><meta property="og:description" content="Power Query es donde se limpian los datos antes de que lleguen al modelo. Las zonas del editor (cinta, consultas, vista previa, barra de fórmulas, pasos aplicados), el menú de cada columna para ordenar, quitar y filtrar, cómo cada clic se graba como un paso en lenguaje M, el perfil de columna para medir la calidad y el Editor avanzado con la consulta completa."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-power-query.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi-paso-a-paso">📈 Power BI paso a paso</a> · 2 · Básico-intermedio · 45 min</div>
+<h1>Power Query - el editor, los pasos aplicados y el lenguaje M</h1><p class="resumen">Power Query es donde se limpian los datos antes de que lleguen al modelo. Las zonas del editor (cinta, consultas, vista previa, barra de fórmulas, pasos aplicados), el menú de cada columna para ordenar, quitar y filtrar, cómo cada clic se graba como un paso en lenguaje M, el perfil de columna para medir la calidad y el Editor avanzado con la consulta completa.</p>
+<a class="cta" href="../index.html#/l/powerbi-paso-a-paso-power-query">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Reconocer las zonas del Editor de Power Query</li><li>Quitar columnas, cambiar mayúsculas y filtrar valores</li><li>Leer y editar los pasos aplicados</li><li>Medir la calidad de una columna con el perfil</li><li>Leer una consulta completa en M</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Power Query es una receta que se graba sola: cada vez que haces algo (quitar una columna, cambiar mayúsculas, filtrar), queda anotado como un paso. Cuando llegan datos nuevos, Power BI repite la receta entera sin que vuelvas a hacer nada.</p>
+</div>
+
+
+<h2>Paso 1 — Abrir el editor</h2>
+<p><strong>Inicio → Transformar datos</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b05-editor.webp" alt="Las pestañas de la cinta (1), las consultas (2), la vista previa de los datos (3), la configuración con los pasos aplicados (4) y la barra de fórmulas con el M del paso (5)" loading="lazy"><figcaption>Las pestañas de la cinta (1), las consultas (2), la vista previa de los datos (3), la configuración con los pasos aplicados (4) y la barra de fórmulas con el M del paso (5)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Zona</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Cinta</strong></td>
+<td>Inicio (quitar columnas y filas, agrupar, combinar), Transformar (tipos, reemplazar, mayúsculas, anular dinamización), Agregar columna (personalizada, condicional, índice), Vista (perfil, Editor avanzado)</td>
+</tr>
+<tr>
+<td><strong>Consultas</strong></td>
+<td>Una por tabla. Al hacer clic, la vista previa cambia a esa tabla</td>
+</tr>
+<tr>
+<td><strong>Vista previa</strong></td>
+<td>Las primeras filas; arriba de cada columna, el ícono del tipo (<code>1²3</code> entero, <code>ABC</code> texto, 📅 fecha) y la flecha ▾ del menú</td>
+</tr>
+<tr>
+<td><strong>Pasos aplicados</strong></td>
+<td>La receta de la consulta, en orden</td>
+</tr>
+<tr>
+<td><strong>Barra de fórmulas</strong></td>
+<td>El código M del paso seleccionado</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — El menú de una columna</h2>
+<p>En la consulta <strong>clientes</strong>, haz clic en la flecha ▾ de la columna <code>pais</code>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b05-menu-columna.webp" alt="Ordenar, quitar, quitar duplicados o vacíos, filtros por condición y la lista de valores para quedarte solo con algunos" loading="lazy"><figcaption>Ordenar, quitar, quitar duplicados o vacíos, filtros por condición y la lista de valores para quedarte solo con algunos</figcaption></figure>
+
+
+<p>Desmarcar un valor de la lista y <strong>Aceptar</strong> crea un paso <strong>Filas filtradas</strong>: esas filas no llegan al modelo.</p>
+<h2>Paso 3 — Transformar y mirar los pasos</h2>
+<ol>
+<li>Selecciona la columna <code>telefono</code> (clic en el encabezado) → <strong>Inicio → Quitar columnas</strong>.</li>
+<li>Selecciona <code>segmento</code> → <strong>Transformar → MAYÚSCULAS</strong>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/powerbi/b05-pasos.webp" alt="Cada acción quedó como un paso (1); la barra de fórmulas muestra su M (2)" loading="lazy"><figcaption>Cada acción quedó como un paso (1); la barra de fórmulas muestra su M (2)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Acción con los pasos</th>
+<th>Cómo</th>
+</tr>
+</thead><tbody><tr>
+<td>Ver cómo estaba la tabla en un paso anterior</td>
+<td>Clic en ese paso</td>
+</tr>
+<tr>
+<td>Borrar un paso</td>
+<td>La ✕ junto al paso</td>
+</tr>
+<tr>
+<td>Leer qué hace</td>
+<td>La barra de fórmulas: <code>= Table.RemoveColumns(#&quot;Navegación&quot;, {&quot;telefono&quot;})</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Borrar un paso del medio</div>
+
+<p>Si borras un paso del que dependen los siguientes (por ejemplo, el que cambió el nombre de una columna que después se usa), los pasos siguientes fallan. Revisa la vista previa después de borrar.</p>
+</div>
+
+
+<h2>Paso 4 — El perfil de columna</h2>
+<p><strong>Vista → Perfil de columna</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b05-perfil.webp" alt="Encima de cada columna, el porcentaje de valores válidos y vacíos y cuántos distintos hay" loading="lazy"><figcaption>Encima de cada columna, el porcentaje de valores válidos y vacíos y cuántos distintos hay</figcaption></figure>
+
+
+<p>Antes de modelar, mira: ¿cuántos vacíos tiene <code>email</code>? ¿<code>pais</code> tiene solo los valores que esperas? Lo que veas acá explica los números raros de después.</p>
+<h2>Paso 5 — El Editor avanzado</h2>
+<p><strong>Vista → Editor avanzado</strong> muestra la consulta entera en <strong>M</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b05-editor-avanzado.webp" alt="La consulta completa - let con un paso por línea, in con el resultado" loading="lazy"><figcaption>La consulta completa - let con un paso por línea, in con el resultado</figcaption></figure>
+
+
+<pre><code class="language-text">let
+    Origen = Sqlite.Database(File.Contents(&quot;curso.db&quot;)),
+    #&quot;Navegación&quot; = Origen{[Name=&quot;clientes&quot;]}[Data],
+    #&quot;Columnas quitadas&quot; = Table.RemoveColumns(#&quot;Navegación&quot;, {&quot;telefono&quot;})
+in
+    #&quot;Columnas quitadas&quot;</code></pre>
+<p>Cada paso usa el resultado del anterior por su nombre. No hace falta escribir M para usar Power Query, pero leerlo ayuda a entender qué pasa y a copiar una consulta de un archivo a otro.</p>
+<h2>Paso 6 — Cerrar y aplicar</h2>
+<p><strong>Cerrar y aplicar</strong> (arriba a la izquierda) ejecuta todas las consultas y carga el resultado al modelo. Hasta que no lo hagas, los cambios no llegan al informe.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Conoces las zonas del editor.</li>
+<li>Transformaste columnas y leíste los pasos y su M.</li>
+<li>Mediste la calidad con el perfil y viste la consulta completa.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-paso-a-paso-power-query">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-paso-a-paso-proyecto-primer-informe.html">← Proyecto 1 (guiado) - el informe de pedidos para la reunión del lunes</a><a href="powerbi-paso-a-paso-transformaciones-que-mas-se-usan.html">Las transformaciones que más se usan - columnas personalizadas, condicionales, agrupar y combinar →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

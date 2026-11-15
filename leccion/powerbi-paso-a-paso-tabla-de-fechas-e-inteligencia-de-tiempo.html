@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tabla de fechas e inteligencia de tiempo - acumulado del año y año anterior · Academia de Datos</title><meta name="description" content="Comparar con el año anterior o mostrar el acumulado del año es de lo más pedido en un informe. Para hacerlo bien hace falta una tabla de fechas - crearla con CALENDAR y ADDCOLUMNS, relacionarla con los pedidos, marcarla como tabla de fechas - y después las funciones de inteligencia de tiempo TOTALYTD, SAMEPERIODLASTYEAR y DATEADD, con el crecimiento interanual."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-tabla-de-fechas-e-inteligencia-de-tiempo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Tabla de fechas e inteligencia de tiempo - acumulado del año y año anterior · Academia de Datos"><meta property="og:description" content="Comparar con el año anterior o mostrar el acumulado del año es de lo más pedido en un informe. Para hacerlo bien hace falta una tabla de fechas - crearla con CALENDAR y ADDCOLUMNS, relacionarla con los pedidos, marcarla como tabla de fechas - y después las funciones de inteligencia de tiempo TOTALYTD, SAMEPERIODLASTYEAR y DATEADD, con el crecimiento interanual."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-tabla-de-fechas-e-inteligencia-de-tiempo.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi-paso-a-paso">📈 Power BI paso a paso</a> · 3 · Intermedio · 50 min</div>
+<h1>Tabla de fechas e inteligencia de tiempo - acumulado del año y año anterior</h1><p class="resumen">Comparar con el año anterior o mostrar el acumulado del año es de lo más pedido en un informe. Para hacerlo bien hace falta una tabla de fechas - crearla con CALENDAR y ADDCOLUMNS, relacionarla con los pedidos, marcarla como tabla de fechas - y después las funciones de inteligencia de tiempo TOTALYTD, SAMEPERIODLASTYEAR y DATEADD, con el crecimiento interanual.</p>
+<a class="cta" href="../index.html#/l/powerbi-paso-a-paso-tabla-de-fechas-e-inteligencia-de-tiempo">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una tabla calculada de fechas</li><li>Relacionarla con la tabla de hechos</li><li>Marcarla como tabla de fechas</li><li>Escribir medidas de acumulado y de año anterior</li><li>Calcular el crecimiento interanual</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Para comparar &quot;este marzo con el marzo pasado&quot;, Power BI necesita un calendario completo, con todos los días en fila, sin huecos. La tabla de fechas es ese calendario de pared: le cuelgas los pedidos y las funciones de tiempo saben ir para atrás y para adelante.</p>
+</div>
+
+
+<h2>Paso 1 — La tabla de fechas</h2>
+<p><strong>Modelado → Nueva tabla</strong>:</p>
+<pre><code class="language-text">Calendario = ADDCOLUMNS(
+    CALENDAR(DATE(2022, 1, 1), DATE(2024, 12, 31)),
+    &quot;Año&quot;, YEAR([Date]),
+    &quot;Mes&quot;, FORMAT([Date], &quot;yyyy-MM&quot;),
+    &quot;Nombre mes&quot;, FORMAT([Date], &quot;MMM&quot;)
+)</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>CALENDAR(inicio, fin)</code></td>
+<td>Una tabla con una columna <code>Date</code> y una fila por día, sin huecos</td>
+</tr>
+<tr>
+<td><code>ADDCOLUMNS(tabla, &quot;nombre&quot;, expresión, …)</code></td>
+<td>Agrega columnas calculadas a esa tabla</td>
+</tr>
+<tr>
+<td><code>FORMAT([Date], &quot;yyyy-MM&quot;)</code></td>
+<td>El mes como texto ordenable (<code>2024-03</code>)</td>
+</tr>
+</tbody></table></div>
+<p>Los pedidos van de 2022-01-01 a 2024-12-31: 1096 días. (<code>CALENDARAUTO()</code> arma el rango solo mirando las fechas del modelo.)</p>
+<h2>Paso 2 — Relacionarla</h2>
+<p><strong>Modelado → Administrar relaciones → Nueva relación</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b11-nueva-relacion.webp" alt="Desde pedidos (1), columna fecha_pedido (2), a Calendario (3), columna Date (4), varios a uno (5), dirección única (6)" loading="lazy"><figcaption>Desde pedidos (1), columna fecha_pedido (2), a Calendario (3), columna Date (4), varios a uno (5), dirección única (6)</figcaption></figure>
+
+
+<p>El filtro de un mes de <code>Calendario</code> llega a <code>pedidos</code> y de ahí a <code>detalle_pedidos</code>.</p>
+<h2>Paso 3 — Marcar como tabla de fechas</h2>
+<p>En la vista Modelo, clic en la tabla <strong>Calendario</strong> → Propiedades → <strong>Columna de fecha: Date</strong> → <strong>Marcar como tabla de fechas</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b11-marcar-fechas.webp" alt="Propiedades de Calendario - la columna de fecha y el botón Marcar como tabla de fechas" loading="lazy"><figcaption>Propiedades de Calendario - la columna de fecha y el botón Marcar como tabla de fechas</figcaption></figure>
+
+
+<p>Marcarla le dice a Power BI que esa es &quot;la&quot; fecha del modelo: las funciones de tiempo la usan con seguridad y se dejan de crear las jerarquías automáticas ocultas de cada columna de fecha.</p>
+<h2>Paso 4 — Las medidas de tiempo</h2>
+<pre><code class="language-text">Ventas YTD = TOTALYTD([Ventas], Calendario[Date])
+Ventas año anterior = CALCULATE([Ventas], SAMEPERIODLASTYEAR(Calendario[Date]))
+Crecimiento % = DIVIDE([Ventas] - [Ventas año anterior], [Ventas año anterior])</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>TOTALYTD([m], Calendario[Date])</code></td>
+<td>Acumula desde el 1 de enero hasta la fecha del contexto</td>
+</tr>
+<tr>
+<td><code>SAMEPERIODLASTYEAR(Calendario[Date])</code></td>
+<td>Cambia el contexto al mismo período del año anterior</td>
+</tr>
+<tr>
+<td><code>DATEADD(Calendario[Date], -1, MONTH)</code></td>
+<td>Corre el período: −1 mes, −1 trimestre, −1 año</td>
+</tr>
+<tr>
+<td><code>DATESYTD</code>, <code>DATESMTD</code></td>
+<td>Las fechas del año o mes hasta la fecha, para usar dentro de CALCULATE</td>
+</tr>
+</tbody></table></div>
+<p>Un gráfico de líneas con <code>Calendario[Mes]</code> en el eje y <strong>Ventas</strong> y <strong>Ventas año anterior</strong> en los valores:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b11-inteligencia-tiempo.webp" alt="Ventas y Ventas año anterior por mes (1), con las dos medidas en el Eje Y (2) - en 2022 el año anterior queda en cero porque no hay datos de 2021" loading="lazy"><figcaption>Ventas y Ventas año anterior por mes (1), con las dos medidas en el Eje Y (2) - en 2022 el año anterior queda en cero porque no hay datos de 2021</figcaption></figure>
+
+
+<h2>Paso 5 — Verificar</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Año</th>
+<th>Ventas</th>
+<th>Ventas año anterior</th>
+<th>Crecimiento %</th>
+</tr>
+</thead><tbody><tr>
+<td>2022</td>
+<td>3 925 013,46</td>
+<td>(vacío)</td>
+<td>(vacío)</td>
+</tr>
+<tr>
+<td>2023</td>
+<td>4 925 094,46</td>
+<td>3 925 013,46</td>
+<td>25,5 %</td>
+</tr>
+<tr>
+<td>2024</td>
+<td>6 027 906,15</td>
+<td>4 925 094,46</td>
+<td>22,4 %</td>
+</tr>
+</tbody></table></div>
+<p>Arma una tabla con <code>Calendario[Año]</code> y las tres medidas y compara. <strong>Ventas YTD</strong> en diciembre de cada año es igual a las ventas del año completo.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La fecha que usas importa</div>
+
+<p>La relación usa <code>fecha_pedido</code>. Si el negocio mide ventas por fecha de entrega o de pago, los números por mes cambian. Define con el área cuál es &quot;la&quot; fecha antes de construir; si necesitas las dos, una relación queda inactiva y se usa con <code>USERELATIONSHIP</code> dentro de CALCULATE.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste, relacionaste y marcaste una tabla de fechas.</li>
+<li>Escribiste acumulado del año, año anterior y crecimiento.</li>
+<li>Verificaste los números año por año.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-paso-a-paso-tabla-de-fechas-e-inteligencia-de-tiempo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-paso-a-paso-calculate-y-contexto.html">← CALCULATE y el contexto de filtro - la función más importante de DAX</a><a href="powerbi-paso-a-paso-proyecto-crecimiento-ventas.html">Proyecto 3 (pistas cerradas) - el informe de crecimiento de ventas para dirección →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

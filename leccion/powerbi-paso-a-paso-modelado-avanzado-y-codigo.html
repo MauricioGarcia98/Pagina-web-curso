@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Herramientas avanzadas - grupos de cálculo, parámetros, TMDL y proyectos .pbip · Academia de Datos</title><meta name="description" content="Las herramientas que usan los equipos de BI con modelos grandes y trabajo en equipo - grupos de cálculo para no escribir la misma medida diez veces, parámetros de campo y de hipótesis para que el usuario elija, la vista TMDL para ver y editar el modelo como texto, y los proyectos .pbip para versionar en Git y desplegar con canalizaciones."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-modelado-avanzado-y-codigo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Herramientas avanzadas - grupos de cálculo, parámetros, TMDL y proyectos .pbip · Academia de Datos"><meta property="og:description" content="Las herramientas que usan los equipos de BI con modelos grandes y trabajo en equipo - grupos de cálculo para no escribir la misma medida diez veces, parámetros de campo y de hipótesis para que el usuario elija, la vista TMDL para ver y editar el modelo como texto, y los proyectos .pbip para versionar en Git y desplegar con canalizaciones."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-modelado-avanzado-y-codigo.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi-paso-a-paso">📈 Power BI paso a paso</a> · 6 · Avanzado completo · 50 min</div>
+<h1>Herramientas avanzadas - grupos de cálculo, parámetros, TMDL y proyectos .pbip</h1><p class="resumen">Las herramientas que usan los equipos de BI con modelos grandes y trabajo en equipo - grupos de cálculo para no escribir la misma medida diez veces, parámetros de campo y de hipótesis para que el usuario elija, la vista TMDL para ver y editar el modelo como texto, y los proyectos .pbip para versionar en Git y desplegar con canalizaciones.</p>
+<a class="cta" href="../index.html#/l/powerbi-paso-a-paso-modelado-avanzado-y-codigo">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un grupo de cálculo con SELECTEDMEASURE</li><li>Usar parámetros para que el usuario elija medida o valor</li><li>Leer y editar el modelo en TMDL</li><li>Explicar qué es un proyecto .pbip y por qué se usa con Git</li><li>Conocer las canalizaciones de implementación</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Si tienes diez medidas y quieres para cada una &quot;año anterior&quot;, &quot;acumulado&quot; y &quot;variación&quot;, son treinta medidas más. Un grupo de cálculo es un molde: escribes &quot;año anterior de <em>lo que sea</em>&quot; una vez y se aplica a todas. Y TMDL es la receta del modelo escrita en texto: se puede leer, comparar y guardar en Git.</p>
+</div>
+
+
+<h2>Paso 1 — Grupos de cálculo</h2>
+<p><strong>Modelado → Grupo de cálculo</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b22-grupo-calculo.webp" alt="Nombre del grupo y de la columna, plantillas y los elementos de cálculo con SELECTEDMEASURE()" loading="lazy"><figcaption>Nombre del grupo y de la columna, plantillas y los elementos de cálculo con SELECTEDMEASURE()</figcaption></figure>
+
+
+<pre><code class="language-text">Actual          = SELECTEDMEASURE()
+Año anterior    = CALCULATE(SELECTEDMEASURE(), SAMEPERIODLASTYEAR(Calendario[Date]))
+Acumulado       = TOTALYTD(SELECTEDMEASURE(), Calendario[Date])
+Variación %     = VAR a = CALCULATE(SELECTEDMEASURE(), SAMEPERIODLASTYEAR(Calendario[Date]))
+                  RETURN DIVIDE(SELECTEDMEASURE() - a, a)</code></pre>
+<p><code>SELECTEDMEASURE()</code> es &quot;la medida que esté en el visual&quot;. Pon la columna <strong>Cálculo</strong> en las columnas de una matriz con Ventas y Pedidos en los valores: aparecen Actual, Año anterior, Acumulado y Variación % para las dos medidas, sin haber escrito ninguna medida nueva.</p>
+<h2>Paso 2 — Parámetros</h2>
+<p><strong>Modelado → Nuevo parámetro</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b22-parametro.webp" alt="Parámetro de campos o de rango numérico (hipótesis)" loading="lazy"><figcaption>Parámetro de campos o de rango numérico (hipótesis)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Campos</strong></td>
+<td>Una segmentación con la que el usuario elige qué medida o qué dimensión muestra el gráfico (Ventas o Pedidos; por canal o por categoría)</td>
+</tr>
+<tr>
+<td><strong>Rango numérico</strong> (hipótesis)</td>
+<td>Una segmentación de número para simular: &quot;¿y si el descuento fuera 15 %?&quot;; crea una medida con el valor elegido</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — La vista TMDL</h2>
+<p><strong>Modelado → Vista TMDL → Script del modelo completo</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b22-tmdl.webp" alt="El modelo como texto (1) - tablas, medidas, relaciones y roles; Aplicar (2) ejecuta los cambios con createOrReplace" loading="lazy"><figcaption>El modelo como texto (1) - tablas, medidas, relaciones y roles; Aplicar (2) ejecuta los cambios con createOrReplace</figcaption></figure>
+
+
+<pre><code class="language-text">table _Medidas
+    measure Ventas = SUMX(detalle_pedidos, detalle_pedidos[cantidad] * detalle_pedidos[precio_unitario])
+        formatString: #,##0.00
+    measure 'Ticket promedio' = DIVIDE([Ventas], [Pedidos])</code></pre>
+<p>TMDL (<em>Tabular Model Definition Language</em>) sirve para cambios en lote (renombrar diez medidas, poner formato a todas), revisar el modelo y copiarlo entre archivos.</p>
+<h2>Paso 4 — Proyectos .pbip y Git</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Formato</th>
+<th>Qué es</th>
+<th>En Git</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>.pbix</strong></td>
+<td>Un archivo binario con datos, modelo e informe</td>
+<td>Imposible ver qué cambió</td>
+</tr>
+<tr>
+<td><strong>.pbip</strong> (proyecto)</td>
+<td>Una carpeta: <code>Modelo.SemanticModel/definition/*.tmdl</code> y <code>Informe.Report/</code> en JSON</td>
+<td>Cada cambio es una diferencia de texto legible; se revisa en pull requests</td>
+</tr>
+</tbody></table></div>
+<p><strong>Archivo → Guardar como → Proyecto de Power BI (.pbip)</strong> en Desktop. En la práctica, <strong>Archivo → Exportar el modelo (TMDL)</strong> descarga la carpeta <code>definition</code> lista para un proyecto real.</p>
+<h2>Paso 5 — Canalizaciones de implementación</h2>
+<figure class="captura"><img src="assets/img/guias/powerbi/b20-canalizaciones.webp" alt="Canalizaciones - Desarrollo → Prueba → Producción" loading="lazy"><figcaption>Canalizaciones - Desarrollo → Prueba → Producción</figcaption></figure>
+
+
+<p>Una canalización copia el contenido de un área de trabajo de <strong>Desarrollo</strong> a una de <strong>Prueba</strong> y luego a <strong>Producción</strong>, cambiando la conexión a la base de cada entorno. Así nadie edita directamente lo que usa toda la empresa. Con Git integrado al área de trabajo (en Fabric), el flujo queda: rama → pull request → área de desarrollo → canalización → producción.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste un grupo de cálculo y conoces los parámetros.</li>
+<li>Lees y editas el modelo en TMDL.</li>
+<li>Sabes por qué los equipos usan .pbip, Git y canalizaciones.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-paso-a-paso-modelado-avanzado-y-codigo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-paso-a-paso-rendimiento.html">← Rendimiento - el analizador, el tamaño del modelo y las buenas prácticas</a><a href="powerbi-paso-a-paso-de-la-practica-a-power-bi-real.html">De la práctica a Power BI real - instalar, conectar tus datos, licencias y Fabric →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

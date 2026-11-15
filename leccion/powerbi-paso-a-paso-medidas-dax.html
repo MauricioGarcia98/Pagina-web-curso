@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Medidas DAX - la barra de fórmulas, SUM, SUMX, COUNTROWS y DIVIDE · Academia de Datos</title><meta name="description" content="Las medidas son los números del informe - ventas, pedidos, ticket promedio - calculados al instante según lo que filtra el usuario. Crear una medida en la barra de fórmulas, la diferencia entre SUM y SUMX (y por qué las ventas necesitan SUMX), COUNTROWS, DIVIDE en lugar de dividir, medidas que usan otras medidas, formato, carpetas y dónde se guardan."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-medidas-dax.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Medidas DAX - la barra de fórmulas, SUM, SUMX, COUNTROWS y DIVIDE · Academia de Datos"><meta property="og:description" content="Las medidas son los números del informe - ventas, pedidos, ticket promedio - calculados al instante según lo que filtra el usuario. Crear una medida en la barra de fórmulas, la diferencia entre SUM y SUMX (y por qué las ventas necesitan SUMX), COUNTROWS, DIVIDE en lugar de dividir, medidas que usan otras medidas, formato, carpetas y dónde se guardan."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-medidas-dax.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi-paso-a-paso">📈 Power BI paso a paso</a> · 3 · Intermedio · 50 min</div>
+<h1>Medidas DAX - la barra de fórmulas, SUM, SUMX, COUNTROWS y DIVIDE</h1><p class="resumen">Las medidas son los números del informe - ventas, pedidos, ticket promedio - calculados al instante según lo que filtra el usuario. Crear una medida en la barra de fórmulas, la diferencia entre SUM y SUMX (y por qué las ventas necesitan SUMX), COUNTROWS, DIVIDE en lugar de dividir, medidas que usan otras medidas, formato, carpetas y dónde se guardan.</p>
+<a class="cta" href="../index.html#/l/powerbi-paso-a-paso-medidas-dax">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una medida en la barra de fórmulas</li><li>Elegir entre SUM y SUMX</li><li>Contar filas con COUNTROWS y dividir con DIVIDE</li><li>Reutilizar medidas dentro de otras</li><li>Dar formato y organizar las medidas</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una medida es una pregunta guardada: &quot;¿cuánto vendimos?&quot;. No guarda un número fijo: cada vez que un gráfico la usa, Power BI la responde para ese pedacito de datos (para la barra de web, para el mes de marzo, para Argentina). Escribes la pregunta una vez y sirve en todo el informe.</p>
+</div>
+
+
+<h2>Paso 1 — La primera medida</h2>
+<p><strong>Inicio → Nueva medida</strong>. Aparece la <strong>barra de fórmulas</strong> arriba del lienzo:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b09-barra-dax.webp" alt="La fórmula (1), el ✓ para confirmar (2) y la tabla donde se guarda la medida (3)" loading="lazy"><figcaption>La fórmula (1), el ✓ para confirmar (2) y la tabla donde se guarda la medida (3)</figcaption></figure>
+
+
+<pre><code class="language-text">Ventas = SUMX(detalle_pedidos, detalle_pedidos[cantidad] * detalle_pedidos[precio_unitario])</code></pre>
+<p><strong>Enter</strong> o ✓. La medida aparece en el panel Datos con el ícono de calculadora, y la cinta muestra <strong>Herramientas de medición</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b09-herramientas-medicion.webp" alt="Herramientas de medición - nombre, tabla principal, formato y decimales (1); la medida en el panel Datos (2)" loading="lazy"><figcaption>Herramientas de medición - nombre, tabla principal, formato y decimales (1); la medida en el panel Datos (2)</figcaption></figure>
+
+
+<h2>Paso 2 — SUM o SUMX</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Hace</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>SUM(tabla[col])</code></td>
+<td>Suma una columna que ya existe</td>
+<td><code>SUM(pagos[monto])</code></td>
+</tr>
+<tr>
+<td><code>SUMX(tabla, expresión)</code></td>
+<td>Recorre la tabla <strong>fila por fila</strong>, calcula la expresión y suma los resultados</td>
+<td><code>SUMX(detalle_pedidos, [cantidad] * [precio_unitario])</code></td>
+</tr>
+</tbody></table></div>
+<p>Las ventas son <strong>cantidad × precio de cada línea</strong>, y no existe una columna &quot;importe&quot; en el origen: por eso SUMX. Multiplicar <code>SUM(cantidad) * SUM(precio_unitario)</code> daría un número sin sentido (la suma de todas las cantidades por la suma de todos los precios).</p>
+<div class="callout callout-nota"><div class="callout-title">📝 Las X son iteradores</div>
+
+<p><code>SUMX</code>, <code>AVERAGEX</code>, <code>MINX</code>, <code>MAXX</code>, <code>COUNTX</code> recorren una tabla fila por fila. Se usan cuando la cuenta se hace por fila antes de agregar. Si en Power Query ya creaste la columna <code>importe</code> (lección 6), <code>SUM(detalle_pedidos[importe])</code> da lo mismo.</p>
+</div>
+
+
+<h2>Paso 3 — Más medidas</h2>
+<pre><code class="language-text">Pedidos = COUNTROWS(pedidos)
+Ticket promedio = DIVIDE([Ventas], [Pedidos])</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>COUNTROWS(tabla)</code></td>
+<td>Cuenta filas de la tabla, en el contexto actual</td>
+</tr>
+<tr>
+<td><code>DIVIDE(a, b)</code></td>
+<td>Divide; si <code>b</code> es 0 o vacío devuelve vacío en lugar de error (<code>DIVIDE(a, b, 0)</code> devuelve 0)</td>
+</tr>
+<tr>
+<td><code>[Ventas]</code></td>
+<td>Usa otra medida: si mañana cambias cómo se calculan las ventas, todas las que la usan se actualizan solas</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 4 — Usarlas en el informe</h2>
+<p>Selecciona la tarjeta, quita el recuento de <code>pedido_id</code> y pon <strong>Ventas</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b09-tarjeta-medida.webp" alt="La tarjeta con la medida Ventas - 14,88 M" loading="lazy"><figcaption>La tarjeta con la medida Ventas - 14,88 M</figcaption></figure>
+
+
+<p>Control: <strong>Ventas = 14 878 014,07</strong> · <strong>Pedidos = 12 000</strong> · <strong>Ticket promedio = 1 239,83</strong>. Pon <code>canal</code> y las tres medidas en una tabla: web vende 6 807 135,34 en 5400 pedidos, ticket 1 260,58.</p>
+<h2>Paso 5 — Formato y orden</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Qué</th>
+<th>Dónde</th>
+</tr>
+</thead><tbody><tr>
+<td>Formato (moneda, decimales, porcentaje)</td>
+<td>Herramientas de medición → Formato</td>
+</tr>
+<tr>
+<td>Tabla donde vive la medida</td>
+<td>Herramientas de medición → Tabla principal (no cambia el cálculo, solo dónde aparece)</td>
+</tr>
+<tr>
+<td>Carpeta</td>
+<td>Vista Modelo → Propiedades → Carpeta para mostrar</td>
+</tr>
+<tr>
+<td>Descripción</td>
+<td>Vista Modelo → Propiedades → Descripción</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Una tabla solo para medidas</div>
+
+<p>Muchos equipos crean una tabla vacía llamada <code>_Medidas</code> y guardan ahí todas las medidas: el panel Datos queda ordenado (medidas arriba, tablas abajo) y nadie busca &quot;¿en qué tabla estaba Ventas?&quot;.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste tus primeras medidas.</li>
+<li>Sabes cuándo usar SUMX y por qué DIVIDE.</li>
+<li>Reutilizas medidas y las organizas.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-paso-a-paso-medidas-dax">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-paso-a-paso-proyecto-clientes-limpios.html">← Proyecto 2 (guiado, con pistas) - la cartera de clientes, limpia y modelada</a><a href="powerbi-paso-a-paso-calculate-y-contexto.html">CALCULATE y el contexto de filtro - la función más importante de DAX →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

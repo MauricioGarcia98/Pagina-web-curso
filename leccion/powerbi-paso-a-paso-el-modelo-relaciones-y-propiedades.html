@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El modelo - relaciones, cardinalidad, dirección del filtro y propiedades · Academia de Datos</title><meta name="description" content="El modelo es el corazón de Power BI - de cómo se relacionan las tablas dependen todos los números. La vista Modelo, el esquema en estrella, qué es una relación y sus propiedades (cardinalidad, dirección, activa o inactiva), Administrar relaciones, crear y editar una, y el panel Propiedades de tablas y columnas (descripción, oculto, categoría de datos, resumir por, ordenar por columna)."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-el-modelo-relaciones-y-propiedades.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El modelo - relaciones, cardinalidad, dirección del filtro y propiedades · Academia de Datos"><meta property="og:description" content="El modelo es el corazón de Power BI - de cómo se relacionan las tablas dependen todos los números. La vista Modelo, el esquema en estrella, qué es una relación y sus propiedades (cardinalidad, dirección, activa o inactiva), Administrar relaciones, crear y editar una, y el panel Propiedades de tablas y columnas (descripción, oculto, categoría de datos, resumir por, ordenar por columna)."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-el-modelo-relaciones-y-propiedades.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi-paso-a-paso">📈 Power BI paso a paso</a> · 2 · Básico-intermedio · 50 min</div>
+<h1>El modelo - relaciones, cardinalidad, dirección del filtro y propiedades</h1><p class="resumen">El modelo es el corazón de Power BI - de cómo se relacionan las tablas dependen todos los números. La vista Modelo, el esquema en estrella, qué es una relación y sus propiedades (cardinalidad, dirección, activa o inactiva), Administrar relaciones, crear y editar una, y el panel Propiedades de tablas y columnas (descripción, oculto, categoría de datos, resumir por, ordenar por columna).</p>
+<a class="cta" href="../index.html#/l/powerbi-paso-a-paso-el-modelo-relaciones-y-propiedades">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer un modelo en estrella en la vista Modelo</li><li>Entender cardinalidad y dirección del filtro</li><li>Crear y editar relaciones</li><li>Usar el panel Propiedades en columnas y tablas</li><li>Evitar los errores de modelado más comunes</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Las tablas son personas en una reunión; las relaciones son quién conoce a quién. Si alguien pregunta &quot;¿cuánto vendimos por categoría?&quot;, la pregunta tiene que pasar de <strong>categorias</strong> a <strong>productos</strong> a <strong>detalle_pedidos</strong>. Si falta un eslabón, la respuesta sale mal (todas las categorías con el mismo número).</p>
+</div>
+
+
+<h2>Paso 1 — La vista Modelo</h2>
+<p>Haz clic en la tercera vista de la barra izquierda:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b07-modelo.webp" alt="El diagrama con las tablas y sus relaciones (1), el panel Propiedades (2) y la lista de relaciones del modelo (3)" loading="lazy"><figcaption>El diagrama con las tablas y sus relaciones (1), el panel Propiedades (2) y la lista de relaciones del modelo (3)</figcaption></figure>
+
+
+<p>Tienda Andina es un <strong>esquema en estrella</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Tablas</th>
+<th>Qué tienen</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Hechos</strong></td>
+<td><code>detalle_pedidos</code>, <code>pedidos</code></td>
+<td>Una fila por evento (una línea de pedido, un pedido); muchas filas, números y claves</td>
+</tr>
+<tr>
+<td><strong>Dimensiones</strong></td>
+<td><code>clientes</code>, <code>productos</code>, <code>categorias</code> (y la <code>Calendario</code> que harás en el nivel 3)</td>
+<td>Quién, qué, cuándo: pocas filas, descripciones para filtrar y agrupar</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Qué es una relación</h2>
+<p>Una línea entre dos tablas dice &quot;esta columna de acá se corresponde con esa de allá&quot;. <code>pedidos[cliente_id]</code> → <code>clientes[cliente_id]</code>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Propiedad</th>
+<th>En el ejemplo</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Cardinalidad</strong></td>
+<td>Varios a uno (*:1)</td>
+<td>Muchos pedidos para un mismo cliente; cada cliente aparece una sola vez en <code>clientes</code></td>
+</tr>
+<tr>
+<td><strong>Dirección del filtro cruzado</strong></td>
+<td>Única</td>
+<td>El filtro viaja de <code>clientes</code> (lado 1) a <code>pedidos</code> (lado *): filtrar un país filtra sus pedidos</td>
+</tr>
+<tr>
+<td><strong>Activa</strong></td>
+<td>Sí (línea continua)</td>
+<td>Se usa siempre. Entre dos tablas solo una relación puede estar activa</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — Administrar relaciones</h2>
+<p><strong>Modelado → Administrar relaciones</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b07-relaciones.webp" alt="Las relaciones del modelo con su cardinalidad, dirección y si están activas; Nueva relación y Detección automática" loading="lazy"><figcaption>Las relaciones del modelo con su cardinalidad, dirección y si están activas; Nueva relación y Detección automática</figcaption></figure>
+
+
+<p><strong>Editar</strong> abre el detalle:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b07-editar-relacion.webp" alt="Las dos tablas y columnas, la cardinalidad, la dirección y la casilla de relación activa, con una vista previa de las filas" loading="lazy"><figcaption>Las dos tablas y columnas, la cardinalidad, la dirección y la casilla de relación activa, con una vista previa de las filas</figcaption></figure>
+
+
+<p>También se crea una relación <strong>arrastrando</strong> una columna sobre la equivalente de otra tabla en el diagrama.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La dirección Ambas</div>
+
+<p>La dirección <strong>Ambas</strong> hace que el filtro viaje en los dos sentidos. Parece cómodo, pero con varias tablas crea caminos ambiguos y números difíciles de explicar. Usa <strong>Única</strong> salvo que sepas exactamente por qué necesitas lo contrario.</p>
+</div>
+
+
+<h2>Paso 4 — El panel Propiedades</h2>
+<p>Haz clic en una columna del diagrama, por ejemplo <code>pedidos[cliente_id]</code>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b07-propiedades-columna.webp" alt="Nombre, descripción, sinónimos, carpeta, oculto, tipo de datos, ordenar por columna, categoría de datos y resumir por" loading="lazy"><figcaption>Nombre, descripción, sinónimos, carpeta, oculto, tipo de datos, ordenar por columna, categoría de datos y resumir por</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Propiedad</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Descripción</strong></td>
+<td>Aparece al pasar el mouse en el panel Datos; ayuda a quien use el modelo</td>
+</tr>
+<tr>
+<td><strong>Está oculto</strong></td>
+<td>Oculta claves técnicas (<code>cliente_id</code>) para que el usuario vea solo lo útil; las relaciones siguen funcionando</td>
+</tr>
+<tr>
+<td><strong>Categoría de datos</strong></td>
+<td>País o región, Ciudad, Latitud… le dice al mapa cómo interpretar la columna</td>
+</tr>
+<tr>
+<td><strong>Resumir por</strong></td>
+<td><strong>No resumir</strong> para IDs y años (sumar <code>cliente_id</code> no tiene sentido)</td>
+</tr>
+<tr>
+<td><strong>Ordenar por columna</strong></td>
+<td>Que los meses se ordenen por número y no alfabéticamente</td>
+</tr>
+</tbody></table></div>
+<figure class="captura"><img src="assets/img/guias/powerbi/b07-propiedades-precio.webp" alt="Una columna numérica - precio se resume por Suma por defecto" loading="lazy"><figcaption>Una columna numérica - precio se resume por Suma por defecto</figcaption></figure>
+
+
+<p>Y en una tabla:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b07-propiedades-tabla.webp" alt="Las propiedades de la tabla pedidos - descripción, sinónimos, marcar como tabla de fechas y jerarquías" loading="lazy"><figcaption>Las propiedades de la tabla pedidos - descripción, sinónimos, marcar como tabla de fechas y jerarquías</figcaption></figure>
+
+
+<h2>Paso 5 — Errores clásicos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Síntoma</th>
+<th>Causa probable</th>
+</tr>
+</thead><tbody><tr>
+<td>Todas las categorías muestran el mismo número</td>
+<td>Falta la relación entre la tabla del eje y la de los valores</td>
+</tr>
+<tr>
+<td>Los totales se duplican</td>
+<td>Relación de muchos a muchos o una dimensión con claves repetidas</td>
+</tr>
+<tr>
+<td>Un filtro no afecta un gráfico</td>
+<td>La relación va en la dirección contraria o está inactiva</td>
+</tr>
+<tr>
+<td>Aparecen <code>cliente_id</code> sumados en un gráfico</td>
+<td>Falta <strong>Resumir por: No resumir</strong></td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Lees un modelo en estrella.</li>
+<li>Entiendes cardinalidad, dirección y relaciones activas.</li>
+<li>Usas el panel Propiedades y reconoces los errores típicos.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-paso-a-paso-el-modelo-relaciones-y-propiedades">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-paso-a-paso-transformaciones-que-mas-se-usan.html">← Las transformaciones que más se usan - columnas personalizadas, condicionales, agrupar y combinar</a><a href="powerbi-paso-a-paso-proyecto-clientes-limpios.html">Proyecto 2 (guiado, con pistas) - la cartera de clientes, limpia y modelada →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

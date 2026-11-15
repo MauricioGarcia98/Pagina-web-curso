@@ -325,6 +325,20 @@
     ]
   },
   {
+    "id": "powerbi-paso-a-paso",
+    "titulo": "Power BI paso a paso",
+    "icono": "📈",
+    "color": "#f2c811",
+    "descripcion": "De cero a dominarlo en 24 lecciones y 6 niveles (básico → avanzado completo), con capturas del Power BI de práctica: obtener datos, Power Query, el modelo y sus relaciones, medidas DAX, CALCULATE, inteligencia de tiempo, diseño e interactividad, visuales de IA, publicar y compartir, actualización, seguridad por filas, rendimiento, grupos de cálculo y TMDL. Cada nivel cierra con un proyecto real con menos ayuda que el anterior, y termina con el paso a Power BI Desktop real.",
+    "objetivos": [
+      "Obtener y preparar datos con Power Query y modelarlos en estrella",
+      "Escribir medidas DAX con CALCULATE e inteligencia de tiempo, verificadas contra los datos",
+      "Diseñar informes interactivos de varias páginas con filtros, detalles y marcadores",
+      "Publicar, compartir, actualizar y proteger informes con seguridad por filas",
+      "Optimizar el rendimiento y trabajar como equipo con grupos de cálculo, TMDL y .pbip"
+    ]
+  },
+  {
     "id": "arquitectura",
     "titulo": "Arquitectura de datos",
     "icono": "🏛️",

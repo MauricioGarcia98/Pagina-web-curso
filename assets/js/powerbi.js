@@ -1064,7 +1064,7 @@
     if (S.vista === 'tmdl') return renderTmdl();
     const centro = main.querySelector('#pbCentro');
     if (!tablas().length) {
-      centro.innerHTML = `<div class="pb-lienzo-wrap"><div class="pb-lienzo pb-vacio"><div class="pb-agregar"><h2>Agregar datos al informe</h2><p>Una vez cargados, los datos aparecerán en el panel <b>Datos</b>.</p><div class="pb-agregar-g"><button data-acc="excel"><b class="pb-x">X</b>Importar datos de Excel</button><button data-acc="curso">${fl('database')}Importar datos de una base (SQLite del curso)</button><button data-acc="escribir">${fl('table_edit')}Pegar o escribir datos en una tabla</button><button data-acc="obtener">${fl('document_text')}Texto/CSV, JSON o web</button></div><a data-acc="obtener">Obtener datos de otro origen →</a></div></div></div>`;
+      centro.innerHTML = `<div class="pb-lienzo-wrap"><div class="pb-lienzo pb-vacio"><div class="pb-agregar"><h2>Agregar datos al informe</h2><p>Una vez cargados, los datos aparecerán en el panel <b>Datos</b>. ¿Primera vez? Sigue el <a href="#/m/powerbi-paso-a-paso">curso de Power BI paso a paso</a>.</p><div class="pb-agregar-g"><button data-acc="excel"><b class="pb-x">X</b>Importar datos de Excel</button><button data-acc="curso">${fl('database')}Importar datos de una base (SQLite del curso)</button><button data-acc="escribir">${fl('table_edit')}Pegar o escribir datos en una tabla</button><button data-acc="obtener">${fl('document_text')}Texto/CSV, JSON o web</button></div><a data-acc="obtener">Obtener datos de otro origen →</a></div></div></div>`;
       renderPaneles(); renderPie(); return;
     }
     const enf = S.enfoque && vis(S.enfoque);

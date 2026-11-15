@@ -175,7 +175,7 @@ export default async function (c) {
   await cinta('vista'); await p.click('[data-tema="ejecutivo"]'); await w(600);
   await c.foto('b13-temas', { marcas: [['.pb-temas', '1'], ['#pbLienzo', '2']] });
   await cinta('insertar'); await acc('cuadro-texto', 500);
-  await p.keyboard.type('Ventas de Tienda Andina'); await w(300); await deselect();
+  await p.evaluate(() => { const s = window.PowerBI._estado(); const v = s.paginas[s.pagina].visuales.find((x) => x.id === s.sel); if (v) Object.assign(v, { texto: 'Ventas de Tienda Andina', x: 2, y: 88, w: 40, h: 10 }); }); await vista('tabla', 300); await vista('informe', 500); await deselect();
   await cinta('insertar'); await acc('nueva-pagina', 600);
   await c.foto('b13-paginas', { marcas: [['#pbPie', null]] });
   await visual('matriz', [['categorias', 'nombre'], ['pedidos', 'canal'], ['detalle_pedidos', 'Ventas']], { x: 2, y: 3, w: 60, h: 60 });
@@ -204,15 +204,13 @@ export default async function (c) {
   await campo('detalle_pedidos', 'Ventas'); await campo('pedidos', 'canal'); await campo('categorias', 'nombre');
   await p.click('#pbLienzo .pb-v.sel .pb-arbol-mas, #pbLienzo .pb-v.sel button').catch(() => {}); await w(500);
   await c.foto('b15-arbol', { marcas: [['#pbLienzo .pb-v.sel', null]] });
-  await cinta('optimizar'); await acc('analizador', 800);
-  await c.foto('b21-analizador', { marcas: [['.pb-perf, .pb-analizador, #pbCentro > :last-child', null]] });
-  await acc('analizador', 400);
+
 
   // ------------------------------------------------------------------ nivel 5: seguridad y servicio
   await cinta('modelado'); await acc('roles', 500); await p.click('.pb-modal [data-nuevo-rol]'); await w(400);
   await p.click('.pb-modal [data-nueva-regla]'); await w(500); log('rol regla attrs:', await p.evaluate(() => [...document.querySelectorAll('.pb-modal select, .pb-modal input')].map((e) => e.tagName + ':' + JSON.stringify(e.dataset)).join(',')));
   await p.evaluate(() => { const sel = [...document.querySelectorAll('.pb-modal select')]; const col = sel.find((x) => [...x.options].some((o) => o.value === 'pais')); if (col) { col.value = 'pais'; col.dispatchEvent(new Event('change', { bubbles: true })); } }); await w(300);
-  await p.evaluate(() => { const i = [...document.querySelectorAll('.pb-modal input')].find((x) => x.dataset.val !== undefined || x.placeholder === 'Valor' || x.dataset.regla !== undefined); if (i) { i.value = 'Argentina'; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); } }); await w(300);
+  await p.fill('.pb-modal [data-rv="0"]', 'Argentina').catch((e) => log('rv', e.message.slice(0, 60))); await p.dispatchEvent('.pb-modal [data-rv="0"]', 'change').catch(() => {}); await w(300);
   await p.fill('.pb-modal [data-nom-rol]', 'Gerente Argentina').catch(() => {}); await p.dispatchEvent('.pb-modal [data-nom-rol]', 'change').catch(() => {}); await w(400); log('rol regla dlg:', await dlgTxt(600));
   await c.foto('b19-roles', { marcas: [['.pb-modal', null]] });
   await cerrarModales();
@@ -220,10 +218,14 @@ export default async function (c) {
   await c.foto('b19-ver-como', { marcas: [['.pb-modal', null]] }); await cerrarModales();
   await acc('grupo-calculo', 500); log('grupo calc:', await dlgTxt(500)); await c.foto('b22-grupo-calculo', { marcas: [['.pb-modal', null]] }); await cerrarModales();
   await p.click('[data-acc="x-parametro"]').catch(() => {}); await w(300); await c.foto('b22-parametro', { marcas: [['.pb-menu', null]] }); await cerrarModales();
-  await vista('tmdl', 900); await p.click('#pbPaneles .pb-campo[data-c="Ventas"]').catch(() => {}); await w(600);
+  await vista('tmdl', 900); await p.click('#pbCentro [data-todo]').catch(() => {}); await w(800);
   await c.foto('b22-tmdl', { marcas: [['#pbTmdlEd', '1'], ['#pbCentro button', '2']] });
   await vista('informe', 600);
   await p.evaluate(() => { const s = window.PowerBI._estado(); s.pagina = 0; }); await vista('tabla', 300); await vista('informe', 500);
+  await cinta('optimizar'); await acc('analizador', 800);
+  await p.click('.pb-analizador button:has-text("Actualizar objetos visuales")').catch((e) => log('analizador', e.message.slice(0, 60))); await w(2500);
+  await c.foto('b21-analizador', { marcas: [['.pb-analizador', '1'], ['#pbLienzo', '2']] });
+  await cinta('optimizar'); await acc('analizador', 400);
   await cinta('inicio'); await acc('publicar', 800);
   await c.foto('b17-publicar', { marcas: [['.pbs-dlg [data-n]', '1'], ['.pbs-dest', '2'], ['.pbs-dlg [data-ok]', '3']] });
   await p.fill('.pbs-dlg [data-n]', 'Ventas Tienda Andina'); await p.click('.pbs-dlg [data-ok]'); await w(1500);

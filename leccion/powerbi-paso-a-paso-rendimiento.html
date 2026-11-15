@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rendimiento - el analizador, el tamaño del modelo y las buenas prácticas · Academia de Datos</title><meta name="description" content="Un informe lento no se usa. El analizador de rendimiento para medir cuánto tarda cada visual (consulta DAX y dibujo), qué hace pesado a un modelo, las prácticas que más impacto tienen - esquema en estrella, quitar columnas, medidas en lugar de columnas calculadas, pocas tablas grandes, menos visuales por página - y cuándo pasar a DirectQuery, Direct Lake o actualización incremental."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-rendimiento.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Rendimiento - el analizador, el tamaño del modelo y las buenas prácticas · Academia de Datos"><meta property="og:description" content="Un informe lento no se usa. El analizador de rendimiento para medir cuánto tarda cada visual (consulta DAX y dibujo), qué hace pesado a un modelo, las prácticas que más impacto tienen - esquema en estrella, quitar columnas, medidas en lugar de columnas calculadas, pocas tablas grandes, menos visuales por página - y cuándo pasar a DirectQuery, Direct Lake o actualización incremental."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-rendimiento.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi-paso-a-paso">📈 Power BI paso a paso</a> · 6 · Avanzado completo · 45 min</div>
+<h1>Rendimiento - el analizador, el tamaño del modelo y las buenas prácticas</h1><p class="resumen">Un informe lento no se usa. El analizador de rendimiento para medir cuánto tarda cada visual (consulta DAX y dibujo), qué hace pesado a un modelo, las prácticas que más impacto tienen - esquema en estrella, quitar columnas, medidas en lugar de columnas calculadas, pocas tablas grandes, menos visuales por página - y cuándo pasar a DirectQuery, Direct Lake o actualización incremental.</p>
+<a class="cta" href="../index.html#/l/powerbi-paso-a-paso-rendimiento">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Medir con el analizador de rendimiento</li><li>Identificar si lo lento es la consulta o el dibujo</li><li>Reducir el tamaño del modelo</li><li>Aplicar las prácticas de diseño que más impactan</li><li>Conocer las alternativas para modelos grandes</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un informe lento es como una cocina desordenada: no falta comida, sobran cosas en el medio. El analizador de rendimiento te dice qué plato tarda más; las buenas prácticas son ordenar la cocina para que todo salga rápido.</p>
+</div>
+
+
+<h2>Paso 1 — El analizador de rendimiento</h2>
+<p><strong>Optimizar → Analizador de rendimiento → Actualizar objetos visuales</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b21-analizador.webp" alt="Actualizar objetos visuales (1) mide cada visual de la página (2) - consulta DAX y tiempo de dibujo" loading="lazy"><figcaption>Actualizar objetos visuales (1) mide cada visual de la página (2) - consulta DAX y tiempo de dibujo</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Tiempo</th>
+<th>Significa</th>
+<th>Si es alto</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Consulta DAX</strong></td>
+<td>Lo que tarda el modelo en calcular</td>
+<td>Medidas complejas, modelo mal diseñado, demasiadas filas</td>
+</tr>
+<tr>
+<td><strong>Objeto visual</strong></td>
+<td>Lo que tarda en dibujarse</td>
+<td>Demasiados puntos o filas en un visual (una tabla de 50 000 filas)</td>
+</tr>
+<tr>
+<td><strong>Otros</strong></td>
+<td>Esperar a otros visuales</td>
+<td>Demasiados visuales en la página</td>
+</tr>
+</tbody></table></div>
+<p><strong>Copiar consulta</strong> permite pegar la consulta DAX del visual en la vista de consultas DAX (o en DAX Studio) para estudiarla.</p>
+<h2>Paso 2 — Qué hace pesado a un modelo</h2>
+<p>En modo Importar, Power BI comprime cada columna por separado. Lo que más pesa:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pesa mucho</th>
+<th>Por qué</th>
+<th>Qué hacer</th>
+</tr>
+</thead><tbody><tr>
+<td>Columnas con muchos valores distintos (ID de transacción, timestamps con segundos, textos largos)</td>
+<td>Comprimen mal</td>
+<td>Quitarlas si no se usan; separar fecha y hora</td>
+</tr>
+<tr>
+<td>Columnas que nadie usa</td>
+<td>Ocupan igual</td>
+<td>Quitarlas en Power Query</td>
+</tr>
+<tr>
+<td>Columnas calculadas en tablas grandes</td>
+<td>Se guardan fila por fila</td>
+<td>Medidas, o calcular en Power Query/origen</td>
+</tr>
+<tr>
+<td>Tablas planas gigantes (todo junto)</td>
+<td>Repiten textos millones de veces</td>
+<td>Esquema en estrella</td>
+</tr>
+<tr>
+<td>Historia que nadie mira</td>
+<td>Filas de más</td>
+<td>Filtrar en Power Query (últimos 3 años)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — Las prácticas que más impactan</h2>
+<ol>
+<li><strong>Esquema en estrella</strong>: hechos delgados (claves y números) y dimensiones con los textos.</li>
+<li><strong>Relaciones únicas</strong> de dimensión a hechos; evitar <em>Ambas</em> y muchos a muchos.</li>
+<li><strong>Medidas</strong> en lugar de columnas calculadas cuando el resultado depende del contexto.</li>
+<li><strong>Variables</strong> (<code>VAR … RETURN</code>) en medidas largas: se calcula una vez y se reutiliza.</li>
+<li><strong>Menos visuales por página</strong>: 6 a 8; cada visual es al menos una consulta.</li>
+<li><strong>Segmentaciones</strong> con pocas opciones; filtros de página para reglas fijas.</li>
+<li><strong>Tabla de fechas propia</strong> y apagar <em>Fecha/hora automática</em> (Opciones → Carga de datos).</li>
+</ol>
+<h2>Paso 4 — Cuando el modelo no entra</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Opción</th>
+<th>Cómo funciona</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Actualización incremental</strong></td>
+<td>Solo se recarga lo reciente (los últimos días); la historia queda</td>
+<td>Tablas de hechos grandes que solo crecen</td>
+</tr>
+<tr>
+<td><strong>DirectQuery</strong></td>
+<td>Cada visual consulta el origen en vivo, sin copiar datos</td>
+<td>Datos que cambian a cada minuto o demasiado grandes; más lento por visual</td>
+</tr>
+<tr>
+<td><strong>Direct Lake</strong> (Fabric)</td>
+<td>Lee tablas Delta del lago directo, casi tan rápido como Importar</td>
+<td>Si los datos ya están en OneLake</td>
+</tr>
+<tr>
+<td><strong>Agregaciones</strong></td>
+<td>Una tabla resumida en memoria responde la mayoría de las consultas; el detalle va a DirectQuery</td>
+<td>Modelos de miles de millones de filas</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Mides el rendimiento y sabes dónde está el problema.</li>
+<li>Sabes qué hace pesado a un modelo y cómo aliviarlo.</li>
+<li>Conoces las alternativas para modelos grandes.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-paso-a-paso-rendimiento">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-paso-a-paso-proyecto-informe-en-produccion.html">← Proyecto 5 (requisitos y rúbrica) - el informe en producción, seguro y actualizado</a><a href="powerbi-paso-a-paso-modelado-avanzado-y-codigo.html">Herramientas avanzadas - grupos de cálculo, parámetros, TMDL y proyectos .pbip →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

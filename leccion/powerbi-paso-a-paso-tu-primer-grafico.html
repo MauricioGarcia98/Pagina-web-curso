@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tu primer gráfico - la galería, los pozos de campos y el filtrado cruzado · Academia de Datos</title><meta name="description" content="Cómo se arma un objeto visual en Power BI - elegir un tipo en la galería, poner campos en sus pozos (Eje X, Eje Y, Leyenda, Valores), cambiar la agregación, mover y redimensionar, agregar una tarjeta y una segmentación de datos, y ver cómo al hacer clic en una barra se filtran los demás gráficos de la página."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-tu-primer-grafico.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Tu primer gráfico - la galería, los pozos de campos y el filtrado cruzado · Academia de Datos"><meta property="og:description" content="Cómo se arma un objeto visual en Power BI - elegir un tipo en la galería, poner campos en sus pozos (Eje X, Eje Y, Leyenda, Valores), cambiar la agregación, mover y redimensionar, agregar una tarjeta y una segmentación de datos, y ver cómo al hacer clic en una barra se filtran los demás gráficos de la página."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-tu-primer-grafico.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi-paso-a-paso">📈 Power BI paso a paso</a> · 1 · Básico · 40 min</div>
+<h1>Tu primer gráfico - la galería, los pozos de campos y el filtrado cruzado</h1><p class="resumen">Cómo se arma un objeto visual en Power BI - elegir un tipo en la galería, poner campos en sus pozos (Eje X, Eje Y, Leyenda, Valores), cambiar la agregación, mover y redimensionar, agregar una tarjeta y una segmentación de datos, y ver cómo al hacer clic en una barra se filtran los demás gráficos de la página.</p>
+<a class="cta" href="../index.html#/l/powerbi-paso-a-paso-tu-primer-grafico">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un objeto visual desde la galería</li><li>Llenar los pozos de campos y cambiar la agregación</li><li>Agregar una tarjeta y una segmentación</li><li>Entender el filtrado cruzado entre visuales</li><li>Guardar el informe</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un objeto visual es un molde: eliges la forma (barras, líneas, tarjeta) y le dices qué ingrediente va en cada hueco (el eje, los valores, la leyenda). Power BI cocina el gráfico. Y los gráficos de una página se hablan entre sí: tocas uno y los demás reaccionan.</p>
+</div>
+
+
+<h2>Paso 1 — Crear el visual desde la galería</h2>
+<p>En la vista Informe, sin nada seleccionado, haz clic en <strong>Gráfico de columnas agrupadas</strong> en la galería del panel Visualizaciones:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b03-visual-vacio.webp" alt="El ícono de la galería (1) crea un visual vacío en el lienzo (2); debajo aparecen sus pozos - Eje X (3) y Eje Y (4)" loading="lazy"><figcaption>El ícono de la galería (1) crea un visual vacío en el lienzo (2); debajo aparecen sus pozos - Eje X (3) y Eje Y (4)</figcaption></figure>
+
+
+<p>Cada tipo de visual tiene sus <strong>pozos</strong> (los huecos donde van los campos): un gráfico de columnas tiene Eje X, Eje Y, Leyenda e Información sobre herramientas; una tarjeta tiene Campos; una matriz tiene Filas, Columnas y Valores.</p>
+<h2>Paso 2 — Llenar los pozos</h2>
+<p>Con el visual seleccionado, marca la casilla de <strong>pedidos → canal</strong> en el panel Datos: va al Eje X. Arrastra <strong>pedidos → pedido_id</strong> al Eje Y y, en el menú del campo, elige <strong>Recuento</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b03-pozos.webp" alt="El campo canal (1) en Eje X (2), pedido_id como Recuento en Eje Y (3), y el gráfico listo (4) - web 5400, app 2973, tienda 2645, telefono 982" loading="lazy"><figcaption>El campo canal (1) en Eje X (2), pedido_id como Recuento en Eje Y (3), y el gráfico listo (4) - web 5400, app 2973, tienda 2645, telefono 982</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Acción</th>
+<th>Cómo</th>
+</tr>
+</thead><tbody><tr>
+<td>Agregar un campo</td>
+<td>Marcar su casilla (va al pozo por defecto) o arrastrarlo al pozo que quieras</td>
+</tr>
+<tr>
+<td>Cambiar la agregación</td>
+<td>El menú del campo dentro del pozo: Suma, Promedio, Mínimo, Máximo, Recuento, Recuento (distintos), No resumir</td>
+</tr>
+<tr>
+<td>Quitar un campo</td>
+<td>La ✕ junto al campo en el pozo</td>
+</tr>
+<tr>
+<td>Mover y redimensionar</td>
+<td>Arrastrar el visual; los tiradores en los bordes</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — Una tarjeta y una segmentación</h2>
+<p><strong>Haz clic en un lugar vacío del lienzo</strong> para deseleccionar (si no, el siguiente clic en la galería <strong>cambia el tipo</strong> del visual seleccionado en vez de crear uno nuevo). Después:</p>
+<ol>
+<li><strong>Tarjeta</strong> → <code>pedidos → pedido_id</code> (Recuento): el número total de pedidos, <strong>12 000</strong>.</li>
+<li><strong>Segmentación de datos</strong> → <code>pedidos → estado</code>: una lista de casillas para filtrar la página.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/powerbi/b03-tres-visuales.webp" alt="Columnas por canal, la tarjeta con el total y la segmentación por estado" loading="lazy"><figcaption>Columnas por canal, la tarjeta con el total y la segmentación por estado</figcaption></figure>
+
+
+<h2>Paso 4 — El filtrado cruzado</h2>
+<p>Haz clic en la barra <strong>web</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b03-cruzado.webp" alt="Al seleccionar una barra, los demás visuales de la página se filtran por ese canal" loading="lazy"><figcaption>Al seleccionar una barra, los demás visuales de la página se filtran por ese canal</figcaption></figure>
+
+
+<p>Es el comportamiento por defecto entre visuales de una misma página: <strong>seleccionar en uno filtra (o resalta) los otros</strong>. Marca <code>entregado</code> en la segmentación y mira cómo cambian las columnas y la tarjeta. Clic de nuevo para quitar la selección.</p>
+<h2>Paso 5 — Guardar</h2>
+<figure class="captura"><img src="assets/img/guias/powerbi/b04-archivo.webp" alt="Archivo - Nuevo, Abrir, Guardar como, Exportar el modelo (TMDL), Exportar a PDF, Publicar" loading="lazy"><figcaption>Archivo - Nuevo, Abrir, Guardar como, Exportar el modelo (TMDL), Exportar a PDF, Publicar</figcaption></figure>
+
+
+<p>En la práctica el informe se guarda solo en tu navegador; <strong>Guardar como</strong> lo descarga. En Power BI real, <strong>Ctrl + S</strong> guarda el <code>.pbix</code> (o el proyecto <code>.pbip</code>).</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste tres objetos visuales y entendiste los pozos.</li>
+<li>Cambiaste una agregación.</li>
+<li>Viste el filtrado cruzado.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-paso-a-paso-tu-primer-grafico">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-paso-a-paso-obtener-datos.html">← Obtener datos - orígenes, el Navegador y Cargar o Transformar</a><a href="powerbi-paso-a-paso-proyecto-primer-informe.html">Proyecto 1 (guiado) - el informe de pedidos para la reunión del lunes →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
