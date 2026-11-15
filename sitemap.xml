@@ -442,6 +442,30 @@
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-snowpipe-streams-tasks-y-mas.html</loc><lastmod>2026-11-15</lastmod></url>
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-de-la-practica-a-snowflake-real.html</loc><lastmod>2026-11-15</lastmod></url>
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-proyecto-final-warehouse-tienda-andina.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-que-es-bigquery-y-la-consola.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-la-primera-consulta-y-los-bytes.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-explorar-tablas.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-proyecto-pedidos-por-mes-y-canal.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-datasets-y-tablas.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-costos-limit-y-cache.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-historial-de-jobs.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-proyecto-dataset-de-analitica.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-particiones-y-clustering.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-cargar-datos.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-vistas-struct-array-y-unnest.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-proyecto-tabla-de-hechos.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-merge.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-time-travel.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-sql-analitico.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-proyecto-stock-al-dia.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-information-schema.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-automatizar.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-acceso-y-gobierno.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-proyecto-costo-bajo-control.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-buenas-practicas.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-capacidad-y-mas.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-de-la-practica-a-bigquery-real.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-proyecto-final-analitica-tienda-andina.html</loc><lastmod>2026-11-15</lastmod></url>
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-que-es.html</loc><lastmod>2026-11-15</lastmod></url>
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-ingesta.html</loc><lastmod>2026-11-15</lastmod></url>
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-almacenamiento.html</loc><lastmod>2026-11-15</lastmod></url>

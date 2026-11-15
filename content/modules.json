@@ -409,6 +409,20 @@
     ]
   },
   {
+    "id": "bigquery-paso-a-paso",
+    "titulo": "BigQuery paso a paso",
+    "icono": "🔎",
+    "color": "#4285f4",
+    "descripcion": "De cero a dominarlo en 24 lecciones y 6 niveles (básico → avanzado completo), con capturas de la consola de BigQuery de práctica y GoogleSQL que corre de verdad: consultas y estimación de bytes, explorar tablas, datasets, costos, caché y jobs, particiones y clustering, cargas, vistas, STRUCT, ARRAY y UNNEST, MERGE, time travel, QUALIFY y ventanas, INFORMATION_SCHEMA, scheduled queries y Dataform, IAM, vistas autorizadas y seguridad por filas, capacidad y BigQuery ML, y el paso a BigQuery real. Cada nivel cierra con un proyecto real de la analítica de Tienda Andina con menos ayuda que el anterior.",
+    "objetivos": [
+      "Escribir GoogleSQL mirando siempre cuántos bytes va a procesar",
+      "Diseñar datasets y tablas particionadas y con clustering",
+      "Cargar datos y trabajar con datos anidados, MERGE y time travel",
+      "Medir y controlar costos con INFORMATION_SCHEMA, límites y accesos",
+      "Llevar la analítica a producción con automatización y seguridad"
+    ]
+  },
+  {
     "id": "arquitectura",
     "titulo": "Arquitectura de datos",
     "icono": "🏛️",

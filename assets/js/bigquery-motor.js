@@ -6,6 +6,7 @@
  *   SAFE_DIVIDE, COUNTIF, DATE_TRUNC(fecha, MONTH), DATE_DIFF, DATE_ADD, FORMAT_DATE, SELECT * EXCEPT(...)…
  * - La estimación de bytes antes de ejecutar (dry run): solo cuentan las columnas que la consulta toca y, en tablas
  *   particionadas, solo las particiones que deja pasar el filtro. Es lo que BigQuery cobra en el modelo on-demand.
+ * - MERGE, STRUCT, UNNEST, ARRAY_AGG(… LIMIT n), INFORMATION_SCHEMA (TABLES, COLUMNS, JOBS) y FOR SYSTEM_TIME AS OF.
  * - Tablas particionadas y con clustering (PARTITION BY, CLUSTER BY, require_partition_filter), caché de resultados
  *   (la misma consulta sin cambios en las tablas cuesta 0 B), historial de jobs y cargas desde archivo.
  * Lo que el alumno crea se vuelve a construir al recargar, repitiendo las sentencias que cambiaron datos.
@@ -60,7 +61,7 @@ ORDER BY pedidos DESC;
       await c.query('USE bq');
       for (const [n, cuerpo] of [['safe_divide(a, b)', 'a / NULLIF(b, 0)'], ['generate_uuid()', 'CAST(uuid() AS VARCHAR)']]) { try { await c.query(`CREATE OR REPLACE MACRO ${n} AS ${cuerpo}`); } catch (e) { /* ya existe */ } }
       con = c;
-      const s = st();
+      const s = st(); s.tt = {};
       // la tabla de pedidos viene particionada por día y con clustering por canal, para practicar
       if (!s.meta['tienda.pedidos']) s.meta['tienda.pedidos'] = { particion: { col: 'fecha_pedido', tipo: 'DAY' }, cluster: ['canal'], inicial: true };
       if (s.replay.length) {
@@ -114,13 +115,39 @@ ORDER BY pedidos DESC;
     return out + sql.slice(i);
   }
   const PARTE = /^(MICROSECOND|MILLISECOND|SECOND|MINUTE|HOUR|DAY|WEEK|MONTH|QUARTER|YEAR)$/i;
+  // GoogleSQL: "texto" es un literal de texto (los identificadores van entre backticks)
+  function comillasDobles(sql) {
+    let out = '', qq = null;
+    for (let i = 0; i < sql.length; i++) {
+      const ch = sql[i];
+      if (qq === "'" || qq === '`') { out += ch; if (ch === '\\' && qq === "'") { out += sql[++i] || ''; continue; } if (ch === qq) qq = null; continue; }
+      if (qq === '"') { if (ch === '\\') { out += sql[i + 1] === '"' ? '"' : ch + (sql[i + 1] || ''); i++; continue; } if (ch === '"') { out += "'"; qq = null; continue; } out += ch === "'" ? "''" : ch; continue; }
+      if (ch === "'" || ch === '`') { qq = ch; out += ch; continue; }
+      if (ch === '"') { qq = '"'; out += "'"; continue; }
+      out += ch;
+    }
+    return out;
+  }
+  // UNNEST(arr) AS x  →  UNNEST(arr) AS __u(x)  (en DuckDB el alias sin lista de columnas nombra la tabla, no el valor)
+  function unnestAlias(sql) {
+    let out = '', i = 0; const re = /\bUNNEST\s*\(/gi; let m;
+    while ((m = re.exec(sql))) {
+      let p = 1, j = re.lastIndex;
+      for (; j < sql.length && p; j++) { if (sql[j] === '(') p++; else if (sql[j] === ')') p--; }
+      const resto = sql.slice(j); const a = /^\s+(?:AS\s+)?(?!(?:WITH|WHERE|JOIN|LEFT|RIGHT|INNER|CROSS|FULL|ON|GROUP|ORDER|LIMIT|UNION|QUALIFY|HAVING|AS)\b)([A-Za-z_]\w*)(?!\s*\()/i.exec(resto);
+      if (a) { out += sql.slice(i, j) + ` AS __u${m.index}(${a[1]})`; i = j + a[0].length; }
+      else { out += sql.slice(i, j); i = j; }
+      re.lastIndex = j;
+    }
+    return out + sql.slice(i);
+  }
   function traducir(sql) {
-    let s = sql;
+    let s = comillasDobles(sql);
     // `proyecto.dataset.tabla` → "dataset"."tabla"
     s = s.replace(/`([^`]+)`/g, (m, ref) => { const p = ref.split('.'); if (p.length === 3 || p[0] === PROYECTO) p.shift(); return p.map(q).join('.'); });
     s = s.replace(new RegExp('\\b' + PROYECTO.replace(/-/g, '\\-') + '\\.', 'g'), '');
     s = s.replace(/\*\s+EXCEPT\s*\(/gi, '* EXCLUDE (');
-    s = s.replace(/\bCOUNTIF\s*\(/gi, 'count_if(').replace(/\bSAFE_CAST\s*\(/gi, 'TRY_CAST(').replace(/\bCURRENT_DATE\s*\(\s*\)/gi, 'CURRENT_DATE').replace(/\bCURRENT_TIMESTAMP\s*\(\s*\)/gi, 'now()').replace(/\bCURRENT_DATETIME\s*\(\s*\)/gi, 'now()');
+    s = s.replace(/\bCOUNTIF\s*\(/gi, 'count_if(').replace(/\bSAFE_CAST\s*\(/gi, 'TRY_CAST(').replace(/\bCURRENT_DATE\s*\(\s*\)/gi, 'CURRENT_DATE').replace(/\bCURRENT_TIMESTAMP\s*\(\s*\)/gi, 'CAST(now() AS TIMESTAMP)').replace(/\bCURRENT_DATETIME\s*\(\s*\)/gi, 'CAST(now() AS TIMESTAMP)');
     for (const f of ['DATE_TRUNC', 'TIMESTAMP_TRUNC', 'DATETIME_TRUNC']) s = reescribir(s, f, (a) => (a.length === 2 && PARTE.test(a[1]) ? (f === 'DATE_TRUNC' ? `CAST(date_trunc('${a[1].toLowerCase()}', ${a[0]}) AS DATE)` : `date_trunc('${a[1].toLowerCase()}', ${a[0]})`) : null));
     for (const f of ['DATE_DIFF', 'TIMESTAMP_DIFF', 'DATETIME_DIFF']) s = reescribir(s, f, (a) => (a.length === 3 && PARTE.test(a[2]) ? `date_diff('${a[2].toLowerCase()}', ${a[1]}, ${a[0]})` : null));
     const intervalo = (a, signo, comoFecha) => { const m = /^INTERVAL\s+(.+?)\s+(\w+)$/i.exec(a[1] || ''); if (a.length !== 2 || !m) return null; const e = `((${a[0]}) ${signo} INTERVAL (${m[1]}) ${m[2].toUpperCase()})`; return comoFecha ? `CAST(${e} AS DATE)` : e; };
@@ -129,8 +156,14 @@ ORDER BY pedidos DESC;
     for (const f of ['FORMAT_DATE', 'FORMAT_TIMESTAMP', 'FORMAT_DATETIME']) s = reescribir(s, f, (a) => (a.length >= 2 ? `strftime(${a[1]}, ${a[0]})` : null));
     s = reescribir(s, 'PARSE_DATE', (a) => (a.length === 2 ? `CAST(strptime(${a[1]}, ${a[0]}) AS DATE)` : null));
     s = reescribir(s, 'PARSE_TIMESTAMP', (a) => (a.length === 2 ? `strptime(${a[1]}, ${a[0]})` : null));
+    // STRUCT(expr AS campo, …), arr[OFFSET(n)], arr[ORDINAL(n)], ARRAY_LENGTH, ARRAY_AGG(… LIMIT n), UNNEST con alias
+    s = reescribir(s, 'STRUCT', (a) => (a.length && a.every((x) => /\s+AS\s+\w+$/i.test(x)) ? `struct_pack(${a.map((x) => { const mm = /^([\s\S]+?)\s+AS\s+(\w+)$/i.exec(x); return `${mm[2]} := ${mm[1]}`; }).join(', ')})` : null));
+    s = s.replace(/\[\s*(?:SAFE_)?OFFSET\s*\(\s*([^()\]]+?)\s*\)\s*\]/gi, '[($1) + 1]').replace(/\[\s*(?:SAFE_)?ORDINAL\s*\(\s*([^()\]]+?)\s*\)\s*\]/gi, '[$1]');
+    s = s.replace(/\bARRAY_LENGTH\s*\(/gi, 'len(');
+    s = reescribir(s, 'ARRAY_AGG', (a) => { if (a.length !== 1) return null; let x = a[0], ign = false; const lim = /\s+LIMIT\s+(\d+)\s*$/i.exec(x); if (lim) x = x.slice(0, lim.index); if (/\s+IGNORE\s+NULLS\b/i.test(x)) { ign = true; x = x.replace(/\s+IGNORE\s+NULLS\b/i, ''); } if (!lim && !ign) return null; const base = ign ? `list_filter(array_agg(${x}), lambda __v: __v IS NOT NULL)` : `array_agg(${x})`; return lim ? `list_slice(${base}, 1, ${lim[1]})` : base; });
+    s = unnestAlias(s);
     // tipos de GoogleSQL
-    s = s.replace(/\bINT64\b/gi, 'BIGINT').replace(/\bFLOAT64\b/gi, 'DOUBLE').replace(/\bBIGNUMERIC\b/gi, 'DECIMAL(38,9)').replace(/\bNUMERIC\b(?!\s*\()/gi, 'DECIMAL(38,9)').replace(/\bSTRING\b(?!\s*\()/gi, 'VARCHAR').replace(/\bDATETIME\b(?!\s*\()/gi, 'TIMESTAMP').replace(/\bBYTES\b/gi, 'BLOB').replace(/\bBOOL\b/gi, 'BOOLEAN');
+    s = s.replace(/\bINT64\b/gi, 'BIGINT').replace(/\bFLOAT64\b/gi, 'DOUBLE').replace(/\bBIGNUMERIC\b/gi, 'DECIMAL(38,9)').replace(/\bNUMERIC\b(?!\s*\()/gi, 'DECIMAL(38,9)').replace(/\bSTRING\b(?!\s*\()/gi, 'VARCHAR').replace(/\bDATETIME\b(?!\s*\()/gi, 'TIMESTAMP').replace(/(\bAS\s+)BYTES(?=\s*\))/gi, '$1BLOB').replace(/((?:\(|,)\s*\w+\s+)BYTES\b(?=\s*(?:,|\)|NOT\b|OPTIONS\b))/gi, '$1BLOB').replace(/\bBOOL\b/gi, 'BOOLEAN');
     return s;
   }
 
@@ -158,21 +191,22 @@ ORDER BY pedidos DESC;
   function referencias(sql) {
     const ctes = new Set([...sql.matchAll(/(?:WITH|,)\s+(\w+)\s+AS\s*\(/gi)].map((m) => m[1].toLowerCase()));
     const refs = [];
-    for (const m of sql.matchAll(/\b(?:FROM|JOIN|INTO|UPDATE|TABLE)\s+(`[^`]+`|[\w-]+(?:\.[\w-]+){1,2}|\w+)(?:\s+(?:AS\s+)?(\w+))?/gi)) {
+    for (const m of sql.matchAll(/\b(?:FROM|JOIN|INTO|UPDATE|TABLE|USING|MERGE)\s+(?!SET\b|INTO\b)(`[^`]+`|[\w-]+(?:\.[\w-]+){1,2}|\w+)(?:\s+(?:AS\s+)?(\w+))?/gi)) {
       const p = m[1].replace(/`/g, '').split('.'); if (p.length === 3 || p[0] === PROYECTO) p.shift();
       if (p.length !== 2) { if (!ctes.has(p[0].toLowerCase()) && !/^(SELECT|UNNEST|IF|EXISTS)$/i.test(p[0])) refs.push({ sinDataset: p[0] }); continue; }
       const alias = m[2] && !/^(WHERE|JOIN|ON|GROUP|ORDER|LEFT|RIGHT|INNER|FULL|CROSS|LIMIT|USING|SET|VALUES|AS|PARTITION|CLUSTER|OPTIONS|HAVING|QUALIFY|WINDOW|UNION|T|S)$/i.test(m[2]) ? m[2] : (m[2] && /^[ts]$/i.test(m[2]) ? m[2] : null);
-      refs.push({ ds: p[0], t: p[1], alias, escribe: /^(INTO|UPDATE|TABLE)$/i.test(m[0].split(/\s+/)[0]) });
+      refs.push({ ds: p[0], t: p[1], alias, escribe: /^(INTO|UPDATE|TABLE|MERGE)$/i.test(m[0].split(/\s+/)[0]) });
     }
     return refs;
   }
   async function estimar(sqlOriginal) {
     await init();
-    const sql = limpio(sqlOriginal).replace(/;\s*$/, ''); const s = st();
+    const sql = quitarSystemTime(limpio(sqlOriginal).replace(/;\s*$/, '')); const s = st();
     if (!sql) return { bytes: 0, vacia: true };
     // EXTRACT(YEAR FROM col), TRIM(x FROM y)…: ese FROM no nombra una tabla
     const plano = sinTextos(sql).replace(/\b(EXTRACT|SUBSTRING|TRIM|POSITION)\s*\(([^()]*?)\bFROM\b/gi, '$1($2 , ');
     if (/^(CREATE\s+SCHEMA|DROP|ALTER|TRUNCATE)\b/i.test(sql)) return { bytes: 0, tablas: [], ddl: true };
+    if (/\bINFORMATION_SCHEMA\b/i.test(sql)) return { bytes: 0, real: 0, tablas: [], meta: true };
     if (/^(UPDATE|DELETE)\b/i.test(sql) && !/\bWHERE\b/i.test(plano)) throw err(`${sql.split(/\s+/)[0].toUpperCase()} must have a WHERE clause`);
     const refs = referencias(plano); const detalle = []; let bytes = 0, real = 0;
     const sinDs = refs.find((r) => r.sinDataset);
@@ -218,8 +252,98 @@ ORDER BY pedidos DESC;
     if (/OPTIONS\s*\($/i.test(m[0])) { let p = 1, j = fin; for (; j < sql.length && p; j++) { if (sql[j] === '(') p++; else if (sql[j] === ')') p--; } texto = sql.slice(fin, j - 1); fin = j; }
     return [sql.slice(0, m.index) + ' ' + sql.slice(fin), texto.trim()];
   }
+  // ---- time travel: FOR SYSTEM_TIME AS OF <expr>. Antes de cada cambio de datos se guarda una copia oculta (las últimas 5).
+  const REF = /(`[^`]+`|[\w-]+(?:\.[\w-]+){1,2})\s+FOR\s+SYSTEM_TIME\s+AS\s+OF\s+/i;
+  function finExpr(t, i) { let p = 0, qq = null; for (let k = i; k < t.length; k++) { const ch = t[k]; if (qq) { if (ch === qq) qq = null; continue; } if (ch === "'" || ch === '"') { qq = ch; continue; } if (ch === '(') p++; else if (ch === ')') { if (!p) return k; p--; } else if (!p && /\s/.test(ch) && /^\s+(WHERE|GROUP|ORDER|LIMIT|JOIN|LEFT|RIGHT|INNER|CROSS|FULL|UNION|QUALIFY|HAVING|WINDOW|AS|ON|,)\b/i.test(t.slice(k))) return k; else if (!p && ch === ',') return k; } return t.length; }
+  function quitarSystemTime(sql) { let out = sql, m, g = 0; while ((m = REF.exec(out)) && g++ < 10) { const ini = m.index + m[0].length; out = out.slice(0, m.index) + m[1] + out.slice(finExpr(out, ini)); } return out; }
+  const refTabla = (r) => { const p = r.replace(/`/g, '').split('.'); if (p.length === 3 || p[0] === PROYECTO) p.shift(); return p; };
+  async function resolverSystemTime(sql) {
+    const s = st(); let out = sql, m, g = 0;
+    while ((m = REF.exec(out)) && g++ < 10) {
+      const ini = m.index + m[0].length, fin = finExpr(out, ini); const expr = out.slice(ini, fin).trim(); const p = refTabla(m[1]); const k = p.join('.');
+      let cuando;
+      try { cuando = Math.round(Number((await con.query(`SELECT epoch(CAST((${traducir(expr)}) AS TIMESTAMP)) * 1000 AS t`)).toArray()[0].t)); } catch (e) { throw err(`Invalid value for FOR SYSTEM_TIME AS OF: ${expr}`); }
+      if (cuando > Date.now() + 1000) throw err('Cannot read from a table snapshot in the future.');
+      if (cuando < Date.now() - 7 * 86400e3) throw err(`Invalid snapshot time ${new Date(cuando).toISOString()} for table ${PROYECTO}:${k}. Cannot read before ${new Date(Date.now() - 7 * 86400e3).toISOString()} (la ventana de time travel es de 7 días)`);
+      const lista = (s.tt || {})[k] || []; const elegido = lista.find((x) => x.cuando > cuando);
+      const destino = elegido ? `main.${elegido.oculto}` : p.join('.'); // sin comillas: traducir() convierte "…" en texto
+      out = out.slice(0, m.index) + destino + out.slice(fin);
+    }
+    return out;
+  }
+  async function copiaTT(k) {
+    const s = st(); s.tt = s.tt || {}; const lista = (s.tt[k] = s.tt[k] || []);
+    const oculto = `__tt_${k.replace(/\W/g, '_')}_${Date.now().toString(36)}${lista.length}`;
+    try { await con.query(`CREATE TABLE main.${q(oculto)} AS SELECT * FROM ${k.split('.').map(q).join('.')}`); } catch (e) { return; }
+    lista.push({ oculto, cuando: Date.now() });
+    while (lista.length > 5) { const v = lista.shift(); try { await con.query(`DROP TABLE IF EXISTS main.${q(v.oculto)}`); } catch (e) { /* ya no está */ } }
+  }
+  // ---- INFORMATION_SCHEMA: TABLES y COLUMNS de un dataset, y JOBS (el historial de jobs de la práctica)
+  async function infoSchema(sql) {
+    const s = st(); let out = sql;
+    out = out.replace(/`?(?:[\w-]+\.)?(\w+)\.INFORMATION_SCHEMA\.(TABLES|COLUMNS)`?/gi, (mm, ds, cual) => {
+      if (/^region-/i.test(ds)) return mm;
+      if (cual.toUpperCase() === 'TABLES') return `(SELECT '${PROYECTO}' AS table_catalog, schema_name AS table_schema, table_name, 'BASE TABLE' AS table_type, estimated_size AS row_count FROM duckdb_tables() WHERE database_name = 'bq' AND schema_name = '${ds}' UNION ALL SELECT '${PROYECTO}', schema_name, view_name, 'VIEW', NULL FROM duckdb_views() WHERE database_name = 'bq' AND schema_name = '${ds}' AND NOT internal)`;
+      return `(SELECT '${PROYECTO}' AS table_catalog, schema_name AS table_schema, table_name, column_name, column_index AS ordinal_position, data_type, is_nullable FROM duckdb_columns() WHERE database_name = 'bq' AND schema_name = '${ds}')`;
+    });
+    if (/INFORMATION_SCHEMA\.JOBS/i.test(out)) {
+      const t = (x) => (x == null ? 'NULL' : `'${String(x).replace(/'/g, "''")}'`);
+      const filas = s.jobs.map((j) => `(${t(j.id)}, epoch_ms(${Math.round(j.inicio)}::BIGINT), ${t(j.usuario)}, ${t(j.tipo)}, ${t(j.estado === 'FAILED' ? 'DONE' : j.estado)}, ${t(j.sql)}, ${Math.round(j.procesado || 0)}, ${Math.round(j.facturado || 0)}, ${j.cache ? 'TRUE' : 'FALSE'}, ${t(j.error)}, ${Math.round(j.ms || 0)})`);
+      await con.query(`CREATE OR REPLACE TABLE main.__jobs (job_id VARCHAR, creation_time TIMESTAMP, user_email VARCHAR, job_type VARCHAR, state VARCHAR, query VARCHAR, total_bytes_processed BIGINT, total_bytes_billed BIGINT, cache_hit BOOLEAN, error_result VARCHAR, total_slot_ms BIGINT)`);
+      if (filas.length) await con.query(`INSERT INTO main.__jobs VALUES ${filas.join(', ')}`);
+      out = out.replace(/`?(?:[\w-]+\.)?region-[\w-]+`?\.INFORMATION_SCHEMA\.JOBS(?:_BY_USER|_BY_PROJECT)?`?|`region-[\w-]+\.INFORMATION_SCHEMA\.JOBS(?:_BY_USER|_BY_PROJECT)?`/gi, 'main.__jobs');
+    }
+    return out;
+  }
+  // ---- MERGE (DuckDB-WASM no lo tiene): UPDATE/DELETE … FROM + INSERT … de las filas sin pareja, con la semántica de BigQuery
+  function cierre(t, i) { let p = 0, qq = null; for (let k = i; k < t.length; k++) { const ch = t[k]; if (qq) { if (ch === qq) qq = null; continue; } if (ch === "'" || ch === '"') { qq = ch; continue; } if (ch === '(') p++; else if (ch === ')') { p--; if (!p) return k; } } return -1; }
+  async function mergeDuck(tr) {
+    const m = /^MERGE\s+(?:INTO\s+)?("?[\w$]+"?(?:\."?[\w$]+"?)*)(?:\s+(?:AS\s+)?(?!USING\b)("?\w+"?))?\s+USING\s+/i.exec(tr);
+    if (!m) throw err('Syntax error: MERGE INTO destino USING fuente ON condición WHEN …');
+    const destino = m[1]; const t = (m[2] || destino.split('.').pop()).replace(/"/g, '');
+    let i = m[0].length, fuente;
+    if (tr[i] === '(') { const f = cierre(tr, i); fuente = tr.slice(i, f + 1); i = f + 1; } else { const mm = /^("?[\w$]+"?(?:\."?[\w$]+"?)*)/.exec(tr.slice(i)); fuente = mm[1]; i += mm[0].length; }
+    const resto = tr.slice(i); const ma = /^\s+(?:AS\s+)?(?!ON\b)("?\w+"?)/i.exec(resto); const sA = ma ? ma[1].replace(/"/g, '') : 'S';
+    const mo = /^\s*ON\s+([\s\S]+?)\s+(WHEN\s[\s\S]*)$/i.exec(ma ? resto.slice(ma[0].length) : resto);
+    if (!mo) throw err('Syntax error: falta ON … WHEN … en el MERGE');
+    const cond = mo[1];
+    const partes = mo[2].split(/\bWHEN\s+(?=(?:NOT\s+)?MATCHED\b)/i).map((x) => x.trim()).filter(Boolean).map((c) => {
+      const k = /^(NOT\s+)?MATCHED(?:\s+BY\s+(TARGET|SOURCE))?(?:\s+AND\s+([\s\S]+?))?\s+THEN\s+([\s\S]+?);?$/i.exec(c);
+      if (!k) throw err(`Syntax error near: WHEN ${c.slice(0, 40)}`);
+      const grupo = !k[1] ? 'm' : (k[2] || 'TARGET').toUpperCase() === 'SOURCE' ? 'ns' : 'nt';
+      return { grupo, extra: k[3], accion: k[4].trim() };
+    });
+    const correrN = async (sq) => { const r = await con.query(sq); const f = r.toArray()[0]; return Number((f && (f.Count ?? f.count)) || 0); };
+    const nm = `__merge_nm_${Date.now().toString(36)}`; let n = 0;
+    await con.query(`CREATE TEMP TABLE ${nm} AS SELECT * FROM ${fuente} AS ${sA} WHERE NOT EXISTS (SELECT 1 FROM ${destino} AS ${t} WHERE ${cond})`);
+    const huerf = `__merge_ns_${Date.now().toString(36)}`;
+    if (partes.some((x) => x.grupo === 'ns')) await con.query(`CREATE TEMP TABLE ${huerf} AS SELECT rowid AS __rid FROM ${destino} AS ${t} WHERE NOT EXISTS (SELECT 1 FROM ${fuente} AS ${sA} WHERE ${cond})`);
+    try {
+      const previas = { m: [], nt: [], ns: [] }, cerrado = { m: false, nt: false, ns: false };
+      for (const c of partes) {
+        if (cerrado[c.grupo]) continue;
+        const ex = (c.extra ? ` AND (${c.extra})` : '') + previas[c.grupo].map((x) => ` AND NOT (${x})`).join('');
+        if (c.extra) previas[c.grupo].push(c.extra); else cerrado[c.grupo] = true;
+        const set = /^UPDATE\s+SET\s+([\s\S]+)$/i.exec(c.accion); const asign = set ? set[1].replace(new RegExp(`(^|,)\\s*${t}\\.`, 'gi'), '$1 ') : null;
+        if (c.grupo === 'm') {
+          if (/^DELETE$/i.test(c.accion)) n += await correrN(`DELETE FROM ${destino} AS ${t} USING ${fuente} AS ${sA} WHERE (${cond})${ex}`);
+          else if (set) n += await correrN(`UPDATE ${destino} AS ${t} SET ${asign} FROM ${fuente} AS ${sA} WHERE (${cond})${ex}`);
+          else throw err('WHEN MATCHED admite UPDATE SET … o DELETE');
+        } else if (c.grupo === 'nt') {
+          if (/^INSERT\s+ROW$/i.test(c.accion)) n += await correrN(`INSERT INTO ${destino} SELECT * FROM ${nm} AS ${sA} WHERE TRUE${ex}`);
+          else { const ins = /^INSERT\s*(\([^)]*\))?\s*VALUES\s*\(([\s\S]+)\)$/i.exec(c.accion); if (!ins) throw err('WHEN NOT MATCHED admite INSERT (…) VALUES (…) o INSERT ROW'); n += await correrN(`INSERT INTO ${destino} ${ins[1] || ''} SELECT ${ins[2]} FROM ${nm} AS ${sA} WHERE TRUE${ex}`); }
+        } else {
+          const conRid = `rowid IN (SELECT __rid FROM ${huerf})`;
+          if (/^DELETE$/i.test(c.accion)) n += await correrN(`DELETE FROM ${destino} AS ${t} WHERE ${conRid}${ex}`);
+          else if (set) n += await correrN(`UPDATE ${destino} AS ${t} SET ${asign} WHERE ${conRid}${ex}`);
+          else throw err('WHEN NOT MATCHED BY SOURCE admite UPDATE SET … o DELETE');
+        }
+      }
+    } finally { for (const x of [nm, huerf]) { try { await con.query(`DROP TABLE IF EXISTS ${x}`); } catch (e) { /* ya no está */ } } }
+    return n;
+  }
   async function correr(sqlOriginal, op = {}) {
-    const s = st(); const sql = limpio(sqlOriginal).replace(/;\s*$/, ''); let m;
+    const s = st(); let sql = limpio(sqlOriginal).replace(/;\s*$/, ''); let m;
     const fila = (cols, vals) => ({ columns: cols, values: vals });
     if ((m = /^CREATE\s+SCHEMA\s+(IF\s+NOT\s+EXISTS\s+)?(`[^`]+`|[\w.-]+)/i.exec(sql))) {
       const ds = m[2].replace(/`/g, '').split('.').pop();
@@ -250,7 +374,17 @@ ORDER BY pedidos DESC;
       if (metaNueva.requiereFiltro && !metaNueva.particion) throw err('require_partition_filter can only be set on a partitioned table.');
     }
     [tr] = sacarClausula(tr, /\bOPTIONS\s*\(/i);
+    if (REF.test(tr)) tr = await resolverSystemTime(tr);
+    if (/\bINFORMATION_SCHEMA\b/i.test(tr)) tr = await infoSchema(tr);
+    // antes de cambiar datos: copia para FOR SYSTEM_TIME AS OF
+    if (!op.replay && (m = /^(?:INSERT\s+(?:INTO\s+)?|UPDATE\s+|DELETE\s+(?:FROM\s+)?|MERGE\s+(?:INTO\s+)?|TRUNCATE\s+TABLE\s+)(`[^`]+`|[\w-]+(?:\.[\w-]+){1,2})/i.exec(sql))) { const p = refTabla(m[1]); if (p.length === 2 && (await tablas(p[0])).some((x) => x.nombre === p[1] && !x.vista)) await copiaTT(p.join('.')); }
     tr = traducir(tr).replace(/^TRUNCATE\s+TABLE\s+/i, 'DELETE FROM ');
+    if (/^MERGE\b/i.test(tr)) {
+      let n; try { n = await mergeDuck(tr); } catch (e) { if (e.bq) throw e; throw err(mensaje(String(e.message || e))); }
+      version++; cacheRes.clear();
+      const p = refTabla(/^MERGE\s+(?:INTO\s+)?(`[^`]+`|[\w-]+(?:\.[\w-]+){1,2})/i.exec(sql)[1]);
+      return { estado: `This statement modified ${n} row${n === 1 ? '' : 's'} in ${PROYECTO}.${p.join('.')}.`, filasAfectadas: n, persistir: true };
+    }
     let r;
     try { r = await con.query(tr); } catch (e) { throw err(mensaje(String(e.message || e))); }
     const campos = r.schema.fields; const D = window.SqlMotores.DUCK;
@@ -260,11 +394,11 @@ ORDER BY pedidos DESC;
     if ((m = /^DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?(`[^`]+`|[\w.-]+)/i.exec(sql))) { const p = m[1].replace(/`/g, '').split('.'); if (p.length === 3) p.shift(); delete s.meta[p.join('.')]; }
     if (campos.length === 1 && campos[0].name === 'Count' && cambia) {
       const n = Number((r.toArray()[0] || {}).Count || 0);
-      if (/^CREATE/i.test(sql)) return { estado: `This statement created a new table named ${destino || ''}.`, filasAfectadas: n, persistir: true };
+      if (/^CREATE/i.test(sql)) { const v = /^CREATE\s+(?:OR\s+REPLACE\s+)?VIEW\s+(?:IF\s+NOT\s+EXISTS\s+)?(`[^`]+`|[\w.-]+)/i.exec(sql); return { estado: v ? `This statement created a new view named ${PROYECTO}.${refTabla(v[1]).join('.')}.` : `This statement created a new table named ${PROYECTO}.${destino || ''}.`, filasAfectadas: n, persistir: true }; }
       const verbo = /^INSERT/i.test(sql) ? 'added' : /^UPDATE/i.test(sql) ? 'modified' : /^(DELETE|TRUNCATE)/i.test(sql) ? 'removed' : 'affected';
       return { estado: `This statement ${verbo} ${n} row${n === 1 ? '' : 's'}.`, filasAfectadas: n, persistir: true };
     }
-    if (cambia && !campos.length) return { estado: /^CREATE/i.test(sql) ? `This statement created a new ${/VIEW/i.test(sql) ? 'view' : 'table'}${destino ? ' named ' + destino : ''}.` : /^DROP/i.test(sql) ? 'This statement dropped the object.' : 'This statement completed.', persistir: true };
+    if (cambia && !campos.length) return { estado: /^CREATE/i.test(sql) ? (() => { const v = /^CREATE\s+(?:OR\s+REPLACE\s+)?VIEW\s+(?:IF\s+NOT\s+EXISTS\s+)?(`[^`]+`|[\w.-]+)/i.exec(sql); return v ? `This statement created a new view named ${PROYECTO}.${refTabla(v[1]).join('.')}.` : `This statement created a new table${destino ? ' named ' + PROYECTO + '.' + destino : ''}.`; })() : /^DROP/i.test(sql) ? 'This statement dropped the object.' : 'This statement completed.', persistir: true };
     if (!campos.length) return { estado: 'This statement completed.', persistir: cambia };
     return { ...fila(campos.map((f) => (/^count_star\(\)$/i.test(f.name) ? 'f0_' : f.name)), r.toArray().map((x) => campos.map((f) => D._celda(x[f.name], f.type)))), persistir: cambia };
   }

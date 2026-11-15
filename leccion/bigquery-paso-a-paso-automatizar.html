@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Automatizar - scheduled queries, Dataform y orquestadores · Academia de Datos</title><meta name="description" content="Una consulta que alguien corre a mano cada mañana es un riesgo. Conoces las scheduled queries (un SQL a horario que escribe en una tabla), Dataform (transformaciones versionadas con dependencias y pruebas, al estilo dbt) y cuándo conviene un orquestador como Airflow o Cloud Composer."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-automatizar.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Automatizar - scheduled queries, Dataform y orquestadores · Academia de Datos"><meta property="og:description" content="Una consulta que alguien corre a mano cada mañana es un riesgo. Conoces las scheduled queries (un SQL a horario que escribe en una tabla), Dataform (transformaciones versionadas con dependencias y pruebas, al estilo dbt) y cuándo conviene un orquestador como Airflow o Cloud Composer."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-automatizar.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#bigquery-paso-a-paso">🔎 BigQuery paso a paso</a> · 5 · Avanzado · 35 min</div>
+<h1>Automatizar - scheduled queries, Dataform y orquestadores</h1><p class="resumen">Una consulta que alguien corre a mano cada mañana es un riesgo. Conoces las scheduled queries (un SQL a horario que escribe en una tabla), Dataform (transformaciones versionadas con dependencias y pruebas, al estilo dbt) y cuándo conviene un orquestador como Airflow o Cloud Composer.</p>
+<a class="cta" href="../index.html#/l/bigquery-paso-a-paso-automatizar">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Programar una consulta con scheduled queries</li><li>Entender qué agrega Dataform</li><li>Elegir entre scheduled queries, Dataform y un orquestador</li><li>Usar parámetros de fecha en consultas programadas</li></ul>
+<div class="callout callout-nota"><div class="callout-title">📝 En la práctica</div>
+
+<p>Scheduled queries y Dataform no están simulados: la práctica te muestra qué son. El SQL de esta lección es el de BigQuery real.</p>
+</div>
+
+
+<h2>Paso 1 — Scheduled queries</h2>
+<figure class="captura"><img src="assets/img/guias/bigquery/q18-programadas.webp" alt="Scheduled queries - consultas que corren solas a horario (no simulado en la práctica)" loading="lazy"><figcaption>Scheduled queries - consultas que corren solas a horario (no simulado en la práctica)</figcaption></figure>
+
+
+<p>En la consola, desde el editor: <strong>Schedule</strong> → nombre, frecuencia (por ejemplo, todos los días a las 06:00), dataset y tabla de destino y si <strong>sobrescribe</strong> o <strong>agrega</strong>. Usa los parámetros de la ejecución:</p>
+<pre data-norun><code class="language-sql">-- se ejecuta cada día y carga solo el día anterior en la partición correspondiente
+SELECT fecha_pedido AS fecha, canal, COUNT(*) AS pedidos
+FROM tienda.pedidos
+WHERE fecha_pedido = DATE_SUB(@run_date, INTERVAL 1 DAY)
+GROUP BY fecha, canal;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Parámetro</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><code>@run_date</code></td>
+<td>La fecha de la ejecución programada</td>
+</tr>
+<tr>
+<td><code>@run_time</code></td>
+<td>El instante de la ejecución</td>
+</tr>
+<tr>
+<td>Destino <code>tabla$${run_date}</code></td>
+<td>Escribe en la partición de ese día</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Dataform</h2>
+<figure class="captura"><img src="assets/img/guias/bigquery/q18-dataform.webp" alt="Dataform - transformaciones en SQLX con dependencias, pruebas y Git (no simulado en la práctica)" loading="lazy"><figcaption>Dataform - transformaciones en SQLX con dependencias, pruebas y Git (no simulado en la práctica)</figcaption></figure>
+
+
+<pre data-norun><code class="language-sql">-- definitions/hechos_ventas.sqlx
+config {
+  type: &quot;incremental&quot;,
+  bigquery: { partitionBy: &quot;fecha&quot;, clusterBy: [&quot;canal&quot;, &quot;pais&quot;] },
+  assertions: { nonNull: [&quot;fecha&quot;, &quot;canal&quot;] }
+}
+SELECT p.fecha_pedido AS fecha, p.canal, c.pais, d.cantidad
+FROM ${ref(&quot;pedidos&quot;)} AS p
+JOIN ${ref(&quot;clientes&quot;)} AS c USING (cliente_id)
+JOIN ${ref(&quot;detalle_pedidos&quot;)} AS d USING (pedido_id)
+${ when(incremental(), `WHERE p.fecha_pedido &gt; (SELECT MAX(fecha) FROM ${self()})`) }</code></pre>
+<p><code>${ref(...)}</code> arma el grafo de dependencias, las <strong>assertions</strong> son pruebas de calidad y todo vive en Git: la misma idea que <a href="#/m/dbt">dbt</a>, pero integrado en BigQuery.</p>
+<h2>Paso 3 — ¿Qué uso?</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Si…</th>
+<th>Conviene</th>
+</tr>
+</thead><tbody><tr>
+<td>Es una consulta suelta que corre a horario</td>
+<td>Scheduled query</td>
+</tr>
+<tr>
+<td>Son varias transformaciones SQL con dependencias y pruebas</td>
+<td>Dataform (o dbt)</td>
+</tr>
+<tr>
+<td>El flujo mezcla BigQuery con APIs, archivos, otros sistemas y avisos</td>
+<td>Un orquestador: <a href="#/m/airflow-paso-a-paso">Airflow</a> o Cloud Composer (Airflow administrado)</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes programar una consulta con parámetros de fecha.</li>
+<li>Conoces Dataform.</li>
+<li>Sabes elegir la herramienta de automatización.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/bigquery-paso-a-paso-automatizar">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="bigquery-paso-a-paso-information-schema.html">← INFORMATION_SCHEMA - el proyecto consultado con SQL</a><a href="bigquery-paso-a-paso-acceso-y-gobierno.html">Acceso y gobierno - roles de IAM, vistas autorizadas y seguridad por filas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
