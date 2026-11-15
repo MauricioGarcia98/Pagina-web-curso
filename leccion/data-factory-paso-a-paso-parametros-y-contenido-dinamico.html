@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parámetros y contenido dinámico - un pipeline para cualquier fecha · Academia de Datos</title><meta name="description" content="Un pipeline con la fecha fija sirve para un día; con un parámetro sirve para cualquiera, incluido reprocesar el mes pasado. Agregas el parámetro fecha a pl_ingesta_diaria, lo usas en el comodín del origen y en el nombre del destino con @pipeline().parameters, lo pruebas con Debug, y al publicar ves que Trigger now te pide el valor. Más una guía de las funciones de expresión que más se usan."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-parametros-y-contenido-dinamico.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Parámetros y contenido dinámico - un pipeline para cualquier fecha · Academia de Datos"><meta property="og:description" content="Un pipeline con la fecha fija sirve para un día; con un parámetro sirve para cualquiera, incluido reprocesar el mes pasado. Agregas el parámetro fecha a pl_ingesta_diaria, lo usas en el comodín del origen y en el nombre del destino con @pipeline().parameters, lo pruebas con Debug, y al publicar ves que Trigger now te pide el valor. Más una guía de las funciones de expresión que más se usan."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-parametros-y-contenido-dinamico.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#data-factory-paso-a-paso">🏭 Data Factory paso a paso</a> · 4 · Intermedio-avanzado · 50 min</div>
+<h1>Parámetros y contenido dinámico - un pipeline para cualquier fecha</h1><p class="resumen">Un pipeline con la fecha fija sirve para un día; con un parámetro sirve para cualquiera, incluido reprocesar el mes pasado. Agregas el parámetro fecha a pl_ingesta_diaria, lo usas en el comodín del origen y en el nombre del destino con @pipeline().parameters, lo pruebas con Debug, y al publicar ves que Trigger now te pide el valor. Más una guía de las funciones de expresión que más se usan.</p>
+<a class="cta" href="../index.html#/l/data-factory-paso-a-paso-parametros-y-contenido-dinamico">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un parámetro de pipeline con valor por defecto</li><li>Usar @pipeline().parameters en propiedades dinámicas</li><li>Combinar funciones de texto y fecha</li><li>Pasar un valor distinto al ejecutar</li><li>Reprocesar un día pasado sin tocar el pipeline</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Lucía: <em>&quot;El sistema de la tienda de Bogotá reenvió el archivo del 14 porque el primero vino mal. Necesito reprocesar solo ese día, y que esto se pueda hacer siempre sin tocar el pipeline.&quot;</em></p>
+</div>
+
+
+<h2>Paso 1 — Qué es un parámetro</h2>
+<p>Un <strong>parámetro</strong> es un valor que se le pasa al pipeline <strong>al ejecutarlo</strong>. Tiene un valor por defecto y no cambia durante la ejecución. Es la forma de escribir un pipeline una vez y usarlo para cualquier fecha, tienda o carpeta.</p>
+<h2>Paso 2 — Crear el parámetro</h2>
+<p>Abre <code>pl_ingesta_diaria</code> y haz clic en un espacio <strong>vacío</strong> del lienzo: abajo aparecen <strong>Parameters</strong> y <strong>Variables</strong> del pipeline. En <strong>Parameters → New</strong>, nombre <code>fecha</code>, valor por defecto <code>2026-11-15</code>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b13-parametro.webp" alt="El parámetro fecha con su valor por defecto" loading="lazy"><figcaption>El parámetro fecha con su valor por defecto</figcaption></figure>
+
+
+<h2>Paso 3 — Usarlo en el origen y en el destino</h2>
+<p>En la copia, <strong>Source → Wildcard file name</strong>:</p>
+<pre><code class="language-text">ventas_@{pipeline().parameters.fecha}.csv</code></pre>
+<figure class="captura"><img src="assets/img/guias/adf/b13-source.webp" alt="El comodín ahora toma el archivo del día que diga el parámetro" loading="lazy"><figcaption>El comodín ahora toma el archivo del día que diga el parámetro</figcaption></figure>
+
+
+<p>En <strong>Sink → File name</strong> (con Merge files marcado):</p>
+<pre><code class="language-text">ventas_@{replace(pipeline().parameters.fecha, '-', '')}.csv</code></pre>
+<figure class="captura"><img src="assets/img/guias/adf/b13-sink.webp" alt="El nombre de salida con la fecha sin guiones" loading="lazy"><figcaption>El nombre de salida con la fecha sin guiones</figcaption></figure>
+
+
+<p>Con <code>fecha = 2026-11-15</code>, el origen busca <code>ventas_2026-11-15.csv</code> y el destino escribe <code>ventas_20261115.csv</code>.</p>
+<h2>Paso 4 — Probar y ejecutar con otro valor</h2>
+<p><strong>Debug</strong> usa el valor por defecto:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b13-debug-output.webp" alt="Un archivo leído y cinco filas: solo el día 15" loading="lazy"><figcaption>Un archivo leído y cinco filas: solo el día 15</figcaption></figure>
+
+
+<p>Publica con <strong>Publish all</strong> y haz <strong>Add trigger → Trigger now</strong>. Ahora el diálogo pide el parámetro: escribe <code>2026-11-14</code>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b13-trigger-param.webp" alt="Trigger now pide el valor del parámetro - aquí, el día a reprocesar" loading="lazy"><figcaption>Trigger now pide el valor del parámetro - aquí, el día a reprocesar</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/adf/b13-bronze.webp" alt="En bronze aparecen ventas_20261115.csv y ventas_20261114.csv" loading="lazy"><figcaption>En bronze aparecen ventas_20261115.csv y ventas_20261114.csv</figcaption></figure>
+
+
+<p>Reprocesaste el 14 sin tocar el pipeline. Un trigger también puede pasar parámetros: por ejemplo, <code>@trigger().scheduledTime</code> para que cada ejecución procese su propio día.</p>
+<h2>Paso 5 — Las funciones más usadas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Necesitas</th>
+<th>Expresión</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td>Leer un parámetro</td>
+<td><code>@pipeline().parameters.fecha</code></td>
+<td><code>2026-11-15</code></td>
+</tr>
+<tr>
+<td>Unir textos</td>
+<td><code>@concat(&#39;ventas_&#39;, pipeline().parameters.fecha)</code></td>
+<td><code>ventas_2026-11-15</code></td>
+</tr>
+<tr>
+<td>Reemplazar</td>
+<td><code>@replace(&#39;2026-11-15&#39;, &#39;-&#39;, &#39;&#39;)</code></td>
+<td><code>20261115</code></td>
+</tr>
+<tr>
+<td>Fecha actual</td>
+<td><code>@utcNow(&#39;yyyy-MM-dd&#39;)</code></td>
+<td>La fecha de hoy en UTC</td>
+</tr>
+<tr>
+<td>Formatear</td>
+<td><code>@formatDateTime(utcNow(), &#39;yyyy/MM/dd&#39;)</code></td>
+<td><code>2026/11/15</code></td>
+</tr>
+<tr>
+<td>Sumar días</td>
+<td><code>@addDays(utcNow(), -1, &#39;yyyy-MM-dd&#39;)</code></td>
+<td>Ayer</td>
+</tr>
+<tr>
+<td>Comparar</td>
+<td><code>@equals(pipeline().parameters.tienda, &#39;Lima&#39;)</code></td>
+<td><code>true</code> / <code>false</code></td>
+</tr>
+<tr>
+<td>Otros datos de la ejecución</td>
+<td><code>@pipeline().RunId</code>, <code>@pipeline().TriggerTime</code></td>
+<td>El ID y la hora del run</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las expresiones distinguen comillas</div>
+
+<p>Los textos dentro de una expresión van entre <strong>comillas simples</strong>: <code>&#39;ventas_&#39;</code>. Las comillas dobles o un paréntesis de menos dan <code>The expression … is not valid</code>. Si una expresión falla, pruébala por partes en un Set variable (lección siguiente).</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste un parámetro y lo usaste en origen y destino.</li>
+<li>Ejecutaste el pipeline publicado con otro valor para reprocesar un día.</li>
+<li>Conoces las funciones de expresión más usadas.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/data-factory-paso-a-paso-parametros-y-contenido-dinamico">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="data-factory-paso-a-paso-proyecto-en-produccion-con-horario.html">← Proyecto 3 (semiguiado) - la ingesta en producción, con horario y con freno</a><a href="data-factory-paso-a-paso-variables-y-set-variable.html">Variables y Set variable - calcular un valor una vez y reutilizarlo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Copy data a fondo - comodines, unir archivos y las métricas · Academia de Datos</title><meta name="description" content="La actividad Copy es la que más se usa en Data Factory. Filtras qué archivos copiar con un comodín, ves cómo cambian las métricas, unes los cuatro días en un solo archivo con Merge files y un nombre de salida, comparas el resultado en el almacenamiento y entiendes qué son las DIU y por qué importan en la factura."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-copy-data-a-fondo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Copy data a fondo - comodines, unir archivos y las métricas · Academia de Datos"><meta property="og:description" content="La actividad Copy es la que más se usa en Data Factory. Filtras qué archivos copiar con un comodín, ves cómo cambian las métricas, unes los cuatro días en un solo archivo con Merge files y un nombre de salida, comparas el resultado en el almacenamiento y entiendes qué son las DIU y por qué importan en la factura."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-copy-data-a-fondo.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#data-factory-paso-a-paso">🏭 Data Factory paso a paso</a> · 2 · Básico-intermedio · 40 min</div>
+<h1>Copy data a fondo - comodines, unir archivos y las métricas</h1><p class="resumen">La actividad Copy es la que más se usa en Data Factory. Filtras qué archivos copiar con un comodín, ves cómo cambian las métricas, unes los cuatro días en un solo archivo con Merge files y un nombre de salida, comparas el resultado en el almacenamiento y entiendes qué son las DIU y por qué importan en la factura.</p>
+<a class="cta" href="../index.html#/l/data-factory-paso-a-paso-copy-data-a-fondo">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Filtrar archivos de origen con comodines</li><li>Leer filesRead, rowsCopied y DIU en la salida</li><li>Unir varios archivos en uno con Merge files</li><li>Dar nombre al archivo de destino</li><li>Explicar cómo se cobra una copia</li></ul>
+<h2>Paso 1 — Copiar un solo día con un comodín</h2>
+<p>En <code>pl_copiar_ventas</code>, pestaña <strong>Source</strong> de la copia, escribe en <strong>Wildcard file name</strong>: <code>*-11-15.csv</code>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b06-wildcard.webp" alt="El comodín: solo los archivos que terminan en -11-15.csv" loading="lazy"><figcaption>El comodín: solo los archivos que terminan en -11-15.csv</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Comodín</th>
+<th>Significa</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>*</code></td>
+<td>Cualquier cantidad de caracteres</td>
+<td><code>*.csv</code> = todos los CSV</td>
+</tr>
+<tr>
+<td><code>?</code></td>
+<td>Exactamente un carácter</td>
+<td><code>ventas_2026-11-1?.csv</code> = del 10 al 19</td>
+</tr>
+</tbody></table></div>
+<p>Haz <strong>Debug</strong> y abre el <strong>Output</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b06-un-archivo.webp" alt="Ahora se leyó un solo archivo con cinco filas" loading="lazy"><figcaption>Ahora se leyó un solo archivo con cinco filas</figcaption></figure>
+
+
+<h2>Paso 2 — Unir archivos: Merge files</h2>
+<p>Muchas veces el destino necesita <strong>un solo archivo</strong>. Borra el comodín y, en <strong>Sink</strong>:</p>
+<ol>
+<li>Marca <strong>Copy behavior: Merge files</strong>.</li>
+<li><strong>File name</strong>: <code>ventas_historico.csv</code>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/adf/b06-merge.webp" alt="Merge files (1) y el nombre del archivo de salida (2)" loading="lazy"><figcaption>Merge files (1) y el nombre del archivo de salida (2)</figcaption></figure>
+
+
+<p>Haz <strong>Debug</strong> y mira el <strong>Output</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b06-merge-output.webp" alt="Cuatro archivos leídos, uno escrito, veinte filas" loading="lazy"><figcaption>Cuatro archivos leídos, uno escrito, veinte filas</figcaption></figure>
+
+
+<p>Data Factory deja <strong>un solo encabezado</strong> al principio y pega las filas de todos los archivos.</p>
+<figure class="captura"><img src="assets/img/guias/adf/b06-bronze.webp" alt="En bronze ahora está también ventas_historico.csv, con las veinte filas" loading="lazy"><figcaption>En bronze ahora está también ventas_historico.csv, con las veinte filas</figcaption></figure>
+
+
+<p>Después de probar, desmarca Merge files y borra el nombre: el pipeline vuelve a copiar archivo por archivo.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 ¿Unir o no unir?</div>
+
+<p>En <strong>bronze</strong> conviene copiar archivo por archivo, tal como llegaron: si un día hay que reprocesar, se toma ese archivo. Unir tiene sentido cuando el destino lo pide (un sistema que espera un único archivo) o para no generar miles de archivos chicos.</p>
+</div>
+
+
+<h2>Paso 3 — Las métricas de una copia</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Métrica</th>
+<th>Para qué la miras</th>
+</tr>
+</thead><tbody><tr>
+<td><code>filesRead</code> / <code>filesWritten</code></td>
+<td>¿Copió todos los archivos que esperaba?</td>
+</tr>
+<tr>
+<td><code>rowsRead</code> / <code>rowsCopied</code></td>
+<td>¿Se perdieron filas? Si difieren, hubo filas rechazadas</td>
+</tr>
+<tr>
+<td><code>dataRead</code> / <code>dataWritten</code></td>
+<td>El volumen, en bytes</td>
+</tr>
+<tr>
+<td><code>copyDuration</code> / <code>throughput</code></td>
+<td>Si una copia empieza a tardar más, algo cambió</td>
+</tr>
+<tr>
+<td><code>usedDataIntegrationUnits</code></td>
+<td>Las <strong>DIU</strong>: la potencia de cómputo que usó</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 4 — Cómo se cobra</h2>
+<p>Una <strong>DIU</strong> (<em>Data Integration Unit</em>) mezcla CPU, memoria y red. Una copia se cobra, a grandes rasgos, por <strong>DIU × horas</strong> de copia, más un costo por cada ejecución de actividad. Por eso la salida trae <code>billingReference</code> con <code>DIUHours</code>. Con archivos chicos la diferencia es mínima; con terabytes, ajustar las DIU y no copiar de más es dinero.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Si el comodín no encuentra nada</div>
+
+<p>La copia <strong>falla</strong> con <code>UserErrorSourceBlobNotExist</code>. Lo provocas a propósito en la lección siguiente. En la lección 17 aprendes a verificar antes si el archivo llegó.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Filtras archivos con comodines.</li>
+<li>Unes archivos con Merge files y eliges el nombre de salida.</li>
+<li>Lees las métricas y sabes qué se cobra.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/data-factory-paso-a-paso-copy-data-a-fondo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="data-factory-paso-a-paso-pipelines-y-el-lienzo.html">← Pipelines y el lienzo - actividades, dependencias y el JSON</a><a href="data-factory-paso-a-paso-validate-debug-y-errores.html">Validate, Debug y los errores - leer un fallo y arreglarlo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

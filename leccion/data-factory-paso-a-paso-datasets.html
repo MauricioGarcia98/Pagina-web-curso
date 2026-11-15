@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Datasets - qué datos, en qué formato y dónde · Academia de Datos</title><meta name="description" content="Un dataset le dice a Data Factory qué datos usar dentro de una conexión - contenedor, carpeta, archivo y formato. Creas el dataset de origen de las ventas en raw, ves sus datos con Preview data, lees su JSON, provocas el error de un contenedor mal escrito, y creas el dataset de destino en bronze y uno en formato JSON para las devoluciones."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-datasets.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Datasets - qué datos, en qué formato y dónde · Academia de Datos"><meta property="og:description" content="Un dataset le dice a Data Factory qué datos usar dentro de una conexión - contenedor, carpeta, archivo y formato. Creas el dataset de origen de las ventas en raw, ves sus datos con Preview data, lees su JSON, provocas el error de un contenedor mal escrito, y creas el dataset de destino en bronze y uno en formato JSON para las devoluciones."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-datasets.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#data-factory-paso-a-paso">🏭 Data Factory paso a paso</a> · 1 · Básico · 40 min</div>
+<h1>Datasets - qué datos, en qué formato y dónde</h1><p class="resumen">Un dataset le dice a Data Factory qué datos usar dentro de una conexión - contenedor, carpeta, archivo y formato. Creas el dataset de origen de las ventas en raw, ves sus datos con Preview data, lees su JSON, provocas el error de un contenedor mal escrito, y creas el dataset de destino en bronze y uno en formato JSON para las devoluciones.</p>
+<a class="cta" href="../index.html#/l/data-factory-paso-a-paso-datasets">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un dataset CSV sobre ADLS Gen2</li><li>Elegir carpeta, archivo, delimitador y encabezado</li><li>Verificar un dataset con Preview data</li><li>Interpretar el error FilesystemNotFound</li><li>Crear un dataset JSON</li></ul>
+<h2>Paso 1 — Qué es un dataset</h2>
+<p>Un <strong>dataset</strong> apunta a datos concretos dentro de un linked service:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Linked service</strong></td>
+<td><code>ls_adls_tiendaandina</code></td>
+</tr>
+<tr>
+<td><strong>File path</strong></td>
+<td>contenedor <code>raw</code> / carpeta <code>ventas</code> / archivo (vacío = todos)</td>
+</tr>
+<tr>
+<td><strong>Formato</strong></td>
+<td>DelimitedText (CSV), JSON, Parquet…</td>
+</tr>
+<tr>
+<td><strong>Opciones del formato</strong></td>
+<td>Delimitador <code>,</code>, la primera fila es el encabezado</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — El dataset de origen</h2>
+<p>En <strong>Author</strong>, el botón <strong>+</strong> junto a <em>Factory Resources</em>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b03-menu-nuevo.webp" alt="El menú + - Pipeline o Dataset" loading="lazy"><figcaption>El menú + - Pipeline o Dataset</figcaption></figure>
+
+
+<p>Elige <strong>Dataset</strong> y completa:</p>
+<ol>
+<li><strong>Format</strong>: DelimitedText (CSV).</li>
+<li><strong>Name</strong>: <code>ds_raw_ventas</code>.</li>
+<li><strong>Linked service</strong>: <code>ls_adls_tiendaandina</code>.</li>
+<li><strong>File path</strong>: contenedor <code>raw</code>, carpeta <code>ventas</code>, archivo vacío.</li>
+<li><strong>First row as header</strong>: marcado.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/adf/b03-nuevo-dataset.webp" alt="New dataset - formato (1), nombre (2), conexión (3), contenedor (4), carpeta (5) y encabezado (6)" loading="lazy"><figcaption>New dataset - formato (1), nombre (2), conexión (3), contenedor (4), carpeta (5) y encabezado (6)</figcaption></figure>
+
+
+<p>Con el <strong>archivo vacío</strong>, el dataset representa <strong>todos los archivos de la carpeta</strong>. Es lo habitual en el origen: cada día llega un archivo nuevo con otro nombre.</p>
+<figure class="captura"><img src="assets/img/guias/adf/b03-dataset.webp" alt="El dataset en Factory Resources (1), su configuración (2) y su barra (3) con Code, Preview data y Delete" loading="lazy"><figcaption>El dataset en Factory Resources (1), su configuración (2) y su barra (3) con Code, Preview data y Delete</figcaption></figure>
+
+
+<h2>Paso 3 — Preview data</h2>
+<p>Haz clic en <strong>Preview data</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b03-preview.webp" alt="Las primeras filas del primer archivo de la carpeta, con sus columnas" loading="lazy"><figcaption>Las primeras filas del primer archivo de la carpeta, con sus columnas</figcaption></figure>
+
+
+<p>Antes de usar un dataset en un pipeline, <strong>siempre</strong> mira la vista previa: confirma que llegas a los datos (permisos y ruta) y que el formato es el correcto (delimitador, encabezado). Si las columnas aparecen todas juntas en una sola, el delimitador está mal.</p>
+<h2>Paso 4 — El JSON del dataset</h2>
+<p><strong>Code</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b03-json.webp" alt="La definición JSON - el linked service, la ubicación (fileSystem y folderPath) y las opciones del CSV" loading="lazy"><figcaption>La definición JSON - el linked service, la ubicación (fileSystem y folderPath) y las opciones del CSV</figcaption></figure>
+
+
+<p>En ADLS Gen2, el contenedor se llama <strong>fileSystem</strong> y la carpeta <strong>folderPath</strong>. Es el mismo JSON que verás en Git y en las plantillas ARM.</p>
+<h2>Paso 5 — Un error a propósito</h2>
+<p>Crea un dataset <code>ds_prueba</code> igual al anterior, pero con el contenedor escrito <code>Raw</code> (con mayúscula), y haz <strong>Preview data</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b03-preview-error.webp" alt="El contenedor &quot;Raw&quot; (1) no existe - FilesystemNotFound (2)" loading="lazy"><figcaption>El contenedor &quot;Raw&quot; (1) no existe - FilesystemNotFound (2)</figcaption></figure>
+
+
+<p>Los nombres de contenedor en Azure son <strong>siempre en minúsculas</strong>: <code>Raw</code> y <code>raw</code> no son lo mismo. <strong>FilesystemNotFound</strong> quiere decir &quot;ese contenedor no existe en esa cuenta&quot;. Borra <code>ds_prueba</code> con <strong>Delete</strong>.</p>
+<h2>Paso 6 — El destino y un dataset JSON</h2>
+<p>Crea dos datasets más:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Nombre</th>
+<th>Formato</th>
+<th>Contenedor / carpeta</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>ds_bronze_ventas</code></td>
+<td>DelimitedText</td>
+<td><code>bronze</code> / <code>ventas</code></td>
+<td>Destino de la copia de ventas</td>
+</tr>
+<tr>
+<td><code>ds_raw_devoluciones</code></td>
+<td>JSON</td>
+<td><code>raw</code> / <code>devoluciones</code></td>
+<td>Las devoluciones, que llegan en JSON</td>
+</tr>
+</tbody></table></div>
+<figure class="captura"><img src="assets/img/guias/adf/b03-preview-json.webp" alt="Los tres datasets (1) y la vista previa del JSON de devoluciones (2)" loading="lazy"><figcaption>Los tres datasets (1) y la vista previa del JSON de devoluciones (2)</figcaption></figure>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Un dataset por lugar, no por archivo</div>
+
+<p>Un error común es crear un dataset por cada archivo (<code>ds_ventas_12</code>, <code>ds_ventas_13</code>…). Se crea <strong>uno por carpeta</strong> y el archivo se elige en la actividad, con comodines o con expresiones (lecciones 6 y 13).</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste datasets de origen y destino, en CSV y en JSON.</li>
+<li>Verificas cada dataset con Preview data.</li>
+<li>Sabes leer su JSON y el error de un contenedor inexistente.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/data-factory-paso-a-paso-datasets">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="data-factory-paso-a-paso-linked-services.html">← Linked services - las conexiones, con la identidad del factory</a><a href="data-factory-paso-a-paso-proyecto-primera-copia.html">Proyecto 1 (guiado) - la primera copia de raw a bronze →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

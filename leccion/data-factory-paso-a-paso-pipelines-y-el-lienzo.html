@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pipelines y el lienzo - actividades, dependencias y el JSON · Academia de Datos</title><meta name="description" content="Cómo se trabaja en el editor de pipelines - buscar y agregar actividades, encadenarlas con dependencias, configurar cada una en sus pestañas, leer el pipeline completo como JSON y borrar lo que sobra. Agregas una espera después de la copia para ver cómo nace una dependencia y qué significa cada color de flecha."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-pipelines-y-el-lienzo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Pipelines y el lienzo - actividades, dependencias y el JSON · Academia de Datos"><meta property="og:description" content="Cómo se trabaja en el editor de pipelines - buscar y agregar actividades, encadenarlas con dependencias, configurar cada una en sus pestañas, leer el pipeline completo como JSON y borrar lo que sobra. Agregas una espera después de la copia para ver cómo nace una dependencia y qué significa cada color de flecha."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-pipelines-y-el-lienzo.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#data-factory-paso-a-paso">🏭 Data Factory paso a paso</a> · 2 · Básico-intermedio · 35 min</div>
+<h1>Pipelines y el lienzo - actividades, dependencias y el JSON</h1><p class="resumen">Cómo se trabaja en el editor de pipelines - buscar y agregar actividades, encadenarlas con dependencias, configurar cada una en sus pestañas, leer el pipeline completo como JSON y borrar lo que sobra. Agregas una espera después de la copia para ver cómo nace una dependencia y qué significa cada color de flecha.</p>
+<a class="cta" href="../index.html#/l/data-factory-paso-a-paso-pipelines-y-el-lienzo">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Buscar y agregar actividades al lienzo</li><li>Encadenar actividades con Depends on</li><li>Distinguir Upon Success, Failure, Completion y Skip</li><li>Leer el JSON de un pipeline</li><li>Borrar una actividad sin romper el pipeline</li></ul>
+<h2>Paso 1 — El panel de actividades</h2>
+<p>Abre <code>pl_copiar_ventas</code>. A la izquierda están las actividades, agrupadas. Escribe <code>wa</code> en <strong>Search activities</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b05-buscar-actividad.webp" alt="La búsqueda (1) filtra el panel de actividades (2)" loading="lazy"><figcaption>La búsqueda (1) filtra el panel de actividades (2)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Grupo</th>
+<th>Actividades de la práctica</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Move and transform</strong></td>
+<td>Copy data</td>
+<td>Mover datos</td>
+</tr>
+<tr>
+<td><strong>Databricks</strong></td>
+<td>Notebook</td>
+<td>Llamar a un notebook (lección 19)</td>
+</tr>
+<tr>
+<td><strong>General</strong></td>
+<td>Get Metadata, Lookup, Set variable, Wait, Fail</td>
+<td>Leer, decidir, esperar, fallar a propósito</td>
+</tr>
+<tr>
+<td><strong>Iteration &amp; conditionals</strong></td>
+<td>ForEach, If Condition</td>
+<td>Repetir y bifurcar (lecciones 15 a 17)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Agregar una actividad encadenada</h2>
+<p>Selecciona la copia en el lienzo y haz clic en <strong>Wait</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b05-wait.webp" alt="La espera aparece conectada después de la copia (1), con sus propiedades abajo (2)" loading="lazy"><figcaption>La espera aparece conectada después de la copia (1), con sus propiedades abajo (2)</figcaption></figure>
+
+
+<p>Si hay una actividad seleccionada, la nueva se agrega <strong>después</strong> de ella, con una flecha verde. En <strong>Settings</strong> ponle 5 segundos:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b05-wait-settings.webp" alt="Wait time in seconds" loading="lazy"><figcaption>Wait time in seconds</figcaption></figure>
+
+
+<h2>Paso 3 — Depends on y los cuatro colores</h2>
+<p>Vuelve a la pestaña <strong>General</strong> de la espera:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b05-depends-on.webp" alt="Depends on - de qué actividad depende y en qué condición" loading="lazy"><figcaption>Depends on - de qué actividad depende y en qué condición</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Condición</th>
+<th>Color</th>
+<th>La actividad corre cuando la anterior…</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Upon Success</strong></td>
+<td>Verde</td>
+<td>Terminó bien (lo normal)</td>
+</tr>
+<tr>
+<td><strong>Upon Failure</strong></td>
+<td>Rojo</td>
+<td>Falló (para avisar o compensar)</td>
+</tr>
+<tr>
+<td><strong>Upon Completion</strong></td>
+<td>Azul</td>
+<td>Terminó, bien o mal</td>
+</tr>
+<tr>
+<td><strong>Upon Skip</strong></td>
+<td>Gris</td>
+<td>No se ejecutó</td>
+</tr>
+</tbody></table></div>
+<p>Las rutas de error se usan en la lección 18. En el portal real, la dependencia se crea arrastrando el pequeño botón del borde de una actividad hasta otra; en la práctica se marca en Depends on.</p>
+<h2>Paso 4 — El pipeline como JSON</h2>
+<p><strong>Code</strong> muestra el pipeline entero:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b05-code.webp" alt="El JSON del pipeline - cada actividad con su tipo, dependencias, política (timeout, reintentos) y propiedades" loading="lazy"><figcaption>El JSON del pipeline - cada actividad con su tipo, dependencias, política (timeout, reintentos) y propiedades</figcaption></figure>
+
+
+<p>Fíjate en la <strong>policy</strong> de la copia: <code>timeout</code> de 12 horas y <code>retry</code> 0 por defecto. Es lo que se guarda en Git y lo que viaja en las plantillas ARM.</p>
+<h2>Paso 5 — Borrar</h2>
+<p>La espera no hace falta. Selecciónala y usa el ícono de <strong>papelera</strong> de sus propiedades:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b05-parametros.webp" alt="El lienzo vuelve a tener solo la copia; abajo queda la salida del último Debug" loading="lazy"><figcaption>El lienzo vuelve a tener solo la copia; abajo queda la salida del último Debug</figcaption></figure>
+
+
+<p>Al borrar una actividad, las dependencias que apuntaban a ella también se borran.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Buscas, agregas y encadenas actividades.</li>
+<li>Conoces las cuatro condiciones de dependencia.</li>
+<li>Lees el pipeline como JSON.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/data-factory-paso-a-paso-pipelines-y-el-lienzo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="data-factory-paso-a-paso-proyecto-primera-copia.html">← Proyecto 1 (guiado) - la primera copia de raw a bronze</a><a href="data-factory-paso-a-paso-copy-data-a-fondo.html">Copy data a fondo - comodines, unir archivos y las métricas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

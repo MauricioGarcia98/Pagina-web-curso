@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Validate, Debug y los errores - leer un fallo y arreglarlo · Academia de Datos</title><meta name="description" content="Los pipelines fallan, y saber leer el error es la mitad del trabajo. Provocas un error de validación (una copia sin destino), un fallo en ejecución (un archivo que no llegó), lees el código y el mensaje del error, configuras reintentos para fallos pasajeros y encuentras todas tus pruebas en la pestaña Debug de Monitor."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-validate-debug-y-errores.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Validate, Debug y los errores - leer un fallo y arreglarlo · Academia de Datos"><meta property="og:description" content="Los pipelines fallan, y saber leer el error es la mitad del trabajo. Provocas un error de validación (una copia sin destino), un fallo en ejecución (un archivo que no llegó), lees el código y el mensaje del error, configuras reintentos para fallos pasajeros y encuentras todas tus pruebas en la pestaña Debug de Monitor."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-validate-debug-y-errores.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#data-factory-paso-a-paso">🏭 Data Factory paso a paso</a> · 2 · Básico-intermedio · 40 min</div>
+<h1>Validate, Debug y los errores - leer un fallo y arreglarlo</h1><p class="resumen">Los pipelines fallan, y saber leer el error es la mitad del trabajo. Provocas un error de validación (una copia sin destino), un fallo en ejecución (un archivo que no llegó), lees el código y el mensaje del error, configuras reintentos para fallos pasajeros y encuentras todas tus pruebas en la pestaña Debug de Monitor.</p>
+<a class="cta" href="../index.html#/l/data-factory-paso-a-paso-validate-debug-y-errores">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Distinguir errores de validación y errores de ejecución</li><li>Leer el código, el tipo y el mensaje de un error</li><li>Configurar reintentos y saber cuándo sirven</li><li>Encontrar las ejecuciones de Debug en Monitor</li><li>Seguir un método para diagnosticar fallos</li></ul>
+<h2>Paso 1 — Un error de validación</h2>
+<p>En la copia de <code>pl_copiar_ventas</code>, pestaña <strong>Sink</strong>, deja el dataset vacío y haz <strong>Validate</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b07-validacion-error.webp" alt="Pipeline validation output - &quot;Found 1 error&quot; con la actividad, el tipo y el mensaje" loading="lazy"><figcaption>Pipeline validation output - &quot;Found 1 error&quot; con la actividad, el tipo y el mensaje</figcaption></figure>
+
+
+<p><strong>Validate</strong> encuentra lo que falta <strong>antes</strong> de ejecutar: datasets sin elegir, expresiones mal escritas, nombres repetidos. No puede saber si un archivo existe o si hay permisos: eso solo se ve al ejecutar. Vuelve a elegir <code>ds_bronze_ventas</code>.</p>
+<h2>Paso 2 — Un error de ejecución</h2>
+<p>En <strong>Source</strong>, pon el comodín <code>*-11-16.csv</code> (ese día todavía no llegó) y haz <strong>Debug</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b07-debug-falla.webp" alt="La actividad en rojo (1) y la salida con Failed (2)" loading="lazy"><figcaption>La actividad en rojo (1) y la salida con Failed (2)</figcaption></figure>
+
+
+<p>El ícono de la columna <strong>Error</strong> muestra el detalle:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b07-error-detalle.webp" alt="Error code 2200, Failure type UserError y el mensaje UserErrorSourceBlobNotExist con la carpeta y el patrón" loading="lazy"><figcaption>Error code 2200, Failure type UserError y el mensaje UserErrorSourceBlobNotExist con la carpeta y el patrón</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Qué dice</th>
+<th>Para qué sirve</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Error code</strong></td>
+<td><code>2200</code></td>
+<td>El código de la familia del error (2200 = Copy)</td>
+</tr>
+<tr>
+<td><strong>Failure type</strong></td>
+<td><code>UserError</code></td>
+<td>Es un problema de configuración o de datos, no de Azure</td>
+</tr>
+<tr>
+<td><strong>Message</strong></td>
+<td><code>UserErrorSourceBlobNotExist … file pattern: *-11-16.csv</code></td>
+<td><strong>Lo importante</strong>: qué buscó y dónde</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — Un método para diagnosticar</h2>
+<ol>
+<li><strong>¿Qué actividad falló?</strong> La que está en rojo.</li>
+<li><strong>¿Qué dice el mensaje?</strong> Lee el mensaje completo, no solo el código.</li>
+<li><strong>¿Es mío o de afuera?</strong> <code>UserError</code> casi siempre es configuración, permisos o datos. Un <code>SystemError</code> o un timeout puede ser pasajero.</li>
+<li><strong>¿Qué cambió?</strong> Si ayer funcionaba: ¿llegó el archivo?, ¿cambió el formato?, ¿alguien tocó un permiso?</li>
+<li><strong>Reproduce con Debug</strong> y arregla.</li>
+</ol>
+<p>Los errores más comunes:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Error</th>
+<th>Causa típica</th>
+</tr>
+</thead><tbody><tr>
+<td><code>AuthorizationPermissionMismatch</code> / <code>Forbidden</code></td>
+<td>A la identidad del factory le falta un rol</td>
+</tr>
+<tr>
+<td><code>FilesystemNotFound</code></td>
+<td>El contenedor no existe o está mal escrito</td>
+</tr>
+<tr>
+<td><code>UserErrorSourceBlobNotExist</code></td>
+<td>No hay archivos que coincidan con la ruta o el comodín</td>
+</tr>
+<tr>
+<td><code>The expression … is not valid</code></td>
+<td>Una expresión mal escrita (lección 13)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 4 — Reintentos</h2>
+<p>En <strong>General</strong>, el campo <strong>Retry</strong> indica cuántas veces se reintenta una actividad que falla:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b07-retry.webp" alt="Retry - cuántas veces reintentar antes de dar la actividad por fallida" loading="lazy"><figcaption>Retry - cuántas veces reintentar antes de dar la actividad por fallida</figcaption></figure>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Cuándo sirve reintentar</div>
+
+<p>Un reintento ayuda con fallos <strong>pasajeros</strong>: un corte de red, un servicio ocupado, un archivo que todavía se está escribiendo. <strong>No</strong> ayuda con un error de configuración: si el archivo no existe o falta un rol, falla igual tres veces. En la vida real se usan 1 a 3 reintentos con un intervalo de unos minutos en las copias desde sistemas externos.</p>
+</div>
+
+
+<p>Vuelve el reintento a 0 y borra el comodín.</p>
+<h2>Paso 5 — Las pruebas en Monitor</h2>
+<p><strong>Monitor → Debug</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b07-monitor-debug.webp" alt="La pestaña Debug (1) con todas tus pruebas, la fallida incluida (2)" loading="lazy"><figcaption>La pestaña Debug (1) con todas tus pruebas, la fallida incluida (2)</figcaption></figure>
+
+
+<p>Monitor separa las ejecuciones <strong>Triggered</strong> (las de verdad) de las <strong>Debug</strong> (tus pruebas), para que una prueba fallida no se confunda con un incidente de producción.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Distingues errores de validación y de ejecución.</li>
+<li>Lees un error completo y sigues un método para diagnosticarlo.</li>
+<li>Sabes cuándo un reintento ayuda.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/data-factory-paso-a-paso-validate-debug-y-errores">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="data-factory-paso-a-paso-copy-data-a-fondo.html">← Copy data a fondo - comodines, unir archivos y las métricas</a><a href="data-factory-paso-a-paso-proyecto-ingesta-diaria.html">Proyecto 2 (semiguiado) - la ingesta diaria con nombre de archivo del día →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

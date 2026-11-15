@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dependencias y manejo de errores - qué hacer cuando algo falla · Academia de Datos</title><meta name="description" content="Un pipeline de producción tiene un camino para cuando todo sale bien y otro para cuando algo falla. Agregas a pl_ingesta_diaria una ruta Upon Failure que avisa a la guardia y marca el pipeline como fallido, y una ruta Upon Success que registra el éxito; lo ejecutas con un día sin archivo y con un día con archivo, y entiendes la regla que decide si el pipeline termina en verde o en rojo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-dependencias-y-manejo-de-errores.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Dependencias y manejo de errores - qué hacer cuando algo falla · Academia de Datos"><meta property="og:description" content="Un pipeline de producción tiene un camino para cuando todo sale bien y otro para cuando algo falla. Agregas a pl_ingesta_diaria una ruta Upon Failure que avisa a la guardia y marca el pipeline como fallido, y una ruta Upon Success que registra el éxito; lo ejecutas con un día sin archivo y con un día con archivo, y entiendes la regla que decide si el pipeline termina en verde o en rojo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-dependencias-y-manejo-de-errores.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#data-factory-paso-a-paso">🏭 Data Factory paso a paso</a> · 5 · Avanzado · 50 min</div>
+<h1>Dependencias y manejo de errores - qué hacer cuando algo falla</h1><p class="resumen">Un pipeline de producción tiene un camino para cuando todo sale bien y otro para cuando algo falla. Agregas a pl_ingesta_diaria una ruta Upon Failure que avisa a la guardia y marca el pipeline como fallido, y una ruta Upon Success que registra el éxito; lo ejecutas con un día sin archivo y con un día con archivo, y entiendes la regla que decide si el pipeline termina en verde o en rojo.</p>
+<a class="cta" href="../index.html#/l/data-factory-paso-a-paso-dependencias-y-manejo-de-errores">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Usar Upon Failure para avisar o compensar</li><li>Combinar rutas de éxito y de error en un mismo pipeline</li><li>Entender cuándo un pipeline termina Succeeded o Failed</li><li>Mantener el estado Failed cuando hace falta</li><li>Leer Skipped en la salida</li></ul>
+<h2>Paso 1 — Las rutas</h2>
+<p>En <code>pl_ingesta_diaria</code>, selecciona la copia y agrega una <strong>Wait</strong> <code>Avisar a la guardia</code>. En <strong>Depends on</strong>, cambia la condición a <strong>Upon Failure</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b18-condicion.webp" alt="Avisar a la guardia depende de la copia con Upon Failure" loading="lazy"><figcaption>Avisar a la guardia depende de la copia con Upon Failure</figcaption></figure>
+
+
+<p>En un pipeline real, &quot;avisar&quot; es una actividad <strong>Web</strong> que llama a Teams o a un servicio de correo (Logic App); en la práctica usamos Wait para ver el camino. Después de ella, agrega un <strong>Fail</strong> <code>Marcar como fallido</code> con el mensaje <code>@concat(&#39;La ingesta de ventas falló para &#39;, pipeline().parameters.fecha)</code>.</p>
+<p>Vuelve a seleccionar la copia y agrega otra Wait, <code>Registrar exito</code> (queda con Upon Success):</p>
+<figure class="captura"><img src="assets/img/guias/adf/b18-lienzo.webp" alt="La copia con dos caminos - rojo hacia la guardia y verde hacia el registro de éxito" loading="lazy"><figcaption>La copia con dos caminos - rojo hacia la guardia y verde hacia el registro de éxito</figcaption></figure>
+
+
+<h2>Paso 2 — Un día sin archivo</h2>
+<p>Cambia el parámetro <code>fecha</code> a <code>2026-11-16</code> y haz <strong>Debug</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b18-debug-falla.webp" alt="La copia falla, la guardia se avisa, el pipeline se marca como fallido y Registrar exito queda Skipped" loading="lazy"><figcaption>La copia falla, la guardia se avisa, el pipeline se marca como fallido y Registrar exito queda Skipped</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Actividad</th>
+<th>Estado</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td>Armar nombre</td>
+<td>Succeeded</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Copiar ventas del dia</td>
+<td><strong>Failed</strong></td>
+<td>No hay archivo del 16</td>
+</tr>
+<tr>
+<td>Avisar a la guardia</td>
+<td>Succeeded</td>
+<td>Su condición era Upon Failure</td>
+</tr>
+<tr>
+<td>Marcar como fallido</td>
+<td><strong>Failed</strong></td>
+<td>Fail falla a propósito</td>
+</tr>
+<tr>
+<td>Registrar exito</td>
+<td><strong>Skipped</strong></td>
+<td>Su condición (Upon Success) no se cumplió</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — Un día con archivo</h2>
+<p>Vuelve <code>fecha</code> a <code>2026-11-15</code> y repite:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b18-debug-ok.webp" alt="La copia sale bien - el camino de error queda Skipped y Registrar exito corre" loading="lazy"><figcaption>La copia sale bien - el camino de error queda Skipped y Registrar exito corre</figcaption></figure>
+
+
+<h2>Paso 4 — La regla del estado del pipeline</h2>
+<p>Data Factory decide el estado final así:</p>
+<ul>
+<li>Si una actividad falla y <strong>ninguna</strong> ruta Upon Failure o Upon Completion <strong>la maneja</strong>, el pipeline termina <strong>Failed</strong>.</li>
+<li>Si la falla <strong>sí está manejada</strong> (una actividad conectada con Upon Failure corrió bien), el pipeline puede terminar <strong>Succeeded</strong>: se considera que el error se &quot;atrapó&quot;, como un <em>try-catch</em>.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El pipeline verde que escondió un error</div>
+
+<p>Sin el <code>Marcar como fallido</code>, el día sin archivo el pipeline terminaría <strong>verde</strong>: la guardia recibió un aviso, pero Monitor, las alertas por métricas y quien mire el estado verían &quot;todo bien&quot;. Si la falla importa, termina el camino de error con un <strong>Fail</strong> para que el pipeline quede en rojo.</p>
+</div>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Patrón</th>
+<th>Cómo</th>
+<th>Estado final si falla la copia</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Avisar y fallar</strong></td>
+<td>Upon Failure → aviso → Fail</td>
+<td>Failed (recomendado)</td>
+</tr>
+<tr>
+<td><strong>Atrapar y seguir</strong></td>
+<td>Upon Failure → actividad alternativa</td>
+<td>Succeeded</td>
+</tr>
+<tr>
+<td><strong>Siempre limpiar</strong></td>
+<td>Upon Completion → limpieza</td>
+<td>Depende de la limpieza y del resto</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Armaste rutas de éxito y de error.</li>
+<li>Entiendes Skipped y la regla del estado final.</li>
+<li>Sabes mantener el pipeline en rojo cuando la falla importa.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/data-factory-paso-a-paso-dependencias-y-manejo-de-errores">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="data-factory-paso-a-paso-lookup-if-condition-y-fail.html">← Lookup, If Condition y Fail - leer una configuración y decidir</a><a href="data-factory-paso-a-paso-databricks-desde-data-factory.html">Databricks desde Data Factory - copiar y después limpiar →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

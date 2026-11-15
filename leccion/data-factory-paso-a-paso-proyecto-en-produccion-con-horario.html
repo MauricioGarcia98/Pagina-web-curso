@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 3 (semiguiado) - la ingesta en producción, con horario y con freno · Academia de Datos</title><meta name="description" content="La ingesta diaria pasa a correr sola. Dejas pl_ingesta_diaria publicada con su trigger de las 6:00, compruebas las ejecuciones en Monitor y en el registro de actividad del portal, y practicas la maniobra que todo equipo necesita - detener el trigger durante un mantenimiento sin borrarlo, y volver a activarlo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-proyecto-en-produccion-con-horario.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 3 (semiguiado) - la ingesta en producción, con horario y con freno · Academia de Datos"><meta property="og:description" content="La ingesta diaria pasa a correr sola. Dejas pl_ingesta_diaria publicada con su trigger de las 6:00, compruebas las ejecuciones en Monitor y en el registro de actividad del portal, y practicas la maniobra que todo equipo necesita - detener el trigger durante un mantenimiento sin borrarlo, y volver a activarlo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-proyecto-en-produccion-con-horario.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#data-factory-paso-a-paso">🏭 Data Factory paso a paso</a> · 3 · Intermedio · 40 min</div>
+<h1>Proyecto 3 (semiguiado) - la ingesta en producción, con horario y con freno</h1><p class="resumen">La ingesta diaria pasa a correr sola. Dejas pl_ingesta_diaria publicada con su trigger de las 6:00, compruebas las ejecuciones en Monitor y en el registro de actividad del portal, y practicas la maniobra que todo equipo necesita - detener el trigger durante un mantenimiento sin borrarlo, y volver a activarlo.</p>
+<a class="cta" href="../index.html#/l/data-factory-paso-a-paso-proyecto-en-produccion-con-horario">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Dejar un pipeline programado y publicado</li><li>Verificar ejecuciones en Monitor y en el registro de actividad</li><li>Detener y reactivar un trigger publicando cada cambio</li><li>Documentar cómo opera el pipeline</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Lucía: <em>&quot;Mañana arranca en serio. Quiero la ingesta corriendo sola a las 6:00. El jueves hay mantenimiento del sistema de las tiendas y no deben llegar archivos: hay que poder frenar la ingesta ese día y volver a encenderla el viernes, sin rearmar nada.&quot;</em></p>
+</div>
+
+
+<h2>Lo que tienes que lograr</h2>
+<ol>
+<li><code>pl_ingesta_diaria</code> publicada, con <code>tr_diario_0600</code> activo y publicado.</li>
+<li>Evidencia de al menos una ejecución disparada por el trigger.</li>
+<li>Evidencia en el <strong>registro de actividad</strong> del portal.</li>
+<li>Detener el trigger (y publicar), y volver a activarlo (y publicar).</li>
+<li>Una nota de operación de cinco líneas.</li>
+</ol>
+<h2>Las evidencias</h2>
+<p>En el portal, <strong>Activity log</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b12-actividad.webp" alt="El registro de actividad del portal - las publicaciones del factory y las ejecuciones del pipeline" loading="lazy"><figcaption>El registro de actividad del portal - las publicaciones del factory y las ejecuciones del pipeline</figcaption></figure>
+
+
+<p>El registro de actividad de Azure guarda las <strong>publicaciones</strong> y, en la práctica, también el resultado de las ejecuciones. En Azure real, el detalle de cada ejecución está en Monitor; el registro de actividad muestra sobre todo los cambios del recurso.</p>
+<h2>Detener para el mantenimiento</h2>
+<details><summary>💡 Pista: ¿dónde se detiene?</summary>
+
+<p><strong>Manage → Triggers</strong>, el botón <strong>Started</strong> pasa a <strong>Stopped</strong>. Después, <strong>Publish all</strong>: si no publicas, el servicio sigue disparando.</p>
+</details>
+
+<figure class="captura"><img src="assets/img/guias/adf/b12-trigger-parado.webp" alt="El trigger en Stopped (1) y el cambio pendiente de publicar (2)" loading="lazy"><figcaption>El trigger en Stopped (1) y el cambio pendiente de publicar (2)</figcaption></figure>
+
+
+<h2>La nota de operación</h2>
+<p>Escribe algo así y guárdalo junto al pipeline (en Git, en la wiki del equipo):</p>
+<pre><code class="language-text">pl_ingesta_diaria
+- Qué hace: copia raw/ventas/*.csv a bronze/ventas y genera ventas_AAAAMMDD.csv.
+- Cuándo: tr_diario_0600, todos los días 6:00 (hora del negocio).
+- Si falla: ver Monitor → Triggered → error de la actividad; relanzar con Rerun.
+- Para frenarlo: Manage → Triggers → Stopped → Publish all.
+- Dueño: equipo de datos (Lucía).</code></pre>
+<h2>✅ Lista de verificación</h2>
+<ul>
+<li><input disabled="" type="checkbox"> El trigger está <strong>Started</strong> y <strong>publicado</strong> (Publish all sin cambios pendientes).</li>
+<li><input disabled="" type="checkbox"> En Monitor hay una ejecución con <em>Triggered by</em> <code>tr_diario_0600</code>.</li>
+<li><input disabled="" type="checkbox"> En el registro de actividad están las publicaciones del factory.</li>
+<li><input disabled="" type="checkbox"> Detuviste el trigger, publicaste, lo reactivaste y volviste a publicar.</li>
+<li><input disabled="" type="checkbox"> Tienes la nota de operación.</li>
+</ul>
+<details><summary>💡 Solución comentada</summary>
+
+<p>La trampa del proyecto es la misma de la lección 10: <strong>cada cambio de un trigger se publica</strong>. Detenerlo sin publicar no frena nada, y reactivarlo sin publicar deja la ingesta apagada el viernes. Otra opción para un mantenimiento puntual es dejar el trigger activo y que el pipeline verifique si llegaron archivos antes de copiar (lección 17): así no falla los días sin datos.</p>
+</details>
+
+<h2>Lo que aprendiste en el nivel 3</h2>
+<ul>
+<li>Publicar, Trigger now y la diferencia con Debug.</li>
+<li>Triggers programados y por eventos, y que también se publican.</li>
+<li>Monitor: detalle, Input, Output, Rerun, historial y alertas.</li>
+<li>Operar un pipeline programado.</li>
+</ul>
+<p>En el nivel 4 el pipeline se vuelve flexible: parámetros, variables y bucles.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/data-factory-paso-a-paso-proyecto-en-produccion-con-horario">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="data-factory-paso-a-paso-monitor.html">← Monitor - seguir cada ejecución, ver qué entró y qué salió, y relanzar</a><a href="data-factory-paso-a-paso-parametros-y-contenido-dinamico.html">Parámetros y contenido dinámico - un pipeline para cualquier fecha →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

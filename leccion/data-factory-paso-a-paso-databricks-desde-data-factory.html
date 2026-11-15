@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Databricks desde Data Factory - copiar y después limpiar · Academia de Datos</title><meta name="description" content="Data Factory copia; Databricks transforma. Conectas el factory con el workspace de Databricks, agregas una actividad Notebook después de la copia que recibe la fecha como parámetro, ejecutas el pipeline completo y lees en la salida lo que devolvió el notebook. También ves cómo se elige el clúster y por qué conviene un job cluster."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-databricks-desde-data-factory.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Databricks desde Data Factory - copiar y después limpiar · Academia de Datos"><meta property="og:description" content="Data Factory copia; Databricks transforma. Conectas el factory con el workspace de Databricks, agregas una actividad Notebook después de la copia que recibe la fecha como parámetro, ejecutas el pipeline completo y lees en la salida lo que devolvió el notebook. También ves cómo se elige el clúster y por qué conviene un job cluster."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-databricks-desde-data-factory.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#data-factory-paso-a-paso">🏭 Data Factory paso a paso</a> · 5 · Avanzado · 50 min</div>
+<h1>Databricks desde Data Factory - copiar y después limpiar</h1><p class="resumen">Data Factory copia; Databricks transforma. Conectas el factory con el workspace de Databricks, agregas una actividad Notebook después de la copia que recibe la fecha como parámetro, ejecutas el pipeline completo y lees en la salida lo que devolvió el notebook. También ves cómo se elige el clúster y por qué conviene un job cluster.</p>
+<a class="cta" href="../index.html#/l/data-factory-paso-a-paso-databricks-desde-data-factory">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un linked service a Azure Databricks</li><li>Agregar una actividad Notebook a un pipeline</li><li>Pasar parámetros al notebook con base parameters</li><li>Leer el runOutput que devuelve dbutils.notebook.exit</li><li>Elegir entre job cluster, clúster existente y serverless</li></ul>
+<h2>Paso 1 — El notebook</h2>
+<p>En el <a href="#/databricks">Databricks de práctica</a> está el notebook <code>limpiar_ventas</code>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b19-notebook.webp" alt="El notebook - recibe la fecha como widget y termina con dbutils.notebook.exit" loading="lazy"><figcaption>El notebook - recibe la fecha como widget y termina con dbutils.notebook.exit</figcaption></figure>
+
+
+<pre data-norun><code class="language-python">dbutils.widgets.text(&quot;fecha&quot;, &quot;2026-11-15&quot;)
+fecha = dbutils.widgets.get(&quot;fecha&quot;)
+print(f&quot;Limpiando las ventas del {fecha}&quot;)
+
+filas_limpias = 5  # en el proyecto real: leer bronze, quitar duplicados y escribir silver
+dbutils.notebook.exit(f&quot;{filas_limpias} filas limpias del {fecha}&quot;)</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>dbutils.widgets.text</code> / <code>get</code></td>
+<td>Recibir parámetros (los manda Data Factory)</td>
+</tr>
+<tr>
+<td><code>dbutils.notebook.exit(valor)</code></td>
+<td>Devolver un valor a quien lo llamó (Data Factory lo ve como <code>runOutput</code>)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — La conexión a Databricks</h2>
+<p><strong>Manage → Linked services → New → Azure Databricks</strong>:</p>
+<ol>
+<li><strong>Name</strong>: <code>ls_databricks</code>.</li>
+<li><strong>Databricks workspace</strong>: <code>dbw-tiendaandina-dev</code>.</li>
+<li><strong>Select cluster</strong>: <strong>New job cluster</strong>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/adf/b19-linked.webp" alt="El tipo (1), el workspace (2) y el clúster (3)" loading="lazy"><figcaption>El tipo (1), el workspace (2) y el clúster (3)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Clúster</th>
+<th>Qué hace</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>New job cluster</strong></td>
+<td>Crea un clúster para la ejecución y lo apaga al terminar</td>
+<td><strong>Producción</strong>: se paga solo lo que corre y es más barato por DBU</td>
+</tr>
+<tr>
+<td><strong>Existing interactive cluster</strong></td>
+<td>Usa un clúster encendido</td>
+<td>Pruebas rápidas; caro si queda encendido</td>
+</tr>
+<tr>
+<td><strong>Serverless</strong> (en Databricks real)</td>
+<td>Sin clúster que administrar</td>
+<td>Cuando el workspace lo tiene habilitado</td>
+</tr>
+</tbody></table></div>
+<p>Para autenticarse se usa la <strong>identidad administrada</strong> del factory, que en el workspace necesita permisos (por ejemplo, poder ejecutar ese notebook y crear el clúster).</p>
+<h2>Paso 3 — La actividad Notebook</h2>
+<p>En <code>pl_ingesta_diaria</code>, selecciona la copia y agrega <strong>Notebook</strong> (<code>Limpiar ventas</code>). Queda después de la copia con Upon Success. En <strong>Azure Databricks</strong> elige <code>ls_databricks</code>, y en <strong>Settings</strong>:</p>
+<ol>
+<li><strong>Notebook path</strong>: <code>/Users/alumno@academia.dev/limpiar_ventas</code>.</li>
+<li><strong>Base parameters</strong>: <code>fecha</code> = <code>@pipeline().parameters.fecha</code>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/adf/b19-settings.webp" alt="La ruta del notebook (1) y el parámetro fecha, que toma el del pipeline (2)" loading="lazy"><figcaption>La ruta del notebook (1) y el parámetro fecha, que toma el del pipeline (2)</figcaption></figure>
+
+
+<p>Cada <strong>base parameter</strong> llega al notebook como un <strong>widget</strong> con ese nombre.</p>
+<h2>Paso 4 — Ejecutar</h2>
+<p><strong>Debug</strong> (el notebook tarda un poco más que una copia):</p>
+<figure class="captura"><img src="assets/img/guias/adf/b19-debug.webp" alt="El pipeline completo (1) - copiar, registrar el éxito y limpiar en Databricks (2)" loading="lazy"><figcaption>El pipeline completo (1) - copiar, registrar el éxito y limpiar en Databricks (2)</figcaption></figure>
+
+
+<p>El <strong>Output</strong> de <code>Limpiar ventas</code>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b19-output.webp" alt="runPageUrl (el enlace a la ejecución en Databricks) y runOutput, lo que devolvió el notebook" loading="lazy"><figcaption>runPageUrl (el enlace a la ejecución en Databricks) y runOutput, lo que devolvió el notebook</figcaption></figure>
+
+
+<p><code>runOutput</code> = <code>5 filas limpias del 2026-11-15</code>. Una actividad siguiente puede leerlo con <code>@activity(&#39;Limpiar ventas&#39;).output.runOutput</code>, por ejemplo para decidir con un If si hubo filas. <strong>runPageUrl</strong> lleva a la ejecución en Databricks, con su salida celda por celda: es lo primero que se abre cuando el notebook falla.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Data Factory o Databricks Jobs</div>
+
+<p>Databricks tiene su propio orquestador (<strong>Jobs / Lakeflow Jobs</strong>). Muchos equipos usan Data Factory para <strong>traer</strong> los datos de sistemas externos y Databricks Jobs para lo que pasa <strong>dentro</strong> del lago. Llamar notebooks desde Data Factory tiene sentido cuando el flujo mezcla las dos cosas y quieres un solo lugar para orquestar y monitorear.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Conectaste el factory con Databricks y elegiste el tipo de clúster.</li>
+<li>Llamaste un notebook con parámetros después de la copia.</li>
+<li>Leíste lo que devolvió el notebook.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/data-factory-paso-a-paso-databricks-desde-data-factory">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="data-factory-paso-a-paso-dependencias-y-manejo-de-errores.html">← Dependencias y manejo de errores - qué hacer cuando algo falla</a><a href="data-factory-paso-a-paso-proyecto-pipeline-por-metadatos.html">Proyecto 5 (con mínima ayuda) - un pipeline guiado por metadatos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

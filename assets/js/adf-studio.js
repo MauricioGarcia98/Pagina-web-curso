@@ -525,7 +525,7 @@
         <button data-h="manage"><span>${ic('plug')}</span><b>Linked services</b><small>Conexiones a storage, Databricks y Key Vault.</small></button>
         <button data-h="monitor"><span>${ic('pulse')}</span><b>Monitor</b><small>Ejecuciones, duración y errores.</small></button>
       </div>
-      <h3>Por dónde empezar (paso a paso)</h3>
+      <h3>Por dónde empezar (paso a paso)</h3><p class="adf-dim">¿Primera vez? Sigue el <a href="#/m/data-factory-paso-a-paso">curso de Data Factory paso a paso</a>.</p>
       <ol class="adf-pasos">
         <li class="${Object.keys(S.linked).length ? 'hecho' : ''}"><b>Linked service</b> a tu cuenta de almacenamiento (ADLS Gen2) con la <b>identidad administrada</b> del factory. Antes, en el portal, dale a <code>${esc(fabrica)}</code> el rol <i>Storage Blob Data Contributor</i> en la cuenta.</li>
         <li class="${Object.keys(S.datasets).length ? 'hecho' : ''}"><b>Datasets</b>: uno para el origen (por ejemplo <code>raw/ventas/*.csv</code>) y otro para el destino (<code>bronze/ventas</code>).</li>

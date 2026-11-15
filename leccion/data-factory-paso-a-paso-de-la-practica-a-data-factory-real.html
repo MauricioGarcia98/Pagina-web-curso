@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>De la práctica al Data Factory real (y a Fabric) · Academia de Datos</title><meta name="description" content="Todo lo que hiciste se hace igual en Azure Data Factory, con más opciones. Qué tiene el Data Factory real que no viste (más conectores, mapping data flows, Execute Pipeline, Web, Switch, Until, global parameters, datasets parametrizados), cómo practicar sin gastar, cómo se compara con Data Factory en Microsoft Fabric y con otros orquestadores, y qué estudiar después."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-de-la-practica-a-data-factory-real.html">
+<meta property="og:type" content="article"><meta property="og:title" content="De la práctica al Data Factory real (y a Fabric) · Academia de Datos"><meta property="og:description" content="Todo lo que hiciste se hace igual en Azure Data Factory, con más opciones. Qué tiene el Data Factory real que no viste (más conectores, mapping data flows, Execute Pipeline, Web, Switch, Until, global parameters, datasets parametrizados), cómo practicar sin gastar, cómo se compara con Data Factory en Microsoft Fabric y con otros orquestadores, y qué estudiar después."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-de-la-practica-a-data-factory-real.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#data-factory-paso-a-paso">🏭 Data Factory paso a paso</a> · 6 · Avanzado completo · 40 min</div>
+<h1>De la práctica al Data Factory real (y a Fabric)</h1><p class="resumen">Todo lo que hiciste se hace igual en Azure Data Factory, con más opciones. Qué tiene el Data Factory real que no viste (más conectores, mapping data flows, Execute Pipeline, Web, Switch, Until, global parameters, datasets parametrizados), cómo practicar sin gastar, cómo se compara con Data Factory en Microsoft Fabric y con otros orquestadores, y qué estudiar después.</p>
+<a class="cta" href="../index.html#/l/data-factory-paso-a-paso-de-la-practica-a-data-factory-real">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Conocer las funciones del Data Factory real que no están en la práctica</li><li>Practicar en Azure real cuidando el costo</li><li>Comparar Data Factory con Fabric Data Factory, Synapse Pipelines y Airflow</li><li>Elegir los siguientes pasos de aprendizaje</li></ul>
+<h2>Paso 1 — Lo que recorriste</h2>
+<figure class="captura"><img src="assets/img/guias/adf/b23-home.webp" alt="La guía de inicio del Studio, con todos los pasos completos" loading="lazy"><figcaption>La guía de inicio del Studio, con todos los pasos completos</figcaption></figure>
+
+
+<p>Linked services con identidad administrada, datasets, Copy, Debug, publicar, triggers, Monitor, parámetros, variables, Get Metadata, ForEach, Lookup, If Condition, Fail, rutas de error, Databricks, el patrón por metadatos, Git y plantillas ARM. Con eso se construye la mayoría de los pipelines de ingesta del mundo real.</p>
+<h2>Paso 2 — Lo que tiene el Data Factory real</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Más de 90 conectores</strong></td>
+<td>SQL Server, Oracle, SAP, Salesforce, REST, SFTP, S3, Snowflake…</td>
+</tr>
+<tr>
+<td><strong>Datasets y linked services parametrizados</strong></td>
+<td>Un dataset con parámetro <code>carpeta</code>, en lugar de uno por carpeta</td>
+</tr>
+<tr>
+<td><strong>Execute Pipeline</strong></td>
+<td>Llamar a otro pipeline (pipelines padre e hijo, ForEach anidados)</td>
+</tr>
+<tr>
+<td><strong>Web / Webhook</strong></td>
+<td>Llamar una API: avisar a Teams, disparar otro sistema</td>
+</tr>
+<tr>
+<td><strong>Switch, Until, Filter, Append variable</strong></td>
+<td>Más control de flujo</td>
+</tr>
+<tr>
+<td><strong>Stored procedure, Script</strong></td>
+<td>Ejecutar SQL en una base</td>
+</tr>
+<tr>
+<td><strong>Mapping data flows</strong></td>
+<td>Transformaciones visuales que corren en Spark, sin escribir código</td>
+</tr>
+<tr>
+<td><strong>Global parameters</strong></td>
+<td>Valores para todo el factory, como el entorno</td>
+</tr>
+<tr>
+<td><strong>Tumbling window</strong> con dependencias y backfill</td>
+<td>Procesar ventanas de tiempo con reintentos</td>
+</tr>
+<tr>
+<td><strong>Change Data Capture</strong></td>
+<td>Copiar solo lo que cambió en ciertas fuentes</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — Practicar en Azure real sin sustos</h2>
+<ol>
+<li>Usa la cuenta gratuita o Azure for Students (curso del portal de Azure, lección 23).</li>
+<li>Un <strong>presupuesto</strong> chico con alertas antes de crear nada.</li>
+<li>Pocos triggers y <strong>detenlos</strong> al terminar la práctica: un trigger cada minuto olvidado un mes suma.</li>
+<li>Copias de archivos chicos; los data flows tienen un mínimo de minutos de clúster por ejecución.</li>
+<li>Borra el grupo de recursos de práctica al terminar.</li>
+</ol>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las capturas del Studio real</div>
+
+<p>Si compartes capturas de tu factory, tapa el <strong>ID de la suscripción</strong>, las <strong>URLs de las conexiones</strong> si son internas, los <strong>Run ID</strong> si son de producción y cualquier valor de <strong>Input/Output</strong> con datos reales.</p>
+</div>
+
+
+<h2>Paso 4 — Data Factory en Fabric y otros orquestadores</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Opción</th>
+<th>Qué es</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Azure Data Factory</strong></td>
+<td>El de este curso</td>
+<td>Plataformas en Azure con Databricks, Synapse o bases de Azure</td>
+</tr>
+<tr>
+<td><strong>Data Factory en Microsoft Fabric</strong></td>
+<td>Pipelines casi iguales (mismas actividades y expresiones) más <strong>Dataflow Gen2</strong> (Power Query) dentro de un workspace de Fabric</td>
+<td>Si el equipo trabaja en Fabric con lakehouse y warehouse</td>
+</tr>
+<tr>
+<td><strong>Synapse pipelines</strong></td>
+<td>El mismo motor, dentro de Azure Synapse</td>
+<td>Proyectos que ya usan Synapse</td>
+</tr>
+<tr>
+<td><strong>Apache Airflow</strong></td>
+<td>Orquestación con código Python (DAGs)</td>
+<td>Equipos que prefieren código, multinube, o muchas dependencias entre sistemas</td>
+</tr>
+<tr>
+<td><strong>Databricks Jobs</strong></td>
+<td>El orquestador de Databricks</td>
+<td>Flujos que viven dentro de Databricks</td>
+</tr>
+</tbody></table></div>
+<p>Lo que aprendiste se traslada casi tal cual a los pipelines de Fabric y Synapse. Con Airflow cambia la forma (código en lugar de lienzo) pero los conceptos son los mismos: tareas, dependencias, parámetros, reintentos, programación y monitoreo.</p>
+<h2>Paso 5 — Siguientes pasos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Si quieres…</th>
+<th>Sigue con</th>
+</tr>
+</thead><tbody><tr>
+<td>La plataforma en Azure</td>
+<td><a href="#/m/azure-paso-a-paso">Portal de Azure paso a paso</a></td>
+</tr>
+<tr>
+<td>Transformar en el lago</td>
+<td><a href="#/m/databricks-paso-a-paso">Databricks paso a paso</a></td>
+</tr>
+<tr>
+<td>Orquestar con código</td>
+<td><a href="#/m/airflow">Apache Airflow</a></td>
+</tr>
+<tr>
+<td>Diseñar plataformas</td>
+<td><a href="#/m/arquitectura">Arquitectura de datos</a></td>
+</tr>
+<tr>
+<td>Certificarte</td>
+<td><a href="#/m/cert-azure">Certificaciones Azure</a>: <strong>DP-700</strong> (Fabric Data Engineer), que incluye pipelines</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes qué más ofrece el Data Factory real.</li>
+<li>Puedes practicar en Azure cuidando el costo.</li>
+<li>Ubicas Data Factory frente a Fabric, Synapse, Airflow y Databricks Jobs.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/data-factory-paso-a-paso-de-la-practica-a-data-factory-real">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="data-factory-paso-a-paso-integration-runtimes-seguridad-y-costos.html">← Integration runtimes, seguridad y costos</a><a href="data-factory-paso-a-paso-proyecto-final.html">Proyecto final (solo el pedido) - la ingesta de ventas de punta a punta →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
