@@ -418,6 +418,30 @@
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-mapeo-dinamico.html</loc><lastmod>2026-11-15</lastmod></url>
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-de-la-practica-a-airflow-real.html</loc><lastmod>2026-11-15</lastmod></url>
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-proyecto-final-orquestacion-tienda-andina.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-que-es-snowflake-y-snowsight.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-hojas-sql-y-contexto.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-explorar-datos.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-proyecto-ventas-por-pais.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-warehouses.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-bases-esquemas-y-tablas.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-historial-de-consultas.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-proyecto-entorno-de-desarrollo.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-stages-y-copy-into.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-json-y-variant.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-merge.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-proyecto-carga-incremental.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-time-travel.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-undrop-y-clones.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-sql-analitico.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-proyecto-incidente-del-update.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-roles.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-grants.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-costos-y-resource-monitors.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-proyecto-acceso-para-analistas.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-buenas-practicas.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-snowpipe-streams-tasks-y-mas.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-de-la-practica-a-snowflake-real.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-proyecto-final-warehouse-tienda-andina.html</loc><lastmod>2026-11-15</lastmod></url>
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-que-es.html</loc><lastmod>2026-11-15</lastmod></url>
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-ingesta.html</loc><lastmod>2026-11-15</lastmod></url>
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-almacenamiento.html</loc><lastmod>2026-11-15</lastmod></url>

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 5 (solo el objetivo) - acceso seguro y con presupuesto para analistas · Academia de Datos</title><meta name="description" content="Comercial va a usar Snowflake todos los días. Dejas un rol de solo lectura sobre analitica que incluya las tablas futuras, un warehouse propio con presupuesto mensual, y lo compruebas con una consulta permitida y una prohibida. Solo se dan el objetivo y el criterio de aceptación."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-proyecto-acceso-para-analistas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 5 (solo el objetivo) - acceso seguro y con presupuesto para analistas · Academia de Datos"><meta property="og:description" content="Comercial va a usar Snowflake todos los días. Dejas un rol de solo lectura sobre analitica que incluya las tablas futuras, un warehouse propio con presupuesto mensual, y lo compruebas con una consulta permitida y una prohibida. Solo se dan el objetivo y el criterio de aceptación."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-proyecto-acceso-para-analistas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#snowflake-paso-a-paso">❄️ Snowflake paso a paso</a> · 5 · Avanzado · 50 min</div>
+<h1>Proyecto 5 (solo el objetivo) - acceso seguro y con presupuesto para analistas</h1><p class="resumen">Comercial va a usar Snowflake todos los días. Dejas un rol de solo lectura sobre analitica que incluya las tablas futuras, un warehouse propio con presupuesto mensual, y lo compruebas con una consulta permitida y una prohibida. Solo se dan el objetivo y el criterio de aceptación.</p>
+<a class="cta" href="../index.html#/l/snowflake-paso-a-paso-proyecto-acceso-para-analistas">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Diseñar un rol de solo lectura completo</li><li>Separar el cómputo y el presupuesto por equipo</li><li>Comprobar permisos con pruebas positivas y negativas</li><li>Documentar el acceso</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El objetivo</div>
+
+<p>Lucía: <em>&quot;Comercial necesita leer <code>analitica</code> todos los días, incluidas las tablas que agreguemos, sin poder escribir ni ver <code>raw</code>, y sin pasar de 50 créditos al mes.&quot;</em></p>
+</div>
+
+
+<h2>Criterio de aceptación</h2>
+<ul>
+<li>Rol <code>analista_ventas</code> con USAGE en <code>analisis_wh</code>, en <code>tienda_dev</code> y en <code>tienda_dev.analitica</code>.</li>
+<li>SELECT en todas las tablas actuales <strong>y futuras</strong> de <code>analitica</code>.</li>
+<li>Ningún permiso en <code>raw</code>.</li>
+<li><code>analisis_wh</code> con el resource monitor <code>limite_mensual</code> (50 créditos, aviso al 80 %, suspensión al 100 %).</li>
+<li>Una prueba que funciona (SELECT en <code>analitica</code>) y dos que fallan (DELETE en <code>analitica</code>, SELECT en <code>raw</code>).</li>
+</ul>
+<h2>Cómo se ve terminado</h2>
+<figure class="captura"><img src="assets/img/guias/snowflake/s20-roles.webp" alt="El rol ANALISTA_VENTAS (1) y sus permisos otorgados (2)" loading="lazy"><figcaption>El rol ANALISTA_VENTAS (1) y sus permisos otorgados (2)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/snowflake/s20-historial.webp" alt="Query History - las pruebas con el rol analista_ventas: la consulta que funciona y el DELETE que falla" loading="lazy"><figcaption>Query History - las pruebas con el rol analista_ventas: la consulta que funciona y el DELETE que falla</figcaption></figure>
+
+
+<details><summary>💡 Solución comentada</summary>
+
+<pre data-norun><code class="language-sql">USE ROLE SECURITYADMIN;
+CREATE ROLE IF NOT EXISTS analista_ventas;
+GRANT USAGE ON WAREHOUSE analisis_wh TO ROLE analista_ventas;
+GRANT USAGE ON DATABASE tienda_dev TO ROLE analista_ventas;
+GRANT USAGE ON SCHEMA tienda_dev.analitica TO ROLE analista_ventas;
+GRANT SELECT ON ALL TABLES IN SCHEMA tienda_dev.analitica TO ROLE analista_ventas;
+GRANT SELECT ON FUTURE TABLES IN SCHEMA tienda_dev.analitica TO ROLE analista_ventas;
+GRANT ROLE analista_ventas TO ROLE SYSADMIN;   -- buena práctica: la jerarquía queda bajo SYSADMIN
+
+USE ROLE ACCOUNTADMIN;
+CREATE RESOURCE MONITOR IF NOT EXISTS limite_mensual WITH CREDIT_QUOTA = 50 FREQUENCY = MONTHLY
+  START_TIMESTAMP = IMMEDIATELY TRIGGERS ON 80 PERCENT DO NOTIFY ON 100 PERCENT DO SUSPEND;
+ALTER WAREHOUSE analisis_wh SET RESOURCE_MONITOR = limite_mensual;
+
+-- pruebas
+USE ROLE analista_ventas;
+SELECT COUNT(*) FROM tienda_dev.analitica.pedidos_actuales;   -- funciona
+DELETE FROM tienda_dev.analitica.pedidos_actuales;            -- falla: sin DELETE
+SELECT COUNT(*) FROM tienda_dev.raw.pedidos_staging;          -- falla: sin USAGE en raw</code></pre>
+<p><strong>Decisiones a defender:</strong></p>
+<ul>
+<li>Un <strong>warehouse por equipo</strong> permite saber quién gasta y ponerle un presupuesto propio.</li>
+<li><strong>FUTURE TABLES</strong> evita que cada tabla nueva requiera un ticket de permisos.</li>
+<li>Las pruebas <strong>negativas</strong> (lo que no debe poder hacer) son tan importantes como las positivas.</li>
+<li>Con Power BI, la conexión usa un usuario de servicio con este mismo rol.</details></li>
+</ul>
+<h2>Lo que aprendiste en el nivel 5</h2>
+<ul>
+<li>Roles del sistema y jerarquía.</li>
+<li>GRANT, FUTURE GRANTS y REVOKE.</li>
+<li>Costos y resource monitors.</li>
+</ul>
+<p>En el nivel 6: buenas prácticas, las funciones de plataforma (Snowpipe, streams, tasks, dynamic tables) y el paso a Snowflake real.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/snowflake-paso-a-paso-proyecto-acceso-para-analistas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="snowflake-paso-a-paso-costos-y-resource-monitors.html">← Costos y resource monitors - que la factura no sorprenda</a><a href="snowflake-paso-a-paso-buenas-practicas.html">Buenas prácticas - rendimiento y costo bajo control →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

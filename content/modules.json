@@ -395,6 +395,20 @@
     ]
   },
   {
+    "id": "snowflake-paso-a-paso",
+    "titulo": "Snowflake paso a paso",
+    "icono": "❄️",
+    "color": "#29b5e8",
+    "descripcion": "De cero a dominarlo en 24 lecciones y 6 niveles (básico → avanzado completo), con capturas del Snowsight de práctica y SQL que corre de verdad: hojas SQL y contexto, explorar datos, warehouses y créditos, bases, esquemas y tipos de tabla, Query History, stages y COPY INTO, JSON con VARIANT y FLATTEN, MERGE e ingesta incremental, Time Travel, UNDROP y zero-copy clones, QUALIFY y ventanas, roles, GRANT y FUTURE GRANTS, costos y resource monitors, buenas prácticas, Snowpipe, streams, tasks y dynamic tables, y el paso a Snowflake real. Cada nivel cierra con un proyecto real del warehouse de Tienda Andina con menos ayuda que el anterior.",
+    "objetivos": [
+      "Consultar y explorar datos en Snowsight con el contexto correcto",
+      "Dimensionar warehouses y organizar bases, esquemas y tablas",
+      "Cargar archivos y JSON con stages, COPY INTO, FLATTEN y MERGE",
+      "Recuperar datos con Time Travel, UNDROP y clones",
+      "Asegurar el acceso con roles y controlar el costo con resource monitors"
+    ]
+  },
+  {
     "id": "arquitectura",
     "titulo": "Arquitectura de datos",
     "icono": "🏛️",

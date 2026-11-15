@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto final (sin ayuda) - el warehouse de Tienda Andina · Academia de Datos</title><meta name="description" content="El proyecto integrador del curso. Diseñas y construyes el warehouse de Tienda Andina en Snowflake - entorno por capas, carga incremental desde un stage, eventos JSON, tabla de negocio con MERGE, recuperación con Time Travel, acceso para analistas y presupuesto - y lo defiendes con un documento de una página. Solo se dan los requisitos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-proyecto-final-warehouse-tienda-andina.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto final (sin ayuda) - el warehouse de Tienda Andina · Academia de Datos"><meta property="og:description" content="El proyecto integrador del curso. Diseñas y construyes el warehouse de Tienda Andina en Snowflake - entorno por capas, carga incremental desde un stage, eventos JSON, tabla de negocio con MERGE, recuperación con Time Travel, acceso para analistas y presupuesto - y lo defiendes con un documento de una página. Solo se dan los requisitos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-proyecto-final-warehouse-tienda-andina.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#snowflake-paso-a-paso">❄️ Snowflake paso a paso</a> · 6 · Avanzado completo · 120 min</div>
+<h1>Proyecto final (sin ayuda) - el warehouse de Tienda Andina</h1><p class="resumen">El proyecto integrador del curso. Diseñas y construyes el warehouse de Tienda Andina en Snowflake - entorno por capas, carga incremental desde un stage, eventos JSON, tabla de negocio con MERGE, recuperación con Time Travel, acceso para analistas y presupuesto - y lo defiendes con un documento de una página. Solo se dan los requisitos.</p>
+<a class="cta" href="../index.html#/l/snowflake-paso-a-paso-proyecto-final-warehouse-tienda-andina">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Diseñar un warehouse por capas en Snowflake</li><li>Construir la carga incremental de punta a punta</li><li>Asegurar el acceso y el costo</li><li>Presentar el resultado como proyecto de portafolio</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El encargo</div>
+
+<p>Gerencia de Tienda Andina: <em>&quot;Queremos los pedidos y los eventos de la web en Snowflake, actualizados cada día, con un tablero para comercial. Que nadie pueda romper los datos, que se pueda recuperar si pasa algo, y que sepamos cuánto cuesta.&quot;</em></p>
+</div>
+
+
+<h2>Requisitos</h2>
+<p><strong>Entorno</strong></p>
+<ol>
+<li>Base <code>tienda_dev</code> con esquemas <code>raw</code> y <code>analitica</code>, creados con un script que se pueda correr dos veces.</li>
+<li>Warehouses <code>carga_wh</code> y <code>analisis_wh</code>, X-Small, con auto suspend de 60 segundos.</li>
+</ol>
+<p><strong>Carga</strong>
+3. Stage <code>carga_pedidos</code> y <code>raw.pedidos_staging</code> cargada con COPY INTO desde al menos dos archivos de días distintos.
+4. <code>raw.eventos_web</code> con eventos JSON y una vista <code>analitica.items_vendidos</code> hecha con FLATTEN.
+5. <code>analitica.pedidos_actuales</code> actualizada con un MERGE deduplicado e idempotente.</p>
+<p><strong>Operación y gobierno</strong>
+6. Un procedimiento escrito para recuperar <code>pedidos_actuales</code> ante un error (Time Travel con el Query ID).
+7. Un clon <code>tienda_qa</code> para probar cambios.
+8. Rol <code>analista_ventas</code> de solo lectura sobre <code>analitica</code>, con tablas futuras.
+9. Resource monitor mensual en <code>analisis_wh</code>.</p>
+<h2>Cómo se ve terminado</h2>
+<figure class="captura"><img src="assets/img/guias/snowflake/s24-arbol.webp" alt="TIENDA_DEV con raw (staging, eventos, stage, transitoria) y analitica (pedidos_actuales, ventas_por_canal)" loading="lazy"><figcaption>TIENDA_DEV con raw (staging, eventos, stage, transitoria) y analitica (pedidos_actuales, ventas_por_canal)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/snowflake/s24-warehouses.webp" alt="Los warehouses con su estado, tamaño, auto suspend y créditos consumidos" loading="lazy"><figcaption>Los warehouses con su estado, tamaño, auto suspend y créditos consumidos</figcaption></figure>
+
+
+<h2>Entregable: el documento de una página</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Sección</th>
+<th>Qué responde</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Arquitectura</strong></td>
+<td>Diagrama: archivos → stage → raw → MERGE → analitica → Power BI</td>
+</tr>
+<tr>
+<td><strong>Carga</strong></td>
+<td>Por qué COPY INTO + MERGE, cómo se evita duplicar</td>
+</tr>
+<tr>
+<td><strong>Recuperación</strong></td>
+<td>Qué haces si alguien borra o actualiza mal (Time Travel, UNDROP, clon)</td>
+</tr>
+<tr>
+<td><strong>Seguridad</strong></td>
+<td>Roles, qué ve cada uno y cómo se conectan las herramientas</td>
+</tr>
+<tr>
+<td><strong>Costos</strong></td>
+<td>Warehouses, horas estimadas por día, créditos por mes y el resource monitor</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Rúbrica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Criterio</th>
+<th>Cumple</th>
+<th>Destaca</th>
+</tr>
+</thead><tbody><tr>
+<td>Entorno</td>
+<td>Base, esquemas y warehouses creados</td>
+<td>Todo en un script versionado e idempotente</td>
+</tr>
+<tr>
+<td>Carga</td>
+<td>COPY INTO y MERGE funcionan</td>
+<td>Deduplicación por fecha de llegada y carga probada dos veces sin cambios</td>
+</tr>
+<tr>
+<td>JSON</td>
+<td>La vista con FLATTEN devuelve un ítem por fila</td>
+<td>Maneja arreglos vacíos con <code>outer =&gt; TRUE</code></td>
+</tr>
+<tr>
+<td>Recuperación</td>
+<td>El procedimiento está escrito</td>
+<td>Lo probaste con un error provocado</td>
+</tr>
+<tr>
+<td>Seguridad</td>
+<td>Rol de solo lectura</td>
+<td>Pruebas positivas y negativas documentadas</td>
+</tr>
+<tr>
+<td>Costos</td>
+<td>Resource monitor activo</td>
+<td>Estimación mensual justificada</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Para tu portafolio</div>
+
+<p>Sube el script SQL y el documento a un repositorio de GitHub con un README que tenga el diagrama y capturas <strong>de la práctica</strong> o de tu cuenta de prueba, sin datos de terceros. Si te preparas para la certificación <strong>SnowPro Core</strong>, este proyecto cubre buena parte de sus temas: arquitectura, carga, rendimiento, seguridad y costos.</p>
+</div>
+
+
+<h2>Lo que aprendiste en el curso</h2>
+<ul>
+<li><strong>Nivel 1:</strong> qué es Snowflake, Snowsight, hojas SQL y explorar datos.</li>
+<li><strong>Nivel 2:</strong> warehouses, bases, esquemas, tablas y el historial.</li>
+<li><strong>Nivel 3:</strong> stages, COPY INTO, JSON y MERGE.</li>
+<li><strong>Nivel 4:</strong> Time Travel, UNDROP, clones y SQL analítico.</li>
+<li><strong>Nivel 5:</strong> roles, GRANT, costos y resource monitors.</li>
+<li><strong>Nivel 6:</strong> buenas prácticas, automatización y Snowflake real.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/snowflake-paso-a-paso-proyecto-final-warehouse-tienda-andina">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="snowflake-paso-a-paso-de-la-practica-a-snowflake-real.html">← De la práctica a Snowflake real - cuenta de prueba, conexiones y herramientas</a><a href="arquitectura-que-es.html">Qué es la arquitectura de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

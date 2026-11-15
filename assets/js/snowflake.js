@@ -114,7 +114,7 @@
       <div class="sf-aviso">${ic('copo')} <div>Snowflake es un <b>data warehouse en la nube</b>: guardas datos en bases y esquemas, y los consultas con SQL usando un <b>warehouse virtual</b> (el cómputo), que se paga por segundo mientras está encendido. Aquí todo corre en tu navegador con la base de la tienda del curso: no necesitas cuenta ni tarjeta.</div></div>
       <div class="sf-acciones"><button class="sf-btn sf-pri" id="sfNueva">${ic('mas')} SQL Worksheet</button><a class="sf-btn" href="${href('datos')}">${ic('datos')} Explorar datos</a><a class="sf-btn" href="${href('warehouses')}">${ic('wh')} Warehouses</a></div>
       <h2>Recent worksheets</h2>${listaHojas(s.hojas.slice(-5).reverse())}
-      <h2>Para empezar</h2><ol class="sf-pasos"><li>Abre una hoja y ejecuta la consulta de ejemplo (Ctrl+Enter).</li><li>Crea tu propio warehouse: <code>CREATE WAREHOUSE mi_wh WAREHOUSE_SIZE = 'XSMALL' AUTO_SUSPEND = 60;</code></li><li>Crea una base, un stage, sube un archivo y cárgalo con <code>COPY INTO</code>.</li><li>Borra filas por error y recupéralas con Time Travel: <code>SELECT * FROM t BEFORE(STATEMENT => '&lt;query id&gt;')</code>.</li><li>Mira cuánto gastaste en <b>Warehouses</b> y qué corrió en <b>Query History</b>.</li></ol></div>`, 'home');
+      <h2>Para empezar</h2><p class="sf-dim">¿Primera vez? Sigue el <a href="#/m/snowflake-paso-a-paso">curso de Snowflake paso a paso</a>.</p><ol class="sf-pasos"><li>Abre una hoja y ejecuta la consulta de ejemplo (Ctrl+Enter).</li><li>Crea tu propio warehouse: <code>CREATE WAREHOUSE mi_wh WAREHOUSE_SIZE = 'XSMALL' AUTO_SUSPEND = 60;</code></li><li>Crea una base, un stage, sube un archivo y cárgalo con <code>COPY INTO</code>.</li><li>Borra filas por error y recupéralas con Time Travel: <code>SELECT * FROM t BEFORE(STATEMENT => '&lt;query id&gt;')</code>.</li><li>Mira cuánto gastaste en <b>Warehouses</b> y qué corrió en <b>Query History</b>.</li></ol></div>`, 'home');
     main.querySelector('#sfNueva').onclick = nuevaHoja;
   }
   function listaHojas(lista) {
@@ -205,7 +205,7 @@
     try {
       const rs = await M().ejecutar(sql, { progreso: (t) => { res.innerHTML = `<div class="sf-res-vacio"><span class="sf-spin"></span> ${esc(t)}</div>`; } });
       ultimo = { hoja: ruta[1], rs }; mostrar(rs);
-      if (rs.some((r) => !r.error && /^(CREATE|DROP|ALTER|UNDROP|USE)\b/i.test(r.sql.trim()))) arbol(main.querySelector('#sfArbol'), true);
+      if (rs.some((r) => !r.error && /^(CREATE|DROP|ALTER|UNDROP|USE)\b/i.test(r.sql.replace(/^(?:\s*--[^\n]*(?:\n|$)|\s*\/\*[\s\S]*?\*\/)*/, '').trim()))) arbol(main.querySelector('#sfArbol'), true);
     } catch (e) { res.innerHTML = `<div class="sf-err-caja">${esc(e.message)}</div>`; }
     ocupado = false; btn.disabled = false; pintarContexto();
   }

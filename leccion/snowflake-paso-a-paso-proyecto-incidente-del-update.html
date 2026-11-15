@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 4 (con poca ayuda) - el incidente del UPDATE · Academia de Datos</title><meta name="description" content="Alguien quiso corregir el total de un pedido y puso en 0 los de todos. Encuentras la sentencia en el historial, restauras la tabla con Time Travel y propones cómo evitar que vuelva a pasar con un clon de pruebas. Solo se dice qué lograr; la solución comentada está al final."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-proyecto-incidente-del-update.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 4 (con poca ayuda) - el incidente del UPDATE · Academia de Datos"><meta property="og:description" content="Alguien quiso corregir el total de un pedido y puso en 0 los de todos. Encuentras la sentencia en el historial, restauras la tabla con Time Travel y propones cómo evitar que vuelva a pasar con un clon de pruebas. Solo se dice qué lograr; la solución comentada está al final."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-proyecto-incidente-del-update.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#snowflake-paso-a-paso">❄️ Snowflake paso a paso</a> · 4 · Intermedio-avanzado · 45 min</div>
+<h1>Proyecto 4 (con poca ayuda) - el incidente del UPDATE</h1><p class="resumen">Alguien quiso corregir el total de un pedido y puso en 0 los de todos. Encuentras la sentencia en el historial, restauras la tabla con Time Travel y propones cómo evitar que vuelva a pasar con un clon de pruebas. Solo se dice qué lograr; la solución comentada está al final.</p>
+<a class="cta" href="../index.html#/l/snowflake-paso-a-paso-proyecto-incidente-del-update">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Encontrar la sentencia culpable en Query History</li><li>Restaurar una tabla con CREATE OR REPLACE y BEFORE</li><li>Comprobar la restauración</li><li>Proponer una práctica para evitarlo</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El incidente</div>
+
+<p>Finanzas: <em>&quot;El tablero muestra ventas en 0. ¿Qué pasó? Necesitamos los números de vuelta antes de la reunión.&quot;</em></p>
+</div>
+
+
+<h2>Lo que tienes que lograr</h2>
+<ol>
+<li>Encontrar en Query History la sentencia que dejó los totales en 0.</li>
+<li>Restaurar <code>pedidos_actuales</code> a como estaba justo antes.</li>
+<li>Comprobar que los totales volvieron (el 90004 vale 310).</li>
+<li>Escribir una propuesta de una línea para que no se repita.</li>
+</ol>
+<h2>Cómo se ve terminado</h2>
+<figure class="captura"><img src="assets/img/guias/snowflake/s16-error.webp" alt="El UPDATE sin WHERE (1) - 7 filas actualizadas (2)" loading="lazy"><figcaption>El UPDATE sin WHERE (1) - 7 filas actualizadas (2)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/snowflake/s16-recuperado.webp" alt="La tabla restaurada con BEFORE (1) y los totales correctos (2)" loading="lazy"><figcaption>La tabla restaurada con BEFORE (1) y los totales correctos (2)</figcaption></figure>
+
+
+<h2>✅ Lista de verificación</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Tienes el Query ID del UPDATE.</li>
+<li><input disabled="" type="checkbox"> <code>SELECT pedido_id, total FROM pedidos_actuales</code> muestra los totales originales.</li>
+<li><input disabled="" type="checkbox"> Tienes la propuesta.</li>
+</ul>
+<details><summary>💡 Solución comentada</summary>
+
+<ol>
+<li><strong>Query History</strong>: buscar un <code>UPDATE pedidos_actuales SET total = 0</code> reciente y copiar su Query ID.</li>
+<li>Restaurar:</li>
+</ol>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE pedidos_actuales AS
+SELECT * FROM pedidos_actuales BEFORE(STATEMENT =&gt; '&lt;query id del UPDATE&gt;');</code></pre>
+<p><strong>Por qué CREATE OR REPLACE y no INSERT:</strong> el UPDATE no borró filas, las <strong>cambió</strong>. Insertar las versiones anteriores duplicaría los pedidos; reemplazar la tabla deja exactamente el estado anterior. (Si después del error hubo cambios buenos, hay que rescatarlos aparte o usar un MERGE desde el pasado.)</p>
+<p><strong>Propuestas para prevenirlo:</strong></p>
+<ul>
+<li>Probar los cambios en un <strong>clon</strong> (<code>CREATE TABLE pedidos_prueba CLONE pedidos_actuales;</code>) antes de tocar la tabla real.</li>
+<li>Que los analistas tengan solo <code>SELECT</code> sobre <code>analitica</code> (nivel 5): un rol que no puede escribir no puede romper.</li>
+<li>Siempre correr primero un <code>SELECT ... WHERE ...</code> con la misma condición del UPDATE para ver qué filas toca.</details></li>
+</ul>
+<h2>Lo que aprendiste en el nivel 4</h2>
+<ul>
+<li>Time Travel con AT y BEFORE.</li>
+<li>UNDROP y zero-copy clones.</li>
+<li>QUALIFY, ventanas y SAMPLE.</li>
+</ul>
+<p>En el nivel 5: roles, permisos y costos.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/snowflake-paso-a-paso-proyecto-incidente-del-update">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="snowflake-paso-a-paso-sql-analitico.html">← SQL analítico - QUALIFY, funciones de ventana y muestreo</a><a href="snowflake-paso-a-paso-roles.html">Roles - quién puede hacer qué en Snowflake →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -8,7 +8,7 @@
  * - Roles y GRANT/REVOKE (se registran y se muestran; el rol actual se guarda en cada consulta).
  * - Bases y esquemas (CREATE DATABASE = una base de DuckDB adjunta), stages internos con archivos y COPY INTO.
  * - Time Travel (AT(OFFSET => -s), BEFORE(STATEMENT => 'id')) y UNDROP TABLE con copias ocultas.
- * - Funciones de Snowflake traducidas: IFF, NVL, DATEADD, DATEDIFF, PARSE_JSON, columna:campo::tipo, CLONE.
+ * - Funciones de Snowflake traducidas: IFF, NVL, DATEADD, DATEDIFF, PARSE_JSON, columna:campo::tipo, CLONE, FLATTEN y MERGE.
  * Lo que el alumno crea se vuelve a construir al recargar, repitiendo las sentencias que cambiaron datos.
  */
 (function () {
@@ -152,11 +152,87 @@ ORDER BY ventas DESC;
     s = s.replace(/\bCURRENT_TIMESTAMP\(\)/gi, 'CURRENT_TIMESTAMP').replace(/\bSYSDATE\(\)/gi, 'CURRENT_TIMESTAMP');
     // expr:campo.sub  →  json_extract_string(expr, '$.campo.sub')  (expr: columna, a.b o una llamada f(...))
     s = rutasJson(s);
+    s = flatten(s);
     const s2 = st();
     s = s.replace(/\bCURRENT_ROLE\(\)/gi, `'${s2.ctx.rol}'`).replace(/\bCURRENT_WAREHOUSE\(\)/gi, s2.ctx.wh ? `'${s2.ctx.wh}'` : 'NULL')
       .replace(/\bCURRENT_DATABASE\(\)/gi, `'${s2.ctx.db}'`).replace(/\bCURRENT_SCHEMA\(\)/gi, `'${s2.ctx.esquema}'`).replace(/\bCURRENT_USER\(\)/gi, `'${USUARIO}'`)
       .replace(/\bCURRENT_ACCOUNT\(\)/gi, "'PRACTICA01'").replace(/\bCURRENT_REGION\(\)/gi, "'AWS_US_EAST_1'");
     return s;
+  }
+
+  // paréntesis que cierra el que abre en la posición i (respeta comillas)
+  function cierre(t, i) {
+    let p = 0, q = null;
+    for (let k = i; k < t.length; k++) {
+      const ch = t[k];
+      if (q) { if (ch === q) q = null; continue; }
+      if (ch === "'" || ch === '"') { q = ch; continue; }
+      if (ch === '(') p++; else if (ch === ')') { p--; if (!p) return k; }
+    }
+    return -1;
+  }
+  // [LATERAL] FLATTEN(INPUT => expr) / TABLE(FLATTEN(...))  →  LATERAL (SELECT value, index de cada elemento del arreglo)
+  function flatten(sql) {
+    let out = sql, guard = 0;
+    for (;;) {
+      const m = /(?:\bLATERAL\s+|\bTABLE\s*\(\s*)?\bFLATTEN\s*\(/i.exec(out); if (!m || guard++ > 10) return out;
+      const abre = m.index + m[0].length - 1; const fin = cierre(out, abre); if (fin < 0) return out;
+      let dentro = out.slice(abre + 1, fin).trim();
+      dentro = dentro.replace(/^INPUT\s*=>\s*/i, '').replace(/,\s*(PATH|OUTER|RECURSIVE|MODE)\s*=>[\s\S]*$/i, '').trim();
+      dentro = dentro.replace(/^json_extract_string\(/i, 'json_extract(');
+      let hasta = fin + 1;
+      if (/^\s*TABLE\s*\(/i.test(m[0])) { const c = out.indexOf(')', hasta); if (c >= 0) hasta = c + 1; }
+      const sub = `LATERAL (SELECT unnest(__arr) AS value, unnest(range(len(__arr))) AS index FROM (SELECT CAST(${dentro} AS JSON[]) AS __arr))`;
+      out = out.slice(0, m.index) + sub + out.slice(hasta);
+    }
+  }
+  // MERGE INTO destino [AS] t USING (consulta|tabla) [AS] s ON cond WHEN MATCHED [AND c] THEN UPDATE SET …|DELETE
+  //   WHEN NOT MATCHED [AND c] THEN INSERT [(cols)] VALUES (…)   →  UPDATE/DELETE … FROM  +  INSERT … WHERE NOT EXISTS
+  async function mergeDuck(tr) {
+    const m = /^MERGE\s+INTO\s+("?[\w$."]+"?)(?:\s+(?:AS\s+)?(?!USING\b)("?\w+"?))?\s+USING\s+/i.exec(tr);
+    if (!m) throw err('SQL compilation error:\nsyntax error in MERGE', '001003');
+    const destino = m[1]; const t = (m[2] || destino.split('.').pop()).replace(/"/g, '');
+    let i = m[0].length, fuente;
+    if (tr[i] === '(') { const f = cierre(tr, i); fuente = tr.slice(i, f + 1); i = f + 1; }
+    else { const mm = /^("?[\w$."]+"?)/.exec(tr.slice(i)); fuente = mm[1]; i += mm[0].length; }
+    const resto = tr.slice(i);
+    const ma = /^\s+(?:AS\s+)?(?!ON\b)("?\w+"?)/i.exec(resto); const s = ma ? ma[1].replace(/"/g, '') : 'src';
+    const r2 = ma ? resto.slice(ma[0].length) : resto;
+    const mo = /^\s*ON\s+([\s\S]+?)\s+(WHEN\s[\s\S]*)$/i.exec(r2);
+    if (!mo) throw err('SQL compilation error:\nsyntax error in MERGE: falta ON … WHEN …', '001003');
+    const cond = mo[1];
+    const clausulas = mo[2].split(/\bWHEN\s+(?=(?:NOT\s+)?MATCHED\b)/i).map((x) => x.trim()).filter(Boolean);
+    const cnt = { ins: 0, upd: 0, del: 0 };
+    const correr = async (q) => { const r = await con.query(q); const f = r.toArray()[0]; return Number((f && (f.Count ?? f.count)) || 0); };
+    const partes = clausulas.map((c) => {
+      const k = /^(NOT\s+)?MATCHED(?:\s+AND\s+([\s\S]+?))?\s+THEN\s+([\s\S]+?);?$/i.exec(c);
+      if (!k) throw err(`SQL compilation error:\nsyntax error in MERGE near: WHEN ${c.slice(0, 40)}`, '001003');
+      return { no: !!k[1], extra: k[2], accion: k[3].trim() };
+    });
+    // como en Snowflake: qué filas de la fuente no tienen pareja se decide una vez, contra el destino original
+    const nm = `__merge_nm_${Date.now().toString(36)}`;
+    await con.query(`CREATE TEMP TABLE ${nm} AS SELECT * FROM ${fuente} AS ${s} WHERE NOT EXISTS (SELECT 1 FROM ${destino} AS ${t} WHERE ${cond})`);
+    try {
+      // en cada grupo (MATCHED / NOT MATCHED) gana la primera cláusula cuya condición se cumple
+      const previas = { true: [], false: [] }; const cerrado = { true: false, false: false };
+      for (const c of partes) {
+        if (cerrado[c.no]) continue;
+        const ex = (c.extra ? ` AND (${c.extra})` : '') + previas[c.no].map((x) => ` AND NOT (${x})`).join('');
+        if (c.extra) previas[c.no].push(c.extra); else cerrado[c.no] = true;
+        if (!c.no) {
+          if (/^DELETE$/i.test(c.accion)) cnt.del += await correr(`DELETE FROM ${destino} AS ${t} USING ${fuente} AS ${s} WHERE (${cond})${ex}`);
+          else {
+            const set = /^UPDATE\s+SET\s+([\s\S]+)$/i.exec(c.accion); if (!set) throw err('SQL compilation error:\nWHEN MATCHED admite UPDATE SET … o DELETE', '001003');
+            const asign = set[1].replace(new RegExp(`(^|,)\\s*${t}\\.`, 'gi'), '$1 ');
+            cnt.upd += await correr(`UPDATE ${destino} AS ${t} SET ${asign} FROM ${fuente} AS ${s} WHERE (${cond})${ex}`);
+          }
+        } else {
+          const ins = /^INSERT\s*(\([^)]*\))?\s*VALUES\s*\(([\s\S]+)\)$/i.exec(c.accion); if (!ins) throw err('SQL compilation error:\nWHEN NOT MATCHED admite INSERT (…) VALUES (…)', '001003');
+          cnt.ins += await correr(`INSERT INTO ${destino} ${ins[1] || ''} SELECT ${ins[2]} FROM ${nm} AS ${s} WHERE TRUE${ex}`);
+        }
+      }
+    } finally { try { await con.query(`DROP TABLE IF EXISTS ${nm}`); } catch (e) { /* ya no está */ } }
+    return cnt;
   }
 
   function rutasJson(sql) {
@@ -246,7 +322,12 @@ ORDER BY ventas DESC;
   function noAutorizado(n) { return err(`SQL compilation error:\nObject '${n.db}.${n.esquema}.${n.tabla}' does not exist or not authorized.\nEl rol ${st().ctx.rol} no tiene los permisos: necesita USAGE en la base y en el esquema, y el privilegio sobre la tabla. Revisa SHOW GRANTS TO ROLE ${st().ctx.rol};`, '002003'); }
   // comprueba la cadena completa para leer o escribir una tabla: base → esquema → tabla
   function exigirTabla(n, priv) {
-    if (!tiene('USAGE', 'DATABASE', n.db) || !tiene('USAGE', 'SCHEMA', `${n.db}.${n.esquema}`) || !tiene(priv, 'TABLE', `${n.db}.${n.esquema}.${n.tabla}`)) throw noAutorizado(n);
+    const k = `${n.db}.${n.esquema}.${n.tabla}`;
+    if (!tiene('USAGE', 'DATABASE', n.db) || !tiene('USAGE', 'SCHEMA', `${n.db}.${n.esquema}`)) throw noAutorizado(n);
+    if (tiene(priv, 'TABLE', k)) return;
+    // ve la tabla (tiene otro privilegio sobre ella) pero no el que pide la sentencia: como en Snowflake, "Insufficient privileges"
+    if (priv !== 'SELECT' && tiene('SELECT', 'TABLE', k)) throw sinPermiso(`table '${n.tabla}' (falta GRANT ${priv} ON TABLE ${k} TO ROLE ${st().ctx.rol})`);
+    throw noAutorizado(n);
   }
   function exigirPermisos(sql) {
     const s = st(); const ef = rolesEfectivos(s.ctx.rol); if (esAdminDatos(ef)) return;
@@ -311,6 +392,28 @@ ORDER BY ventas DESC;
       if (!CREDITOS_HORA[s.warehouses[w].tamano]) { delete s.warehouses[w]; throw err(`invalid value '${o.WAREHOUSE_SIZE}' for property 'warehouse_size'`, '001008'); }
       s.ctx.wh = w; guardar();
       return { estado: `Warehouse ${w} successfully created.` };
+    }
+    // --- resource monitors (solo ACCOUNTADMIN)
+    if ((m = /^CREATE\s+(OR\s+REPLACE\s+)?RESOURCE\s+MONITOR\s+(IF\s+NOT\s+EXISTS\s+)?("?[\w$]+"?)\s*([\s\S]*)$/i.exec(sql))) {
+      if (!rolesEfectivos(s.ctx.rol).has('ACCOUNTADMIN')) throw sinPermiso('account (solo ACCOUNTADMIN puede crear resource monitors)');
+      const nom = nombreSf(m[3]); s.monitores = s.monitores || {};
+      if (s.monitores[nom] && !m[1]) { if (m[2]) return { estado: 'Statement executed successfully.' }; throw err(`SQL compilation error:\nObject '${nom}' already exists.`, '002002'); }
+      const cuerpo = m[4] || ''; const q = /CREDIT_QUOTA\s*=\s*(\d+(?:\.\d+)?)/i.exec(cuerpo); const fr = /FREQUENCY\s*=\s*(\w+)/i.exec(cuerpo);
+      const triggers = [...cuerpo.matchAll(/ON\s+(\d+)\s+PERCENT\s+DO\s+(NOTIFY|SUSPEND_IMMEDIATE|SUSPEND)/gi)].map((x) => ({ pct: Number(x[1]), accion: x[2].toUpperCase() }));
+      s.monitores[nom] = { nombre: nom, cuota: q ? Number(q[1]) : null, frecuencia: fr ? fr[1].toUpperCase() : 'MONTHLY', triggers, creado: Date.now() };
+      guardar(); return { estado: `Resource monitor ${nom} successfully created.` };
+    }
+    if (/^SHOW\s+RESOURCE\s+MONITORS/i.test(sql)) {
+      const ms = Object.values(s.monitores || {});
+      const usados = (nom) => Object.values(s.warehouses).filter((w) => w.monitor === nom).reduce((a, w) => a + (w.creditos || 0), 0);
+      return filas(['name', 'credit_quota', 'used_credits', 'remaining_credits', 'level', 'frequency', 'notify_at', 'suspend_at', 'suspend_immediately_at'],
+        ms.map((x) => { const u = usados(x.nombre); const t = (a) => (x.triggers.find((y) => y.accion === a) || {}).pct; return [x.nombre, x.cuota, Number(u.toFixed(3)), x.cuota == null ? null : Number((x.cuota - u).toFixed(3)), Object.values(s.warehouses).some((w) => w.monitor === x.nombre) ? 'WAREHOUSE' : null, x.frecuencia, t('NOTIFY') ? t('NOTIFY') + '%' : null, t('SUSPEND') ? t('SUSPEND') + '%' : null, t('SUSPEND_IMMEDIATE') ? t('SUSPEND_IMMEDIATE') + '%' : null]; }));
+    }
+    if ((m = /^ALTER\s+WAREHOUSE\s+(IF\s+EXISTS\s+)?("?[\w$]+"?)\s+SET\s+RESOURCE_MONITOR\s*=\s*("?[\w$]+"?)\s*$/i.exec(sql))) {
+      const w = s.warehouses[nombreSf(m[2])]; if (!w) throw err('Object does not exist, or operation cannot be performed.', '000606');
+      if (!rolesEfectivos(s.ctx.rol).has('ACCOUNTADMIN')) throw sinPermiso(`warehouse '${w.nombre}' (solo ACCOUNTADMIN asigna resource monitors)`);
+      const mon = nombreSf(m[3]); if (!(s.monitores || {})[mon]) throw err(`SQL compilation error:\nResource monitor '${mon}' does not exist or not authorized.`, '002003');
+      w.monitor = mon; guardar(); return { estado: 'Statement executed successfully.' };
     }
     if ((m = /^ALTER\s+WAREHOUSE\s+(IF\s+EXISTS\s+)?("?[\w$]+"?)\s+(SUSPEND|RESUME(?:\s+IF\s+SUSPENDED)?|SET\s+(.*))$/is.exec(sql))) {
       const w = s.warehouses[nombreSf(m[2])]; if (!w) throw err(`Object does not exist, or operation cannot be performed.`, '000606');
@@ -478,6 +581,12 @@ ORDER BY ventas DESC;
       guardar(); return { estado: `${n.tabla} successfully dropped.`, persistir: true };
     }
     if (/^INSERT\s+OVERWRITE\s+INTO\s+/i.test(tr)) { const t = /^INSERT\s+OVERWRITE\s+INTO\s+([\w."]+)/i.exec(tr)[1]; await con.query(`DELETE FROM ${t}`); tr = tr.replace(/^INSERT\s+OVERWRITE\s+INTO/i, 'INSERT INTO'); }
+    if (/^MERGE\s+INTO\b/i.test(tr)) {
+      let c;
+      try { c = await mergeDuck(tr); } catch (e) { if (e.codigo) throw e; throw err(mensajeError(String(e.message || e), sql), '000904'); }
+      anotarDueno(sql);
+      return { ...filas(['number of rows inserted', 'number of rows updated', 'number of rows deleted'], [[c.ins, c.upd, c.del]]), persistir: true };
+    }
     let r;
     try { r = await con.query(tr); }
     catch (e) { throw err(mensajeError(String(e.message || e), sql), '000904'); }

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Costos y resource monitors - que la factura no sorprenda · Academia de Datos</title><meta name="description" content="Snowflake cobra cómputo, almacenamiento y algunos servicios. Lees los créditos consumidos por warehouse, creas un resource monitor que avisa al 80 % y suspende al 100 % de un presupuesto mensual, lo asignas al warehouse de análisis y conoces dónde se mira el consumo en una cuenta real."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-costos-y-resource-monitors.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Costos y resource monitors - que la factura no sorprenda · Academia de Datos"><meta property="og:description" content="Snowflake cobra cómputo, almacenamiento y algunos servicios. Lees los créditos consumidos por warehouse, creas un resource monitor que avisa al 80 % y suspende al 100 % de un presupuesto mensual, lo asignas al warehouse de análisis y conoces dónde se mira el consumo en una cuenta real."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-costos-y-resource-monitors.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#snowflake-paso-a-paso">❄️ Snowflake paso a paso</a> · 5 · Avanzado · 40 min</div>
+<h1>Costos y resource monitors - que la factura no sorprenda</h1><p class="resumen">Snowflake cobra cómputo, almacenamiento y algunos servicios. Lees los créditos consumidos por warehouse, creas un resource monitor que avisa al 80 % y suspende al 100 % de un presupuesto mensual, lo asignas al warehouse de análisis y conoces dónde se mira el consumo en una cuenta real.</p>
+<a class="cta" href="../index.html#/l/snowflake-paso-a-paso-costos-y-resource-monitors">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Entender qué se paga en Snowflake</li><li>Leer el consumo de créditos por warehouse</li><li>Crear y asignar un resource monitor</li><li>Conocer Cost Management y las vistas de uso</li></ul>
+<h2>Paso 1 — Qué se paga</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>Cómo se cobra</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Cómputo</strong> (warehouses)</td>
+<td>Créditos por segundo encendido, según el tamaño. Suele ser la mayor parte</td>
+</tr>
+<tr>
+<td><strong>Almacenamiento</strong></td>
+<td>Por TB al mes, incluido Time Travel y Fail-safe</td>
+</tr>
+<tr>
+<td><strong>Servicios en la nube</strong></td>
+<td>Solo si superan el 10 % del cómputo diario</td>
+</tr>
+<tr>
+<td><strong>Funciones serverless</strong></td>
+<td>Snowpipe, tareas serverless, clustering automático: créditos propios</td>
+</tr>
+</tbody></table></div>
+<figure class="captura"><img src="assets/img/guias/snowflake/s19-creditos.webp" alt="Créditos consumidos en la práctica (1) y el costo de cada tamaño si se usa una hora por día durante un mes (2)" loading="lazy"><figcaption>Créditos consumidos en la práctica (1) y el costo de cada tamaño si se usa una hora por día durante un mes (2)</figcaption></figure>
+
+
+<h2>Paso 2 — Un resource monitor</h2>
+<pre data-norun><code class="language-sql">USE ROLE ACCOUNTADMIN;
+CREATE RESOURCE MONITOR limite_mensual
+  WITH CREDIT_QUOTA = 50
+  FREQUENCY = MONTHLY
+  START_TIMESTAMP = IMMEDIATELY
+  TRIGGERS ON 80 PERCENT DO NOTIFY
+           ON 100 PERCENT DO SUSPEND;
+ALTER WAREHOUSE analisis_wh SET RESOURCE_MONITOR = limite_mensual;
+SHOW RESOURCE MONITORS;</code></pre>
+<figure class="captura"><img src="assets/img/guias/snowflake/s19-monitor.webp" alt="El resource monitor (1) - cuota de 50 créditos, usados y restantes, asignado a un warehouse (2)" loading="lazy"><figcaption>El resource monitor (1) - cuota de 50 créditos, usados y restantes, asignado a un warehouse (2)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Acción</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>DO NOTIFY</code></td>
+<td>Avisa por correo a los administradores</td>
+</tr>
+<tr>
+<td><code>DO SUSPEND</code></td>
+<td>Suspende el warehouse cuando terminan las consultas en curso</td>
+</tr>
+<tr>
+<td><code>DO SUSPEND_IMMEDIATE</code></td>
+<td>Lo suspende ya, cancelando lo que esté corriendo</td>
+</tr>
+</tbody></table></div>
+<p>Solo <strong>ACCOUNTADMIN</strong> puede crear resource monitors y asignarlos.</p>
+<h2>Paso 3 — Mirar el consumo en una cuenta real</h2>
+<figure class="captura"><img src="assets/img/guias/snowflake/s19-cost-management.webp" alt="Cost Management no está simulado en la práctica" loading="lazy"><figcaption>Cost Management no está simulado en la práctica</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Dónde</th>
+<th>Qué muestra</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Admin → Cost Management</strong></td>
+<td>Consumo por día, warehouse y servicio, presupuestos y alertas</td>
+</tr>
+<tr>
+<td><code>SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY</code></td>
+<td>Créditos por warehouse y hora, para consultar con SQL</td>
+</tr>
+<tr>
+<td><code>SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY</code></td>
+<td>Qué consultas usaron más tiempo de warehouse</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes qué se paga en Snowflake.</li>
+<li>Creaste y asignaste un resource monitor.</li>
+<li>Sabes dónde se mira el consumo real.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/snowflake-paso-a-paso-costos-y-resource-monitors">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="snowflake-paso-a-paso-grants.html">← GRANT - un rol de solo lectura para los analistas</a><a href="snowflake-paso-a-paso-proyecto-acceso-para-analistas.html">Proyecto 5 (solo el objetivo) - acceso seguro y con presupuesto para analistas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

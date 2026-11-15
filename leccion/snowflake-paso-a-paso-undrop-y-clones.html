@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UNDROP y clones - deshacer un DROP y copiar entornos sin duplicar datos · Academia de Datos</title><meta name="description" content="Recuperas una tabla borrada con UNDROP y creas tienda_qa como clon de tienda_dev en segundos. Entiendes cómo funciona el zero-copy clone (comparte las micro-particiones hasta que algo cambia), para qué se usa (pruebas, QA, análisis puntuales) y cómo combinarlo con Time Travel."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-undrop-y-clones.html">
+<meta property="og:type" content="article"><meta property="og:title" content="UNDROP y clones - deshacer un DROP y copiar entornos sin duplicar datos · Academia de Datos"><meta property="og:description" content="Recuperas una tabla borrada con UNDROP y creas tienda_qa como clon de tienda_dev en segundos. Entiendes cómo funciona el zero-copy clone (comparte las micro-particiones hasta que algo cambia), para qué se usa (pruebas, QA, análisis puntuales) y cómo combinarlo con Time Travel."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-undrop-y-clones.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#snowflake-paso-a-paso">❄️ Snowflake paso a paso</a> · 4 · Intermedio-avanzado · 35 min</div>
+<h1>UNDROP y clones - deshacer un DROP y copiar entornos sin duplicar datos</h1><p class="resumen">Recuperas una tabla borrada con UNDROP y creas tienda_qa como clon de tienda_dev en segundos. Entiendes cómo funciona el zero-copy clone (comparte las micro-particiones hasta que algo cambia), para qué se usa (pruebas, QA, análisis puntuales) y cómo combinarlo con Time Travel.</p>
+<a class="cta" href="../index.html#/l/snowflake-paso-a-paso-undrop-y-clones">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Recuperar una tabla, esquema o base con UNDROP</li><li>Clonar tablas, esquemas y bases</li><li>Explicar el zero-copy clone y su costo</li><li>Usar clones para pruebas y QA</li></ul>
+<h2>Paso 1 — UNDROP</h2>
+<pre data-norun><code class="language-sql">USE SCHEMA tienda_dev.analitica;
+DROP TABLE ventas_por_canal;
+UNDROP TABLE ventas_por_canal;
+SELECT * FROM ventas_por_canal;</code></pre>
+<figure class="captura"><img src="assets/img/guias/snowflake/s14-undrop.webp" alt="DROP y UNDROP (1) - la tabla vuelve con sus 4 filas (2)" loading="lazy"><figcaption>DROP y UNDROP (1) - la tabla vuelve con sus 4 filas (2)</figcaption></figure>
+
+
+<p><code>UNDROP</code> funciona mientras la tabla esté dentro de su retención de Time Travel. También existe <code>UNDROP SCHEMA</code> y <code>UNDROP DATABASE</code>.</p>
+<h2>Paso 2 — Clonar una base</h2>
+<pre data-norun><code class="language-sql">CREATE DATABASE tienda_qa CLONE tienda_dev;
+SHOW SCHEMAS IN DATABASE tienda_qa;</code></pre>
+<figure class="captura"><img src="assets/img/guias/snowflake/s14-clone.webp" alt="TIENDA_QA en el explorador con las mismas tablas (1) y sus esquemas (2)" loading="lazy"><figcaption>TIENDA_QA en el explorador con las mismas tablas (1) y sus esquemas (2)</figcaption></figure>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 Zero-copy clone</div>
+
+<p>Un clon es como una fotocopia que <strong>no gasta papel</strong> hasta que la escribes: al crearlo comparte las mismas micro-particiones que el original, así que no ocupa almacenamiento extra ni tarda aunque la base tenga terabytes. Solo lo que cambies en el clon (o en el original) después ocupa espacio nuevo.</p>
+</div>
+
+
+<h2>Paso 3 — Para qué sirve</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Uso</th>
+<th>Cómo</th>
+</tr>
+</thead><tbody><tr>
+<td>Probar un cambio sin riesgo</td>
+<td><code>CREATE DATABASE tienda_qa CLONE tienda_prod;</code> y probar ahí</td>
+</tr>
+<tr>
+<td>Entorno de QA con datos reales</td>
+<td>Un clon nuevo cada mañana</td>
+</tr>
+<tr>
+<td>Analizar &quot;cómo estaba ayer&quot;</td>
+<td><code>CREATE TABLE pedidos_ayer CLONE pedidos AT(OFFSET =&gt; -86400);</code></td>
+</tr>
+<tr>
+<td>Copia de seguridad antes de una migración</td>
+<td>Clonar la tabla antes de tocarla</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Los clones no copian todo</div>
+
+<p>Un clon de base o esquema copia tablas, vistas y otros objetos, y los permisos sobre los objetos hijos; pero no copia los stages internos con sus archivos, ni el historial de cargas de COPY INTO. Revisa la documentación antes de clonar producción.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Recuperaste una tabla con UNDROP.</li>
+<li>Clonaste una base entera.</li>
+<li>Sabes cuándo usar clones.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/snowflake-paso-a-paso-undrop-y-clones">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="snowflake-paso-a-paso-time-travel.html">← Time Travel - consultar y recuperar los datos del pasado</a><a href="snowflake-paso-a-paso-sql-analitico.html">SQL analítico - QUALIFY, funciones de ventana y muestreo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buenas prácticas - rendimiento y costo bajo control · Academia de Datos</title><meta name="description" content="Las decisiones que más mueven el rendimiento y la factura. Warehouses por carga de trabajo y con auto suspend corto, cachés de resultados, poda de micro-particiones y claves de clustering, tablas transitorias para staging, no leer columnas de más, y una lista de revisión para el equipo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-buenas-practicas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Buenas prácticas - rendimiento y costo bajo control · Academia de Datos"><meta property="og:description" content="Las decisiones que más mueven el rendimiento y la factura. Warehouses por carga de trabajo y con auto suspend corto, cachés de resultados, poda de micro-particiones y claves de clustering, tablas transitorias para staging, no leer columnas de más, y una lista de revisión para el equipo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-buenas-practicas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#snowflake-paso-a-paso">❄️ Snowflake paso a paso</a> · 6 · Avanzado completo · 40 min</div>
+<h1>Buenas prácticas - rendimiento y costo bajo control</h1><p class="resumen">Las decisiones que más mueven el rendimiento y la factura. Warehouses por carga de trabajo y con auto suspend corto, cachés de resultados, poda de micro-particiones y claves de clustering, tablas transitorias para staging, no leer columnas de más, y una lista de revisión para el equipo.</p>
+<a class="cta" href="../index.html#/l/snowflake-paso-a-paso-buenas-practicas">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Dimensionar warehouses por carga de trabajo</li><li>Aprovechar la caché de resultados</li><li>Entender micro-particiones, poda y clustering</li><li>Elegir el tipo de tabla según el dato</li><li>Revisar consultas y objetos con una lista</li></ul>
+<h2>Paso 1 — Warehouses</h2>
+<pre data-norun><code class="language-sql">CREATE TRANSIENT TABLE pedidos_tmp AS SELECT * FROM pedidos_staging;
+ALTER WAREHOUSE analisis_wh SET AUTO_SUSPEND = 60;
+SHOW WAREHOUSES;</code></pre>
+<figure class="captura"><img src="assets/img/guias/snowflake/s21-practicas.webp" alt="Una tabla transitoria para datos recargables y el warehouse con auto suspend de 60 segundos (1); SHOW WAREHOUSES lo confirma (2)" loading="lazy"><figcaption>Una tabla transitoria para datos recargables y el warehouse con auto suspend de 60 segundos (1); SHOW WAREHOUSES lo confirma (2)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Práctica</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td>Un warehouse por tipo de carga (carga, transformación, BI)</td>
+<td>No se pisan y se sabe quién gasta</td>
+</tr>
+<tr>
+<td><code>AUTO_SUSPEND</code> de 60 segundos (o el mínimo que tolere tu caché)</td>
+<td>Un warehouse encendido sin consultas es dinero tirado</td>
+</tr>
+<tr>
+<td>Empezar en X-Small y subir si hace falta</td>
+<td>Es fácil agrandar; lo caro es no medir</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Las cachés</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Caché</th>
+<th>Qué guarda</th>
+<th>Cuánto dura</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Resultados</strong></td>
+<td>El resultado de una consulta idéntica sobre datos que no cambiaron</td>
+<td>24 horas; no usa warehouse</td>
+</tr>
+<tr>
+<td><strong>Disco local del warehouse</strong></td>
+<td>Los datos leídos recientemente</td>
+<td>Mientras el warehouse no se suspenda</td>
+</tr>
+<tr>
+<td><strong>Metadatos</strong></td>
+<td>Conteos, mínimos y máximos por micro-partición</td>
+<td>Siempre (<code>COUNT(*)</code> sin filtro sale de aquí)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — Micro-particiones y poda</h2>
+<p>Snowflake guarda cada tabla en <strong>micro-particiones</strong> de unos 50 a 500 MB sin comprimir, y sabe el mínimo y el máximo de cada columna en cada una. Un <code>WHERE fecha = &#39;2026-11-14&#39;</code> lee solo las particiones que pueden contener esa fecha: eso es la <strong>poda</strong> (<em>pruning</em>).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Situación</th>
+<th>Qué hacer</th>
+</tr>
+</thead><tbody><tr>
+<td>Tablas chicas o medianas</td>
+<td>Nada: el orden de carga suele alcanzar</td>
+</tr>
+<tr>
+<td>Tablas de varios TB filtradas siempre por la misma columna, con poca poda</td>
+<td>Una <strong>clave de clustering</strong>: <code>ALTER TABLE ventas CLUSTER BY (fecha);</code> (tiene costo de mantenimiento)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 4 — SQL que ahorra</h2>
+<ul>
+<li><strong>No <code>SELECT *</code></strong>: Snowflake guarda por columnas, y leer 3 columnas de 80 es mucho más barato.</li>
+<li>Filtrar por las columnas que podan (fechas) y con <code>LIMIT</code> al explorar.</li>
+<li><code>TRANSIENT</code> para staging y tablas intermedias que se pueden recargar: sin Fail-safe, menos almacenamiento.</li>
+<li>Vistas para el negocio en lugar de copias de tablas.</li>
+</ul>
+<h2>Paso 5 — Lista de revisión</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Cada equipo o proceso con su warehouse y su resource monitor.</li>
+<li><input disabled="" type="checkbox"> Auto suspend corto en todos los warehouses.</li>
+<li><input disabled="" type="checkbox"> Roles de mínimo privilegio; nadie trabaja con ACCOUNTADMIN.</li>
+<li><input disabled="" type="checkbox"> Staging en tablas transitorias.</li>
+<li><input disabled="" type="checkbox"> Cargas con MERGE idempotente.</li>
+<li><input disabled="" type="checkbox"> Objetos creados con scripts versionados (Terraform, Snowflake CLI, dbt), no a mano.</li>
+</ul>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes dimensionar y apagar warehouses.</li>
+<li>Entiendes cachés, poda y clustering.</li>
+<li>Tienes una lista de revisión.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/snowflake-paso-a-paso-buenas-practicas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="snowflake-paso-a-paso-proyecto-acceso-para-analistas.html">← Proyecto 5 (solo el objetivo) - acceso seguro y con presupuesto para analistas</a><a href="snowflake-paso-a-paso-snowpipe-streams-tasks-y-mas.html">Snowpipe, streams, tasks y dynamic tables - automatizar dentro de Snowflake →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
