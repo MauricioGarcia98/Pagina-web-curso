@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Azure SQL Database - la base operativa, su cortafuegos y sus conexiones · Academia de Datos</title><meta name="description" content="Azure SQL Database es SQL Server como servicio, y es una de las fuentes de datos más comunes de un equipo de datos. Creas la base ventas en el servidor sql-tiendaandina-dev con autenticación solo de Microsoft Entra y datos de ejemplo, chocas con el primer error que ve todo el mundo (el cortafuegos), agregas tu IP, consultas los pedidos por canal en el editor de consultas y lees las cadenas de conexión para Spark, Python y Data Factory."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-azure-sql-database.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Azure SQL Database - la base operativa, su cortafuegos y sus conexiones · Academia de Datos"><meta property="og:description" content="Azure SQL Database es SQL Server como servicio, y es una de las fuentes de datos más comunes de un equipo de datos. Creas la base ventas en el servidor sql-tiendaandina-dev con autenticación solo de Microsoft Entra y datos de ejemplo, chocas con el primer error que ve todo el mundo (el cortafuegos), agregas tu IP, consultas los pedidos por canal en el editor de consultas y lees las cadenas de conexión para Spark, Python y Data Factory."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-azure-sql-database.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 4 · Intermedio-avanzado · 45 min</div>
+<h1>Azure SQL Database - la base operativa, su cortafuegos y sus conexiones</h1><p class="resumen">Azure SQL Database es SQL Server como servicio, y es una de las fuentes de datos más comunes de un equipo de datos. Creas la base ventas en el servidor sql-tiendaandina-dev con autenticación solo de Microsoft Entra y datos de ejemplo, chocas con el primer error que ve todo el mundo (el cortafuegos), agregas tu IP, consultas los pedidos por canal en el editor de consultas y lees las cadenas de conexión para Spark, Python y Data Factory.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-azure-sql-database">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Distinguir servidor lógico y base de datos</li><li>Crear una base con autenticación solo de Microsoft Entra</li><li>Resolver el error de cortafuegos agregando una regla de IP</li><li>Consultar con el editor de consultas</li><li>Leer las cadenas de conexión ADO.NET, JDBC y ODBC</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Lucía: <em>&quot;Para practicar la ingesta, montemos en dev una copia de la base de ventas. Sin usuarios ni contraseñas de SQL: solo Entra.&quot;</em></p>
+</div>
+
+
+<h2>Paso 1 — Servidor lógico y base</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Qué es</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Servidor lógico</strong></td>
+<td>Un nombre que agrupa bases y guarda lo que comparten: cortafuegos, administrador, conexiones. No es una máquina</td>
+<td><code>sql-tiendaandina-dev.database.windows.net</code></td>
+</tr>
+<tr>
+<td><strong>Base de datos</strong></td>
+<td>Donde están las tablas; es lo que se paga según su nivel</td>
+<td><code>ventas</code></td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Crear la base</h2>
+<p>Busca <strong>SQL databases</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b15-sql-vacio.webp" alt="SQL databases - Create (1)" loading="lazy"><figcaption>SQL databases - Create (1)</figcaption></figure>
+
+
+<p>Haz clic en <strong>+ Create</strong> y completa:</p>
+<ol>
+<li><strong>Resource group</strong>: <code>rg-tiendaandina-dev</code>. <strong>Database name</strong>: <code>ventas</code>.</li>
+<li><strong>Server name</strong>: <code>sql-tiendaandina-dev</code> (nuevo; único en todo Azure).</li>
+<li><strong>Authentication method</strong>: <strong>Microsoft Entra-only</strong>.</li>
+<li><strong>Compute + storage</strong>: <strong>General Purpose - Serverless</strong> (tiene una oferta gratis mensual).</li>
+<li><strong>Use existing data</strong>: <strong>Sample (tienda del curso)</strong>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/azure/b15-sql-crear.webp" alt="Create SQL Database - base (1), servidor (2), autenticación (3), cómputo (4) y datos de ejemplo (5)" loading="lazy"><figcaption>Create SQL Database - base (1), servidor (2), autenticación (3), cómputo (4) y datos de ejemplo (5)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Opción de cómputo</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Serverless</strong></td>
+<td>Escala sola y se <strong>pausa</strong> cuando no se usa: se paga por segundo de uso. Ideal para dev</td>
+</tr>
+<tr>
+<td><strong>Basic / Standard (DTU)</strong></td>
+<td>Capacidad fija con precio fijo mensual</td>
+</tr>
+</tbody></table></div>
+<p><strong>Microsoft Entra-only</strong> significa que no existen usuario y contraseña de SQL: se entra con identidades de Entra (tu usuario, el factory, un grupo). Es lo que recomienda Microsoft.</p>
+<h2>Paso 3 — El primer error: el cortafuegos</h2>
+<p>Abre la base:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b15-sql-overview.webp" alt="La base ventas - las pestañas (1) y el aviso del cortafuegos (2)" loading="lazy"><figcaption>La base ventas - las pestañas (1) y el aviso del cortafuegos (2)</figcaption></figure>
+
+
+<p>Ve a <strong>Query editor</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b15-sql-firewall.webp" alt="&quot;Client with IP address … is not allowed to access the server&quot; (1) y el botón para permitir tu IP (2)" loading="lazy"><figcaption>&quot;Client with IP address … is not allowed to access the server&quot; (1) y el botón para permitir tu IP (2)</figcaption></figure>
+
+
+<p>El <strong>cortafuegos del servidor bloquea todo por defecto</strong>. Hay que abrir explícitamente cada dirección IP. Ve a <strong>Networking</strong> y haz clic en <strong>Add your client IPv4 address</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b15-sql-red.webp" alt="La regla para tu IP (1) y la excepción para los servicios de Azure (2)" loading="lazy"><figcaption>La regla para tu IP (1) y la excepción para los servicios de Azure (2)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Opción</th>
+<th>Qué deja pasar</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Regla de IP</strong></td>
+<td>Una dirección o un rango, por ejemplo la oficina</td>
+</tr>
+<tr>
+<td><strong>Allow Azure services and resources to access this server</strong></td>
+<td>Cualquier servicio de Azure, incluido Data Factory con su runtime de Azure</td>
+</tr>
+<tr>
+<td><strong>Private endpoint</strong> (producción)</td>
+<td>Solo tu red privada; el servidor no queda expuesto a internet</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Nunca abras 0.0.0.0 – 255.255.255.255</div>
+
+<p>Esa regla deja entrar a todo internet. Es la configuración que aparece en las noticias de bases filtradas.</p>
+</div>
+
+
+<h2>Paso 4 — Consultar</h2>
+<p>Vuelve a <strong>Query editor</strong> y ejecuta:</p>
+<pre data-norun><code class="language-sql">SELECT canal, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY canal
+ORDER BY pedidos DESC;</code></pre>
+<figure class="captura"><img src="assets/img/guias/azure/b15-sql-editor.webp" alt="El editor - las tablas (1), la consulta T-SQL (2) y el resultado (3)" loading="lazy"><figcaption>El editor - las tablas (1), la consulta T-SQL (2) y el resultado (3)</figcaption></figure>
+
+
+<p>Resultado esperado: <strong>web 5400, app 2973, tienda 2645, telefono 982</strong> (12 000 pedidos). El editor ejecuta T-SQL de verdad en tu navegador.</p>
+<h2>Paso 5 — Las cadenas de conexión</h2>
+<p>Pestaña <strong>Connection strings</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b15-sql-conexion.webp" alt="Las cadenas ADO.NET, JDBC, ODBC y sqlcmd, todas con autenticación de Entra y sin contraseña" loading="lazy"><figcaption>Las cadenas ADO.NET, JDBC, ODBC y sqlcmd, todas con autenticación de Entra y sin contraseña</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Cadena</th>
+<th>La usa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>ADO.NET</strong></td>
+<td>Aplicaciones .NET</td>
+</tr>
+<tr>
+<td><strong>JDBC</strong></td>
+<td><strong>Spark y Databricks</strong></td>
+</tr>
+<tr>
+<td><strong>ODBC</strong></td>
+<td><strong>Python</strong> con <code>pyodbc</code></td>
+</tr>
+<tr>
+<td><strong>sqlcmd</strong></td>
+<td>La terminal</td>
+</tr>
+</tbody></table></div>
+<p>Todas dicen <code>Authentication=ActiveDirectoryDefault</code> (o equivalente): toman la identidad del entorno, sin contraseña. Si algún día usas una cadena con contraseña, va en Key Vault, nunca en el código.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste una base con autenticación solo de Entra y datos de ejemplo.</li>
+<li>Resolviste el error de cortafuegos con una regla de IP.</li>
+<li>Consultaste con el editor y conoces las cadenas de conexión.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-azure-sql-database">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-paso-a-paso-data-factory-desde-el-portal.html">← Data Factory desde el portal - el recurso, su identidad y el Studio</a><a href="azure-paso-a-paso-proyecto-plataforma-dev-completa.html">Proyecto 4 (con poca ayuda) - la revisión de la plataforma dev →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

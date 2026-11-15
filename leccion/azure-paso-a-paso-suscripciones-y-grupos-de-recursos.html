@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suscripciones y grupos de recursos - tu primer recurso en Azure · Academia de Datos</title><meta name="description" content="Todo lo que creas en Azure vive dentro de una suscripción (quién paga) y de un grupo de recursos (una carpeta que se crea, se permisa y se borra junta). Ves tus suscripciones, entiendes la jerarquía tenant → suscripción → grupo → recurso, y creas tu primer grupo de recursos con el asistente de tres pestañas - Basics, Tags y Review + create - incluyendo un error de nombre a propósito, las etiquetas y las notificaciones del despliegue."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-suscripciones-y-grupos-de-recursos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Suscripciones y grupos de recursos - tu primer recurso en Azure · Academia de Datos"><meta property="og:description" content="Todo lo que creas en Azure vive dentro de una suscripción (quién paga) y de un grupo de recursos (una carpeta que se crea, se permisa y se borra junta). Ves tus suscripciones, entiendes la jerarquía tenant → suscripción → grupo → recurso, y creas tu primer grupo de recursos con el asistente de tres pestañas - Basics, Tags y Review + create - incluyendo un error de nombre a propósito, las etiquetas y las notificaciones del despliegue."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-suscripciones-y-grupos-de-recursos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 1 · Básico · 35 min</div>
+<h1>Suscripciones y grupos de recursos - tu primer recurso en Azure</h1><p class="resumen">Todo lo que creas en Azure vive dentro de una suscripción (quién paga) y de un grupo de recursos (una carpeta que se crea, se permisa y se borra junta). Ves tus suscripciones, entiendes la jerarquía tenant → suscripción → grupo → recurso, y creas tu primer grupo de recursos con el asistente de tres pestañas - Basics, Tags y Review + create - incluyendo un error de nombre a propósito, las etiquetas y las notificaciones del despliegue.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-suscripciones-y-grupos-de-recursos">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar la jerarquía tenant, suscripción, grupo de recursos y recurso</li><li>Ver tus suscripciones y tu rol</li><li>Crear un grupo de recursos con nombre, región y etiquetas</li><li>Leer los errores de validación del asistente</li><li>Seguir un despliegue en las notificaciones</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Tu primer día en Tienda Andina</div>
+
+<p>Entras al equipo de datos de <strong>Tienda Andina</strong>, una cadena de tiendas con venta web y por app. Lucía, la líder del equipo, te pide: <em>&quot;Armemos el entorno de desarrollo en Azure. Empieza por el grupo de recursos <code>rg-tiendaandina-dev</code> en East US 2, con las etiquetas del proyecto.&quot;</em> En este nivel lo construyes de a poco.</p>
+</div>
+
+
+<h2>Paso 1 — La jerarquía de Azure</h2>
+<pre><code class="language-text">Tenant (Microsoft Entra ID: la organización y sus usuarios)
+ └── Suscripción (quién paga y un límite de acceso)
+      └── Grupo de recursos (una carpeta de recursos relacionados)
+           └── Recurso (una cuenta de almacenamiento, un key vault, un workspace…)</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Nivel</th>
+<th>Qué es</th>
+<th>Ejemplo en Tienda Andina</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Tenant</strong></td>
+<td>El directorio de la empresa: usuarios, grupos y aplicaciones</td>
+<td><code>academia.dev</code></td>
+</tr>
+<tr>
+<td><strong>Suscripción</strong></td>
+<td>La unidad de facturación. Muchas empresas separan dev y prod en suscripciones distintas</td>
+<td><code>sub-datos-dev</code>, <code>sub-datos-prod</code></td>
+</tr>
+<tr>
+<td><strong>Grupo de recursos</strong></td>
+<td>Recursos que nacen, se permisan y se borran juntos</td>
+<td><code>rg-tiendaandina-dev</code></td>
+</tr>
+<tr>
+<td><strong>Recurso</strong></td>
+<td>Cada servicio que creas</td>
+<td><code>sttiendaandinadev</code></td>
+</tr>
+</tbody></table></div>
+<p>Lo importante: los <strong>permisos</strong>, las <strong>etiquetas de costos</strong>, los <strong>bloqueos</strong> y las <strong>políticas</strong> se asignan en un nivel y se <strong>heredan hacia abajo</strong>. Si te dan permiso en un grupo, lo tienes sobre todo lo que hay adentro.</p>
+<h2>Paso 2 — Tus suscripciones</h2>
+<p>En el buscador escribe <code>subscriptions</code> o usa <strong>Navigate → Subscriptions</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b02-suscripciones.webp" alt="Subscriptions - las dos suscripciones de práctica, tu rol (Owner) y el costo actual" loading="lazy"><figcaption>Subscriptions - las dos suscripciones de práctica, tu rol (Owner) y el costo actual</figcaption></figure>
+
+
+<p>Entra a <code>sub-datos-dev</code>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b02-suscripcion.webp" alt="La hoja de una suscripción - los datos esenciales (Essentials) y su menú lateral" loading="lazy"><figcaption>La hoja de una suscripción - los datos esenciales (Essentials) y su menú lateral</figcaption></figure>
+
+
+<p>Esta forma de pantalla se repite en todo el portal y se llama <strong>hoja</strong> (<em>blade</em>): arriba los <strong>Essentials</strong> (los datos principales) y a la izquierda un <strong>menú propio</strong> del recurso (Activity log, Access control (IAM), Cost analysis…). Tu rol es <strong>Owner</strong>: puedes crear, cambiar, borrar y dar permisos.</p>
+<h2>Paso 3 — Crear el grupo de recursos</h2>
+<p>Ve a <strong>Resource groups</strong> (desde Home o el buscador):</p>
+<figure class="captura"><img src="assets/img/guias/azure/b02-grupos-vacio.webp" alt="Resource groups sin grupos todavía - el botón Create (1)" loading="lazy"><figcaption>Resource groups sin grupos todavía - el botón Create (1)</figcaption></figure>
+
+
+<p>Haz clic en <strong>+ Create</strong>. Se abre el <strong>asistente de creación</strong>, con pestañas arriba y botones abajo. Todos los recursos de Azure se crean con un asistente parecido.</p>
+<h3>Primero, un error a propósito</h3>
+<p>En <strong>Resource group</strong> escribe <code>rg tienda andina.</code> (con espacios y un punto al final):</p>
+<figure class="captura"><img src="assets/img/guias/azure/b02-grupo-error.webp" alt="El asistente valida mientras escribes - los espacios no están permitidos y el nombre no puede terminar en punto" loading="lazy"><figcaption>El asistente valida mientras escribes - los espacios no están permitidos y el nombre no puede terminar en punto</figcaption></figure>
+
+
+<p>Reglas del nombre de un grupo de recursos:</p>
+<ul>
+<li>Hasta <strong>90</strong> caracteres.</li>
+<li>Letras, números, guiones (<code>-</code>), guiones bajos (<code>_</code>), puntos y paréntesis.</li>
+<li><strong>Sin espacios</strong> y <strong>sin punto al final</strong>.</li>
+<li>Único dentro de la suscripción (otra suscripción puede tener uno con el mismo nombre).</li>
+</ul>
+<h3>Ahora, bien</h3>
+<p>Completa:</p>
+<ol>
+<li><strong>Subscription</strong>: <code>sub-datos-dev</code>.</li>
+<li><strong>Resource group</strong>: <code>rg-tiendaandina-dev</code>.</li>
+<li><strong>Region</strong>: <code>(US) East US 2</code>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/azure/b02-grupo-basics.webp" alt="Basics completo - suscripción (1), nombre (2) y región (3)" loading="lazy"><figcaption>Basics completo - suscripción (1), nombre (2) y región (3)</figcaption></figure>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 ¿Por qué la región importa en un grupo?</div>
+
+<p>El grupo guarda sus <strong>metadatos</strong> en esa región. Los recursos de adentro pueden estar en otras regiones, pero lo normal es usar la misma para todo: los datos no viajan entre regiones (más rápido y sin costo de transferencia).</p>
+</div>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 La convención de nombres</div>
+
+<p><code>rg-tiendaandina-dev</code> sigue la convención que recomienda Microsoft: <strong>tipo</strong> (<code>rg</code> = resource group) + <strong>proyecto</strong> + <strong>entorno</strong>. Con solo leer el nombre sabes qué es, de quién es y si es dev o prod. Este curso la usa siempre: <code>st…</code> para storage, <code>kv-…</code> para key vault, <code>dbw-…</code> para Databricks, <code>adf-…</code> para Data Factory.</p>
+</div>
+
+
+<h2>Paso 4 — Las etiquetas (Tags)</h2>
+<p>Pasa a la pestaña <strong>Tags</strong> (o <strong>Next : Tags &gt;</strong>) y agrega tres:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Name</th>
+<th>Value</th>
+</tr>
+</thead><tbody><tr>
+<td><code>proyecto</code></td>
+<td><code>tienda-andina</code></td>
+</tr>
+<tr>
+<td><code>entorno</code></td>
+<td><code>dev</code></td>
+</tr>
+<tr>
+<td><code>owner</code></td>
+<td><code>equipo-datos</code></td>
+</tr>
+</tbody></table></div>
+<figure class="captura"><img src="assets/img/guias/azure/b02-grupo-tags.webp" alt="Tags - pares nombre/valor para clasificar recursos y repartir costos" loading="lazy"><figcaption>Tags - pares nombre/valor para clasificar recursos y repartir costos</figcaption></figure>
+
+
+<p>Las <strong>etiquetas</strong> son pares nombre/valor. Sirven para <strong>filtrar</strong> (todo lo de <code>entorno=dev</code>) y, sobre todo, para <strong>repartir la factura</strong> por proyecto o equipo en Cost Management. Una regla común en las empresas: sin las etiquetas <code>owner</code> y <code>entorno</code> no se puede crear nada.</p>
+<h2>Paso 5 — Review + create</h2>
+<p>Haz clic en <strong>Review + create</strong>. Azure ejecuta una <strong>validación final</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b02-grupo-revisar.webp" alt="Validation passed (1) y el resumen de lo que se va a crear; recién ahora se habilita Create (2)" loading="lazy"><figcaption>Validation passed (1) y el resumen de lo que se va a crear; recién ahora se habilita Create (2)</figcaption></figure>
+
+
+<p>Si algo estuviera mal, verías <strong>Validation failed</strong> y un punto rojo en la pestaña con el problema. Revisa el resumen y haz clic en <strong>Create</strong>.</p>
+<h2>Paso 6 — El despliegue y las notificaciones</h2>
+<p>Crear algo en Azure se llama <strong>desplegar</strong> (<em>deploy</em>). Abre la campana 🔔:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b02-notificaciones.webp" alt="El despliegue - &quot;Your deployment is complete&quot; y las notificaciones Deployment in progress y Deployment succeeded" loading="lazy"><figcaption>El despliegue - &quot;Your deployment is complete&quot; y las notificaciones Deployment in progress y Deployment succeeded</figcaption></figure>
+
+
+<p>Cada creación genera un <strong>deployment</strong> con nombre, estado, hora y el detalle de lo que se creó. Más adelante verás que un despliegue es en realidad una plantilla ARM que el portal arma por ti.</p>
+<p>Entra al grupo:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b02-grupo-overview.webp" alt="El grupo rg-tiendaandina-dev - sus Essentials con las etiquetas (1) y su menú (2)" loading="lazy"><figcaption>El grupo rg-tiendaandina-dev - sus Essentials con las etiquetas (1) y su menú (2)</figcaption></figure>
+
+
+<p>El grupo está vacío. En la lección siguiente le agregas la cuenta de almacenamiento.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Borrar un grupo borra todo lo que tiene</div>
+
+<p><strong>Delete resource group</strong> borra el grupo <strong>y todos sus recursos</strong>, sin papelera. Por eso los grupos se arman por ciclo de vida: lo que se crea y se borra junto va en el mismo grupo. Un grupo para &quot;pruebas de hoy&quot; se borra al terminar y no deja nada cobrando.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Entiendes la jerarquía tenant → suscripción → grupo → recurso y qué se hereda.</li>
+<li>Creaste <code>rg-tiendaandina-dev</code> con nombre válido, región y etiquetas.</li>
+<li>Sabes leer la validación y seguir el despliegue.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-suscripciones-y-grupos-de-recursos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-paso-a-paso-el-portal-y-su-pantalla.html">← Qué es el portal de Azure y cómo es su pantalla</a><a href="azure-paso-a-paso-tu-primera-cuenta-de-almacenamiento.html">Tu primera cuenta de almacenamiento (el futuro data lake) →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

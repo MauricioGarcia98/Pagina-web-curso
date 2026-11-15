@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADLS Gen2 y las capas del lago (bronze, silver, gold) · Academia de Datos</title><meta name="description" content="Qué cambia el espacio de nombres jerárquico - carpetas reales, permisos por carpeta y el endpoint dfs - y cómo se organiza un data lake por capas. Lees los endpoints blob y dfs, armas la dirección abfss:// que usan Spark, Databricks y Fabric, usas el Storage browser y defines una convención de carpetas para Tienda Andina que el resto del curso respeta."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-adls-gen2-y-las-capas-del-lago.html">
+<meta property="og:type" content="article"><meta property="og:title" content="ADLS Gen2 y las capas del lago (bronze, silver, gold) · Academia de Datos"><meta property="og:description" content="Qué cambia el espacio de nombres jerárquico - carpetas reales, permisos por carpeta y el endpoint dfs - y cómo se organiza un data lake por capas. Lees los endpoints blob y dfs, armas la dirección abfss:// que usan Spark, Databricks y Fabric, usas el Storage browser y defines una convención de carpetas para Tienda Andina que el resto del curso respeta."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-adls-gen2-y-las-capas-del-lago.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 2 · Básico-intermedio · 35 min</div>
+<h1>ADLS Gen2 y las capas del lago (bronze, silver, gold)</h1><p class="resumen">Qué cambia el espacio de nombres jerárquico - carpetas reales, permisos por carpeta y el endpoint dfs - y cómo se organiza un data lake por capas. Lees los endpoints blob y dfs, armas la dirección abfss:// que usan Spark, Databricks y Fabric, usas el Storage browser y defines una convención de carpetas para Tienda Andina que el resto del curso respeta.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-adls-gen2-y-las-capas-del-lago">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué agrega ADLS Gen2 sobre Blob Storage</li><li>Leer los endpoints blob y dfs de una cuenta</li><li>Armar una dirección abfss:// para Spark</li><li>Organizar el lago en bronze, silver y gold con una convención de carpetas</li><li>Usar el Storage browser</li></ul>
+<h2>Paso 1 — Qué agrega ADLS Gen2</h2>
+<p>En Blob Storage común, las &quot;carpetas&quot; son solo parte del nombre del archivo: renombrar <code>pedidos/</code> a <code>ventas/</code> obliga a copiar cada archivo. Con el <strong>espacio de nombres jerárquico</strong> (ADLS Gen2):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Característica</th>
+<th>Blob común</th>
+<th>ADLS Gen2</th>
+</tr>
+</thead><tbody><tr>
+<td>Carpetas</td>
+<td>Simuladas (prefijo del nombre)</td>
+<td><strong>Reales</strong></td>
+</tr>
+<tr>
+<td>Renombrar o mover una carpeta</td>
+<td>Copia archivo por archivo</td>
+<td><strong>Una sola operación</strong>, instantánea</td>
+</tr>
+<tr>
+<td>Permisos</td>
+<td>Por cuenta o contenedor</td>
+<td>También <strong>por carpeta y archivo</strong> (ACL estilo POSIX)</td>
+</tr>
+<tr>
+<td>Endpoint para analítica</td>
+<td><code>blob</code></td>
+<td><code>dfs</code> (Data Lake)</td>
+</tr>
+<tr>
+<td>Lo usan</td>
+<td>Aplicaciones en general</td>
+<td><strong>Spark, Databricks, Fabric, Synapse, Data Factory</strong></td>
+</tr>
+</tbody></table></div>
+<p>Renombrar es lo que hace un job de Spark al terminar de escribir: escribe en una carpeta temporal y la renombra. Con ADLS Gen2 eso es rápido y atómico.</p>
+<h2>Paso 2 — Los endpoints</h2>
+<p>En el <strong>Overview</strong> de <code>sttiendaandinadev</code>, baja hasta <strong>Endpoints</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b06-endpoints.webp" alt="Los endpoints - Blob service, Data Lake Storage y la dirección abfss para Databricks" loading="lazy"><figcaption>Los endpoints - Blob service, Data Lake Storage y la dirección abfss para Databricks</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Endpoint</th>
+<th>Dirección</th>
+<th>Quién lo usa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Blob</strong></td>
+<td><code>https://sttiendaandinadev.blob.core.windows.net/</code></td>
+<td>El portal, aplicaciones, <code>az storage blob</code></td>
+</tr>
+<tr>
+<td><strong>Data Lake (dfs)</strong></td>
+<td><code>https://sttiendaandinadev.dfs.core.windows.net/</code></td>
+<td>Herramientas de analítica</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — La dirección abfss://</h2>
+<p>Spark, Databricks y Fabric leen ADLS Gen2 con el esquema <strong>abfss</strong> (<em>Azure Blob File System, Secure</em>):</p>
+<pre><code class="language-text">abfss://&lt;contenedor&gt;@&lt;cuenta&gt;.dfs.core.windows.net/&lt;ruta&gt;</code></pre>
+<p>Para los pedidos de noviembre:</p>
+<pre><code class="language-text">abfss://bronze@sttiendaandinadev.dfs.core.windows.net/pedidos/2026/11/</code></pre>
+<p>En un notebook de Databricks se lee así (con los permisos configurados, que ves en el nivel 4):</p>
+<pre data-norun><code class="language-python">df = spark.read.option(&quot;header&quot;, True).csv(
+    &quot;abfss://bronze@sttiendaandinadev.dfs.core.windows.net/pedidos/2026/11/&quot;
+)
+df.show()</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 Unity Catalog</div>
+
+<p>En Databricks moderno, en lugar de escribir la dirección en cada notebook, un administrador registra la cuenta como <strong>external location</strong> en Unity Catalog y da permisos por tabla. La dirección <code>abfss://</code> sigue siendo la que hay debajo.</p>
+</div>
+
+
+<h2>Paso 4 — El Storage browser</h2>
+<p>Menú <strong>Storage browser</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b06-navegador.webp" alt="Storage browser (1) - los contenedores del lago (2)" loading="lazy"><figcaption>Storage browser (1) - los contenedores del lago (2)</figcaption></figure>
+
+
+<p>Es el explorador de archivos del portal: contenedores, carpetas, subir, descargar y borrar. En tu computadora, la herramienta equivalente es <strong>Azure Storage Explorer</strong> (gratis, de Microsoft).</p>
+<h2>Paso 5 — La convención de capas de Tienda Andina</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Capa</th>
+<th>Qué guarda</th>
+<th>Formato</th>
+<th>Quién escribe</th>
+<th>Ejemplo de ruta</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>bronze</strong></td>
+<td>Lo que llega, sin tocar</td>
+<td>Igual que el origen (CSV, JSON)</td>
+<td>Data Factory o la ingesta</td>
+<td><code>bronze/pedidos/2026/11/15/pedidos.csv</code></td>
+</tr>
+<tr>
+<td><strong>silver</strong></td>
+<td>Limpio, tipado y sin duplicados</td>
+<td>Delta o Parquet</td>
+<td>Databricks</td>
+<td><code>silver/pedidos/</code> (tabla Delta)</td>
+</tr>
+<tr>
+<td><strong>gold</strong></td>
+<td>Agregado y listo para el negocio</td>
+<td>Delta</td>
+<td>Databricks</td>
+<td><code>gold/ventas_diarias/</code></td>
+</tr>
+</tbody></table></div>
+<p>Reglas que el equipo acuerda:</p>
+<ol>
+<li><strong>Bronze no se modifica</strong>: si un archivo vino mal, se vuelve a cargar, no se edita.</li>
+<li>Bronze se organiza por <strong>fuente y fecha de llegada</strong>; silver y gold, por <strong>tema</strong>.</li>
+<li>Nadie fuera del equipo de datos escribe en el lago; los analistas <strong>leen gold</strong>.</li>
+</ol>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La cocina de un restaurante</div>
+
+<p>Bronze es la mercadería tal como llega del proveedor. Silver es la mercadería lavada, cortada y en recipientes rotulados. Gold son los platos listos para servir. Nadie sirve la mercadería sin lavar, y nadie tira la caja original hasta estar seguro.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes qué agrega ADLS Gen2 y por qué importa para Spark.</li>
+<li>Lees los endpoints y armas la dirección <code>abfss://</code>.</li>
+<li>Tienes una convención de capas y carpetas para el resto del curso.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-adls-gen2-y-las-capas-del-lago">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-paso-a-paso-contenedores-y-blobs.html">← Contenedores y blobs - subir los primeros archivos</a><a href="azure-paso-a-paso-etiquetas-actividad-y-costos.html">Etiquetas, registro de actividad y costos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

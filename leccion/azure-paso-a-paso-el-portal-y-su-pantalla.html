@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qué es el portal de Azure y cómo es su pantalla · Academia de Datos</title><meta name="description" content="El portal de Azure es la página web desde la que un equipo de datos crea y administra todo lo que tiene en la nube de Microsoft. Qué es Azure, qué es el portal y en qué se diferencia de la CLI y de las plantillas, cada zona de la pantalla (barra superior, buscador, menú, servicios, recursos recientes, notificaciones, ajustes) y qué puedes hacer en el portal de práctica, que corre en tu navegador sin cuenta ni costo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-el-portal-y-su-pantalla.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Qué es el portal de Azure y cómo es su pantalla · Academia de Datos"><meta property="og:description" content="El portal de Azure es la página web desde la que un equipo de datos crea y administra todo lo que tiene en la nube de Microsoft. Qué es Azure, qué es el portal y en qué se diferencia de la CLI y de las plantillas, cada zona de la pantalla (barra superior, buscador, menú, servicios, recursos recientes, notificaciones, ajustes) y qué puedes hacer en el portal de práctica, que corre en tu navegador sin cuenta ni costo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-el-portal-y-su-pantalla.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 1 · Básico · 30 min</div>
+<h1>Qué es el portal de Azure y cómo es su pantalla</h1><p class="resumen">El portal de Azure es la página web desde la que un equipo de datos crea y administra todo lo que tiene en la nube de Microsoft. Qué es Azure, qué es el portal y en qué se diferencia de la CLI y de las plantillas, cada zona de la pantalla (barra superior, buscador, menú, servicios, recursos recientes, notificaciones, ajustes) y qué puedes hacer en el portal de práctica, que corre en tu navegador sin cuenta ni costo.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-el-portal-y-su-pantalla">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es Azure y qué es el portal</li><li>Distinguir portal, CLI y plantillas como tres formas de hacer lo mismo</li><li>Ubicar cada zona de la pantalla del portal</li><li>Usar el buscador y el menú para llegar a un servicio</li><li>Saber qué es real y qué es simulado en la práctica</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Azure es un edificio enorme de computadoras que Microsoft alquila por minuto. El <strong>portal</strong> es la recepción del edificio: una página web donde pides lo que necesitas (un disco, una base de datos, un servidor de Spark), ves lo que ya tienes alquilado y cuánto te está costando.</p>
+</div>
+
+
+<h2>Paso 1 — Qué es Azure y qué es el portal</h2>
+<p><strong>Azure</strong> es la nube de Microsoft: cientos de servicios (almacenamiento, bases de datos, Spark, inteligencia artificial) que se usan por internet y se pagan por uso. Un data engineer en Azure usa casi siempre los mismos: <strong>Storage</strong> (el data lake), <strong>Key Vault</strong> (los secretos), <strong>Databricks</strong> o <strong>Fabric</strong> (el procesamiento), <strong>Data Factory</strong> (la orquestación) y <strong>Azure SQL</strong> (bases operativas).</p>
+<p>Hay tres formas de crear y administrar esos servicios, y todas terminan haciendo lo mismo:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Forma</th>
+<th>Qué es</th>
+<th>Cuándo se usa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Portal</strong></td>
+<td>La página web <code>portal.azure.com</code></td>
+<td>Para aprender, explorar y hacer cambios puntuales</td>
+</tr>
+<tr>
+<td><strong>CLI</strong> (<code>az</code>)</td>
+<td>Comandos en una terminal</td>
+<td>Para tareas repetidas y scripts</td>
+</tr>
+<tr>
+<td><strong>Plantillas</strong> (ARM, Bicep, Terraform)</td>
+<td>Archivos de texto que describen la infraestructura</td>
+<td>Para producción: se versionan en Git y se repiten igual</td>
+</tr>
+</tbody></table></div>
+<p>Este curso empieza por el portal, porque es donde se <em>ve</em> cada pieza. En el nivel 3 haces lo mismo con la CLI y en el nivel 6 con plantillas.</p>
+<h2>Paso 2 — La pantalla de inicio</h2>
+<p>Abre el <a href="#/azure">portal de Azure de práctica</a>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b01-inicio.webp" alt="La página de inicio - la barra superior (1), los servicios de Azure (2), Navigate (3) y Tools (4)" loading="lazy"><figcaption>La página de inicio - la barra superior (1), los servicios de Azure (2), Navigate (3) y Tools (4)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Zona</th>
+<th>Qué tiene</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>1. Barra superior</strong></td>
+<td>El botón de menú (☰), el <strong>buscador</strong>, y a la derecha Cloud Shell, notificaciones (🔔), ajustes (⚙), ayuda y tu cuenta</td>
+</tr>
+<tr>
+<td><strong>2. Azure services</strong></td>
+<td>Accesos directos a los servicios más usados, y <strong>Create a resource</strong> para crear cualquier cosa</td>
+</tr>
+<tr>
+<td><strong>Resources</strong></td>
+<td>Lo último que abriste (Recent) y la lista completa (All resources)</td>
+</tr>
+<tr>
+<td><strong>3. Navigate</strong></td>
+<td>Suscripciones, grupos de recursos, todos los recursos y el registro de actividad</td>
+</tr>
+<tr>
+<td><strong>4. Tools</strong></td>
+<td>Microsoft Learn (la capacitación oficial gratis), Cost Management y Cloud Shell</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-nota"><div class="callout-title">📝 El portal está en inglés</div>
+
+<p>El portal real se puede poner en español desde los ajustes, pero casi todos los equipos lo usan en inglés: la documentación, los mensajes de error y las búsquedas en internet están en inglés. Este curso usa los nombres en inglés tal como aparecen, con la explicación en español.</p>
+</div>
+
+
+<h2>Paso 3 — El menú del portal</h2>
+<p>Haz clic en <strong>☰</strong> (arriba a la izquierda):</p>
+<figure class="captura"><img src="assets/img/guias/azure/b01-menu.webp" alt="El menú del portal - crear un recurso, inicio, todos los servicios, favoritos y Volver al curso" loading="lazy"><figcaption>El menú del portal - crear un recurso, inicio, todos los servicios, favoritos y Volver al curso</figcaption></figure>
+
+
+<p>El menú tiene <strong>Create a resource</strong>, <strong>Home</strong>, <strong>All services</strong> y una lista de <strong>favoritos</strong>. En el portal real puedes elegir qué servicios aparecen como favoritos con la estrella ☆ de cada servicio. Al final está <strong>Volver al curso</strong>, que es propio de la práctica.</p>
+<p>Desde <strong>More services</strong> (en la página de inicio) llegas a la lista completa:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b01-todos-servicios.webp" alt="All services - todos los servicios que tiene el portal de práctica" loading="lazy"><figcaption>All services - todos los servicios que tiene el portal de práctica</figcaption></figure>
+
+
+<h2>Paso 4 — El buscador: la forma más rápida de moverse</h2>
+<p>Escribe <code>stor</code> en el buscador de arriba:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b01-buscar.webp" alt="El buscador encuentra servicios, recursos, grupos de recursos y documentación mientras escribes" loading="lazy"><figcaption>El buscador encuentra servicios, recursos, grupos de recursos y documentación mientras escribes</figcaption></figure>
+
+
+<p>El buscador encuentra <strong>servicios</strong> (Storage accounts), <strong>recursos</strong> que ya creaste (por nombre), <strong>grupos de recursos</strong> y <strong>documentación</strong>. Quien usa Azure todos los días casi no toca el menú: escribe dos o tres letras y presiona Enter.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Atajo</div>
+
+<p>En el portal real, <code>G</code> y luego <code>/</code> llevan el cursor al buscador. En la práctica basta con presionar <code>/</code>.</p>
+</div>
+
+
+<h2>Paso 5 — Tu cuenta, las notificaciones y los ajustes</h2>
+<p>Haz clic en tu nombre, arriba a la derecha:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b01-cuenta.webp" alt="El menú de la cuenta - quién eres, en qué suscripción estás y Volver al curso" loading="lazy"><figcaption>El menú de la cuenta - quién eres, en qué suscripción estás y Volver al curso</figcaption></figure>
+
+
+<p>Ahí ves con qué usuario entraste y en qué <strong>suscripción</strong> estás trabajando. En la práctica también está <strong>Borrar todo lo creado en Azure (práctica)</strong>, para empezar de cero.</p>
+<p>La campana 🔔 muestra las <strong>notificaciones</strong>: cada vez que creas, cambias o borras algo, Azure avisa ahí cuando empieza y cuando termina. Lo usas en la lección siguiente.</p>
+<p>El engranaje ⚙ abre los <strong>ajustes del portal</strong>, donde se elige el tema (claro, oscuro o el azul de Azure):</p>
+<figure class="captura"><img src="assets/img/guias/azure/b01-ajustes.webp" alt="Portal settings - el tema del portal" loading="lazy"><figcaption>Portal settings - el tema del portal</figcaption></figure>
+
+
+<h2>Paso 6 — Qué es real y qué es simulado en la práctica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Real</th>
+<th>Simulado</th>
+</tr>
+</thead><tbody><tr>
+<td>Los nombres de pantallas, botones, pestañas y mensajes de error siguen al portal de Azure</td>
+<td>Nada se crea en una suscripción real: todo vive en tu navegador</td>
+</tr>
+<tr>
+<td>Las reglas de nombres, validaciones, permisos (RBAC), bloqueos y plantillas ARM funcionan como en Azure</td>
+<td>Los precios son de práctica, para aprender a leer el costo</td>
+</tr>
+<tr>
+<td>Lo que creas en el portal aparece en la <strong>CLI <code>az</code></strong> de Cloud Shell y de la terminal del curso, y al revés</td>
+<td>Algunas secciones avanzadas muestran solo una explicación</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Si después usas un Azure real</div>
+
+<p>En un Azure real cada recurso cuesta dinero mientras exista, aunque no lo uses. Las capturas de este curso usan nombres de práctica: si tomas capturas de tu propio portal para compartirlas, tapa tu correo, el ID de la suscripción, el ID del tenant y cualquier clave.</p>
+</div>
+
+
+<p>El botón <strong>🎯 Retos</strong> (abajo a la derecha del portal de práctica) propone una lista de logros que se marcan solos a medida que avanzas.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes qué es Azure y para qué sirve el portal.</li>
+<li>Conoces las tres formas de trabajar: portal, CLI y plantillas.</li>
+<li>Ubicas cada zona de la pantalla y te mueves con el buscador.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-el-portal-y-su-pantalla">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-paso-a-paso-proyecto-final.html">← Proyecto final (solo el pedido) - el tablero ejecutivo de una app de delivery</a><a href="azure-paso-a-paso-suscripciones-y-grupos-de-recursos.html">Suscripciones y grupos de recursos - tu primer recurso en Azure →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

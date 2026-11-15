@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contenedores y blobs - subir los primeros archivos · Academia de Datos</title><meta name="description" content="Dentro de una cuenta de almacenamiento los archivos viven en contenedores. Creas los contenedores bronze, silver y gold (con un error de nombre a propósito), subes pedidos.csv y clientes.csv a carpetas dentro de bronze, y descubres la diferencia entre entrar con la clave de la cuenta y entrar con tu usuario de Microsoft Entra - por qué ser Owner no alcanza para leer los datos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-contenedores-y-blobs.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Contenedores y blobs - subir los primeros archivos · Academia de Datos"><meta property="og:description" content="Dentro de una cuenta de almacenamiento los archivos viven en contenedores. Creas los contenedores bronze, silver y gold (con un error de nombre a propósito), subes pedidos.csv y clientes.csv a carpetas dentro de bronze, y descubres la diferencia entre entrar con la clave de la cuenta y entrar con tu usuario de Microsoft Entra - por qué ser Owner no alcanza para leer los datos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-contenedores-y-blobs.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 2 · Básico-intermedio · 40 min</div>
+<h1>Contenedores y blobs - subir los primeros archivos</h1><p class="resumen">Dentro de una cuenta de almacenamiento los archivos viven en contenedores. Creas los contenedores bronze, silver y gold (con un error de nombre a propósito), subes pedidos.csv y clientes.csv a carpetas dentro de bronze, y descubres la diferencia entre entrar con la clave de la cuenta y entrar con tu usuario de Microsoft Entra - por qué ser Owner no alcanza para leer los datos.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-contenedores-y-blobs">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear contenedores con nombres válidos</li><li>Subir archivos a una carpeta dentro de un contenedor</li><li>Leer la lista de blobs con su nivel de acceso y tamaño</li><li>Distinguir el acceso con clave del acceso con Microsoft Entra</li><li>Explicar por qué un Owner no puede listar blobs sin un rol de datos</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Lucía: <em>&quot;Vamos a organizar el lago en tres capas: <code>bronze</code> para lo que llega tal cual, <code>silver</code> para lo limpio y <code>gold</code> para lo listo para informes. Sube a bronze los primeros archivos de pedidos y clientes.&quot;</em></p>
+</div>
+
+
+<h2>Paso 1 — Contenedor, blob y carpeta</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Qué es</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Contenedor</strong></td>
+<td>La raíz donde se guardan archivos. Con ADLS Gen2 también se llama <em>file system</em></td>
+<td><code>bronze</code></td>
+</tr>
+<tr>
+<td><strong>Blob</strong></td>
+<td>Un archivo</td>
+<td><code>pedidos.csv</code></td>
+</tr>
+<tr>
+<td><strong>Carpeta</strong></td>
+<td>Parte del nombre del blob (<code>pedidos/2026/11/</code>). Con ADLS Gen2 es una carpeta real</td>
+<td><code>pedidos/2026/11/pedidos.csv</code></td>
+</tr>
+</tbody></table></div>
+<p>La dirección completa de un blob es:</p>
+<pre><code class="language-text">https://sttiendaandinadev.blob.core.windows.net/bronze/pedidos/2026/11/pedidos.csv
+         └──── cuenta ────┘                     └─ contenedor ┘└──── carpeta + archivo ────┘</code></pre>
+<h2>Paso 2 — Crear los contenedores</h2>
+<p>Abre <code>sttiendaandinadev</code> → menú <strong>Containers</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b05-contenedores-vacio.webp" alt="Containers vacío - el botón + Container (1)" loading="lazy"><figcaption>Containers vacío - el botón + Container (1)</figcaption></figure>
+
+
+<p>Haz clic en <strong>+ Container</strong> y escribe <code>Bronze_Raw</code>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b05-contenedor-invalido.webp" alt="El error - solo minúsculas, números y guiones, de 3 a 63 caracteres" loading="lazy"><figcaption>El error - solo minúsculas, números y guiones, de 3 a 63 caracteres</figcaption></figure>
+
+
+<p>Reglas del nombre de un contenedor: de <strong>3 a 63</strong> caracteres, <strong>minúsculas, números y guiones</strong>, empieza con letra o número y sin dos guiones seguidos. Cierra el panel, vuelve a abrirlo y escribe <code>bronze</code>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b05-nuevo-contenedor.webp" alt="Nombre bronze (1) y nivel de acceso anónimo (2), bloqueado porque la cuenta no lo permite" loading="lazy"><figcaption>Nombre bronze (1) y nivel de acceso anónimo (2), bloqueado porque la cuenta no lo permite</figcaption></figure>
+
+
+<p>El <strong>Anonymous access level</strong> está fijo en <em>Private</em> porque al crear la cuenta dejaste desmarcado el acceso anónimo. Es lo correcto: nadie lee tus datos sin identificarse. Haz clic en <strong>Create</strong> y repite para <code>silver</code> y <code>gold</code>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b05-contenedores.webp" alt="Los tres contenedores de las capas del lago" loading="lazy"><figcaption>Los tres contenedores de las capas del lago</figcaption></figure>
+
+
+<h2>Paso 3 — Subir archivos a una carpeta</h2>
+<p>Entra a <strong>bronze</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b05-contenedor-vacio.webp" alt="El contenedor vacío - Upload (1) y el método de autenticación (2)" loading="lazy"><figcaption>El contenedor vacío - Upload (1) y el método de autenticación (2)</figcaption></figure>
+
+
+<p>Crea en tu computadora un archivo <code>pedidos.csv</code> con este contenido:</p>
+<pre><code class="language-text">pedido_id,cliente_id,fecha_pedido,canal,estado
+1,101,2026-11-01,web,entregado
+2,205,2026-11-01,app,enviado
+3,318,2026-11-02,tienda,entregado</code></pre>
+<p>Haz clic en <strong>Upload</strong>, elige el archivo y en <strong>Upload to folder</strong> escribe <code>pedidos/2026/11</code>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b05-subir.webp" alt="Upload blob - el archivo (1) y la carpeta de destino (2)" loading="lazy"><figcaption>Upload blob - el archivo (1) y la carpeta de destino (2)</figcaption></figure>
+
+
+<p>Haz clic en <strong>Upload</strong>. Repite con un <code>clientes.csv</code> en la carpeta <code>clientes</code>:</p>
+<pre><code class="language-text">cliente_id,nombre,pais,segmento
+101,Ana,Perú,Consumidor
+205,Luis,Chile,Pyme
+318,Sofía,México,Corporativo</code></pre>
+<figure class="captura"><img src="assets/img/guias/azure/b05-blobs.webp" alt="Los blobs en bronze - nombre con su carpeta, nivel de acceso (Hot), tipo (Block blob) y tamaño" loading="lazy"><figcaption>Los blobs en bronze - nombre con su carpeta, nivel de acceso (Hot), tipo (Block blob) y tamaño</figcaption></figure>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 ¿Por qué `pedidos/2026/11`?</div>
+
+<p>Guardar por <strong>fecha de llegada</strong> (año/mes/día) es la convención de la capa bronze. Permite volver a procesar un día puntual, borrar lo viejo con una regla de ciclo de vida y que Spark lea solo las carpetas que necesita.</p>
+</div>
+
+
+<h2>Paso 4 — Clave de acceso o Microsoft Entra</h2>
+<p>Arriba de la lista dice <strong>Authentication method: Access key</strong>. El portal está leyendo los blobs con la <strong>clave de la cuenta</strong>, que da control total. Haz clic en <strong>Switch to Microsoft Entra user account</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b05-entra-sin-permiso.webp" alt="Con tu usuario de Entra (1) no puedes listar los blobs (2) - aunque seas Owner" loading="lazy"><figcaption>Con tu usuario de Entra (1) no puedes listar los blobs (2) - aunque seas Owner</figcaption></figure>
+
+
+<p>Es uno de los momentos más confusos de Azure, y vale la pena entenderlo:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo de rol</th>
+<th>Ejemplos</th>
+<th>Qué permite</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>De administración</strong> (<em>control plane</em>)</td>
+<td>Owner, Contributor, Reader</td>
+<td>Crear, configurar y borrar el <strong>recurso</strong></td>
+</tr>
+<tr>
+<td><strong>De datos</strong> (<em>data plane</em>)</td>
+<td>Storage Blob Data Reader, Contributor, Owner</td>
+<td>Leer y escribir el <strong>contenido</strong></td>
+</tr>
+</tbody></table></div>
+<p>Ser <strong>Owner</strong> de la suscripción te deja administrar la cuenta (y leer sus claves), pero <strong>no</strong> te da acceso a los datos con tu usuario. Para eso hace falta un rol <strong>Storage Blob Data…</strong>. Lo asignas en la lección 10.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Por qué importa</div>
+
+<p>La clave de acceso es como la llave maestra del edificio: cualquiera que la tenga entra a todo y no queda registrado <em>quién</em> entró. Las empresas desactivan cada vez más el acceso con clave y usan <strong>Microsoft Entra + roles de datos</strong>, que dan permisos por persona o por aplicación y quedan auditados.</p>
+</div>
+
+
+<p>Vuelve a <strong>Switch to Access key</strong> para seguir trabajando.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste los contenedores <code>bronze</code>, <code>silver</code> y <code>gold</code>.</li>
+<li>Subiste archivos a carpetas por tema y fecha.</li>
+<li>Entiendes la diferencia entre la clave de la cuenta y los roles de datos de Entra.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-contenedores-y-blobs">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-paso-a-paso-proyecto-entorno-dev.html">← Proyecto 1 (guiado) - el inventario del entorno dev</a><a href="azure-paso-a-paso-adls-gen2-y-las-capas-del-lago.html">ADLS Gen2 y las capas del lago (bronze, silver, gold) →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

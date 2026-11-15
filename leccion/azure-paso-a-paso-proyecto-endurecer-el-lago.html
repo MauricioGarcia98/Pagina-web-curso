@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 5 (con mínima ayuda) - endurecer el lago antes de producción · Academia de Datos</title><meta name="description" content="Seguridad revisó tu informe del proyecto 4 y te devuelve una lista de controles obligatorios para cualquier lago que vaya a producción. Los aplicas en el lago dev sin instrucciones paso a paso - protección de datos, ciclo de vida, bloqueo, alertas y acceso temporal para terceros - y entregas la evidencia que pide Seguridad. Solo hay pistas mínimas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-proyecto-endurecer-el-lago.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 5 (con mínima ayuda) - endurecer el lago antes de producción · Academia de Datos"><meta property="og:description" content="Seguridad revisó tu informe del proyecto 4 y te devuelve una lista de controles obligatorios para cualquier lago que vaya a producción. Los aplicas en el lago dev sin instrucciones paso a paso - protección de datos, ciclo de vida, bloqueo, alertas y acceso temporal para terceros - y entregas la evidencia que pide Seguridad. Solo hay pistas mínimas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-proyecto-endurecer-el-lago.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 5 · Avanzado · 55 min</div>
+<h1>Proyecto 5 (con mínima ayuda) - endurecer el lago antes de producción</h1><p class="resumen">Seguridad revisó tu informe del proyecto 4 y te devuelve una lista de controles obligatorios para cualquier lago que vaya a producción. Los aplicas en el lago dev sin instrucciones paso a paso - protección de datos, ciclo de vida, bloqueo, alertas y acceso temporal para terceros - y entregas la evidencia que pide Seguridad. Solo hay pistas mínimas.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-proyecto-endurecer-el-lago">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Aplicar un conjunto de controles de seguridad y operación sin guía</li><li>Elegir valores razonables y justificarlos</li><li>Reunir evidencia verificable de cada control</li><li>Distinguir lo que se puede hacer en el portal de práctica de lo que requiere Azure real</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Los controles obligatorios de Seguridad</div>
+
+<p><em>&quot;Todo lago que pase a producción tiene que cumplir: (1) recuperación de borrados y sobrescrituras por al menos 14 días; (2) datos crudos que no se acumulen sin límite; (3) imposibilidad de borrar la plataforma por error; (4) aviso a la guardia si falla la ingesta; (5) los terceros solo con acceso temporal, de solo lectura y por HTTPS; (6) solo TLS 1.2 o superior, sin acceso anónimo; (7) trazabilidad de cada cambio.&quot;</em></p>
+</div>
+
+
+<h2>Tu tarea</h2>
+<p>Para cada control, aplícalo en <code>sttiendaandinadev</code> o en <code>rg-tiendaandina-dev</code> y anota la evidencia (qué pantalla lo demuestra). Si un control no se puede completar en la práctica, explica qué harías en Azure real.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>#</th>
+<th>Control</th>
+<th>Lo aplicaste en…</th>
+<th>Evidencia</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Recuperación ≥ 14 días</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Crudos con límite</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Sin borrados accidentales</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Aviso si falla la ingesta</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Terceros temporales</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td>TLS y sin anónimo</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>7</td>
+<td>Trazabilidad</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table></div>
+<details><summary>💡 Pista mínima</summary>
+
+<p>Cada control corresponde a una pantalla que ya usaste en las lecciones 17 a 19 (y la 7 para el último).</p>
+</details>
+
+<h2>Evidencias de referencia</h2>
+<p>Así se ven los controles aplicados en la práctica:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b20-storage-props.webp" alt="Las propiedades de la cuenta - soft delete de 14 días, versionado, TLS 1.2 y sin acceso anónimo" loading="lazy"><figcaption>Las propiedades de la cuenta - soft delete de 14 días, versionado, TLS 1.2 y sin acceso anónimo</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/azure/b20-locks-heredados.webp" alt="El bloqueo del grupo, heredado por la cuenta (Inherited)" loading="lazy"><figcaption>El bloqueo del grupo, heredado por la cuenta (Inherited)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/azure/b20-actividad.webp" alt="El registro de actividad con cada cambio de esta etapa" loading="lazy"><figcaption>El registro de actividad con cada cambio de esta etapa</figcaption></figure>
+
+
+<details><summary>💡 Solución comentada</summary>
+
+<div class="table-wrap"><table><thead><tr>
+<th>#</th>
+<th>Control</th>
+<th>Dónde</th>
+<th>Evidencia</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Recuperación ≥ 14 días</td>
+<td>Data protection: soft delete de blobs 14 días, de contenedores activado, versionado activado</td>
+<td>Overview → Blob service: <em>Blob soft delete: Enabled (14 days)</em>, <em>Versioning: Enabled</em></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Crudos con límite</td>
+<td>Lifecycle management: <code>bronze-a-cool</code> (Cool a 30, Archive a 180, borrar a 730 días)</td>
+<td>La regla y su JSON</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Sin borrados accidentales</td>
+<td>Locks del grupo: <code>no-borrar-dev</code> (Delete)</td>
+<td>La cuenta muestra el bloqueo <em>Inherited</em>; el intento de borrar el vault falló con <em>ScopeLocked</em></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Aviso si falla la ingesta</td>
+<td>Monitor: <code>adf-pipeline-fallido</code> (Sum de Failed pipeline runs &gt; 0) con <code>ag-guardia-datos</code></td>
+<td>La regla en Alerts con su grupo de acciones</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Terceros temporales</td>
+<td>SAS con Blob, Read + List, 8 horas, HTTPS only</td>
+<td>El token con <code>sp=rl</code>, <code>spr=https</code> y su vencimiento</td>
+</tr>
+<tr>
+<td>6</td>
+<td>TLS y sin anónimo</td>
+<td>Se configuró al crear la cuenta</td>
+<td>Configuration: <em>Minimum TLS version 1.2</em>, <em>Allow Blob anonymous access: Disabled</em></td>
+</tr>
+<tr>
+<td>7</td>
+<td>Trazabilidad</td>
+<td>Activity log (90 días)</td>
+<td>Las operaciones de esta etapa con quién y cuándo</td>
+</tr>
+</tbody></table></div>
+<p><strong>Pendientes para Azure real</strong>, que conviene declarar en la entrega: enviar el Activity log a un <strong>Log Analytics workspace</strong> para guardarlo más de 90 días; <strong>desactivar el acceso con clave</strong> cuando todo use Entra; reemplazar la SAS de cuenta por una <strong>user delegation SAS</strong>; y cerrar la red con <strong>private endpoint</strong>. Declarar lo pendiente es parte de un buen informe: Seguridad confía más en quien dice qué falta que en quien dice que está todo.</p>
+</details>
+
+<h2>✅ Lista de verificación</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Los siete controles tienen evidencia o una explicación de qué falta.</li>
+<li><input disabled="" type="checkbox"> Justificaste los días elegidos (retención, Cool, Archive, borrado).</li>
+<li><input disabled="" type="checkbox"> La alerta de ingesta avisa a un grupo de acciones.</li>
+<li><input disabled="" type="checkbox"> Hay un bloqueo y comprobaste que funciona.</li>
+</ul>
+<h2>Lo que aprendiste en el nivel 5</h2>
+<ul>
+<li>Red, claves, SAS y cómo elegir la credencial correcta.</li>
+<li>Protección de datos y ciclo de vida.</li>
+<li>Bloqueos, métricas, alertas y grupos de acciones.</li>
+<li>Aplicar y evidenciar controles de seguridad como en una auditoría real.</li>
+</ul>
+<p>En el nivel 6 dejas de hacer todo a mano: plantillas, costos a escala y el paso al Azure real.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-proyecto-endurecer-el-lago">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-paso-a-paso-bloqueos-y-azure-monitor.html">← Bloqueos y Azure Monitor - que nada se borre por error y enterarte cuando algo falla</a><a href="azure-paso-a-paso-plantillas-arm.html">Plantillas ARM - la infraestructura como código →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

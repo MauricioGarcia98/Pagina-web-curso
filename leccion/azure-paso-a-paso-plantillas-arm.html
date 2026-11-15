@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plantillas ARM - la infraestructura como código · Academia de Datos</title><meta name="description" content="Hasta ahora creaste todo a mano. En producción la infraestructura se describe en un archivo que se guarda en Git y se despliega siempre igual. Lees una plantilla ARM completa con parámetros, variables, funciones y recursos dependientes, la despliegas con un error a propósito, la corriges, creas un entorno qa entero (lago con sus tres capas, key vault y data factory) en un solo despliegue y lo borras al terminar."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-plantillas-arm.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Plantillas ARM - la infraestructura como código · Academia de Datos"><meta property="og:description" content="Hasta ahora creaste todo a mano. En producción la infraestructura se describe en un archivo que se guarda en Git y se despliega siempre igual. Lees una plantilla ARM completa con parámetros, variables, funciones y recursos dependientes, la despliegas con un error a propósito, la corriges, creas un entorno qa entero (lago con sus tres capas, key vault y data factory) en un solo despliegue y lo borras al terminar."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-plantillas-arm.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 6 · Avanzado completo · 60 min</div>
+<h1>Plantillas ARM - la infraestructura como código</h1><p class="resumen">Hasta ahora creaste todo a mano. En producción la infraestructura se describe en un archivo que se guarda en Git y se despliega siempre igual. Lees una plantilla ARM completa con parámetros, variables, funciones y recursos dependientes, la despliegas con un error a propósito, la corriges, creas un entorno qa entero (lago con sus tres capas, key vault y data factory) en un solo despliegue y lo borras al terminar.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-plantillas-arm">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer la estructura de una plantilla ARM</li><li>Usar parámetros, variables y funciones de plantilla</li><li>Desplegar una plantilla personalizada desde el portal</li><li>Interpretar un error de validación de plantilla</li><li>Explicar idempotencia y el modo incremental</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Lucía: <em>&quot;Necesitamos un entorno qa igual a dev para probar antes de producción, y después producción. Nada a mano: quiero una plantilla en Git que cree el lago, el vault y el factory, y que sirva para cualquier entorno cambiando un parámetro.&quot;</em></p>
+</div>
+
+
+<h2>Paso 1 — Qué es una plantilla ARM</h2>
+<p><strong>Azure Resource Manager (ARM)</strong> es la API por la que pasa todo lo que creas en Azure, desde el portal, la CLI o cualquier herramienta. Una <strong>plantilla ARM</strong> es un JSON que describe el <strong>estado deseado</strong>: &quot;quiero que existan estos recursos con esta configuración&quot;. Azure compara con lo que ya hay y crea o actualiza lo necesario.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Ventaja</th>
+<th>Por qué importa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Repetible</strong></td>
+<td>dev, qa y prod salen idénticos, cambiando solo parámetros</td>
+</tr>
+<tr>
+<td><strong>Versionada</strong></td>
+<td>Vive en Git: se revisa en un pull request y se sabe quién cambió qué</td>
+</tr>
+<tr>
+<td><strong>Idempotente</strong></td>
+<td>Desplegarla dos veces no duplica nada</td>
+</tr>
+<tr>
+<td><strong>Documentación viva</strong></td>
+<td>El archivo <em>es</em> la descripción de la plataforma</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — La plantilla de Tienda Andina</h2>
+<pre><code class="language-json">{
+  &quot;$schema&quot;: &quot;https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#&quot;,
+  &quot;contentVersion&quot;: &quot;1.0.0.0&quot;,
+  &quot;parameters&quot;: {
+    &quot;entorno&quot;: {
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;defaultValue&quot;: &quot;qa&quot;,
+      &quot;allowedValues&quot;: [
+        &quot;dev&quot;,
+        &quot;qa&quot;,
+        &quot;prod&quot;
+      ],
+      &quot;metadata&quot;: {
+        &quot;description&quot;: &quot;Entorno a desplegar&quot;
+      }
+    },
+    &quot;location&quot;: {
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;defaultValue&quot;: &quot;[resourceGroup().location]&quot;
+    }
+  },
+  &quot;variables&quot;: {
+    &quot;sufijo&quot;: &quot;[concat('tiendaandina', parameters('entorno'))]&quot;,
+    &quot;storageName&quot;: &quot;[concat('st', variables('sufijo'))]&quot;,
+    &quot;vaultName&quot;: &quot;[concat('kv-tiendaandina-', parameters('entorno'))]&quot;,
+    &quot;factoryName&quot;: &quot;[concat('adf-tiendaandina-', parameters('entorno'))]&quot;,
+    &quot;tags&quot;: {
+      &quot;proyecto&quot;: &quot;tienda-andina&quot;,
+      &quot;entorno&quot;: &quot;[parameters('entorno')]&quot;,
+      &quot;owner&quot;: &quot;equipo-datos&quot;
+    }
+  },
+  &quot;resources&quot;: [
+    {
+      &quot;type&quot;: &quot;Microsoft.Storage/storageAccounts&quot;,
+      &quot;apiVersion&quot;: &quot;2023-05-01&quot;,
+      &quot;name&quot;: &quot;[variables('storageName')]&quot;,
+      &quot;location&quot;: &quot;[parameters('location')]&quot;,
+      &quot;tags&quot;: &quot;[variables('tags')]&quot;,
+      &quot;sku&quot;: {
+        &quot;name&quot;: &quot;[if(equals(parameters('entorno'), 'prod'), 'Standard_ZRS', 'Standard_LRS')]&quot;
+      },
+      &quot;kind&quot;: &quot;StorageV2&quot;,
+      &quot;properties&quot;: {
+        &quot;isHnsEnabled&quot;: true,
+        &quot;minimumTlsVersion&quot;: &quot;TLS1_2&quot;,
+        &quot;allowBlobPublicAccess&quot;: false,
+        &quot;accessTier&quot;: &quot;Hot&quot;
+      }
+    },
+    {
+      &quot;type&quot;: &quot;Microsoft.Storage/storageAccounts/blobServices/containers&quot;,
+      &quot;apiVersion&quot;: &quot;2023-05-01&quot;,
+      &quot;name&quot;: &quot;[concat(variables('storageName'), '/default/bronze')]&quot;
+    },
+    {
+      &quot;type&quot;: &quot;Microsoft.Storage/storageAccounts/blobServices/containers&quot;,
+      &quot;apiVersion&quot;: &quot;2023-05-01&quot;,
+      &quot;name&quot;: &quot;[concat(variables('storageName'), '/default/silver')]&quot;
+    },
+    {
+      &quot;type&quot;: &quot;Microsoft.Storage/storageAccounts/blobServices/containers&quot;,
+      &quot;apiVersion&quot;: &quot;2023-05-01&quot;,
+      &quot;name&quot;: &quot;[concat(variables('storageName'), '/default/gold')]&quot;
+    },
+    {
+      &quot;type&quot;: &quot;Microsoft.KeyVault/vaults&quot;,
+      &quot;apiVersion&quot;: &quot;2023-07-01&quot;,
+      &quot;name&quot;: &quot;[variables('vaultName')]&quot;,
+      &quot;location&quot;: &quot;[parameters('location')]&quot;,
+      &quot;tags&quot;: &quot;[variables('tags')]&quot;,
+      &quot;properties&quot;: {
+        &quot;tenantId&quot;: &quot;[subscription().tenantId]&quot;,
+        &quot;sku&quot;: {
+          &quot;family&quot;: &quot;A&quot;,
+          &quot;name&quot;: &quot;standard&quot;
+        },
+        &quot;enableRbacAuthorization&quot;: true,
+        &quot;softDeleteRetentionInDays&quot;: 90
+      }
+    },
+    {
+      &quot;type&quot;: &quot;Microsoft.DataFactory/factories&quot;,
+      &quot;apiVersion&quot;: &quot;2018-06-01&quot;,
+      &quot;name&quot;: &quot;[variables('factoryName')]&quot;,
+      &quot;location&quot;: &quot;[parameters('location')]&quot;,
+      &quot;tags&quot;: &quot;[variables('tags')]&quot;,
+      &quot;identity&quot;: {
+        &quot;type&quot;: &quot;SystemAssigned&quot;
+      }
+    }
+  ]
+}</code></pre>
+<p>Sus partes:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Sección</th>
+<th>Qué tiene</th>
+<th>En esta plantilla</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>parameters</strong></td>
+<td>Lo que cambia en cada despliegue</td>
+<td><code>entorno</code> (solo <code>dev</code>, <code>qa</code> o <code>prod</code>) y <code>location</code></td>
+</tr>
+<tr>
+<td><strong>variables</strong></td>
+<td>Valores calculados que se reutilizan</td>
+<td>Los nombres de los recursos y las etiquetas</td>
+</tr>
+<tr>
+<td><strong>resources</strong></td>
+<td>Lo que se crea</td>
+<td>La cuenta, sus tres contenedores, el vault y el factory</td>
+</tr>
+</tbody></table></div>
+<p>Las <strong>funciones</strong> van entre corchetes:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Devuelve</th>
+</tr>
+</thead><tbody><tr>
+<td><code>parameters(&#39;entorno&#39;)</code></td>
+<td>El valor del parámetro</td>
+</tr>
+<tr>
+<td><code>variables(&#39;storageName&#39;)</code></td>
+<td>El valor de la variable</td>
+</tr>
+<tr>
+<td><code>concat(&#39;st&#39;, &#39;tiendaandinaqa&#39;)</code></td>
+<td><code>sttiendaandinaqa</code></td>
+</tr>
+<tr>
+<td><code>resourceGroup().location</code></td>
+<td>La región del grupo donde despliegas</td>
+</tr>
+<tr>
+<td><code>if(equals(parameters(&#39;entorno&#39;), &#39;prod&#39;), &#39;Standard_ZRS&#39;, &#39;Standard_LRS&#39;)</code></td>
+<td><strong>ZRS en prod</strong>, LRS en los demás</td>
+</tr>
+<tr>
+<td><code>subscription().tenantId</code></td>
+<td>El tenant de la suscripción</td>
+</tr>
+</tbody></table></div>
+<p>Los contenedores se llaman <code>&lt;cuenta&gt;/default/&lt;contenedor&gt;</code>: Azure sabe que dependen de la cuenta y los crea después.</p>
+<h2>Paso 3 — Desplegar, con un error a propósito</h2>
+<p><strong>Create a resource → Template deployment</strong> (o busca <em>deploy a custom template</em>):</p>
+<figure class="captura"><img src="assets/img/guias/azure/b21-opciones.webp" alt="Custom deployment - escribir tu propia plantilla (1) o usar un ejemplo (2)" loading="lazy"><figcaption>Custom deployment - escribir tu propia plantilla (1) o usar un ejemplo (2)</figcaption></figure>
+
+
+<p>Elige <strong>Build your own template in the editor</strong> y pega la plantilla <strong>con un error</strong>: en la variable <code>sufijo</code>, escribe <code>parameters(&#39;entornos&#39;)</code> (con <em>s</em> al final):</p>
+<figure class="captura"><img src="assets/img/guias/azure/b21-editor.webp" alt="El editor de plantillas (1) y Save (2)" loading="lazy"><figcaption>El editor de plantillas (1) y Save (2)</figcaption></figure>
+
+
+<p>Pulsa <strong>Save</strong>. En <strong>Basics</strong>, escribe un grupo nuevo, <code>rg-tiendaandina-qa</code>. Los parámetros aparecen como campos:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b21-basics.webp" alt="El grupo nuevo (1) y los parámetros de la plantilla - entorno (2) y location (3)" loading="lazy"><figcaption>El grupo nuevo (1) y los parámetros de la plantilla - entorno (2) y location (3)</figcaption></figure>
+
+
+<p><strong>Review + create</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b21-error.webp" alt="Validation failed - &quot;The template parameter 'entornos' is not found&quot;" loading="lazy"><figcaption>Validation failed - &quot;The template parameter 'entornos' is not found&quot;</figcaption></figure>
+
+
+<p>Los errores de plantilla dicen <strong>qué</strong> expresión falló. Es el error más común: un nombre mal escrito entre parámetros, variables y su uso.</p>
+<h2>Paso 4 — Corregir y desplegar</h2>
+<p>Vuelve a <strong>Basics → Edit template</strong>, corrige <code>entornos</code> por <code>entorno</code>, <strong>Save</strong>, escribe otra vez <code>rg-tiendaandina-qa</code> y <strong>Review + create</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b21-revisar.webp" alt="Validation Passed (1), los parámetros ya evaluados (2) y los seis recursos que se van a crear (3)" loading="lazy"><figcaption>Validation Passed (1), los parámetros ya evaluados (2) y los seis recursos que se van a crear (3)</figcaption></figure>
+
+
+<p>Mira cómo las funciones ya se resolvieron: <code>sttiendaandinaqa</code>, <code>kv-tiendaandina-qa</code>, <code>adf-tiendaandina-qa</code>. Pulsa <strong>Create</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b21-despliegue.webp" alt="Deployment complete (1) y el estado de cada recurso (2)" loading="lazy"><figcaption>Deployment complete (1) y el estado de cada recurso (2)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/azure/b21-grupo-qa.webp" alt="El grupo qa con la cuenta, el vault y el factory, creado en un solo despliegue" loading="lazy"><figcaption>El grupo qa con la cuenta, el vault y el factory, creado en un solo despliegue</figcaption></figure>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 La región en la práctica</div>
+
+<p>Como el grupo era nuevo, la práctica lo creó en East US. En el portal real eliges la región del grupo nuevo en la misma pantalla de Basics.</p>
+</div>
+
+
+<h2>Paso 5 — Idempotencia y modo incremental</h2>
+<p>Si despliegas la misma plantilla otra vez sobre <code>rg-tiendaandina-qa</code>, <strong>no se duplica nada</strong>: Azure ve que los recursos ya existen con esa configuración y no hace cambios. Si cambiaras algo en la plantilla (por ejemplo una etiqueta), solo aplicaría ese cambio.</p>
+<p>Por defecto los despliegues son <strong>incrementales</strong>: lo que existe en el grupo y <strong>no</strong> está en la plantilla se deja como está. Existe el modo <strong>completo</strong>, que <strong>borra</strong> lo que no está en la plantilla: es potente y peligroso, y casi nadie lo usa a mano.</p>
+<h2>Paso 6 — Borrar el entorno qa</h2>
+<p>Las pruebas terminaron. En el grupo <code>rg-tiendaandina-qa</code>, <strong>Delete resource group</strong>, escribe el nombre para confirmar:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b21-borrar-grupo.webp" alt="La advertencia (1) y la confirmación escribiendo el nombre del grupo (2)" loading="lazy"><figcaption>La advertencia (1) y la confirmación escribiendo el nombre del grupo (2)</figcaption></figure>
+
+
+<p>Con la plantilla en Git, borrar un entorno ya no da miedo: volver a tenerlo es un despliegue.</p>
+<h2>Paso 7 — ARM, Bicep y Terraform</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Herramienta</th>
+<th>Lenguaje</th>
+<th>De quién</th>
+<th>Nubes</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>ARM</strong></td>
+<td>JSON</td>
+<td>Microsoft</td>
+<td>Azure</td>
+</tr>
+<tr>
+<td><strong>Bicep</strong></td>
+<td>Más corto y legible; se <strong>compila a ARM</strong></td>
+<td>Microsoft</td>
+<td>Azure</td>
+</tr>
+<tr>
+<td><strong>Terraform</strong></td>
+<td>HCL; guarda un archivo de <strong>estado</strong></td>
+<td>HashiCorp</td>
+<td>Azure, AWS, GCP y más</td>
+</tr>
+</tbody></table></div>
+<p>Las tres describen el estado deseado. En equipos de datos que trabajan solo con Azure se ve mucho Bicep; en equipos multinube, Terraform. El módulo <a href="#/m/terraform">Terraform</a> tiene su propio laboratorio.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Lees una plantilla ARM completa y sus funciones.</li>
+<li>Desplegaste un entorno entero desde una plantilla, corrigiendo un error.</li>
+<li>Entiendes idempotencia, el modo incremental y la relación con Bicep y Terraform.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-plantillas-arm">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-paso-a-paso-proyecto-endurecer-el-lago.html">← Proyecto 5 (con mínima ayuda) - endurecer el lago antes de producción</a><a href="azure-paso-a-paso-costos-y-presupuestos.html">Costos a escala - leer la factura, alertas tempranas y optimizar →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

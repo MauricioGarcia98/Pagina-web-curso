@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cloud Shell y la CLI az - lo mismo, desde la terminal · Academia de Datos</title><meta name="description" content="Todo lo que hiciste con clics se puede hacer con comandos, y los comandos se pueden repetir, guardar y automatizar. Abres Cloud Shell desde el portal, consultas tu suscripción, grupos y cuentas con az y la opción --query, creas un grupo de recursos de prueba desde la terminal y ves cómo aparece en el portal al instante, y lo borras al terminar."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-cloud-shell-y-la-cli-az.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Cloud Shell y la CLI az - lo mismo, desde la terminal · Academia de Datos"><meta property="og:description" content="Todo lo que hiciste con clics se puede hacer con comandos, y los comandos se pueden repetir, guardar y automatizar. Abres Cloud Shell desde el portal, consultas tu suscripción, grupos y cuentas con az y la opción --query, creas un grupo de recursos de prueba desde la terminal y ves cómo aparece en el portal al instante, y lo borras al terminar."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-cloud-shell-y-la-cli-az.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 3 · Intermedio · 40 min</div>
+<h1>Cloud Shell y la CLI az - lo mismo, desde la terminal</h1><p class="resumen">Todo lo que hiciste con clics se puede hacer con comandos, y los comandos se pueden repetir, guardar y automatizar. Abres Cloud Shell desde el portal, consultas tu suscripción, grupos y cuentas con az y la opción --query, creas un grupo de recursos de prueba desde la terminal y ves cómo aparece en el portal al instante, y lo borras al terminar.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-cloud-shell-y-la-cli-az">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Abrir Cloud Shell desde el portal</li><li>Entender la forma de un comando az (grupo, subgrupo, acción, parámetros)</li><li>Elegir el formato de salida con -o table, json o tsv</li><li>Filtrar columnas con --query</li><li>Crear y borrar un grupo de recursos desde la terminal</li></ul>
+<h2>Paso 1 — Qué es Cloud Shell</h2>
+<p><strong>Cloud Shell</strong> es una terminal Linux en el navegador, ya conectada a tu cuenta y con la <strong>CLI de Azure (<code>az</code>)</strong> instalada. No hay que instalar nada ni iniciar sesión. Ábrela con el ícono de terminal de la barra superior:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b09-shell.webp" alt="El botón de Cloud Shell (1) abre la terminal abajo del portal (2)" loading="lazy"><figcaption>El botón de Cloud Shell (1) abre la terminal abajo del portal (2)</figcaption></figure>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 En el Azure real</div>
+
+<p>La primera vez, Cloud Shell pregunta si quieres <strong>Bash</strong> o <strong>PowerShell</strong> y si quieres guardar tus archivos en una cuenta de almacenamiento o usar una sesión <strong>efímera</strong> (sin almacenamiento, los archivos se pierden al cerrar). En tu computadora puedes instalar la misma CLI y entrar con <code>az login</code>.</p>
+</div>
+
+
+<h2>Paso 2 — La forma de un comando az</h2>
+<pre><code class="language-text">az  storage  account  list  -g rg-tiendaandina-dev  -o table
+│   │        │        │     └─ parámetros            └─ formato de salida
+│   │        │        └─ acción (list, show, create, delete, update)
+│   │        └─ subgrupo
+│   └─ grupo de servicio
+└─ la CLI</code></pre>
+<p>Siempre es <strong>qué</strong> (grupo y subgrupo) + <strong>qué hacer</strong> (acción) + <strong>sobre qué</strong> (parámetros). Con <code>--help</code> al final de cualquier parte ves las opciones: <code>az storage account create --help</code>.</p>
+<h2>Paso 3 — Consultar</h2>
+<p>Escribe estos tres comandos:</p>
+<pre><code class="language-bash">az account show -o table
+az group list -o table
+az storage account list -g rg-tiendaandina-dev --query &quot;[].{nombre:name, sku:sku.name, hns:isHnsEnabled}&quot; -o table</code></pre>
+<p>Para verlos mejor, usa el botón de maximizar de la terminal:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b09-shell-consultas.webp" alt="Cloud Shell maximizado (1) - la suscripción activa, los grupos y la cuenta con las columnas elegidas" loading="lazy"><figcaption>Cloud Shell maximizado (1) - la suscripción activa, los grupos y la cuenta con las columnas elegidas</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Qué responde</th>
+</tr>
+</thead><tbody><tr>
+<td><code>az account show</code></td>
+<td>¿En qué <strong>suscripción</strong> estoy trabajando? (lo primero que se revisa siempre)</td>
+</tr>
+<tr>
+<td><code>az group list</code></td>
+<td>¿Qué grupos de recursos hay?</td>
+</tr>
+<tr>
+<td><code>az storage account list --query …</code></td>
+<td>Las cuentas del grupo, con solo las columnas que te interesan</td>
+</tr>
+</tbody></table></div>
+<p><strong>Formatos de salida</strong> (<code>-o</code>):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Formato</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>json</code> (por defecto)</td>
+<td>Para leer todo el detalle o pasarlo a otro programa</td>
+</tr>
+<tr>
+<td><code>table</code></td>
+<td>Para leerlo tú</td>
+</tr>
+<tr>
+<td><code>tsv</code></td>
+<td>Para usar el valor en un script (sin comillas ni encabezados)</td>
+</tr>
+</tbody></table></div>
+<p><strong><code>--query</code></strong> usa el lenguaje JMESPath: <code>[]</code> recorre la lista y <code>{nombre:name}</code> elige y renombra campos. <code>--query &quot;[].name&quot; -o tsv</code> devuelve solo los nombres, uno por línea.</p>
+<h2>Paso 4 — Crear desde la terminal</h2>
+<p>Sin cerrar la terminal, con la lista de <strong>Resource groups</strong> abierta en el portal, crea un grupo de prueba:</p>
+<pre><code class="language-bash">az storage blob list --account-name sttiendaandinadev -c bronze --auth-mode login --query &quot;[].name&quot; -o tsv
+az group create -n rg-tiendaandina-sandbox -l eastus2 --tags entorno=sandbox</code></pre>
+<figure class="captura"><img src="assets/img/guias/azure/b09-shell-crear.webp" alt="El grupo creado con az group create (1) aparece al instante en la lista del portal (2)" loading="lazy"><figcaption>El grupo creado con az group create (1) aparece al instante en la lista del portal (2)</figcaption></figure>
+
+
+<p>El portal y la CLI hablan con <strong>la misma API</strong> de Azure (Azure Resource Manager): lo que creas por un lado aparece en el otro.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 `--auth-mode login`</div>
+
+<p>En los comandos de datos (<code>az storage blob …</code>), <code>--auth-mode login</code> usa tu usuario de Entra en lugar de la clave de la cuenta, igual que el botón <em>Switch to Microsoft Entra user account</em> del portal. Es la forma recomendada.</p>
+</div>
+
+
+<h2>Paso 5 — Borrar</h2>
+<pre><code class="language-bash">az group delete -n rg-tiendaandina-sandbox --yes
+az group list --query &quot;[].name&quot; -o tsv</code></pre>
+<figure class="captura"><img src="assets/img/guias/azure/b09-shell-borrar.webp" alt="El grupo de prueba borrado y la lista de grupos que queda" loading="lazy"><figcaption>El grupo de prueba borrado y la lista de grupos que queda</figcaption></figure>
+
+
+<p><code>--yes</code> evita la pregunta de confirmación: útil en scripts, peligroso a mano. En Azure real, <code>az group delete</code> tarda unos minutos porque borra cada recurso; con <code>--no-wait</code> devuelve el control enseguida.</p>
+<h2>Paso 6 — Portal o CLI</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Situación</th>
+<th>Mejor opción</th>
+</tr>
+</thead><tbody><tr>
+<td>Aprender un servicio, ver sus opciones</td>
+<td>Portal</td>
+</tr>
+<tr>
+<td>Revisar algo puntual</td>
+<td>Portal o CLI</td>
+</tr>
+<tr>
+<td>Hacer lo mismo en 10 recursos</td>
+<td><strong>CLI</strong> (un bucle)</td>
+</tr>
+<tr>
+<td>Guardar los pasos para que otro los repita</td>
+<td><strong>CLI</strong> en un script, o una plantilla</td>
+</tr>
+<tr>
+<td>Producción</td>
+<td><strong>Plantillas</strong> (nivel 6) y pipelines de CI/CD</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Abres Cloud Shell y entiendes la forma de cualquier comando <code>az</code>.</li>
+<li>Consultas con <code>-o table</code> y <code>--query</code>.</li>
+<li>Creas y borras recursos desde la terminal y los ves en el portal.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-cloud-shell-y-la-cli-az">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-paso-a-paso-proyecto-lago-con-capas.html">← Proyecto 2 (semiguiado) - el lago de Tienda Andina listo para recibir datos</a><a href="azure-paso-a-paso-entra-id-y-control-de-acceso.html">Microsoft Entra ID y control de acceso (RBAC) →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

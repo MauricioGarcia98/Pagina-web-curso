@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 4 (con poca ayuda) - la revisión de la plataforma dev · Academia de Datos</title><meta name="description" content="La plataforma dev de Tienda Andina ya tiene lago, secretos, procesamiento, orquestación y base operativa. Antes de mostrarla al resto de la empresa, haces la revisión que haría un arquitecto - qué hay, quién tiene acceso a qué, si cada acceso es el mínimo y si todo se creó bien - y entregas un informe con los hallazgos. El enunciado dice qué revisar, no cómo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-proyecto-plataforma-dev-completa.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 4 (con poca ayuda) - la revisión de la plataforma dev · Academia de Datos"><meta property="og:description" content="La plataforma dev de Tienda Andina ya tiene lago, secretos, procesamiento, orquestación y base operativa. Antes de mostrarla al resto de la empresa, haces la revisión que haría un arquitecto - qué hay, quién tiene acceso a qué, si cada acceso es el mínimo y si todo se creó bien - y entregas un informe con los hallazgos. El enunciado dice qué revisar, no cómo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-proyecto-plataforma-dev-completa.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 4 · Intermedio-avanzado · 50 min</div>
+<h1>Proyecto 4 (con poca ayuda) - la revisión de la plataforma dev</h1><p class="resumen">La plataforma dev de Tienda Andina ya tiene lago, secretos, procesamiento, orquestación y base operativa. Antes de mostrarla al resto de la empresa, haces la revisión que haría un arquitecto - qué hay, quién tiene acceso a qué, si cada acceso es el mínimo y si todo se creó bien - y entregas un informe con los hallazgos. El enunciado dice qué revisar, no cómo.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-proyecto-plataforma-dev-completa">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Revisar el contenido de un grupo con varios servicios</li><li>Auditar las asignaciones de roles de una cuenta</li><li>Detectar permisos de más o de menos</li><li>Revisar el historial de despliegues</li><li>Redactar hallazgos y recomendaciones</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Lucía: <em>&quot;El jueves presentamos la plataforma dev a Seguridad. Hazme una revisión: qué tenemos, quién tiene acceso a qué y qué cambiarías antes de pasar a producción. Quiero hallazgos concretos, no generalidades.&quot;</em></p>
+</div>
+
+
+<h2>Lo que tienes que revisar</h2>
+<ol>
+<li><strong>El inventario</strong>: qué recursos hay en <code>rg-tiendaandina-dev</code> y cómo se relacionan.</li>
+<li><strong>Los accesos al lago</strong>: cada asignación de rol de <code>sttiendaandinadev</code>, y si es la mínima necesaria.</li>
+<li><strong>Los accesos a los secretos</strong>: quién puede leer o crear secretos en <code>kv-tiendaandina-dev</code>.</li>
+<li><strong>El historial</strong>: qué despliegues se hicieron, en qué orden y si alguno falló.</li>
+<li><strong>La base</strong>: cómo está su cortafuegos.</li>
+</ol>
+<h2>Las evidencias</h2>
+<p>El grupo y sus recursos:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b16-grupo.webp" alt="rg-tiendaandina-dev con storage, key vault, Databricks y Data Factory" loading="lazy"><figcaption>rg-tiendaandina-dev con storage, key vault, Databricks y Data Factory</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/azure/b16-visualizador.webp" alt="El visualizador del grupo con los cuatro recursos" loading="lazy"><figcaption>El visualizador del grupo con los cuatro recursos</figcaption></figure>
+
+
+<p>Las asignaciones de la cuenta:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b16-iam-storage.webp" alt="Las asignaciones de roles de sttiendaandinadev" loading="lazy"><figcaption>Las asignaciones de roles de sttiendaandinadev</figcaption></figure>
+
+
+<p>Los despliegues:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b16-despliegues.webp" alt="Deployments - cada recurso creado desde el portal, con su estado y duración" loading="lazy"><figcaption>Deployments - cada recurso creado desde el portal, con su estado y duración</figcaption></figure>
+
+
+<details><summary>💡 Pista: ¿por qué la base SQL no aparece en el grupo?</summary>
+
+<p>En la práctica, Azure SQL se muestra en su propia lista (<strong>SQL databases</strong>). En Azure real verías el servidor y la base dentro de <code>rg-tiendaandina-dev</code>. Revísala desde <strong>SQL databases</strong>.</p>
+</details>
+
+<h2>Tu informe</h2>
+<p>Arma una tabla como esta, con tus propios hallazgos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>#</th>
+<th>Hallazgo</th>
+<th>Riesgo</th>
+<th>Recomendación</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+</tbody></table></div>
+<details><summary>💡 Ejemplo de informe (míralo después de hacer el tuyo)</summary>
+
+<div class="table-wrap"><table><thead><tr>
+<th>#</th>
+<th>Hallazgo</th>
+<th>Riesgo</th>
+<th>Recomendación</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>El grupo <code>analistas-datos</code> tiene Storage Blob Data Reader sobre <strong>toda</strong> la cuenta</td>
+<td>Los analistas leen también bronze y silver, con datos sin limpiar y posiblemente personales</td>
+<td>En Azure real, asignar el rol solo sobre el contenedor <code>gold</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Tu usuario tiene Storage Blob Data Contributor</td>
+<td>Está bien en dev; en prod nadie debería escribir a mano en el lago</td>
+<td>En prod, escritura solo para las identidades de ADF y Databricks</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>sp-ingesta-ventas</code> tiene Blob Data Contributor sobre toda la cuenta</td>
+<td>Un secreto filtrado permitiría borrar silver y gold</td>
+<td>Limitar el rol al contenedor <code>bronze</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>adf-tiendaandina-dev</code> escribe con su identidad administrada</td>
+<td>Ninguno: es el patrón correcto</td>
+<td>Mantener</td>
+</tr>
+<tr>
+<td>5</td>
+<td>La cuenta acepta conexiones desde todas las redes y con clave</td>
+<td>Cualquiera con la clave entra desde internet</td>
+<td>Nivel 5: limitar la red y desactivar el acceso con clave cuando todo use Entra</td>
+</tr>
+<tr>
+<td>6</td>
+<td>La base SQL tiene &quot;Allow Azure services&quot; activado</td>
+<td>Cualquier servicio de Azure, de cualquier cliente, llega al servidor (aunque necesite identidad)</td>
+<td>En prod, private endpoint</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Todos los despliegues fueron desde el portal, a mano</td>
+<td>No se puede repetir igual en prod</td>
+<td>Nivel 6: plantillas</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Ningún recurso tiene bloqueo</td>
+<td>Un borrado accidental del grupo borra todo</td>
+<td>Nivel 5: bloqueo CanNotDelete en prod</td>
+</tr>
+</tbody></table></div>
+</details>
+
+<h2>✅ Lista de verificación</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Tu inventario nombra los 5 servicios y para qué sirve cada uno.</li>
+<li><input disabled="" type="checkbox"> Cada asignación de rol de la cuenta está explicada: quién, qué rol, por qué.</li>
+<li><input disabled="" type="checkbox"> Tienes al menos tres recomendaciones concretas antes de producción.</li>
+<li><input disabled="" type="checkbox"> Revisaste que ningún despliegue esté en estado Failed.</li>
+</ul>
+<h2>Lo que aprendiste en el nivel 4</h2>
+<ul>
+<li>Azure Databricks: el recurso, el grupo administrado y lo que cuesta.</li>
+<li>Data Factory: el recurso, la identidad administrada y el Studio.</li>
+<li>Azure SQL: servidor, base, cortafuegos y cadenas de conexión.</li>
+<li>Revisar una plataforma como lo haría un arquitecto.</li>
+</ul>
+<p>En el nivel 5 corriges los hallazgos: red, claves, protección de datos, bloqueos y monitoreo.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-proyecto-plataforma-dev-completa">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-paso-a-paso-azure-sql-database.html">← Azure SQL Database - la base operativa, su cortafuegos y sus conexiones</a><a href="azure-paso-a-paso-red-claves-y-sas.html">Red, claves de acceso y SAS - quién llega al lago y cómo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
