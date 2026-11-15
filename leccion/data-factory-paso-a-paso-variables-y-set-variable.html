@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Variables y Set variable - calcular un valor una vez y reutilizarlo · Academia de Datos</title><meta name="description" content="Las variables guardan valores que cambian durante la ejecución. Creas la variable archivo, la calculas con una actividad Set variable a partir del parámetro, haces que la copia dependa de ese cálculo y la use con @variables('archivo'), y ves su valor en la salida - la mejor forma de depurar una expresión."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-variables-y-set-variable.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Variables y Set variable - calcular un valor una vez y reutilizarlo · Academia de Datos"><meta property="og:description" content="Las variables guardan valores que cambian durante la ejecución. Creas la variable archivo, la calculas con una actividad Set variable a partir del parámetro, haces que la copia dependa de ese cálculo y la use con @variables('archivo'), y ves su valor en la salida - la mejor forma de depurar una expresión."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-variables-y-set-variable.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#data-factory-paso-a-paso">🏭 Data Factory paso a paso</a> · 4 · Intermedio-avanzado · 35 min</div>
+<h1>Variables y Set variable - calcular un valor una vez y reutilizarlo</h1><p class="resumen">Las variables guardan valores que cambian durante la ejecución. Creas la variable archivo, la calculas con una actividad Set variable a partir del parámetro, haces que la copia dependa de ese cálculo y la use con @variables('archivo'), y ves su valor en la salida - la mejor forma de depurar una expresión.</p>
+<a class="cta" href="../index.html#/l/data-factory-paso-a-paso-variables-y-set-variable">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Distinguir parámetro y variable</li><li>Crear una variable de pipeline</li><li>Asignarla con Set variable</li><li>Usar @variables() en otra actividad</li><li>Ver el valor calculado en la salida</li></ul>
+<h2>Paso 1 — Parámetro o variable</h2>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Parámetro</th>
+<th>Variable</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Quién lo define</strong></td>
+<td>Quien ejecuta (trigger, Trigger now)</td>
+<td>El propio pipeline, durante la ejecución</td>
+</tr>
+<tr>
+<td><strong>Cambia durante el run</strong></td>
+<td>No</td>
+<td>Sí, con <strong>Set variable</strong> (o Append variable)</td>
+</tr>
+<tr>
+<td><strong>Se lee con</strong></td>
+<td><code>@pipeline().parameters.x</code></td>
+<td><code>@variables(&#39;x&#39;)</code></td>
+</tr>
+<tr>
+<td><strong>Ejemplo</strong></td>
+<td>La fecha a procesar</td>
+<td>El nombre de archivo calculado, un contador, una lista</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Crear la variable</h2>
+<p>En <code>pl_ingesta_diaria</code>, haz clic en el lienzo vacío → <strong>Variables → New</strong>. Nombre <code>archivo</code>, tipo <strong>String</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b14-variables.webp" alt="La variable archivo, de tipo String" loading="lazy"><figcaption>La variable archivo, de tipo String</figcaption></figure>
+
+
+<p>Tipos en la práctica: <strong>String</strong>, <strong>Boolean</strong> y <strong>Array</strong>. En Data Factory real también hay <strong>Integer</strong>.</p>
+<h2>Paso 3 — Set variable</h2>
+<p>Con nada seleccionado, agrega <strong>Set variable</strong> y llámala <code>Armar nombre</code>. En la pestaña <strong>Variables</strong>:</p>
+<ol>
+<li><strong>Name</strong>: <code>archivo</code>.</li>
+<li><strong>Value</strong>: <code>@concat(&#39;ventas_&#39;, pipeline().parameters.fecha, &#39;.csv&#39;)</code>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/adf/b14-set-variable.webp" alt="La variable a asignar (1) y la expresión que calcula su valor (2)" loading="lazy"><figcaption>La variable a asignar (1) y la expresión que calcula su valor (2)</figcaption></figure>
+
+
+<h2>Paso 4 — Que la copia la use</h2>
+<p>En la copia, <strong>General → Depends on</strong>, marca <code>Armar nombre</code>. Y en <strong>Source → Wildcard file name</strong>: <code>@variables(&#39;archivo&#39;)</code>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b14-lienzo.webp" alt="Primero Armar nombre, después la copia (1), que usa la variable (2)" loading="lazy"><figcaption>Primero Armar nombre, después la copia (1), que usa la variable (2)</figcaption></figure>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El orden importa</div>
+
+<p>Si la copia <strong>no depende</strong> del Set variable, las dos corren a la vez y la copia puede leer la variable <strong>vacía</strong>. Toda actividad que usa una variable tiene que depender de la actividad que la asigna.</p>
+</div>
+
+
+<h2>Paso 5 — Ver el valor</h2>
+<p><strong>Debug</strong>, y abre el <strong>Output</strong> de <code>Armar nombre</code>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b14-output-variable.webp" alt="La salida de Set variable - el nombre y el valor calculado" loading="lazy"><figcaption>La salida de Set variable - el nombre y el valor calculado</figcaption></figure>
+
+
+<p><code>ventas_2026-11-15.csv</code>. Este truco sirve para <strong>depurar cualquier expresión</strong>: asígnala a una variable, ejecuta y mira qué valor tomó.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 Dentro de un ForEach paralelo</div>
+
+<p>Las variables son del <strong>pipeline entero</strong>, no de cada iteración. Si un ForEach corre en paralelo y cada iteración asigna la misma variable, se pisan entre sí. Dentro de un ForEach paralelo, usa <code>@item()</code> en lugar de variables.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Distingues parámetros y variables.</li>
+<li>Calculaste una variable con Set variable y la usaste en la copia.</li>
+<li>Sabes ver su valor para depurar expresiones.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/data-factory-paso-a-paso-variables-y-set-variable">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="data-factory-paso-a-paso-parametros-y-contenido-dinamico.html">← Parámetros y contenido dinámico - un pipeline para cualquier fecha</a><a href="data-factory-paso-a-paso-get-metadata-y-foreach.html">Get Metadata y ForEach - recorrer los archivos de una carpeta →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

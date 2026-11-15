@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 2 (semiguiado) - la ingesta diaria con nombre de archivo del día · Academia de Datos</title><meta name="description" content="El negocio quiere, además de los archivos sueltos, un archivo por día con todas las ventas, con la fecha en el nombre. Armas el pipeline pl_ingesta_diaria con un nombre de archivo dinámico usando tu primera expresión, lo pruebas y lo verificas en el almacenamiento. El enunciado dice qué lograr; las pistas están escondidas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-proyecto-ingesta-diaria.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 2 (semiguiado) - la ingesta diaria con nombre de archivo del día · Academia de Datos"><meta property="og:description" content="El negocio quiere, además de los archivos sueltos, un archivo por día con todas las ventas, con la fecha en el nombre. Armas el pipeline pl_ingesta_diaria con un nombre de archivo dinámico usando tu primera expresión, lo pruebas y lo verificas en el almacenamiento. El enunciado dice qué lograr; las pistas están escondidas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-proyecto-ingesta-diaria.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#data-factory-paso-a-paso">🏭 Data Factory paso a paso</a> · 2 · Básico-intermedio · 45 min</div>
+<h1>Proyecto 2 (semiguiado) - la ingesta diaria con nombre de archivo del día</h1><p class="resumen">El negocio quiere, además de los archivos sueltos, un archivo por día con todas las ventas, con la fecha en el nombre. Armas el pipeline pl_ingesta_diaria con un nombre de archivo dinámico usando tu primera expresión, lo pruebas y lo verificas en el almacenamiento. El enunciado dice qué lograr; las pistas están escondidas.</p>
+<a class="cta" href="../index.html#/l/data-factory-paso-a-paso-proyecto-ingesta-diaria">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un pipeline nuevo desde Author</li><li>Usar una expresión en el nombre del archivo de destino</li><li>Combinar texto y expresiones con @{}</li><li>Verificar el resultado de punta a punta</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Lucía: <em>&quot;El equipo de finanzas quiere, cada día, un único archivo <code>ventas_AAAAMMDD.csv</code> en <code>bronze/ventas</code> con todas las ventas disponibles, y el nombre con la fecha del día en que se generó. Armá un pipeline nuevo para eso, <code>pl_ingesta_diaria</code>; ese va a ser nuestro pipeline principal de acá en adelante.&quot;</em></p>
+</div>
+
+
+<h2>Lo que tienes que lograr</h2>
+<ol>
+<li>Un pipeline <code>pl_ingesta_diaria</code> con una copia llamada <code>Copiar ventas del dia</code>.</li>
+<li>Origen: <code>ds_raw_ventas</code> con comodín <code>*.csv</code>.</li>
+<li>Destino: <code>ds_bronze_ventas</code>, unido en un solo archivo.</li>
+<li>El nombre del archivo, <strong>dinámico</strong>: <code>ventas_</code> + la fecha de hoy en formato <code>yyyyMMdd</code> + <code>.csv</code>.</li>
+</ol>
+<details><summary>💡 Pista 1: ¿cómo creo el pipeline?</summary>
+
+<p>En <strong>Author</strong>, botón <strong>+ → Pipeline</strong>, y <strong>Rename</strong>. Agrega <strong>Copy data</strong> desde el panel de actividades.</p>
+</details>
+
+<details><summary>💡 Pista 2: ¿cómo escribo un nombre dinámico?</summary>
+
+<p>En <strong>File name</strong> del Sink, mezcla texto con una expresión entre <code>@{</code> y <code>}</code>:</p>
+<pre><code class="language-text">ventas_@{formatDateTime(utcNow(), 'yyyyMMdd')}.csv</code></pre>
+<p><code>utcNow()</code> devuelve la fecha y hora actual en UTC y <code>formatDateTime</code> la escribe con el formato pedido.</p>
+</details>
+
+<figure class="captura"><img src="assets/img/guias/adf/b08-sink-dinamico.webp" alt="El nombre dinámico (1) y la ayuda de contenido dinámico (2)" loading="lazy"><figcaption>El nombre dinámico (1) y la ayuda de contenido dinámico (2)</figcaption></figure>
+
+
+<h2>Dos formas de escribir una expresión</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Forma</th>
+<th>Ejemplo</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Todo expresión</strong>: empieza con <code>@</code></td>
+<td><code>@concat(&#39;ventas_&#39;, &#39;20261115&#39;, &#39;.csv&#39;)</code></td>
+<td><code>ventas_20261115.csv</code></td>
+</tr>
+<tr>
+<td><strong>Texto con partes dinámicas</strong>: <code>@{ … }</code></td>
+<td><code>ventas_@{formatDateTime(utcNow(), &#39;yyyyMMdd&#39;)}.csv</code></td>
+<td><code>ventas_20261115.csv</code></td>
+</tr>
+</tbody></table></div>
+<p>La segunda se lee mejor cuando casi todo es texto fijo. En la lección 13 las expresiones se usan a fondo.</p>
+<h2>Cómo verificar</h2>
+<p>Haz <strong>Debug</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b08-debug.webp" alt="La copia del día terminó bien" loading="lazy"><figcaption>La copia del día terminó bien</figcaption></figure>
+
+
+<p>Y en el portal, <code>bronze/ventas</code>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b08-bronze.webp" alt="El archivo del día, ventas_AAAAMMDD.csv, junto a los anteriores" loading="lazy"><figcaption>El archivo del día, ventas_AAAAMMDD.csv, junto a los anteriores</figcaption></figure>
+
+
+<h2>✅ Lista de verificación</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Existe <code>pl_ingesta_diaria</code> con la copia <code>Copiar ventas del dia</code>.</li>
+<li><input disabled="" type="checkbox"> El Sink une los archivos y el nombre usa <code>formatDateTime(utcNow(), &#39;yyyyMMdd&#39;)</code>.</li>
+<li><input disabled="" type="checkbox"> Debug terminó en Succeeded.</li>
+<li><input disabled="" type="checkbox"> En <code>bronze/ventas</code> hay un archivo con la fecha de hoy y 20 filas más el encabezado.</li>
+</ul>
+<details><summary>💡 Solución comentada</summary>
+
+<p>La clave es el <strong>File name</strong> del Sink con <code>@{…}</code>. Un detalle importante: <code>utcNow()</code> usa la hora <strong>UTC</strong>. Si el pipeline corre a las 22:00 en Lima (UTC−5), en UTC ya es el día siguiente y el archivo quedaría con la fecha de mañana. Para evitarlo se convierte a la zona horaria local (en Azure real existe <code>convertFromUtc(utcNow(), &#39;SA Pacific Standard Time&#39;)</code>) o, mejor, se recibe la fecha como <strong>parámetro</strong> (lección 13). Ese &quot;detalle&quot; es la causa de muchos archivos con fecha equivocada en producción.</p>
+</details>
+
+<h2>Lo que aprendiste en el nivel 2</h2>
+<ul>
+<li>El editor de pipelines, las dependencias y el JSON.</li>
+<li>Copy data con comodines, Merge files y sus métricas.</li>
+<li>Diagnosticar errores y usar reintentos con criterio.</li>
+<li>Tu primera expresión dinámica.</li>
+</ul>
+<p>En el nivel 3 el pipeline sale del modo prueba: se publica, se programa y se monitorea.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/data-factory-paso-a-paso-proyecto-ingesta-diaria">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="data-factory-paso-a-paso-validate-debug-y-errores.html">← Validate, Debug y los errores - leer un fallo y arreglarlo</a><a href="data-factory-paso-a-paso-publicar-y-trigger-now.html">Publicar y Trigger now - del borrador a una ejecución de verdad →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

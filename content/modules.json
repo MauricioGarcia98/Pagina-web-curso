@@ -353,6 +353,20 @@
     ]
   },
   {
+    "id": "data-factory-paso-a-paso",
+    "titulo": "Data Factory paso a paso",
+    "icono": "🏭",
+    "color": "#0062ad",
+    "descripcion": "De cero a dominarlo en 24 lecciones y 6 niveles (básico → avanzado completo), con capturas del Data Factory Studio de práctica: linked services con identidad administrada, datasets, Copy data, Debug y errores, publicar, triggers y Monitor, parámetros, variables y expresiones, Get Metadata y ForEach, Lookup, If Condition y Fail, rutas de error, notebooks de Databricks, el patrón guiado por metadatos, Git, plantillas ARM, integration runtimes y costos. Cada nivel cierra con un proyecto real de la ingesta de ventas de Tienda Andina con menos ayuda que el anterior, y termina con el paso al Data Factory real y a Fabric.",
+    "objetivos": [
+      "Conectar fuentes y destinos con linked services seguros y datasets",
+      "Construir, probar, publicar, programar y monitorear pipelines",
+      "Hacer pipelines reutilizables con parámetros, variables y expresiones",
+      "Recorrer, decidir y manejar errores con ForEach, Lookup, If Condition y Fail",
+      "Orquestar Databricks y llevar el factory a producción con Git y plantillas ARM"
+    ]
+  },
+  {
     "id": "arquitectura",
     "titulo": "Arquitectura de datos",
     "icono": "🏛️",

@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto final (solo el pedido) - la ingesta de ventas de punta a punta · Academia de Datos</title><meta name="description" content="El pedido final llega como en un trabajo - un mensaje con requisitos. Dejas pl_ingesta_diaria lista para producción - parametrizada, que copia el archivo del día, lo limpia en Databricks, avisa y queda en rojo si algo falla, publicada y con su trigger - y entregas la evidencia y un plan para llevarla a prod. Sin pasos en el enunciado; la solución comentada está al final."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-proyecto-final.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto final (solo el pedido) - la ingesta de ventas de punta a punta · Academia de Datos"><meta property="og:description" content="El pedido final llega como en un trabajo - un mensaje con requisitos. Dejas pl_ingesta_diaria lista para producción - parametrizada, que copia el archivo del día, lo limpia en Databricks, avisa y queda en rojo si algo falla, publicada y con su trigger - y entregas la evidencia y un plan para llevarla a prod. Sin pasos en el enunciado; la solución comentada está al final."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-proyecto-final.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#data-factory-paso-a-paso">🏭 Data Factory paso a paso</a> · 6 · Avanzado completo · 90 min</div>
+<h1>Proyecto final (solo el pedido) - la ingesta de ventas de punta a punta</h1><p class="resumen">El pedido final llega como en un trabajo - un mensaje con requisitos. Dejas pl_ingesta_diaria lista para producción - parametrizada, que copia el archivo del día, lo limpia en Databricks, avisa y queda en rojo si algo falla, publicada y con su trigger - y entregas la evidencia y un plan para llevarla a prod. Sin pasos en el enunciado; la solución comentada está al final.</p>
+<a class="cta" href="../index.html#/l/data-factory-paso-a-paso-proyecto-final">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Integrar parámetros, variables, Copy, Notebook y rutas de error en un pipeline</li><li>Publicar y programar</li><li>Verificar una ejecución completa en Monitor</li><li>Proponer el paso a producción con Git y plantillas</li><li>Documentar la operación</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mensaje de Lucía, el lunes a las 9:</p>
+<p><em>&quot;Hoy cerramos la ingesta de ventas. Necesito <code>pl_ingesta_diaria</code> lista para producción:</em></p>
+<ol>
+<li><em>Que sirva para cualquier día con un parámetro <code>fecha</code> (para reprocesar).</em></li>
+<li><em>Que arme el nombre del archivo del día una sola vez y lo use para copiar de raw a bronze.</em></li>
+<li><em>Que después de copiar, limpie en Databricks con el notebook <code>limpiar_ventas</code>, pasándole la fecha.</em></li>
+<li><em>Si la copia falla: avisar a la guardia y que el pipeline quede en rojo, con un mensaje que diga qué día falló.</em></li>
+<li><em>Publicado y corriendo solo todos los días a las 6:00.</em></li>
+<li><em>Evidencia de una ejecución completa disparada por el trigger.</em></li>
+<li><em>Un plan corto para pasarlo a prod.</em></li>
+</ol>
+<p><em>Gracias!&quot;</em></p>
+</div>
+
+
+<p>Tienes todo lo necesario de las lecciones anteriores. Trabaja solo; abre la solución cuando termines.</p>
+<h2>Tu entrega</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>#</th>
+<th>Requisito</th>
+<th>Cómo lo cumpliste</th>
+<th>Evidencia</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Parámetro <code>fecha</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Nombre calculado una vez</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Limpieza en Databricks</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Aviso y estado en rojo</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Publicado y programado</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td>Ejecución completa</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>7</td>
+<td>Plan a prod</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table></div>
+<h2>Cómo se ve terminado</h2>
+<figure class="captura"><img src="assets/img/guias/adf/b24-lienzo.webp" alt="pl_ingesta_diaria - Armar nombre, la copia, el camino de error (guardia y Fail), Registrar exito y Limpiar ventas" loading="lazy"><figcaption>pl_ingesta_diaria - Armar nombre, la copia, el camino de error (guardia y Fail), Registrar exito y Limpiar ventas</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/adf/b24-publicar.webp" alt="Publish all con todo lo construido en el curso" loading="lazy"><figcaption>Publish all con todo lo construido en el curso</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/adf/b24-monitor.webp" alt="Monitor - la ejecución disparada por tr_diario_0600 arriba de las anteriores" loading="lazy"><figcaption>Monitor - la ejecución disparada por tr_diario_0600 arriba de las anteriores</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/adf/b24-run.webp" alt="La ejecución completa (1) - el camino de error Skipped y la limpieza en Databricks Succeeded (2)" loading="lazy"><figcaption>La ejecución completa (1) - el camino de error Skipped y la limpieza en Databricks Succeeded (2)</figcaption></figure>
+
+
+<details><summary>💡 Solución comentada</summary>
+
+<div class="table-wrap"><table><thead><tr>
+<th>#</th>
+<th>Requisito</th>
+<th>Cómo</th>
+<th>Evidencia</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Parámetro</td>
+<td>Parámetro <code>fecha</code> del pipeline, usado con <code>@pipeline().parameters.fecha</code></td>
+<td>Parameters del pipeline; Trigger now pide el valor</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Nombre una vez</td>
+<td>Variable <code>archivo</code> asignada en <code>Armar nombre</code> con <code>@concat(&#39;ventas_&#39;, pipeline().parameters.fecha, &#39;.csv&#39;)</code>; la copia depende de ella y usa <code>@variables(&#39;archivo&#39;)</code></td>
+<td>La salida de Armar nombre muestra el valor</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Databricks</td>
+<td>Notebook <code>Limpiar ventas</code> después de la copia (Upon Success), con base parameter <code>fecha</code></td>
+<td>Output con <code>runOutput</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Aviso y rojo</td>
+<td><code>Avisar a la guardia</code> (Upon Failure) → <code>Marcar como fallido</code> (Fail con mensaje y código)</td>
+<td>Debug con <code>fecha = 2026-11-16</code>: copia Failed, aviso Succeeded, pipeline Failed</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Programado</td>
+<td><code>tr_diario_0600</code> (Schedule diario) activo, todo publicado</td>
+<td>Manage → Triggers <em>Started</em>; Publish all sin pendientes</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Ejecución completa</td>
+<td>Disparo del trigger</td>
+<td>Monitor: <em>Triggered by</em> <code>tr_diario_0600</code>, todas las actividades del camino feliz en Succeeded</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Plan a prod</td>
+<td>Ver abajo</td>
+<td>La nota</td>
+</tr>
+</tbody></table></div>
+<p><strong>Decisiones que conviene defender.</strong> El nombre se calcula <strong>una vez</strong> en una variable para que la copia y cualquier otra actividad usen el mismo valor. La limpieza depende <strong>solo</strong> de la copia con Upon Success: si la copia falla, no se limpia un día vacío. El camino de error termina en <strong>Fail</strong> para que Monitor y las alertas lo vean en rojo (lección 18).</p>
+<p><strong>Plan a prod (ejemplo):</strong></p>
+<ol>
+<li>Conectar el factory de dev a <strong>Git</strong> (GitHub o Azure DevOps) y trabajar por ramas con pull request.</li>
+<li>Crear <code>adf-tiendaandina-prod</code> con su identidad administrada y darle <strong>Blob Data Contributor</strong> sobre la cuenta de prod y permisos en el workspace de prod.</li>
+<li>Pipeline de <strong>CI/CD</strong> que despliegue la plantilla ARM del factory con los parámetros de prod (cuenta, workspace, vault), deteniendo y reiniciando triggers, con aprobación.</li>
+<li>En prod: el trigger con la <strong>zona horaria</strong> del negocio, y la fecha tomada de <code>@trigger().scheduledTime</code> en lugar del valor por defecto.</li>
+<li><strong>Alerta</strong> sobre Failed pipeline runs con el grupo de acciones de la guardia, y un <strong>Web</strong> real que avise a Teams en lugar de la Wait.</li>
+<li>Diagnostic settings a <strong>Log Analytics</strong> para guardar las ejecuciones más de 45 días.</li>
+<li>Nota de operación actualizada (lección 12).</li>
+</ol>
+</details>
+
+<h2>✅ Lista de verificación final</h2>
+<ul>
+<li><input disabled="" type="checkbox"> El pipeline tiene el parámetro <code>fecha</code> y la variable <code>archivo</code>.</li>
+<li><input disabled="" type="checkbox"> La copia depende de <code>Armar nombre</code> y usa la variable.</li>
+<li><input disabled="" type="checkbox"> <code>Limpiar ventas</code> corre después de la copia y recibe la fecha.</li>
+<li><input disabled="" type="checkbox"> Con un día sin archivo, el pipeline avisa y termina <strong>Failed</strong> con tu mensaje.</li>
+<li><input disabled="" type="checkbox"> Todo está publicado y <code>tr_diario_0600</code> está activo.</li>
+<li><input disabled="" type="checkbox"> Hay una ejecución completa disparada por el trigger en Monitor.</li>
+<li><input disabled="" type="checkbox"> Tu plan a prod tiene al menos cinco pasos concretos.</li>
+</ul>
+<h2>Lo que dominas ahora</h2>
+<ul>
+<li>Las piezas de Data Factory y el Studio de punta a punta.</li>
+<li>Conexiones seguras con identidad administrada y Key Vault.</li>
+<li>Copiar, probar, publicar, programar y monitorear.</li>
+<li>Pipelines flexibles con parámetros, variables y expresiones.</li>
+<li>Recorrer y decidir: Get Metadata, ForEach, Lookup, If Condition y Fail.</li>
+<li>Rutas de error, Databricks y el patrón guiado por metadatos.</li>
+<li>Git, plantillas ARM, integration runtimes, seguridad y costos.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/data-factory-paso-a-paso-proyecto-final">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="data-factory-paso-a-paso-de-la-practica-a-data-factory-real.html">← De la práctica al Data Factory real (y a Fabric)</a><a href="arquitectura-que-es.html">Qué es la arquitectura de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

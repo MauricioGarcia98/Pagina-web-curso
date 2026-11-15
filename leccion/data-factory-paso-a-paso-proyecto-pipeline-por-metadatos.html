@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 5 (con mínima ayuda) - un pipeline guiado por metadatos · Academia de Datos</title><meta name="description" content="En lugar de un pipeline por fuente, uno solo que lee una tabla de control y copia cada fuente activa. Combinas Lookup, ForEach, If Condition y Copy con expresiones sobre item() para que agregar una fuente nueva sea agregar una fila a un CSV. Es el patrón que usan los equipos con decenas de fuentes. Solo hay pistas mínimas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-proyecto-pipeline-por-metadatos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 5 (con mínima ayuda) - un pipeline guiado por metadatos · Academia de Datos"><meta property="og:description" content="En lugar de un pipeline por fuente, uno solo que lee una tabla de control y copia cada fuente activa. Combinas Lookup, ForEach, If Condition y Copy con expresiones sobre item() para que agregar una fuente nueva sea agregar una fila a un CSV. Es el patrón que usan los equipos con decenas de fuentes. Solo hay pistas mínimas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-proyecto-pipeline-por-metadatos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#data-factory-paso-a-paso">🏭 Data Factory paso a paso</a> · 5 · Avanzado · 60 min</div>
+<h1>Proyecto 5 (con mínima ayuda) - un pipeline guiado por metadatos</h1><p class="resumen">En lugar de un pipeline por fuente, uno solo que lee una tabla de control y copia cada fuente activa. Combinas Lookup, ForEach, If Condition y Copy con expresiones sobre item() para que agregar una fuente nueva sea agregar una fila a un CSV. Es el patrón que usan los equipos con decenas de fuentes. Solo hay pistas mínimas.</p>
+<a class="cta" href="../index.html#/l/data-factory-paso-a-paso-proyecto-pipeline-por-metadatos">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Diseñar un pipeline guiado por una tabla de control</li><li>Anidar If Condition dentro de ForEach</li><li>Armar rutas de origen con @{item().columna}</li><li>Verificar que las fuentes inactivas se saltan</li><li>Explicar las ventajas del patrón</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Lucía: <em>&quot;Ya tenemos ventas y devoluciones, y vienen inventario, precios y promociones. No quiero un pipeline por fuente. Quiero uno solo que lea <code>config/tablas_a_copiar.csv</code> y copie a <code>bronze/por_fuente</code> cada fuente que esté activa. Para sumar una fuente, se agrega una fila y listo.&quot;</em></p>
+</div>
+
+
+<h2>La tabla de control</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>fuente</th>
+<th>patron</th>
+<th>activo</th>
+</tr>
+</thead><tbody><tr>
+<td>ventas</td>
+<td><code>*.csv</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td>devoluciones</td>
+<td><code>*.json</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td>inventario</td>
+<td><code>*.csv</code></td>
+<td>0</td>
+</tr>
+</tbody></table></div>
+<h2>Lo que tienes que lograr</h2>
+<ol>
+<li>Dos datasets nuevos: <code>ds_raw_raiz</code> (contenedor <code>raw</code>, sin carpeta) y <code>ds_bronze_por_fuente</code> (<code>bronze/por_fuente</code>).</li>
+<li>Un pipeline <code>pl_ingesta_por_config</code> que lea la tabla, recorra sus filas y, solo si <code>activo</code> es <code>1</code>, copie los archivos de esa fuente.</li>
+<li>Debug en Succeeded, con inventario saltado.</li>
+</ol>
+<details><summary>💡 Pista mínima</summary>
+
+<p>Lookup (sin First row only) → ForEach sobre <code>output.value</code> → adentro, If con <code>equals</code> sobre <code>item().activo</code> → en True, Copy con el comodín armado con <code>item().fuente</code> y <code>item().patron</code>.</p>
+</details>
+
+<h2>Cómo se ve terminado</h2>
+<figure class="captura"><img src="assets/img/guias/adf/b20-lienzo.webp" alt="El pipeline - Leer config y Por cada fuente" loading="lazy"><figcaption>El pipeline - Leer config y Por cada fuente</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/adf/b20-if.webp" alt="Dentro del ForEach (1) - el If con la condición sobre la columna activo (2)" loading="lazy"><figcaption>Dentro del ForEach (1) - el If con la condición sobre la columna activo (2)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/adf/b20-copy.webp" alt="Dentro de la rama True (1) - el comodín armado con las columnas de la fila (2)" loading="lazy"><figcaption>Dentro de la rama True (1) - el comodín armado con las columnas de la fila (2)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/adf/b20-debug.webp" alt="La ejecución - el Lookup, el ForEach y, por cada fuente activa, el If y la copia" loading="lazy"><figcaption>La ejecución - el Lookup, el ForEach y, por cada fuente activa, el If y la copia</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/adf/b20-bronze.webp" alt="bronze/por_fuente con los archivos de ventas y devoluciones; inventario no se copió" loading="lazy"><figcaption>bronze/por_fuente con los archivos de ventas y devoluciones; inventario no se copió</figcaption></figure>
+
+
+<h2>✅ Lista de verificación</h2>
+<ul>
+<li><input disabled="" type="checkbox"> El Lookup devuelve las tres filas (<code>count: 3</code>).</li>
+<li><input disabled="" type="checkbox"> El ForEach recorre <code>@activity(&#39;Leer config&#39;).output.value</code>.</li>
+<li><input disabled="" type="checkbox"> El If usa <code>@equals(item().activo, &#39;1&#39;)</code>.</li>
+<li><input disabled="" type="checkbox"> La copia usa <code>@{item().fuente}/@{item().patron}</code> en el comodín.</li>
+<li><input disabled="" type="checkbox"> En <code>bronze/por_fuente</code> hay archivos de ventas y devoluciones, y ninguno de inventario.</li>
+</ul>
+<details><summary>💡 Solución comentada</summary>
+
+<ul>
+<li><strong>Datasets</strong>: <code>ds_raw_raiz</code> apunta a la <strong>raíz</strong> de <code>raw</code> para que el comodín pueda incluir la carpeta de cada fuente (<code>ventas/*.csv</code>). <code>ds_bronze_por_fuente</code> apunta a <code>bronze/por_fuente</code>.</li>
+<li><strong>If</strong>: los valores del CSV llegan como <strong>texto</strong>, por eso se compara con <code>&#39;1&#39;</code> entre comillas. <code>@equals(item().activo, 1)</code> (número) daría <code>false</code> siempre: un error clásico.</li>
+<li><strong>Comodín</strong>: <code>@{item().fuente}/@{item().patron}</code> produce <code>ventas/*.csv</code> y <code>devoluciones/*.json</code>.</li>
+</ul>
+<p><strong>Por qué este patrón vale la pena.</strong> Sumar &quot;precios&quot; es agregar una fila <code>precios,*.csv,1</code>; apagar una fuente es poner <code>0</code>. No se toca, no se prueba ni se publica el pipeline. En empresas grandes la tabla de control vive en una base de datos (Azure SQL) y agrega columnas como destino, carga completa o incremental, y la última fecha cargada.</p>
+<p><strong>Qué le falta para producción.</strong> Copiar cada fuente a su propia carpeta (con <code>sinkFile</code> o un dataset parametrizado en Data Factory real), registrar el resultado de cada fuente y un camino de error por fuente, para que una falla no frene a las demás.</p>
+</details>
+
+<h2>Lo que aprendiste en el nivel 5</h2>
+<ul>
+<li>Lookup, If Condition y Fail para decidir y fallar con claridad.</li>
+<li>Rutas de éxito y de error, y la regla del estado del pipeline.</li>
+<li>Notebooks de Databricks con parámetros y valores de salida.</li>
+<li>El patrón de pipeline guiado por metadatos.</li>
+</ul>
+<p>En el nivel 6: equipo, despliegue entre entornos, seguridad, costos y el paso al Data Factory real.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/data-factory-paso-a-paso-proyecto-pipeline-por-metadatos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="data-factory-paso-a-paso-databricks-desde-data-factory.html">← Databricks desde Data Factory - copiar y después limpiar</a><a href="data-factory-paso-a-paso-git-ci-cd-y-plantillas-arm.html">Git, CI/CD y plantillas ARM - llevar el factory de dev a producción →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

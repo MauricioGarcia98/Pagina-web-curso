@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Publicar y Trigger now - del borrador a una ejecución de verdad · Academia de Datos</title><meta name="description" content="Hasta ahora todo fue borrador y Debug. Ves por qué Trigger now se niega a ejecutar un pipeline sin publicar, revisas la lista de cambios pendientes de Publish all, publicas, ejecutas el pipeline publicado con Trigger now y lo encuentras en Monitor como una ejecución disparada, separada de tus pruebas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-publicar-y-trigger-now.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Publicar y Trigger now - del borrador a una ejecución de verdad · Academia de Datos"><meta property="og:description" content="Hasta ahora todo fue borrador y Debug. Ves por qué Trigger now se niega a ejecutar un pipeline sin publicar, revisas la lista de cambios pendientes de Publish all, publicas, ejecutas el pipeline publicado con Trigger now y lo encuentras en Monitor como una ejecución disparada, separada de tus pruebas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-publicar-y-trigger-now.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#data-factory-paso-a-paso">🏭 Data Factory paso a paso</a> · 3 · Intermedio · 35 min</div>
+<h1>Publicar y Trigger now - del borrador a una ejecución de verdad</h1><p class="resumen">Hasta ahora todo fue borrador y Debug. Ves por qué Trigger now se niega a ejecutar un pipeline sin publicar, revisas la lista de cambios pendientes de Publish all, publicas, ejecutas el pipeline publicado con Trigger now y lo encuentras en Monitor como una ejecución disparada, separada de tus pruebas.</p>
+<a class="cta" href="../index.html#/l/data-factory-paso-a-paso-publicar-y-trigger-now">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar la diferencia entre borrador, Debug y versión publicada</li><li>Revisar los cambios pendientes antes de publicar</li><li>Publicar con Publish all</li><li>Ejecutar con Trigger now</li><li>Encontrar la ejecución en Monitor → Triggered</li></ul>
+<h2>Paso 1 — Tres versiones del mismo pipeline</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Versión</th>
+<th>Dónde vive</th>
+<th>Quién la ejecuta</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Borrador</strong></td>
+<td>En el editor (o en tu rama de Git)</td>
+<td><strong>Debug</strong></td>
+</tr>
+<tr>
+<td><strong>Publicada</strong></td>
+<td>En el servicio de Data Factory</td>
+<td><strong>Trigger now</strong> y los <strong>triggers</strong></td>
+</tr>
+<tr>
+<td><strong>Ejecución</strong></td>
+<td>Un registro en Monitor</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<p>Abre <code>pl_ingesta_diaria</code>. Arriba, <strong>Publish all</strong> muestra cuántos cambios hay sin publicar:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b09-live-mode.webp" alt="Publish all con los cambios pendientes (1) y Live mode (2)" loading="lazy"><figcaption>Publish all con los cambios pendientes (1) y Live mode (2)</figcaption></figure>
+
+
+<h2>Paso 2 — Trigger now antes de publicar</h2>
+<p><strong>Add trigger → Trigger now</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b09-trigger-sin-publicar.webp" alt="Trigger now ejecuta la versión publicada, y este pipeline todavía no se publicó" loading="lazy"><figcaption>Trigger now ejecuta la versión publicada, y este pipeline todavía no se publicó</figcaption></figure>
+
+
+<p>Es justamente la protección que querés: nada se ejecuta &quot;de verdad&quot; sin haberse publicado. Para probar sin publicar existe Debug.</p>
+<h2>Paso 3 — Publish all</h2>
+<p>Haz clic en <strong>Publish all</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b09-publicar.webp" alt="Publish all - la lista de cambios pendientes (linked services, datasets y pipelines) que se van a publicar" loading="lazy"><figcaption>Publish all - la lista de cambios pendientes (linked services, datasets y pipelines) que se van a publicar</figcaption></figure>
+
+
+<p><strong>Revisa la lista</strong> antes de publicar: publica <strong>todo</strong> lo pendiente del factory, no solo el pipeline que estás mirando. Si un compañero dejó un cambio a medio hacer en el mismo factory, también se publica. Por eso los equipos usan Git (lección 21): cada uno trabaja en su rama y solo se publica lo revisado.</p>
+<p>Si hay errores de validación en cualquier pipeline, la práctica no deja publicar. Haz clic en <strong>Publish</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b09-publicado.webp" alt="Todo publicado - ya no quedan cambios pendientes" loading="lazy"><figcaption>Todo publicado - ya no quedan cambios pendientes</figcaption></figure>
+
+
+<h2>Paso 4 — Trigger now</h2>
+<p>Ahora sí, <strong>Add trigger → Trigger now</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b09-trigger-now.webp" alt="Pipeline run - si el pipeline tuviera parámetros, aquí se completan" loading="lazy"><figcaption>Pipeline run - si el pipeline tuviera parámetros, aquí se completan</figcaption></figure>
+
+
+<p>Haz clic en <strong>OK</strong> y ve a <strong>Monitor → Triggered</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b09-monitor.webp" alt="La ejecución en Triggered, disparada como Manual trigger, con su duración y estado" loading="lazy"><figcaption>La ejecución en Triggered, disparada como Manual trigger, con su duración y estado</figcaption></figure>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 Trigger now no es un trigger</div>
+
+<p><strong>Trigger now</strong> ejecuta el pipeline <strong>una vez, ahora</strong>, sin crear ningún trigger. Se usa para probar la versión publicada o para relanzar a mano. Para que corra solo todos los días hace falta un <strong>trigger programado</strong>: la lección siguiente.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Distingues borrador, versión publicada y ejecución.</li>
+<li>Publicaste revisando los cambios pendientes.</li>
+<li>Ejecutaste la versión publicada y la encontraste en Monitor.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/data-factory-paso-a-paso-publicar-y-trigger-now">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="data-factory-paso-a-paso-proyecto-ingesta-diaria.html">← Proyecto 2 (semiguiado) - la ingesta diaria con nombre de archivo del día</a><a href="data-factory-paso-a-paso-triggers.html">Triggers - programados y por eventos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

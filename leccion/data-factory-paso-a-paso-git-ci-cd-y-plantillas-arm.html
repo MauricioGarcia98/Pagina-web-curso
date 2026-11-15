@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Git, CI/CD y plantillas ARM - llevar el factory de dev a producción · Academia de Datos</title><meta name="description" content="En un equipo, el factory de dev se conecta a Git y los de qa y prod se actualizan solo con un despliegue automático. Ves la configuración de Git y el flujo de ramas, exportas el factory como plantilla ARM, lo importas al despliegue personalizado del portal con sus parámetros por entorno, y conoces las dos formas de armar el CI/CD."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-git-ci-cd-y-plantillas-arm.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Git, CI/CD y plantillas ARM - llevar el factory de dev a producción · Academia de Datos"><meta property="og:description" content="En un equipo, el factory de dev se conecta a Git y los de qa y prod se actualizan solo con un despliegue automático. Ves la configuración de Git y el flujo de ramas, exportas el factory como plantilla ARM, lo importas al despliegue personalizado del portal con sus parámetros por entorno, y conoces las dos formas de armar el CI/CD."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/data-factory-paso-a-paso-git-ci-cd-y-plantillas-arm.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#data-factory-paso-a-paso">🏭 Data Factory paso a paso</a> · 6 · Avanzado completo · 50 min</div>
+<h1>Git, CI/CD y plantillas ARM - llevar el factory de dev a producción</h1><p class="resumen">En un equipo, el factory de dev se conecta a Git y los de qa y prod se actualizan solo con un despliegue automático. Ves la configuración de Git y el flujo de ramas, exportas el factory como plantilla ARM, lo importas al despliegue personalizado del portal con sus parámetros por entorno, y conoces las dos formas de armar el CI/CD.</p>
+<a class="cta" href="../index.html#/l/data-factory-paso-a-paso-git-ci-cd-y-plantillas-arm">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar el flujo de Git en Data Factory (rama de trabajo, collaboration branch, adf_publish)</li><li>Exportar el factory como plantilla ARM</li><li>Identificar qué valores cambian entre entornos</li><li>Importar la plantilla en un despliegue personalizado</li><li>Describir un pipeline de CI/CD para Data Factory</li></ul>
+<h2>Paso 1 — Por qué Git</h2>
+<p>Sin Git (live mode), todos editan el mismo factory y <strong>Publish all</strong> publica todo, terminado o no. Con Git:</p>
+<pre><code class="language-text">feature/nueva-fuente ──pull request──▶ main (collaboration branch) ──Publish──▶ adf_publish (plantillas ARM)
+                                                                                     │
+                                                                          CI/CD ─────┴──▶ factory de qa ──▶ factory de prod</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Rama de trabajo</strong></td>
+<td>Cada persona trabaja en la suya; sus cambios se guardan como JSON en el repositorio</td>
+</tr>
+<tr>
+<td><strong>Collaboration branch</strong> (<code>main</code>)</td>
+<td>Lo revisado y aprobado por pull request</td>
+</tr>
+<tr>
+<td><strong>Publish</strong></td>
+<td>Desde <code>main</code>, publica al factory de dev y genera las plantillas ARM</td>
+</tr>
+<tr>
+<td><strong>adf_publish</strong></td>
+<td>La rama con las plantillas que usa el CI/CD</td>
+</tr>
+</tbody></table></div>
+<p>En <strong>Manage → Git configuration</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b21-git.webp" alt="Git configuration - la práctica trabaja en live mode, sin repositorio" loading="lazy"><figcaption>Git configuration - la práctica trabaja en live mode, sin repositorio</figcaption></figure>
+
+
+<p>En el Data Factory real se conecta <strong>Azure DevOps</strong> o <strong>GitHub</strong> con el repositorio, la collaboration branch y la carpeta raíz. Solo el factory de <strong>dev</strong> se conecta a Git: qa y prod nunca se editan a mano.</p>
+<h2>Paso 2 — La plantilla ARM del factory</h2>
+<p><strong>Manage → ARM template</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b21-arm.webp" alt="Export ARM template, exportar como repositorio Git e Import ARM template" loading="lazy"><figcaption>Export ARM template, exportar como repositorio Git e Import ARM template</figcaption></figure>
+
+
+<ul>
+<li><strong>Export ARM template</strong> descarga <code>arm_template.json</code> y <code>arm_template_parameters.json</code>: lo mismo que Publish genera en <code>adf_publish</code>.</li>
+<li><strong>Exportar como repositorio Git</strong> descarga los JSON de cada objeto, como los guarda la integración con Git.</li>
+</ul>
+<p>En la plantilla, los valores que <strong>cambian entre entornos</strong> (la dirección de la cuenta, el workspace, el vault) quedan como <strong>parámetros</strong>: <code>ls_adls_tiendaandina_properties_typeProperties_url</code>, y así.</p>
+<h2>Paso 3 — Desplegarla en otro entorno</h2>
+<p><strong>Import ARM template</strong> abre el despliegue personalizado del portal con la plantilla cargada:</p>
+<figure class="captura"><img src="assets/img/guias/adf/b21-importar.webp" alt="El despliegue personalizado con la plantilla del factory (1), que se puede revisar en Edit template (2), y sus parámetros por entorno" loading="lazy"><figcaption>El despliegue personalizado con la plantilla del factory (1), que se puede revisar en Edit template (2), y sus parámetros por entorno</figcaption></figure>
+
+
+<p>Para qa o prod se cambian <strong>Factory Name</strong> (por ejemplo <code>adf-tiendaandina-prod</code>) y las direcciones de las conexiones (la cuenta de prod, el vault de prod), y se despliega. El factory de destino queda con los mismos pipelines, datasets y triggers.</p>
+<h2>Paso 4 — El pipeline de CI/CD</h2>
+<p>Hay dos formas habituales:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Forma</th>
+<th>Cómo funciona</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Clásica</strong></td>
+<td>Alguien hace Publish en dev; el pipeline de CI/CD toma las plantillas de <code>adf_publish</code> y las despliega en qa y prod</td>
+</tr>
+<tr>
+<td><strong>Automatizada</strong></td>
+<td>El paquete npm <code>@microsoft/azure-data-factory-utilities</code> valida y genera las plantillas desde <code>main</code> en el propio pipeline de CI, sin Publish manual</td>
+</tr>
+</tbody></table></div>
+<p>En los dos casos, el despliegue a prod:</p>
+<ol>
+<li><strong>Detiene los triggers</strong> del factory de destino.</li>
+<li>Despliega la plantilla con los <strong>parámetros de prod</strong> (de un archivo o de variables del pipeline).</li>
+<li><strong>Vuelve a iniciar los triggers</strong>.</li>
+<li>Pasa por una <strong>aprobación</strong> antes de prod.</li>
+</ol>
+<div class="callout callout-tip"><div class="callout-title">💡 Lo que no viaja en la plantilla</div>
+
+<p>Los <strong>secretos</strong> (por eso las conexiones usan identidad administrada o Key Vault), los <strong>permisos</strong> (el rol del factory de prod sobre la cuenta de prod se asigna aparte, idealmente con su propia plantilla) y los <strong>datos</strong>. La plantilla del factory describe el factory, no la plataforma entera.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Entiendes el flujo de ramas de Data Factory con Git.</li>
+<li>Exportaste el factory como plantilla ARM y viste sus parámetros por entorno.</li>
+<li>Sabes cómo se arma un CI/CD que despliega a qa y prod.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/data-factory-paso-a-paso-git-ci-cd-y-plantillas-arm">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="data-factory-paso-a-paso-proyecto-pipeline-por-metadatos.html">← Proyecto 5 (con mínima ayuda) - un pipeline guiado por metadatos</a><a href="data-factory-paso-a-paso-integration-runtimes-seguridad-y-costos.html">Integration runtimes, seguridad y costos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
