@@ -726,3 +726,310 @@ dominio: 4
 - [ ] Para entrenar modelos más rápido en TPUs y reducir el costo de cómputo de cada experimento que hace el equipo de datos.
 - [ ] Para traducir prompts entre idiomas.
 porque: SAIF es un marco conceptual de Google con prácticas para proteger sistemas de IA frente a riesgos propios de esta tecnología.
+
+## @caso retail: Almacenes del Sur
+Almacenes del Sur es una cadena de 80 tiendas. La dirección quiere usar IA generativa en tres áreas: que los empleados encuentren rápido las políticas internas repartidas en Drive y en la intranet, que el área de marketing produzca más rápido las descripciones de productos y que el centro de atención responda mejor por chat. Hay preocupación por el costo, por la privacidad de los datos de los clientes y por cómo medir si la inversión vale la pena.
+
+## Políticas para empleados
+leccion: cert-gcp-genai-leader
+dominio: 2
+caso: retail
+¿Qué solución de Google Cloud permite a los empleados buscar y preguntar sobre las políticas internas en Drive y la intranet sin desarrollar una aplicación?
+- [ ] Entrenar desde cero un modelo de lenguaje propio con todas las políticas y desplegarlo en un clúster de GPU administrado por el equipo de TI.
+- [x] Gemini Enterprise, conectado a Drive y a la intranet para buscar y responder con los permisos de cada empleado.
+- [ ] Imagen, que genera imágenes con el contenido de cada política.
+- [ ] Una hoja de cálculo compartida con las políticas copiadas y pegadas.
+porque: Gemini Enterprise ofrece búsqueda y asistentes sobre las fuentes de la empresa, respetando los permisos de acceso.
+
+## Descripciones de productos
+leccion: cert-gcp-genai-leader
+dominio: 3
+caso: retail
+Marketing quiere descripciones con el tono de la marca y un formato fijo. ¿Qué técnica pruebas primero?
+- [ ] Ajustar un modelo con millones de descripciones antes de probar cualquier prompt, porque el prompting nunca logra un tono consistente.
+- [x] Un prompt con instrucciones de tono, el formato esperado y algunos ejemplos aprobados (few-shot).
+- [ ] Subir la temperatura al máximo para que cada descripción sea original.
+- [ ] Pedir descripciones sin ninguna instrucción y corregirlas a mano.
+porque: Instrucciones claras con ejemplos suelen lograr el tono y el formato sin ajuste; el ajuste fino se considera si eso no alcanza.
+
+## Medir la inversión
+leccion: cert-gcp-genai-leader
+dominio: 4
+caso: retail
+¿Cómo demuestra la dirección que el asistente de atención vale la pena?
+- [ ] Contando cuántos parámetros tiene el modelo que eligió el proveedor y comparándolo con los de la competencia.
+- [x] Comparando antes y después indicadores como el tiempo de resolución, la satisfacción del cliente y el costo por contacto.
+- [ ] Midiendo cuántas veces se abrió la consola de Google Cloud.
+- [ ] Preguntándole al modelo si está funcionando bien.
+porque: El éxito se mide con indicadores de negocio definidos antes del piloto.
+
+## Datos de los clientes
+leccion: cert-gcp-genai-leader
+dominio: 2
+caso: retail
+¿Qué compromiso de Google Cloud responde a la preocupación por los datos de los clientes en los servicios de IA generativa empresariales?
+- [ ] Que los datos del cliente se publican para mejorar los modelos de todos, salvo que se pague una licencia premium de privacidad.
+- [x] Que los datos del cliente no se usan para entrenar los modelos de Google sin su permiso y quedan bajo sus controles de acceso.
+- [ ] Que los datos se borran cada hora y no se pueden usar en ninguna respuesta.
+- [ ] Que solo se puede usar IA generativa con datos públicos.
+porque: Google Cloud se compromete a no usar los datos del cliente para entrenar sus modelos sin permiso y a mantenerlos bajo su control.
+
+## Qué es la IA generativa
+leccion: cert-gcp-genai-leader
+dominio: 1
+¿Qué distingue a la IA generativa de un modelo predictivo tradicional?
+- [ ] Que solo funciona con números y tablas, mientras que los modelos tradicionales trabajan con texto e imágenes.
+- [x] Que crea contenido nuevo (texto, imágenes, código, audio) en lugar de solo clasificar o predecir un valor.
+- [ ] Que no necesita datos para aprender.
+- [ ] Que siempre es más barata.
+porque: Los modelos generativos producen contenido nuevo; los predictivos asignan una etiqueta o un número.
+
+## Preentrenamiento
+leccion: cert-gcp-genai-leader
+dominio: 1
+¿Qué ocurre durante el preentrenamiento de un modelo de lenguaje?
+- [ ] El modelo aprende las políticas internas de cada empresa que lo va a usar antes de ser publicado.
+- [x] Aprende patrones del lenguaje con enormes volúmenes de texto, prediciendo el siguiente token.
+- [ ] Se le escriben reglas a mano para cada pregunta posible.
+- [ ] Se conecta a internet en tiempo real.
+porque: El preentrenamiento usa grandes corpus para que el modelo aprenda a predecir texto; la adaptación a una empresa viene después.
+
+## Modelos de difusión
+leccion: cert-gcp-genai-leader
+dominio: 1
+¿Para qué se usan principalmente los modelos de difusión?
+- [ ] Para calcular promedios de ventas y proyectarlos hacia el próximo trimestre con un intervalo de confianza.
+- [x] Para generar imágenes (y video) a partir de ruido guiado por una descripción.
+- [ ] Para guardar documentos en una base de datos.
+- [ ] Para traducir código entre lenguajes.
+porque: Los modelos de difusión generan imágenes partiendo de ruido y refinándolo según el prompt.
+
+## Datos de entrenamiento y sesgo
+leccion: cert-gcp-genai-leader
+dominio: 1
+Un modelo de selección de candidatos favorece a un grupo porque los datos históricos lo hacían. ¿Qué limitación muestra?
+- [ ] Que el modelo tiene una ventana de contexto demasiado chica para leer todos los currículums de una vez.
+- [x] Que los modelos reproducen los sesgos presentes en sus datos de entrenamiento.
+- [ ] Que la temperatura está mal configurada.
+- [ ] Que falta GPU.
+porque: Si los datos reflejan sesgos, el modelo los aprende y los repite.
+
+## Fecha de corte del conocimiento
+leccion: cert-gcp-genai-leader
+dominio: 1
+Un usuario pregunta por una noticia de ayer y el modelo no la conoce. ¿Por qué?
+- [ ] Porque el modelo tiene la temperatura demasiado baja y no se anima a responder sobre hechos recientes.
+- [x] Porque su conocimiento llega hasta la fecha de corte de sus datos de entrenamiento, salvo que se conecte a fuentes actuales (grounding).
+- [ ] Porque los modelos no pueden hablar de noticias.
+- [ ] Porque falta un prompt de rol.
+porque: Sin grounding, el modelo solo sabe lo que había en sus datos hasta la fecha de corte.
+
+## Modelo de lenguaje y chatbot
+leccion: cert-gcp-genai-leader
+dominio: 1
+¿Qué relación hay entre un LLM y una aplicación de chat?
+- [ ] Son lo mismo: el LLM ya incluye la interfaz, el historial y los permisos de cada usuario.
+- [x] El LLM es el motor que genera texto; la aplicación agrega la interfaz, el historial, las fuentes y los controles.
+- [ ] La aplicación de chat entrena el LLM con cada mensaje.
+- [ ] El chat funciona sin modelo.
+porque: Una aplicación combina el modelo con otros componentes, como datos, memoria y seguridad.
+
+## Datos semiestructurados
+leccion: cert-gcp-genai-leader
+dominio: 1
+¿Qué ejemplo es de datos semiestructurados?
+- [ ] Una tabla de base de datos con columnas fijas y tipos definidos para cada campo de cada fila.
+- [x] Archivos JSON con campos que pueden variar entre registros.
+- [ ] Una foto de un producto.
+- [ ] Una grabación de audio.
+porque: JSON y XML tienen estructura con etiquetas, pero sin un esquema rígido.
+
+## Aprendizaje por refuerzo
+leccion: cert-gcp-genai-leader
+dominio: 1
+¿Cómo aprende un sistema con aprendizaje por refuerzo?
+- [ ] A partir de ejemplos etiquetados con la respuesta correcta para cada entrada, igual que en el aprendizaje supervisado.
+- [x] Probando acciones y recibiendo recompensas o penalizaciones según el resultado.
+- [ ] Agrupando datos sin etiquetas.
+- [ ] Copiando las respuestas de otro modelo.
+porque: El refuerzo aprende por prueba y error maximizando una recompensa.
+
+## Modelos más chicos
+leccion: cert-gcp-genai-leader
+dominio: 1
+¿Por qué una empresa elegiría un modelo más chico para una tarea simple?
+- [ ] Porque los modelos chicos siempre son más precisos que los grandes en cualquier tarea, incluso las complejas.
+- [x] Porque responde más rápido y cuesta menos, y puede alcanzar la calidad necesaria para esa tarea.
+- [ ] Porque no necesita prompts.
+- [ ] Porque no tiene limitaciones.
+porque: Para tareas simples, un modelo chico suele equilibrar mejor costo, latencia y calidad.
+
+## Generar video
+leccion: cert-gcp-genai-leader
+dominio: 2
+¿Qué modelo de Google genera video a partir de texto o imágenes?
+- [ ] Chirp, el modelo de Google para reconocimiento y generación de voz.
+- [x] Veo.
+- [ ] Gemini Code Assist.
+- [ ] BigQuery.
+porque: Veo es el modelo de generación de video de Google.
+
+## Voz a texto
+leccion: cert-gcp-genai-leader
+dominio: 2
+El centro de atención quiere transcribir llamadas con alta precisión en varios idiomas. ¿Qué modelo de Google usa?
+- [ ] Imagen, el modelo de Google para generar y editar imágenes a partir de texto.
+- [x] Chirp (en Speech-to-Text).
+- [ ] Veo.
+- [ ] NotebookLM.
+porque: Chirp es el modelo de voz de Google para transcripción en muchos idiomas.
+
+## Probar prompts rápido
+leccion: cert-gcp-genai-leader
+dominio: 2
+Un desarrollador quiere probar prompts con Gemini y obtener una clave de API para prototipar rápidamente. ¿Qué usa?
+- [ ] Un contrato empresarial de Gemini Enterprise firmado por compras antes de escribir el primer prompt.
+- [x] Google AI Studio.
+- [ ] Cloud Storage.
+- [ ] Looker Studio.
+porque: Google AI Studio permite probar modelos Gemini y prototipar con una clave de API.
+
+## Plataforma empresarial
+leccion: cert-gcp-genai-leader
+dominio: 2
+Una empresa necesita desplegar modelos con controles de seguridad, gobierno, evaluación y MLOps en Google Cloud. ¿Qué plataforma usa?
+- [ ] Google AI Studio, que es la opción recomendada para producción empresarial con controles de red y auditoría.
+- [x] Gemini Enterprise Agent Platform (antes Vertex AI).
+- [ ] Google Sheets.
+- [ ] Gmail.
+porque: La plataforma de IA de Google Cloud ofrece modelos, ajuste, evaluación, agentes y MLOps con controles empresariales.
+
+## Ayuda para operar la nube
+leccion: cert-gcp-genai-leader
+dominio: 2
+El equipo de operaciones quiere ayuda para entender costos, diagnosticar problemas y diseñar infraestructura en Google Cloud. ¿Qué asistente usa?
+- [ ] Gemini Code Assist, pensado para escribir código dentro del editor de cada desarrollador.
+- [x] Gemini Cloud Assist.
+- [ ] NotebookLM.
+- [ ] Veo.
+porque: Gemini Cloud Assist ayuda a diseñar, operar y optimizar recursos de Google Cloud.
+
+## Gemini en las apps de trabajo
+leccion: cert-gcp-genai-leader
+dominio: 2
+¿Dónde usan los empleados Gemini para redactar correos y resumir documentos sin cambiar de herramienta?
+- [ ] En BigQuery, escribiendo consultas SQL sobre la bandeja de entrada de cada empleado.
+- [x] En Google Workspace (Gmail, Docs, Meet y otras apps).
+- [ ] En Cloud Run.
+- [ ] En Compute Engine.
+porque: Gemini está integrado en las aplicaciones de Workspace.
+
+## Kit para construir agentes
+leccion: cert-gcp-genai-leader
+dominio: 2
+Un equipo de desarrollo quiere construir agentes con código, herramientas y orquestación de varios agentes. ¿Qué framework de Google usa?
+- [ ] Looker, con un modelo semántico que define los pasos de cada agente.
+- [x] Agent Development Kit (ADK).
+- [ ] Google Forms.
+- [ ] Cloud DNS.
+porque: ADK es el framework de código abierto de Google para desarrollar agentes y sistemas multiagente.
+
+## Agentes que hablan entre sí
+leccion: cert-gcp-genai-leader
+dominio: 2
+¿Qué protocolo abierto permite que agentes de distintos proveedores se comuniquen y colaboren?
+- [ ] HTTP sin ninguna convención adicional, porque cada agente entiende automáticamente a los demás.
+- [x] Agent2Agent (A2A).
+- [ ] SMTP.
+- [ ] FTP.
+porque: A2A define cómo los agentes descubren capacidades y colaboran entre sí.
+
+## Acceso a herramientas
+leccion: cert-gcp-genai-leader
+dominio: 2
+¿Qué protocolo estandariza cómo un agente se conecta a herramientas y fuentes de datos externas?
+- [ ] Agent2Agent, que define cómo un agente llama a cualquier base de datos.
+- [x] Model Context Protocol (MCP).
+- [ ] DNS.
+- [ ] SSH.
+porque: MCP estandariza la conexión de modelos y agentes con herramientas y datos; A2A conecta agentes entre sí.
+
+## Agentes de atención
+leccion: cert-gcp-genai-leader
+dominio: 2
+¿Qué oferta de Google Cloud se orienta a agentes conversacionales para centros de contacto, con asistencia a los agentes humanos?
+- [ ] NotebookLM, que convierte los manuales del centro de contacto en podcasts para los clientes.
+- [x] Customer Engagement Suite (con agentes conversacionales y asistencia a agentes).
+- [ ] Cloud Storage.
+- [ ] BigQuery ML.
+porque: Customer Engagement Suite reúne agentes conversacionales, asistencia a agentes humanos y analítica del contacto.
+
+## Infraestructura para IA
+leccion: cert-gcp-genai-leader
+dominio: 2
+¿Qué hardware diseñado por Google acelera el entrenamiento y la inferencia de modelos grandes?
+- [ ] Discos persistentes estándar, que aceleran el cálculo de los modelos.
+- [x] TPU (Tensor Processing Units).
+- [ ] Balanceadores de carga.
+- [ ] Buckets de Cloud Storage.
+porque: Las TPU son aceleradores de Google para cargas de ML a gran escala.
+
+## Modelos de terceros
+leccion: cert-gcp-genai-leader
+dominio: 2
+La empresa quiere comparar Gemini con modelos de otros proveedores y modelos abiertos en la misma plataforma. ¿Dónde los encuentra?
+- [ ] En Google Drive, en una carpeta compartida con los modelos descargados.
+- [x] En Model Garden.
+- [ ] En Gmail.
+- [ ] En Cloud Billing.
+porque: Model Garden ofrece modelos de Google, de terceros y abiertos.
+
+## Fuentes en un cuaderno
+leccion: cert-gcp-genai-leader
+dominio: 2
+Un analista quiere subir diez informes y hacer preguntas solo sobre ellos, con citas a las fuentes. ¿Qué herramienta usa?
+- [ ] Veo, que convierte los informes en un video resumido con la respuesta a cada pregunta.
+- [x] NotebookLM.
+- [ ] Cloud Scheduler.
+- [ ] Artifact Registry.
+porque: NotebookLM responde con base en las fuentes cargadas y cita los fragmentos usados.
+
+## Grounding con búsqueda
+leccion: cert-gcp-genai-leader
+dominio: 3
+Un asistente debe responder sobre noticias recientes con fuentes verificables. ¿Qué técnica aplicas?
+- [ ] Ajustar el modelo cada noche con las noticias del día para que las recuerde sin buscar.
+- [x] Grounding con Google Search, que agrega resultados actuales y citas a la respuesta.
+- [ ] Bajar la temperatura a cero.
+- [ ] Acortar el prompt.
+porque: El grounding con búsqueda conecta la respuesta con información actual y verificable.
+
+## Iterar el prompt
+leccion: cert-gcp-genai-leader
+dominio: 3
+Las primeras respuestas son demasiado largas. ¿Qué haces?
+- [ ] Cambiar de proveedor de nube, porque la longitud depende de la región donde corre el modelo.
+- [x] Ajustar el prompt (pedir una extensión o formato concretos) y limitar los tokens de salida, y volver a probar.
+- [ ] Subir la temperatura.
+- [ ] Borrar el historial.
+porque: El prompt engineering es iterativo: se ajustan instrucciones y parámetros hasta lograr la salida esperada.
+
+## Evaluar antes de escalar
+leccion: cert-gcp-genai-leader
+dominio: 3
+Antes de lanzar un asistente a toda la empresa, ¿qué conviene hacer?
+- [ ] Lanzarlo a todos el mismo día y corregir los errores a medida que los empleados los reporten por correo.
+- [x] Evaluarlo con un conjunto de preguntas reales y criterios de calidad, y empezar con un piloto acotado.
+- [ ] Desactivar los filtros de seguridad para que responda más.
+- [ ] Usar solo la temperatura máxima.
+porque: Evaluar y pilotar reduce riesgos y permite ajustar antes de escalar.
+
+## Responsable del sistema
+leccion: cert-gcp-genai-leader
+dominio: 4
+¿Quién debe responder por las decisiones que toma un sistema de IA en la empresa?
+- [ ] El proveedor del modelo, que asume toda la responsabilidad por cómo cada cliente lo usa en su negocio.
+- [x] Personas y roles definidos en la empresa, con supervisión humana y procesos de revisión.
+- [ ] El propio modelo.
+- [ ] Nadie.
+porque: La rendición de cuentas es un principio de IA responsable: siempre hay personas responsables.
