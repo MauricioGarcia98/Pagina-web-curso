@@ -619,3 +619,407 @@ dominio: 4
 - [ ] Latencia de red y uso de CPU.
 - [ ] Cantidad de usuarios activos.
 porque: Los evaluadores de agentes miden si entendió la intención, cumplió la tarea y usó bien las herramientas.
+
+## @caso farmacia: Farmacias Del Valle
+Farmacias Del Valle tiene un modelo que predice la demanda diaria de cada producto en 400 sucursales y un asistente generativo que responde preguntas de los farmacéuticos sobre el vademécum interno. Hoy el modelo se entrena en la laptop de una científica y el asistente se cambia directamente en producción.
+
+Quieren:
+- entrenar y desplegar el modelo de forma reproducible en dev, test y prod;
+- recalcular las predicciones de todas las sucursales cada noche;
+- que ningún cambio del asistente llegue a producción sin pasar una evaluación;
+- ver en un solo lugar las trazas, la latencia y el costo del asistente.
+
+## Predicciones de cada noche
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
+caso: farmacia
+¿Cómo se generan cada noche las predicciones de las 400 sucursales?
+- [ ] Un endpoint online administrado con tres instancias encendidas todo el día, al que un script llama sucursal por sucursal cada noche.
+- [x] Un endpoint batch invocado por un schedule, que lee los datos de entrada y escribe las predicciones en almacenamiento.
+- [ ] Una compute instance que la científica deja encendida para ejecutar el notebook a mano cada noche.
+- [ ] Un despliegue azul-verde con el 50 % del tráfico en cada versión, invocado desde Power BI.
+porque: Para puntuar grandes volúmenes en un horario fijo, un endpoint batch con un schedule es más simple y barato que un endpoint online.
+
+## El mismo modelo en prod
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 1
+caso: farmacia
+¿Cómo se promueve a prod exactamente el mismo modelo validado en test, si cada entorno tiene su propio workspace?
+- [ ] Reentrenando el modelo en el workspace de prod con los mismos hiperparámetros y la misma semilla, y esperando que dé igual.
+- [x] Registrando el modelo en un registry de Azure Machine Learning compartido y desplegándolo desde ahí en cada workspace.
+- [ ] Descargando el archivo del modelo a una laptop y subiéndolo a mano en el workspace de prod.
+- [ ] Copiando el notebook de entrenamiento al workspace de prod y ejecutándolo de nuevo con datos de prod.
+porque: Un registry comparte modelos, componentes y entornos entre workspaces, de modo que se despliega el mismo artefacto en cada etapa.
+
+## Compuerta del asistente
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 3
+caso: farmacia
+¿Qué impide que un cambio del asistente llegue a producción sin evaluación?
+- [ ] Una regla en el README que pide a cada desarrollador probar a mano diez preguntas antes de publicar y dejar las respuestas en el PR.
+- [x] Un pipeline de CI que corre la evaluación con un dataset fijo y bloquea el despliegue si las métricas quedan bajo el umbral.
+- [ ] Un content filter más estricto en el despliegue del modelo, que reemplaza la evaluación de calidad.
+- [ ] Una revisión manual una vez por trimestre de las conversaciones de producción.
+porque: La evaluación automática en CI con umbrales es la compuerta que frena cambios que empeoran la calidad o la seguridad.
+
+## Un solo lugar para observar
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 4
+caso: farmacia
+¿Dónde ve el equipo las trazas, la latencia y los tokens del asistente?
+- [ ] En los logs del navegador de cada farmacéutico, que se envían por correo al equipo.
+- [x] En el tracing del proyecto de Foundry, que envía trazas OpenTelemetry a Application Insights.
+- [ ] En el historial de commits del repositorio.
+- [ ] En la factura mensual de Azure, que detalla cada conversación.
+porque: El tracing de Foundry instrumenta la app con OpenTelemetry y Application Insights centraliza trazas, latencia y uso.
+
+## Entrenamiento reproducible
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
+caso: farmacia
+¿Qué hace reproducible el entrenamiento que hoy corre en la laptop?
+- [ ] Guardar una captura de pantalla de las celdas del notebook y una lista de las librerías instaladas después de cada entrenamiento.
+- [x] Un job de Azure ML definido en YAML con un environment versionado, un data asset versionado y el código en Git.
+- [ ] Usar siempre la misma laptop y no actualizar nunca las librerías.
+- [ ] Entrenar con más épocas para que el resultado sea siempre el mismo.
+porque: Versionar código, datos y entorno en un job permite volver a ejecutar el entrenamiento y obtener el mismo modelo.
+
+## Escalar a cero
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 1
+¿Qué configuración de un compute cluster evita pagar cuando no hay jobs?
+- [ ] Un número fijo de nodos igual al máximo, para que los jobs no esperen.
+- [x] `min_instances: 0`, con un tiempo de inactividad antes de reducir nodos.
+- [ ] Una compute instance en lugar de un cluster, que nunca cobra.
+- [ ] Un clúster de Kubernetes adjunto sin límites.
+porque: Con mínimo cero, el cluster libera los nodos al quedar inactivo y solo cobra mientras hay jobs.
+
+## Cómputo serverless
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 1
+El equipo no quiere crear ni administrar clusters para jobs ocasionales. ¿Qué opción usa?
+- [ ] Una máquina virtual con un `cron` que lanza los scripts de entrenamiento cada noche.
+- [x] Cómputo serverless de Azure ML, indicando solo el tamaño de máquina en el job.
+- [ ] Una compute instance compartida por todo el equipo.
+- [ ] Un endpoint online como máquina de entrenamiento.
+porque: Con cómputo serverless, Azure ML aprovisiona y libera la capacidad por job sin administrar un cluster.
+
+## Acceso a datos sin claves
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 1
+¿Cómo accede el cómputo de Azure ML al almacenamiento sin guardar claves de cuenta?
+- [ ] Con la clave de la cuenta de almacenamiento escrita en el script de entrenamiento y en el YAML del job, cifrada en Base64.
+- [x] Con una identidad administrada que tiene un rol de datos (por ejemplo, Storage Blob Data Reader) sobre la cuenta.
+- [ ] Con un token SAS sin vencimiento guardado en el repositorio.
+- [ ] Haciendo pública la cuenta de almacenamiento.
+porque: Las identidades administradas con RBAC evitan secretos en el código y se pueden auditar.
+
+## Salida de red controlada
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 1
+Seguridad exige que el workspace solo pueda salir a destinos aprobados. ¿Qué configuras?
+- [ ] Nada: los workspaces de Azure ML no tienen acceso a internet por defecto en ningún modo de red.
+- [x] La red virtual administrada del workspace en modo "solo salida aprobada", con reglas para los destinos necesarios.
+- [ ] Un content filter en el despliegue del modelo.
+- [ ] Un registry compartido entre workspaces.
+porque: La red administrada con aislamiento "allow only approved outbound" limita la salida a destinos aprobados.
+
+## Bicep o Terraform
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 1
+¿Por qué definir el workspace, el almacenamiento y el Key Vault con Bicep o Terraform?
+- [ ] Porque el portal de Azure no permite crear workspaces con almacenamiento y Key Vault asociados.
+- [x] Para crear entornos idénticos y repetibles (dev, test, prod) desde código revisado en Git.
+- [ ] Para que los jobs de entrenamiento corran más rápido.
+- [ ] Porque así no hace falta definir permisos.
+porque: La infraestructura como código hace los entornos reproducibles, versionados y revisables.
+
+## Federación con GitHub
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 1
+¿Cómo se autentica un workflow de GitHub Actions en Azure sin guardar un secreto de cliente?
+- [ ] Con el usuario y la contraseña de un administrador de la suscripción guardados como secreto del repositorio.
+- [x] Con credenciales federadas (OIDC) en una identidad de Entra ID, que confía en los tokens de GitHub.
+- [ ] Con una clave de la cuenta de almacenamiento.
+- [ ] Sin autenticación, porque GitHub es de confianza.
+porque: La federación OIDC permite obtener tokens de Azure sin secretos de larga duración.
+
+## Componentes reutilizables
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
+Tres pipelines distintos usan el mismo paso de limpieza. ¿Cómo evitas copiar el código?
+- [ ] Copiando el script en cada pipeline y actualizando las tres copias a mano cuando cambia la lógica de limpieza.
+- [x] Definiendo un componente con entradas, salidas, código y environment, y registrándolo para reutilizarlo.
+- [ ] Usando un endpoint online para la limpieza.
+- [ ] Guardando el paso en un data asset.
+porque: Un componente es un paso reutilizable y versionado que se usa en varios pipelines.
+
+## Sweep con parada temprana
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
+En un sweep de hiperparámetros, ¿qué política corta las pruebas cuya métrica queda muy por debajo de la mejor?
+- [ ] `sampling_algorithm: grid`, que prueba todas las combinaciones hasta el final.
+- [x] Una política de terminación temprana, como Bandit (o median stopping).
+- [ ] `max_total_trials: 1`.
+- [ ] Un environment con más librerías.
+porque: Las políticas de terminación temprana detienen pruebas con bajo desempeño y ahorran cómputo.
+
+## Modelo MLflow sin script
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
+¿Qué ventaja tiene registrar el modelo en formato MLflow al desplegarlo en un endpoint online?
+- [ ] Ninguna: siempre hay que escribir un script de scoring y un environment a mano para cada despliegue.
+- [x] Se puede desplegar sin escribir script de scoring ni environment (despliegue sin código).
+- [ ] El endpoint queda gratis.
+- [ ] El modelo se reentrena solo con cada solicitud.
+porque: Para modelos MLflow, Azure ML genera el script de scoring y el entorno a partir del modelo registrado.
+
+## Espejar tráfico
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
+¿Cómo pruebas un despliegue nuevo con tráfico real sin que sus respuestas lleguen a los usuarios?
+- [ ] Enviándole el 50 % del tráfico en vivo durante una semana y comparando la cantidad de quejas de los usuarios de cada versión.
+- [x] Espejando (mirror) un porcentaje del tráfico al despliegue nuevo: recibe copias de las solicitudes, pero sus respuestas no se devuelven.
+- [ ] Borrando el despliegue actual durante la prueba.
+- [ ] Probándolo solo con los datos de entrenamiento.
+porque: El tráfico espejado prueba el despliegue nuevo con solicitudes reales sin afectar a los usuarios.
+
+## Pasar todo al verde
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
+El despliegue `green` funcionó bien con el 10 % del tráfico. ¿Qué haces?
+- [ ] Borrar el endpoint y crear uno nuevo solo con `green`, con otra URL para los clientes.
+- [x] Subir gradualmente el tráfico de `green` hasta el 100 % y luego eliminar `blue`.
+- [ ] Dejar 10 % para siempre en `green`.
+- [ ] Reentrenar `blue` para que se parezca a `green`.
+porque: En el despliegue azul-verde se mueve el tráfico gradualmente y se retira la versión anterior al final.
+
+## Minilotes del endpoint batch
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
+¿Qué controla `mini_batch_size` en un despliegue batch?
+- [ ] El número de instancias del cluster.
+- [x] Cuántos archivos (o filas) procesa cada llamada al script de scoring.
+- [ ] El tamaño máximo del modelo.
+- [ ] El porcentaje de tráfico del despliegue.
+porque: El trabajo batch divide la entrada en minilotes que se reparten entre los nodos.
+
+## Pipeline programado
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
+¿Cómo ejecutas el pipeline de entrenamiento cada domingo sin depender de una persona?
+- [ ] Con un recordatorio en el calendario de la científica para lanzar el job desde su compute instance.
+- [x] Con un schedule de Azure ML (`az ml schedule create`) con una expresión cron o recurrencia.
+- [ ] Con un endpoint online que se llama a sí mismo.
+- [ ] Con una compute instance encendida todo el fin de semana.
+porque: Los schedules de Azure ML disparan jobs o pipelines con cron o recurrencia.
+
+## Recolectar datos del endpoint
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
+¿Qué hace falta para monitorear la deriva de un modelo desplegado en un endpoint online?
+- [ ] Nada: el endpoint calcula la deriva por su cuenta, sin guardar entradas ni salidas y sin una línea base de comparación.
+- [x] Habilitar la recolección de datos (data collector) de entradas y salidas, y configurar el monitor con una línea base.
+- [ ] Reentrenar el modelo cada hora.
+- [ ] Desactivar los logs del endpoint.
+porque: El monitoreo compara los datos de producción recolectados con una línea base, como los datos de entrenamiento.
+
+## Señales del monitoreo
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
+¿Qué señal del monitoreo de modelos detecta que cambió la distribución de las predicciones?
+- [ ] Data quality, que solo revisa nulos y tipos.
+- [x] Prediction drift.
+- [ ] La latencia del endpoint.
+- [ ] El conteo de jobs del workspace.
+porque: Prediction drift compara la distribución de salidas en producción con la línea base.
+
+## Calidad de datos
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
+De un día para otro, una columna del endpoint llega con muchos nulos y valores fuera de rango. ¿Qué señal lo detecta?
+- [ ] Prediction drift, que solo mira las salidas.
+- [x] Data quality.
+- [ ] Feature attribution drift sin datos de entrada.
+- [ ] El uso de CPU del endpoint.
+porque: La señal de calidad de datos revisa nulos, tipos y rangos de las entradas.
+
+## Disparar por evento
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
+Quieres que, al registrarse una nueva versión de un modelo, se ejecute un flujo de validación. ¿Qué mecanismo usas?
+- [ ] Un script en la laptop de un ingeniero que revisa el registro de modelos cada mañana y lanza la validación a mano.
+- [x] Los eventos de Azure ML publicados en Event Grid, que disparan una Logic App, una función o un pipeline.
+- [ ] Un content filter.
+- [ ] Una conexión del proyecto de Foundry.
+porque: Azure ML emite eventos (por ejemplo, modelo registrado o deriva detectada) a Event Grid para automatizar acciones.
+
+## Panel de IA responsable
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
+Antes de aprobar el modelo, el comité quiere ver el análisis de errores por segmento y la importancia de variables. ¿Qué usas?
+- [ ] El historial de jobs del workspace.
+- [x] El panel de IA responsable (Responsible AI dashboard) de Azure ML.
+- [ ] Un content filter de Foundry.
+- [ ] La página de costos de la suscripción.
+porque: El panel de IA responsable reúne análisis de errores, explicabilidad, equidad y análisis contrafactual.
+
+## Conexiones del proyecto
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 3
+¿Cómo usa el código del asistente el índice de búsqueda distinto de cada entorno sin cambiar el código?
+- [ ] Escribiendo la clave y la URL de cada índice en el código, con un `if` por entorno que lee una variable al arrancar la app.
+- [x] Con una conexión del proyecto de Foundry en cada entorno, con el mismo nombre y apuntando a su recurso.
+- [ ] Usando el mismo índice de prod en todos los entornos.
+- [ ] Copiando el índice a una tabla Excel.
+porque: Las conexiones por proyecto separan la configuración del código y permiten promover sin cambios.
+
+## Prompt versionado
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 3
+¿Por qué guardar los prompts del asistente en archivos versionados en Git (por ejemplo, Prompty)?
+- [ ] Porque Foundry no permite escribir prompts en el código de la app.
+- [x] Para revisar cada cambio, evaluarlo en CI y volver atrás si empeora.
+- [ ] Para que el modelo use menos tokens.
+- [ ] Para que el content filter no se aplique.
+porque: Versionar los prompts los hace revisables, evaluables y reversibles como cualquier código.
+
+## Evaluadores de calidad
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 3
+¿Qué evaluador del SDK de evaluación detecta respuestas que no se apoyan en el contexto recuperado?
+- [ ] `FluencyEvaluator`.
+- [x] `GroundednessEvaluator`.
+- [ ] `BleuScoreEvaluator`, sin respuesta de referencia.
+- [ ] Un evaluador de latencia.
+porque: El evaluador de groundedness mide si la respuesta está respaldada por el contexto entregado.
+
+## Evaluadores de seguridad
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 3
+¿Qué mide un evaluador de seguridad de contenido sobre las respuestas del asistente?
+- [ ] La cantidad de tokens por respuesta y si supera el límite configurado del despliegue, con un nivel de severidad.
+- [x] Si las respuestas contienen contenido violento, sexual, de odio o de autolesión, con un nivel de severidad.
+- [ ] La similitud con una respuesta de referencia.
+- [ ] El costo de cada llamada.
+porque: Los evaluadores de seguridad clasifican el contenido dañino por categoría y severidad.
+
+## Agente de red teaming
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 3
+¿Qué hace el AI Red Teaming Agent de Foundry?
+- [ ] Entrena un modelo nuevo y más seguro con los ataques conocidos de internet y lo despliega en lugar del actual.
+- [x] Genera ataques adversarios automáticos contra la app y mide qué porcentaje logra respuestas indebidas.
+- [ ] Bloquea a los usuarios que hacen preguntas difíciles.
+- [ ] Reemplaza al content filter.
+porque: El agente de red teaming automatiza sondeos adversarios y reporta la tasa de éxito de los ataques.
+
+## Modelo base que cambia
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 3
+El proveedor anuncia el retiro de la versión del modelo que usa el asistente. ¿Qué haces?
+- [ ] Esperar a que deje de funcionar y entonces cambiar la versión en la configuración del despliegue.
+- [x] Probar la versión nueva con el mismo dataset de evaluación y promoverla solo si mantiene las métricas.
+- [ ] Cambiar la versión en producción sin probar.
+- [ ] Desactivar el content filter.
+porque: Cambiar el modelo base es un cambio de la app: se evalúa con el mismo conjunto antes de promover.
+
+## Despliegue global o regional
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 3
+La empresa exige que los datos se procesen dentro de su zona geográfica. ¿Qué tipo de despliegue del modelo elige?
+- [ ] Global, que puede procesar en cualquier región del mundo.
+- [x] Data zone (o regional), que mantiene el procesamiento dentro de la zona.
+- [ ] Cualquiera: el tipo de despliegue no afecta dónde se procesan los datos.
+- [ ] Un despliegue sin content filter.
+porque: Los despliegues de zona de datos y regionales limitan dónde se procesan las solicitudes.
+
+## Evaluación continua
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 4
+¿Cómo vigilas la calidad del asistente en producción sin evaluar todas las conversaciones?
+- [ ] No se vigila en producción: alcanza con la evaluación de CI, porque las preguntas reales son iguales a las del dataset.
+- [x] Con evaluación continua sobre una muestra de las trazas de producción y alertas cuando una métrica baja.
+- [ ] Leyendo todas las conversaciones a mano cada día.
+- [ ] Mirando solo la latencia.
+porque: La evaluación continua aplica evaluadores a una muestra del tráfico y avisa ante degradaciones.
+
+## Feedback del usuario
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 4
+¿Cómo aprovechas los "me gusta / no me gusta" que dan los farmacéuticos?
+- [ ] Usarlos para cambiar automáticamente el prompt de producción cada vez que llega un "no me gusta", sin revisión.
+- [x] Registrándolos asociados a la traza de cada respuesta para analizar fallas y alimentar el dataset de evaluación.
+- [ ] Borrándolos cada semana.
+- [ ] Usándolos para cambiar el modelo en tiempo real sin revisión.
+porque: El feedback vinculado a trazas ayuda a encontrar casos problemáticos y mejora los datasets de evaluación.
+
+## Métrica de tokens
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 4
+El costo del asistente subió 40 % en un mes sin más usuarios. ¿Qué miras primero?
+- [ ] La cantidad de commits del repositorio.
+- [x] Los tokens de entrada y salida por solicitud en las trazas, para ver qué parte del prompt o del contexto creció.
+- [ ] La versión del navegador de los usuarios.
+- [ ] El tamaño del modelo de demanda.
+porque: Los tokens por solicitud explican el costo; un contexto más largo o más llamadas por respuesta lo disparan.
+
+## Alerta de latencia
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 4
+¿Cómo te enteras si la latencia del asistente supera los 5 segundos en el percentil 95?
+- [ ] Revisando cada mañana el promedio de duración en el panel del endpoint.
+- [x] Con una alerta de Azure Monitor sobre la métrica de duración en Application Insights.
+- [ ] Revisando la factura mensual.
+- [ ] Con el panel de IA responsable.
+porque: Azure Monitor permite alertas sobre métricas de Application Insights, como el percentil 95 de duración.
+
+## Desborde de capacidad
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 5
+Tienes capacidad aprovisionada (PTU) para el tráfico normal, pero a fin de mes hay picos. ¿Qué configuras?
+- [ ] Más PTU fijas para cubrir el pico durante todo el mes, aunque queden ociosas.
+- [x] Desborde (spillover) a un despliegue de pago por uso cuando se agota la capacidad aprovisionada.
+- [ ] Rechazar las solicitudes del pico con un error 429.
+- [ ] Un despliegue batch para las solicitudes en línea.
+porque: El spillover envía el exceso a un despliegue estándar y evita pagar PTU de más todo el mes.
+
+## Elegir el modelo por consulta
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 5
+Muchas preguntas son simples y pocas requieren razonamiento. ¿Qué opción baja el costo sin perder calidad en las difíciles?
+- [ ] Usar siempre el modelo más grande, que responde bien a todo.
+- [x] Model router, que elige un modelo más chico o más grande según la consulta.
+- [ ] Usar siempre el modelo más chico.
+- [ ] Desactivar la evaluación.
+porque: El model router asigna cada consulta al modelo adecuado y reduce el costo promedio.
+
+## Prompt largo repetido
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 5
+Todas las solicitudes empiezan con las mismas 3.000 palabras de instrucciones. ¿Qué abarata esas llamadas?
+- [ ] Mover las instrucciones al final del mensaje del usuario.
+- [x] El prompt caching, que reutiliza el prefijo común y cobra menos por los tokens en caché.
+- [ ] Cambiar a un despliegue batch para las consultas en línea.
+- [ ] Repetir las instrucciones al final también.
+porque: Con prompt caching, el prefijo repetido se procesa una vez y sus tokens se cobran con descuento.
+
+## Destilar un modelo
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 5
+Un modelo grande da buenas respuestas en una tarea acotada, pero es caro. ¿Qué técnica produce un modelo chico que lo imita?
+- [ ] Bajar la temperatura del modelo grande para que use menos tokens por respuesta.
+- [x] Destilación: ajustar un modelo chico con las salidas (completions guardadas) del modelo grande.
+- [ ] Cuantizar el prompt.
+- [ ] Usar más PTU.
+porque: La destilación transfiere el comportamiento del modelo grande a uno chico con datos generados por el grande.
+
+## Batch para tareas sin urgencia
+leccion: cert-azure-ai300-mlops-genaiops
+dominio: 5
+Hay que clasificar 500.000 documentos y el resultado puede esperar hasta mañana. ¿Qué tipo de despliegue conviene?
+- [ ] Un despliegue estándar llamado de a un documento en tiempo real.
+- [x] Un despliegue batch (global batch), más barato a cambio de un plazo de respuesta mayor.
+- [ ] Más PTU.
+- [ ] Un endpoint online de Azure ML.
+porque: Los despliegues batch procesan grandes volúmenes de forma asíncrona con descuento sobre el precio estándar.
