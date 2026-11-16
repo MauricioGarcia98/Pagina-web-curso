@@ -618,3 +618,415 @@ dominio: 3
 - [ ] `VectorAssembler`.
 - [ ] `StringIndexer`.
 porque: `BinaryClassificationEvaluator` calcula areaUnderROC y areaUnderPR.
+
+## @caso precios: Supermercados del Pacífico
+Supermercados del Pacífico quiere predecir las ventas diarias de cada producto en cada una de sus 180 tiendas para ajustar los pedidos a los proveedores. Tiene tres años de ventas diarias en `prod.ventas.diarias` (unas 400 millones de filas), un calendario de feriados y promociones, y quiere un modelo que se reentrene cada semana.
+
+El equipo usa notebooks con Databricks Runtime ML y registra los modelos en Unity Catalog. Quiere:
+- entrenar un modelo por tienda sin escribir un bucle que tarde horas;
+- elegir hiperparámetros sin probar combinaciones a mano;
+- promover un modelo nuevo solo si mejora al actual.
+
+## Un modelo por tienda
+leccion: cert-databricks-ml-associate
+dominio: 3
+caso: precios
+¿Cómo entrenas un modelo distinto para cada una de las 180 tiendas aprovechando el clúster?
+- [ ] Un bucle `for` en el driver que filtra cada tienda con pandas, entrena su modelo y guarda las métricas en una lista, de a una tienda por vez.
+- [x] `groupBy("tienda_id").applyInPandas(...)` con una función que entrena y devuelve las métricas de cada tienda.
+- [ ] Un único modelo de Spark ML con la columna `tienda_id` como etiqueta.
+- [ ] Copiar los datos a 180 notebooks distintos y ejecutarlos a mano.
+porque: `applyInPandas` reparte los grupos entre los ejecutores y corre la función de entrenamiento en paralelo, una vez por tienda.
+
+## Separación para series de tiempo
+leccion: cert-databricks-ml-associate
+dominio: 2
+caso: precios
+¿Cómo separas entrenamiento y validación para este pronóstico?
+- [ ] Al azar, con `randomSplit([0.8, 0.2], seed=42)`, para que entrenamiento y validación tengan todas las fechas, tiendas y temporadas.
+- [x] Por fecha: entrenar con el pasado y validar con las semanas más recientes.
+- [ ] Por tienda: unas tiendas para entrenar y otras para validar, sin mirar las fechas.
+- [ ] No hace falta validar si el modelo se reentrena cada semana.
+porque: En series de tiempo, mezclar fechas filtra información del futuro y sobreestima la calidad del modelo.
+
+## Promover solo si mejora
+leccion: cert-databricks-ml-associate
+dominio: 4
+caso: precios
+El job semanal entrena un modelo nuevo. ¿Cómo se promueve sin riesgo?
+- [ ] Registrar la nueva versión con el mismo nombre y borrar la anterior del registro, para que la inferencia tome siempre la última versión disponible.
+- [x] Registrar la nueva versión, compararla con la del alias `@champion` sobre los mismos datos de validación y mover el alias solo si mejora.
+- [ ] Cambiar el nombre del modelo cada semana para no pisar el anterior.
+- [ ] Copiar el archivo del modelo a la carpeta del job de inferencia.
+porque: Los alias de Unity Catalog permiten cambiar qué versión usa la inferencia sin tocar el código, y la comparación evita promover un modelo peor.
+
+## Métrica para pronósticos
+leccion: cert-databricks-ml-associate
+dominio: 3
+caso: precios
+Hay productos que venden 2 unidades y otros 2.000. ¿Qué métrica comunica mejor el error a compras?
+- [ ] La exactitud, calculada como el porcentaje de días en que el pronóstico coincide con la venta real.
+- [ ] El AUC.
+- [x] Un error relativo como MAPE o WAPE, junto al MAE en unidades.
+- [ ] La matriz de confusión.
+porque: Con escalas tan distintas, un error porcentual o ponderado permite comparar productos; la exactitud y el AUC son métricas de clasificación.
+
+## Registro en Unity Catalog
+leccion: cert-databricks-ml-associate
+dominio: 1
+¿Qué hay que configurar en MLflow para que los modelos se registren en Unity Catalog?
+- [ ] Un archivo de configuración en el driver con la contraseña del metastore y la ruta de DBFS donde se guardan las versiones del modelo, que se lee al registrar.
+- [x] `mlflow.set_registry_uri("databricks-uc")` (es el valor por defecto en las versiones recientes) y un nombre de tres partes `catalogo.esquema.modelo`.
+- [ ] Nada: alcanza con un nombre de una sola parte, como `modelo_churn`.
+- [ ] Guardar el modelo en DBFS y crear una vista que lo apunte.
+porque: Con el registro de Unity Catalog, los modelos se nombran como cualquier objeto de UC y heredan su gobierno y permisos.
+
+## Qué guarda un run
+leccion: cert-databricks-ml-associate
+dominio: 1
+¿Qué guarda un run de MLflow?
+- [x] Parámetros, métricas, etiquetas y artefactos (por ejemplo, el modelo y gráficos).
+- [ ] Solo el modelo final en formato pickle.
+- [ ] El código del notebook y nada más.
+- [ ] Una copia completa de los datos de entrenamiento y validación, siempre, para poder reproducir el run aunque la tabla original cambie.
+porque: Un run registra parámetros, métricas, etiquetas y artefactos; los datos se referencian, no se copian por defecto.
+
+## Buscar el mejor run
+leccion: cert-databricks-ml-associate
+dominio: 1
+¿Cómo encuentras con código el run de mayor F1 de un experimento?
+- [ ] Recorriendo a mano la carpeta de artefactos.
+- [x] `mlflow.search_runs(experiment_ids=[...], order_by=["metrics.f1 DESC"], max_results=1)`.
+- [ ] `spark.read.table("system.mlflow.runs").orderBy("f1").limit(1)`, que lee la tabla interna donde MLflow guarda los runs de cada experimento.
+- [ ] Con `dbutils.fs.ls` sobre el experimento.
+porque: `search_runs` devuelve un DataFrame con los runs y permite filtrar y ordenar por métricas o parámetros.
+
+## Etiquetas de un run
+leccion: cert-databricks-ml-associate
+dominio: 1
+¿Para qué sirve agregar etiquetas (`mlflow.set_tag`) a un run?
+- [ ] Para definir la métrica principal del experimento, que MLflow usa después para ordenar los runs y elegir automáticamente el mejor modelo.
+- [x] Para anotar contexto (por ejemplo, el dataset, el autor o "candidato") y poder filtrar runs después.
+- [ ] Para que el run use una GPU.
+- [ ] Para borrar el run al terminar.
+porque: Las etiquetas son metadatos libres que se usan para buscar y organizar runs.
+
+## Modelo personalizado
+leccion: cert-databricks-ml-associate
+dominio: 1
+El modelo necesita un preprocesamiento propio antes de predecir. ¿Cómo lo empaquetas para que viaje con el modelo?
+- [ ] Documentando el preprocesamiento en un README del repositorio.
+- [x] Con un modelo `mlflow.pyfunc.PythonModel` que aplica el preprocesamiento en `predict`.
+- [ ] Copiando la función de preprocesamiento en cada job y endpoint que use el modelo, y documentando en el registro qué versión de la función corresponde a cada versión.
+- [ ] No se puede: MLflow solo guarda modelos de scikit-learn.
+porque: Un modelo pyfunc personalizado incluye la lógica de preprocesamiento y se carga igual que cualquier otro modelo de MLflow.
+
+## Entorno del modelo
+leccion: cert-databricks-ml-associate
+dominio: 1
+¿Qué evita que un modelo registrado falle en serving por una versión distinta de una librería?
+- [ ] Instalar en el endpoint la última versión disponible de cada librería, porque las versiones nuevas siempre pueden cargar modelos guardados con versiones anteriores.
+- [x] Las dependencias que MLflow guarda con el modelo (`requirements.txt` o `conda.yaml`), que se usan para armar su entorno.
+- [ ] Usar siempre el mismo nombre de experimento.
+- [ ] Registrar el modelo dos veces.
+porque: MLflow captura las dependencias al registrar el modelo y Model Serving construye el entorno con ellas.
+
+## Elegir el Runtime
+leccion: cert-databricks-ml-associate
+dominio: 1
+¿Por qué usar Databricks Runtime for Machine Learning en lugar del Runtime estándar?
+- [x] Porque trae preinstaladas las librerías de ML más usadas (scikit-learn, XGBoost, PyTorch, MLflow…) probadas juntas.
+- [ ] Porque es el único Runtime que puede leer tablas Delta y registrar modelos en Unity Catalog; el estándar solo trabaja con archivos CSV.
+- [ ] Porque no cobra DBUs.
+- [ ] Porque desactiva Unity Catalog.
+porque: El Runtime ML incluye un conjunto de librerías de ML compatibles entre sí, con y sin GPU.
+
+## Librería extra en el notebook
+leccion: cert-databricks-ml-associate
+dominio: 1
+Necesitas una librería que no viene en el Runtime ML, solo para tu notebook. ¿Qué haces?
+- [ ] Reinstalar el sistema operativo del clúster.
+- [x] `%pip install nombre-libreria` al principio del notebook.
+- [ ] Copiar el código fuente de la librería en una celda.
+- [ ] Pedir a un administrador que la instale como librería del clúster, porque `%pip` no funciona en Databricks Runtime ML.
+porque: `%pip install` instala la librería con alcance de notebook, sin afectar a otros usuarios del clúster.
+
+## Crear el set de entrenamiento con features
+leccion: cert-databricks-ml-associate
+dominio: 1
+¿Qué combina la tabla de etiquetas con las feature tables para entrenar?
+- [ ] Un `JOIN` escrito a mano en cada notebook entre la tabla de etiquetas y cada feature table, guardando el resultado como una tabla nueva por modelo.
+- [x] `FeatureEngineeringClient.create_training_set(...)` con una lista de `FeatureLookup`.
+- [ ] `mlflow.autolog()`.
+- [ ] `VectorAssembler`.
+porque: `create_training_set` une las features por clave (y por tiempo) y deja registrado qué features usa el modelo.
+
+## Puntuar con las features del modelo
+leccion: cert-databricks-ml-associate
+dominio: 1
+El modelo se registró con `fe.log_model(...)` usando feature lookups. ¿Cómo puntúas un lote que solo trae las claves?
+- [ ] Hay que volver a unir a mano todas las feature tables por clave antes de predecir, porque el modelo registrado solo guarda los pesos y no sabe qué features usa.
+- [x] `fe.score_batch(model_uri=..., df=claves)`: busca las features por clave y aplica el modelo.
+- [ ] `spark.sql("PREDICT ...")`.
+- [ ] No se puede puntuar con solo las claves.
+porque: Un modelo empaquetado con sus feature lookups sabe qué features buscar y `score_batch` las agrega automáticamente.
+
+## Clave de tiempo en una feature table
+leccion: cert-databricks-ml-associate
+dominio: 1
+¿Para qué se define una clave de tiempo (timeseries key) en una feature table?
+- [ ] Para ordenar la tabla al mostrarla.
+- [x] Para que los lookups tomen el valor de la feature vigente en la fecha de cada etiqueta (point-in-time) y no filtren el futuro.
+- [ ] Para que Databricks borre automáticamente las filas viejas de la feature table y solo quede el último valor de cada clave, ahorrando almacenamiento.
+- [ ] Para particionar el experimento de MLflow.
+porque: Con una clave de tiempo, el join point-in-time trae el último valor anterior a la fecha del evento, evitando la fuga de información.
+
+## Permiso para usar un modelo
+leccion: cert-databricks-ml-associate
+dominio: 1
+Un equipo debe poder cargar el modelo para inferencia pero no modificarlo. ¿Qué permiso le das en Unity Catalog?
+- [ ] `MODIFY` sobre el esquema y `SELECT` sobre el modelo, que permiten leerlo para inferencia sin dar acceso a las tablas de entrenamiento.
+- [x] `EXECUTE` sobre el modelo (más `USE CATALOG` y `USE SCHEMA`).
+- [ ] `MODIFY` sobre el esquema.
+- [ ] Ninguno: los modelos son públicos dentro del workspace.
+porque: `EXECUTE` permite usar el modelo para inferencia sin poder cambiarlo; los permisos de uso del catálogo y del esquema son necesarios para llegar a él.
+
+## AutoML: qué devuelve
+leccion: cert-databricks-ml-associate
+dominio: 1
+Después de una corrida de AutoML, ¿qué obtienes además del mejor modelo?
+- [ ] Solo un número con la mejor métrica, sin forma de saber cómo se obtuvo.
+- [x] Un notebook de exploración de datos y notebooks editables con el código de cada prueba, registrados en MLflow.
+- [ ] Un dashboard de ventas.
+- [ ] El mejor modelo ya desplegado en un endpoint de producción, con el alias `@champion` asignado y un monitor de deriva configurado.
+porque: AutoML genera notebooks con el código de las pruebas para que el equipo los revise y los adapte; no despliega solo.
+
+## Deduplicar antes de entrenar
+leccion: cert-databricks-ml-associate
+dominio: 2
+La tabla de entrenamiento tiene clientes repetidos por un error de carga. ¿Por qué importa antes de separar los datos?
+- [x] Porque el mismo cliente puede quedar en entrenamiento y en validación, y la métrica sale inflada.
+- [ ] No importa: más filas siempre mejoran el modelo.
+- [ ] Porque Spark no permite filas repetidas.
+- [ ] Porque Spark no permite filas repetidas en una tabla Delta y el entrenamiento falla con un error de clave duplicada al llegar al primer cliente repetido.
+porque: Los duplicados que cruzan la separación hacen que el modelo "vea" en validación casos que ya memorizó.
+
+## Valores atípicos
+leccion: cert-databricks-ml-associate
+dominio: 2
+En la exploración aparecen pedidos con montos de 10 millones, imposibles para el negocio. ¿Qué haces primero?
+- [ ] Borrar sin revisar todo lo que esté a más de tres desvíos estándar de la media, porque cualquier valor tan alto es siempre un error de carga.
+- [x] Investigar con el dueño de los datos si son errores de carga, y documentar la regla de limpieza que se aplique.
+- [ ] Dejarlos tal cual: el modelo se adapta solo.
+- [ ] Multiplicar todos los montos por 10 para que no se noten.
+porque: Las reglas de limpieza tienen que tener sentido de negocio y quedar documentadas; borrar sin entender puede eliminar casos reales.
+
+## Variables categóricas con muchos valores
+leccion: cert-databricks-ml-associate
+dominio: 2
+Una columna tiene 50.000 códigos de producto distintos. ¿Qué problema tiene aplicar one-hot encoding directo?
+- [ ] Ninguno.
+- [x] Genera 50.000 columnas muy dispersas; conviene agrupar los poco frecuentes, usar target encoding o embeddings, o un modelo de árboles que lo tolere.
+- [ ] Que `OneHotEncoder` de Spark tiene un máximo de 1.000 categorías por columna, así que falla y hay que dividir la columna en varias partes.
+- [ ] Convierte la columna en numérica continua.
+porque: Con alta cardinalidad, one-hot explota la dimensión; hay técnicas para reducirla.
+
+## Imputar con estadísticas del entrenamiento
+leccion: cert-databricks-ml-associate
+dominio: 2
+¿De dónde salen los valores para imputar los nulos de validación y producción?
+- [ ] De la mediana de todo el dataset, incluidos validación y producción, para que el valor imputado represente mejor a toda la población.
+- [x] De lo aprendido solo con los datos de entrenamiento, aplicado igual al resto (por ejemplo, con un `Imputer` dentro del pipeline).
+- [ ] De un valor distinto cada vez que se predice.
+- [ ] Siempre de cero.
+porque: Calcular la imputación con datos de validación filtra información; el pipeline ajustado en entrenamiento se aplica igual después.
+
+## Búsqueda aleatoria o en grilla
+leccion: cert-databricks-ml-associate
+dominio: 2
+Tienes 6 hiperparámetros y poco tiempo. ¿Qué estrategia de búsqueda conviene?
+- [ ] Una grilla completa con 10 valores por hiperparámetro, porque es la única estrategia que garantiza encontrar la mejor combinación.
+- [x] Búsqueda aleatoria o bayesiana (por ejemplo, con Optuna), con un número de pruebas acotado.
+- [ ] Probar un solo valor por hiperparámetro.
+- [ ] No ajustar nada.
+porque: Una grilla completa crece exponencialmente; la búsqueda aleatoria o bayesiana explora mejor con el mismo presupuesto.
+
+## Registrar el ajuste en MLflow
+leccion: cert-databricks-ml-associate
+dominio: 2
+¿Cómo queda ordenado en MLflow un ajuste de hiperparámetros con 50 pruebas?
+- [ ] 50 experimentos distintos, uno por prueba, cada uno con su propio nombre que incluya los valores de los hiperparámetros probados.
+- [x] Un run padre con 50 runs hijos anidados, cada uno con sus parámetros y métrica.
+- [ ] Un solo run con la última prueba.
+- [ ] No se registra: el ajuste no usa MLflow.
+porque: Los runs anidados agrupan las pruebas de un mismo ajuste y permiten compararlas en la interfaz.
+
+## Validación cruzada en Spark ML
+leccion: cert-databricks-ml-associate
+dominio: 2
+¿Qué clase de Spark ML combina una grilla de parámetros con validación cruzada de k particiones?
+- [ ] `TrainValidationSplit` con un `ParamGridBuilder` y `trainRatio=0.8`.
+- [x] `CrossValidator` con un `ParamGridBuilder` y un evaluador.
+- [ ] `StandardScaler`.
+- [ ] `Bucketizer`.
+porque: `CrossValidator` evalúa cada combinación de la grilla en k particiones y elige la mejor según el evaluador.
+
+## Más rápido que validación cruzada
+leccion: cert-databricks-ml-associate
+dominio: 2
+Los datos son enormes y la validación cruzada tarda demasiado. ¿Qué alternativa de Spark ML evalúa cada combinación una sola vez?
+- [x] `TrainValidationSplit`.
+- [ ] `CrossValidator` con `numFolds=10` y `parallelism=8`.
+- [ ] `OneHotEncoder`.
+- [ ] `PCA`.
+porque: `TrainValidationSplit` usa una única partición de entrenamiento y validación: menos robusto, pero mucho más barato con datos grandes.
+
+## Escalado y árboles
+leccion: cert-databricks-ml-associate
+dominio: 3
+¿Para qué modelo es necesario escalar las variables numéricas?
+- [ ] Para un árbol de decisión.
+- [ ] Para un random forest, porque promedia muchos árboles y cada uno usa variables distintas.
+- [x] Para una regresión logística con regularización o un modelo basado en distancias (k-means, KNN).
+- [ ] Para ninguno.
+porque: Los árboles no dependen de la escala; la regularización y las distancias sí.
+
+## StringIndexer antes de un clasificador
+leccion: cert-databricks-ml-associate
+dominio: 3
+La etiqueta es el texto "si"/"no". ¿Qué haces antes de entrenar un clasificador de Spark ML?
+- [x] Convertirla en índice numérico con `StringIndexer`.
+- [ ] Dejarla como texto: Spark ML la entiende.
+- [ ] Aplicarle `VectorAssembler` para convertirla en un vector antes de entrenar.
+- [ ] Escalarla con `StandardScaler`.
+porque: Los estimadores de Spark ML esperan una etiqueta numérica; `StringIndexer` la indexa.
+
+## Ajustar el pipeline completo
+leccion: cert-databricks-ml-associate
+dominio: 3
+¿Qué devuelve `pipeline.fit(entrenamiento)` en Spark ML?
+- [ ] Una métrica de evaluación.
+- [x] Un `PipelineModel` con todas las etapas ajustadas, que se aplica a nuevos datos con `transform`.
+- [ ] El DataFrame de entrenamiento con una columna nueva `prediction` y otra `probability`.
+- [ ] Un experimento de MLflow.
+porque: `fit` ajusta cada etapa en orden y devuelve un modelo de pipeline listo para transformar datos nuevos con los mismos pasos.
+
+## Random forest: más árboles
+leccion: cert-databricks-ml-associate
+dominio: 3
+¿Qué suele pasar al aumentar `numTrees` en un random forest?
+- [ ] El modelo sobreajusta mucho más, porque cada árbol nuevo memoriza otra parte del entrenamiento y el promedio hereda todos esos errores.
+- [x] Las predicciones se estabilizan y mejora un poco la calidad hasta un punto, con más costo de entrenamiento.
+- [ ] El modelo pasa a ser lineal.
+- [ ] Se eliminan las variables categóricas.
+porque: Promediar más árboles reduce la varianza; a partir de cierto número la mejora es marginal y solo crece el costo.
+
+## Profundidad máxima
+leccion: cert-databricks-ml-associate
+dominio: 3
+Un árbol de decisión tiene error casi nulo en entrenamiento y alto en validación. ¿Qué ajuste pruebas?
+- [x] Reducir `maxDepth` (o aumentar el mínimo de filas por hoja).
+- [ ] Aumentar `maxDepth` y bajar `minInstancesPerNode` para que el árbol capture más detalle.
+- [ ] Quitar el conjunto de validación.
+- [ ] Usar más columnas irrelevantes.
+porque: Un árbol muy profundo memoriza el entrenamiento; limitar la profundidad reduce el sobreajuste.
+
+## Regularización
+leccion: cert-databricks-ml-associate
+dominio: 3
+¿Qué efecto tiene aumentar `regParam` en una regresión logística de Spark ML?
+- [ ] Hace el modelo más complejo, porque agrega términos de interacción entre las variables para capturar relaciones no lineales.
+- [x] Penaliza los coeficientes grandes y reduce el sobreajuste (con riesgo de subajuste si es excesivo).
+- [ ] Cambia la etiqueta.
+- [ ] Desactiva la convergencia.
+porque: La regularización restringe los coeficientes para que el modelo generalice mejor.
+
+## Precisión y recall
+leccion: cert-databricks-ml-associate
+dominio: 3
+Un modelo de fraude marca 100 pagos y 80 son fraude real; hubo 200 fraudes en total. ¿Cuánto valen precisión y recall?
+- [ ] Precisión 40 %, recall 80 %.
+- [x] Precisión 80 %, recall 40 %.
+- [ ] Precisión 50 %, recall 50 %.
+- [ ] Precisión 100 %, recall 80 %.
+porque: Precisión = 80 / 100 marcados; recall = 80 / 200 fraudes reales.
+
+## Curva ROC
+leccion: cert-databricks-ml-associate
+dominio: 3
+¿Qué representa la curva ROC?
+- [ ] El error por época de entrenamiento.
+- [x] La tasa de verdaderos positivos contra la de falsos positivos para cada umbral.
+- [ ] La importancia de cada variable en el modelo, ordenada de mayor a menor contribución a la predicción.
+- [ ] La distribución de la etiqueta.
+porque: La curva ROC muestra el compromiso entre detectar positivos y generar falsas alarmas a medida que cambia el umbral.
+
+## RMSE o MAE
+leccion: cert-databricks-ml-associate
+dominio: 3
+¿En qué se diferencia el RMSE del MAE?
+- [ ] No hay diferencia.
+- [x] El RMSE penaliza más los errores grandes porque eleva al cuadrado; el MAE pesa todos los errores igual.
+- [ ] El MAE solo sirve para clasificación.
+- [ ] El RMSE siempre es menor que el MAE, porque al sacar la raíz cuadrada los errores grandes se achican.
+porque: Al elevar al cuadrado, el RMSE es más sensible a los errores grandes; el MAE es el error absoluto medio.
+
+## pandas API on Spark
+leccion: cert-databricks-ml-associate
+dominio: 3
+Un científico tiene código de pandas que no entra en la memoria del driver. ¿Qué cambio mínimo le permite escalarlo?
+- [ ] Reescribir todo en Scala.
+- [x] Usar la pandas API on Spark (`import pyspark.pandas as ps`), que mantiene casi la misma sintaxis.
+- [ ] Elegir un driver con mucha más memoria y dejar el código igual, porque pandas en Databricks reparte el trabajo entre los ejecutores automáticamente.
+- [ ] Convertir el DataFrame a una lista de Python.
+porque: La pandas API on Spark ofrece una interfaz similar a pandas que se ejecuta distribuida.
+
+## Convertir a pandas
+leccion: cert-databricks-ml-associate
+dominio: 3
+¿Qué riesgo tiene llamar a `toPandas()` sobre un DataFrame de Spark de 300 millones de filas?
+- [x] Traer todas las filas al driver y quedarse sin memoria.
+- [ ] Ninguno: en Databricks, `toPandas()` devuelve un DataFrame distribuido que sigue repartido entre los ejecutores.
+- [ ] Que se pierdan las columnas de texto.
+- [ ] Que se borre la tabla original.
+porque: `toPandas()` recolecta todo en el driver; conviene filtrar, muestrear o usar la pandas API on Spark.
+
+## Comparar con una línea base
+leccion: cert-databricks-ml-associate
+dominio: 3
+¿Por qué se compara un modelo nuevo contra una línea base simple (por ejemplo, "predecir el promedio" o "lo mismo que la semana pasada")?
+- [ ] Porque MLflow exige registrar una línea base antes de permitir registrar el modelo en Unity Catalog.
+- [x] Para saber si el modelo aporta valor real frente a la regla más simple posible.
+- [ ] Para aumentar la exactitud.
+- [ ] No sirve para nada.
+porque: Si un modelo complejo no supera una regla trivial, no justifica su costo ni su riesgo.
+
+## Inferencia en streaming
+leccion: cert-databricks-ml-associate
+dominio: 4
+Las transacciones llegan continuamente a una tabla Delta y se quieren puntuar a medida que llegan, con unos minutos de demora aceptable. ¿Qué usas?
+- [ ] Un endpoint de Model Serving al que un dashboard llama cada vez que alguien abre la página, guardando la respuesta en la tabla.
+- [x] Structured Streaming leyendo la tabla y aplicando el modelo con `mlflow.pyfunc.spark_udf`.
+- [ ] Un job manual una vez por mes.
+- [ ] AutoML.
+porque: La misma UDF de Spark que se usa en lotes sirve en streaming para puntuar los datos a medida que llegan.
+
+## Tabla de inferencias del endpoint
+leccion: cert-databricks-ml-associate
+dominio: 4
+¿Para qué se habilita la tabla de inferencias en un endpoint de Model Serving?
+- [ ] Para entrenar el modelo en el endpoint.
+- [x] Para guardar en una tabla Delta las solicitudes y respuestas del endpoint y poder monitorearlas y auditarlas.
+- [ ] Para que el endpoint guarde en caché las respuestas y devuelva al instante las predicciones de solicitudes repetidas, con latencia casi nula.
+- [ ] Para cambiar el alias del modelo.
+porque: Las tablas de inferencias registran el tráfico del endpoint y alimentan el monitoreo de calidad y deriva.
+
+## Escalar a cero
+leccion: cert-databricks-ml-associate
+dominio: 4
+Un endpoint se usa solo en horario laboral. ¿Qué opción ahorra costo?
+- [ ] Desplegarlo en un clúster con muchos nodos encendido todo el día.
+- [x] Habilitar el escalado a cero (scale to zero), aceptando una demora en la primera solicitud.
+- [ ] Borrar el endpoint cada noche y recrearlo cada mañana con un job, volviendo a registrar el modelo en Unity Catalog cada vez.
+- [ ] No hay forma de ahorrar.
+porque: Con scale to zero el endpoint no consume recursos sin tráfico; la primera solicitud tarda más mientras arranca.
