@@ -796,3 +796,260 @@ Vas a entrenar un modelo personalizado de Document Intelligence para un formular
 - [ ] Una sola imagen del formulario vacío.
 - [ ] Un índice de AI Search con los formularios ya cargados.
 porque: Los modelos personalizados se entrenan con ejemplos etiquetados del formulario, con un mínimo de cinco documentos.
+
+## @caso logistica: Transportes Meridiano
+Transportes Meridiano mueve cargas entre cinco países. Quiere un agente interno que responda a los choferes sobre normas de tránsito y procedimientos usando sus manuales, que lea los remitos escaneados para cargar los datos en el sistema y que detecte, en los mensajes de los clientes, si hay un reclamo urgente. Todo debe quedar dentro de su red y de la región de la empresa, con costos controlados.
+
+## Manuales para choferes
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+caso: logistica
+¿Qué herramienta del agente de Foundry responde a partir de los manuales con citas, sin construir antes un índice propio?
+- [ ] Code Interpreter, que lee los manuales en PDF y ejecuta código para encontrar cada respuesta.
+- [x] File search, con los manuales cargados en un vector store del agente.
+- [ ] La herramienta de grounding con Bing, que busca los manuales en internet.
+- [ ] Una función de Azure que devuelve siempre el mismo texto.
+porque: File search indexa los archivos del agente y responde con citas, sin administrar un índice aparte.
+
+## Remitos escaneados
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 5
+caso: logistica
+Los remitos siempre tienen el mismo diseño. ¿Qué modelo de Document Intelligence conviene entrenar?
+- [ ] Un modelo neuronal personalizado con miles de ejemplos de formatos distintos, porque es el único que admite remitos.
+- [x] Un modelo personalizado de plantilla (template), entrenado con pocos remitos etiquetados.
+- [ ] El modelo prediseñado de documentos de identidad.
+- [ ] El modelo de lectura sin campos.
+porque: Para documentos de diseño fijo, el modelo de plantilla aprende con pocos ejemplos; el neuronal conviene con formatos variables.
+
+## Reclamos urgentes
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 4
+caso: logistica
+¿Cómo detectas que un mensaje es un reclamo urgente con categorías propias de la empresa?
+- [ ] Con el análisis de sentimiento prediseñado, que clasifica cada mensaje en las categorías propias de la empresa.
+- [x] Con clasificación de texto personalizada en Azure AI Language, entrenada con mensajes etiquetados.
+- [ ] Con OCR.
+- [ ] Con Text to Speech.
+porque: La clasificación personalizada aprende las categorías del negocio a partir de ejemplos etiquetados.
+
+## Dentro de la región
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+caso: logistica
+¿Qué tipo de despliegue del modelo mantiene el procesamiento dentro de la zona geográfica de la empresa?
+- [ ] Global Standard, que elige la región más rápida del mundo para cada solicitud.
+- [x] Data Zone Standard (o un despliegue regional estándar).
+- [ ] Global Batch.
+- [ ] Cualquier tipo: ninguno controla dónde se procesan los datos.
+porque: Los despliegues de zona de datos y regionales limitan dónde se procesan las solicitudes.
+
+## Rol mínimo para desarrolladores
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+Un desarrollador debe crear agentes y usar los modelos del proyecto, pero no administrar el recurso. ¿Qué rol le das?
+- [ ] Owner sobre la suscripción, para que no le falte ningún permiso al crear recursos.
+- [x] Azure AI User sobre el proyecto (o el recurso de Foundry).
+- [ ] Reader, que permite invocar modelos y crear agentes.
+- [ ] Ninguno.
+porque: Azure AI User permite usar modelos y construir en el proyecto sin permisos de administración.
+
+## Diagnóstico centralizado
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+¿Cómo envías los registros y métricas del recurso de Foundry a un lugar central para analizarlos?
+- [ ] Descargando cada día un CSV desde el portal y subiéndolo a una carpeta compartida.
+- [x] Con la configuración de diagnóstico hacia un área de trabajo de Log Analytics.
+- [ ] Con Content Safety.
+- [ ] Con un despliegue Global Batch.
+porque: La configuración de diagnóstico envía registros y métricas a Log Analytics, almacenamiento o Event Hubs.
+
+## Límite de tokens por minuto
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+Una aplicación interna consume toda la cuota del modelo y deja sin servicio a las demás. ¿Qué haces?
+- [ ] Aumentar la temperatura de esa aplicación para que use menos tokens en cada respuesta.
+- [x] Repartir la cuota en despliegues separados con su propio límite de tokens por minuto (TPM).
+- [ ] Borrar el despliegue.
+- [ ] Desactivar los filtros de contenido.
+porque: Cada despliegue tiene su asignación de TPM; separarlos evita que una app consuma toda la cuota.
+
+## Plantillas de infraestructura
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+¿Cómo creas el recurso de Foundry, el proyecto y los despliegues de modelos de forma repetible en dev y prod?
+- [ ] Haciendo clic en el portal en cada entorno y anotando los pasos en un documento.
+- [x] Con plantillas de Bicep o Terraform ejecutadas desde un pipeline.
+- [ ] Copiando las claves de dev en prod.
+- [ ] Con un filtro de contenido.
+porque: La infraestructura como código hace los entornos repetibles y revisables.
+
+## Material protegido
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+¿Qué detección de Content Safety identifica si una respuesta reproduce texto o código protegido conocido?
+- [ ] Prompt Shields, que analiza las respuestas buscando contenido con derechos de autor.
+- [x] La detección de material protegido.
+- [ ] La detección de idioma.
+- [ ] El OCR.
+porque: La detección de material protegido marca texto o código que coincide con contenido protegido conocido.
+
+## Moderación de imágenes subidas
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+Los usuarios suben fotos a una aplicación. ¿Qué servicio detecta contenido violento o sexual en las imágenes?
+- [ ] Azure AI Translator, que traduce las imágenes y filtra las palabras ofensivas que contienen.
+- [x] Azure AI Content Safety, con el análisis de imágenes.
+- [ ] Document Intelligence.
+- [ ] Azure AI Search.
+porque: Content Safety analiza texto e imágenes y devuelve la severidad por categoría.
+
+## Costos por proyecto
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+Finanzas quiere ver cuánto gasta cada proyecto de IA. ¿Qué aplicas?
+- [ ] Una suscripción de Azure distinta para cada solicitud que se haga al modelo.
+- [x] Etiquetas en los recursos y análisis en Cost Management, con presupuestos y alertas.
+- [ ] Prompt Shields.
+- [ ] Un modelo más grande.
+porque: Las etiquetas y Cost Management permiten asignar, presupuestar y alertar sobre los costos.
+
+## Evitar claves en el código
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+Una Azure Function llama al modelo. ¿Cómo se autentica sin guardar una clave de API?
+- [ ] Con la clave del recurso escrita en la configuración de la aplicación en texto plano.
+- [x] Con su identidad administrada y un rol de Azure que le permite usar el modelo.
+- [ ] Sin autenticación.
+- [ ] Con la contraseña de un administrador.
+porque: La identidad administrada con RBAC evita manejar claves.
+
+## Respuestas con datos de la web
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+El agente debe responder sobre noticias de tránsito del día. ¿Qué herramienta le agregas?
+- [ ] File search con los manuales internos, que se actualizan solos con las noticias de cada día.
+- [x] Grounding con Bing Search.
+- [ ] Code Interpreter.
+- [ ] Una plantilla de prompt fija.
+porque: El grounding con Bing aporta información pública y actual con citas.
+
+## Analizar un archivo de datos
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+Un usuario sube un CSV y pide un gráfico de entregas por mes. ¿Qué herramienta del agente lo resuelve?
+- [ ] File search, que convierte el CSV en un gráfico al indexarlo en el vector store.
+- [x] Code Interpreter, que ejecuta Python sobre el archivo y genera el gráfico.
+- [ ] Grounding con Bing.
+- [ ] Prompt Shields.
+porque: Code Interpreter ejecuta código en un entorno aislado para analizar archivos y crear gráficos.
+
+## Llamar a una función propia
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+El agente debe consultar el estado de un envío en el sistema de la empresa. ¿Cómo lo conectas?
+- [ ] Copiando la base de envíos en el prompt de sistema del agente cada mañana.
+- [x] Con una herramienta de función (por ejemplo, Azure Functions u OpenAPI) que el agente llama con el número de envío.
+- [ ] Con grounding con Bing.
+- [ ] Con un filtro de contenido.
+porque: Las herramientas de función permiten al agente invocar sistemas propios con parámetros.
+
+## Semantic Kernel
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+Un equipo quiere orquestar modelos, plugins y agentes desde su aplicación .NET o Python con un SDK de Microsoft. ¿Qué usa?
+- [ ] Azure Data Factory, que orquesta los llamados del modelo con actividades de copia.
+- [x] Semantic Kernel (o Microsoft Agent Framework).
+- [ ] Azure DNS.
+- [ ] Power BI.
+porque: Semantic Kernel y Agent Framework son SDK para integrar modelos, herramientas y agentes en aplicaciones.
+
+## Respuestas en streaming
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+La interfaz debe mostrar la respuesta del modelo mientras se genera. ¿Qué haces?
+- [ ] Usar un despliegue Global Batch, que devuelve los resultados en el momento.
+- [x] Llamar al modelo con streaming habilitado y mostrar los fragmentos a medida que llegan.
+- [ ] Aumentar la temperatura.
+- [ ] Desactivar el historial.
+porque: Con streaming, la API devuelve fragmentos de la respuesta a medida que se generan.
+
+## Imágenes generadas
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+Marketing quiere generar imágenes a partir de descripciones dentro de Foundry. ¿Qué tipo de modelo despliega?
+- [ ] Un modelo de embeddings, que convierte las descripciones en imágenes.
+- [x] Un modelo de generación de imágenes del catálogo de Foundry.
+- [ ] Un modelo de Speech.
+- [ ] Un modelo de Document Intelligence.
+porque: El catálogo de Foundry incluye modelos de generación de imágenes.
+
+## Embeddings para buscar
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+¿Qué modelo necesitas desplegar para la búsqueda vectorial de un índice de Azure AI Search?
+- [ ] Un modelo de chat, que genera los vectores de cada documento al responder preguntas.
+- [x] Un modelo de embeddings, usado tanto para los documentos como para las consultas.
+- [ ] Un modelo de imágenes.
+- [ ] Un modelo de voz.
+porque: La búsqueda vectorial requiere embeddings del mismo modelo para documentos y consultas.
+
+## Leer texto en fotos
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 3
+Una app debe leer el texto de las patentes en fotos de camiones. ¿Qué capacidad de Azure AI Vision usa?
+- [ ] Las etiquetas de imagen, que devuelven el texto completo de la patente.
+- [x] La lectura de texto (OCR) del análisis de imágenes.
+- [ ] La detección de material protegido.
+- [ ] Text to Speech.
+porque: La función de lectura de Image Analysis extrae texto impreso y manuscrito.
+
+## Descripciones densas
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 3
+Quieres una descripción para cada región importante de una imagen, no solo una para toda la foto. ¿Qué función usas?
+- [ ] Caption, que devuelve una descripción por cada objeto detectado en la imagen.
+- [x] Dense captions.
+- [ ] OCR.
+- [ ] Detección de idioma.
+porque: Dense captions genera descripciones para varias regiones de la imagen.
+
+## Contar objetos
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 3
+Necesitas saber cuántas cajas hay en una foto del depósito y dónde está cada una. ¿Qué tarea es?
+- [ ] Clasificación de imagen, que asigna una sola etiqueta a toda la foto.
+- [x] Detección de objetos, que devuelve cada objeto con su cuadro delimitador.
+- [ ] OCR.
+- [ ] Análisis de sentimiento.
+porque: La detección de objetos localiza y cuenta cada instancia con su posición.
+
+## Transcripción en tiempo real
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 5
+Un dictado del chofer debe convertirse en texto mientras habla. ¿Qué usa?
+- [ ] La transcripción por lotes, que procesa los audios en S3 al día siguiente.
+- [x] Speech to text en tiempo real del servicio Speech.
+- [ ] Document Intelligence.
+- [ ] Azure AI Search.
+porque: El reconocimiento en tiempo real devuelve texto a medida que la persona habla.
+
+## Campos con baja confianza
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 5
+Algunos campos de los remitos salen con confianza baja. ¿Qué haces?
+- [ ] Aceptarlos siempre, porque el modelo nunca se equivoca en campos de documentos.
+- [x] Definir un umbral y enviar a revisión humana los campos por debajo, y agregar esos casos al entrenamiento.
+- [ ] Borrar los remitos.
+- [ ] Subir la temperatura del modelo.
+porque: La confianza indica cuándo revisar; los casos difíciles mejoran el modelo al reentrenarlo.
+
+## Recibos de gastos
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 5
+Los choferes envían fotos de tickets de combustible. ¿Qué modelo usas para extraer comercio, fecha y total?
+- [ ] Un modelo personalizado de plantilla entrenado desde cero con cada estación de servicio del país.
+- [x] El modelo prediseñado de recibos de Document Intelligence.
+- [ ] El modelo de documentos de identidad.
+- [ ] Image Analysis con etiquetas.
+porque: El modelo prediseñado de recibos extrae los campos habituales sin entrenamiento.

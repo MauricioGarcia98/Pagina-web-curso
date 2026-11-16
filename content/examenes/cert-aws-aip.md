@@ -767,3 +767,300 @@ Varios equipos usan el mismo modelo y finanzas quiere el costo de cada uno. ¿Qu
 - [ ] Un guardrail por equipo.
 - [ ] Un modelo distinto por equipo.
 porque: Los perfiles de inferencia de aplicación permiten etiquetar y atribuir el uso de un modelo.
+
+## @caso viajes: Rumbo Viajes
+Rumbo Viajes vende paquetes turísticos por web y WhatsApp. Quiere un agente que responda preguntas sobre destinos usando 3.000 fichas de producto (PDF y HTML), que consulte disponibilidad y precios en su API de reservas y que pueda crear una reserva solo después de que el cliente confirme. Se esperan picos fuertes durante las ofertas de temporada.
+
+## Fichas de producto actualizadas
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 1
+caso: viajes
+Las fichas cambian varias veces por semana. ¿Cómo se mantienen al día las respuestas del agente?
+- [ ] Ajustando el modelo con las fichas cada vez que cambian y comprando capacidad aprovisionada para el modelo nuevo cada semana.
+- [x] Con una Knowledge Base de Bedrock sobre el bucket de fichas, sincronizada cada vez que cambian los documentos.
+- [ ] Copiando todas las fichas dentro del prompt de sistema en cada llamada al modelo.
+- [ ] Con un modelo de imágenes que lee las fichas cuando el cliente pregunta.
+porque: La Knowledge Base indexa los documentos y una sincronización incorpora los cambios sin reentrenar.
+
+## Crear la reserva con confirmación
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 2
+caso: viajes
+¿Cómo se asegura que el agente no cree una reserva sin que el cliente la confirme?
+- [ ] Con una instrucción en el prompt de sistema que le pide al modelo no reservar nunca sin preguntar antes.
+- [x] Con la confirmación del usuario habilitada en la acción de crear reserva, que se ejecuta solo después de un "sí" explícito.
+- [ ] Con una temperatura de cero, que evita que el modelo tome decisiones por su cuenta.
+- [ ] Con un guardrail que bloquea la palabra "reservar".
+porque: La confirmación del usuario en un action group obliga a pedir aprobación antes de ejecutar acciones con efectos.
+
+## Picos de temporada
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 4
+caso: viajes
+Durante las ofertas aparecen errores de throttling en una sola región. ¿Qué opción distribuye la carga sin cambiar de modelo?
+- [ ] Reintentar sin espera en un bucle hasta que el modelo responda.
+- [x] Un perfil de inferencia entre regiones (cross-Region inference), con reintentos con backoff exponencial.
+- [ ] Bajar la temperatura del modelo durante las ofertas.
+- [ ] Desactivar la Knowledge Base durante los picos.
+porque: La inferencia entre regiones reparte las solicitudes en varias regiones y el backoff evita saturar el servicio.
+
+## Precio sin inventar
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 3
+caso: viajes
+El agente a veces menciona precios que no salieron de la API. ¿Qué control agregas en Bedrock Guardrails?
+- [ ] Un filtro de palabras que bloquea todos los números de las respuestas del agente.
+- [x] El chequeo de fundamentación contextual (contextual grounding check), que bloquea respuestas no respaldadas por la fuente.
+- [ ] Un tema denegado sobre viajes.
+- [ ] Un filtro de imágenes.
+porque: El contextual grounding check compara la respuesta con la fuente y la consulta, y bloquea lo que no está respaldado.
+
+## Chunking por estructura
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 1
+Las fichas tienen títulos y secciones claras (itinerario, incluye, no incluye). ¿Qué estrategia de chunking aprovecha esa estructura?
+- [ ] Chunks de tamaño fijo de 50 tokens sin superposición, sin importar dónde termina cada sección.
+- [x] Chunking jerárquico o por secciones, que mantiene juntos los párrafos de cada sección.
+- [ ] Un solo chunk por cada archivo completo, sin dividir.
+- [ ] Ningún chunking.
+porque: Respetar la estructura del documento produce chunks coherentes y mejora la recuperación.
+
+## Filtros de metadatos
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 1
+Un cliente pregunta solo por paquetes a Brasil. ¿Cómo limitas la búsqueda en la Knowledge Base?
+- [ ] Aumentando el número de resultados recuperados a 100 para que aparezcan más paquetes de Brasil entre ellos.
+- [x] Guardando el país como metadato de cada documento y aplicando un filtro de metadatos en la consulta.
+- [ ] Creando un modelo distinto por país.
+- [ ] Subiendo la temperatura.
+porque: Los filtros de metadatos restringen la recuperación a los documentos relevantes.
+
+## Parseo avanzado
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 1
+Los PDF tienen tablas de precios que se pierden con el parseo estándar. ¿Qué configuras en la Knowledge Base?
+- [ ] Un modelo de embeddings con más dimensiones, que reconstruye las tablas al vectorizar el texto.
+- [x] Un parser avanzado (con un modelo fundacional o Bedrock Data Automation) que interpreta tablas y figuras.
+- [ ] Un filtro de palabras.
+- [ ] Una temperatura más baja.
+porque: Los parsers avanzados extraen correctamente tablas y elementos visuales antes del chunking.
+
+## Converse en lugar de InvokeModel
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 1
+¿Qué ventaja tiene la API Converse frente a InvokeModel?
+- [ ] Ninguna: Converse solo funciona con modelos de Amazon y cada proveedor necesita su propio formato de mensajes.
+- [x] Ofrece un formato de mensajes y de uso de herramientas común a los modelos que la admiten.
+- [ ] Es la única forma de usar Guardrails.
+- [ ] No cobra tokens.
+porque: Converse unifica el formato de mensajes, parámetros y tool use entre modelos.
+
+## Prompt caching
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 1
+Todas las llamadas incluyen las mismas 5.000 palabras de instrucciones y catálogo. ¿Qué reduce costo y latencia?
+- [ ] Repetir las instrucciones al final del prompt para que el modelo las recuerde mejor y responda con menos tokens.
+- [x] Prompt caching con un punto de caché después del prefijo común.
+- [ ] Usar inferencia por lotes para el chat en vivo.
+- [ ] Subir la temperatura.
+porque: El prompt caching reutiliza el prefijo procesado y cobra menos por los tokens en caché.
+
+## Modelo de razonamiento
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 1
+Una tarea requiere planificar itinerarios con muchas restricciones. ¿Qué considerar al elegir el modelo?
+- [ ] El modelo más barato siempre, porque la calidad del razonamiento es igual en todos los modelos disponibles.
+- [x] Un modelo con mayor capacidad de razonamiento, evaluado con casos reales y comparado en costo y latencia.
+- [ ] Un modelo de imágenes.
+- [ ] Un modelo de embeddings.
+porque: Las tareas complejas pueden justificar un modelo más capaz, siempre medido con evaluación y costo.
+
+## Datos personales en el índice
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 1
+Antes de indexar documentos de clientes, ¿qué conviene hacer con sus datos personales?
+- [ ] Indexarlos tal cual, porque la Knowledge Base cifra todo y nadie podrá recuperarlos en una respuesta.
+- [x] Detectarlos y quitarlos o enmascararlos si no hacen falta (por ejemplo, con Amazon Comprehend o Macie).
+- [ ] Publicarlos en un bucket abierto.
+- [ ] Guardarlos en el prompt de sistema.
+porque: Minimizar datos personales antes de indexar reduce el riesgo de que aparezcan en respuestas.
+
+## Reindexar sin cortar el servicio
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 1
+Cambias el modelo de embeddings. ¿Qué implica para la Knowledge Base?
+- [ ] Nada: los vectores existentes sirven igual con cualquier modelo de embeddings nuevo.
+- [x] Hay que volver a vectorizar todos los documentos con el modelo nuevo, idealmente en un índice paralelo antes de cambiar.
+- [ ] Solo hay que cambiar la temperatura.
+- [ ] Hay que borrar los documentos de S3.
+porque: Los vectores de modelos distintos no son comparables; se reindexa y luego se cambia.
+
+## Streaming por WebSocket
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 2
+El chat web debe mostrar la respuesta a medida que se genera. ¿Qué combinación usas?
+- [ ] Una llamada síncrona a InvokeModel que devuelve la respuesta completa al final, mostrada de una vez.
+- [x] ConverseStream (o InvokeModelWithResponseStream) enviando los fragmentos al navegador, por ejemplo con API Gateway WebSocket.
+- [ ] Inferencia por lotes.
+- [ ] Un correo con la respuesta.
+porque: Las APIs de streaming devuelven tokens a medida que se generan y el WebSocket los lleva al cliente.
+
+## Flujos con varios pasos
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 2
+Un proceso debe extraer datos de un correo, consultar una base, pedir aprobación humana y luego responder. ¿Qué servicio orquesta los pasos con esperas largas?
+- [ ] Una sola función Lambda que espera hasta la aprobación, aunque tarde varios días en llegar.
+- [x] AWS Step Functions, con un paso de espera por la aprobación (callback con token de tarea).
+- [ ] Amazon Polly.
+- [ ] Amazon Route 53.
+porque: Step Functions orquesta pasos, maneja esperas largas y reintentos.
+
+## Gateway de herramientas
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 2
+Quieres exponer tus APIs internas como herramientas MCP para varios agentes sin escribir un servidor por cada una. ¿Qué componente de AgentCore usas?
+- [ ] AgentCore Memory, que guarda las APIs como recuerdos del agente.
+- [x] AgentCore Gateway.
+- [ ] Amazon S3 Glacier.
+- [ ] AWS Artifact.
+porque: AgentCore Gateway convierte APIs y funciones en herramientas MCP con autenticación.
+
+## Observabilidad de agentes
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 2
+¿Cómo ves cada paso, herramienta y latencia de un agente desplegado en AgentCore?
+- [ ] Imprimiendo mensajes en la consola del navegador del cliente.
+- [x] Con AgentCore Observability, que envía trazas compatibles con OpenTelemetry a CloudWatch.
+- [ ] Con AWS Artifact.
+- [ ] Con Amazon Macie.
+porque: AgentCore Observability registra trazas, métricas y spans de los agentes en CloudWatch.
+
+## Salida estructurada con herramientas
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 2
+Necesitas que el modelo devuelva siempre un JSON con un esquema fijo. ¿Qué técnica es más confiable?
+- [ ] Pedirlo en el prompt y parsear la respuesta con expresiones regulares cuando el modelo agregue texto alrededor.
+- [x] Definir una herramienta con el esquema JSON y forzar su uso (tool choice), validando la salida.
+- [ ] Subir la temperatura.
+- [ ] Usar un modelo de imágenes.
+porque: Una herramienta con esquema obliga a una salida estructurada y validable.
+
+## Agente por canal
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 2
+El mismo agente debe responder en la web y en WhatsApp. ¿Cómo lo diseñas?
+- [ ] Copiando el agente completo en cada canal y manteniendo dos versiones con prompts y herramientas distintas.
+- [x] Un único agente detrás de una API, con adaptadores por canal que traducen los mensajes.
+- [ ] Un modelo distinto por canal sin herramientas.
+- [ ] Una Knowledge Base por mensaje.
+porque: Separar la lógica del agente de los canales evita duplicar y mantiene el comportamiento consistente.
+
+## Filtro de información sensible
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 3
+El agente no debe mostrar números de tarjeta aunque aparezcan en una respuesta de la API. ¿Qué configuras?
+- [ ] Un tema denegado sobre pagos, que bloquea cualquier pregunta sobre cómo pagar un paquete.
+- [x] El filtro de información sensible de Guardrails, enmascarando o bloqueando ese tipo de PII.
+- [ ] Una temperatura más baja.
+- [ ] Más chunks.
+porque: Los filtros de información sensible detectan PII y la enmascaran o bloquean.
+
+## Aplicar el guardrail a todo
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 3
+¿Cómo evalúas con el mismo guardrail tanto las entradas como contenidos que no vienen de una llamada a un modelo de Bedrock?
+- [ ] No se puede: los guardrails solo funcionan dentro de InvokeModel con modelos de Amazon.
+- [x] Con la API ApplyGuardrail, que evalúa cualquier texto contra el guardrail.
+- [ ] Con Amazon Polly.
+- [ ] Con AWS Config.
+porque: ApplyGuardrail evalúa contenido de cualquier origen, incluidos modelos fuera de Bedrock.
+
+## Credenciales para APIs externas
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 3
+El agente necesita llamar a una API de terceros en nombre del usuario. ¿Dónde se manejan esas credenciales?
+- [ ] En el prompt de sistema, para que el modelo las incluya en cada llamada que haga a la API.
+- [x] Con AgentCore Identity (o Secrets Manager), sin exponerlas al modelo.
+- [ ] En una variable del navegador.
+- [ ] En el nombre del bucket.
+porque: Las credenciales se gestionan fuera del modelo, con un servicio de identidad o de secretos.
+
+## Registro de invocaciones
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 3
+Cumplimiento exige guardar los prompts y respuestas de todas las llamadas a Bedrock. ¿Qué habilitas?
+- [ ] AWS Trusted Advisor, que guarda cada prompt y respuesta junto con las recomendaciones de costo.
+- [x] El registro de invocaciones de modelos de Bedrock hacia CloudWatch Logs o S3.
+- [ ] Amazon Polly.
+- [ ] Un filtro de imágenes.
+porque: El model invocation logging guarda solicitudes y respuestas para auditoría.
+
+## Acceso privado a Bedrock
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 3
+Las aplicaciones corren en una VPC sin salida a internet. ¿Cómo llaman a Bedrock?
+- [ ] Abriendo una NAT gateway con salida a todo internet para que lleguen a los endpoints públicos.
+- [x] Con un endpoint de VPC de interfaz (PrivateLink) para Bedrock.
+- [ ] No se puede llamar a Bedrock desde una VPC.
+- [ ] Con un bucket público.
+porque: PrivateLink permite usar Bedrock desde una VPC sin pasar por internet.
+
+## Políticas de servicio
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 3
+La organización quiere impedir el uso de ciertos modelos en todas sus cuentas. ¿Qué aplica?
+- [ ] Un correo a todos los equipos pidiéndoles que no usen esos modelos en ninguna cuenta.
+- [x] Políticas de control de servicios (SCP) en AWS Organizations que niegan esos modelos.
+- [ ] Un filtro de palabras.
+- [ ] Más Provisioned Throughput.
+porque: Las SCP establecen límites de permisos para todas las cuentas de la organización.
+
+## Revisión de contenido generado
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 3
+Las respuestas sobre reclamos de reembolso deben pasar por una persona antes de enviarse. ¿Qué patrón aplicas?
+- [ ] Enviar directamente todas las respuestas y revisar una muestra al final del mes.
+- [x] Un paso de revisión humana (por ejemplo, Amazon A2I o una aprobación en Step Functions) antes del envío.
+- [ ] Bajar la temperatura a cero.
+- [ ] Un modelo más grande.
+porque: La revisión humana en decisiones sensibles es un control de IA responsable.
+
+## Costo por equipo
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 4
+Varios equipos usan el mismo modelo y finanzas quiere saber cuánto gasta cada uno. ¿Qué usas?
+- [ ] Una cuenta de AWS distinta por cada usuario que llame al modelo.
+- [x] Perfiles de inferencia de aplicación con etiquetas de asignación de costos por equipo.
+- [ ] Amazon Polly.
+- [ ] Un filtro de palabras.
+porque: Los perfiles de inferencia de aplicación permiten etiquetar y separar el uso y el costo.
+
+## Evaluación de RAG
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 5
+¿Qué métricas de una evaluación de RAG en Bedrock separan los problemas de recuperación de los de generación?
+- [ ] Solo la latencia total, porque resume la calidad de todo el sistema en un único número fácil de comparar.
+- [x] Relevancia y cobertura del contexto recuperado, por un lado, y corrección y fidelidad (faithfulness) de la respuesta, por otro.
+- [ ] El tamaño del bucket.
+- [ ] La cantidad de usuarios.
+porque: Medir recuperación y generación por separado indica qué parte del sistema falla.
+
+## Respuesta que ignora la herramienta
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 5
+El modelo nunca llama a la herramienta de disponibilidad aunque la pregunta lo requiera. ¿Qué revisas primero?
+- [ ] La región del bucket de S3 donde están las fichas de producto del catálogo.
+- [x] El nombre, la descripción y el esquema de la herramienta, y si el modelo admite tool use.
+- [ ] La temperatura de Polly.
+- [ ] Las SCP de la organización.
+porque: El modelo decide llamar herramientas según su descripción y esquema; deben ser claros y compatibles.
+
+## Pruebas de regresión del prompt
+leccion: cert-aws-aip-bedrock-profesional
+dominio: 5
+Un cambio en el prompt mejoró un caso pero rompió otros. ¿Cómo lo detectas antes de desplegar?
+- [ ] Probando a mano el caso que se quería arreglar y desplegando si funciona.
+- [x] Corriendo el conjunto de evaluación completo en CI con cada cambio y comparando con la versión anterior.
+- [ ] Aumentando los tokens de salida.
+- [ ] Con un filtro de imágenes.
+porque: Las pruebas de regresión con un conjunto fijo detectan efectos no deseados de un cambio.
