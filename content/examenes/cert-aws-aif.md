@@ -666,3 +666,406 @@ Marketing quiere generar imágenes publicitarias a partir de descripciones de te
 - [ ] Amazon Transcribe.
 - [ ] Amazon Comprehend.
 porque: Los modelos de texto a imagen generan imágenes a partir de una descripción.
+
+## @caso clinica: Clínica Horizonte
+Clínica Horizonte quiere usar IA generativa en tres frentes: un asistente que responda a los pacientes preguntas sobre preparación de estudios usando sus instructivos internos, resúmenes automáticos de las notas de consulta para los médicos y la extracción de datos de órdenes médicas escaneadas.
+
+Restricciones:
+- los datos de pacientes no pueden salir de su cuenta de AWS ni usarse para entrenar modelos de terceros;
+- todo uso del modelo debe quedar auditado;
+- un médico revisa cada resumen antes de guardarlo en la historia clínica.
+
+## Instructivos para pacientes
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 3
+caso: clinica
+¿Qué opción responde a los pacientes con los instructivos actuales sin entrenar un modelo?
+- [ ] Ajustar (fine-tuning) un modelo fundacional con los instructivos cada vez que cambian y desplegarlo con capacidad aprovisionada.
+- [x] Una base de conocimiento de Amazon Bedrock (RAG) con los instructivos como fuente.
+- [ ] Un modelo de Amazon SageMaker AI entrenado desde cero con las preguntas históricas de los pacientes y sus respuestas.
+- [ ] Amazon Rekognition, que analiza los instructivos en PDF y responde preguntas sobre su contenido.
+porque: Las bases de conocimiento de Bedrock recuperan el contenido actual de los documentos y lo pasan al modelo, sin reentrenar.
+
+## Datos que no se usan para entrenar
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 5
+caso: clinica
+¿Qué dice Amazon Bedrock sobre los prompts y respuestas de la clínica?
+- [ ] Que se comparten con el proveedor del modelo para mejorar sus próximas versiones, salvo que se pague un plan especial de privacidad.
+- [x] Que no se usan para entrenar los modelos base ni se comparten con los proveedores de modelos.
+- [ ] Que se guardan en un bucket público de AWS durante 30 días para auditoría.
+- [ ] Que solo quedan privados si se usa un modelo de Amazon y no uno de terceros.
+porque: Bedrock no usa los datos de los clientes para entrenar los modelos base ni los comparte con los proveedores.
+
+## Auditar cada llamada
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 5
+caso: clinica
+¿Qué servicio registra quién invocó el modelo y cuándo?
+- [ ] Amazon Macie, que registra cada invocación del modelo y su respuesta.
+- [x] AWS CloudTrail (y el registro de invocaciones de Bedrock para guardar prompts y respuestas).
+- [ ] Amazon Polly.
+- [ ] AWS Trusted Advisor, que guarda el historial de llamadas a la API.
+porque: CloudTrail registra las llamadas a la API y el registro de invocaciones de Bedrock puede guardar el contenido en CloudWatch Logs o S3.
+
+## Revisión del médico
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 4
+caso: clinica
+¿Qué servicio agrega una revisión humana a las predicciones de un modelo antes de usarlas?
+- [ ] Amazon Comprehend Medical, que revisa los resúmenes y los aprueba sin intervención humana.
+- [x] Amazon Augmented AI (A2I).
+- [ ] Amazon Personalize.
+- [ ] AWS Config, que pide aprobación de un médico por cada cambio.
+porque: A2I crea flujos de revisión humana para predicciones de ML; en salud, la supervisión humana es una práctica de IA responsable.
+
+## Órdenes escaneadas
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 1
+caso: clinica
+¿Qué servicio extrae texto, tablas y campos de las órdenes médicas escaneadas?
+- [ ] Amazon Transcribe Medical, que convierte las imágenes de las órdenes en texto estructurado.
+- [x] Amazon Textract.
+- [ ] Amazon Translate.
+- [ ] Amazon Lex.
+porque: Textract extrae texto, formularios y tablas de documentos escaneados.
+
+## IA, ML y deep learning
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 1
+¿Cómo se relacionan IA, machine learning y deep learning?
+- [ ] Son tres nombres para lo mismo.
+- [x] El deep learning es un tipo de ML, y el ML es una forma de lograr IA.
+- [ ] La IA es un tipo de deep learning que usa reglas escritas a mano.
+- [ ] El ML es un tipo de deep learning que solo funciona con imágenes y audio.
+porque: La IA es el campo general; el ML aprende de datos y el deep learning usa redes neuronales profundas.
+
+## Aprendizaje no supervisado
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 1
+Una tienda quiere agrupar a sus clientes según su comportamiento sin tener grupos definidos de antemano. ¿Qué tipo de aprendizaje es?
+- [ ] Supervisado, porque necesita etiquetas para cada grupo antes de entrenar el modelo.
+- [x] No supervisado (clustering).
+- [ ] Por refuerzo.
+- [ ] Ninguno: no se puede hacer con ML.
+porque: El clustering encuentra grupos en datos sin etiquetas.
+
+## Inferencia en tiempo real
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 1
+Una app de pagos debe decidir en milisegundos si una transacción es fraude. ¿Qué tipo de inferencia necesita?
+- [ ] Por lotes, una vez por día con todas las transacciones del día anterior.
+- [x] En tiempo real, con un endpoint de baja latencia.
+- [ ] Ninguna: el fraude se revisa a mano.
+- [ ] Asíncrona, con resultados en un bucket al día siguiente.
+porque: Una decisión por transacción y en el momento requiere inferencia en tiempo real.
+
+## Datos estructurados
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 1
+¿Qué ejemplo corresponde a datos estructurados?
+- [ ] Grabaciones de audio de llamadas al centro de atención al cliente.
+- [x] Una tabla de ventas con columnas de fecha, producto y monto.
+- [ ] Fotos de productos subidas por los clientes.
+- [ ] Correos electrónicos de reclamos en texto libre.
+porque: Los datos estructurados tienen un esquema fijo de filas y columnas.
+
+## Ciclo de vida de ML
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 1
+¿Cuál es el orden habitual de las etapas de un proyecto de ML?
+- [ ] Desplegar, recolectar datos, entrenar y definir el problema al final.
+- [x] Definir el problema, preparar los datos, entrenar y evaluar, desplegar y monitorear.
+- [ ] Entrenar, desplegar y recién después recolectar los datos.
+- [ ] Monitorear, definir el problema y no desplegar nunca.
+porque: El ciclo de ML empieza por el problema de negocio y termina en el monitoreo, que puede llevar a reentrenar.
+
+## Subajuste
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 1
+Un modelo tiene mal desempeño tanto en entrenamiento como en prueba. ¿Qué indica?
+- [ ] Sobreajuste: el modelo memorizó el entrenamiento y no generaliza a datos nuevos.
+- [x] Subajuste: el modelo es demasiado simple o le faltan variables útiles.
+- [ ] Que el modelo está listo para producción.
+- [ ] Que el conjunto de prueba es demasiado grande.
+porque: El subajuste se ve como error alto en entrenamiento y en prueba; el sobreajuste, como buen entrenamiento y mala prueba.
+
+## ML sin código para analistas
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 1
+Un analista de negocio quiere construir un modelo de predicción con una interfaz visual, sin escribir código. ¿Qué usa?
+- [ ] Amazon EC2 con un script de Python escrito por el equipo de ingeniería.
+- [x] Amazon SageMaker Canvas.
+- [ ] AWS Lambda.
+- [ ] Amazon Route 53.
+porque: SageMaker Canvas permite preparar datos, entrenar y predecir con una interfaz visual sin código.
+
+## Modelo fundacional
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 2
+¿Qué es un modelo fundacional?
+- [ ] Un modelo pequeño entrenado para una única tarea con pocos datos etiquetados de una empresa.
+- [x] Un modelo grande preentrenado con datos amplios que se adapta a muchas tareas.
+- [ ] Una base de datos de vectores.
+- [ ] Un conjunto de reglas escritas a mano.
+porque: Los modelos fundacionales se preentrenan a gran escala y se adaptan con prompts, RAG o ajuste.
+
+## Tokens y costo
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 2
+¿Por qué un prompt muy largo encarece las llamadas a un modelo en Bedrock bajo demanda?
+- [ ] Porque Bedrock cobra por cantidad de palabras en mayúsculas del prompt.
+- [x] Porque se cobra por tokens de entrada y de salida.
+- [ ] Porque cobra un precio fijo por hora sin importar el uso.
+- [ ] No lo encarece: el costo depende solo de la cantidad de usuarios.
+porque: En el modo bajo demanda, el costo depende de los tokens procesados de entrada y de salida.
+
+## Temperatura baja
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 2
+Necesitas respuestas consistentes y precisas para extraer datos. ¿Cómo configuras la temperatura?
+- [ ] Alta, para que el modelo explore más opciones y encuentre mejores respuestas cada vez.
+- [x] Baja, para respuestas más deterministas.
+- [ ] En cualquier valor: la temperatura solo cambia la velocidad.
+- [ ] Negativa.
+porque: Una temperatura baja hace que el modelo elija los tokens más probables y responda de forma más consistente.
+
+## Límites de la IA generativa
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 2
+¿Cuál es una limitación de los modelos de lenguaje?
+- [ ] No pueden generar texto en más de un idioma ni traducir.
+- [x] Pueden producir información falsa con seguridad (alucinaciones).
+- [ ] Siempre devuelven exactamente la misma respuesta para el mismo prompt, con cualquier configuración.
+- [ ] Solo funcionan con datos tabulares.
+porque: Los LLM pueden generar contenido plausible pero incorrecto; por eso se usan grounding y revisión.
+
+## Generar código
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 2
+¿Qué servicio de AWS ayuda a los desarrolladores a escribir, explicar y transformar código con IA generativa?
+- [ ] Amazon Q Business, que responde preguntas sobre los documentos internos de la empresa.
+- [x] Amazon Q Developer.
+- [ ] Amazon Rekognition.
+- [ ] Amazon Polly.
+porque: Q Developer es el asistente de IA generativa para desarrollo de software.
+
+## Valor de negocio
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 2
+¿Qué métrica muestra mejor el valor de negocio de un asistente de atención al cliente?
+- [ ] La cantidad de parámetros del modelo que usa el asistente.
+- [x] La reducción del tiempo de resolución y la tasa de casos resueltos sin un agente humano.
+- [ ] La temperatura configurada en el modelo.
+- [ ] El número de regiones donde está disponible el modelo.
+porque: El valor se mide con indicadores de negocio, como tiempos y tasas de resolución, no con detalles técnicos.
+
+## Ventana de contexto chica
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 2
+Un contrato de 400 páginas no entra en la ventana de contexto del modelo. ¿Qué haces?
+- [ ] Usar una temperatura más alta para que el modelo lea más páginas por llamada.
+- [x] Dividirlo en partes (chunking) y recuperar o resumir solo lo relevante.
+- [ ] Borrar las páginas que no se leen.
+- [ ] Nada: el modelo lee todo igual.
+porque: Si el documento supera la ventana, se divide y se recupera o resume lo necesario para la pregunta.
+
+## Modelo de imagen
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 2
+Marketing quiere generar imágenes de productos a partir de descripciones. ¿Qué tipo de modelo usa?
+- [ ] Un modelo de clasificación de texto que asigna una categoría a cada descripción de producto.
+- [x] Un modelo de generación de imágenes (por ejemplo, de difusión) disponible en Bedrock.
+- [ ] Un modelo de regresión lineal.
+- [ ] Amazon Textract.
+porque: Los modelos de difusión generan imágenes a partir de texto.
+
+## Elegir por costo y latencia
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 3
+Para clasificar millones de mensajes cortos, ¿qué modelo conviene evaluar primero?
+- [ ] El modelo más grande disponible, porque siempre es el más preciso para cualquier tarea y el costo no importa a esa escala.
+- [x] Un modelo más chico y rápido, medido con un conjunto de evaluación para ver si alcanza la calidad requerida.
+- [ ] Un modelo de imágenes.
+- [ ] Cualquiera, sin evaluar.
+porque: Para tareas simples y de gran volumen, un modelo chico suele dar la calidad suficiente con menos costo y latencia.
+
+## Inferencia por lotes en Bedrock
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 3
+Hay que resumir 200.000 documentos y el resultado puede esperar unas horas. ¿Qué opción de Bedrock baja el costo?
+- [ ] Capacidad aprovisionada comprada por seis meses para este único trabajo.
+- [x] La inferencia por lotes (batch), con descuento respecto del modo bajo demanda.
+- [ ] Llamar al modelo de a un documento por segundo en tiempo real.
+- [ ] Usar la temperatura más alta.
+porque: La inferencia por lotes procesa grandes volúmenes de forma asíncrona a menor precio.
+
+## Modelo personalizado
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 3
+Después de ajustar un modelo en Bedrock, ¿qué hace falta habitualmente para usarlo?
+- [ ] Nada: el modelo ajustado se usa igual que cualquier modelo bajo demanda sin ninguna configuración adicional.
+- [x] Comprar capacidad aprovisionada (o usar la inferencia bajo demanda si el modelo la admite) para invocarlo.
+- [ ] Exportarlo a un CSV.
+- [ ] Desplegarlo en Amazon Polly.
+porque: Los modelos personalizados de Bedrock suelen requerir throughput aprovisionado para invocarse.
+
+## Agentes de Bedrock
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 3
+Un asistente debe consultar el estado de un pedido en una API interna y luego responder. ¿Qué capacidad de Bedrock lo resuelve?
+- [ ] Una base de conocimiento con los pedidos copiados en PDF cada noche.
+- [x] Un agente con un action group que llama a la API (por ejemplo, con una función Lambda).
+- [ ] Un modelo de imágenes.
+- [ ] Guardrails.
+porque: Los agentes de Bedrock planifican pasos y ejecutan acciones mediante action groups conectados a APIs.
+
+## Evaluación automática de modelos
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 3
+¿Cómo comparas dos modelos de Bedrock para resumir textos con un criterio repetible?
+- [ ] Preguntándole a cada modelo cuál es mejor y eligiendo el que conteste que es él.
+- [x] Con un trabajo de evaluación de modelos de Bedrock, con un dataset y métricas automáticas o jueces.
+- [ ] Mirando cuál tiene el nombre más nuevo.
+- [ ] Contando los parámetros.
+porque: La evaluación de modelos de Bedrock compara modelos con datasets y métricas, automáticas o humanas.
+
+## BERTScore y exactitud
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 3
+¿Qué mide BERTScore al evaluar un resumen generado?
+- [ ] La cantidad de palabras idénticas entre el resumen y el texto original, contadas una por una.
+- [x] La similitud semántica entre el texto generado y una referencia, usando embeddings.
+- [ ] El tiempo de respuesta del modelo.
+- [ ] El costo por token.
+porque: BERTScore compara significados con embeddings; ROUGE y BLEU cuentan coincidencias de palabras.
+
+## Prompt de rol
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 3
+¿Para qué sirve indicar un rol y un formato en el prompt (por ejemplo, "Eres un asistente de soporte. Responde en tres viñetas")?
+- [ ] Para que el modelo use menos memoria del servidor y responda gratis.
+- [x] Para orientar el tono, el contenido y la estructura de la respuesta.
+- [ ] Para entrenar el modelo.
+- [ ] Para cifrar la respuesta.
+porque: El rol y las instrucciones de formato son técnicas de prompt engineering que guían la salida.
+
+## Plantillas de prompts
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 3
+El equipo usa el mismo prompt en varias aplicaciones y quiere versionarlo. ¿Qué capacidad de Bedrock usa?
+- [ ] Guardrails, que guarda los prompts y sus versiones.
+- [x] Prompt Management, para crear, versionar y reutilizar prompts.
+- [ ] Amazon S3 Glacier.
+- [ ] Amazon Rekognition.
+porque: Prompt Management guarda prompts con variables y versiones para reutilizarlos.
+
+## Base de vectores
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 3
+¿Qué servicio de AWS puede usarse como almacén de vectores para una base de conocimiento de Bedrock?
+- [ ] Amazon Route 53, que guarda los vectores en registros DNS.
+- [x] Amazon OpenSearch Serverless (u otras opciones compatibles como Aurora PostgreSQL con pgvector).
+- [ ] AWS CloudTrail.
+- [ ] Amazon SNS.
+porque: Las bases de conocimiento usan almacenes vectoriales como OpenSearch Serverless, Aurora con pgvector y otros.
+
+## Ajuste o RAG
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 3
+¿Cuándo conviene el ajuste fino en lugar de RAG?
+- [ ] Cuando la información cambia todos los días y hay que responder con lo más reciente.
+- [x] Cuando hay que cambiar el estilo, el formato o el comportamiento del modelo en una tarea específica.
+- [ ] Cuando no hay ningún ejemplo de la tarea.
+- [ ] Nunca.
+porque: El ajuste fino adapta el comportamiento; RAG aporta conocimiento actualizado.
+
+## Explicabilidad
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 4
+Un banco debe explicar por qué un modelo rechazó un crédito. ¿Qué herramienta de AWS ayuda?
+- [ ] Amazon Polly, que lee en voz alta la decisión del modelo para el cliente.
+- [x] SageMaker Clarify, que calcula la importancia de las variables de cada predicción.
+- [ ] Amazon Translate.
+- [ ] AWS Shield.
+porque: Clarify ofrece explicaciones con valores de Shapley y análisis de sesgo.
+
+## Model Cards
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 4
+¿Para qué sirven las SageMaker Model Cards?
+- [ ] Para cobrar el uso del modelo a cada área de la empresa por separado.
+- [x] Para documentar el uso previsto, los datos, las métricas y las limitaciones del modelo.
+- [ ] Para entrenar más rápido.
+- [ ] Para generar imágenes.
+porque: Las model cards documentan el modelo y apoyan la transparencia y el gobierno.
+
+## Datos representativos
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 4
+Un modelo de reconocimiento de voz funciona mal con acentos regionales. ¿Cuál es la causa más probable?
+- [ ] Una temperatura demasiado baja en el modelo durante la inferencia.
+- [x] Datos de entrenamiento poco representativos de esos acentos.
+- [ ] El tamaño del bucket de S3.
+- [ ] El uso de CloudTrail.
+porque: Si los datos no representan a todos los grupos, el modelo funciona peor para los ausentes.
+
+## Contenido con derechos
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 4
+¿Qué riesgo legal tiene usar contenido generado por IA sin revisar?
+- [ ] Ninguno: todo lo que genera un modelo es de dominio público y puede usarse sin límites.
+- [x] Que reproduzca material protegido por derechos de autor o información incorrecta.
+- [ ] Que aumente la factura de S3.
+- [ ] Que el modelo se borre.
+porque: El contenido generado puede infringir derechos o contener errores; hace falta revisión y políticas de uso.
+
+## Filtro de temas
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 4
+El asistente de un banco no debe dar consejos de inversión. ¿Qué configuras en Bedrock Guardrails?
+- [ ] Un filtro de palabras que bloquea la palabra "banco" en las preguntas de los clientes.
+- [x] Un tema denegado (denied topic) que describe los consejos de inversión.
+- [ ] Una temperatura más alta.
+- [ ] Más tokens de salida.
+porque: Los temas denegados bloquean preguntas y respuestas sobre los asuntos descritos.
+
+## Acceso con IAM
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 5
+¿Cómo limitas qué equipos pueden invocar qué modelos de Bedrock?
+- [ ] Compartiendo una sola clave de acceso de usuario raíz con todos los equipos de la empresa.
+- [x] Con políticas de IAM que permiten `bedrock:InvokeModel` solo sobre los modelos autorizados.
+- [ ] Con Amazon Polly.
+- [ ] No se puede limitar.
+porque: IAM controla qué identidades pueden invocar qué recursos de Bedrock.
+
+## Datos sensibles en S3
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 5
+Antes de usar documentos de S3 en una base de conocimiento, quieres saber si contienen datos personales. ¿Qué servicio los detecta?
+- [ ] AWS CloudFormation, que revisa los documentos al crear el bucket.
+- [x] Amazon Macie.
+- [ ] Amazon Lex.
+- [ ] Amazon Kendra.
+porque: Macie descubre y clasifica datos sensibles en S3.
+
+## Informes de cumplimiento
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 5
+Auditoría pide los informes de cumplimiento de AWS (por ejemplo, SOC o ISO). ¿Dónde se descargan?
+- [ ] En AWS Lambda, ejecutando una función que genera el informe de cumplimiento.
+- [x] En AWS Artifact.
+- [ ] En Amazon Bedrock.
+- [ ] En Amazon SageMaker Canvas.
+porque: AWS Artifact da acceso a los informes de cumplimiento y acuerdos de AWS.
+
+## Configuración vigilada
+leccion: cert-aws-aif-fundamentos-ia
+dominio: 5
+¿Qué servicio evalúa continuamente si los recursos cumplen reglas de configuración (por ejemplo, buckets cifrados)?
+- [ ] Amazon Comprehend, que analiza la configuración de los recursos en lenguaje natural.
+- [x] AWS Config.
+- [ ] Amazon Polly.
+- [ ] Amazon Translate.
+porque: AWS Config registra la configuración de los recursos y evalúa reglas de cumplimiento.
