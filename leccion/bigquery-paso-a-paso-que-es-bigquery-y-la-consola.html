@@ -99,6 +99,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Scheduled queries, Dataform, Data transfers y Analytics Hub se explican</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Pensar que se paga por tiempo o por filas devueltas.</strong> En el modelo on-demand se paga por los bytes que la consulta <em>lee</em>: una consulta que devuelve 5 filas puede leer toda la tabla.</li>
+<li><strong>Buscar el servidor.</strong> No hay máquinas que encender ni apagar; el dataset es un contenedor con región y permisos, no una base de datos en un servidor.</li>
+<li><strong>Ejecutar sin mirar el validador.</strong> La estimación de bytes aparece antes de correr la consulta: mirarla es gratis y evita sorpresas.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Sabes qué es BigQuery y qué lo hace distinto.</li>

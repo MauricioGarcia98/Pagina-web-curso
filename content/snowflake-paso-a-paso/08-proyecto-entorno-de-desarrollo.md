@@ -36,6 +36,12 @@ archivo: snowflake/s08-warehouses.webp
 texto: SHOW WAREHOUSES - COMPUTE_WH y ANALISIS_WH en X-Small con auto_suspend 60
 ```
 
+:::errores
+- **Crear objetos a mano sin script.** Nadie puede repetirlo igual en otra cuenta o entorno.
+- **Olvidar `IF NOT EXISTS` o `OR REPLACE`.** La segunda corrida del script falla, o peor, reemplaza algo que no querías.
+- **Warehouse de desarrollo sin AUTO_SUSPEND.** Es el que más se olvida encendido.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] `SHOW SCHEMAS IN DATABASE tienda_dev` devuelve ANALITICA, PUBLIC y RAW.
@@ -73,7 +79,7 @@ En el nivel 3: cargar archivos con stages y COPY INTO, JSON y MERGE.
 - [x] Para que el script no falle si el objeto ya existe
 - [ ] Para borrar el objeto
 - [ ] Para que sea más rápido
-- [ ] No hace nada
+- [ ] Para que el objeto se borre si está vacío
 :::
 
 :::ejercicio quiz
@@ -89,7 +95,7 @@ En el nivel 3: cargar archivos con stages y COPY INTO, JSON y MERGE.
 - [ ] Porque cuesta menos siempre
 - [x] Para que no se pisen y para saber qué gasta cada uno
 - [ ] Porque Snowflake solo permite una consulta por warehouse
-- [ ] No hay razón
+- [ ] Para que la carga use la caché del análisis
 :::
 
 :::ejercicio quiz

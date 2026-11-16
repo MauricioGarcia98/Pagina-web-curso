@@ -8,6 +8,10 @@ prerrequisitos: snowflake-paso-a-paso-json-y-variant
 autoevaluacion: ¿Sabes qué hace WHEN MATCHED? | ¿Sabes qué devuelve un MERGE? | ¿Sabes qué pasa si la fuente trae dos filas para la misma clave? | ¿Sabes por qué MERGE es idempotente?
 ---
 
+:::analogia Conciliar con la lista del proveedor
+MERGE compara tu tabla con la lista que llegó: lo que ya tenías y cambió se actualiza, lo nuevo se inserta, y si lo indicas, lo que sobra se borra. Todo en una sola sentencia, sin dejar la tabla a medias.
+:::
+
 ## Paso 1 — La tabla destino
 
 ```sql norun
@@ -65,6 +69,12 @@ Si la fuente trae dos filas con el mismo `pedido_id`, Snowflake no sabe cuál us
 
 **Por qué es la forma correcta de cargar:** si el mismo MERGE se ejecuta dos veces, el resultado es el mismo. Es **idempotente**, a diferencia de un `INSERT` que duplicaría filas.
 
+:::errores
+- **Fuente con claves repetidas.** Dos filas del mismo pedido hacen que el MERGE falle o elija una al azar; deduplica con `QUALIFY ROW_NUMBER()`.
+- **Actualizar aunque nada haya cambiado.** Sin una condición extra (`AND t.total <> s.total`), reescribe filas idénticas.
+- **Unir por una columna que no es clave.** Si el `ON` no identifica una sola fila, un pedido puede actualizar varias.
+:::
+
 ## ✅ Lo que lograste
 
 - Escribiste un MERGE con actualización e inserción.
@@ -75,8 +85,8 @@ Si la fuente trae dos filas con el mismo `pedido_id`, Snowflake no sabe cuál us
 ¿Qué hace WHEN NOT MATCHED THEN INSERT?
 - [ ] Actualiza las filas existentes
 - [x] Inserta las filas de la fuente que no tienen pareja en el destino
-- [ ] Borra el destino
-- [ ] Nada
+- [ ] Inserta todas las filas de la fuente, aunque ya existan
+- [ ] Actualiza las filas del destino que no vinieron en la fuente
 :::
 
 :::ejercicio quiz
@@ -89,16 +99,16 @@ Si la fuente trae dos filas con el mismo `pedido_id`, Snowflake no sabe cuál us
 
 :::ejercicio quiz
 La fuente trae dos filas del pedido 90002. ¿Qué haces antes del MERGE?
-- [ ] Nada
+- [ ] Nada: el MERGE usa siempre la última fila
 - [x] Quedarte con una fila por clave (por ejemplo con QUALIFY ROW_NUMBER)
 - [ ] Borrar el destino
-- [ ] Cambiar de warehouse
+- [ ] Agrandar el warehouse para que procese las dos
 :::
 
 :::ejercicio quiz
 ¿Por qué un MERGE bien escrito es idempotente?
 - [ ] Porque es más rápido
 - [x] Porque correrlo dos veces con los mismos datos deja el mismo resultado
-- [ ] Porque no usa warehouse
+- [ ] Porque Snowflake guarda una copia antes de aplicarlo
 - [ ] Porque borra todo antes
 :::

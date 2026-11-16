@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Hojas SQL y el contexto - rol, warehouse, base y esquema</h1><p class="resumen">Las worksheets son donde se escribe y ejecuta SQL. Creas una hoja, entiendes los cuatro datos de contexto que decide cada consulta (rol, warehouse, base y esquema), ejecutas la sentencia del cursor o todas, y lees el resultado con su Query ID, duración y filas.</p>
 <a class="cta" href="../index.html#/l/snowflake-paso-a-paso-hojas-sql-y-contexto">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear y nombrar una hoja SQL</li><li>Entender el contexto de la sesión</li><li>Ejecutar una sentencia o todas</li><li>Leer el resultado y los Query Details</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Las cuatro preguntas antes de cocinar</div>
+
+<p>Cada consulta responde cuatro preguntas antes de empezar: <strong>quién</strong> cocina (el rol, que decide qué puede tocar), <strong>con qué hornalla</strong> (el warehouse, que pone el cómputo), en <strong>qué despensa</strong> (la base) y en <strong>qué estante</strong> (el esquema). Si una falta o está mal, la receta falla aunque el SQL esté perfecto.</p>
+</div>
+
+
 <h2>Paso 1 — Una hoja nueva</h2>
 <p><strong>+ SQL Worksheet</strong> (o <strong>Create → SQL Worksheet</strong>). Ponle nombre y escribe:</p>
 <pre data-norun><code class="language-sql">-- Pedidos de la tienda por canal de venta
@@ -81,6 +87,16 @@ ORDER BY pedidos DESC;</code></pre>
 <div class="callout callout-tip"><div class="callout-title">💡 El warehouse se prende solo</div>
 
 <p>Si el warehouse estaba suspendido, la primera consulta lo enciende (<code>AUTO_RESUME</code>). Por eso la primera puede tardar un segundo más.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Ejecutar con el rol equivocado.</strong> Un &quot;does not exist or not authorized&quot; muchas veces es el rol de la hoja, no el nombre de la tabla.</li>
+<li><strong>No tener warehouse elegido.</strong> Sin warehouse, la consulta no puede correr: &quot;No active warehouse selected&quot;.</li>
+<li><strong>Ejecutar todo cuando querías una sentencia.</strong> Ctrl+Enter corre la sentencia del cursor; &quot;Run All&quot; corre la hoja entera, incluidos <code>DROP</code> o <code>DELETE</code> que dejaste más abajo.</li>
+</ul>
 </div>
 
 

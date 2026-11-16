@@ -8,6 +8,10 @@ prerrequisitos: bigquery-paso-a-paso-particiones-y-clustering
 autoevaluacion: ¿Sabes cuánto cuesta una carga por lotes? | ¿Sabes qué es autodetect? | ¿Sabes qué es una tabla externa? | ¿Sabes cuándo conviene streaming?
 ---
 
+:::analogia Mudar los muebles o ir al depósito
+Cargar un archivo es mudar los muebles a tu casa: la mudanza es gratis, pagas el espacio y después todo está a mano. Una tabla externa es dejarlos en el depósito (Cloud Storage) e ir a buscarlos cada vez que los necesitas: más lento y sin todas las comodidades.
+:::
+
 ## Paso 1 — Create table
 
 En el dataset `analitica`, **Create table**:
@@ -50,6 +54,12 @@ bq load --source_format=CSV --skip_leading_rows=1 --time_partitioning_field=fech
 | **Streaming** (Storage Write API) | Datos que tienen que estar al instante | Por volumen ingerido |
 | **Data Transfer Service** | Fuentes conocidas (Google Ads, S3, otros) a horario | Según la fuente |
 
+:::errores
+- **Autodetectar el esquema en producción.** Un archivo con un valor raro puede cambiar el tipo de una columna; en producción el esquema va explícito.
+- **Cargar sin partición una tabla que va a crecer.** Particionarla después obliga a recrearla; decídelo al crearla.
+- **Usar streaming cuando alcanza con lotes.** La carga por lotes es gratis; la escritura en streaming se paga y solo tiene sentido si necesitas los datos al instante.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste una tabla particionada desde un archivo.
@@ -61,7 +71,7 @@ bq load --source_format=CSV --skip_leading_rows=1 --time_partitioning_field=fech
 - [ ] USD 6,25 por TiB
 - [x] Nada: se paga el almacenamiento
 - [ ] Una tarifa por archivo
-- [ ] Depende del usuario
+- [ ] Lo mismo que consultar los bytes cargados
 :::
 
 :::ejercicio quiz
@@ -77,12 +87,12 @@ bq load --source_format=CSV --skip_leading_rows=1 --time_partitioning_field=fech
 - [ ] Una tabla de otro proyecto
 - [x] Una tabla que lee los archivos en Cloud Storage sin cargarlos a BigQuery
 - [ ] Una vista
-- [ ] Una copia
+- [ ] Una tabla cargada en otra región
 :::
 
 :::ejercicio quiz
 ¿Por qué conviene un esquema explícito en producción?
-- [ ] Porque es más lindo
+- [ ] Porque autodetect cobra por cada archivo
 - [x] Para que un archivo con datos raros falle en lugar de cambiar los tipos de la tabla
 - [ ] Porque autodetect no existe
 - [ ] Porque es más barato

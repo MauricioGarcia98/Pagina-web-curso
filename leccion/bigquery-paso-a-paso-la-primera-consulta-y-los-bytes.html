@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>La primera consulta - ejecutar, leer el resultado y mirar los bytes</h1><p class="resumen">Escribes la primera consulta en una pestaña propia, miras la estimación antes de ejecutarla, la corres y lees el resultado y la información del job (bytes procesados, facturados, costo). Después cambias las columnas por * para ver cómo sube lo que se lee, que es lo que se paga.</p>
 <a class="cta" href="../index.html#/l/bigquery-paso-a-paso-la-primera-consulta-y-los-bytes">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear y nombrar una consulta</li><li>Leer la estimación del validador</li><li>Ejecutar y leer el resultado y la información del job</li><li>Comparar columnas justas contra SELECT *</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un taxímetro que avisa antes</div>
+
+<p>BigQuery cobra como un taxímetro que marca lo que <strong>lee</strong>, no lo que te muestra. El validador te dice cuánto va a marcar antes de subir al taxi. Pedir <code>SELECT *</code> es pedirle al taxi que recorra todas las calles para traerte una sola dirección.</p>
+</div>
+
+
 <h2>Paso 1 — Una consulta nueva</h2>
 <p>En Studio, <strong>+</strong> (nueva pestaña) y ✎ para ponerle nombre:</p>
 <pre data-norun><code class="language-sql">SELECT canal, COUNT(*) AS pedidos
@@ -61,6 +67,16 @@ ORDER BY pedidos DESC;</code></pre>
 <div class="callout callout-tip"><div class="callout-title">💡 El hábito</div>
 
 <p>Antes de cada <strong>Run</strong>, mira el validador. Si dice GB o TB y esperabas KB, algo está mal: falta un filtro o sobra un <code>*</code>.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Usar <code>SELECT *</code> &quot;para ver qué hay&quot;.</strong> Lee todas las columnas y se paga entero; para mirar datos está la vista previa, que es gratis.</li>
+<li><strong>Estimar el costo por las filas del resultado.</strong> Lo que cuenta son los bytes procesados, que aparecen en el validador y en la información del job.</li>
+<li><strong>Olvidar el mínimo facturado.</strong> Cada tabla leída factura al menos 10 MB, aunque la consulta lea menos.</li>
+</ul>
 </div>
 
 

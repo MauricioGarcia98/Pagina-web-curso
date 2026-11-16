@@ -71,6 +71,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Bytes de las consultas típicas, costo mensual estimado y límites</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Diseñar las tablas antes de conocer las consultas.</strong> La partición y el clustering salen de cómo filtra cada área; pregúntalo primero.</li>
+<li><strong>Dar por buena la carga sin correrla dos veces.</strong> La idempotencia se prueba, no se supone.</li>
+<li><strong>Escribir el procedimiento de recuperación sin probarlo.</strong> Provoca un borrado en una copia y restáurala siguiendo tu documento.</li>
+</ul>
+</div>
+
+
 <h2>✅ Rúbrica</h2>
 <div class="table-wrap"><table><thead><tr>
 <th>Criterio</th>

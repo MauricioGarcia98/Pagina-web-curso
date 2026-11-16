@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Despertador, receta y jefe de cocina</div>
+
+<p>Una scheduled query es un despertador: corre un SQL a la hora fijada. Dataform es la receta escrita, con el orden de los pasos y controles de calidad. Un orquestador como Airflow es el jefe de cocina que coordina varias cocinas: espera un archivo, corre Dataflow, después BigQuery y avisa si algo falla.</p>
+</div>
+
+
 <h2>Paso 1 — Scheduled queries</h2>
 <figure class="captura"><img src="assets/img/guias/bigquery/q18-programadas.webp" alt="Scheduled queries - consultas que corren solas a horario (no simulado en la práctica)" loading="lazy"><figcaption>Scheduled queries - consultas que corren solas a horario (no simulado en la práctica)</figcaption></figure>
 
@@ -84,6 +90,16 @@ ${ when(incremental(), `WHERE p.fecha_pedido &gt; (SELECT MAX(fecha) FROM ${self
 <td>Un orquestador: <a href="#/m/airflow-paso-a-paso">Airflow</a> o Cloud Composer (Airflow administrado)</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Encadenar consultas programadas por horario</strong> (&quot;esta a las 6, la otra a las 6:30&quot;). Si la primera se demora, la segunda lee datos incompletos; las dependencias van en Dataform o en un orquestador.</li>
+<li><strong>Ignorar <code>@run_date</code>.</strong> Con <code>CURRENT_DATE()</code>, un reproceso de días anteriores calcula siempre el día de hoy.</li>
+<li><strong>Dejar el SQL en una pestaña de la consola.</strong> Sin control de versiones, nadie sabe qué cambió ni cuándo.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Sabes programar una consulta con parámetros de fecha.</li>

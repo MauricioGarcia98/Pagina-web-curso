@@ -59,6 +59,12 @@ texto: El validador avisa antes de ejecutar - Table "pedidos" must be qualified 
 
 El validador muestra el error **antes** de gastar nada.
 
+:::errores
+- **Envolver la fecha en una función para filtrar** (`EXTRACT(MONTH FROM fecha_pedido) >= 7`): la consulta funciona, pero BigQuery ya no puede descartar particiones y lee más.
+- **Olvidar el dataset en el nombre de la tabla.** `FROM pedidos` falla con "must be qualified with a dataset"; va `FROM tienda.pedidos`.
+- **Reemplazar `COUNTIF` por `WHERE canal = 'web'`.** El `WHERE` elimina las filas de los otros canales y ya no puedes contar los tres en la misma consulta.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] Una fila por mes desde julio de 2024.
@@ -77,8 +83,8 @@ En el nivel 2: datasets, tablas, costos, caché y el historial de jobs.
 ¿Qué devuelve DATE_TRUNC('2024-11-17', MONTH)?
 - [x] 2024-11-01
 - [ ] 2024-11-30
-- [ ] 11
-- [ ] 2024
+- [ ] 2024-11-17 a las 00:00
+- [ ] 2024-12-01
 :::
 
 :::ejercicio quiz
@@ -94,13 +100,13 @@ En el nivel 2: datasets, tablas, costos, caché y el historial de jobs.
 - [x] Porque usa pocas columnas y filtra por la columna de partición
 - [ ] Porque la tabla está vacía
 - [ ] Porque usa LIMIT
-- [ ] Por la caché siempre
+- [ ] Porque la caché devuelve cualquier consulta por 0 bytes
 :::
 
 :::ejercicio quiz
 "Table "pedidos" must be qualified with a dataset". ¿Qué falta?
 - [ ] Un warehouse
 - [x] El nombre del dataset: tienda.pedidos
-- [ ] Un permiso
-- [ ] Un GROUP BY
+- [ ] El rol BigQuery Job User
+- [ ] Un GROUP BY por canal
 :::

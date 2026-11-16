@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Particiones y clustering - leer solo lo necesario</h1><p class="resumen">Particionar por fecha y agrupar (clustering) por las columnas que más se filtran es la forma principal de bajar costo y tiempo en BigQuery. Creas pedidos_part particionada por día, con clustering por canal y filtro de partición obligatorio, comparas la estimación con y sin filtro y aprendes qué impide la poda.</p>
 <a class="cta" href="../index.html#/l/bigquery-paso-a-paso-particiones-y-clustering">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una tabla particionada y con clustering</li><li>Comprobar la poda de particiones en la estimación</li><li>Exigir el filtro de partición</li><li>Evitar los filtros que impiden la poda</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Estantes por fecha y libros por tema</div>
+
+<p>Una tabla particionada es una biblioteca con un estante por día: si pides solo diciembre, nadie mira los demás estantes. El clustering ordena los libros de cada estante por tema: si además pides el canal web, se saltan los bloques que no lo tienen.</p>
+</div>
+
+
 <h2>Paso 1 — Crear la tabla</h2>
 <pre data-norun><code class="language-sql">CREATE TABLE analitica.pedidos_part
 PARTITION BY fecha_pedido
@@ -102,6 +108,16 @@ GROUP BY canal;</code></pre>
 <td>Tablas de hechos grandes: particionar por fecha y clustering por las dimensiones más filtradas</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Envolver la columna de partición en una función.</strong> <code>EXTRACT(YEAR FROM fecha) = 2024</code> impide la poda; escribe <code>fecha BETWEEN &#39;2024-01-01&#39; AND &#39;2024-12-31&#39;</code>.</li>
+<li><strong>Particionar por algo que no se filtra.</strong> La partición ayuda solo si las consultas filtran por esa columna; casi siempre es la fecha del evento.</li>
+<li><strong>Clustering por columnas que nadie filtra.</strong> Ordenar por el id del pedido no ayuda si las consultas filtran por canal y país.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste una tabla particionada y con clustering.</li>

@@ -8,6 +8,10 @@ prerrequisitos: bigquery-paso-a-paso-merge
 autoevaluacion: ¿Sabes escribir "la tabla hace una hora"? | ¿Cuántos días dura time travel por defecto? | ¿Sabes qué es un snapshot de tabla? | ¿Sabes en qué se diferencia de un clon?
 ---
 
+:::analogia El grabador de la tabla
+Time travel es como un grabador que guarda los últimos 7 días de la tabla: puedes rebobinar y mirarla como estaba hace un minuto o hace tres días. Pasado ese plazo, la grabación se pierde; para guardar un momento por más tiempo están los snapshots.
+:::
+
 ## Paso 1 — El error
 
 ```sql norun
@@ -63,6 +67,12 @@ Si la tabla entera se borró (`DROP TABLE`), también se recupera dentro de la v
 | **Snapshot de tabla** | Lo que decidas | Copia de solo lectura en un momento: `CREATE SNAPSHOT TABLE pedidos_snap CLONE tienda.pedidos;` |
 | **Clon de tabla** | Lo que decidas | Copia que se puede modificar; solo paga lo que cambia: `CREATE TABLE pedidos_prueba CLONE tienda.pedidos;` |
 
+:::errores
+- **Contar con time travel para siempre.** La ventana es de 7 días (o menos si se configuró); después solo queda el fail-safe, que no puedes consultar tú.
+- **Restaurar sin una copia previa.** Antes de pisar la tabla, guarda el estado actual (un snapshot o un clon) por si la restauración también sale mal.
+- **Usar time travel como backup.** No reemplaza los snapshots programados antes de cargas grandes y riesgosas.
+:::
+
 ## ✅ Lo que lograste
 
 - Consultaste una tabla en el pasado.
@@ -74,7 +84,7 @@ Si la tabla entera se borró (`DROP TABLE`), también se recupera dentro de la v
 - [x] `FOR SYSTEM_TIME AS OF TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 HOUR)`
 - [ ] `AT(OFFSET => -3600)`
 - [ ] `SELECT * FROM tabla_ayer`
-- [ ] No se puede
+- [ ] Con `SELECT * FROM tabla@-3600000`
 :::
 
 :::ejercicio quiz
@@ -87,10 +97,10 @@ Si la tabla entera se borró (`DROP TABLE`), también se recupera dentro de la v
 
 :::ejercicio quiz
 ¿Qué es un snapshot de tabla?
-- [ ] Una captura de pantalla
+- [ ] Una vista que apunta a la tabla original
 - [x] Una copia de solo lectura de la tabla en un momento
 - [ ] Una vista
-- [ ] Un backup en Excel
+- [ ] Una copia que se actualiza sola con los cambios
 :::
 
 :::ejercicio quiz

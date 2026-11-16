@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>De la práctica a BigQuery real - sandbox, CLI y conexiones</h1><p class="resumen">Antes de usar un proyecto real, repasas qué cambia respecto de la práctica, cómo empezar gratis con el sandbox, la CLI bq (que también tienes en la terminal del curso), las librerías y conectores, y las reglas de seguridad y costo para tu primera semana.</p>
 <a class="cta" href="../index.html#/l/bigquery-paso-a-paso-de-la-practica-a-bigquery-real">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Saber qué cambia entre la práctica y BigQuery real</li><li>Empezar gratis con el sandbox</li><li>Usar la CLI bq</li><li>Conectar herramientas de forma segura</li><li>Armar la lista de la primera semana</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Del simulador al avión</div>
+
+<p>Pasar de la práctica a BigQuery real es pasar del simulador de vuelo al avión: los controles son los mismos (GoogleSQL, particiones, MERGE, time travel), pero el combustible se paga de verdad y hay más gente a bordo con distintos permisos.</p>
+</div>
+
+
 <h2>Paso 1 — Qué cambia</h2>
 <div class="table-wrap"><table><thead><tr>
 <th>En la práctica</th>
@@ -119,6 +125,16 @@ bq query --use_legacy_sql=false 'SELECT canal, COUNT(*) AS pedidos FROM tienda.p
 <li><input disabled="" type="checkbox"> Aprender las tablas grandes: cómo están particionadas y con qué clustering.</li>
 <li><input disabled="" type="checkbox"> Cada consulta, primero con el validador.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Conectar procesos automáticos con tu usuario personal.</strong> Si te vas o cambias de contraseña, se rompen; usa cuentas de servicio con el rol mínimo.</li>
+<li><strong>Subir un archivo de credenciales a Git.</strong> Aunque lo borres después, queda en el historial; revoca la clave y usa Workload Identity.</li>
+<li><strong>Activar la facturación sin presupuesto.</strong> Configura alertas y cuotas de bytes el primer día.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Sabes qué cambia en BigQuery real.</li>

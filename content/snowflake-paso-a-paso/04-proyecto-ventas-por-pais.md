@@ -61,6 +61,12 @@ texto: SQL compilation error - Object 'PEDIDO' does not exist or not authorized
 Ante "does not exist or not authorized", revisa primero el nombre y el contexto (base y esquema). Si están bien, es un tema de permisos (nivel 5).
 :::
 
+:::errores
+- **Contar pedidos con `COUNT(*)` después de unir con el detalle.** Cada pedido aparece una vez por línea; se cuenta con `COUNT(DISTINCT pedido_id)`.
+- **Leer "does not exist or not authorized" como "no existe".** Puede ser el nombre o el rol: revisa ambos.
+- **Buscar el país en la tabla equivocada.** En este modelo el país es del cliente; hace falta el JOIN con clientes.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] La hoja se llama "Ventas por país".
@@ -78,10 +84,10 @@ En el nivel 2: warehouses, bases, esquemas, tablas y el historial.
 
 :::ejercicio quiz
 ¿Por qué se usa COUNT(DISTINCT p.pedido_id)?
-- [ ] Porque COUNT no existe
+- [ ] Porque COUNT(*) ignora los pedidos cancelados
 - [x] Porque al unir con el detalle cada pedido aparece una vez por línea
 - [ ] Para que sea más rápido
-- [ ] Por estética
+- [ ] Porque así la consulta usa la caché
 :::
 
 :::ejercicio quiz

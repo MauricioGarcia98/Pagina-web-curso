@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué rol crea roles? | ¿Sabes dar SELECT a todas las ta
 Comercial: *"Necesitamos consultar `analitica` desde Snowsight y Power BI. No queremos tocar nada, solo leer."*
 :::
 
+:::analogia Armar un llavero
+Crear un rol es armar un llavero: le agregas la llave del warehouse (para poder trabajar), la de la base y el esquema (para entrar) y la de las tablas (para leer). Después le das el llavero a una persona. Si falta una llave del camino, no llega.
+:::
+
 ## Paso 1 — El rol y sus permisos
 
 ```sql norun
@@ -81,6 +85,12 @@ REVOKE SELECT ON ALL TABLES IN SCHEMA tienda_dev.analitica FROM ROLE analista_ve
 Da el rol más chico que alcance para el trabajo. Los analistas leen `analitica`; las cargas escriben en `raw`; nadie tiene ACCOUNTADMIN para trabajar.
 :::
 
+:::errores
+- **Olvidar las tablas futuras.** `ON ALL TABLES` cubre las que existen hoy; para las nuevas hace falta `ON FUTURE TABLES`.
+- **Dar permisos con el rol del analista.** Los roles y grants se administran con SECURITYADMIN (o USERADMIN para crear usuarios y roles).
+- **No probar el rol.** Hay que usarlo y comprobar que puede lo que debe y no puede lo que no debe.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un rol de solo lectura.
@@ -89,7 +99,7 @@ Da el rol más chico que alcance para el trabajo. Los analistas leen `analitica`
 
 :::ejercicio quiz
 ¿Con qué rol del sistema conviene crear roles y dar permisos?
-- [ ] PUBLIC
+- [ ] ACCOUNTADMIN, para cualquier permiso
 - [ ] SYSADMIN
 - [x] SECURITYADMIN (o USERADMIN para crear)
 - [ ] El rol del analista
@@ -98,17 +108,17 @@ Da el rol más chico que alcance para el trabajo. Los analistas leen `analitica`
 :::ejercicio quiz
 ¿Cómo das lectura a todas las tablas existentes de un esquema?
 - [x] `GRANT SELECT ON ALL TABLES IN SCHEMA ... TO ROLE ...`
-- [ ] `GRANT ALL TO EVERYONE`
+- [ ] `GRANT SELECT ON SCHEMA analitica TO ROLE ...`
 - [ ] `GRANT USAGE ON TABLE *`
-- [ ] No se puede
+- [ ] `GRANT SELECT ON FUTURE TABLES IN SCHEMA ...`
 :::
 
 :::ejercicio quiz
 Mañana se crea una tabla nueva en analitica. ¿La puede leer el analista?
 - [ ] Sí, siempre
 - [x] Solo si se dio GRANT SELECT ON FUTURE TABLES (o se le da permiso a esa tabla)
-- [ ] Solo si es ACCOUNTADMIN
-- [ ] Nunca
+- [ ] Solo después de un SHOW GRANTS
+- [ ] Sí, porque tiene USAGE en el esquema
 :::
 
 :::ejercicio quiz

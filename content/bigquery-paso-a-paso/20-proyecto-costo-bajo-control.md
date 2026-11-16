@@ -61,6 +61,12 @@ ORDER BY usd DESC;
 - Si el volumen es grande y estable, evaluar el modelo de capacidad (ediciones) para tener un costo predecible.
 </details>
 
+:::errores
+- **Optimizar sin medir.** Primero identifica con datos las consultas que más facturan; optimizar las que no pesan no mueve la factura.
+- **Proponer `LIMIT` como ahorro.** No baja lo leído; las mejoras reales son columnas justas, filtro de partición y tablas resumen.
+- **Dar acceso amplio para "no molestar".** Data Viewer por proyecto y Job User para todos multiplican quién puede generar costo.
+:::
+
 ## Lo que aprendiste en el nivel 5
 
 - INFORMATION_SCHEMA.
@@ -82,14 +88,14 @@ Una vista con JOIN se consulta cien veces por día. ¿Qué mejora propones?
 - [ ] Nada
 - [x] Materializar el resultado en una tabla (o una vista materializada)
 - [ ] Agregar LIMIT
-- [ ] Darle Admin a todos
+- [ ] Moverla a otro dataset
 :::
 
 :::ejercicio quiz
 ¿Cuándo conviene evaluar el modelo de capacidad (ediciones)?
 - [ ] Con pocas consultas chicas
 - [x] Con mucho volumen estable, para tener un costo predecible
-- [ ] Nunca
+- [ ] Cuando hay picos aislados una vez por mes
 - [ ] Solo para cargas
 :::
 

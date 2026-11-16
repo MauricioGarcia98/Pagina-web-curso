@@ -51,6 +51,12 @@ texto: Los warehouses con su estado, tamaño, auto suspend y créditos consumido
 | **Seguridad** | Roles, qué ve cada uno y cómo se conectan las herramientas |
 | **Costos** | Warehouses, horas estimadas por día, créditos por mes y el resource monitor |
 
+:::errores
+- **Diseñar sin pensar quién consulta qué.** Los roles, esquemas y warehouses salen de cómo trabaja cada equipo.
+- **Dar por buena la carga sin correrla dos veces.** La idempotencia se prueba.
+- **Documentar la recuperación sin probarla.** Provoca un borrado en un clon y recupéralo siguiendo tus pasos.
+:::
+
 ## ✅ Rúbrica
 
 | Criterio | Cumple | Destaca |
@@ -77,7 +83,7 @@ Sube el script SQL y el documento a un repositorio de GitHub con un README que t
 
 :::ejercicio quiz
 ¿Qué hace idempotente la carga del proyecto?
-- [ ] Usar INSERT
+- [ ] Usar INSERT con un warehouse dedicado
 - [x] COPY INTO que saltea archivos ya cargados y un MERGE deduplicado
 - [ ] Un warehouse grande
 - [ ] Borrar todo cada día
@@ -87,8 +93,8 @@ Sube el script SQL y el documento a un repositorio de GitHub con un README que t
 Alguien borra pedidos_actuales por error. ¿Qué usas primero?
 - [x] UNDROP TABLE (si se borró la tabla) o Time Travel con el Query ID (si se borraron filas)
 - [ ] Fail-safe
-- [ ] Un backup en Excel
-- [ ] Nada
+- [ ] Un clon de la tabla creado después del borrado
+- [ ] Pedirle a soporte Fail-safe en el momento
 :::
 
 :::ejercicio quiz
@@ -96,7 +102,7 @@ Alguien borra pedidos_actuales por error. ¿Qué usas primero?
 - [ ] Porque uno no alcanza para SQL
 - [x] Para que no se pisen y para medir y limitar el costo de cada uno
 - [ ] Porque Snowflake lo exige
-- [ ] Para tener más roles
+- [ ] Porque un warehouse no puede leer dos esquemas
 :::
 
 :::ejercicio quiz

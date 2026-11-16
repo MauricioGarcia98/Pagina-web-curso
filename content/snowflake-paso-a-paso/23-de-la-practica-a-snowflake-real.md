@@ -8,6 +8,10 @@ prerrequisitos: snowflake-paso-a-paso-snowpipe-streams-tasks-y-mas
 autoevaluacion: ¿Sabes cuánto dura la prueba gratuita? | ¿Sabes qué autenticación usar para un usuario de servicio? | ¿Sabes con qué herramienta se automatiza desde la terminal? | ¿Sabes qué no compartir en capturas?
 ---
 
+:::analogia Del simulador al avión
+Lo que practicaste (warehouses, roles, COPY INTO, MERGE, Time Travel) funciona igual en una cuenta real. Lo que cambia es que los créditos se pagan y que hay más gente con distintos roles: por eso lo primero es poner topes y separar permisos.
+:::
+
 ## Paso 1 — Qué cambia
 
 | En la práctica | En Snowflake real |
@@ -62,6 +66,12 @@ Para herramientas y procesos automáticos, crea **usuarios de servicio** con aut
 Si compartes capturas de una cuenta real, difumina el nombre de la cuenta, la URL, los usuarios y cualquier dato de clientes.
 :::
 
+:::errores
+- **Probar con un warehouse grande.** En la prueba gratuita los créditos se acaban rápido; empieza con X-Small y auto suspend corto.
+- **Conectar herramientas con tu usuario personal.** dbt o Airflow usan un usuario de servicio con key-pair u OAuth y un rol propio.
+- **Usar ACCOUNTADMIN para el trabajo diario.** Úsalo para facturación y monitores, y trabaja con roles propios.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué cambia en Snowflake real.
@@ -73,14 +83,14 @@ Si compartes capturas de una cuenta real, difumina el nombre de la cuenta, la UR
 - [ ] 7 días
 - [x] 30 días
 - [ ] 1 año
-- [ ] No existe
+- [ ] 90 días
 :::
 
 :::ejercicio quiz
 ¿Qué autenticación conviene para un usuario de servicio (por ejemplo, dbt o Airflow)?
 - [ ] Tu contraseña personal
 - [x] Par de claves (key-pair) u OAuth, con un rol propio
-- [ ] Sin autenticación
+- [ ] Usuario y contraseña compartidos por el equipo
 - [ ] La contraseña de ACCOUNTADMIN
 :::
 
@@ -89,13 +99,13 @@ Si compartes capturas de una cuenta real, difumina el nombre de la cuenta, la UR
 - [x] Snowflake CLI (snow)
 - [ ] Excel
 - [ ] Power BI
-- [ ] El navegador solamente
+- [ ] Snowsight, porque no existe una CLI
 :::
 
 :::ejercicio quiz
 ¿Qué es lo primero que conviene crear en una cuenta de prueba?
 - [ ] Un warehouse 4X-Large
 - [x] Un warehouse X-Small con auto suspend corto y un resource monitor
-- [ ] Cien usuarios
-- [ ] Nada
+- [ ] Un usuario por cada herramienta, con ACCOUNTADMIN
+- [ ] Una base con Time Travel de 90 días
 :::

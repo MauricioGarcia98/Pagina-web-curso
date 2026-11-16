@@ -8,6 +8,10 @@ prerrequisitos: snowflake-paso-a-paso-bases-esquemas-y-tablas
 autoevaluacion: ¿Sabes filtrar las fallidas? | ¿Sabes qué warehouse usó una consulta? | ¿Sabes reabrir una consulta del historial? | ¿Sabes dónde consultar el historial con SQL?
 ---
 
+:::analogia La caja negra del avión
+El historial de consultas es la caja negra: registra cada sentencia con quién la ejecutó, con qué rol y warehouse, cuánto tardó y si falló. Cuando algo sale mal, primero se lee la caja negra.
+:::
+
 ## Paso 1 — El historial
 
 **Monitoring → Query History**:
@@ -46,6 +50,12 @@ texto: El detalle - estado, rol, warehouse, contexto, duración, el SQL y el err
 El historial también se consulta con SQL: `SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY` guarda un año de historia (con hasta 45 minutos de demora) y la función `INFORMATION_SCHEMA.QUERY_HISTORY()` los últimos 7 días al instante. El **Query Profile** de cada consulta muestra paso a paso dónde se fue el tiempo.
 :::
 
+:::errores
+- **Buscar solo en la hoja.** Si la consulta la corrió otra persona o un proceso, está en Query History (o en ACCOUNT_USAGE), no en tu hoja.
+- **Mirar solo la duración.** Una consulta lenta puede estar esperando en cola por un warehouse saturado; el Query Profile muestra dónde se fue el tiempo.
+- **Olvidar el retraso de ACCOUNT_USAGE.** Sus vistas tienen hasta unas horas de demora; para lo de hace minutos usa Query History o INFORMATION_SCHEMA.
+:::
+
 ## ✅ Lo que lograste
 
 - Lees y filtras el historial.
@@ -73,12 +83,12 @@ El historial también se consulta con SQL: `SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTOR
 - [ ] INFORMATION_SCHEMA.TABLES
 - [x] SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
 - [ ] PUBLIC.HISTORIAL
-- [ ] No existe
+- [ ] INFORMATION_SCHEMA.QUERY_HISTORY
 :::
 
 :::ejercicio quiz
 ¿Qué muestra el Query Profile?
-- [ ] La foto del usuario
+- [ ] El texto SQL de la consulta, formateado
 - [x] Paso a paso dónde se fue el tiempo de una consulta
 - [ ] Los créditos de la cuenta
 - [ ] Los roles

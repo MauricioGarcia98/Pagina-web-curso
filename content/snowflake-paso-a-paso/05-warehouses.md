@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes cuántos créditos por hora gasta un X-Small? | ¿Sabes 
 Lucía, líder de datos: *"Los analistas y la carga nocturna usan el mismo warehouse y se pisan. Quiero uno aparte para análisis, chico y que se apague solo."*
 :::
 
+:::analogia Una cuadrilla que se contrata por segundo
+Un warehouse es una cuadrilla de trabajadores: un X-Small es una cuadrilla chica y cada talla duplica la gente y el costo por hora. Agrandarla (scale up) termina antes un trabajo pesado; agregar cuadrillas iguales (scale out) atiende a más clientes a la vez. Y la cuadrilla se paga solo mientras está trabajando.
+:::
+
 ## Paso 1 — Crear el warehouse
 
 **Admin → Warehouses → + Warehouse**:
@@ -75,6 +79,12 @@ texto: La hoja usa ANALISIS_WH (1) y SHOW WAREHOUSES lo muestra en Small (2)
 
 Duplicar el tamaño duplica el costo por hora, pero si la consulta tarda la mitad, el costo total es el mismo y el resultado llega antes.
 
+:::errores
+- **Agrandar para atender a más usuarios.** Si el problema es que muchas consultas esperan en cola, conviene multi-clúster (scale out), no una talla mayor.
+- **AUTO_SUSPEND muy largo o en 0.** Un warehouse que nunca se apaga cobra toda la noche; para análisis, 60 a 300 segundos alcanza.
+- **Un solo warehouse para todo.** Cargas y análisis se pisan y no sabes quién gasta; usa uno por carga de trabajo.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un warehouse con auto suspend.
@@ -94,15 +104,15 @@ Duplicar el tamaño duplica el costo por hora, pero si la consulta tarda la mita
 - [x] Apaga el warehouse después de 60 segundos sin consultas
 - [ ] Lo prende cada 60 segundos
 - [ ] Limita las consultas a 60
-- [ ] Borra el warehouse
+- [ ] Suspende las consultas que tardan más de 60 segundos
 :::
 
 :::ejercicio quiz
 Una consulta pesada tarda 20 minutos en X-Small. ¿Qué pruebas primero?
 - [x] Subir el tamaño (scale up)
 - [ ] Agregar clústeres (scale out)
-- [ ] Apagar el warehouse
-- [ ] Cambiar de rol
+- [ ] Bajar AUTO_SUSPEND a 30 segundos
+- [ ] Cambiar al rol ACCOUNTADMIN, que tiene más prioridad
 :::
 
 :::ejercicio quiz

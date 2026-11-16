@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Explorar tablas - esquema, detalles y vista previa gratis</h1><p class="resumen">Antes de consultar conviene mirar. Abres la tabla pedidos y recorres su esquema (con el tamaño de cada columna, que es lo que paga cada consulta), sus detalles (filas, bytes, partición y clustering) y la vista previa, que en BigQuery es gratis. Conoces los tipos de GoogleSQL.</p>
 <a class="cta" href="../index.html#/l/bigquery-paso-a-paso-explorar-tablas">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer el esquema y el tamaño de cada columna</li><li>Interpretar los detalles de una tabla</li><li>Usar la vista previa sin costo</li><li>Reconocer los tipos de datos de GoogleSQL</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Mirar el menú antes de pedir</div>
+
+<p>El esquema, los detalles y la vista previa son el menú: mirarlos no cuesta nada. Pedir el plato es ejecutar una consulta, y ahí sí se paga por todo lo que la cocina tiene que leer.</p>
+</div>
+
+
 <h2>Paso 1 — El esquema</h2>
 <p>Explorador → <code>tienda</code> → <code>pedidos</code>:</p>
 <figure class="captura"><img src="assets/img/guias/bigquery/q03-schema.webp" alt="Las pestañas Schema, Details y Preview (1) y cada columna con su tipo, modo y tamaño (2)" loading="lazy"><figcaption>Las pestañas Schema, Details y Preview (1) y cada columna con su tipo, modo y tamaño (2)</figcaption></figure>
@@ -60,6 +66,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Preview es gratis, LIMIT no</div>
 
 <p>La pestaña <strong>Preview</strong> lee la tabla sin un job de consulta: <strong>no cuesta</strong>. En cambio <code>SELECT * FROM pedidos LIMIT 10</code> procesa <strong>todas</strong> las columnas de toda la tabla: <code>LIMIT</code> recorta el resultado, no lo que se lee.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Explorar con <code>LIMIT</code>.</strong> <code>SELECT * ... LIMIT 10</code> lee todas las columnas de toda la tabla; la vista previa muestra filas gratis.</li>
+<li><strong>Escribir tipos de otros motores.</strong> En GoogleSQL no existe <code>VARCHAR(255)</code>: el texto es <code>STRING</code> y los enteros son <code>INT64</code>.</li>
+<li><strong>Filtrar sin mirar los detalles.</strong> Si la tabla está particionada o tiene clustering, filtrar por esas columnas es lo que baja el costo; los detalles te lo dicen antes de escribir.</li>
+</ul>
 </div>
 
 

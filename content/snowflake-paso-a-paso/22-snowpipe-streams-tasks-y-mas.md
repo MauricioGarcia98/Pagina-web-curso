@@ -17,6 +17,10 @@ archivo: snowflake/s22-tareas.webp
 texto: Task History - las ejecuciones de las tasks programadas (no simulado en la práctica)
 ```
 
+:::analogia Una línea de producción automática
+Snowpipe es la cinta que recibe cada archivo apenas llega; un stream es el cuaderno donde se anota qué filas cambiaron; una task es el reloj que corre un SQL a horario; una dynamic table es una tabla que se mantiene sola a partir de una consulta. Juntas arman una línea que funciona sin que nadie apriete botones.
+:::
+
 ## Paso 1 — Snowpipe: carga continua
 
 ```sql norun
@@ -87,6 +91,12 @@ Declaras **qué** resultado quieres y **cuán atrasado** puede estar (`TARGET_LA
 | El flujo mezcla Snowflake con APIs, otros sistemas o avisos | Un orquestador como [Airflow](#/m/airflow-paso-a-paso) |
 | El equipo transforma con modelos versionados y pruebas | dbt (puede generar dynamic tables) |
 
+:::errores
+- **Leer un stream y no consumirlo en una transacción DML.** El stream avanza solo cuando sus filas se usan en un INSERT, MERGE u otra escritura que confirma.
+- **Tasks que quedan suspendidas.** Una task recién creada está suspendida; hay que hacer `ALTER TASK ... RESUME`.
+- **Orquestar dentro de Snowflake lo que depende de sistemas externos.** Si hay APIs, avisos o pasos en otros servicios, conviene un orquestador.
+:::
+
 ## ✅ Lo que lograste
 
 - Conoces Snowpipe, streams, tasks y dynamic tables.
@@ -95,7 +105,7 @@ Declaras **qué** resultado quieres y **cuán atrasado** puede estar (`TARGET_LA
 
 :::ejercicio quiz
 ¿En qué se diferencia Snowpipe de un COPY INTO programado?
-- [ ] No hay diferencia
+- [ ] Snowpipe carga solo archivos JSON
 - [x] Snowpipe se dispara solo al llegar el archivo y usa cómputo serverless
 - [ ] Snowpipe no carga CSV
 - [ ] Snowpipe necesita ACCOUNTADMIN para cada archivo
@@ -105,7 +115,7 @@ Declaras **qué** resultado quieres y **cuán atrasado** puede estar (`TARGET_LA
 ¿Qué devuelve un stream?
 - [x] Las filas que cambiaron en la tabla desde la última vez que se leyó
 - [ ] Toda la tabla
-- [ ] Un video
+- [ ] Las consultas que se ejecutaron sobre la tabla
 - [ ] El historial de consultas
 :::
 
@@ -113,13 +123,13 @@ Declaras **qué** resultado quieres y **cuán atrasado** puede estar (`TARGET_LA
 ¿Qué indica TARGET_LAG en una dynamic table?
 - [ ] El tamaño del warehouse
 - [x] Cuánto puede atrasarse la tabla respecto de sus fuentes
-- [ ] Cuántas filas tiene
+- [ ] Cada cuántos minutos se borra la tabla
 - [ ] Quién puede leerla
 :::
 
 :::ejercicio quiz
 El flujo llama a una API, carga en Snowflake y avisa por Slack. ¿Qué conviene?
-- [ ] Solo tasks
+- [ ] Solo tasks, encadenadas con AFTER
 - [x] Un orquestador como Airflow
 - [ ] Una dynamic table
 - [ ] Un stream

@@ -76,6 +76,16 @@ ORDER BY usd DESC;</code></pre>
 <li>Data Viewer por dataset (no por proyecto) y Job User solo a quien consulta.</li>
 <li>Si el volumen es grande y estable, evaluar el modelo de capacidad (ediciones) para tener un costo predecible.</details></li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Optimizar sin medir.</strong> Primero identifica con datos las consultas que más facturan; optimizar las que no pesan no mueve la factura.</li>
+<li><strong>Proponer <code>LIMIT</code> como ahorro.</strong> No baja lo leído; las mejoras reales son columnas justas, filtro de partición y tablas resumen.</li>
+<li><strong>Dar acceso amplio para &quot;no molestar&quot;.</strong> Data Viewer por proyecto y Job User para todos multiplican quién puede generar costo.</li>
+</ul>
+</div>
+
+
 <h2>Lo que aprendiste en el nivel 5</h2>
 <ul>
 <li>INFORMATION_SCHEMA.</li>

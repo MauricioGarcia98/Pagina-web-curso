@@ -63,6 +63,12 @@ texto: Las secciones no simuladas explican qué son y qué practicar en su lugar
 | La estimación de bytes por columnas y particiones, la caché y el historial de jobs | Los precios son los de lista y los datos son chicos |
 | Particiones, clustering, cargas, MERGE, time travel, INFORMATION_SCHEMA | Scheduled queries, Dataform, Data transfers y Analytics Hub se explican |
 
+:::errores
+- **Pensar que se paga por tiempo o por filas devueltas.** En el modelo on-demand se paga por los bytes que la consulta *lee*: una consulta que devuelve 5 filas puede leer toda la tabla.
+- **Buscar el servidor.** No hay máquinas que encender ni apagar; el dataset es un contenedor con región y permisos, no una base de datos en un servidor.
+- **Ejecutar sin mirar el validador.** La estimación de bytes aparece antes de correr la consulta: mirarla es gratis y evita sorpresas.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué es BigQuery y qué lo hace distinto.
@@ -80,17 +86,17 @@ texto: Las secciones no simuladas explican qué son y qué practicar en su lugar
 :::ejercicio quiz
 ¿Qué es un dataset en BigQuery?
 - [x] Un contenedor de tablas y vistas con su región y sus permisos
-- [ ] Un servidor
-- [ ] Un archivo CSV
-- [ ] Un usuario
+- [ ] Un servidor que hay que encender antes de consultar
+- [ ] Una carpeta de Cloud Storage con archivos CSV
+- [ ] Un grupo de usuarios con permisos sobre el proyecto
 :::
 
 :::ejercicio quiz
 ¿Por qué guardar por columnas abarata las consultas?
 - [ ] Porque comprime las filas
 - [x] Porque una consulta solo lee las columnas que nombra
-- [ ] Porque no guarda los datos
-- [ ] No cambia nada
+- [ ] Porque guarda las filas ordenadas por fecha
+- [ ] Porque cada columna se guarda en una región distinta
 :::
 
 :::ejercicio quiz
@@ -98,5 +104,5 @@ texto: Las secciones no simuladas explican qué son y qué practicar en su lugar
 - [ ] En la factura
 - [x] En el validador del editor (dry run)
 - [ ] En el Overview
-- [ ] No se puede saber
+- [ ] En el historial de jobs, antes de ejecutar
 :::

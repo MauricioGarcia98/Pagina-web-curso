@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Explorar datos - bases, esquemas, columnas y vista previa</h1><p class="resumen">Antes de escribir SQL conviene saber qué hay. Recorres Data → Databases, abres la tabla PEDIDOS, lees sus columnas y tipos, miras una vista previa y aprendes los tipos de datos de Snowflake que más vas a ver.</p>
 <a class="cta" href="../index.html#/l/snowflake-paso-a-paso-explorar-datos">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Navegar bases y esquemas</li><li>Leer columnas y tipos de una tabla</li><li>Ver una vista previa de los datos</li><li>Reconocer los tipos de datos principales de Snowflake</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Leer las etiquetas antes de abrir las cajas</div>
+
+<p>Explorar la base desde Data es leer las etiquetas de las cajas del depósito: qué contiene cada una, de qué tipo y cuánto pesa. Recién después abres la caja que te interesa con una consulta.</p>
+</div>
+
+
 <h2>Paso 1 — Databases</h2>
 <p><strong>Data → Databases</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/snowflake/s03-databases.webp" alt="El explorador (1) y la lista de bases (2) - SNOWFLAKE_SAMPLE_DATA y TIENDA_ANDINA" loading="lazy"><figcaption>El explorador (1) y la lista de bases (2) - SNOWFLAKE_SAMPLE_DATA y TIENDA_ANDINA</figcaption></figure>
@@ -62,6 +68,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ La vista previa también usa el warehouse</div>
 
 <p>Ver datos ejecuta una consulta, así que enciende el warehouse y consume créditos. En tablas enormes, usa siempre <code>LIMIT</code>.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Creer que la vista previa es gratis.</strong> En Snowflake ejecuta una consulta con el warehouse, así que gasta créditos (poco, pero gasta).</li>
+<li><strong>Guardar JSON en VARCHAR.</strong> Pierdes la notación <code>:</code> y la conversión con <code>::</code>; el JSON va en VARIANT.</li>
+<li><strong>Ignorar mayúsculas en los nombres.</strong> Sin comillas, Snowflake guarda los nombres en mayúsculas; <code>&quot;pedidos&quot;</code> entre comillas es otro objeto que <code>pedidos</code>.</li>
+</ul>
 </div>
 
 

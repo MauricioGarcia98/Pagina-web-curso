@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Vistas, STRUCT, ARRAY y UNNEST - datos anidados</h1><p class="resumen">BigQuery guarda bien los datos anidados - listas y registros dentro de una fila. Creas una vista con los últimos tres pedidos de cada cliente en un ARRAY, la abres en filas con UNNEST, armas un STRUCT y aprendes por qué anidar evita joins en tablas muy grandes.</p>
 <a class="cta" href="../index.html#/l/bigquery-paso-a-paso-vistas-struct-array-y-unnest">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una vista</li><li>Armar arreglos con ARRAY_AGG</li><li>Abrir arreglos en filas con UNNEST</li><li>Crear y leer STRUCT</li><li>Saber cuándo conviene anidar</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El ticket con sus renglones</div>
+
+<p>En una base clásica, el ticket va en una tabla y sus renglones en otra, y cada consulta los vuelve a unir. En BigQuery el ticket puede llevar sus renglones adentro: un <code>ARRAY</code> de <code>STRUCT</code>. <code>UNNEST</code> despliega esos renglones en filas cuando los necesitas.</p>
+</div>
+
+
 <h2>Paso 1 — Una vista con un arreglo</h2>
 <pre data-norun><code class="language-sql">CREATE OR REPLACE VIEW analitica.v_ultimos_pedidos AS
 SELECT cliente_id,
@@ -68,6 +74,16 @@ ORDER BY v.cliente_id;</code></pre>
 <p>Un campo de un STRUCT se lee con punto: <code>sucursal.pais</code>.</p>
 <h2>Paso 4 — ¿Por qué anidar?</h2>
 <p>En BigQuery, un pedido con sus líneas como <code>ARRAY&lt;STRUCT&lt;producto_id, cantidad, precio&gt;&gt;</code> dentro de la misma fila evita el JOIN entre pedidos y detalle, que en tablas de miles de millones de filas es lo más caro. Es el modelo que usa, por ejemplo, la exportación de Google Analytics 4.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Perder filas con <code>UNNEST</code>.</strong> <code>CROSS JOIN UNNEST(lista)</code> descarta las filas cuya lista está vacía; si las necesitas, usa <code>LEFT JOIN UNNEST(lista)</code>.</li>
+<li><strong>Creer que la vista ahorra.</strong> La vista guarda la consulta, no el resultado: cada uso vuelve a leer (y cobrar) las tablas de origen.</li>
+<li><strong>Leer un STRUCT con corchetes.</strong> Los campos se leen con punto (<code>sucursal.pais</code>); los corchetes son para posiciones de un ARRAY (<code>lista[OFFSET(0)]</code>).</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste una vista con arreglos.</li>

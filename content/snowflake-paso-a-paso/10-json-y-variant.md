@@ -8,6 +8,10 @@ prerrequisitos: snowflake-paso-a-paso-stages-y-copy-into
 autoevaluacion: ¿Sabes qué tipo guarda JSON? | ¿Sabes leer datos:cliente.pais? | ¿Sabes para qué sirve ::string? | ¿Sabes qué devuelve FLATTEN?
 ---
 
+:::analogia Una caja que acepta cualquier forma
+Una columna VARIANT es una caja que acepta objetos de cualquier forma: cada evento puede traer campos distintos. Con `:` buscas adentro de la caja, con `::` le pones una etiqueta de tipo al resultado y con `FLATTEN` vacías una lista en filas.
+:::
+
 ## Paso 1 — Guardar JSON
 
 ```sql norun
@@ -69,6 +73,12 @@ texto: LATERAL FLATTEN (1) - una fila por ítem: PE A1 y B7, CO C3; la visita si
 La visita no aparece porque su arreglo está vacío. Para conservarla, `FLATTEN(input => ..., outer => TRUE)` devuelve una fila con `value` nulo.
 :::
 
+:::errores
+- **Olvidar convertir con `::`.** Un valor leído de VARIANT sigue siendo VARIANT y se muestra entre comillas; `::string` o `::number` lo convierten.
+- **Confundir mayúsculas en las claves JSON.** Las claves de VARIANT distinguen mayúsculas: `datos:Pais` no es `datos:pais`.
+- **Perder filas con `FLATTEN`.** Las filas con arreglo vacío desaparecen; usa `OUTER => TRUE` si las necesitas.
+:::
+
 ## ✅ Lo que lograste
 
 - Guardaste JSON en VARIANT.
@@ -93,16 +103,16 @@ La visita no aparece porque su arreglo está vacío. Para conservarla, `FLATTEN(
 
 :::ejercicio quiz
 ¿Para qué sirve `::string` al final?
-- [ ] Para borrar el campo
+- [ ] Para leer el campo solo si existe
 - [x] Para convertir el valor VARIANT a texto
 - [ ] Para ordenar
-- [ ] No hace nada
+- [ ] Para convertir el texto en JSON
 :::
 
 :::ejercicio quiz
 ¿Qué hace LATERAL FLATTEN sobre un arreglo de 2 ítems?
 - [ ] Devuelve 1 fila con los 2 ítems juntos
 - [x] Devuelve 2 filas, una por ítem, con value e index
-- [ ] Borra el arreglo
+- [ ] Devuelve el primer ítem del arreglo
 - [ ] Da error
 :::

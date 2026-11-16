@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>INFORMATION_SCHEMA - el proyecto consultado con SQL</h1><p class="resumen">Todo lo que muestra la consola también se puede consultar con SQL. Con INFORMATION_SCHEMA.JOBS mides cuántos bytes procesó y facturó cada tipo de job y encuentras las consultas más caras; con TABLES y COLUMNS armas el inventario de un dataset. Es la base de los tableros de costos y de las pruebas automáticas.</p>
 <a class="cta" href="../index.html#/l/bigquery-paso-a-paso-information-schema">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Consultar los jobs con INFORMATION_SCHEMA.JOBS</li><li>Encontrar las consultas más caras con SQL</li><li>Listar tablas y columnas de un dataset</li><li>Saber qué vista usar en cada caso y qué permisos pide</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El tablero del auto</div>
+
+<p>Para saber cómo va el auto no abres el motor: miras el tablero. <code>INFORMATION_SCHEMA</code> es el tablero del proyecto en forma de tablas: qué jobs corrieron, cuánto leyeron, qué tablas y columnas existen. Y como son tablas, se pueden consultar y graficar.</p>
+</div>
+
+
 <h2>Paso 1 — Quién gasta</h2>
 <pre data-norun><code class="language-sql">SELECT job_type,
        COUNT(*) AS jobs,
@@ -74,6 +80,16 @@ WHERE table_name = 'pedidos';</code></pre>
 <div class="callout callout-nota"><div class="callout-title">📝 Costo de INFORMATION_SCHEMA</div>
 
 <p>Consultar estas vistas también es un job y se factura (con el mínimo de 10 MB). Para un tablero diario de costos, guarda el resultado en una tabla una vez al día.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Olvidar la región.</strong> Los jobs se guardan por región: es <code>`region-us`.INFORMATION_SCHEMA.JOBS</code>, no <code>INFORMATION_SCHEMA.JOBS</code> a secas.</li>
+<li><strong>Consultar JOBS sin filtrar por fecha.</strong> Leer todo el historial también procesa bytes; filtra por <code>creation_time</code>.</li>
+<li><strong>Usar JOBS_BY_USER para un informe del equipo.</strong> Solo trae tus jobs; para todo el proyecto es JOBS (y requiere permisos).</li>
+</ul>
 </div>
 
 

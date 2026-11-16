@@ -35,6 +35,12 @@ archivo: bigquery/q08-inventario.webp
 texto: El script (1) y el inventario - clientes_por_pais con 11 filas y ventas_por_canal con 4 (2)
 ```
 
+:::errores
+- **Crear las tablas con clics en la consola.** Nadie puede repetirlo igual; un script con `CREATE OR REPLACE` se versiona y se vuelve a correr.
+- **Usar `CREATE TABLE` sin `OR REPLACE` en un script.** La segunda vez falla porque la tabla ya existe.
+- **Verificar mirando el explorador.** Una consulta a `INFORMATION_SCHEMA.TABLES` deja la verificación escrita y se puede automatizar.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] `analitica` tiene las dos tablas.
@@ -95,7 +101,7 @@ En el nivel 3: particiones, clustering, cargas y datos anidados.
 - [ ] Porque cuesta menos
 - [x] Porque se puede automatizar y volver a correr sin romper nada
 - [ ] Porque BigQuery lo exige
-- [ ] No conviene
+- [ ] Porque así no hace falta elegir la región
 :::
 
 :::ejercicio quiz

@@ -8,6 +8,10 @@ prerrequisitos: bigquery-paso-a-paso-automatizar
 autoevaluacion: ¿Sabes qué rol hace falta para ejecutar consultas? | ¿Sabes qué es una vista autorizada? | ¿Sabes cómo hacer que cada gerente vea solo su país? | ¿Sabes compartir un dataset con otra empresa sin copiarlo?
 ---
 
+:::analogia Llaves por departamento y una ventanilla
+Los permisos de BigQuery son llaves: conviene dar la llave de un departamento (un dataset), no la del edificio (el proyecto). Una vista autorizada es una ventanilla: entrega solo lo que comercial necesita, aunque comercial no tenga llave del depósito de atrás.
+:::
+
 ## Paso 1 — Una vista para comercial
 
 ```sql norun
@@ -65,6 +69,12 @@ texto: Sharing (Analytics Hub) - publicar datasets para otras organizaciones sin
 
 Con **Analytics Hub** se publica un dataset y el otro lo ve como un dataset enlazado de solo lectura; cada uno paga sus propias consultas.
 
+:::errores
+- **Dar los roles a nivel proyecto.** Data Viewer en el proyecto abre todos los datasets; dalo en el dataset que corresponde.
+- **Olvidar Job User.** Leer la tabla no alcanza para consultar: hace falta poder crear jobs en algún proyecto.
+- **Compartir copias.** Cada copia se desactualiza y es un riesgo más; comparte con vistas autorizadas o Analytics Hub.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste una vista para un área.
@@ -76,14 +86,14 @@ Con **Analytics Hub** se publica un dataset y el otro lo ve como un dataset enla
 - [ ] Data Owner
 - [x] BigQuery Job User
 - [ ] Storage Admin
-- [ ] Ninguno
+- [ ] BigQuery Data Editor en el dataset
 :::
 
 :::ejercicio quiz
 ¿Qué es una vista autorizada?
 - [x] Una vista que puede leer tablas a las que el usuario final no tiene acceso
 - [ ] Una vista sin datos
-- [ ] Una vista que cualquiera puede borrar
+- [ ] Una vista que solo puede leer el dueño del proyecto
 - [ ] Una tabla temporal
 :::
 
@@ -91,7 +101,7 @@ Con **Analytics Hub** se publica un dataset y el otro lo ve como un dataset enla
 ¿Cómo haces que cada gerente vea solo su país en la misma tabla?
 - [ ] Una tabla por gerente
 - [x] Con una row access policy
-- [ ] Con LIMIT
+- [ ] Con una etiqueta de política en la columna país
 - [ ] Con una scheduled query
 :::
 
@@ -99,6 +109,6 @@ Con **Analytics Hub** se publica un dataset y el otro lo ve como un dataset enla
 ¿Cómo compartes un dataset con otra empresa sin copiarlo?
 - [ ] Exportándolo a CSV
 - [x] Publicándolo en Analytics Hub
-- [ ] Dándole la contraseña
-- [ ] No se puede
+- [ ] Dándole el rol Owner de tu proyecto
+- [ ] Con una scheduled query que copia los datos a su proyecto
 :::

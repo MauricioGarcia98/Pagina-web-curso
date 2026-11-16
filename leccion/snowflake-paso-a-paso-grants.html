@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Armar un llavero</div>
+
+<p>Crear un rol es armar un llavero: le agregas la llave del warehouse (para poder trabajar), la de la base y el esquema (para entrar) y la de las tablas (para leer). Después le das el llavero a una persona. Si falta una llave del camino, no llega.</p>
+</div>
+
+
 <h2>Paso 1 — El rol y sus permisos</h2>
 <pre data-norun><code class="language-sql">USE ROLE SECURITYADMIN;
 CREATE ROLE analista_ventas;
@@ -92,6 +98,16 @@ GROUP BY canal;</code></pre>
 <div class="callout callout-tip"><div class="callout-title">💡 Mínimo privilegio</div>
 
 <p>Da el rol más chico que alcance para el trabajo. Los analistas leen <code>analitica</code>; las cargas escriben en <code>raw</code>; nadie tiene ACCOUNTADMIN para trabajar.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Olvidar las tablas futuras.</strong> <code>ON ALL TABLES</code> cubre las que existen hoy; para las nuevas hace falta <code>ON FUTURE TABLES</code>.</li>
+<li><strong>Dar permisos con el rol del analista.</strong> Los roles y grants se administran con SECURITYADMIN (o USERADMIN para crear usuarios y roles).</li>
+<li><strong>No probar el rol.</strong> Hay que usarlo y comprobar que puede lo que debe y no puede lo que no debe.</li>
+</ul>
 </div>
 
 

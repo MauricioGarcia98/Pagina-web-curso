@@ -8,6 +8,10 @@ prerrequisitos: bigquery-paso-a-paso-proyecto-costo-bajo-control
 autoevaluacion: ¿Sabes las tres palancas para leer menos? | ¿Sabes por qué un JOIN con una tabla enorme sin filtrar es caro? | ¿Sabes cuándo usar una vista materializada? | ¿Sabes revisar una consulta antes de aprobarla?
 ---
 
+:::analogia Qué cajones, qué estantes, qué carpetas
+Leer menos es abrir solo los cajones que necesitas (las columnas), en los estantes de las fechas pedidas (la partición) y, dentro de cada estante, solo las carpetas del canal buscado (el clustering). Cada palanca sola ayuda; las tres juntas son las que hacen que una consulta lea el 2 % de la tabla.
+:::
+
 ## Paso 1 — Las tres palancas juntas
 
 ```sql norun
@@ -54,6 +58,12 @@ texto: La estimación (1) y lo que realmente se leyó - 2 columnas y el 2 % de l
 - Límite de bytes por consulta y cuotas diarias.
 - SQL versionado (Dataform o dbt), no consultas sueltas en pestañas.
 
+:::errores
+- **Unir antes de filtrar.** Un JOIN con la tabla grande completa procesa todo; filtra por fecha antes del JOIN.
+- **Tablas temporales sin vencimiento.** Se acumulan y cobran almacenamiento; ponles vencimiento al crearlas.
+- **Streaming por costumbre.** Si los datos pueden esperar unos minutos, la carga por lotes es gratis.
+:::
+
 ## ✅ Lo que lograste
 
 - Combinaste las tres palancas.
@@ -70,8 +80,8 @@ texto: La estimación (1) y lo que realmente se leyó - 2 columnas y el 2 % de l
 :::ejercicio quiz
 ¿Por qué conviene filtrar por la partición antes de unir con una tabla enorme?
 - [x] Para que el JOIN trabaje con menos filas y se lean menos particiones
-- [ ] Porque los JOIN no existen
-- [ ] Porque es obligatorio
+- [ ] Porque BigQuery no permite JOIN sin filtro de partición
+- [ ] Porque así la consulta sale de la caché
 - [ ] No cambia nada
 :::
 
@@ -80,7 +90,7 @@ texto: La estimación (1) y lo que realmente se leyó - 2 columnas y el 2 % de l
 - [ ] Para datos que nunca se consultan
 - [x] Para agregados que se consultan seguido: BigQuery los mantiene al día
 - [ ] Para borrar datos
-- [ ] Nunca
+- [ ] Para tablas que cambian cada segundo y se consultan una vez al mes
 :::
 
 :::ejercicio quiz

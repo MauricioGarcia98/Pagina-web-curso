@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Bases, esquemas y tablas - armar un entorno ordenado</h1><p class="resumen">Creas la base tienda_dev con dos esquemas por capa (raw y analitica), una tabla con CREATE TABLE AS SELECT, la encuentras en el explorador y aprendes los tipos de tabla (permanente, transitoria, temporal) y una convención de nombres para que el equipo encuentre todo.</p>
 <a class="cta" href="../index.html#/l/snowflake-paso-a-paso-bases-esquemas-y-tablas">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear bases y esquemas</li><li>Crear una tabla con CTAS</li><li>Organizar por capas con esquemas</li><li>Distinguir tablas permanentes, transitorias y temporales</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Edificio, pisos y cajones</div>
+
+<p>Una base es un edificio, cada esquema es un piso con su propia llave y cada tabla es un cajón. Separar raw y analitica en pisos distintos permite dar la llave de un piso sin abrir el otro.</p>
+</div>
+
+
 <h2>Paso 1 — El entorno</h2>
 <pre data-norun><code class="language-sql">CREATE DATABASE tienda_dev;
 CREATE SCHEMA tienda_dev.raw;
@@ -103,6 +109,16 @@ SELECT * FROM ventas_por_canal ORDER BY pedidos DESC;</code></pre>
 </tr>
 </tbody></table></div>
 <p><strong>Fail-safe</strong> es una copia de recuperación que solo Snowflake puede restaurar; ocupa almacenamiento y por eso cuesta.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Staging en tablas permanentes.</strong> Una tabla que se recarga cada día no necesita Fail-safe; transitoria cuesta menos.</li>
+<li><strong>Trabajar todo en PUBLIC.</strong> Mezcla capas y complica los permisos; crea esquemas por capa.</li>
+<li><strong>Nombres sin convención.</strong> <code>ventas</code>, <code>Ventas2</code> y <code>ventas_final_v3</code> en el mismo esquema confunden a todo el equipo.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste una base con esquemas por capa.</li>

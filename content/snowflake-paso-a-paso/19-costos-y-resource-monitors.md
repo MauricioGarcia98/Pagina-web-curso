@@ -8,6 +8,10 @@ prerrequisitos: snowflake-paso-a-paso-grants
 autoevaluacion: ¿Sabes qué consume más en una cuenta típica? | ¿Sabes quién puede crear un resource monitor? | ¿Sabes qué hace DO SUSPEND? | ¿Sabes dónde se ve el consumo diario?
 ---
 
+:::analogia Un tope en la tarjeta
+Un resource monitor es un tope en la tarjeta del warehouse: avisa cuando llegas al 80 % del presupuesto del mes y, al 100 %, deja de aceptar consultas nuevas. Así una consulta mal escrita no consume el mes en una noche.
+:::
+
 ## Paso 1 — Qué se paga
 
 | Concepto | Cómo se cobra |
@@ -62,6 +66,12 @@ texto: Cost Management no está simulado en la práctica
 | `SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY` | Créditos por warehouse y hora, para consultar con SQL |
 | `SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY` | Qué consultas usaron más tiempo de warehouse |
 
+:::errores
+- **Monitor sin asignar.** Creado pero no asignado a ningún warehouse (ni a la cuenta), no controla nada.
+- **Solo avisos.** Si nadie lee los correos, un aviso no frena el gasto; agrega una acción de suspensión.
+- **Mirar solo el cómputo.** El almacenamiento (incluido Time Travel y Fail-safe) y los servicios serverless también suman.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué se paga en Snowflake.
@@ -71,14 +81,14 @@ texto: Cost Management no está simulado en la práctica
 :::ejercicio quiz
 ¿Qué suele ser la mayor parte de la factura de Snowflake?
 - [x] El cómputo de los warehouses
-- [ ] Los usuarios
+- [ ] El almacenamiento de las hojas SQL
 - [ ] Las hojas SQL
 - [ ] El Marketplace
 :::
 
 :::ejercicio quiz
 ¿Quién puede crear un resource monitor?
-- [ ] Cualquier rol
+- [ ] Cualquier rol con USAGE en el warehouse
 - [ ] SYSADMIN
 - [x] ACCOUNTADMIN
 - [ ] PUBLIC
@@ -89,7 +99,7 @@ texto: Cost Management no está simulado en la práctica
 - [ ] Borra el warehouse
 - [x] Suspende el warehouse al llegar a la cuota, después de terminar lo que está corriendo
 - [ ] Avisa por correo nada más
-- [ ] Duplica la cuota
+- [ ] Cancela al instante todas las consultas en curso
 :::
 
 :::ejercicio quiz

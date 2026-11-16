@@ -66,6 +66,16 @@ SELECT COUNT(*) FROM tienda_dev.raw.pedidos_staging;          -- falla: sin USAG
 <li>Las pruebas <strong>negativas</strong> (lo que no debe poder hacer) son tan importantes como las positivas.</li>
 <li>Con Power BI, la conexión usa un usuario de servicio con este mismo rol.</details></li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Probar solo lo permitido.</strong> Las pruebas negativas (un <code>DELETE</code> o leer <code>raw</code>) son las que muestran que el rol está bien cerrado.</li>
+<li><strong>Olvidar FUTURE TABLES.</strong> El rol funciona hoy y falla con la próxima tabla.</li>
+<li><strong>Compartir el warehouse de ingeniería.</strong> Sin warehouse propio no puedes medir ni limitar el gasto de comercial.</li>
+</ul>
+</div>
+
+
 <h2>Lo que aprendiste en el nivel 5</h2>
 <ul>
 <li>Roles del sistema y jerarquía.</li>

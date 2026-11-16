@@ -8,6 +8,10 @@ prerrequisitos: snowflake-paso-a-paso-proyecto-acceso-para-analistas
 autoevaluacion: ¿Sabes cuánto dura la caché de resultados? | ¿Sabes qué es la poda de micro-particiones? | ¿Sabes cuándo vale la pena una clave de clustering? | ¿Sabes por qué SELECT * cuesta más?
 ---
 
+:::analogia Elegir bien qué cajas abrir
+Snowflake guarda cada tabla en muchas cajitas (micro-particiones) con una etiqueta que dice el rango de valores de adentro. Si filtras por una columna bien ordenada, puede descartar cajas sin abrirlas. Nombrar solo las columnas necesarias es abrir solo los compartimentos que usas.
+:::
+
 ## Paso 1 — Warehouses
 
 ```sql norun
@@ -60,6 +64,12 @@ Snowflake guarda cada tabla en **micro-particiones** de unos 50 a 500 MB sin com
 - [ ] Cargas con MERGE idempotente.
 - [ ] Objetos creados con scripts versionados (Terraform, Snowflake CLI, dbt), no a mano.
 
+:::errores
+- **Clustering en todas las tablas.** Mantenerlo consume créditos; solo vale en tablas muy grandes con poca poda.
+- **Funciones sobre la columna del filtro.** `WHERE YEAR(fecha) = 2024` impide descartar micro-particiones; filtra por rango de fechas.
+- **Warehouses que nunca se apagan.** AUTO_SUSPEND corto en todos, sobre todo en los de análisis.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes dimensionar y apagar warehouses.
@@ -79,7 +89,7 @@ Snowflake guarda cada tabla en **micro-particiones** de unos 50 a 500 MB sin com
 - [x] Leer solo las particiones que pueden tener filas que cumplen el filtro
 - [ ] Borrar particiones viejas
 - [ ] Comprimir la tabla
-- [ ] Un tipo de warehouse
+- [ ] Agrupar consultas parecidas en el mismo warehouse
 :::
 
 :::ejercicio quiz
@@ -87,13 +97,13 @@ Snowflake guarda cada tabla en **micro-particiones** de unos 50 a 500 MB sin com
 - [ ] En todas las tablas
 - [x] En tablas muy grandes filtradas siempre por la misma columna y con poca poda
 - [ ] En tablas de 100 filas
-- [ ] Nunca
+- [ ] En tablas que se recargan completas todos los días
 :::
 
 :::ejercicio quiz
 ¿Por qué SELECT * cuesta más en Snowflake?
-- [ ] Porque está prohibido
+- [ ] Porque desactiva la poda de micro-particiones
 - [x] Porque guarda por columnas y leer todas cuesta más que leer las necesarias
 - [ ] Porque no usa caché nunca
-- [ ] No cuesta más
+- [ ] No cuesta más: Snowflake guarda por filas
 :::

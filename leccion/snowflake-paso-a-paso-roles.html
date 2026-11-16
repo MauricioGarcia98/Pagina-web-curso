@@ -79,6 +79,16 @@ SELECT COUNT(*) FROM tienda_dev.analitica.pedidos_actuales;</code></pre>
 
 
 <p>Para leer una tabla, un rol necesita <strong>tres</strong> permisos: <code>USAGE</code> en la base, <code>USAGE</code> en el esquema y <code>SELECT</code> en la tabla (además de <code>USAGE</code> en un warehouse para ejecutar). Los das en la próxima lección.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Trabajar todo el día como ACCOUNTADMIN.</strong> Cualquier error tiene el máximo alcance, incluida la facturación.</li>
+<li><strong>Dar solo <code>SELECT</code> en la tabla.</strong> Sin <code>USAGE</code> en la base y en el esquema, el rol no llega a la tabla.</li>
+<li><strong>Dar permisos a usuarios.</strong> En Snowflake se dan a roles; el usuario recibe roles.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Entiendes el modelo de roles.</li>

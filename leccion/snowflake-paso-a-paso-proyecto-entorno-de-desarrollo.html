@@ -42,6 +42,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/snowflake/s08-warehouses.webp" alt="SHOW WAREHOUSES - COMPUTE_WH y ANALISIS_WH en X-Small con auto_suspend 60" loading="lazy"><figcaption>SHOW WAREHOUSES - COMPUTE_WH y ANALISIS_WH en X-Small con auto_suspend 60</figcaption></figure>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Crear objetos a mano sin script.</strong> Nadie puede repetirlo igual en otra cuenta o entorno.</li>
+<li><strong>Olvidar <code>IF NOT EXISTS</code> o <code>OR REPLACE</code>.</strong> La segunda corrida del script falla, o peor, reemplaza algo que no querías.</li>
+<li><strong>Warehouse de desarrollo sin AUTO_SUSPEND.</strong> Es el que más se olvida encendido.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> <code>SHOW SCHEMAS IN DATABASE tienda_dev</code> devuelve ANALITICA, PUBLIC y RAW.</li>

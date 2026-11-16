@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 La sala de espera de los archivos</div>
+
+<p>Un stage es la sala de espera donde dejas los archivos antes de cargarlos. <code>COPY INTO</code> es el empleado que los hace pasar a la tabla, de a uno, revisando que vengan en el formato acordado (el file format).</p>
+</div>
+
+
 <h2>Paso 1 — Crear el stage</h2>
 <pre data-norun><code class="language-sql">USE SCHEMA tienda_dev.raw;
 CREATE STAGE carga_pedidos;</code></pre>
@@ -89,6 +95,16 @@ FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1);</code></pre>
   URL = 's3://tienda-andina-landing/pedidos/'
   STORAGE_INTEGRATION = s3_tienda
   FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1);</code></pre>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>No declarar el encabezado.</strong> Sin <code>SKIP_HEADER = 1</code>, la primera fila (los nombres de columna) se intenta cargar como datos y falla.</li>
+<li><strong>Poner claves de la nube en el SQL.</strong> Para S3, Azure o GCS se usa una storage integration, no credenciales en la sentencia.</li>
+<li><strong>Usar <code>ON_ERROR = CONTINUE</code> sin revisar.</strong> Carga lo que puede y descarta filas en silencio; revisa el resultado o usa <code>VALIDATION_MODE</code> antes.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste un stage, subiste y listaste archivos.</li>

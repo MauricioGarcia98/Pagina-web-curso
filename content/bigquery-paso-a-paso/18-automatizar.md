@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué hace una scheduled query? | ¿Sabes para qué sirve
 Scheduled queries y Dataform no están simulados: la práctica te muestra qué son. El SQL de esta lección es el de BigQuery real.
 :::
 
+:::analogia Despertador, receta y jefe de cocina
+Una scheduled query es un despertador: corre un SQL a la hora fijada. Dataform es la receta escrita, con el orden de los pasos y controles de calidad. Un orquestador como Airflow es el jefe de cocina que coordina varias cocinas: espera un archivo, corre Dataflow, después BigQuery y avisa si algo falla.
+:::
+
 ## Paso 1 — Scheduled queries
 
 ```captura
@@ -66,6 +70,12 @@ ${ when(incremental(), `WHERE p.fecha_pedido > (SELECT MAX(fecha) FROM ${self()}
 | Son varias transformaciones SQL con dependencias y pruebas | Dataform (o dbt) |
 | El flujo mezcla BigQuery con APIs, archivos, otros sistemas y avisos | Un orquestador: [Airflow](#/m/airflow-paso-a-paso) o Cloud Composer (Airflow administrado) |
 
+:::errores
+- **Encadenar consultas programadas por horario** ("esta a las 6, la otra a las 6:30"). Si la primera se demora, la segunda lee datos incompletos; las dependencias van en Dataform o en un orquestador.
+- **Ignorar `@run_date`.** Con `CURRENT_DATE()`, un reproceso de días anteriores calcula siempre el día de hoy.
+- **Dejar el SQL en una pestaña de la consola.** Sin control de versiones, nadie sabe qué cambió ni cuándo.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes programar una consulta con parámetros de fecha.
@@ -77,12 +87,12 @@ ${ when(incremental(), `WHERE p.fecha_pedido > (SELECT MAX(fecha) FROM ${self()}
 - [x] Ejecuta un SQL a horario y escribe el resultado en una tabla
 - [ ] Borra tablas viejas
 - [ ] Carga archivos de S3
-- [ ] Crea usuarios
+- [ ] Recalcula las vistas una vez por día
 :::
 
 :::ejercicio quiz
 ¿Para qué sirve @run_date en una scheduled query?
-- [ ] Para nada
+- [ ] Para fijar a qué hora se ejecuta
 - [x] Para usar la fecha de la ejecución y procesar el día que corresponde
 - [ ] Para cambiar de región
 - [ ] Para pausar la consulta
@@ -93,7 +103,7 @@ ${ when(incremental(), `WHERE p.fecha_pedido > (SELECT MAX(fecha) FROM ${self()}
 - [x] Ambos definen transformaciones SQL con dependencias, pruebas y Git
 - [ ] Ambos son bases de datos
 - [ ] Ambos cargan archivos
-- [ ] No se parecen
+- [ ] Ambos programan consultas sueltas sin dependencias
 :::
 
 :::ejercicio quiz
@@ -101,5 +111,5 @@ El flujo descarga de una API, carga en BigQuery y avisa por Slack. ¿Qué convie
 - [ ] Una scheduled query
 - [ ] Una vista
 - [x] Un orquestador como Airflow o Cloud Composer
-- [ ] Preview
+- [ ] Una vista materializada
 :::

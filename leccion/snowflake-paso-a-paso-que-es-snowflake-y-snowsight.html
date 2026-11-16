@@ -103,6 +103,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>Los datos son los de <strong>Tienda Andina</strong>, la misma tienda del resto del curso: 12.000 pedidos, clientes, productos y detalle.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Dejar un warehouse encendido &quot;por las dudas&quot;.</strong> Cobra por segundo mientras está prendido, aunque no corra nada; con AUTO_SUSPEND se apaga solo.</li>
+<li><strong>Confundir warehouse con base de datos.</strong> El warehouse es el motor que calcula; los datos viven en las bases, que existen aunque todos los warehouses estén apagados.</li>
+<li><strong>Escribir el nombre de la tabla sin contexto.</strong> Si la hoja no tiene base y esquema elegidos, usa el nombre completo <code>BASE.ESQUEMA.TABLA</code>.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Sabes qué es Snowflake y sus tres capas.</li>

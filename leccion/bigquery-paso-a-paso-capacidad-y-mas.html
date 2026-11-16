@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Pagar por kilo o contratar una cuadrilla</div>
+
+<p>Un slot es un trabajador que procesa parte de la consulta. En on-demand pagas por kilo procesado (los bytes), sin importar cuántos trabajadores se usaron. En el modelo de capacidad contratas una cuadrilla por hora: conviene cuando tienes trabajo grande y constante.</p>
+</div>
+
+
 <h2>Paso 1 — Slots y ediciones</h2>
 <figure class="captura"><img src="assets/img/guias/bigquery/q22-capacidad.webp" alt="Capacity management - reservas de slots con las ediciones Standard, Enterprise y Enterprise Plus" loading="lazy"><figcaption>Capacity management - reservas de slots con las ediciones Standard, Enterprise y Enterprise Plus</figcaption></figure>
 
@@ -86,6 +92,16 @@ FROM ML.PREDICT(MODEL analitica.modelo_recompra, TABLE analitica.clientes_actual
 <td>Consultar archivos abiertos (Parquet, Iceberg) en Cloud Storage con la misma seguridad</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Pasar a capacidad sin medir.</strong> Con pocas consultas, el modelo on-demand suele ser más barato; mira antes <code>INFORMATION_SCHEMA.JOBS</code>.</li>
+<li><strong>Usar un modelo de BigQuery ML sin evaluarlo.</strong> <code>ML.EVALUATE</code> sobre datos que el modelo no vio dice si sirve.</li>
+<li><strong>Esperar que BI Engine arregle un mal diseño.</strong> Acelera tableros, pero una tabla sin partición sigue leyendo de más.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Entiendes slots y ediciones.</li>

@@ -87,6 +87,16 @@ ORDER BY ventas DESC;</code></pre>
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Contar pedidos con <code>COUNT(*)</code> después de unir con el detalle.</strong> Cada pedido aparece una vez por línea; se cuenta con <code>COUNT(DISTINCT pedido_id)</code>.</li>
+<li><strong>Leer &quot;does not exist or not authorized&quot; como &quot;no existe&quot;.</strong> Puede ser el nombre o el rol: revisa ambos.</li>
+<li><strong>Buscar el país en la tabla equivocada.</strong> En este modelo el país es del cliente; hace falta el JOIN con clientes.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> La hoja se llama &quot;Ventas por país&quot;.</li>

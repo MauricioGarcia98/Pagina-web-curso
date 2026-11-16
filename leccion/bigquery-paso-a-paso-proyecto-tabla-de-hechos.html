@@ -38,6 +38,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/bigquery/q12-consulta.webp" alt="La estimación de la consulta típica (1), las ventas web del trimestre por país (2) y lo que se leyó - 4 columnas y una fracción de la tabla (3)" loading="lazy"><figcaption>La estimación de la consulta típica (1), las ventas web del trimestre por país (2) y lo que se leyó - 4 columnas y una fracción de la tabla (3)</figcaption></figure>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Invertir el orden del clustering.</strong> Va primero la columna que más se filtra; si comercial filtra siempre por canal, canal va antes que país.</li>
+<li><strong>Dejar la tabla de hechos como vista.</strong> Cada consulta del día repetiría el JOIN completo y lo cobraría.</li>
+<li><strong>No exigir el filtro de partición.</strong> Sin <code>require_partition_filter</code>, una consulta sin fecha lee la tabla entera.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> La tabla está particionada por <code>fecha</code> y con clustering por <code>canal, pais</code>.</li>

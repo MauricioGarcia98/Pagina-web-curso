@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Jobs - el historial de todo lo que corrió</h1><p class="resumen">Cada consulta y cada carga es un job. Recorres el historial con su estado, tipo, bytes procesados y facturados, duración y caché, abres el detalle de uno, lo reabres como consulta nueva y aprendes a usarlo para encontrar errores y consultas caras.</p>
 <a class="cta" href="../index.html#/l/bigquery-paso-a-paso-historial-de-jobs">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer el historial de jobs</li><li>Abrir el detalle de un job</li><li>Reabrir una consulta desde el historial</li><li>Usar el historial para encontrar lo caro y lo que falló</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La libreta de la caja</div>
+
+<p>El historial de jobs es la libreta donde la caja anota cada operación: quién la hizo, cuándo, cuánto leyó y si salió bien. Cuando algo falla o la factura sube, la respuesta está anotada ahí.</p>
+</div>
+
+
 <h2>Paso 1 — El historial</h2>
 <p><strong>Jobs explorer</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/bigquery/q07-jobs.webp" alt="Cada job con su estado, tipo, SQL, bytes procesados y facturados, duración y cuándo se creó" loading="lazy"><figcaption>Cada job con su estado, tipo, SQL, bytes procesados y facturados, duración y cuándo se creó</figcaption></figure>
@@ -71,6 +77,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>Un job que falla en la validación (un error de sintaxis o de nombre) <strong>no cobra</strong>. Para analizar los jobs con SQL, existe <code>INFORMATION_SCHEMA.JOBS</code> (nivel 5).</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Volver a ejecutar a ciegas una consulta que falló.</strong> El detalle del job tiene el mensaje de error y la línea; léelo antes de reintentar.</li>
+<li><strong>Confundir bytes procesados con facturados.</strong> Los facturados son los que se cobran: redondeados y con un mínimo por tabla.</li>
+<li><strong>Repetir una consulta cara sin revisarla.</strong> Ábrela como consulta nueva desde el historial, mira qué columnas y filtros usa, y optimízala antes de correrla otra vez.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Lees el historial de jobs.</li>

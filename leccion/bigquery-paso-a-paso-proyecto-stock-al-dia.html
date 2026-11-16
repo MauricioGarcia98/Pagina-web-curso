@@ -33,6 +33,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/bigquery/q16-stock.webp" alt="El MERGE con AND t.stock &lt;&gt; s.stock e INSERT ROW (1) y el stock final - el 3 en 7 y el resto sin cambios (2)" loading="lazy"><figcaption>El MERGE con AND t.stock &lt;&gt; s.stock e INSERT ROW (1) y el stock final - el 3 en 7 y el resto sin cambios (2)</figcaption></figure>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Actualizar aunque nada haya cambiado.</strong> Sin <code>AND t.stock &lt;&gt; s.stock</code>, el MERGE reescribe todas las filas que coinciden en cada corrida.</li>
+<li><strong>No probar la idempotencia.</strong> Correrlo dos veces seguidas es la prueba: la segunda corrida no debe modificar nada.</li>
+<li><strong>No tener un plan de recuperación.</strong> Anota antes de correr cómo volverías atrás (time travel o snapshot) y comprueba que funciona.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> El producto 3 quedó en 7.</li>
