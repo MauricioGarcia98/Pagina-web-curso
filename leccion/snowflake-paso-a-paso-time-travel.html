@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Volver al minuto anterior al error</div>
+
+<p>Time Travel es poder mirar la tabla como estaba antes de un momento exacto. Lo más preciso no es &quot;hace una hora&quot; sino &quot;justo antes de esta sentencia&quot;: con el Query ID del <code>DELETE</code> vuelves al instante anterior sin adivinar horarios.</p>
+</div>
+
+
 <h2>Paso 1 — El error</h2>
 <pre data-norun><code class="language-sql">USE SCHEMA tienda_dev.analitica;
 -- ¡sin WHERE! borra todos los pedidos
@@ -82,6 +88,16 @@ SELECT COUNT(*) AS recuperados FROM pedidos_actuales;</code></pre>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ No es un backup gratis</div>
 
 <p>Cada versión anterior ocupa almacenamiento mientras dure la retención. Más días de Time Travel = más costo de almacenamiento en tablas que cambian mucho.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Esperar demasiado.</strong> Por defecto la retención es de 1 día; pasado ese plazo los datos solo quedan en Fail-safe, que solo recupera el soporte de Snowflake.</li>
+<li><strong>Restaurar con <code>INSERT</code> sobre una tabla que no quedó vacía.</strong> Duplicas filas; en ese caso reemplaza la tabla con <code>CREATE OR REPLACE ... AS SELECT ... BEFORE(...)</code>.</li>
+<li><strong>Adivinar la hora con OFFSET.</strong> Si te equivocas por segundos, recuperas una versión ya rota; usa <code>BEFORE(STATEMENT =&gt; ...)</code>.</li>
+</ul>
 </div>
 
 

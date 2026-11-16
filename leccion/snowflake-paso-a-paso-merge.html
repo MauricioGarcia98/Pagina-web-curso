@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>MERGE - actualizar lo que cambió e insertar lo nuevo</h1><p class="resumen">Cuando llegan correcciones y pedidos nuevos mezclados, no sirve ni un INSERT ni un UPDATE solo. Creas pedidos_actuales, aplicas un MERGE que corrige el pedido 90002 e inserta el 90006, lees su resultado (insertadas, actualizadas, borradas) y aprendes las cláusulas WHEN y los errores típicos.</p>
 <a class="cta" href="../index.html#/l/snowflake-paso-a-paso-merge">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir un MERGE con WHEN MATCHED y WHEN NOT MATCHED</li><li>Leer el resultado de un MERGE</li><li>Usar condiciones extra y DELETE en las cláusulas</li><li>Evitar el error de filas duplicadas en la fuente</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Conciliar con la lista del proveedor</div>
+
+<p>MERGE compara tu tabla con la lista que llegó: lo que ya tenías y cambió se actualiza, lo nuevo se inserta, y si lo indicas, lo que sobra se borra. Todo en una sola sentencia, sin dejar la tabla a medias.</p>
+</div>
+
+
 <h2>Paso 1 — La tabla destino</h2>
 <pre data-norun><code class="language-sql">USE SCHEMA tienda_dev.analitica;
 CREATE TABLE pedidos_actuales AS
@@ -74,6 +80,16 @@ WHEN NOT MATCHED THEN INSERT ...</code></pre>
 
 
 <p><strong>Por qué es la forma correcta de cargar:</strong> si el mismo MERGE se ejecuta dos veces, el resultado es el mismo. Es <strong>idempotente</strong>, a diferencia de un <code>INSERT</code> que duplicaría filas.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Fuente con claves repetidas.</strong> Dos filas del mismo pedido hacen que el MERGE falle o elija una al azar; deduplica con <code>QUALIFY ROW_NUMBER()</code>.</li>
+<li><strong>Actualizar aunque nada haya cambiado.</strong> Sin una condición extra (<code>AND t.total &lt;&gt; s.total</code>), reescribe filas idénticas.</li>
+<li><strong>Unir por una columna que no es clave.</strong> Si el <code>ON</code> no identifica una sola fila, un pedido puede actualizar varias.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Escribiste un MERGE con actualización e inserción.</li>

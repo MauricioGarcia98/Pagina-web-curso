@@ -25,6 +25,12 @@ archivo: bigquery/q16-stock.webp
 texto: El MERGE con AND t.stock <> s.stock e INSERT ROW (1) y el stock final - el 3 en 7 y el resto sin cambios (2)
 ```
 
+:::errores
+- **Actualizar aunque nada haya cambiado.** Sin `AND t.stock <> s.stock`, el MERGE reescribe todas las filas que coinciden en cada corrida.
+- **No probar la idempotencia.** Correrlo dos veces seguidas es la prueba: la segunda corrida no debe modificar nada.
+- **No tener un plan de recuperación.** Anota antes de correr cómo volverías atrás (time travel o snapshot) y comprueba que funciona.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] El producto 3 quedó en 7.
@@ -78,7 +84,7 @@ Corres el MERGE dos veces con los mismos datos. ¿Qué debe pasar la segunda vez
 - [ ] UNDROP
 - [x] Con FOR SYSTEM_TIME AS OF hace una hora (dentro de los 7 días)
 - [ ] Desde Preview
-- [ ] No se puede
+- [ ] Con un ROLLBACK de la sesión, aunque ya terminó
 :::
 
 :::ejercicio quiz
@@ -86,5 +92,5 @@ Corres el MERGE dos veces con los mismos datos. ¿Qué debe pasar la segunda vez
 - [x] Cuando la fuente tiene las mismas columnas que el destino
 - [ ] Siempre, aunque falten columnas
 - [ ] Solo en UPDATE
-- [ ] Nunca
+- [ ] Cuando la fuente tiene más columnas que el destino
 :::

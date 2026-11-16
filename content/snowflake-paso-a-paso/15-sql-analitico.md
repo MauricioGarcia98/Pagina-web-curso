@@ -8,6 +8,10 @@ prerrequisitos: snowflake-paso-a-paso-undrop-y-clones
 autoevaluacion: ¿Sabes qué filtra QUALIFY? | ¿Sabes qué devuelve LAG? | ¿Sabes para qué sirve SAMPLE? | ¿Sabes qué hace IFF?
 ---
 
+:::analogia Numerar y quedarse con el primero
+`QUALIFY` filtra por el resultado de una función de ventana: primero numeras los pedidos de cada cliente del más nuevo al más viejo, y después te quedas con el número 1. Es el `HAVING` de las ventanas.
+:::
+
 ## Paso 1 — QUALIFY
 
 El último pedido de cada cliente:
@@ -69,6 +73,12 @@ SELECT * FROM pedidos SAMPLE (10);
 | `TRY_TO_NUMBER(x)` | Convertir sin fallar (devuelve NULL si no puede) |
 | `ARRAY_AGG(x)`, `OBJECT_CONSTRUCT(...)` | Armar arreglos y JSON |
 
+:::errores
+- **Filtrar la ventana en el `WHERE`.** El `WHERE` se evalúa antes y da error; el filtro va en `QUALIFY`.
+- **Usar `SAMPLE` para resultados exactos.** Es una muestra al azar: sirve para explorar, no para informar totales.
+- **Convertir con `TO_NUMBER` datos sucios.** Falla con el primer valor inválido; `TRY_TO_NUMBER` devuelve NULL.
+:::
+
 ## ✅ Lo que lograste
 
 - Filtraste con QUALIFY.
@@ -88,15 +98,15 @@ SELECT * FROM pedidos SAMPLE (10);
 - [x] El número de pedidos del mes anterior
 - [ ] El del mes siguiente
 - [ ] El total de todos los meses
-- [ ] El máximo
+- [ ] El promedio de los meses anteriores
 :::
 
 :::ejercicio quiz
 ¿Para qué sirve SAMPLE (10)?
-- [ ] Para borrar el 10 %
+- [ ] Para leer el 10 % más reciente de la tabla
 - [x] Para leer una muestra al azar del 10 % de las filas
 - [ ] Para limitar a 10 filas exactas
-- [ ] Para ordenar
+- [ ] Para leer las primeras 10 micro-particiones
 :::
 
 :::ejercicio quiz

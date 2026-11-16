@@ -8,6 +8,10 @@ prerrequisitos: bigquery-paso-a-paso-que-es-bigquery-y-la-consola
 autoevaluacion: ¿Sabes qué diferencia hay entre bytes procesados y facturados? | ¿Sabes por qué SELECT * cuesta más? | ¿Sabes qué es un job? | ¿Sabes ejecutar con el teclado?
 ---
 
+:::analogia Un taxímetro que avisa antes
+BigQuery cobra como un taxímetro que marca lo que **lee**, no lo que te muestra. El validador te dice cuánto va a marcar antes de subir al taxi. Pedir `SELECT *` es pedirle al taxi que recorra todas las calles para traerte una sola dirección.
+:::
+
 ## Paso 1 — Una consulta nueva
 
 En Studio, **+** (nueva pestaña) y ✎ para ponerle nombre:
@@ -54,6 +58,12 @@ Mismas filas, **cuatro veces más datos** leídos: el costo de BigQuery depende 
 Antes de cada **Run**, mira el validador. Si dice GB o TB y esperabas KB, algo está mal: falta un filtro o sobra un `*`.
 :::
 
+:::errores
+- **Usar `SELECT *` "para ver qué hay".** Lee todas las columnas y se paga entero; para mirar datos está la vista previa, que es gratis.
+- **Estimar el costo por las filas del resultado.** Lo que cuenta son los bytes procesados, que aparecen en el validador y en la información del job.
+- **Olvidar el mínimo facturado.** Cada tabla leída factura al menos 10 MB, aunque la consulta lea menos.
+:::
+
 ## ✅ Lo que lograste
 
 - Escribiste, estimaste y ejecutaste una consulta.
@@ -62,7 +72,7 @@ Antes de cada **Run**, mira el validador. Si dice GB o TB y esperabas KB, algo e
 
 :::ejercicio quiz
 ¿Qué diferencia hay entre bytes procesados y facturados?
-- [ ] Ninguna
+- [ ] Ninguna: son dos nombres del mismo número
 - [x] Los facturados se redondean y tienen un mínimo de 10 MB por tabla
 - [ ] Los facturados son siempre la mitad
 - [ ] Los procesados incluyen el resultado
@@ -78,7 +88,7 @@ Antes de cada **Run**, mira el validador. Si dice GB o TB y esperabas KB, algo e
 
 :::ejercicio quiz
 ¿Qué es un job en BigQuery?
-- [ ] Un usuario
+- [ ] Una sesión abierta en la consola
 - [x] Cada consulta, carga o copia que ejecuta BigQuery
 - [ ] Una tabla temporal
 - [ ] Un dataset
@@ -89,5 +99,5 @@ Antes de cada **Run**, mira el validador. Si dice GB o TB y esperabas KB, algo e
 - [ ] USD 0,05
 - [x] USD 6,25
 - [ ] USD 100
-- [ ] Es gratis siempre
+- [ ] USD 1, igual que una carga por lotes
 :::

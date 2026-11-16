@@ -26,6 +26,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/snowflake/s22-tareas.webp" alt="Task History - las ejecuciones de las tasks programadas (no simulado en la práctica)" loading="lazy"><figcaption>Task History - las ejecuciones de las tasks programadas (no simulado en la práctica)</figcaption></figure>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Una línea de producción automática</div>
+
+<p>Snowpipe es la cinta que recibe cada archivo apenas llega; un stream es el cuaderno donde se anota qué filas cambiaron; una task es el reloj que corre un SQL a horario; una dynamic table es una tabla que se mantiene sola a partir de una consulta. Juntas arman una línea que funciona sin que nadie apriete botones.</p>
+</div>
+
+
 <h2>Paso 1 — Snowpipe: carga continua</h2>
 <pre data-norun><code class="language-sql">CREATE PIPE raw.pipe_pedidos AUTO_INGEST = TRUE AS
 COPY INTO raw.pedidos_staging FROM @ventas_s3 FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1);</code></pre>
@@ -115,6 +121,16 @@ AS
 <td>dbt (puede generar dynamic tables)</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Leer un stream y no consumirlo en una transacción DML.</strong> El stream avanza solo cuando sus filas se usan en un INSERT, MERGE u otra escritura que confirma.</li>
+<li><strong>Tasks que quedan suspendidas.</strong> Una task recién creada está suspendida; hay que hacer <code>ALTER TASK ... RESUME</code>.</li>
+<li><strong>Orquestar dentro de Snowflake lo que depende de sistemas externos.</strong> Si hay APIs, avisos o pasos en otros servicios, conviene un orquestador.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Conoces Snowpipe, streams, tasks y dynamic tables.</li>

@@ -8,6 +8,10 @@ prerrequisitos: snowflake-paso-a-paso-hojas-sql-y-contexto
 autoevaluacion: ¿Sabes dónde ver las columnas de una tabla? | ¿Sabes qué tipo usa Snowflake para números? | ¿Sabes qué es SNOWFLAKE_SAMPLE_DATA? | ¿Sabes abrir una tabla en una hoja?
 ---
 
+:::analogia Leer las etiquetas antes de abrir las cajas
+Explorar la base desde Data es leer las etiquetas de las cajas del depósito: qué contiene cada una, de qué tipo y cuánto pesa. Recién después abres la caja que te interesa con una consulta.
+:::
+
 ## Paso 1 — Databases
 
 **Data → Databases**:
@@ -51,6 +55,12 @@ texto: Las primeras filas de PEDIDOS
 Ver datos ejecuta una consulta, así que enciende el warehouse y consume créditos. En tablas enormes, usa siempre `LIMIT`.
 :::
 
+:::errores
+- **Creer que la vista previa es gratis.** En Snowflake ejecuta una consulta con el warehouse, así que gasta créditos (poco, pero gasta).
+- **Guardar JSON en VARCHAR.** Pierdes la notación `:` y la conversión con `::`; el JSON va en VARIANT.
+- **Ignorar mayúsculas en los nombres.** Sin comillas, Snowflake guarda los nombres en mayúsculas; `"pedidos"` entre comillas es otro objeto que `pedidos`.
+:::
+
 ## ✅ Lo que lograste
 
 - Navegas bases, esquemas y tablas.
@@ -77,8 +87,8 @@ Ver datos ejecuta una consulta, así que enciende el warehouse y consume crédit
 ¿Ver la vista previa de una tabla gasta créditos?
 - [ ] No, nunca
 - [x] Sí, ejecuta una consulta con el warehouse
-- [ ] Solo los domingos
-- [ ] Solo si es ACCOUNTADMIN
+- [ ] Solo si la tabla tiene más de un millón de filas
+- [ ] Solo si el warehouse es Medium o más grande
 :::
 
 :::ejercicio quiz
@@ -86,5 +96,5 @@ Ver datos ejecuta una consulta, así que enciende el warehouse y consume crédit
 - [ ] Una base que hay que comprar
 - [x] La base de datos de muestra que trae toda cuenta
 - [ ] Un warehouse
-- [ ] Un rol
+- [ ] Un esquema que se crea dentro de cada base nueva
 :::

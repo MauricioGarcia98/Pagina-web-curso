@@ -8,6 +8,10 @@ prerrequisitos: snowflake-paso-a-paso-que-es-snowflake-y-snowsight
 autoevaluacion: ¿Sabes qué cuatro datos forman el contexto? | ¿Sabes qué hace Ctrl+Enter? | ¿Sabes qué es el Query ID? | ¿Sabes cambiar de rol o de warehouse?
 ---
 
+:::analogia Las cuatro preguntas antes de cocinar
+Cada consulta responde cuatro preguntas antes de empezar: **quién** cocina (el rol, que decide qué puede tocar), **con qué hornalla** (el warehouse, que pone el cómputo), en **qué despensa** (la base) y en **qué estante** (el esquema). Si una falta o está mal, la receta falla aunque el SQL esté perfecto.
+:::
+
 ## Paso 1 — Una hoja nueva
 
 **+ SQL Worksheet** (o **Create → SQL Worksheet**). Ponle nombre y escribe:
@@ -63,6 +67,12 @@ El **Query ID** identifica la consulta para siempre: sirve para buscarla en el h
 Si el warehouse estaba suspendido, la primera consulta lo enciende (`AUTO_RESUME`). Por eso la primera puede tardar un segundo más.
 :::
 
+:::errores
+- **Ejecutar con el rol equivocado.** Un "does not exist or not authorized" muchas veces es el rol de la hoja, no el nombre de la tabla.
+- **No tener warehouse elegido.** Sin warehouse, la consulta no puede correr: "No active warehouse selected".
+- **Ejecutar todo cuando querías una sentencia.** Ctrl+Enter corre la sentencia del cursor; "Run All" corre la hoja entera, incluidos `DROP` o `DELETE` que dejaste más abajo.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste una hoja y ejecutaste SQL.
@@ -82,7 +92,7 @@ Si el warehouse estaba suspendido, la primera consulta lo enciende (`AUTO_RESUME
 - [ ] Ejecuta todas las sentencias
 - [x] Ejecuta la sentencia donde está el cursor
 - [ ] Guarda la hoja
-- [ ] Borra la hoja
+- [ ] Formatea el SQL de la hoja
 :::
 
 :::ejercicio quiz
@@ -95,8 +105,8 @@ El contexto es TIENDA_ANDINA.PUBLIC. ¿Qué tabla lee `FROM pedidos`?
 
 :::ejercicio quiz
 ¿Para qué sirve el Query ID?
-- [ ] Para nada
+- [ ] Para saber cuántos créditos tiene la cuenta
 - [x] Para identificar la consulta en el historial, en Time Travel y con soporte
 - [ ] Para cambiar de rol
-- [ ] Para borrar la tabla
+- [ ] Para compartir la hoja con otro usuario
 :::

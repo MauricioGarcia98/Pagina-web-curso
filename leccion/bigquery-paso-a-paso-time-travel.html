@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Time travel - consultar y recuperar la tabla de hace un rato</h1><p class="resumen">Alguien borra todas las filas de una tabla con WHERE TRUE. Con FOR SYSTEM_TIME AS OF consultas la tabla como estaba hace un minuto, la restauras con un INSERT, y conoces la ventana de 7 días, el fail-safe, los snapshots y los clones de tabla.</p>
 <a class="cta" href="../index.html#/l/bigquery-paso-a-paso-time-travel">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Consultar una tabla en el pasado con FOR SYSTEM_TIME AS OF</li><li>Restaurar datos borrados</li><li>Conocer la ventana de time travel y el fail-safe</li><li>Usar snapshots y clones de tabla</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El grabador de la tabla</div>
+
+<p>Time travel es como un grabador que guarda los últimos 7 días de la tabla: puedes rebobinar y mirarla como estaba hace un minuto o hace tres días. Pasado ese plazo, la grabación se pierde; para guardar un momento por más tiempo están los snapshots.</p>
+</div>
+
+
 <h2>Paso 1 — El error</h2>
 <pre data-norun><code class="language-sql">-- en BigQuery el WHERE es obligatorio, pero WHERE TRUE borra todo
 DELETE FROM analitica.ventas_por_canal WHERE TRUE;</code></pre>
@@ -79,6 +85,16 @@ FROM analitica.ventas_por_canal
 <td>Copia que se puede modificar; solo paga lo que cambia: <code>CREATE TABLE pedidos_prueba CLONE tienda.pedidos;</code></td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Contar con time travel para siempre.</strong> La ventana es de 7 días (o menos si se configuró); después solo queda el fail-safe, que no puedes consultar tú.</li>
+<li><strong>Restaurar sin una copia previa.</strong> Antes de pisar la tabla, guarda el estado actual (un snapshot o un clon) por si la restauración también sale mal.</li>
+<li><strong>Usar time travel como backup.</strong> No reemplaza los snapshots programados antes de cargas grandes y riesgosas.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Consultaste una tabla en el pasado.</li>

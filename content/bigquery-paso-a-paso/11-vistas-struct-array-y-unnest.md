@@ -8,6 +8,10 @@ prerrequisitos: bigquery-paso-a-paso-cargar-datos
 autoevaluacion: ¿Sabes si una vista guarda datos? | ¿Sabes qué devuelve ARRAY_AGG(... LIMIT 3)? | ¿Sabes qué hace UNNEST? | ¿Sabes leer un campo de un STRUCT?
 ---
 
+:::analogia El ticket con sus renglones
+En una base clásica, el ticket va en una tabla y sus renglones en otra, y cada consulta los vuelve a unir. En BigQuery el ticket puede llevar sus renglones adentro: un `ARRAY` de `STRUCT`. `UNNEST` despliega esos renglones en filas cuando los necesitas.
+:::
+
 ## Paso 1 — Una vista con un arreglo
 
 ```sql norun
@@ -67,6 +71,12 @@ Un campo de un STRUCT se lee con punto: `sucursal.pais`.
 
 En BigQuery, un pedido con sus líneas como `ARRAY<STRUCT<producto_id, cantidad, precio>>` dentro de la misma fila evita el JOIN entre pedidos y detalle, que en tablas de miles de millones de filas es lo más caro. Es el modelo que usa, por ejemplo, la exportación de Google Analytics 4.
 
+:::errores
+- **Perder filas con `UNNEST`.** `CROSS JOIN UNNEST(lista)` descarta las filas cuya lista está vacía; si las necesitas, usa `LEFT JOIN UNNEST(lista)`.
+- **Creer que la vista ahorra.** La vista guarda la consulta, no el resultado: cada uso vuelve a leer (y cobrar) las tablas de origen.
+- **Leer un STRUCT con corchetes.** Los campos se leen con punto (`sucursal.pais`); los corchetes son para posiciones de un ARRAY (`lista[OFFSET(0)]`).
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste una vista con arreglos.
@@ -77,21 +87,21 @@ En BigQuery, un pedido con sus líneas como `ARRAY<STRUCT<producto_id, cantidad,
 ¿Una vista guarda datos?
 - [ ] Sí, una copia
 - [x] No: guarda la consulta y la ejecuta cada vez que se usa
-- [ ] Solo los primeros 100
+- [ ] Sí, se actualiza una vez por día
 - [ ] Solo si es particionada
 :::
 
 :::ejercicio quiz
 ¿Qué devuelve ARRAY_AGG(pedido_id ORDER BY fecha_pedido DESC LIMIT 3)?
 - [x] Una lista con los 3 pedidos más recientes de cada grupo
-- [ ] 3 filas
+- [ ] 3 filas por cliente
 - [ ] El pedido más viejo
 - [ ] Un error
 :::
 
 :::ejercicio quiz
 ¿Qué hace UNNEST(ultimos)?
-- [ ] Borra la lista
+- [ ] Convierte la lista en un texto separado por comas
 - [x] Abre la lista en filas, una por elemento
 - [ ] Ordena la lista
 - [ ] Cuenta los elementos

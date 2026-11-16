@@ -82,6 +82,16 @@ ORDER BY mes;</code></pre>
 </tr>
 </tbody></table></div>
 <p>El validador muestra el error <strong>antes</strong> de gastar nada.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Envolver la fecha en una función para filtrar</strong> (<code>EXTRACT(MONTH FROM fecha_pedido) &gt;= 7</code>): la consulta funciona, pero BigQuery ya no puede descartar particiones y lee más.</li>
+<li><strong>Olvidar el dataset en el nombre de la tabla.</strong> <code>FROM pedidos</code> falla con &quot;must be qualified with a dataset&quot;; va <code>FROM tienda.pedidos</code>.</li>
+<li><strong>Reemplazar <code>COUNTIF</code> por <code>WHERE canal = &#39;web&#39;</code>.</strong> El <code>WHERE</code> elimina las filas de los otros canales y ya no puedes contar los tres en la misma consulta.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> Una fila por mes desde julio de 2024.</li>

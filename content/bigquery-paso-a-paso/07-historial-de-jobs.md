@@ -8,6 +8,10 @@ prerrequisitos: bigquery-paso-a-paso-costos-limit-y-cache
 autoevaluacion: ¿Sabes qué tipos de job hay? | ¿Sabes cómo reconocer un job que salió de la caché? | ¿Sabes reabrir un SQL del historial? | ¿Sabes por qué un job puede fallar sin costo?
 ---
 
+:::analogia La libreta de la caja
+El historial de jobs es la libreta donde la caja anota cada operación: quién la hizo, cuándo, cuánto leyó y si salió bien. Cuando algo falla o la factura sube, la respuesta está anotada ahí.
+:::
+
 ## Paso 1 — El historial
 
 **Jobs explorer**:
@@ -44,6 +48,12 @@ texto: El detalle de un job - el SQL, los bytes (0 B, results cached), qué se l
 
 Un job que falla en la validación (un error de sintaxis o de nombre) **no cobra**. Para analizar los jobs con SQL, existe `INFORMATION_SCHEMA.JOBS` (nivel 5).
 
+:::errores
+- **Volver a ejecutar a ciegas una consulta que falló.** El detalle del job tiene el mensaje de error y la línea; léelo antes de reintentar.
+- **Confundir bytes procesados con facturados.** Los facturados son los que se cobran: redondeados y con un mínimo por tabla.
+- **Repetir una consulta cara sin revisarla.** Ábrela como consulta nueva desde el historial, mira qué columnas y filtros usa, y optimízala antes de correrla otra vez.
+:::
+
 ## ✅ Lo que lograste
 
 - Lees el historial de jobs.
@@ -60,15 +70,15 @@ Un job que falla en la validación (un error de sintaxis o de nombre) **no cobra
 
 :::ejercicio quiz
 ¿Cómo reconoces un job que salió de la caché?
-- [ ] Tarda más
+- [ ] Tiene más bytes facturados que procesados
 - [x] Tiene 0 B procesados y la marca de caché
 - [ ] Está en rojo
-- [ ] No tiene SQL
+- [ ] Aparece con tipo COPY
 :::
 
 :::ejercicio quiz
 ¿Qué hace Open as new query?
-- [ ] Borra el job
+- [ ] Lo vuelve a ejecutar con los mismos parámetros
 - [x] Abre el SQL del job en una pestaña nueva
 - [ ] Repite el job automáticamente cada día
 - [ ] Exporta el resultado
@@ -78,6 +88,6 @@ Un job que falla en la validación (un error de sintaxis o de nombre) **no cobra
 ¿Cobra BigQuery por un job que falla por un error de sintaxis?
 - [ ] Sí, el mínimo de 10 MB
 - [x] No
-- [ ] Sí, el doble
-- [ ] Depende del usuario
+- [ ] Sí, lo que hubiera procesado si funcionaba
+- [ ] Sí, si la tabla es grande
 :::

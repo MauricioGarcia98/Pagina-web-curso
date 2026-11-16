@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>MERGE - actualizar, insertar y borrar en una sola sentencia</h1><p class="resumen">El inventario de las tiendas llega como un archivo con cambios. Con un MERGE borras los productos que quedaron en cero, actualizas el stock de los que cambiaron e insertas los nuevos, todo en una sentencia. Lees su resultado y conoces las cláusulas de BigQuery (BY TARGET, BY SOURCE, INSERT ROW).</p>
 <a class="cta" href="../index.html#/l/bigquery-paso-a-paso-merge">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir un MERGE con DELETE, UPDATE e INSERT</li><li>Entender que gana la primera cláusula que se cumple</li><li>Usar WHEN NOT MATCHED BY SOURCE e INSERT ROW</li><li>Saber por qué los DML de BigQuery exigen WHERE</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Conciliar el inventario</div>
+
+<p>MERGE es conciliar tu planilla de inventario con la lista del proveedor en una sola pasada: lo que llegó cambiado se actualiza, lo nuevo se agrega y lo que el proveedor dice que ya no hay se borra. Sin MERGE serían tres sentencias, y entre una y otra la tabla quedaría a medias.</p>
+</div>
+
+
 <h2>Paso 1 — El MERGE</h2>
 <pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE analitica.stock_tiendas AS
 SELECT producto_id, stock FROM tienda.productos WHERE producto_id &lt;= 5;
@@ -65,6 +71,16 @@ UPDATE analitica.stock_tiendas SET stock = 0 WHERE TRUE;   -- explícito: todas 
 <div class="callout callout-tip"><div class="callout-title">💡 MERGE para cargas</div>
 
 <p>Un MERGE bien escrito es <strong>idempotente</strong>: correrlo dos veces con los mismos datos deja el mismo resultado. Es la forma recomendada de aplicar cargas incrementales.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Poner las cláusulas en cualquier orden.</strong> Gana la primera que se cumple: la condición más específica (por ejemplo, stock en cero → borrar) va antes que la general.</li>
+<li><strong>Fuente con claves repetidas.</strong> Si dos filas de la fuente coinciden con la misma fila del destino, el MERGE falla; deduplica la fuente antes.</li>
+<li><strong><code>WHEN NOT MATCHED BY SOURCE THEN DELETE</code> con un archivo parcial.</strong> Borra todo lo que no vino en el archivo; úsalo solo si la fuente trae la foto completa.</li>
+</ul>
 </div>
 
 

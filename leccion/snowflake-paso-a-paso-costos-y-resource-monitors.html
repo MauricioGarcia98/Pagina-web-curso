@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Costos y resource monitors - que la factura no sorprenda</h1><p class="resumen">Snowflake cobra cómputo, almacenamiento y algunos servicios. Lees los créditos consumidos por warehouse, creas un resource monitor que avisa al 80 % y suspende al 100 % de un presupuesto mensual, lo asignas al warehouse de análisis y conoces dónde se mira el consumo en una cuenta real.</p>
 <a class="cta" href="../index.html#/l/snowflake-paso-a-paso-costos-y-resource-monitors">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Entender qué se paga en Snowflake</li><li>Leer el consumo de créditos por warehouse</li><li>Crear y asignar un resource monitor</li><li>Conocer Cost Management y las vistas de uso</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un tope en la tarjeta</div>
+
+<p>Un resource monitor es un tope en la tarjeta del warehouse: avisa cuando llegas al 80 % del presupuesto del mes y, al 100 %, deja de aceptar consultas nuevas. Así una consulta mal escrita no consume el mes en una noche.</p>
+</div>
+
+
 <h2>Paso 1 — Qué se paga</h2>
 <div class="table-wrap"><table><thead><tr>
 <th>Concepto</th>
@@ -94,6 +100,16 @@ SHOW RESOURCE MONITORS;</code></pre>
 <td>Qué consultas usaron más tiempo de warehouse</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Monitor sin asignar.</strong> Creado pero no asignado a ningún warehouse (ni a la cuenta), no controla nada.</li>
+<li><strong>Solo avisos.</strong> Si nadie lee los correos, un aviso no frena el gasto; agrega una acción de suspensión.</li>
+<li><strong>Mirar solo el cómputo.</strong> El almacenamiento (incluido Time Travel y Fail-safe) y los servicios serverless también suman.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Sabes qué se paga en Snowflake.</li>

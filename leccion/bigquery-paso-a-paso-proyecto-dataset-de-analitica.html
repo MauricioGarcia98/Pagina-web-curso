@@ -43,6 +43,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/bigquery/q08-inventario.webp" alt="El script (1) y el inventario - clientes_por_pais con 11 filas y ventas_por_canal con 4 (2)" loading="lazy"><figcaption>El script (1) y el inventario - clientes_por_pais con 11 filas y ventas_por_canal con 4 (2)</figcaption></figure>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Crear las tablas con clics en la consola.</strong> Nadie puede repetirlo igual; un script con <code>CREATE OR REPLACE</code> se versiona y se vuelve a correr.</li>
+<li><strong>Usar <code>CREATE TABLE</code> sin <code>OR REPLACE</code> en un script.</strong> La segunda vez falla porque la tabla ya existe.</li>
+<li><strong>Verificar mirando el explorador.</strong> Una consulta a <code>INFORMATION_SCHEMA.TABLES</code> deja la verificación escrita y se puede automatizar.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> <code>analitica</code> tiene las dos tablas.</li>

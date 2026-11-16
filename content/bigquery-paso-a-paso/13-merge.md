@@ -8,6 +8,10 @@ prerrequisitos: bigquery-paso-a-paso-proyecto-tabla-de-hechos
 autoevaluacion: ¿Sabes qué pasa con un producto que llega con stock 0? | ¿Sabes qué hace WHEN NOT MATCHED BY SOURCE? | ¿Sabes qué inserta INSERT ROW? | ¿Sabes por qué UPDATE sin WHERE da error?
 ---
 
+:::analogia Conciliar el inventario
+MERGE es conciliar tu planilla de inventario con la lista del proveedor en una sola pasada: lo que llegó cambiado se actualiza, lo nuevo se agrega y lo que el proveedor dice que ya no hay se borra. Sin MERGE serían tres sentencias, y entre una y otra la tabla quedaría a medias.
+:::
+
 ## Paso 1 — El MERGE
 
 ```sql norun
@@ -58,6 +62,12 @@ BigQuery obliga a escribir `WHERE` en `UPDATE` y `DELETE`: un recordatorio de qu
 Un MERGE bien escrito es **idempotente**: correrlo dos veces con los mismos datos deja el mismo resultado. Es la forma recomendada de aplicar cargas incrementales.
 :::
 
+:::errores
+- **Poner las cláusulas en cualquier orden.** Gana la primera que se cumple: la condición más específica (por ejemplo, stock en cero → borrar) va antes que la general.
+- **Fuente con claves repetidas.** Si dos filas de la fuente coinciden con la misma fila del destino, el MERGE falla; deduplica la fuente antes.
+- **`WHEN NOT MATCHED BY SOURCE THEN DELETE` con un archivo parcial.** Borra todo lo que no vino en el archivo; úsalo solo si la fuente trae la foto completa.
+:::
+
 ## ✅ Lo que lograste
 
 - Escribiste un MERGE con borrado, actualización e inserción.
@@ -76,8 +86,8 @@ El producto 1 llega con stock 0 y hay dos cláusulas MATCHED (DELETE si stock = 
 ¿Qué hace WHEN NOT MATCHED BY SOURCE?
 - [ ] Inserta las filas nuevas
 - [x] Actúa sobre las filas del destino que no vinieron en la fuente
-- [ ] Borra la fuente
-- [ ] Nada
+- [ ] Borra las filas de la fuente después de leerlas
+- [ ] Actúa sobre las filas de la fuente que no están en el destino
 :::
 
 :::ejercicio quiz
@@ -85,13 +95,13 @@ El producto 1 llega con stock 0 y hay dos cláusulas MATCHED (DELETE si stock = 
 - [x] Inserta la fila completa de la fuente sin listar columnas
 - [ ] Inserta una fila vacía
 - [ ] Inserta solo la primera columna
-- [ ] No existe
+- [ ] Inserta la fila y luego actualiza las que coinciden
 :::
 
 :::ejercicio quiz
 ¿Qué pasa con `DELETE FROM tabla` sin WHERE en BigQuery?
 - [ ] Borra todo
 - [x] Da error: DELETE must have a WHERE clause
-- [ ] Borra la primera fila
-- [ ] Nada
+- [ ] Pide confirmación en la consola
+- [ ] Borra solo las filas de la última carga
 :::

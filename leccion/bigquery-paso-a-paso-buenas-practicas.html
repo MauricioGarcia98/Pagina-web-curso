@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Buenas prácticas - consultas baratas y rápidas por diseño</h1><p class="resumen">Juntas lo aprendido en una consulta que lee 2 columnas, el 2 % de una tabla particionada y con clustering, y en una lista de hábitos para consultas, tablas, cargas y equipo que mantienen BigQuery rápido y barato a medida que los datos crecen.</p>
 <a class="cta" href="../index.html#/l/bigquery-paso-a-paso-buenas-practicas">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Optimizar una consulta con columnas, partición y clustering</li><li>Elegir el diseño de tabla según el uso</li><li>Evitar los antipatrones más caros</li><li>Revisar consultas con una lista</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Qué cajones, qué estantes, qué carpetas</div>
+
+<p>Leer menos es abrir solo los cajones que necesitas (las columnas), en los estantes de las fechas pedidas (la partición) y, dentro de cada estante, solo las carpetas del canal buscado (el clustering). Cada palanca sola ayuda; las tres juntas son las que hacen que una consulta lea el 2 % de la tabla.</p>
+</div>
+
+
 <h2>Paso 1 — Las tres palancas juntas</h2>
 <pre data-norun><code class="language-sql">-- columnas justas + filtro de partición + clustering
 SELECT canal, COUNT(*) AS pedidos
@@ -71,6 +77,16 @@ GROUP BY canal;</code></pre>
 <li>Límite de bytes por consulta y cuotas diarias.</li>
 <li>SQL versionado (Dataform o dbt), no consultas sueltas en pestañas.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Unir antes de filtrar.</strong> Un JOIN con la tabla grande completa procesa todo; filtra por fecha antes del JOIN.</li>
+<li><strong>Tablas temporales sin vencimiento.</strong> Se acumulan y cobran almacenamiento; ponles vencimiento al crearlas.</li>
+<li><strong>Streaming por costumbre.</strong> Si los datos pueden esperar unos minutos, la carga por lotes es gratis.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Combinaste las tres palancas.</li>

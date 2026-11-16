@@ -8,6 +8,10 @@ prerrequisitos: bigquery-paso-a-paso-proyecto-dataset-de-analitica
 autoevaluacion: ¿Sabes qué columna conviene para particionar? | ¿Sabes qué hace require_partition_filter? | ¿Sabes por qué EXTRACT(YEAR FROM fecha) impide la poda? | ¿Cuántas columnas admite el clustering?
 ---
 
+:::analogia Estantes por fecha y libros por tema
+Una tabla particionada es una biblioteca con un estante por día: si pides solo diciembre, nadie mira los demás estantes. El clustering ordena los libros de cada estante por tema: si además pides el canal web, se saltan los bloques que no lo tienen.
+:::
+
 ## Paso 1 — Crear la tabla
 
 ```sql norun
@@ -73,6 +77,12 @@ texto: Details - particionada por DAY en fecha_pedido, filtro de partición Requ
 | **Clustering** | Se filtra o agrupa seguido por otras columnas (canal, país, cliente). No baja la estimación, sí lo que finalmente se cobra |
 | **Ambos** | Tablas de hechos grandes: particionar por fecha y clustering por las dimensiones más filtradas |
 
+:::errores
+- **Envolver la columna de partición en una función.** `EXTRACT(YEAR FROM fecha) = 2024` impide la poda; escribe `fecha BETWEEN '2024-01-01' AND '2024-12-31'`.
+- **Particionar por algo que no se filtra.** La partición ayuda solo si las consultas filtran por esa columna; casi siempre es la fecha del evento.
+- **Clustering por columnas que nadie filtra.** Ordenar por el id del pedido no ayuda si las consultas filtran por canal y país.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste una tabla particionada y con clustering.
@@ -83,8 +93,8 @@ texto: Details - particionada por DAY en fecha_pedido, filtro de partición Requ
 ¿Qué columna conviene usar para particionar una tabla de ventas?
 - [x] La fecha por la que casi siempre se filtra
 - [ ] El email del cliente
-- [ ] Un texto libre
-- [ ] La que tenga más nulos
+- [ ] El id del pedido, porque es único
+- [ ] El id del cliente, porque es la clave de los JOIN
 :::
 
 :::ejercicio quiz
@@ -97,10 +107,10 @@ texto: Details - particionada por DAY en fecha_pedido, filtro de partición Requ
 
 :::ejercicio quiz
 ¿Por qué `WHERE EXTRACT(YEAR FROM fecha_pedido) = 2024` no poda?
-- [ ] Porque 2024 no existe
+- [ ] Porque EXTRACT solo funciona en columnas DATETIME
 - [x] Porque la función sobre la columna impide saber qué particiones descartar
-- [ ] Porque EXTRACT está prohibido
-- [ ] Sí poda
+- [ ] Porque falta un clustering por año
+- [ ] Sí poda: BigQuery reescribe la condición solo
 :::
 
 :::ejercicio quiz

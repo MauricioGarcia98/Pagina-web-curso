@@ -8,6 +8,10 @@ prerrequisitos: bigquery-paso-a-paso-la-primera-consulta-y-los-bytes
 autoevaluacion: ¿Sabes qué columna de pedidos es la más cara de leer? | ¿Sabes cómo está particionada pedidos? | ¿Sabes por qué Preview es gratis y SELECT * LIMIT 10 no? | ¿Sabes qué tipo usa GoogleSQL para texto?
 ---
 
+:::analogia Mirar el menú antes de pedir
+El esquema, los detalles y la vista previa son el menú: mirarlos no cuesta nada. Pedir el plato es ejecutar una consulta, y ahí sí se paga por todo lo que la cocina tiene que leer.
+:::
+
 ## Paso 1 — El esquema
 
 Explorador → `tienda` → `pedidos`:
@@ -47,6 +51,12 @@ texto: Preview - las primeras filas sin ejecutar una consulta
 La pestaña **Preview** lee la tabla sin un job de consulta: **no cuesta**. En cambio `SELECT * FROM pedidos LIMIT 10` procesa **todas** las columnas de toda la tabla: `LIMIT` recorta el resultado, no lo que se lee.
 :::
 
+:::errores
+- **Explorar con `LIMIT`.** `SELECT * ... LIMIT 10` lee todas las columnas de toda la tabla; la vista previa muestra filas gratis.
+- **Escribir tipos de otros motores.** En GoogleSQL no existe `VARCHAR(255)`: el texto es `STRING` y los enteros son `INT64`.
+- **Filtrar sin mirar los detalles.** Si la tabla está particionada o tiene clustering, filtrar por esas columnas es lo que baja el costo; los detalles te lo dicen antes de escribir.
+:::
+
 ## ✅ Lo que lograste
 
 - Lees el esquema y el tamaño de cada columna.
@@ -58,7 +68,7 @@ La pestaña **Preview** lee la tabla sin un job de consulta: **no cuesta**. En c
 - [x] Cuánto pesa esa columna, que es lo que paga una consulta que la lee
 - [ ] Cuántos valores nulos tiene
 - [ ] Su posición en la tabla
-- [ ] Nada
+- [ ] Cuántas veces se consultó esa columna este mes
 :::
 
 :::ejercicio quiz
@@ -66,14 +76,14 @@ La pestaña **Preview** lee la tabla sin un job de consulta: **no cuesta**. En c
 - [ ] Porque muestra datos falsos
 - [x] Porque lee la tabla sin ejecutar un job de consulta
 - [ ] Porque solo funciona en tablas chicas
-- [ ] No es gratis
+- [ ] Porque usa la caché de la última consulta
 :::
 
 :::ejercicio quiz
 ¿Cuánto procesa `SELECT * FROM pedidos LIMIT 10`?
 - [ ] Solo 10 filas
 - [x] Todas las columnas de toda la tabla
-- [ ] Nada
+- [ ] Solo las columnas usadas en el ORDER BY
 - [ ] Solo la primera columna
 :::
 

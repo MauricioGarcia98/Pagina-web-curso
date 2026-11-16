@@ -50,6 +50,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/snowflake/s12-final.webp" alt="pedidos_actuales con los 7 pedidos" loading="lazy"><figcaption>pedidos_actuales con los 7 pedidos</figcaption></figure>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Forzar la recarga con <code>FORCE = TRUE</code> sin pensar.</strong> COPY INTO saltea los archivos ya cargados para no duplicar; forzarla duplica filas.</li>
+<li><strong>No deduplicar la fuente.</strong> Si el archivo trae dos versiones del mismo pedido, el MERGE falla o queda impredecible.</li>
+<li><strong>Probar una sola vez.</strong> La carga incremental se valida corriéndola dos veces: la segunda no debe cambiar nada.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> El resultado de COPY INTO muestra el archivo del 14 como LOAD_SKIPPED.</li>

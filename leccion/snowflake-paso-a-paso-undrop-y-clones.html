@@ -66,6 +66,16 @@ SHOW SCHEMAS IN DATABASE tienda_qa;</code></pre>
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>UNDROP</code> cuando ya existe otra tabla con ese nombre.</strong> Falla; renombra la tabla nueva antes de recuperar la borrada.</li>
+<li><strong>Creer que un clon es una vista.</strong> Es una tabla independiente: lo que cambies en el clon no toca el original.</li>
+<li><strong>Dejar clones viejos para siempre.</strong> Al principio no ocupan espacio, pero cada cambio sobre el clon o el original va sumando almacenamiento propio.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Recuperaste una tabla con UNDROP.</li>

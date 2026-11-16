@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Cargar datos - de un archivo a una tabla particionada</h1><p class="resumen">Los eventos de la app llegan en un CSV. Creas la tabla eventos_app desde un archivo con Create table, con el esquema autodetectado y particionada por fecha, la revisas y conoces las otras formas de cargar - LOAD DATA, bq load, tablas externas sobre Cloud Storage y streaming.</p>
 <a class="cta" href="../index.html#/l/bigquery-paso-a-paso-cargar-datos">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una tabla desde un archivo</li><li>Particionar al cargar</li><li>Revisar el esquema detectado</li><li>Elegir entre carga por lotes, tablas externas y streaming</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Mudar los muebles o ir al depósito</div>
+
+<p>Cargar un archivo es mudar los muebles a tu casa: la mudanza es gratis, pagas el espacio y después todo está a mano. Una tabla externa es dejarlos en el depósito (Cloud Storage) e ir a buscarlos cada vez que los necesitas: más lento y sin todas las comodidades.</p>
+</div>
+
+
 <h2>Paso 1 — Create table</h2>
 <p>En el dataset <code>analitica</code>, <strong>Create table</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/bigquery/q10-crear.webp" alt="Create table - desde un archivo (aquí, el de ejemplo del curso), tabla eventos_app y partición por la columna fecha" loading="lazy"><figcaption>Create table - desde un archivo (aquí, el de ejemplo del curso), tabla eventos_app y partición por la columna fecha</figcaption></figure>
@@ -62,6 +68,16 @@ bq load --source_format=CSV --skip_leading_rows=1 --time_partitioning_field=fech
 <td>Según la fuente</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Autodetectar el esquema en producción.</strong> Un archivo con un valor raro puede cambiar el tipo de una columna; en producción el esquema va explícito.</li>
+<li><strong>Cargar sin partición una tabla que va a crecer.</strong> Particionarla después obliga a recrearla; decídelo al crearla.</li>
+<li><strong>Usar streaming cuando alcanza con lotes.</strong> La carga por lotes es gratis; la escritura en streaming se paga y solo tiene sentido si necesitas los datos al instante.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste una tabla particionada desde un archivo.</li>

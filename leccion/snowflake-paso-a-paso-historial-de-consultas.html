@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Query History - qué corrió, quién, con qué y cuánto tardó</h1><p class="resumen">Cada sentencia queda registrada con su Query ID, rol, warehouse, duración y estado. Recorres el historial, filtras las fallidas, abres el detalle de una consulta y aprendes a usarlo para encontrar errores, consultas lentas y quién gasta créditos.</p>
 <a class="cta" href="../index.html#/l/snowflake-paso-a-paso-historial-de-consultas">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer el historial de consultas</li><li>Filtrar consultas fallidas</li><li>Abrir el detalle de una consulta</li><li>Usar el historial para diagnosticar lentitud y costo</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La caja negra del avión</div>
+
+<p>El historial de consultas es la caja negra: registra cada sentencia con quién la ejecutó, con qué rol y warehouse, cuánto tardó y si falló. Cuando algo sale mal, primero se lee la caja negra.</p>
+</div>
+
+
 <h2>Paso 1 — El historial</h2>
 <p><strong>Monitoring → Query History</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/snowflake/s07-historial.webp" alt="Los filtros All, Succeeded y Failed (1) y cada sentencia con su estado, SQL, Query ID, warehouse, rol, duración y filas (2)" loading="lazy"><figcaption>Los filtros All, Succeeded y Failed (1) y cada sentencia con su estado, SQL, Query ID, warehouse, rol, duración y filas (2)</figcaption></figure>
@@ -56,6 +62,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-nota"><div class="callout-title">📝 En Snowflake real, con SQL</div>
 
 <p>El historial también se consulta con SQL: <code>SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY</code> guarda un año de historia (con hasta 45 minutos de demora) y la función <code>INFORMATION_SCHEMA.QUERY_HISTORY()</code> los últimos 7 días al instante. El <strong>Query Profile</strong> de cada consulta muestra paso a paso dónde se fue el tiempo.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Buscar solo en la hoja.</strong> Si la consulta la corrió otra persona o un proceso, está en Query History (o en ACCOUNT_USAGE), no en tu hoja.</li>
+<li><strong>Mirar solo la duración.</strong> Una consulta lenta puede estar esperando en cola por un warehouse saturado; el Query Profile muestra dónde se fue el tiempo.</li>
+<li><strong>Olvidar el retraso de ACCOUNT_USAGE.</strong> Sus vistas tienen hasta unas horas de demora; para lo de hace minutos usa Query History o INFORMATION_SCHEMA.</li>
+</ul>
 </div>
 
 

@@ -8,6 +8,10 @@ prerrequisitos: bigquery-paso-a-paso-proyecto-pedidos-por-mes-y-canal
 autoevaluacion: ¿Sabes qué sentencia crea un dataset? | ¿Sabes qué define la región de un dataset? | ¿Sabes por qué no se puede unir tablas de regiones distintas? | ¿Sabes cómo organizar datasets por capa?
 ---
 
+:::analogia Una carpeta con dirección y candado
+Un dataset es una carpeta con **dirección** (la región, que no se puede mudar) y **candado** (los permisos, que se ponen a la carpeta y valen para lo que tiene adentro). Por eso conviene pensar dónde va a vivir y quién la va a abrir antes de crearla.
+:::
+
 ## Paso 1 — Crear el dataset y una tabla
 
 ```sql norun
@@ -58,6 +62,12 @@ Una consulta solo puede unir tablas de **la misma región**. Elige la región al
 | `reportes` | Vistas para cada área |
 | `sandbox_<persona>` | Pruebas personales, con vencimiento corto |
 
+:::errores
+- **Crear el dataset en otra región que los demás datos.** Después no se puede unir con ellos y la región no se cambia: hay que crear otro dataset y copiar.
+- **Meter todo en un solo dataset.** Los permisos se dan por dataset; si raw, analítica y reportes están juntos, no puedes dar acceso solo a los reportes.
+- **Datasets de prueba sin vencimiento.** Las tablas olvidadas siguen cobrando almacenamiento; un vencimiento por defecto las limpia solas.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un dataset y una tabla.
@@ -76,16 +86,16 @@ Una consulta solo puede unir tablas de **la misma región**. Elige la región al
 ¿Se puede cambiar la región de un dataset después de crearlo?
 - [ ] Sí, desde Details
 - [x] No: hay que crear otro y copiar los datos
-- [ ] Solo los domingos
-- [ ] Solo con ACCOUNTADMIN
+- [ ] Sí, con ALTER SCHEMA SET OPTIONS (location = ...)
+- [ ] Sí, pero solo si el dataset está vacío
 :::
 
 :::ejercicio quiz
 ¿Puedes unir una tabla en US con una en EU en la misma consulta?
 - [ ] Sí, siempre
 - [x] No: las tablas de una consulta tienen que estar en la misma región
-- [ ] Solo con LIMIT
-- [ ] Solo si son vistas
+- [ ] Sí, si usas el nombre completo proyecto.dataset.tabla
+- [ ] Solo si las dos tablas son vistas
 :::
 
 :::ejercicio quiz
@@ -93,5 +103,5 @@ Una consulta solo puede unir tablas de **la misma región**. Elige la región al
 - [x] Para que las tablas se borren solas después de N días
 - [ ] Para hacer backups
 - [ ] Para cambiar la región
-- [ ] Para dar permisos
+- [ ] Para mover las tablas a almacenamiento de largo plazo
 :::

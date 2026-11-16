@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Una cuadrilla que se contrata por segundo</div>
+
+<p>Un warehouse es una cuadrilla de trabajadores: un X-Small es una cuadrilla chica y cada talla duplica la gente y el costo por hora. Agrandarla (scale up) termina antes un trabajo pesado; agregar cuadrillas iguales (scale out) atiende a más clientes a la vez. Y la cuadrilla se paga solo mientras está trabajando.</p>
+</div>
+
+
 <h2>Paso 1 — Crear el warehouse</h2>
 <p><strong>Admin → Warehouses → + Warehouse</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/snowflake/s05-nuevo.webp" alt="New Warehouse - nombre ANALISIS_WH, tamaño X-Small (1 crédito/hora), Auto suspend 1 minuto y el SQL equivalente" loading="lazy"><figcaption>New Warehouse - nombre ANALISIS_WH, tamaño X-Small (1 crédito/hora), Auto suspend 1 minuto y el SQL equivalente</figcaption></figure>
@@ -105,6 +111,16 @@ SHOW WAREHOUSES;</code></pre>
 </tr>
 </tbody></table></div>
 <p>Duplicar el tamaño duplica el costo por hora, pero si la consulta tarda la mitad, el costo total es el mismo y el resultado llega antes.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Agrandar para atender a más usuarios.</strong> Si el problema es que muchas consultas esperan en cola, conviene multi-clúster (scale out), no una talla mayor.</li>
+<li><strong>AUTO_SUSPEND muy largo o en 0.</strong> Un warehouse que nunca se apaga cobra toda la noche; para análisis, 60 a 300 segundos alcanza.</li>
+<li><strong>Un solo warehouse para todo.</strong> Cargas y análisis se pisan y no sabes quién gasta; usa uno por carga de trabajo.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste un warehouse con auto suspend.</li>

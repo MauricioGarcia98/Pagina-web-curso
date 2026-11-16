@@ -30,6 +30,12 @@ archivo: bigquery/q12-consulta.webp
 texto: La estimación de la consulta típica (1), las ventas web del trimestre por país (2) y lo que se leyó - 4 columnas y una fracción de la tabla (3)
 ```
 
+:::errores
+- **Invertir el orden del clustering.** Va primero la columna que más se filtra; si comercial filtra siempre por canal, canal va antes que país.
+- **Dejar la tabla de hechos como vista.** Cada consulta del día repetiría el JOIN completo y lo cobraría.
+- **No exigir el filtro de partición.** Sin `require_partition_filter`, una consulta sin fecha lee la tabla entera.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] La tabla está particionada por `fecha` y con clustering por `canal, pais`.
@@ -75,16 +81,16 @@ En el nivel 4: MERGE, time travel y SQL analítico.
 Comercial siempre filtra por fecha y a veces por canal y país. ¿Qué diseño eliges?
 - [x] Partición por fecha y clustering por canal y país
 - [ ] Partición por país y clustering por fecha
-- [ ] Sin partición
-- [ ] Una vista sin filtros
+- [ ] Sin partición, con clustering por fecha, canal y país
+- [ ] Una vista con los JOIN y un LIMIT
 :::
 
 :::ejercicio quiz
 ¿Por qué conviene una tabla de hechos y no una vista con los JOIN?
-- [ ] Porque las vistas no existen
+- [ ] Porque una vista no puede unir más de dos tablas
 - [x] Porque la vista repetiría (y cobraría) los JOIN en cada consulta
 - [ ] Porque la tabla nunca cambia
-- [ ] Da igual
+- [ ] Porque la tabla se actualiza sola con cada pedido
 :::
 
 :::ejercicio quiz
@@ -99,6 +105,6 @@ Comercial siempre filtra por fecha y a veces por canal y país. ¿Qué diseño e
 ¿En qué orden van las columnas de CLUSTER BY?
 - [x] De la que más se filtra a la que menos
 - [ ] Alfabético
-- [ ] Al azar
-- [ ] Da igual
+- [ ] De la que tiene más valores distintos a la que menos
+- [ ] Da igual: BigQuery las reordena solo
 :::

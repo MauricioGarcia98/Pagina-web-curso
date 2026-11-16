@@ -67,6 +67,12 @@ texto: Create - SQL Worksheet, Database, Warehouse, Stage y Table
 
 Los datos son los de **Tienda Andina**, la misma tienda del resto del curso: 12.000 pedidos, clientes, productos y detalle.
 
+:::errores
+- **Dejar un warehouse encendido "por las dudas".** Cobra por segundo mientras está prendido, aunque no corra nada; con AUTO_SUSPEND se apaga solo.
+- **Confundir warehouse con base de datos.** El warehouse es el motor que calcula; los datos viven en las bases, que existen aunque todos los warehouses estén apagados.
+- **Escribir el nombre de la tabla sin contexto.** Si la hoja no tiene base y esquema elegidos, usa el nombre completo `BASE.ESQUEMA.TABLA`.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué es Snowflake y sus tres capas.
@@ -75,18 +81,18 @@ Los datos son los de **Tienda Andina**, la misma tienda del resto del curso: 12.
 
 :::ejercicio quiz
 ¿Qué es un warehouse virtual en Snowflake?
-- [ ] Una base de datos
+- [ ] Una base de datos con sus esquemas y tablas
 - [x] El cómputo que ejecuta las consultas, que se prende y apaga
-- [ ] Un archivo CSV
-- [ ] Un usuario
+- [ ] El disco donde se guardan las tablas
+- [ ] Un usuario de servicio que ejecuta las cargas
 :::
 
 :::ejercicio quiz
 ¿Por qué separar almacenamiento y cómputo ahorra dinero?
 - [x] Porque el cómputo solo se paga mientras está encendido y se dimensiona por trabajo
 - [ ] Porque los datos no ocupan espacio
-- [ ] Porque Snowflake es gratis
-- [ ] No ahorra nada
+- [ ] Porque los datos se borran al apagar el warehouse
+- [ ] Porque el almacenamiento se cobra solo cuando se consulta
 :::
 
 :::ejercicio quiz
@@ -94,7 +100,7 @@ Los datos son los de **Tienda Andina**, la misma tienda del resto del curso: 12.
 - [ ] TABLA.BASE
 - [x] BASE.ESQUEMA.TABLA
 - [ ] ESQUEMA.BASE.TABLA
-- [ ] CUENTA.TABLA
+- [ ] WAREHOUSE.ESQUEMA.TABLA
 :::
 
 :::ejercicio quiz

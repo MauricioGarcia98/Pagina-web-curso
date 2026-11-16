@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>SQL analítico - QUALIFY, funciones de ventana y muestreo</h1><p class="resumen">Snowflake tiene atajos de SQL que ahorran subconsultas. Obtienes el último pedido de cada cliente con QUALIFY, la variación mensual de pedidos con LAG, y conoces SAMPLE para explorar tablas grandes, más las funciones de Snowflake que más se usan.</p>
 <a class="cta" href="../index.html#/l/snowflake-paso-a-paso-sql-analitico">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Filtrar por funciones de ventana con QUALIFY</li><li>Calcular variaciones con LAG y CTE</li><li>Explorar tablas grandes con SAMPLE</li><li>Conocer funciones propias de Snowflake</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Numerar y quedarse con el primero</div>
+
+<p><code>QUALIFY</code> filtra por el resultado de una función de ventana: primero numeras los pedidos de cada cliente del más nuevo al más viejo, y después te quedas con el número 1. Es el <code>HAVING</code> de las ventanas.</p>
+</div>
+
+
 <h2>Paso 1 — QUALIFY</h2>
 <p>El último pedido de cada cliente:</p>
 <pre data-norun><code class="language-sql">SELECT cliente_id, pedido_id, fecha_pedido, canal
@@ -91,6 +97,16 @@ SELECT * FROM pedidos SAMPLE (10);</code></pre>
 <td>Armar arreglos y JSON</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Filtrar la ventana en el <code>WHERE</code>.</strong> El <code>WHERE</code> se evalúa antes y da error; el filtro va en <code>QUALIFY</code>.</li>
+<li><strong>Usar <code>SAMPLE</code> para resultados exactos.</strong> Es una muestra al azar: sirve para explorar, no para informar totales.</li>
+<li><strong>Convertir con <code>TO_NUMBER</code> datos sucios.</strong> Falla con el primer valor inválido; <code>TRY_TO_NUMBER</code> devuelve NULL.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Filtraste con QUALIFY.</li>

@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>JSON y VARIANT - datos semiestructurados sin esquema fijo</h1><p class="resumen">Los eventos de la web llegan en JSON y cada uno trae campos distintos. Los guardas tal cual en una columna VARIANT, lees campos anidados con la notación de dos puntos y los conviertes con ::, y abres los arreglos en filas con LATERAL FLATTEN.</p>
 <a class="cta" href="../index.html#/l/snowflake-paso-a-paso-json-y-variant">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Guardar JSON en una columna VARIANT</li><li>Leer campos anidados con columna:campo.sub</li><li>Convertir tipos con ::</li><li>Abrir arreglos en filas con LATERAL FLATTEN</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Una caja que acepta cualquier forma</div>
+
+<p>Una columna VARIANT es una caja que acepta objetos de cualquier forma: cada evento puede traer campos distintos. Con <code>:</code> buscas adentro de la caja, con <code>::</code> le pones una etiqueta de tipo al resultado y con <code>FLATTEN</code> vacías una lista en filas.</p>
+</div>
+
+
 <h2>Paso 1 — Guardar JSON</h2>
 <pre data-norun><code class="language-sql">CREATE TABLE eventos_web (datos VARIANT);
 
@@ -81,6 +87,16 @@ FROM eventos_web e,
 <div class="callout callout-tip"><div class="callout-title">💡 Sin ítems</div>
 
 <p>La visita no aparece porque su arreglo está vacío. Para conservarla, <code>FLATTEN(input =&gt; ..., outer =&gt; TRUE)</code> devuelve una fila con <code>value</code> nulo.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Olvidar convertir con <code>::</code>.</strong> Un valor leído de VARIANT sigue siendo VARIANT y se muestra entre comillas; <code>::string</code> o <code>::number</code> lo convierten.</li>
+<li><strong>Confundir mayúsculas en las claves JSON.</strong> Las claves de VARIANT distinguen mayúsculas: <code>datos:Pais</code> no es <code>datos:pais</code>.</li>
+<li><strong>Perder filas con <code>FLATTEN</code>.</strong> Las filas con arreglo vacío desaparecen; usa <code>OUTER =&gt; TRUE</code> si las necesitas.</li>
+</ul>
 </div>
 
 

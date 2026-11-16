@@ -8,6 +8,10 @@ prerrequisitos: bigquery-paso-a-paso-capacidad-y-mas
 autoevaluacion: ¿Sabes qué ofrece el sandbox sin tarjeta? | ¿Sabes hacer un dry run con bq? | ¿Sabes con qué cuenta se conecta un proceso automático? | ¿Sabes qué configurar el primer día?
 ---
 
+:::analogia Del simulador al avión
+Pasar de la práctica a BigQuery real es pasar del simulador de vuelo al avión: los controles son los mismos (GoogleSQL, particiones, MERGE, time travel), pero el combustible se paga de verdad y hay más gente a bordo con distintos permisos.
+:::
+
 ## Paso 1 — Qué cambia
 
 | En la práctica | En BigQuery real |
@@ -74,6 +78,12 @@ Los procesos automáticos usan **cuentas de servicio** con el rol mínimo, ideal
 - [ ] Aprender las tablas grandes: cómo están particionadas y con qué clustering.
 - [ ] Cada consulta, primero con el validador.
 
+:::errores
+- **Conectar procesos automáticos con tu usuario personal.** Si te vas o cambias de contraseña, se rompen; usa cuentas de servicio con el rol mínimo.
+- **Subir un archivo de credenciales a Git.** Aunque lo borres después, queda en el historial; revoca la clave y usa Workload Identity.
+- **Activar la facturación sin presupuesto.** Configura alertas y cuotas de bytes el primer día.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué cambia en BigQuery real.
@@ -84,8 +94,8 @@ Los procesos automáticos usan **cuentas de servicio** con el rol mínimo, ideal
 ¿Qué ofrece el sandbox de BigQuery sin tarjeta?
 - [x] 10 GB de almacenamiento y 1 TB de consultas por mes, con tablas que vencen a los 60 días
 - [ ] Todo ilimitado
-- [ ] Nada
-- [ ] Solo cargas
+- [ ] 1 TB de almacenamiento y consultas ilimitadas
+- [ ] Solo consultas sobre datasets públicos, sin tablas propias
 :::
 
 :::ejercicio quiz
@@ -106,8 +116,8 @@ Los procesos automáticos usan **cuentas de servicio** con el rol mínimo, ideal
 
 :::ejercicio quiz
 ¿Qué configuras el primer día en un proyecto con facturación?
-- [ ] Nada
+- [ ] Una reserva de capacidad por 3 años
 - [x] Un presupuesto con alertas y cuotas de bytes
-- [ ] 100 datasets
+- [ ] Un dataset por usuario, sin vencimiento
 - [ ] Permisos de Admin para todos
 :::

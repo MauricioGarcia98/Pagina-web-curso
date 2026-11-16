@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>De la práctica a Snowflake real - cuenta de prueba, conexiones y herramientas</h1><p class="resumen">Antes de entrar a una cuenta real, repasas qué cambia respecto de la práctica, cómo abrir una prueba gratuita sin riesgos, las ediciones, cómo se conectan las herramientas (Snowflake CLI, conectores, Power BI, dbt, Airflow) y las reglas de seguridad para tu primera semana.</p>
 <a class="cta" href="../index.html#/l/snowflake-paso-a-paso-de-la-practica-a-snowflake-real">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Saber qué cambia entre la práctica y Snowflake real</li><li>Abrir una cuenta de prueba con cuidado</li><li>Conectar herramientas de forma segura</li><li>Armar la lista de la primera semana</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Del simulador al avión</div>
+
+<p>Lo que practicaste (warehouses, roles, COPY INTO, MERGE, Time Travel) funciona igual en una cuenta real. Lo que cambia es que los créditos se pagan y que hay más gente con distintos roles: por eso lo primero es poner topes y separar permisos.</p>
+</div>
+
+
 <h2>Paso 1 — Qué cambia</h2>
 <div class="table-wrap"><table><thead><tr>
 <th>En la práctica</th>
@@ -96,6 +102,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-tip"><div class="callout-title">💡 Capturas</div>
 
 <p>Si compartes capturas de una cuenta real, difumina el nombre de la cuenta, la URL, los usuarios y cualquier dato de clientes.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Probar con un warehouse grande.</strong> En la prueba gratuita los créditos se acaban rápido; empieza con X-Small y auto suspend corto.</li>
+<li><strong>Conectar herramientas con tu usuario personal.</strong> dbt o Airflow usan un usuario de servicio con key-pair u OAuth y un rol propio.</li>
+<li><strong>Usar ACCOUNTADMIN para el trabajo diario.</strong> Úsalo para facturación y monitores, y trabaja con roles propios.</li>
+</ul>
 </div>
 
 

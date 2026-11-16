@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Costos - LIMIT no ahorra, la caché sí</h1><p class="resumen">Comprobás que LIMIT no baja lo que se procesa, que repetir la misma consulta sale de la caché por 0 bytes, y recorres la página de costos con tus consultas más caras y cuánto costarían a escala real. Conoces los dos modelos de precio (on-demand y capacidad) y el costo de almacenamiento.</p>
 <a class="cta" href="../index.html#/l/bigquery-paso-a-paso-costos-limit-y-cache">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Comprobar que LIMIT no reduce los bytes procesados</li><li>Aprovechar la caché de resultados</li><li>Leer la página de costos</li><li>Distinguir on-demand, capacidad y almacenamiento</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La olla y la porción</div>
+
+<p><code>LIMIT</code> es pedir que te sirvan una porción de una olla que igual se cocinó entera: pagas toda la olla. La caché es recalentar lo que ya cocinaste: si la consulta es idéntica y la tabla no cambió, sale gratis.</p>
+</div>
+
+
 <h2>Paso 1 — LIMIT no ahorra</h2>
 <pre data-norun><code class="language-sql">SELECT *
 FROM tienda.pedidos
@@ -66,6 +72,16 @@ LIMIT 10;</code></pre>
 <div class="callout callout-tip"><div class="callout-title">💡 Un tope para dormir tranquilo</div>
 
 <p>En BigQuery real se puede fijar <strong>Maximum bytes billed</strong> en cada consulta (o un máximo por día por proyecto o usuario): si la consulta superaría ese límite, falla sin cobrar.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Poner <code>LIMIT</code> para ahorrar.</strong> Recorta el resultado, no la lectura. Lo que ahorra es nombrar menos columnas y filtrar por la partición.</li>
+<li><strong>Esperar la caché con funciones no deterministas.</strong> Una consulta con <code>CURRENT_TIMESTAMP()</code> o sobre una tabla que cambió no sale de la caché.</li>
+<li><strong>Trabajar sin tope de bytes.</strong> Sin <em>maximum bytes billed</em>, un error en un filtro puede leer terabytes; con el tope, la consulta falla antes de cobrar.</li>
+</ul>
 </div>
 
 

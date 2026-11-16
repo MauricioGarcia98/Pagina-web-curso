@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes consultar la tabla antes de una sentencia? | ¿Sabes de 
 Un viernes a las 18:00, alguien prueba un `DELETE` en la hoja equivocada:
 :::
 
+:::analogia Volver al minuto anterior al error
+Time Travel es poder mirar la tabla como estaba antes de un momento exacto. Lo más preciso no es "hace una hora" sino "justo antes de esta sentencia": con el Query ID del `DELETE` vuelves al instante anterior sin adivinar horarios.
+:::
+
 ## Paso 1 — El error
 
 ```sql norun
@@ -73,6 +77,12 @@ ALTER TABLE pedidos_actuales SET DATA_RETENTION_TIME_IN_DAYS = 7;
 Cada versión anterior ocupa almacenamiento mientras dure la retención. Más días de Time Travel = más costo de almacenamiento en tablas que cambian mucho.
 :::
 
+:::errores
+- **Esperar demasiado.** Por defecto la retención es de 1 día; pasado ese plazo los datos solo quedan en Fail-safe, que solo recupera el soporte de Snowflake.
+- **Restaurar con `INSERT` sobre una tabla que no quedó vacía.** Duplicas filas; en ese caso reemplaza la tabla con `CREATE OR REPLACE ... AS SELECT ... BEFORE(...)`.
+- **Adivinar la hora con OFFSET.** Si te equivocas por segundos, recuperas una versión ya rota; usa `BEFORE(STATEMENT => ...)`.
+:::
+
 ## ✅ Lo que lograste
 
 - Consultaste una tabla en el pasado.
@@ -83,7 +93,7 @@ Cada versión anterior ocupa almacenamiento mientras dure la retención. Más d�
 ¿Cuál es la forma más precisa de ver la tabla justo antes de un error?
 - [ ] AT(OFFSET => -3600)
 - [x] BEFORE(STATEMENT => '<query id del error>')
-- [ ] SELECT * FROM tabla
+- [ ] AT(TIMESTAMP => CURRENT_TIMESTAMP())
 - [ ] UNDROP TABLE
 :::
 
@@ -100,13 +110,13 @@ Cada versión anterior ocupa almacenamiento mientras dure la retención. Más d�
 - [ ] Cualquier usuario con SELECT
 - [ ] El ACCOUNTADMIN con SQL
 - [x] Solo el soporte de Snowflake
-- [ ] Nadie
+- [ ] Cualquier rol con OWNERSHIP sobre la tabla
 :::
 
 :::ejercicio quiz
 ¿Dónde encuentras el Query ID de la sentencia que borró los datos?
 - [ ] En Marketplace
 - [x] En Query Details del resultado o en Query History
-- [ ] En el nombre de la tabla
+- [ ] En SHOW TABLES, en la columna comment
 - [ ] En Warehouses
 :::

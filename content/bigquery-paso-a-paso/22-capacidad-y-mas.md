@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué es un slot? | ¿Sabes cuándo conviene el modelo de
 Estas secciones no están simuladas: la práctica te muestra qué son. El SQL es el de BigQuery real (BigQuery ML también se puede probar con `bq query` en la [terminal del curso](#/lab/terminal)).
 :::
 
+:::analogia Pagar por kilo o contratar una cuadrilla
+Un slot es un trabajador que procesa parte de la consulta. En on-demand pagas por kilo procesado (los bytes), sin importar cuántos trabajadores se usaron. En el modelo de capacidad contratas una cuadrilla por hora: conviene cuando tienes trabajo grande y constante.
+:::
+
 ## Paso 1 — Slots y ediciones
 
 ```captura
@@ -61,6 +65,12 @@ Entrenar y predecir sin sacar los datos de BigQuery: regresión, clasificación,
 | **Funciones de IA** | Resumir, clasificar o generar texto desde SQL con modelos de Vertex AI |
 | **BigLake** | Consultar archivos abiertos (Parquet, Iceberg) en Cloud Storage con la misma seguridad |
 
+:::errores
+- **Pasar a capacidad sin medir.** Con pocas consultas, el modelo on-demand suele ser más barato; mira antes `INFORMATION_SCHEMA.JOBS`.
+- **Usar un modelo de BigQuery ML sin evaluarlo.** `ML.EVALUATE` sobre datos que el modelo no vio dice si sirve.
+- **Esperar que BI Engine arregle un mal diseño.** Acelera tableros, pero una tabla sin partición sigue leyendo de más.
+:::
+
 ## ✅ Lo que lograste
 
 - Entiendes slots y ediciones.
@@ -72,14 +82,14 @@ Entrenar y predecir sin sacar los datos de BigQuery: regresión, clasificación,
 - [x] Una unidad de cómputo virtual que ejecuta parte de una consulta
 - [ ] Un dataset
 - [ ] Una partición
-- [ ] Un usuario
+- [ ] Una conexión abierta a la consola
 :::
 
 :::ejercicio quiz
 ¿Cuándo conviene el modelo de capacidad (ediciones)?
 - [ ] Con dos consultas por semana
 - [x] Con volumen grande y estable, buscando un costo predecible
-- [ ] Nunca
+- [ ] Con picos esporádicos y poco volumen
 - [ ] Solo para cargas
 :::
 
@@ -96,5 +106,5 @@ Entrenar y predecir sin sacar los datos de BigQuery: regresión, clasificación,
 - [ ] Para cargar archivos
 - [x] Para acelerar tableros con una caché en memoria
 - [ ] Para dar permisos
-- [ ] Para borrar tablas
+- [ ] Para guardar copias de las tablas por 7 días
 :::

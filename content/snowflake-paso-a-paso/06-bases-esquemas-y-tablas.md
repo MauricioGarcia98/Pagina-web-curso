@@ -8,6 +8,10 @@ prerrequisitos: snowflake-paso-a-paso-warehouses
 autoevaluacion: ¿Sabes qué hace CREATE TABLE AS SELECT? | ¿Sabes para qué separar raw y analitica? | ¿Sabes qué es una tabla transitoria? | ¿Sabes cambiar el esquema actual?
 ---
 
+:::analogia Edificio, pisos y cajones
+Una base es un edificio, cada esquema es un piso con su propia llave y cada tabla es un cajón. Separar raw y analitica en pisos distintos permite dar la llave de un piso sin abrir el otro.
+:::
+
 ## Paso 1 — El entorno
 
 ```sql norun
@@ -64,6 +68,12 @@ Separar por esquema permite dar permisos distintos (los analistas leen `analitic
 
 **Fail-safe** es una copia de recuperación que solo Snowflake puede restaurar; ocupa almacenamiento y por eso cuesta.
 
+:::errores
+- **Staging en tablas permanentes.** Una tabla que se recarga cada día no necesita Fail-safe; transitoria cuesta menos.
+- **Trabajar todo en PUBLIC.** Mezcla capas y complica los permisos; crea esquemas por capa.
+- **Nombres sin convención.** `ventas`, `Ventas2` y `ventas_final_v3` en el mismo esquema confunden a todo el equipo.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste una base con esquemas por capa.
@@ -74,7 +84,7 @@ Separar por esquema permite dar permisos distintos (los analistas leen `analitic
 ¿Qué hace CREATE TABLE ventas AS SELECT ...?
 - [ ] Crea una vista
 - [x] Crea una tabla con las columnas y filas que devuelve el SELECT
-- [ ] Borra la tabla ventas
+- [ ] Crea una tabla vacía con el nombre ventas
 - [ ] Crea un esquema
 :::
 
@@ -83,14 +93,14 @@ Separar por esquema permite dar permisos distintos (los analistas leen `analitic
 - [x] Para ordenar por capa y dar permisos distintos a cada una
 - [ ] Porque Snowflake lo exige
 - [ ] Para gastar menos créditos siempre
-- [ ] No sirve
+- [ ] Porque cada esquema tiene su propio warehouse
 :::
 
 :::ejercicio quiz
 ¿Qué tabla conviene para un staging que se recarga cada día?
 - [ ] Permanente con 90 días de Time Travel
 - [x] Transitoria
-- [ ] Ninguna
+- [ ] Una tabla externa sobre el stage
 - [ ] Una vista
 :::
 

@@ -46,6 +46,12 @@ archivo: snowflake/s12-final.webp
 texto: pedidos_actuales con los 7 pedidos
 ```
 
+:::errores
+- **Forzar la recarga con `FORCE = TRUE` sin pensar.** COPY INTO saltea los archivos ya cargados para no duplicar; forzarla duplica filas.
+- **No deduplicar la fuente.** Si el archivo trae dos versiones del mismo pedido, el MERGE falla o queda impredecible.
+- **Probar una sola vez.** La carga incremental se valida corriéndola dos veces: la segunda no debe cambiar nada.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] El resultado de COPY INTO muestra el archivo del 14 como LOAD_SKIPPED.
@@ -95,7 +101,7 @@ En el nivel 4: Time Travel, UNDROP, clones y SQL analítico.
 :::ejercicio quiz
 ¿Por qué se deduplica la fuente antes del MERGE?
 - [x] Porque si una clave aparece dos veces el MERGE puede fallar o ser impredecible
-- [ ] Porque es más lindo
+- [ ] Porque así COPY INTO carga más rápido
 - [ ] Porque COPY INTO lo exige
 - [ ] No hace falta
 :::
@@ -105,7 +111,7 @@ En el nivel 4: Time Travel, UNDROP, clones y SQL analítico.
 - [ ] Borra los que cambiaron
 - [x] Actualiza solo los pedidos cuyo total cambió
 - [ ] Inserta duplicados
-- [ ] Nada
+- [ ] Inserta una fila nueva por cada cambio de total
 :::
 
 :::ejercicio quiz

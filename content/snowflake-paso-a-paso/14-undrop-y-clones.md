@@ -53,6 +53,12 @@ Un clon es como una fotocopia que **no gasta papel** hasta que la escribes: al c
 Un clon de base o esquema copia tablas, vistas y otros objetos, y los permisos sobre los objetos hijos; pero no copia los stages internos con sus archivos, ni el historial de cargas de COPY INTO. Revisa la documentación antes de clonar producción.
 :::
 
+:::errores
+- **`UNDROP` cuando ya existe otra tabla con ese nombre.** Falla; renombra la tabla nueva antes de recuperar la borrada.
+- **Creer que un clon es una vista.** Es una tabla independiente: lo que cambies en el clon no toca el original.
+- **Dejar clones viejos para siempre.** Al principio no ocupan espacio, pero cada cambio sobre el clon o el original va sumando almacenamiento propio.
+:::
+
 ## ✅ Lo que lograste
 
 - Recuperaste una tabla con UNDROP.
@@ -64,7 +70,7 @@ Un clon de base o esquema copia tablas, vistas y otros objetos, y los permisos s
 - [ ] Borra la tabla para siempre
 - [x] Recupera una tabla borrada mientras esté dentro de la retención de Time Travel
 - [ ] Clona la tabla
-- [ ] Vacía la tabla
+- [ ] Recupera la tabla desde Fail-safe, sin límite de tiempo
 :::
 
 :::ejercicio quiz
@@ -72,12 +78,12 @@ Un clon de base o esquema copia tablas, vistas y otros objetos, y los permisos s
 - [x] Prácticamente nada: comparte las micro-particiones del original
 - [ ] El doble de la base
 - [ ] Lo mismo que el original
-- [ ] Depende del warehouse
+- [ ] La mitad del original, por la compresión
 :::
 
 :::ejercicio quiz
 ¿Cómo creas una copia de la tabla como estaba hace un día?
-- [ ] No se puede
+- [ ] `UNDROP pedidos AT(OFFSET => -86400)`
 - [x] `CREATE TABLE pedidos_ayer CLONE pedidos AT(OFFSET => -86400);`
 - [ ] `COPY INTO pedidos_ayer`
 - [ ] `UNDROP pedidos`
@@ -87,6 +93,6 @@ Un clon de base o esquema copia tablas, vistas y otros objetos, y los permisos s
 Quieres probar una migración riesgosa con datos reales. ¿Qué haces?
 - [ ] La pruebas en producción
 - [x] La pruebas en un clon de la base
-- [ ] Copias los datos a Excel
-- [ ] Esperas al fin de semana
+- [ ] La pruebas en producción, de noche y con un backup
+- [ ] La pruebas en una vista de la base
 :::

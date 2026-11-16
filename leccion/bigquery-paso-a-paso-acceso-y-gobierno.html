@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Acceso y gobierno - roles de IAM, vistas autorizadas y seguridad por filas</h1><p class="resumen">En BigQuery los permisos son de IAM de Google Cloud. Creas el dataset reportes con una vista que solo expone lo que comercial necesita, aprendes los roles predefinidos (Data Viewer, Data Editor, Job User), las vistas autorizadas, la seguridad por filas y por columnas, y cómo compartir datos sin copiarlos.</p>
 <a class="cta" href="../index.html#/l/bigquery-paso-a-paso-acceso-y-gobierno">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir los roles de IAM correctos</li><li>Exponer datos con una vista autorizada</li><li>Restringir filas con row access policies</li><li>Proteger columnas con policy tags y enmascaramiento</li><li>Compartir datos con Analytics Hub</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Llaves por departamento y una ventanilla</div>
+
+<p>Los permisos de BigQuery son llaves: conviene dar la llave de un departamento (un dataset), no la del edificio (el proyecto). Una vista autorizada es una ventanilla: entrega solo lo que comercial necesita, aunque comercial no tenga llave del depósito de atrás.</p>
+</div>
+
+
 <h2>Paso 1 — Una vista para comercial</h2>
 <pre data-norun><code class="language-sql">CREATE SCHEMA IF NOT EXISTS reportes;
 
@@ -94,6 +100,16 @@ FILTER USING (pais = 'Perú');</code></pre>
 
 
 <p>Con <strong>Analytics Hub</strong> se publica un dataset y el otro lo ve como un dataset enlazado de solo lectura; cada uno paga sus propias consultas.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Dar los roles a nivel proyecto.</strong> Data Viewer en el proyecto abre todos los datasets; dalo en el dataset que corresponde.</li>
+<li><strong>Olvidar Job User.</strong> Leer la tabla no alcanza para consultar: hace falta poder crear jobs en algún proyecto.</li>
+<li><strong>Compartir copias.</strong> Cada copia se desactualiza y es un riesgo más; comparte con vistas autorizadas o Analytics Hub.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste una vista para un área.</li>

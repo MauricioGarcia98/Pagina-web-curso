@@ -8,6 +8,10 @@ prerrequisitos: bigquery-paso-a-paso-time-travel
 autoevaluacion: ¿Sabes qué filtra QUALIFY? | ¿Sabes qué devuelve SAFE_DIVIDE(1, 0)? | ¿Sabes calcular el porcentaje de web por mes? | ¿Sabes cuándo usar APPROX_COUNT_DISTINCT?
 ---
 
+:::analogia Numerar y quedarse con el primero
+`QUALIFY` es al resultado de una función de ventana lo que `HAVING` es al de un `GROUP BY`: primero numeras los pedidos de cada cliente del más reciente al más viejo y después te quedas con el número 1, sin subconsultas.
+:::
+
 ## Paso 1 — QUALIFY
 
 ```sql norun
@@ -59,6 +63,12 @@ texto: La CTE con LAG y SAFE_DIVIDE (1) - pedidos por mes, variación contra el 
 | `SELECT * EXCEPT(col)` | Todas las columnas menos algunas |
 | `REGEXP_EXTRACT(txt, r'…')` | Extraer con expresiones regulares |
 
+:::errores
+- **Filtrar una ventana en el `WHERE`.** El `WHERE` se evalúa antes que las ventanas y da error; el filtro va en `QUALIFY`.
+- **Dividir con `/`.** Si el divisor puede ser 0, la consulta falla; `SAFE_DIVIDE` devuelve NULL.
+- **`LAG` sin `ORDER BY`.** Sin orden, "la fila anterior" no está definida y el resultado no tiene sentido.
+:::
+
 ## ✅ Lo que lograste
 
 - Filtraste con QUALIFY.
@@ -86,12 +96,12 @@ texto: La CTE con LAG y SAFE_DIVIDE (1) - pedidos por mes, variación contra el 
 - [ ] COUNT(web) / 100
 - [x] SAFE_DIVIDE(COUNTIF(canal = 'web'), COUNT(*)) * 100, agrupando por mes
 - [ ] SUM(canal)
-- [ ] No se puede
+- [ ] AVG(canal = 'web') sobre toda la tabla, sin agrupar por mes
 :::
 
 :::ejercicio quiz
 ¿Cuándo conviene APPROX_COUNT_DISTINCT?
-- [ ] Nunca
+- [ ] Cuando hace falta el número exacto para facturar
 - [x] Cuando un valor aproximado alcanza y la tabla es enorme: es mucho más barato
 - [ ] Para contar exacto
 - [ ] Solo en tablas chicas

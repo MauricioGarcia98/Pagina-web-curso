@@ -37,6 +37,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/snowflake/s16-recuperado.webp" alt="La tabla restaurada con BEFORE (1) y los totales correctos (2)" loading="lazy"><figcaption>La tabla restaurada con BEFORE (1) y los totales correctos (2)</figcaption></figure>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Restaurar con <code>INSERT</code> sobre la tabla dañada.</strong> Las filas siguen ahí con valores malos; se duplican. Reemplaza la tabla con la versión anterior.</li>
+<li><strong>Corregir sin encontrar la causa.</strong> Sin la sentencia del historial no sabes qué más pudo romperse.</li>
+<li><strong>No cambiar nada después.</strong> Sin un rol de solo lectura y pruebas en un clon, el incidente se repite.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> Tienes el Query ID del UPDATE.</li>

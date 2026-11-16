@@ -31,6 +31,12 @@ archivo: snowflake/s16-recuperado.webp
 texto: La tabla restaurada con BEFORE (1) y los totales correctos (2)
 ```
 
+:::errores
+- **Restaurar con `INSERT` sobre la tabla dañada.** Las filas siguen ahí con valores malos; se duplican. Reemplaza la tabla con la versión anterior.
+- **Corregir sin encontrar la causa.** Sin la sentencia del historial no sabes qué más pudo romperse.
+- **No cambiar nada después.** Sin un rol de solo lectura y pruebas en un clon, el incidente se repite.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] Tienes el Query ID del UPDATE.
@@ -68,7 +74,7 @@ Un UPDATE cambió todos los totales. ¿Cómo restauras sin duplicar filas?
 - [ ] INSERT de la versión anterior
 - [x] CREATE OR REPLACE TABLE ... AS SELECT de la versión anterior con BEFORE
 - [ ] UNDROP TABLE
-- [ ] DELETE y esperar
+- [ ] TRUNCATE y volver a cargar los archivos del stage
 :::
 
 :::ejercicio quiz
@@ -84,13 +90,13 @@ Un UPDATE cambió todos los totales. ¿Cómo restauras sin duplicar filas?
 - [ ] Darle ACCOUNTADMIN
 - [x] Darle un rol con solo SELECT sobre lo que necesita
 - [ ] Apagar el warehouse
-- [ ] Borrar el historial
+- [ ] Agrandar el warehouse
 :::
 
 :::ejercicio quiz
 ¿Qué conviene correr antes de un UPDATE con WHERE?
 - [ ] Nada
 - [x] Un SELECT con la misma condición para ver qué filas va a tocar
-- [ ] Un DROP
+- [ ] Un SHOW TABLES para ver si la tabla existe
 - [ ] Un COPY INTO
 :::

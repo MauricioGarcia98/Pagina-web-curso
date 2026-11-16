@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>SQL analítico - QUALIFY, ventanas y funciones de GoogleSQL</h1><p class="resumen">Obtienes el último pedido de cada cliente con QUALIFY, la variación mensual de pedidos y el porcentaje web con LAG, COUNTIF y SAFE_DIVIDE, y conoces las funciones de GoogleSQL que más se usan en análisis - fechas, texto, errores seguros y aproximaciones.</p>
 <a class="cta" href="../index.html#/l/bigquery-paso-a-paso-sql-analitico">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Filtrar funciones de ventana con QUALIFY</li><li>Calcular variaciones y porcentajes con LAG, COUNTIF y SAFE_DIVIDE</li><li>Usar las funciones de fecha de GoogleSQL</li><li>Conocer SAFE_ y APPROX_</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Numerar y quedarse con el primero</div>
+
+<p><code>QUALIFY</code> es al resultado de una función de ventana lo que <code>HAVING</code> es al de un <code>GROUP BY</code>: primero numeras los pedidos de cada cliente del más reciente al más viejo y después te quedas con el número 1, sin subconsultas.</p>
+</div>
+
+
 <h2>Paso 1 — QUALIFY</h2>
 <pre data-norun><code class="language-sql">SELECT cliente_id, pedido_id, fecha_pedido, canal
 FROM tienda.pedidos
@@ -78,6 +84,16 @@ ORDER BY mes;</code></pre>
 <td>Extraer con expresiones regulares</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Filtrar una ventana en el <code>WHERE</code>.</strong> El <code>WHERE</code> se evalúa antes que las ventanas y da error; el filtro va en <code>QUALIFY</code>.</li>
+<li><strong>Dividir con <code>/</code>.</strong> Si el divisor puede ser 0, la consulta falla; <code>SAFE_DIVIDE</code> devuelve NULL.</li>
+<li><strong><code>LAG</code> sin <code>ORDER BY</code>.</strong> Sin orden, &quot;la fila anterior&quot; no está definida y el resultado no tiene sentido.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Filtraste con QUALIFY.</li>

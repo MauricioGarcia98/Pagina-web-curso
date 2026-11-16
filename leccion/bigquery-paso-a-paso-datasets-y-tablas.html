@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Datasets y tablas - organizar el proyecto</h1><p class="resumen">Creas el dataset analitica con una descripción, una tabla con CREATE TABLE AS SELECT, la encuentras en el explorador y en la página del dataset, y aprendes qué define un dataset (región, permisos, vencimiento por defecto) y cómo organizar datasets por capa y por equipo.</p>
 <a class="cta" href="../index.html#/l/bigquery-paso-a-paso-datasets-y-tablas">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un dataset con CREATE SCHEMA</li><li>Crear una tabla con CTAS</li><li>Leer la página de un dataset</li><li>Elegir región y organización de datasets</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Una carpeta con dirección y candado</div>
+
+<p>Un dataset es una carpeta con <strong>dirección</strong> (la región, que no se puede mudar) y <strong>candado</strong> (los permisos, que se ponen a la carpeta y valen para lo que tiene adentro). Por eso conviene pensar dónde va a vivir y quién la va a abrir antes de crearla.</p>
+</div>
+
+
 <h2>Paso 1 — Crear el dataset y una tabla</h2>
 <pre data-norun><code class="language-sql">CREATE SCHEMA analitica
 OPTIONS (description = 'Tablas limpias para el negocio');
@@ -88,6 +94,16 @@ GROUP BY canal;</code></pre>
 <td>Pruebas personales, con vencimiento corto</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Crear el dataset en otra región que los demás datos.</strong> Después no se puede unir con ellos y la región no se cambia: hay que crear otro dataset y copiar.</li>
+<li><strong>Meter todo en un solo dataset.</strong> Los permisos se dan por dataset; si raw, analítica y reportes están juntos, no puedes dar acceso solo a los reportes.</li>
+<li><strong>Datasets de prueba sin vencimiento.</strong> Las tablas olvidadas siguen cobrando almacenamiento; un vencimiento por defecto las limpia solas.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste un dataset y una tabla.</li>

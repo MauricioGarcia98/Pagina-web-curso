@@ -8,6 +8,10 @@ prerrequisitos: bigquery-paso-a-paso-proyecto-stock-al-dia
 autoevaluacion: ¿Sabes por qué JOBS lleva el prefijo de región? | ¿Sabes encontrar la consulta más cara? | ¿Sabes listar las columnas de una tabla? | ¿Sabes qué diferencia hay entre JOBS y JOBS_BY_USER?
 ---
 
+:::analogia El tablero del auto
+Para saber cómo va el auto no abres el motor: miras el tablero. `INFORMATION_SCHEMA` es el tablero del proyecto en forma de tablas: qué jobs corrieron, cuánto leyeron, qué tablas y columnas existen. Y como son tablas, se pueden consultar y graficar.
+:::
+
 ## Paso 1 — Quién gasta
 
 ```sql norun
@@ -69,6 +73,12 @@ texto: Las columnas de pedidos con su tipo
 Consultar estas vistas también es un job y se factura (con el mínimo de 10 MB). Para un tablero diario de costos, guarda el resultado en una tabla una vez al día.
 :::
 
+:::errores
+- **Olvidar la región.** Los jobs se guardan por región: es `` `region-us`.INFORMATION_SCHEMA.JOBS ``, no `INFORMATION_SCHEMA.JOBS` a secas.
+- **Consultar JOBS sin filtrar por fecha.** Leer todo el historial también procesa bytes; filtra por `creation_time`.
+- **Usar JOBS_BY_USER para un informe del equipo.** Solo trae tus jobs; para todo el proyecto es JOBS (y requiere permisos).
+:::
+
 ## ✅ Lo que lograste
 
 - Mediste el gasto por tipo de job con SQL.
@@ -79,7 +89,7 @@ Consultar estas vistas también es un job y se factura (con el mínimo de 10 MB)
 ¿Por qué INFORMATION_SCHEMA.JOBS lleva el prefijo `region-us`?
 - [x] Porque los jobs se guardan por región
 - [ ] Porque es el nombre del proyecto
-- [ ] Por estética
+- [ ] Porque los jobs se guardan en un dataset llamado region-us
 - [ ] Porque solo existe en Estados Unidos
 :::
 
@@ -88,7 +98,7 @@ Consultar estas vistas también es un job y se factura (con el mínimo de 10 MB)
 - [ ] SELECT * FROM jobs LIMIT 1
 - [x] Ordenando INFORMATION_SCHEMA.JOBS por total_bytes_billed DESC
 - [ ] En Preview
-- [ ] No se puede
+- [ ] En la página de costos, que no se puede consultar con SQL
 :::
 
 :::ejercicio quiz

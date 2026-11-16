@@ -63,6 +63,12 @@ SELECT COUNT(*) FROM tienda_dev.raw.pedidos_staging;          -- falla: sin USAG
 - Con Power BI, la conexión usa un usuario de servicio con este mismo rol.
 </details>
 
+:::errores
+- **Probar solo lo permitido.** Las pruebas negativas (un `DELETE` o leer `raw`) son las que muestran que el rol está bien cerrado.
+- **Olvidar FUTURE TABLES.** El rol funciona hoy y falla con la próxima tabla.
+- **Compartir el warehouse de ingeniería.** Sin warehouse propio no puedes medir ni limitar el gasto de comercial.
+:::
+
 ## Lo que aprendiste en el nivel 5
 
 - Roles del sistema y jerarquía.
@@ -76,22 +82,22 @@ En el nivel 6: buenas prácticas, las funciones de plataforma (Snowpipe, streams
 - [ ] Porque Snowflake lo exige
 - [x] Para saber cuánto gasta ese equipo y ponerle su presupuesto
 - [ ] Porque los warehouses no se comparten
-- [ ] Para que sea más lento
+- [ ] Para que comercial use la caché de ingeniería
 :::
 
 :::ejercicio quiz
 ¿Cómo te aseguras de que el rol no ve raw?
 - [x] No dándole USAGE en el esquema raw
 - [ ] Borrando raw
-- [ ] Con un comentario
+- [ ] Con un resource monitor sobre raw
 - [ ] No se puede
 :::
 
 :::ejercicio quiz
 ¿Para qué sirven las pruebas negativas?
-- [ ] Para nada
+- [ ] Para medir cuánto tarda cada consulta
 - [x] Para comprobar que el rol NO puede hacer lo que no debe
-- [ ] Para gastar créditos
+- [ ] Para probar el rol con datos falsos
 - [ ] Para borrar datos
 :::
 

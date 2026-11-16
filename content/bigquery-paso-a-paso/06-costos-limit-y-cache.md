@@ -8,6 +8,10 @@ prerrequisitos: bigquery-paso-a-paso-datasets-y-tablas
 autoevaluacion: ¿Sabes cuánto procesa SELECT * ... LIMIT 10? | ¿Sabes cuándo una consulta sale de la caché? | ¿Sabes qué es el almacenamiento de largo plazo? | ¿Sabes cuándo conviene el modelo de capacidad?
 ---
 
+:::analogia La olla y la porción
+`LIMIT` es pedir que te sirvan una porción de una olla que igual se cocinó entera: pagas toda la olla. La caché es recalentar lo que ya cocinaste: si la consulta es idéntica y la tabla no cambió, sale gratis.
+:::
+
 ## Paso 1 — LIMIT no ahorra
 
 ```sql norun
@@ -58,6 +62,12 @@ texto: Bytes procesados, facturados y costo de la práctica (1) y tus consultas 
 En BigQuery real se puede fijar **Maximum bytes billed** en cada consulta (o un máximo por día por proyecto o usuario): si la consulta superaría ese límite, falla sin cobrar.
 :::
 
+:::errores
+- **Poner `LIMIT` para ahorrar.** Recorta el resultado, no la lectura. Lo que ahorra es nombrar menos columnas y filtrar por la partición.
+- **Esperar la caché con funciones no deterministas.** Una consulta con `CURRENT_TIMESTAMP()` o sobre una tabla que cambió no sale de la caché.
+- **Trabajar sin tope de bytes.** Sin *maximum bytes billed*, un error en un filtro puede leer terabytes; con el tope, la consulta falla antes de cobrar.
+:::
+
 ## ✅ Lo que lograste
 
 - Comprobaste que LIMIT no ahorra.
@@ -68,24 +78,24 @@ En BigQuery real se puede fijar **Maximum bytes billed** en cada consulta (o un 
 ¿Cuánto procesa `SELECT * FROM pedidos LIMIT 10` frente a `SELECT *` sin LIMIT?
 - [ ] Una décima parte
 - [x] Lo mismo: LIMIT recorta el resultado, no la lectura
-- [ ] Nada
+- [ ] Solo las columnas del ORDER BY
 - [ ] El doble
 :::
 
 :::ejercicio quiz
 ¿Cuándo responde BigQuery desde la caché?
 - [x] Si la consulta es idéntica, las tablas no cambiaron y es determinista, dentro de 24 horas
-- [ ] Siempre
-- [ ] Nunca
-- [ ] Solo los lunes
+- [ ] Siempre que la consulta sea parecida, aunque cambien los datos
+- [ ] Solo si la consulta tiene LIMIT
+- [ ] Solo durante la primera hora después de ejecutarla
 :::
 
 :::ejercicio quiz
 ¿Qué pasa con el precio de una tabla que no se modifica en 90 días?
 - [ ] Se borra
 - [x] Pasa a almacenamiento de largo plazo y cuesta la mitad
-- [ ] Sube
-- [ ] Nada
+- [ ] Sube, porque se considera archivada
+- [ ] Se mueve sola a Cloud Storage
 :::
 
 :::ejercicio quiz
@@ -93,5 +103,5 @@ En BigQuery real se puede fijar **Maximum bytes billed** en cada consulta (o un 
 - [x] La carga es gratis; se paga el almacenamiento
 - [ ] USD 6,25 por TiB
 - [ ] Una tarifa fija
-- [ ] Depende del día
+- [ ] Lo mismo que consultar esos bytes
 :::

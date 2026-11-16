@@ -60,6 +60,12 @@ texto: El rol actual PUBLIC (1) y el error - does not exist or not authorized, c
 
 Para leer una tabla, un rol necesita **tres** permisos: `USAGE` en la base, `USAGE` en el esquema y `SELECT` en la tabla (además de `USAGE` en un warehouse para ejecutar). Los das en la próxima lección.
 
+:::errores
+- **Trabajar todo el día como ACCOUNTADMIN.** Cualquier error tiene el máximo alcance, incluida la facturación.
+- **Dar solo `SELECT` en la tabla.** Sin `USAGE` en la base y en el esquema, el rol no llega a la tabla.
+- **Dar permisos a usuarios.** En Snowflake se dan a roles; el usuario recibe roles.
+:::
+
 ## ✅ Lo que lograste
 
 - Entiendes el modelo de roles.
@@ -71,7 +77,7 @@ Para leer una tabla, un rol necesita **tres** permisos: `USAGE` en la base, `USA
 - [ ] Directamente a los usuarios
 - [x] A roles, y los roles a usuarios
 - [ ] A los warehouses
-- [ ] A las tablas
+- [ ] A los esquemas, que los heredan los usuarios
 :::
 
 :::ejercicio quiz
@@ -87,12 +93,12 @@ Para leer una tabla, un rol necesita **tres** permisos: `USAGE` en la base, `USA
 - [ ] Solo SELECT en la tabla
 - [x] USAGE en la base, USAGE en el esquema y SELECT en la tabla
 - [ ] OWNERSHIP de la cuenta
-- [ ] Ninguno
+- [ ] USAGE en el warehouse y nada más
 :::
 
 :::ejercicio quiz
 ¿Por qué ACCOUNTADMIN se usa lo menos posible?
-- [ ] Porque es lento
+- [ ] Porque sus consultas no usan la caché
 - [x] Porque es el rol más poderoso, incluida la facturación
 - [ ] Porque no puede leer datos
 - [ ] Porque cuesta más créditos

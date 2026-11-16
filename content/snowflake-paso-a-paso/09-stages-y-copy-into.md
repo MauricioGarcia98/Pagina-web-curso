@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué es un stage? | ¿Sabes por qué falló la primera c
 Lucía: *"El sistema de la tienda deja cada día un CSV con los pedidos. Quiero cargarlo a `raw.pedidos_staging`."*
 :::
 
+:::analogia La sala de espera de los archivos
+Un stage es la sala de espera donde dejas los archivos antes de cargarlos. `COPY INTO` es el empleado que los hace pasar a la tabla, de a uno, revisando que vengan en el formato acordado (el file format).
+:::
+
 ## Paso 1 — Crear el stage
 
 ```sql norun
@@ -91,6 +95,12 @@ CREATE STAGE ventas_s3
   FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1);
 ```
 
+:::errores
+- **No declarar el encabezado.** Sin `SKIP_HEADER = 1`, la primera fila (los nombres de columna) se intenta cargar como datos y falla.
+- **Poner claves de la nube en el SQL.** Para S3, Azure o GCS se usa una storage integration, no credenciales en la sentencia.
+- **Usar `ON_ERROR = CONTINUE` sin revisar.** Carga lo que puede y descarta filas en silencio; revisa el resultado o usa `VALIDATION_MODE` antes.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un stage, subiste y listaste archivos.
@@ -101,8 +111,8 @@ CREATE STAGE ventas_s3
 ¿Qué es un stage en Snowflake?
 - [ ] Un warehouse
 - [x] Una ubicación donde se dejan archivos antes de cargarlos
-- [ ] Un rol
-- [ ] Una vista
+- [ ] Un warehouse dedicado a cargar archivos
+- [ ] Una tabla temporal con los datos ya cargados
 :::
 
 :::ejercicio quiz
@@ -118,13 +128,13 @@ CREATE STAGE ventas_s3
 - [x] Aborta la carga entera
 - [ ] Carga todo menos la fila mala
 - [ ] Borra el archivo
-- [ ] Nada
+- [ ] Carga el archivo en una tabla de errores
 :::
 
 :::ejercicio quiz
 ¿Cómo accede un stage externo a un bucket de S3 sin poner claves en el SQL?
-- [ ] Con un comentario
+- [ ] Con un rol de ACCOUNTADMIN en el stage
 - [x] Con una storage integration
 - [ ] Con el usuario y contraseña en la URL
-- [ ] No se puede
+- [ ] Con las claves en un file format
 :::

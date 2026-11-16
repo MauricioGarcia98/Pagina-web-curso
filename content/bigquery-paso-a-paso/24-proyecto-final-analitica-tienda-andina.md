@@ -51,6 +51,12 @@ texto: El dataset analitica - tablas particionadas, tablas comunes y la vista, c
 | **Recuperación** | Qué hacer ante un borrado o una carga mala |
 | **Costos** | Bytes de las consultas típicas, costo mensual estimado y límites |
 
+:::errores
+- **Diseñar las tablas antes de conocer las consultas.** La partición y el clustering salen de cómo filtra cada área; pregúntalo primero.
+- **Dar por buena la carga sin correrla dos veces.** La idempotencia se prueba, no se supone.
+- **Escribir el procedimiento de recuperación sin probarlo.** Provoca un borrado en una copia y restáurala siguiendo tu documento.
+:::
+
 ## ✅ Rúbrica
 
 | Criterio | Cumple | Destaca |
@@ -85,16 +91,16 @@ Sube el SQL, el documento y capturas **de la práctica** (o del sandbox con dato
 
 :::ejercicio quiz
 ¿Cómo te aseguras de que comercial no vea datos personales?
-- [ ] Pidiéndoselo
+- [ ] Pidiéndole por escrito que no consulte esas columnas
 - [x] Con una vista (autorizada) sin esas columnas y acceso solo a reportes
 - [ ] Borrando las columnas de la tabla original
-- [ ] Con LIMIT
+- [ ] Con una scheduled query que borra esas columnas cada noche
 :::
 
 :::ejercicio quiz
 ¿Qué conviene hacer antes de una carga grande y riesgosa?
 - [x] Un snapshot de la tabla
-- [ ] Nada, existe la caché
+- [ ] Nada: time travel guarda copias por 90 días
 - [ ] Borrar la tabla
 - [ ] Cambiar de región
 :::
