@@ -610,3 +610,467 @@ dominio: 4
 - [ ] Para cachear las respuestas y no llamar al modelo con preguntas repetidas.
 - [ ] Para definir los límites de tasa por usuario.
 porque: Las tablas de inferencia guardan lo que entra y sale del endpoint, base para auditoría, monitoreo y nuevos datasets de evaluación.
+
+## @caso soporte: Conectar Telecom
+Conectar Telecom quiere un asistente para su mesa de ayuda. Los agentes humanos hoy buscan respuestas en 12.000 artículos de la base de conocimiento (HTML y PDF) y consultan en otra pantalla el estado de la cuenta del cliente, que está en tablas de Unity Catalog.
+
+Requisitos:
+- responder preguntas técnicas citando el artículo de origen;
+- consultar el saldo y los tickets abiertos del cliente sin exponer datos de otros clientes;
+- medir la calidad antes de cada versión nueva y vigilarla en producción;
+- controlar el gasto mensual del modelo.
+
+## Componentes del asistente
+leccion: cert-databricks-genai-diseno-datos
+dominio: 1
+caso: soporte
+¿Qué combinación de componentes cubre los dos tipos de pregunta de Conectar Telecom?
+- [ ] Un LLM ajustado (fine-tuning) cada semana con los 12.000 artículos y con las tablas de cuentas, sin recuperar nada en el momento de la pregunta.
+- [x] Un agente con una herramienta de recuperación sobre los artículos y una función de Unity Catalog que consulta la cuenta del cliente.
+- [ ] Un único índice de Vector Search que mezcla los artículos con una fila de texto por cada cuenta de cliente.
+- [ ] Un prompt largo que incluye todos los artículos y el saldo de todos los clientes en cada llamada.
+porque: Las preguntas técnicas se resuelven con RAG sobre los artículos y los datos de cuenta, estructurados y cambiantes, con una herramienta que consulta las tablas con los permisos correctos.
+
+## Datos de un solo cliente
+leccion: cert-databricks-genai-agentes
+dominio: 3
+caso: soporte
+¿Cómo evitas que la herramienta de cuentas devuelva datos de otro cliente?
+- [ ] Pidiéndole al modelo en el prompt de sistema que nunca muestre datos de otros clientes, aunque se lo pidan.
+- [x] Con una función de Unity Catalog que recibe el `cliente_id` de la sesión autenticada y filtra por él, en lugar de aceptar SQL libre del modelo.
+- [ ] Dándole a la herramienta acceso de lectura a todo el catálogo y pidiéndole al modelo que escriba el SQL que haga falta, para que pueda resolver cualquier pregunta.
+- [ ] Con una búsqueda en Vector Search sobre la tabla de cuentas, que solo devuelve los vectores más parecidos.
+porque: Una función con parámetros acotados y el identificador tomado de la sesión limita lo que el agente puede leer; las instrucciones en el prompt no son un control de seguridad.
+
+## Citar el artículo
+leccion: cert-databricks-genai-diseno-datos
+dominio: 2
+caso: soporte
+¿Qué hay que guardar junto a cada chunk para que el asistente pueda citar su fuente?
+- [x] Metadatos como el identificador, el título y la URL del artículo, devueltos como columnas en la búsqueda.
+- [ ] Nada: el modelo recuerda de qué artículo salió cada fragmento después de indexarlo una vez.
+- [ ] El vector del artículo completo, porque a partir de la similitud Vector Search reconstruye el título y la dirección del artículo de origen.
+- [ ] Una copia del PDF original en cada fila de la tabla de chunks, para que el modelo la lea completa.
+porque: Las columnas de metadatos se devuelven con cada resultado de Vector Search y el agente las usa para citar.
+
+## Medir antes de cada versión
+leccion: cert-databricks-genai-despliegue-evaluacion
+dominio: 6
+caso: soporte
+¿Cómo comprueba el equipo que una versión nueva del asistente no empeora?
+- [ ] Probando a mano cinco preguntas que se le ocurran al desarrollador el día del despliegue.
+- [x] Corriendo `mlflow.genai.evaluate` con el mismo conjunto de evaluación y los mismos scorers sobre la versión actual y la nueva, y comparando.
+- [ ] Mirando la latencia promedio del endpoint durante la primera semana en producción.
+- [ ] Contando cuántos tokens usa cada versión con las mismas preguntas, porque una respuesta con menos tokens siempre es más precisa y más útil.
+porque: Comparar versiones con un conjunto fijo y scorers iguales muestra si la calidad mejora o empeora antes de desplegar.
+
+## Límite de gasto
+leccion: cert-databricks-genai-despliegue-evaluacion
+dominio: 5
+caso: soporte
+¿Qué configuras para que el gasto del modelo no se dispare si un usuario abusa del asistente?
+- [ ] Un modelo más grande, porque responde en menos llamadas y termina gastando menos.
+- [x] Límites de uso (rate limits) por usuario o por endpoint en AI Gateway, con seguimiento del uso.
+- [ ] Un `LIMIT 10` en la consulta de la herramienta de cuentas, que reduce los tokens de la respuesta.
+- [ ] Borrar las tablas de inferencias cada semana, para que el endpoint no acumule costo de almacenamiento.
+porque: AI Gateway permite fijar límites de tasa y registrar el uso de cada endpoint.
+
+## Prompt simple primero
+leccion: cert-databricks-genai-diseno-datos
+dominio: 1
+Hay que clasificar correos entrantes en cinco categorías fijas. ¿Por dónde empiezas?
+- [x] Con un prompt con instrucciones claras y algunos ejemplos (few-shot), medido con un conjunto de evaluación.
+- [ ] Con un sistema multiagente, un agente por categoría y un supervisor que decide entre ellos.
+- [ ] Con un índice de Vector Search de todos los correos históricos y un agente con diez herramientas que decide la categoría.
+- [ ] Con el preentrenamiento de un modelo propio a partir de los correos de la empresa.
+porque: Para una tarea acotada, conviene empezar por la solución más simple y medirla; se agrega complejidad solo si hace falta.
+
+## Respuestas actualizadas
+leccion: cert-databricks-genai-diseno-datos
+dominio: 1
+Las políticas de la empresa cambian cada semana y el asistente debe responder con la versión vigente. ¿Qué enfoque conviene?
+- [ ] Ajustar (fine-tuning) el modelo cada semana con las políticas nuevas.
+- [x] RAG sobre un índice que se sincroniza con la tabla de políticas.
+- [ ] Un prompt fijo con las políticas copiadas el día del lanzamiento.
+- [ ] Un modelo más grande, que conoce las políticas de cualquier empresa.
+porque: RAG recupera el contenido actual en cada pregunta; el ajuste fino es caro de repetir y no garantiza datos al día.
+
+## Entrada y salida del caso de uso
+leccion: cert-databricks-genai-diseno-datos
+dominio: 1
+Al descomponer un caso de uso de IA generativa, ¿qué conviene definir primero?
+- [ ] El modelo más nuevo del catálogo y el tamaño de su ventana de contexto.
+- [x] Qué entra (pregunta, documentos, datos), qué debe salir y cómo se medirá si la salida es buena.
+- [ ] El framework de agentes, la cantidad de herramientas y el modelo de embeddings que usará el sistema.
+- [ ] El tipo de endpoint de Vector Search y la dimensión de los embeddings.
+porque: Definir entradas, salidas y criterios de calidad guía la elección de componentes y la evaluación.
+
+## Salida estructurada
+leccion: cert-databricks-genai-diseno-datos
+dominio: 1
+Un proceso necesita extraer de cada factura el proveedor, la fecha y el total en un formato que otro sistema pueda leer. ¿Qué pides al modelo?
+- [ ] Un resumen en prosa de la factura, que luego se lee a mano.
+- [x] Una salida estructurada (por ejemplo, JSON con un esquema definido).
+- [ ] Una traducción de la factura al inglés antes de procesarla.
+- [ ] Una respuesta en lenguaje natural, lo más detallada posible, con cada campo.
+porque: Un esquema de salida estructurada hace que la respuesta sea parseable y validable por otro sistema.
+
+## Datos estructurados
+leccion: cert-databricks-genai-diseno-datos
+dominio: 1
+Los gerentes preguntan "¿cuánto vendimos en marzo por región?". ¿Qué componente responde mejor?
+- [ ] RAG sobre los PDF de los informes de ventas de cada mes.
+- [x] Un espacio de Genie (o una herramienta que genera y ejecuta SQL) sobre las tablas de ventas.
+- [ ] Un índice de Vector Search sobre las filas de la tabla de ventas convertidas en texto, que el LLM suma.
+- [ ] Un modelo ajustado con las ventas históricas para que recuerde los totales.
+porque: Las preguntas agregadas sobre datos tabulares se resuelven consultando las tablas con SQL, no con búsqueda semántica.
+
+## Parsear documentos
+leccion: cert-databricks-genai-diseno-datos
+dominio: 2
+Hay miles de PDF escaneados con tablas. ¿Qué función de Databricks SQL extrae su contenido estructurado para preparar los chunks?
+- [ ] `ai_query` con el PDF en binario como prompt.
+- [x] `ai_parse_document`.
+- [ ] `read_files` con `format => 'text'`.
+- [ ] `vector_search` sobre la carpeta de PDF.
+porque: `ai_parse_document` extrae texto, tablas y estructura de documentos como PDF e imágenes.
+
+## Superposición entre chunks
+leccion: cert-databricks-genai-diseno-datos
+dominio: 2
+¿Para qué se deja una superposición (overlap) entre chunks consecutivos?
+- [ ] Para duplicar el tamaño del índice y mejorar la latencia.
+- [x] Para no perder el contexto de una idea que queda cortada en el límite entre dos chunks.
+- [ ] Para que el modelo de embeddings procese menos tokens en cada llamada.
+- [ ] Para que Vector Search detecte los chunks repetidos y los borre automáticamente al sincronizar el índice.
+porque: El solapamiento conserva parte del texto vecino y reduce el riesgo de cortar una idea a la mitad.
+
+## Mismo modelo de embeddings
+leccion: cert-databricks-genai-diseno-datos
+dominio: 2
+¿Qué pasa si indexas con un modelo de embeddings y consultas con otro distinto?
+- [ ] Nada: todos los modelos de embeddings generan vectores compatibles entre sí.
+- [x] Los vectores no son comparables y la búsqueda devuelve resultados sin sentido (o falla por dimensiones distintas).
+- [ ] La búsqueda se vuelve más precisa, porque combina dos formas distintas de representar el significado del texto en un mismo espacio.
+- [ ] Vector Search traduce automáticamente los vectores de un modelo al espacio del otro.
+porque: Documentos y consultas deben vectorizarse con el mismo modelo para que la similitud tenga sentido.
+
+## Índice con vectores propios
+leccion: cert-databricks-genai-diseno-datos
+dominio: 2
+Tu equipo calcula los embeddings con un modelo propio y quiere escribirlos directamente con la API, sin tabla Delta de origen. ¿Qué tipo de índice usas?
+- [ ] Delta Sync con embeddings administrados por Databricks.
+- [x] Direct Vector Access.
+- [ ] Delta Sync sobre una vista materializada.
+- [ ] Un índice de búsqueda de texto completo.
+porque: Un índice Direct Vector Access recibe los vectores mediante la API y no se sincroniza desde una tabla.
+
+## Filtrar por metadatos
+leccion: cert-databricks-genai-diseno-datos
+dominio: 2
+Los artículos están en tres idiomas y cada usuario solo debe recibir resultados en el suyo. ¿Qué haces en la búsqueda?
+- [ ] Crear un endpoint distinto por cada usuario del sistema.
+- [x] Guardar el idioma como columna y aplicar un filtro por esa columna en la consulta al índice.
+- [ ] Pedirle al LLM que descarte después los resultados en otros idiomas.
+- [ ] Aumentar `num_results` a 500 para que entre los resultados aparezcan suficientes en el idioma correcto del usuario.
+porque: Vector Search permite filtrar por columnas de metadatos y así se recupera solo lo relevante para cada usuario.
+
+## Herramienta para Python
+leccion: cert-databricks-genai-agentes
+dominio: 3
+¿Qué herramienta integrada de Unity Catalog permite a un agente ejecutar código Python como intérprete?
+- [ ] `system.ai.vector_search`.
+- [x] `system.ai.python_exec`.
+- [ ] `system.access.audit`.
+- [ ] `system.billing.usage`.
+porque: `system.ai.python_exec` es una función integrada que ejecuta código Python y puede usarse como herramienta de un agente.
+
+## Docstring de la función
+leccion: cert-databricks-genai-agentes
+dominio: 3
+¿Por qué importa el comentario (COMMENT) de una función de Unity Catalog que usará un agente?
+- [ ] Porque Unity Catalog no permite crear funciones sin un comentario y lo usa para validar los tipos de los parámetros.
+- [x] Porque el LLM lee la descripción de la función y de sus parámetros para decidir cuándo y cómo llamarla.
+- [ ] Porque el comentario se ejecuta como prueba unitaria cada vez que se llama a la función.
+- [ ] Porque define los permisos de quién puede ejecutar la función desde el agente.
+porque: El modelo elige herramientas a partir de su nombre y descripción; una descripción clara mejora la selección.
+
+## Toolkit de funciones
+leccion: cert-databricks-genai-agentes
+dominio: 3
+¿Cómo expones funciones de Unity Catalog como herramientas en un agente de LangChain o LangGraph?
+- [ ] Copiando el SQL de cada función dentro del prompt de sistema.
+- [x] Con `UCFunctionToolkit`, indicando los nombres de las funciones.
+- [ ] Con `VectorAssembler`, que convierte cada función en un vector de entrada.
+- [ ] Registrando cada función como un modelo distinto en MLflow.
+porque: El toolkit de Unity Catalog convierte funciones de UC en herramientas del framework elegido.
+
+## Tracing manual
+leccion: cert-databricks-genai-agentes
+dominio: 3
+Una función propia de tu agente no aparece en las trazas de MLflow. ¿Qué haces?
+- [ ] Llamar a `print` dentro de la función y leer los logs del clúster.
+- [x] Decorarla con `@mlflow.trace` para que se registre como un span.
+- [ ] Registrar la función como experimento separado con `mlflow.set_experiment`.
+- [ ] Desactivar el autolog, porque interfiere con las funciones propias.
+porque: `@mlflow.trace` crea un span con las entradas, salidas y duración de la función dentro de la traza.
+
+## Autolog de la librería
+leccion: cert-databricks-genai-agentes
+dominio: 3
+¿Qué activa las trazas automáticas de un agente escrito con LangChain?
+- [ ] `mlflow.sklearn.autolog()`.
+- [x] `mlflow.langchain.autolog()`.
+- [ ] `spark.conf.set("trace", True)`.
+- [ ] `dbutils.notebook.trace()`.
+porque: MLflow tiene autolog de tracing para las librerías de GenAI más usadas, como LangChain, LangGraph u OpenAI.
+
+## Streaming de respuestas
+leccion: cert-databricks-genai-agentes
+dominio: 3
+Los usuarios se quejan de esperar diez segundos sin ver nada. ¿Qué implementas en el `ResponsesAgent`?
+- [ ] Un modelo mucho más chico, que siempre contesta en menos de un segundo aunque pierda calidad.
+- [x] El método `predict_stream` para enviar la respuesta en partes a medida que se genera.
+- [ ] Un caché que devuelve la misma respuesta a todas las preguntas.
+- [ ] Un límite de 20 tokens por respuesta.
+porque: `predict_stream` emite eventos parciales y la interfaz muestra el texto mientras se genera.
+
+## Estado en LangGraph
+leccion: cert-databricks-genai-agentes
+dominio: 3
+En LangGraph, ¿qué representa el estado (state) del grafo?
+- [ ] La configuración del endpoint de Model Serving donde se despliega el grafo, con su tamaño y escalado.
+- [x] Los datos compartidos entre nodos, como los mensajes de la conversación, que cada nodo lee y actualiza.
+- [ ] El permiso de Unity Catalog que tiene el agente sobre cada tabla.
+- [ ] El historial de versiones del agente en el registro de modelos.
+porque: El estado viaja por el grafo y cada nodo devuelve actualizaciones que se combinan en él.
+
+## Bucle de herramientas
+leccion: cert-databricks-genai-agentes
+dominio: 3
+¿Cómo funciona el bucle de un agente con llamadas a herramientas (tool calling)?
+- [ ] El agente ejecuta todas sus herramientas en cada pregunta y concatena los resultados.
+- [x] El LLM decide si llamar a una herramienta; el código la ejecuta, devuelve el resultado al LLM y se repite hasta que el LLM responde.
+- [ ] El usuario elige la herramienta en un menú antes de escribir la pregunta.
+- [ ] Las herramientas se ejecutan una vez al desplegar el agente y sus resultados quedan guardados como contexto fijo para todas las preguntas.
+porque: En tool calling, el modelo propone la llamada, el entorno la ejecuta y el resultado vuelve al modelo hasta llegar a una respuesta final.
+
+## Límite de iteraciones
+leccion: cert-databricks-genai-agentes
+dominio: 3
+Un agente queda llamando a la misma herramienta una y otra vez. ¿Qué agregas?
+- [x] Un número máximo de iteraciones (o pasos) y una respuesta de salida cuando se alcanza.
+- [ ] Más herramientas parecidas, para que tenga otras opciones y deje de repetir siempre la primera.
+- [ ] Un modelo de embeddings más grande para la herramienta que se repite.
+- [ ] Una temperatura más alta, para que cada iteración sea más creativa.
+porque: Un tope de pasos evita bucles infinitos y costos descontrolados.
+
+## Genie como herramienta
+leccion: cert-databricks-genai-agentes
+dominio: 3
+¿Cómo agregas a tu agente la capacidad de responder preguntas sobre tablas de ventas en lenguaje natural sin escribir el SQL vos?
+- [ ] Indexando cada tabla en Vector Search y dejando que el LLM sume los números de las filas más parecidas a la pregunta.
+- [x] Conectando un espacio de Genie como herramienta o subagente (por ejemplo, con su servidor MCP administrado).
+- [ ] Pegando un CSV con las ventas del año en el prompt de sistema del agente.
+- [ ] Ajustando el modelo con las tablas de ventas para que memorice los totales.
+porque: Genie traduce preguntas a SQL sobre tablas curadas y puede usarse como herramienta de un agente.
+
+## Servidores MCP administrados
+leccion: cert-databricks-genai-agentes
+dominio: 3
+¿Qué ofrecen los servidores MCP administrados de Databricks?
+- [ ] Un clúster de Spark dedicado para entrenar modelos de lenguaje propios.
+- [x] Acceso estándar a funciones de Unity Catalog, índices de Vector Search y espacios de Genie como herramientas, respetando los permisos.
+- [ ] Una forma de exportar las tablas de Unity Catalog a otra nube o a otro proveedor de modelos sin pasar por los permisos del catálogo.
+- [ ] Un reemplazo de MLflow para registrar y versionar los agentes.
+porque: Los servidores MCP administrados exponen recursos de Databricks a clientes MCP con el gobierno de Unity Catalog.
+
+## MCP propio
+leccion: cert-databricks-genai-agentes
+dominio: 3
+Necesitas exponer como herramienta MCP una API interna que no es un recurso de Databricks. ¿Dónde puedes alojar ese servidor MCP?
+- [ ] En un índice de Vector Search, con la dirección de la API como columna.
+- [x] En una Databricks App que ejecuta el servidor MCP propio.
+- [ ] En una tabla Delta con Change Data Feed activado.
+- [ ] En el prompt de sistema del agente, como texto.
+porque: Los servidores MCP personalizados se pueden desplegar como Databricks Apps y conectar a los agentes.
+
+## Agent Bricks: extracción
+leccion: cert-databricks-genai-agentes
+dominio: 3
+Quieres extraer campos de miles de contratos sin escribir código y mejorar la calidad con ejemplos etiquetados. ¿Qué opción de Agent Bricks conviene?
+- [ ] Knowledge Assistant.
+- [x] Information Extraction.
+- [ ] Multi-Agent Supervisor.
+- [ ] AI/BI Dashboards.
+porque: Information Extraction convierte documentos no estructurados en campos estructurados y se optimiza con evaluación.
+
+## Agent Bricks: supervisor
+leccion: cert-databricks-genai-agentes
+dominio: 3
+Tienes un agente de documentos y un espacio de Genie y quieres un punto de entrada que derive cada pregunta al correcto. ¿Qué usas?
+- [ ] Knowledge Assistant, apuntado a la carpeta de documentos.
+- [x] Multi-Agent Supervisor, que coordina los agentes y Genie.
+- [ ] Information Extraction, con un campo por cada agente.
+- [ ] Un índice Direct Vector Access con los dos agentes.
+porque: Multi-Agent Supervisor orquesta varios agentes y espacios de Genie y elige a cuál enviar cada pedido.
+
+## Prompt registry
+leccion: cert-databricks-genai-agentes
+dominio: 3
+¿Cómo carga el agente la versión de producción de un prompt guardado en el Prompt Registry de MLflow?
+- [ ] Leyendo un archivo de texto del repositorio en cada llamada.
+- [x] Con `mlflow.genai.load_prompt` y una URI con alias, por ejemplo `prompts:/catalogo.esquema.soporte@produccion`.
+- [ ] Con `spark.read.table("system.prompts")` filtrando por el nombre y la columna de versión del prompt.
+- [ ] Con `mlflow.pyfunc.load_model` sobre el nombre del prompt.
+porque: El Prompt Registry versiona prompts y permite cargarlos por alias, igual que los modelos.
+
+## Probar en el notebook
+leccion: cert-databricks-genai-agentes
+dominio: 3
+Antes de registrar el agente, ¿cómo lo pruebas en el notebook?
+- [ ] Desplegándolo directamente a producción y mirando las primeras quejas de los usuarios en la tabla de inferencias.
+- [x] Llamando a `predict` con mensajes de ejemplo y revisando la traza de cada llamada en MLflow.
+- [ ] Con `dbutils.fs.ls` sobre la carpeta del agente.
+- [ ] No se puede probar hasta que exista un endpoint.
+porque: El agente se puede invocar localmente y las trazas muestran cada paso para depurarlo antes de registrarlo.
+
+## Declarar recursos al registrar
+leccion: cert-databricks-genai-despliegue-evaluacion
+dominio: 4
+¿Para qué se declaran los recursos (índice, endpoints, funciones) al registrar el agente con MLflow?
+- [ ] Para que MLflow copie el índice y las funciones completos dentro del artefacto del modelo y el endpoint no dependa de ellos.
+- [x] Para que Databricks configure la autenticación del endpoint hacia esos recursos al desplegarlo.
+- [ ] Para que el agente funcione sin conexión a internet.
+- [ ] Para que el modelo use GPU automáticamente.
+porque: Al declarar recursos, el despliegue provisiona credenciales con acceso a ellos (passthrough automático).
+
+## Código como modelo
+leccion: cert-databricks-genai-despliegue-evaluacion
+dominio: 4
+¿Qué significa registrar el agente "como código" (models from code) en MLflow?
+- [ ] Que MLflow guarda un pickle del objeto del agente con todo su estado en memoria, incluidas las conexiones abiertas a los recursos.
+- [x] Que se registra el archivo Python que define el agente, y MLflow lo ejecuta para reconstruirlo al cargarlo.
+- [ ] Que el agente se convierte automáticamente a SQL antes de registrarse.
+- [ ] Que se sube el código a un repositorio de GitHub público.
+porque: Registrar desde código evita problemas de serialización: el archivo define el agente y se ejecuta al cargarlo.
+
+## Desplegar con agents.deploy
+leccion: cert-databricks-genai-despliegue-evaluacion
+dominio: 4
+¿Qué hace `agents.deploy()` además de crear el endpoint?
+- [ ] Entrena de nuevo el modelo base con las conversaciones.
+- [x] Habilita la app de revisión y las tablas de inferencias para el agente.
+- [ ] Borra las versiones anteriores del modelo en Unity Catalog y deja solo la desplegada.
+- [ ] Copia el agente a todas las regiones de la nube.
+porque: `agents.deploy` crea el endpoint y configura la Review App y el registro de solicitudes y respuestas.
+
+## Provisioned throughput
+leccion: cert-databricks-genai-despliegue-evaluacion
+dominio: 4
+Una aplicación en producción necesita latencia garantizada con tráfico alto y constante. ¿Qué modo de Foundation Model APIs conviene?
+- [ ] Pay-per-token, que cobra solo los tokens usados.
+- [x] Provisioned throughput, con capacidad reservada.
+- [ ] Un modelo externo sin límites configurados.
+- [ ] `ai_query` desde un notebook manual.
+porque: Provisioned throughput reserva capacidad para cargas de producción con requisitos de rendimiento.
+
+## Proveedor externo
+leccion: cert-databricks-genai-despliegue-evaluacion
+dominio: 4
+El equipo quiere usar un modelo de un proveedor externo con el mismo gobierno que los demás endpoints. ¿Dónde se guarda la clave de API?
+- [ ] En el código del agente, como una constante.
+- [x] En un secreto de Databricks que referencia la configuración del endpoint de modelo externo.
+- [ ] En una columna de una tabla Delta compartida con el equipo, con permiso `SELECT` solo para el endpoint y los desarrolladores.
+- [ ] En el prompt de sistema, para que el modelo la conozca.
+porque: Los endpoints de modelos externos leen la clave desde secretos, sin exponerla en el código.
+
+## ai_query en lote
+leccion: cert-databricks-genai-despliegue-evaluacion
+dominio: 4
+Hay que resumir dos millones de reseñas guardadas en una tabla. ¿Qué es lo más simple?
+- [ ] Un bucle en Python que llama al endpoint de a una reseña desde el driver y guarda cada resumen en una lista.
+- [x] Una consulta SQL con `ai_query(endpoint, prompt)` sobre la tabla, que procesa las filas en paralelo.
+- [ ] Copiar las reseñas al chat del Playground de a 100.
+- [ ] Desplegar un agente con una herramienta por reseña.
+porque: `ai_query` aplica un modelo a cada fila desde SQL y Databricks paraleliza la inferencia por lotes.
+
+## Identidad de la app
+leccion: cert-databricks-genai-despliegue-evaluacion
+dominio: 4
+Una Databricks App debe consultar datos con los permisos de quien la usa, no con los de la app. ¿Qué configuras?
+- [ ] Un token personal del desarrollador pegado en el código.
+- [x] Autorización en nombre del usuario (on-behalf-of-user).
+- [ ] La entidad de servicio de la app con acceso a todo el catálogo.
+- [ ] Un usuario compartido con la contraseña en un secreto.
+porque: Con la autorización en nombre del usuario, la app actúa con la identidad y los permisos de quien la está usando.
+
+## Payload logging
+leccion: cert-databricks-genai-despliegue-evaluacion
+dominio: 5
+Auditoría pide guardar qué preguntó cada usuario y qué respondió el endpoint. ¿Qué habilitas?
+- [ ] Un `print` en el agente que escribe cada pregunta y respuesta en los logs del contenedor del endpoint.
+- [x] Las tablas de inferencias del endpoint (registro de solicitudes y respuestas en Delta).
+- [ ] Un índice de Vector Search con las respuestas.
+- [ ] El modo de depuración del notebook del desarrollador.
+porque: Las tablas de inferencias guardan las solicitudes y respuestas en Unity Catalog para auditoría y monitoreo.
+
+## Permiso para consultar el endpoint
+leccion: cert-databricks-genai-despliegue-evaluacion
+dominio: 5
+Un equipo debe poder llamar al endpoint del agente pero no cambiar su configuración. ¿Qué permiso le das?
+- [ ] `CAN MANAGE` sobre el endpoint.
+- [x] `CAN QUERY` sobre el endpoint.
+- [ ] `ALL PRIVILEGES` sobre el catálogo.
+- [ ] `MODIFY` sobre el modelo registrado.
+porque: `CAN QUERY` permite invocar el endpoint; `CAN MANAGE` permite cambiarlo.
+
+## Scorer de pautas
+leccion: cert-databricks-genai-despliegue-evaluacion
+dominio: 6
+Quieres comprobar que cada respuesta sea cortés y no prometa reembolsos. ¿Qué scorer usas sin escribir código de evaluación?
+- [ ] `Correctness`, que compara con la respuesta esperada de cada pregunta.
+- [x] `Guidelines`, con esas reglas escritas en lenguaje natural.
+- [ ] `RetrievalRelevance`, aplicado a cada chunk.
+- [ ] La latencia del endpoint.
+porque: El scorer `Guidelines` usa un juez LLM para verificar que la respuesta cumpla las pautas que escribas.
+
+## Scorer propio
+leccion: cert-databricks-genai-despliegue-evaluacion
+dominio: 6
+Necesitas verificar que cada respuesta incluya un número de artículo con el formato `KB-12345`. ¿Qué haces?
+- [ ] Usar el scorer integrado `Guidelines` con la pauta "incluye un número de artículo", que verifica el formato exacto sin costo.
+- [x] Escribir una función con el decorador `@scorer` que revise el formato con una expresión regular.
+- [ ] Usar el scorer `Safety`.
+- [ ] Contar los tokens de cada respuesta.
+porque: Un scorer personalizado con código es preciso y barato para reglas deterministas como un formato.
+
+## Fundamento en lo recuperado
+leccion: cert-databricks-genai-despliegue-evaluacion
+dominio: 6
+¿Qué scorer detecta respuestas que afirman cosas que no están en los documentos recuperados?
+- [ ] `RelevanceToQuery`.
+- [x] `RetrievalGroundedness`.
+- [ ] `Safety`.
+- [ ] `Correctness`, sin respuestas esperadas.
+porque: `RetrievalGroundedness` evalúa si la respuesta está respaldada por el contexto recuperado, es decir, si no alucina.
+
+## Feedback de expertos
+leccion: cert-databricks-genai-despliegue-evaluacion
+dominio: 6
+Los expertos de soporte deben calificar respuestas del agente antes del lanzamiento sin usar notebooks. ¿Qué usas?
+- [ ] Un formulario de papel, que se carga después en una tabla Delta.
+- [x] La app de revisión (Review App) con una sesión de etiquetado.
+- [ ] El historial de jobs del workspace.
+- [ ] Un dashboard de costos.
+porque: La Review App permite a expertos sin conocimientos técnicos conversar con el agente y etiquetar respuestas, que quedan asociadas a las trazas.
+
+## Monitoreo con muestreo
+leccion: cert-databricks-genai-despliegue-evaluacion
+dominio: 6
+Evaluar con jueces LLM todas las trazas de producción es caro. ¿Qué haces?
+- [ ] Apagar el monitoreo en producción y evaluar solo antes de lanzar cada versión, con el conjunto de evaluación completo.
+- [x] Registrar los scorers para producción con una tasa de muestreo (por ejemplo, el 10 % de las trazas).
+- [ ] Evaluar solo las trazas que tarden menos de un segundo.
+- [ ] Borrar las trazas al final de cada día.
+porque: El monitoreo en producción permite aplicar scorers a una muestra de las trazas para controlar el costo.
