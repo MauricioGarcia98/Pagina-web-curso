@@ -207,6 +207,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p><code>TEXT</code> convierte un número en texto con formato, útil para armar frases:</p>
 <pre><code class="language-text">=&quot;Ventas del mes: &quot;&amp;TEXT(57500,&quot;#,##0&quot;)</code></pre>
 <p>Da <code>Ventas del mes: 57,500</code>. Y al revés, <code>VALUE(&quot;1500&quot;)</code> convierte un texto con forma de número en número.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Agrupar por mes sin el año.</strong> Marzo de 2023 y marzo de 2024 se mezclan; usa <code>TEXT(fecha,&quot;yyyy-mm&quot;)</code>.</li>
+<li><strong>TODAY() en un informe que se repite.</strong> Cambia cada día; una fecha de corte en una celda hace el informe reproducible.</li>
+<li><strong>Fechas como texto.</strong> Si no son fechas reales, restar o filtrar da errores o resultados raros.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Sacaste año, mes y período de fechas para poder agrupar.</li>

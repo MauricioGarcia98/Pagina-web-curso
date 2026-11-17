@@ -86,6 +86,12 @@ ax.figure.savefig("pedidos_por_mes.png", dpi=150, bbox_inches="tight")
 
 El PNG aparece en el explorador de archivos; clic derecho → **Download** para llevarlo a un informe o una presentación.
 
+:::errores
+- **Gráficos sin título ni etiquetas.** El lector no sabe qué está viendo.
+- **Líneas para categorías sin orden.** Las líneas son para el tiempo; las categorías van en barras.
+- **Histogramas con pocos o demasiados bins.** Cambia la forma que se ve; prueba más de uno.
+:::
+
 ## ✅ Lo que lograste
 
 - Graficas desde pandas eligiendo el tipo según la pregunta.

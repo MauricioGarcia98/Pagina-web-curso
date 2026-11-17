@@ -96,6 +96,12 @@ Si usaste otras definiciones (por ejemplo, contar solo pedidos entregados), tus 
 - **[PySpark](#/m/pyspark)** y [Databricks](#/databricks): el mismo análisis a escala, en notebooks sobre Spark.
 - **[Power BI](#/m/powerbi)**: llevar tus hallazgos a un tablero que otros consultan.
 
+:::errores
+- **Responder sin definir "perder clientes".** Define el período y qué es un cliente perdido.
+- **Hallazgos sin número.** Cada conclusión necesita la cifra.
+- **Entregar sin reiniciar y ejecutar todo.** Comprueba que el notebook corre de arriba abajo.
+:::
+
 :::ejercicio quiz
 "¿Estamos perdiendo clientes?" ¿Qué haces primero?
 - [ ] Graficar todo lo que se pueda

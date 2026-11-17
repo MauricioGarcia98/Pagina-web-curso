@@ -118,6 +118,16 @@ resumen_por(pedidos, &quot;metodo_pago&quot;)</code></pre>
 <td>Si alguien la cambia, sabe si la rompió</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Funciones que leen variables globales.</strong> Pasa todo como parámetro; si no, dependen del orden de las celdas.</li>
+<li><strong>Funciones sin prueba.</strong> Un <code>assert</code> con un caso conocido detecta cambios que la rompen.</li>
+<li><strong>Editar un módulo y no recargarlo.</strong> El kernel sigue con la versión vieja hasta reimportar o reiniciar.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Escribiste funciones con parámetros, valores por defecto y docstring.</li>

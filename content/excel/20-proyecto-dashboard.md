@@ -111,6 +111,12 @@ Evalúate con la rúbrica antes de dar el proyecto por terminado. Si algo queda 
 
 </details>
 
+:::errores
+- **Tablero con números escritos a mano.** Todo número del tablero debe salir de una fórmula sobre los datos.
+- **Demasiados gráficos.** Pocos, que respondan las preguntas pedidas.
+- **No dejar las definiciones.** Qué es "venta" o "cliente activo" tiene que estar escrito en el libro.
+:::
+
 :::ejercicio quiz
 ¿Por qué los indicadores deben tomar el año de la hoja `supuestos`?
 - [ ] Porque Excel no deja escribir años en las fórmulas

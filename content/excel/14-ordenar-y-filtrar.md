@@ -107,6 +107,12 @@ Para saber qué valores distintos tiene una columna, en una celda vacía (por ej
 
 En Excel 365 el resultado se "derrama" hacia abajo, una fila por valor. En esta réplica la celda muestra el primero; el menú del filtro te da la lista completa con la cantidad de cada uno.
 
+:::errores
+- **Creer que el filtro borra filas.** Solo las oculta; las fórmulas siguen viéndolas.
+- **Ordenar una sola columna.** Se mezclan los datos de las filas; haz clic dentro de la tabla.
+- **Ordenar por dos criterios en el orden equivocado.** El último orden manda: primero el secundario, después el principal.
+:::
+
 ## ✅ Lo que lograste
 
 - Filtraste por uno y varios valores, en una y varias columnas.

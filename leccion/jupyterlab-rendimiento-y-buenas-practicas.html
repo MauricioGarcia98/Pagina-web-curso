@@ -138,6 +138,16 @@ pedidos.loc[pedidos[&quot;canal&quot;] == &quot;web&quot;, &quot;tipo&quot;] = &
 </tr>
 </tbody></table></div>
 <p>Lo que aprendiste (filtrar, agrupar, unir) es igual en todas: cambia la sintaxis. Puedes compararlo en los módulos <a href="#/m/sql">SQL</a> y <a href="#/m/pyspark">PySpark</a>.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Bucles fila por fila.</strong> <code>iterrows</code> es lento; las operaciones vectorizadas son mucho más rápidas.</li>
+<li><strong>Optimizar sin medir.</strong> <code>%timeit</code> dice qué conviene.</li>
+<li><strong>Tipos que ocupan de más.</strong> Textos con pocos valores distintos ocupan menos como <code>category</code>.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Mides tiempos y optimizas lo que de verdad es lento.</li>

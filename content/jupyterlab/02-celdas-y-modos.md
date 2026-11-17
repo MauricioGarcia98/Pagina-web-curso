@@ -96,6 +96,12 @@ Practica: selecciona la última celda, presiona **B** para agregar una nueva, En
 
 Las variables que creas en una celda existen para todas las demás, **en el orden en que las ejecutaste**. La celda que carga `pedidos` tiene que correr antes que la que usa `pedidos`. Si abres el notebook mañana, el kernel arranca vacío: hay que volver a ejecutar desde arriba (**Run → Run All Cells**).
 
+:::errores
+- **Escribir en modo comando.** Las teclas se interpretan como atajos (por ejemplo, `d d` borra la celda); entra con Enter.
+- **Ejecutar celdas en desorden.** El número `[n]` dice el orden real; reinicia y ejecuta todo para comprobar.
+- **Celdas de código para texto.** Las explicaciones van en celdas Markdown.
+:::
+
 ## ✅ Lo que lograste
 
 - Distingues el modo comando del modo edición.

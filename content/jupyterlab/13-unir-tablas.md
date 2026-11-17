@@ -105,6 +105,12 @@ lineas.head()
 
 Si las claves se llaman distinto, usa `left_on="id_cliente", right_on="cliente_id"`. Y fíjate en el `rename`: dos tablas con una columna `nombre` producirían `nombre_x` y `nombre_y`.
 
+:::errores
+- **Merge que duplica filas.** Si la clave se repite en la tabla de la derecha, cada fila se multiplica; revisa con `validate=`.
+- **`how` equivocado.** `inner` descarta filas sin pareja; para conservar todas las de la izquierda, `left`.
+- **No contar filas antes y después.** Es la forma más rápida de detectar un merge mal hecho.
+:::
+
 ## ✅ Lo que lograste
 
 - Unes tablas con merge eligiendo el tipo de unión.

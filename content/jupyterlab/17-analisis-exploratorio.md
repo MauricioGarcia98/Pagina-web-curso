@@ -104,6 +104,12 @@ t.groupby("mes")["importe"].median().plot(kind="bar", title="Mediana del importe
 
 Un hallazgo tiene **un número, una comparación y una consecuencia**. Verifica cada uno antes de escribirlo (el último ejemplo es una hipótesis: compruébala con el gráfico del paso 5).
 
+:::errores
+- **Mirar solo el promedio.** La distribución y los extremos cuentan otra historia.
+- **Borrar valores extremos sin investigar.** Pueden ser errores o los casos más importantes.
+- **Explorar sin pregunta.** Cada gráfico debería acercarte a una respuesta.
+:::
+
 ## ✅ Lo que lograste
 
 - Construiste una métrica respetando el grano de la tabla.

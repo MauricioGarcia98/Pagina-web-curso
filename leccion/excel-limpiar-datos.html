@@ -198,6 +198,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Comprueba siempre con <code>ISNUMBER</code> o mirando la alineación.</p>
 <h2>Paso 8 — Reemplaza las columnas sucias por las limpias</h2>
 <p>Las columnas con fórmulas dependen de las originales. Para quedarte solo con lo limpio en Excel real: copia <strong>H:J</strong> y usa <strong>Paste Special → Values</strong> (pega los resultados, no las fórmulas). Después ya puedes borrar las columnas originales. En esta réplica, exporta la hoja con <strong>File → Export CSV</strong>: el CSV guarda los valores.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Remove Duplicates con todas las columnas.</strong> Si hay una columna que cambia en cada fila (un id de carga), nada parece duplicado; elige la clave.</li>
+<li><strong>Quitar duplicados sin ordenar antes.</strong> Se queda la primera de cada grupo; ordena para que sea la que quieres.</li>
+<li><strong>Aceptar un resultado que no coincide con lo medido.</strong> Si esperabas 243 clientes y quedan 250, algo salió mal.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Mediste la calidad de una tabla antes de limpiarla.</li>

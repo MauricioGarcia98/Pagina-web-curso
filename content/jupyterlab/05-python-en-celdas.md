@@ -124,6 +124,12 @@ texto: Después de reiniciar, la numeración vuelve a empezar desde [1]
 
 Escribe `%whos` en una celda: lista las variables del kernel, su tipo y un resumen. Los comandos que empiezan con `%` son **magics** de Jupyter (no son Python); los vemos en el nivel 4.
 
+:::errores
+- **Esperar que todas las líneas muestren salida.** Solo la última expresión se muestra; para ver otras, usa `print`.
+- **Variables que siguen vivas después de borrar la celda.** El kernel las recuerda; reinicia para comprobar.
+- **Leer solo la primera línea del error.** El traceback se lee desde abajo: la última línea dice qué pasó.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué muestra una celda y cómo mostrar más cosas.

@@ -112,6 +112,12 @@ assert (limpio["email"].dropna() == limpio["email"].dropna().str.lower()).all(),
 
 `errors="coerce"` convierte lo que no puede en `NaN` en lugar de fallar: después cuenta cuántos quedaron (`isna().sum()`) para saber cuántos valores eran inválidos.
 
+:::errores
+- **`drop_duplicates()` sin `subset`.** Compara todas las columnas; los duplicados por clave no se van.
+- **Rellenar nulos con 0 sin pensar.** Un 0 cambia promedios; decide según el significado.
+- **Normalizar texto a medias.** `strip()` y `lower()` juntos; si no, "Lima " y "lima" siguen distintos.
+:::
+
 ## ✅ Lo que lograste
 
 - Mediste la calidad y deduplicaste por clave con el registro más reciente.

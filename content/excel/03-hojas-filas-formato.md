@@ -94,6 +94,12 @@ texto: Bold (1), Center (2) y el desplegable de formato de número (3) en la pes
 Si una celda vale `0.256` y la ves como `26%`, al sumarla Excel usa `0.256`. Por eso a veces un total "no cierra" por centavos con lo que ves en pantalla. Si necesitas redondear de verdad, se usa la función `ROUND` (nivel 2).
 :::
 
+:::errores
+- **Leer `#####` como error.** El número no entra en la columna; ensánchala.
+- **Confundir lo que se ve con lo que vale.** Un formato de porcentaje o de pocos decimales cambia cómo se ve, no el valor que usan las fórmulas.
+- **Hojas llamadas "Hoja1", "Hoja2".** Un nombre que dice qué contiene ahorra preguntas a quien abre el libro.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste y renombraste hojas con nombres útiles.

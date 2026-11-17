@@ -125,6 +125,12 @@ Da la cantidad de nulos por columna. Con `.isna().mean()` obtienes el **porcenta
 | ¿Qué valores tiene una categoría? | `df["col"].value_counts()` |
 | ¿Cuántos nulos por columna? | `df.isna().sum()` |
 
+:::errores
+- **Mirar los datos con print del DataFrame entero.** `head()`, `info()` y `describe()` dicen más con menos.
+- **No revisar los tipos.** Una columna de montos como `object` no se suma bien.
+- **Ignorar los nulos.** `isna().sum()` antes de calcular evita promedios engañosos.
+:::
+
 ## ✅ Lo que lograste
 
 - Cargaste un CSV y conoces su tamaño, columnas, tipos y nulos.

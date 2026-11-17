@@ -128,6 +128,12 @@ Tres conclusiones, cada una con un número. No describas la tabla ("en la tabla 
 - [ ] Los porcentajes tienen formato Percentage.
 - [ ] El mail tiene tres conclusiones con números y se entiende sin abrir el archivo.
 
+:::errores
+- **Tasas con el denominador equivocado.** La cancelación de 2024 se divide por los pedidos de 2024, no por todos los cancelados.
+- **Conclusiones que describen la tabla.** "Hay cuatro canales" no ayuda; di qué cambió y cuánto.
+- **Referencias sin mixtas en el cuadro.** Sin `$A2` y `B$1`, copiar la fórmula rompe filas o columnas.
+:::
+
 :::ejercicio quiz
 ¿Por qué conviene que la fórmula del cuadro use `$A2` y `B$1`?
 - [ ] Porque así calcula más rápido

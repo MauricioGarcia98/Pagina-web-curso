@@ -120,6 +120,12 @@ archivo: excel/02-formato.webp
 texto: El formato de número (1) cambia cómo se ve el valor, no el valor
 ```
 
+:::errores
+- **Olvidar el `$` en una celda fija.** Al copiar hacia abajo, `H1` pasa a `H2`, `H3`… que están vacías.
+- **Poner `$` en todo.** Con todo fijo, la fórmula copiada calcula siempre la misma fila.
+- **Copiar fórmulas sin revisar una del medio.** Mira una celda copiada para confirmar que las referencias se movieron como esperabas.
+:::
+
 ## ✅ Lo que lograste
 
 - Copiaste fórmulas a muchas filas en segundos.

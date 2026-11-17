@@ -116,6 +116,12 @@ archivo: excel/e08-ventas.webp
 texto: La tabla terminada: =E2*$I$1 (1) con el IVA fijo en I1
 ```
 
+:::errores
+- **Confundir COUNT con COUNTA.** COUNT cuenta solo números; COUNTA cuenta todo lo que no está vacío.
+- **Usar el promedio con valores extremos.** Un sueldo muy alto lo infla; la mediana representa mejor lo típico.
+- **Redondear con formato cuando hace falta el valor redondeado.** El formato cambia cómo se ve; `ROUND` cambia el valor.
+:::
+
 ## ✅ Lo que lograste
 
 - Escribiste funciones de uno y varios argumentos.

@@ -112,6 +112,12 @@ Desde pandas 3.0, el modo *Copy-on-Write* está activado siempre: modificar un f
 
 Lo que aprendiste (filtrar, agrupar, unir) es igual en todas: cambia la sintaxis. Puedes compararlo en los módulos [SQL](#/m/sql) y [PySpark](#/m/pyspark).
 
+:::errores
+- **Bucles fila por fila.** `iterrows` es lento; las operaciones vectorizadas son mucho más rápidas.
+- **Optimizar sin medir.** `%timeit` dice qué conviene.
+- **Tipos que ocupan de más.** Textos con pocos valores distintos ocupan menos como `category`.
+:::
+
 ## ✅ Lo que lograste
 
 - Mides tiempos y optimizas lo que de verdad es lento.

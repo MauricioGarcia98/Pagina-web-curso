@@ -184,6 +184,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Si dice una fórmula (<code>=SUM(D2:D5)</code>), sigue la receta: ¿suma el rango correcto? ¿le falta una fila?</li>
 </ul>
 <p><strong>Formulas → Show Formulas</strong> (Ctrl + `) muestra todas las fórmulas de la hoja a la vez. Es la forma más rápida de auditar una hoja ajena.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Olvidar el orden de las operaciones.</strong> Multiplicación antes que suma: <code>=2+3*4</code> es 14; usa paréntesis.</li>
+<li><strong>Concatenar sin espacio.</strong> <code>=A2&amp;B2</code> da &quot;AnaPérez&quot;; va <code>=A2&amp;&quot; &quot;&amp;B2</code>.</li>
+<li><strong>Totales &quot;pegados como valor&quot;.</strong> Si la barra de fórmulas muestra un número, ya no se recalcula.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Escribiste fórmulas con operadores y funciones.</li>

@@ -81,6 +81,12 @@ texto: El Launcher: crea un notebook de Python (1) o un archivo .py (2)
 Un **notebook** (`.ipynb`) guarda celdas de texto, código **y sus resultados**. Un **script** (`.py`) es solo código: se ejecuta de principio a fin, sin celdas. En el trabajo, se explora en notebooks y el código que se repite termina en scripts o módulos (lo vemos en el nivel 5).
 :::
 
+:::errores
+- **Pensar que el notebook guarda el estado.** Las variables viven en el kernel; si se reinicia, hay que volver a ejecutar.
+- **Confundir el archivo con el kernel.** El .ipynb guarda celdas y salidas; el kernel es el proceso que ejecuta.
+- **Trabajar con muchos notebooks abiertos.** Cada uno tiene su kernel y consume memoria.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué es un notebook y para qué se usa.

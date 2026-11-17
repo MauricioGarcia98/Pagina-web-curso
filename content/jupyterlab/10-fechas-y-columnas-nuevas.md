@@ -103,6 +103,12 @@ resumen_mes
 
 Cada línea es un paso y se lee de arriba abajo, como una receta. `assign` crea columnas sin modificar `pedidos`; `query` filtra con una condición escrita como texto.
 
+:::errores
+- **Fechas como texto.** Sin `pd.to_datetime`, no se puede sacar año, mes ni restar.
+- **Agrupar por mes sin año.** Se mezclan años distintos; usa período año-mes.
+- **Formatos de fecha ambiguos.** Indica `format=` o `dayfirst=` cuando el archivo usa día/mes.
+:::
+
 ## ✅ Lo que lograste
 
 - Conviertes texto a fecha y extraes año, mes, período y día.

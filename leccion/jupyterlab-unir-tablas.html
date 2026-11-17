@@ -118,6 +118,16 @@ lineas = (detalle
           .merge(categorias.rename(columns={&quot;nombre&quot;: &quot;categoria&quot;})[[&quot;categoria_id&quot;, &quot;categoria&quot;]], on=&quot;categoria_id&quot;, how=&quot;left&quot;))
 lineas.head()</code></pre>
 <p>Si las claves se llaman distinto, usa <code>left_on=&quot;id_cliente&quot;, right_on=&quot;cliente_id&quot;</code>. Y fíjate en el <code>rename</code>: dos tablas con una columna <code>nombre</code> producirían <code>nombre_x</code> y <code>nombre_y</code>.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Merge que duplica filas.</strong> Si la clave se repite en la tabla de la derecha, cada fila se multiplica; revisa con <code>validate=</code>.</li>
+<li><strong><code>how</code> equivocado.</strong> <code>inner</code> descarta filas sin pareja; para conservar todas las de la izquierda, <code>left</code>.</li>
+<li><strong>No contar filas antes y después.</strong> Es la forma más rápida de detectar un merge mal hecho.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Unes tablas con merge eligiendo el tipo de unión.</li>

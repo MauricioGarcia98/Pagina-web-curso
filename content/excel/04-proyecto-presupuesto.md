@@ -116,6 +116,12 @@ Repite el proyecto en Excel de verdad para comprobar que todo funciona igual:
 - Si tu Excel está en español, los menús cambian de nombre (**Inicio** en lugar de Home, **Autosuma** en lugar de AutoSum) y las funciones también (`SUMA` en lugar de `SUM`). Las fórmulas con `*` y referencias como `B2` son idénticas.
 - En Excel real se guarda como `.xlsx` (File → Save As / Download a copy). El CSV solo guarda los valores, sin formato ni fórmulas.
 
+:::errores
+- **Totales escritos a mano.** Si cambia una cantidad, el total queda mal; va con fórmula.
+- **Guardar el entregable solo como CSV.** Se pierden fórmulas y formato; el CSV es para intercambiar datos.
+- **Mezclar datos y totales sin separar.** Una fila de total pegada a los datos confunde a quien filtra u ordena.
+:::
+
 :::ejercicio quiz
 ¿Por qué conviene que el subtotal sea `=B2*C2` y no el número 720 escrito a mano?
 - [ ] Porque Excel no deja escribir números en esa columna

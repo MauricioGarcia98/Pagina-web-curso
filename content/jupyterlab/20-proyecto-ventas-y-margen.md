@@ -87,6 +87,12 @@ Revisa en este orden: (1) ¿filtraste solo entregados y el año correcto? (2) ¿
 
 </details>
 
+:::errores
+- **Margen como resta sin porcentaje.** El pedido suele ser margen sobre ventas.
+- **Categorías mal unidas.** Un merge con claves repetidas duplica ventas.
+- **Cumplir sin mirar la rúbrica.** Revisa cada requisito antes de entregar.
+:::
+
 :::ejercicio quiz
 ¿Por qué hay que filtrar solo pedidos entregados?
 - [ ] Porque los demás no tienen detalle

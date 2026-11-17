@@ -115,6 +115,12 @@ texto: El cuadro para renombrar el archivo
 Sin espacios ni tildes, en minúscula y que digan qué hay: `analisis_pedidos_2024.ipynb`, no `Untitled3.ipynb`. Con el botón **New Folder** del explorador puedes agrupar notebooks por proyecto.
 :::
 
+:::errores
+- **Rutas absolutas de tu computadora.** `C:\Users\...` no funciona en otra máquina; usa rutas relativas.
+- **Notebook sin explicaciones.** Sin Markdown, nadie sabe qué pregunta responde cada celda.
+- **Datos dentro de la carpeta del notebook sin orden.** Una carpeta `datos/` separa entradas de resultados.
+:::
+
 ## ✅ Lo que lograste
 
 - Escribes texto con formato en celdas Markdown.

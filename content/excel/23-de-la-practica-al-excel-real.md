@@ -166,6 +166,12 @@ Rehaz en Excel real, en este orden:
 - [ ] Proyecto 4: hazlo entero en **Power Query** y prueba **Refresh All**.
 - [ ] Proyecto 5: tablas dinámicas con **fechas agrupadas por mes**, **% of Grand Total** y un **Slicer** de canal.
 
+:::errores
+- **Rangos sueltos en lugar de Tablas.** Las Tablas se amplían solas y sus fórmulas usan nombres de columna.
+- **Funciones en inglés en un Excel en español.** `SUM` es `SUMA` y el separador puede ser `;`.
+- **Formato condicional sin regla clara.** Colores sin criterio confunden; define qué significa cada uno.
+:::
+
 ## ✅ Lo que lograste
 
 - Conoces las herramientas de Excel real que la práctica no tiene.

@@ -92,6 +92,12 @@ La barra de estado es una calculadora gratis: selecciona una columna de números
 
 Prueba ahora: haz clic en **A1** y presiona **Ctrl + ↓**. Vas directo a la última fila con datos.
 
+:::errores
+- **Mirar la celda y no la barra de fórmulas.** La celda muestra el resultado; lo que hay adentro (un número escrito o una fórmula) se ve en la barra de fórmulas.
+- **Escribir la referencia al revés.** Primero la columna y después la fila: `D7`, no `7D`.
+- **Hacer una fórmula para ver una suma rápida.** Al seleccionar el rango, la barra de estado ya muestra suma, promedio y recuento.
+:::
+
 ## ✅ Lo que lograste
 
 - Reconoces las seis partes de la pantalla.
