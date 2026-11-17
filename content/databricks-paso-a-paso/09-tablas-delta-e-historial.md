@@ -99,6 +99,12 @@ En **Details** ves cuántos archivos tiene la tabla. Muchas escrituras chicas de
 Las versiones viejas ocupan espacio. `VACUUM tabla` elimina los archivos que ya no usa la versión actual y que tienen más de **7 días** (el valor por defecto). Después de un `VACUUM`, el viaje en el tiempo a esas versiones **ya no funciona**. En producción se corre con criterio, no "para limpiar".
 :::
 
+:::errores
+- **Corregir borrados a mano.** `DESCRIBE HISTORY` muestra la versión anterior y `RESTORE` vuelve a ella.
+- **`VACUUM` con retención corta.** Borra los archivos viejos y con ellos la posibilidad de volver atrás.
+- **Creer que RESTORE borra el historial.** Crea una versión nueva igual a la elegida; las demás siguen.
+:::
+
 ## ✅ Lo que lograste
 
 - Entiendes qué aporta Delta.
@@ -110,7 +116,7 @@ Las versiones viejas ocupan espacio. `VACUUM tabla` elimina los archivos que ya 
 - [ ] Solo CREATE TABLE
 - [x] Cualquier escritura: crear, insertar, actualizar, borrar, fusionar, restaurar
 - [ ] Solo los SELECT
-- [ ] Abrir la tabla en el catálogo
+- [ ] Cada vez que se ejecuta un SELECT sobre la tabla
 :::
 
 :::ejercicio quiz
@@ -118,7 +124,7 @@ Alguien borró filas por error hace una hora. ¿Qué haces?
 - [ ] Las vuelvo a escribir a mano
 - [x] Miro DESCRIBE HISTORY, encuentro la versión anterior al DELETE y hago RESTORE TABLE … TO VERSION AS OF esa versión
 - [ ] Borro la tabla
-- [ ] Nada: se perdieron
+- [ ] Pido a soporte que restaure el backup de anoche
 :::
 
 :::ejercicio quiz
@@ -134,5 +140,5 @@ Después de RESTORE a la versión 1, ¿qué pasa con la versión 2?
 - [ ] Porque es lento
 - [x] Porque borra los archivos de versiones viejas y después no se puede viajar en el tiempo a ellas
 - [ ] Porque borra la tabla
-- [ ] Porque cuesta dinero extra
+- [ ] Porque bloquea la tabla durante una hora
 :::

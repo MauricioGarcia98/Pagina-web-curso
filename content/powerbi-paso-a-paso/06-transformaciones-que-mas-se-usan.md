@@ -83,6 +83,12 @@ texto: Cerrar y aplicar lleva todas las transformaciones al modelo
 
 La regla general de los equipos de BI: **lo más arriba posible**. Si se puede limpiar en el origen (SQL, el lakehouse), mejor; si no, en Power Query; y en DAX lo que depende del contexto.
 
+:::errores
+- **Confundir anexar con combinar.** Anexar apila filas (mismas columnas); combinar une columnas por una clave, como un JOIN.
+- **Agrupar en Power Query lo que el usuario debe poder filtrar.** Agrupar pierde el detalle; los totales que cambian con los filtros van en medidas.
+- **Calcular porcentajes en Power Query.** Quedan fijos y no reaccionan a las segmentaciones; van en DAX.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste columnas personalizadas y condicionales.
@@ -102,7 +108,7 @@ Quieres poner las ventas de 2023 y las de 2024 (mismas columnas) en una sola tab
 - [ ] Se agrega una columna y se conservan todas las filas
 - [x] Queda una fila por canal con el recuento; se pierde el detalle
 - [ ] No cambia nada
-- [ ] Se borra
+- [ ] Se ordena por canal y se agrega una columna de subtotal
 :::
 
 :::ejercicio quiz
@@ -110,5 +116,5 @@ Quieres poner las ventas de 2023 y las de 2024 (mismas columnas) en una sola tab
 - [ ] En Power Query
 - [x] En una medida DAX
 - [ ] En una columna condicional
-- [ ] En el origen
+- [ ] En una columna personalizada de Power Query
 :::

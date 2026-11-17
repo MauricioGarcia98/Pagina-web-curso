@@ -87,11 +87,17 @@ Ya dominas el workspace de Databricks como lo usa un equipo de datos. Los camino
 - **[dbt](#/m/dbt)** y **[Airflow](#/m/airflow)**: otras formas de modelar y orquestar que conviven con Databricks.
 - **[Portafolio](#/m/portafolio)**: convertir estos proyectos en piezas que te consigan entrevistas.
 
+:::errores
+- **Construir antes de definir.** "Tiempos de entrega" necesita una definición escrita.
+- **Decir que es idempotente sin probarlo.** Se corre dos veces y se comparan los números.
+- **Dejar el proyecto en clics.** Como código se revisa, se reproduce y se mantiene.
+:::
+
 :::ejercicio quiz
 El pedido dice "tiempos de entrega". ¿Qué haces primero?
 - [ ] Calculo entregado menos creado y listo
 - [x] Defino qué es (qué marcas de tiempo, qué pasa con los pedidos sin entrega, en qué unidad) y lo dejo escrito antes de construir
-- [ ] Le pregunto a Genie
+- [ ] Calculo el promedio por día sin mirar los pedidos sin entrega
 - [ ] Uso el promedio que ya calculaba cada ciudad
 :::
 
@@ -100,12 +106,12 @@ El pedido dice "tiempos de entrega". ¿Qué haces primero?
 - [ ] Diciendo que usa MERGE
 - [x] Corriéndolo dos veces y mostrando que los números de las tablas gold no cambian
 - [ ] Mirando el código
-- [ ] No se puede demostrar
+- [ ] Revisando que todas las tablas tengan comentarios
 :::
 
 :::ejercicio quiz
 ¿Por qué Valeria pide que quede como código?
-- [ ] Porque es más elegante
+- [ ] Porque el código usa menos DBU
 - [x] Para que el proyecto se pueda revisar, reproducir y mantener aunque cambie la persona que lo hizo
 - [ ] Porque los clics no funcionan en producción
 - [ ] Porque el código es más rápido

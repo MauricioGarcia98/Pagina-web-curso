@@ -113,6 +113,17 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Mensaje a Lucía: <em>&quot;<code>main.ventas_gold.pedidos_por_dia</code> se actualiza sola cada mañana (job <code>pedidos_diarios_job</code>): bronze → silver con 967 cancelados descartados → gold con 3640 filas. Si la gold queda corta, el job falla y te llega correo. El grupo <code>ventas</code> solo puede leer la gold. Las tablas tienen comentarios por columna.&quot;</em></p>
 <h2>🖥️ Hazlo también en Databricks real</h2>
 <p>Idéntico, con dos diferencias: el pipeline corre en <strong>serverless</strong> y tarda minutos la primera vez, y los correos de aviso llegan de verdad. Si tu workspace tiene <strong>Lakeflow Connect</strong>, la bronze puede venir directamente de una base de datos o de Salesforce sin escribir código.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Misma acción para todas las expectativas.</strong> Lo grave detiene (FAIL UPDATE); lo esperable se excluye (DROP ROW).</li>
+<li><strong>Publicar aunque falle el control.</strong> <code>publicar</code> depende del control de calidad: si falla, no corre.</li>
+<li><strong>Permisos amplios &quot;para probar&quot;.</strong> El grupo de analistas lee solo la capa gold.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

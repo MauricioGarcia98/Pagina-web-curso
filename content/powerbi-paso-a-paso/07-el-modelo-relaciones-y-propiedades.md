@@ -98,6 +98,12 @@ texto: Las propiedades de la tabla pedidos - descripción, sinónimos, marcar co
 | Un filtro no afecta un gráfico | La relación va en la dirección contraria o está inactiva |
 | Aparecen `cliente_id` sumados en un gráfico | Falta **Resumir por: No resumir** |
 
+:::errores
+- **Dirección del filtro en Ambas por defecto.** Puede crear ambigüedades y números raros; usa Única salvo que haga falta.
+- **Relaciones faltantes en la cadena.** Si categorías no llega a detalle a través de productos, todas las categorías muestran el mismo total.
+- **Dejar visibles las columnas de ID.** El usuario arrastra el ID y obtiene sumas sin sentido; ocúltalas.
+:::
+
 ## ✅ Lo que lograste
 
 - Lees un modelo en estrella.
@@ -109,14 +115,14 @@ En una relación *:1 con dirección Única entre pedidos y clientes, ¿hacia dó
 - [ ] De pedidos a clientes
 - [x] De clientes (lado 1) a pedidos (lado *)
 - [ ] En ambos sentidos
-- [ ] No viaja
+- [ ] Hacia la tabla que tenga más filas
 :::
 
 :::ejercicio quiz
 Un gráfico de ventas por categoría muestra el mismo total en todas las categorías. ¿Qué revisas?
 - [ ] El color del gráfico
 - [x] Que exista la cadena de relaciones de categorias a productos a detalle_pedidos
-- [ ] El tema
+- [ ] El formato de número de la medida
 - [ ] La segmentación
 :::
 
@@ -125,5 +131,5 @@ Un gráfico de ventas por categoría muestra el mismo total en todas las categor
 - [ ] Porque rompen las relaciones
 - [x] Para que el usuario vea solo los campos útiles; las relaciones siguen funcionando
 - [ ] Para que el archivo pese menos
-- [ ] No conviene ocultarlas
+- [ ] Porque las columnas ocultas no ocupan memoria
 :::

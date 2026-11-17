@@ -112,6 +112,12 @@ texto: Query History - cada ejecución, de dónde vino y cuánto tardó
 "¿Por qué el tablero está lento?" → **Query History**, ordena por duración. "¿Quién borró esa tabla?" → busca `DROP` en el historial. En Databricks real guarda 30 días y se puede consultar como tabla (`system.query.history`).
 :::
 
+:::errores
+- **Confundir "Run (1000)" con lo que se lee.** El límite es de filas mostradas; la consulta puede leer toda la tabla.
+- **Parámetros con `@` o `$`.** En Databricks SQL se escriben como `:pais`.
+- **Buscar consultas de dashboards en Queries.** Las ejecuciones están en Query History.
+:::
+
 ## ✅ Lo que lograste
 
 - Ejecutas consultas y lees los resultados con sus límites.
@@ -130,7 +136,7 @@ Tienes una consulta larga y quieres probar solo el SELECT interno. ¿Qué usas?
 ¿Qué significa "Run (1000)"?
 - [ ] Que la consulta tarda 1000 ms
 - [x] Que el editor muestra como máximo 1000 filas del resultado
-- [ ] Que cuesta 1000 DBU
+- [ ] Que la consulta se repite 1000 veces
 - [ ] Que solo lee 1000 filas de la tabla
 :::
 

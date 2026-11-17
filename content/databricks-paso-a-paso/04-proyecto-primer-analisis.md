@@ -107,12 +107,18 @@ Respuesta a Lucía: *"Listo: el 45 % de los pedidos entra por la web (5400 de 12
 
 En un workspace real el flujo es idéntico: `samples` también existe (con otras tablas, como `samples.nyctaxi.trips`), tu catálogo se llamará como lo haya definido tu administrador (`main`, `dev`, el nombre de tu área) y el cómputo **Serverless** está listo al instante. La única diferencia que vas a notar: la primera celda de Python tarda unos segundos en conectar, no en cargar.
 
+:::errores
+- **Guardar sin elegir el modo.** Sin `overwrite`, la segunda corrida falla porque la tabla ya existe; con `append` se duplica.
+- **No cuadrar totales.** Dos cálculos sobre los mismos pedidos deben sumar lo mismo; si no, algo está mal.
+- **Dejar el resultado solo en el notebook.** Si no se guarda como tabla, nadie más lo puede usar.
+:::
+
 :::ejercicio quiz
 ¿Qué hace `.mode("overwrite")` al guardar?
 - [ ] Agrega las filas al final
 - [x] Reemplaza la tabla si ya existe
 - [ ] Borra el notebook
-- [ ] Crea una copia
+- [ ] Agrega una columna con la fecha de carga
 :::
 
 :::ejercicio quiz
@@ -128,5 +134,5 @@ Los pedidos por canal suman 12 000 y los pedidos por estado también. ¿Qué te 
 - [ ] Que hay un error
 - [x] Que los dos cálculos son consistentes y el total es confiable
 - [ ] Que la tabla está duplicada
-- [ ] Nada
+- [ ] Que hay que agrupar por las dos columnas a la vez
 :::

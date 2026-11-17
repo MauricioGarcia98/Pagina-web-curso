@@ -69,6 +69,12 @@ texto: Historial de actualizaciones - cada intento con su inicio, fin y estado
 
 En Power BI real, el servicio envía un correo al dueño cuando una actualización programada falla.
 
+:::errores
+- **Programar la actualización antes de que termine el ETL.** El informe muestra los datos de ayer.
+- **Orígenes locales sin puerta de enlace.** El servicio no llega a la red de la oficina sin ella.
+- **Credenciales personales en el modelo.** Si cambias la contraseña o te vas, la actualización falla; usa una cuenta de servicio.
+:::
+
 ## ✅ Lo que lograste
 
 - Programaste la actualización.
@@ -79,7 +85,7 @@ En Power BI real, el servicio envía un correo al dueño cuando una actualizaci�
 El modelo lee un SQL Server de la oficina. ¿Qué necesita el servicio para actualizarlo?
 - [ ] Nada
 - [x] Una puerta de enlace de datos local instalada en la red
-- [ ] Una app
+- [ ] Abrir el puerto de SQL Server a internet
 - [ ] Una licencia Premium siempre
 :::
 
@@ -96,5 +102,5 @@ El ETL del lakehouse termina a las 6:00. ¿A qué hora programas la actualizaci�
 - [ ] 5:00
 - [x] Después de las 6:00, por ejemplo 7:00
 - [ ] A medianoche
-- [ ] No importa
+- [ ] A las 6:00 exactas
 :::

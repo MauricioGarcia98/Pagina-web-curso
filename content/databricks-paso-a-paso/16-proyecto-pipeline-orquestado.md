@@ -58,9 +58,15 @@ Mensaje a Lucía: *"`main.ventas_gold.pedidos_por_dia` se actualiza sola cada ma
 
 Idéntico, con dos diferencias: el pipeline corre en **serverless** y tarda minutos la primera vez, y los correos de aviso llegan de verdad. Si tu workspace tiene **Lakeflow Connect**, la bronze puede venir directamente de una base de datos o de Salesforce sin escribir código.
 
+:::errores
+- **Misma acción para todas las expectativas.** Lo grave detiene (FAIL UPDATE); lo esperable se excluye (DROP ROW).
+- **Publicar aunque falle el control.** `publicar` depende del control de calidad: si falla, no corre.
+- **Permisos amplios "para probar".** El grupo de analistas lee solo la capa gold.
+:::
+
 :::ejercicio quiz
 ¿Por qué `con_cliente` lleva FAIL UPDATE y `sin_cancelados` DROP ROW?
-- [ ] Es arbitrario
+- [ ] Porque FAIL UPDATE solo funciona con claves
 - [x] Un pedido sin cliente indica un problema grave en el origen y conviene detener todo; un cancelado es normal y solo hay que excluirlo
 - [ ] FAIL UPDATE es más rápido
 - [ ] DROP ROW no funciona con estados
@@ -71,5 +77,5 @@ En la corrida 2, ¿por qué `publicar` no debe correr?
 - [ ] Porque está mal configurada
 - [x] Porque depende de control_calidad, que falló: no se publica un resumen sobre datos que no pasaron el control
 - [ ] Porque el pipeline falló
-- [ ] Porque es la segunda corrida
+- [ ] Porque los jobs solo publican los lunes
 :::

@@ -75,6 +75,12 @@ RLS se aplica a quienes tienen rol **Visor** en el área de trabajo (o acceden p
 | Que nadie vea datos personales | Quitarlos en Power Query o en el origen (proyecto 2) |
 | Proteger en el lakehouse para todas las herramientas | Filtros de fila y máscaras en el origen (Databricks Unity Catalog, Snowflake) |
 
+:::errores
+- **Probar RLS con un usuario Miembro.** RLS no se aplica a Administradores, Miembros ni Colaboradores; prueba con Ver como y asigna Visor.
+- **Crear roles y no asignar miembros en el servicio.** Sin miembros, el rol no filtra a nadie.
+- **Reglas con correos escritos a mano.** Una tabla de usuarios con `USERPRINCIPALNAME()` escala mejor.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un rol con una regla y lo probaste con Ver como.
@@ -86,7 +92,7 @@ RLS se aplica a quienes tienen rol **Visor** en el área de trabajo (o acceden p
 - [ ] En el servicio
 - [x] En Power BI Desktop: Modelado → Administrar roles
 - [ ] En Power Query
-- [ ] En el panel Filtros
+- [ ] En el servicio, en la configuración del modelo semántico
 :::
 
 :::ejercicio quiz
@@ -102,5 +108,5 @@ Un gerente con rol Miembro en el área de trabajo ve todos los países aunque es
 - [ ] El nombre del informe
 - [x] El correo de quien está viendo el informe
 - [ ] El país del cliente
-- [ ] El rol asignado
+- [ ] El área de trabajo donde está publicado el informe
 :::

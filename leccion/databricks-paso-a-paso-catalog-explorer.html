@@ -100,6 +100,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 4 — De la tabla al SQL</h2>
 <p>El botón <strong>Query</strong> abre el editor SQL con <code>SELECT * FROM samples.tienda.pedidos LIMIT 100;</code> ya escrito. Es el camino más rápido para empezar a consultar una tabla que acabas de encontrar. El menú <strong>⋯</strong> permite editar el comentario de la tabla o crear un notebook que la explore.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Invertir el orden del nombre.</strong> Es <code>catalogo.esquema.tabla</code>: en <code>samples.tienda.pedidos</code>, <code>tienda</code> es el esquema.</li>
+<li><strong>Intentar escribir en catálogos de solo lectura.</strong> <code>samples</code> es para leer; tus tablas van donde tienes permiso (en la práctica, <code>main</code>).</li>
+<li><strong>Filtrar sin mirar los valores.</strong> Sample Data muestra cómo están escritos (&quot;entregado&quot; o &quot;Entregado&quot;) antes de escribir el WHERE.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Entiendes el nombre de tres partes.</li>

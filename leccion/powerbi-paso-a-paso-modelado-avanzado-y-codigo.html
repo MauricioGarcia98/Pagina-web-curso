@@ -85,6 +85,16 @@ Variación %     = VAR a = CALCULATE(SELECTEDMEASURE(), SAMEPERIODLASTYEAR(Calen
 
 
 <p>Una canalización copia el contenido de un área de trabajo de <strong>Desarrollo</strong> a una de <strong>Prueba</strong> y luego a <strong>Producción</strong>, cambiando la conexión a la base de cada entorno. Así nadie edita directamente lo que usa toda la empresa. Con Git integrado al área de trabajo (en Fabric), el flujo queda: rama → pull request → área de desarrollo → canalización → producción.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Escribir la misma variante para cada medida.</strong> Un grupo de cálculo con <code>SELECTEDMEASURE()</code> lo hace una vez.</li>
+<li><strong>Versionar .pbix en Git.</strong> Es binario y no se puede revisar; .pbip guarda el modelo en texto.</li>
+<li><strong>Editar producción directo.</strong> La canalización de implementación pasa contenido entre etapas.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste un grupo de cálculo y conoces los parámetros.</li>

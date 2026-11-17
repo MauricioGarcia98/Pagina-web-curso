@@ -114,6 +114,12 @@ SELECT * FROM system.information_schema.column_tags WHERE tag_name = 'pii';
 
 En Databricks real hay además `system.billing.usage` (costo por cluster, job y etiqueta), `system.access.audit` (quién hizo qué) y `system.query.history`.
 
+:::errores
+- **Dar SELECT sin USE CATALOG y USE SCHEMA.** El grupo no llega a la tabla.
+- **Permisos a personas.** Se dan a grupos; al entrar o salir alguien, cambia el grupo.
+- **Escribir el linaje a mano.** Unity Catalog lo captura solo cuando algo escribe una tabla a partir de otras.
+:::
+
 ## ✅ Lo que lograste
 
 - Diseñas catálogos y esquemas con criterio.
@@ -125,14 +131,14 @@ Le diste SELECT en la tabla a analistas y no pueden leerla. ¿Qué falta, probab
 - [ ] MODIFY
 - [x] USE CATALOG en el catálogo y USE SCHEMA en el esquema
 - [ ] ALL PRIVILEGES
-- [ ] Nada, es un error de Databricks
+- [ ] Que la tabla tenga un comentario
 :::
 
 :::ejercicio quiz
 ¿De dónde sale el linaje de una tabla?
 - [ ] Lo escribe a mano el dueño
 - [x] Unity Catalog lo captura solo cuando una consulta, notebook o pipeline escribe la tabla a partir de otras
-- [ ] De los comentarios
+- [ ] De los nombres de las columnas
 - [ ] De la pestaña Details
 :::
 

@@ -75,6 +75,12 @@ Cada **+** abre el nivel siguiente por el campo que elijas (o por **valor alto**
 Los visuales de IA son buenos para **explorar** y encontrar preguntas. Para el tablero que mira dirección todos los lunes, usa visuales clásicos con medidas verificadas: son predecibles y se pueden explicar número por número.
 :::
 
+:::errores
+- **Mapa sin categoría de datos.** Power BI adivina; una ciudad con el mismo nombre en otro país termina mal ubicada.
+- **Leer correlación como causa.** Influenciadores clave muestra asociaciones, no causas.
+- **Matriz sin formato condicional.** Muchos números juntos se leen mejor con colores que resaltan lo importante.
+:::
+
 ## ✅ Lo que lograste
 
 - Construiste una matriz y un mapa.
@@ -94,7 +100,7 @@ El mapa pone "Córdoba" en España en lugar de Argentina. ¿Qué haces?
 - [ ] Cambio el tema
 - [x] Defino la categoría de datos de la columna y combino ciudad con país
 - [ ] Borro la fila
-- [ ] Uso un gráfico de torta
+- [ ] Cambio el idioma del informe a español
 :::
 
 :::ejercicio quiz
@@ -102,5 +108,5 @@ Influenciadores clave dice que los clientes Pyme compran más. ¿Qué concluyes?
 - [ ] Que ser Pyme causa comprar más
 - [x] Que hay una correlación que vale la pena investigar, no necesariamente una causa
 - [ ] Que el visual está mal
-- [ ] Nada
+- [ ] Que hay que dar descuentos a los clientes que no son Pyme
 :::

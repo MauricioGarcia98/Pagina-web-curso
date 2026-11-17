@@ -96,6 +96,12 @@ texto: Vista - temas, cuadrícula, qué paneles mostrar y el analizador de rendi
 El informe se guarda en tu navegador. **Archivo → Guardar como** descarga un archivo para llevarlo a otra computadora; **Archivo → Nuevo** empieza de cero. El panel **🎯 Reto** de la derecha propone una lista de logros: puedes cerrarlo y volver a abrirlo desde Ayuda → Ver reto.
 :::
 
+:::errores
+- **Compartir el archivo .pbix por correo.** Se desactualiza y cada copia es un riesgo; se publica en el servicio y se comparte desde ahí.
+- **Empezar por los gráficos.** Si los datos no están limpios y el modelo no está bien relacionado, los gráficos muestran números equivocados con buen aspecto.
+- **Buscar las relaciones en la vista Informe.** Se ven y se editan en la vista Modelo.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué es Power BI, sus piezas y su flujo.
@@ -107,7 +113,7 @@ El informe se guarda en tu navegador. **Archivo → Guardar como** descarga un a
 - [ ] Publicar → visualizar → obtener datos
 - [x] Obtener datos → transformar → modelar → medir → visualizar → publicar
 - [ ] Modelar → obtener datos → transformar
-- [ ] No hay orden
+- [ ] Visualizar → medir → modelar → obtener datos
 :::
 
 :::ejercicio quiz
@@ -115,7 +121,7 @@ El informe se guarda en tu navegador. **Archivo → Guardar como** descarga un a
 - [ ] En Power BI Desktop
 - [x] En el servicio de Power BI, después de publicar
 - [ ] En el archivo .pbix
-- [ ] En Excel
+- [ ] En OneDrive, subiendo el .pbix
 :::
 
 :::ejercicio quiz

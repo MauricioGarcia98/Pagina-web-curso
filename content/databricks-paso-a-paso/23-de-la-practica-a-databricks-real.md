@@ -89,6 +89,12 @@ texto: Preferences - el tema del workspace
 - **Práctica en Free Edition**: repite los seis proyectos con tus propios datos.
 - Los cursos de [PySpark](#/m/pyspark), [dbt](#/m/dbt) y [Airflow](#/m/airflow) del sitio se conectan directamente con lo que hace Databricks por dentro y alrededor.
 
+:::errores
+- **Practicar en el workspace de la empresa.** Usa Free Edition o un workspace propio.
+- **Clusters grandes para explorar.** Serverless o un cluster chico con autoterminación.
+- **Subir datos de clientes a un volumen de prueba.** Usa datos de ejemplo.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes cómo conseguir un workspace y qué vas a pagar.
@@ -100,7 +106,7 @@ Quieres seguir practicando por tu cuenta, gratis. ¿Qué usas?
 - [ ] Un cluster grande en la prueba de 14 días
 - [x] Databricks Free Edition
 - [ ] El workspace de producción de tu empresa
-- [ ] No hay opción gratuita
+- [ ] La prueba de 14 días, repetida con otro correo
 :::
 
 :::ejercicio quiz
@@ -108,7 +114,7 @@ Quieres seguir practicando por tu cuenta, gratis. ¿Qué usas?
 - [ ] Solo los DBU
 - [x] Los DBU por hora más las máquinas de la nube mientras está encendido
 - [ ] Solo las máquinas
-- [ ] Una tarifa fija mensual
+- [ ] Solo el almacenamiento de las tablas
 :::
 
 :::ejercicio quiz

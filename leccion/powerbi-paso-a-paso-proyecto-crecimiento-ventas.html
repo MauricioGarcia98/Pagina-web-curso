@@ -101,6 +101,17 @@ ORDER BY Calendario[Año]</code></pre>
 <p>Si <strong>Ventas entregadas</strong> da 14 878 014,07, el filtro de estado no se aplicó: revisa el <code>CALCULATE</code>.</p>
 <h2>Entrega</h2>
 <p>Mensaje a Patricia: <em>&quot;Las ventas entregadas crecieron 23 % en 2024 (4,65 M contra 3,77 M). La web es el 46 % del total y el teléfono, aunque es el canal más chico, es el que más crece (+40 %). Todo calculado solo sobre pedidos entregados.&quot;</em></p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>ALL(pedidos)</code> para la participación.</strong> Borra también el filtro de entregados; solo hay que ignorar el canal.</li>
+<li><strong>Filtro de estado mal escrito.</strong> Si &quot;entregado&quot; no coincide exactamente con los datos, la medida no filtra.</li>
+<li><strong>Comparar años sin tabla de fechas.</strong> El año anterior necesita el calendario marcado.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

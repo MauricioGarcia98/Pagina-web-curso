@@ -106,6 +106,12 @@ El notebook que predice no sabe qué versión usa: pide `@champion`. Cuando el e
 
 Como ingeniero de datos, tu parte suele ser: tablas gold limpias y a tiempo para entrenar, un job que ejecute el entrenamiento y otro que aplique `@champion` a los datos nuevos.
 
+:::errores
+- **Cambiar el código de predicción para usar otra versión.** Se mueve el alias (champion) y el código sigue igual.
+- **Corridas sin parámetros ni métricas.** Sin ellos no se puede comparar qué funcionó.
+- **Modelos guardados en el notebook.** Se registran en Unity Catalog con versiones y permisos.
+:::
+
 ## ✅ Lo que lograste
 
 - Entiendes experimento, corrida, parámetros, métricas y modelo registrado.
@@ -117,7 +123,7 @@ Como ingeniero de datos, tu parte suele ser: tablas gold limpias y a tiempo para
 - [ ] Solo el modelo
 - [x] Parámetros, métricas, artefactos (el modelo) y metadatos del intento
 - [ ] Solo las métricas
-- [ ] La tabla de entrenamiento
+- [ ] Una copia completa del cluster
 :::
 
 :::ejercicio quiz
@@ -133,5 +139,5 @@ El equipo entrenó una versión 4 mejor que la 3. ¿Qué cambian para que produc
 - [ ] En el notebook
 - [x] En Unity Catalog, con nombre de tres partes, versiones y permisos
 - [ ] En un volumen
-- [ ] En el cluster
+- [ ] En la carpeta personal de quien lo entrenó
 :::

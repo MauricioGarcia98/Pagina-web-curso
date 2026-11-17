@@ -106,6 +106,16 @@ FROM read_files('/Volumes/main/default/raw/devoluciones.csv', format =&gt; 'csv'
 <td>Volumen + <code>COPY INTO</code> o un <strong>pipeline</strong> (nivel 4)</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Crear la tabla con montos como texto.</strong> Después no suman; revisa separador y decimales en la vista previa.</li>
+<li><strong>Guardar archivos fuera de un volumen.</strong> Sin volumen, los archivos no tienen los permisos de Unity Catalog.</li>
+<li><strong>Borrar el archivo original después de cargarlo.</strong> Si hay dudas sobre la tabla, el original es la referencia.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste una tabla Delta desde un CSV con el asistente.</li>

@@ -154,6 +154,16 @@ FORMAT_OPTIONS ('header' = 'true', 'inferSchema' = 'true');</code></pre>
 </tr>
 </tbody></table></div>
 <p>Verifícalo siempre con el historial: <code>DESCRIBE HISTORY</code> muestra en <code>operationMetrics</code> cuántas filas insertó, actualizó o borró cada operación.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>INSERT INTO</code> para cargas que se pueden repetir.</strong> Si se relanza, duplica; <code>MERGE</code> o <code>COPY INTO</code> son idempotentes.</li>
+<li><strong>Origen con claves repetidas.</strong> El MERGE falla; deduplica antes.</li>
+<li><strong>Olvidar la condición de cambio.</strong> Sin <code>AND</code> en <code>WHEN MATCHED</code>, se reescriben filas iguales.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Escribes un <code>MERGE</code> con sus ramas.</li>

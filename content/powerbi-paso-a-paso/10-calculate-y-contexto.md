@@ -76,6 +76,12 @@ Clic derecho (o ⋯) en un campo del panel Datos ofrece consultas rápidas: vist
 | `VALUES(col)`, `SELECTEDVALUE(col)` | Qué valores hay en el contexto; el único seleccionado |
 | `USERELATIONSHIP` | Usar una relación inactiva (fecha de envío en vez de fecha de pedido) |
 
+:::errores
+- **Sorprenderse porque una medida con CALCULATE no cambia por fila.** El filtro de CALCULATE reemplaza el del visual sobre esa columna.
+- **`ALL(tabla)` cuando querías respetar las segmentaciones.** Para el total de lo seleccionado se usa `ALLSELECTED`.
+- **Escribir mal el valor del filtro.** `"Web"` y `"web"` son distintos si así están los datos; la medida devuelve vacío.
+:::
+
 ## ✅ Lo que lograste
 
 - Entiendes el contexto de filtro.
@@ -87,7 +93,7 @@ Clic derecho (o ⋯) en un campo del panel Datos ofrece consultas rápidas: vist
 - [ ] Porque hay un error en los datos
 - [x] Porque CALCULATE reemplaza el filtro de canal del visual por canal = "web"
 - [ ] Porque falta una relación
-- [ ] Porque la tabla no está ordenada
+- [ ] Porque la medida tiene el formato de número equivocado
 :::
 
 :::ejercicio quiz
@@ -95,7 +101,7 @@ Clic derecho (o ⋯) en un campo del panel Datos ofrece consultas rápidas: vist
 - [ ] Ventas solo de pedidos entregados
 - [x] Ventas ignorando todos los filtros de la tabla pedidos
 - [ ] Ventas de todos los productos
-- [ ] Nada
+- [ ] Ventas de la fila actual, sin filtros de fecha
 :::
 
 :::ejercicio quiz

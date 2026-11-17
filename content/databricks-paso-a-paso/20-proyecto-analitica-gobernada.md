@@ -54,12 +54,18 @@ Mensaje a Rodrigo: *"Tablero `Ventas comerciales` publicado para el grupo `comer
 
 Los grupos los crea un administrador de la cuenta; pídelos con sus miembros. Al publicar el dashboard, elige **credenciales del lector** para que los filtros de fila se apliquen a cada gerente. Genie respeta los mismos filtros: un gerente que pregunta "ventas por país" ve solo el suyo.
 
+:::errores
+- **Publicar el dashboard con tus credenciales.** Todos ven lo que ves tú; el filtro de fila se aplica a quien ejecuta.
+- **Datasets sobre samples.** La seguridad y la lógica están en gold.
+- **Probar como administrador.** Prueba como un gerente regional real.
+:::
+
 :::ejercicio quiz
 El dashboard se publica con credenciales del editor (las tuyas). Un gerente regional lo abre. ¿Qué ve?
 - [ ] Solo su país
 - [x] Todo lo que ves tú: el filtro de fila se aplica a quien ejecuta la consulta, y con tus credenciales eres tú
 - [ ] Nada
-- [ ] Un error
+- [ ] Solo su país, porque el filtro se aplica a quien abre el tablero
 :::
 
 :::ejercicio quiz
@@ -67,5 +73,5 @@ El dashboard se publica con credenciales del editor (las tuyas). Un gerente regi
 - [ ] Porque samples no tiene datos
 - [x] Porque la gold tiene la seguridad (filtros, máscaras, permisos) y la lógica de negocio; samples es la fuente cruda y de solo lectura
 - [ ] Porque es más rápido escribir
-- [ ] No importa
+- [ ] Porque samples no admite filtros
 :::

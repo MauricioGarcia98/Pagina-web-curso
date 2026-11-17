@@ -119,6 +119,12 @@ Un pipeline se programa agregándolo como **tarea de tipo Pipeline** en un job (
 Para aplicar cambios de un origen (altas, bajas, modificaciones) a una tabla de destino, los pipelines tienen `CREATE FLOW … AS AUTO CDC INTO destino FROM origen KEYS (…) SEQUENCE BY …`: el `MERGE` incremental resuelto por la plataforma, incluso con historial (SCD tipo 2). Lo practicas en la [práctica autocorregida de Databricks SQL](#/l/databricks-practica-sql).
 :::
 
+:::errores
+- **`DROP ROW` para problemas graves.** Descarta en silencio; si el dato roto indica un problema del origen, va `FAIL UPDATE`.
+- **Run pipeline después de cambiar la lógica.** Solo procesa lo nuevo; para recalcular todo hace falta Full refresh.
+- **Streaming table sobre una fuente que se reescribe.** Está pensada para fuentes que crecen (append); si la fuente cambia filas, revisa el diseño.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste y ejecutaste un pipeline con bronze, silver y gold.
@@ -130,12 +136,12 @@ Una fila no cumple una expectativa con ON VIOLATION DROP ROW. ¿Qué pasa?
 - [ ] Falla el pipeline
 - [x] La fila se descarta y se cuenta como fallida en Data quality
 - [ ] Se guarda igual
-- [ ] Se envía por correo
+- [ ] La fila se guarda en una tabla de errores automática
 :::
 
 :::ejercicio quiz
 ¿Qué diferencia a una streaming table de una materialized view?
-- [ ] Ninguna
+- [ ] La streaming table solo admite JSON
 - [x] La streaming table procesa solo lo nuevo de una fuente que crece; la vista materializada se recalcula a partir de sus fuentes
 - [ ] La streaming table es más lenta
 - [ ] La materialized view no se puede consultar
@@ -146,7 +152,7 @@ Cambiaste la lógica de la capa silver y quieres que todas las filas se recalcul
 - [ ] Run pipeline
 - [x] Full refresh all
 - [ ] Dry run
-- [ ] Borrar el pipeline
+- [ ] Validate
 :::
 
 :::ejercicio quiz

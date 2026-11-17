@@ -83,12 +83,18 @@ Mensaje a Andrés: *"Tenemos 2000 clientes: México, Argentina y Colombia concen
 
 Power Query es igual en Power BI Desktop, en Excel (Datos → Obtener datos) y en los Dataflows de Fabric: lo que aprendiste sirve en los tres. Quitar los datos personales lo antes posible (en Power Query o, mejor, en la vista del origen) es una buena práctica que vas a ver en cualquier empresa.
 
+:::errores
+- **Ocultar datos sensibles en lugar de quitarlos.** Ocultos siguen en el modelo y se pueden exportar; se quitan en Power Query.
+- **Mismo número en cada barra.** Es casi siempre una relación faltante o con la dirección equivocada.
+- **No contar los vacíos.** "Cuántos no tienen correo" se responde con el perfil de columna o una medida, no a ojo.
+:::
+
 :::ejercicio quiz
 ¿Por qué quitar telefono en Power Query y no solo ocultarlo en el informe?
 - [ ] Porque ocultar no existe
 - [x] Porque así el dato ni siquiera se carga al modelo: nadie puede verlo ni exportarlo
 - [ ] Porque es más rápido de hacer
-- [ ] Da lo mismo
+- [ ] Porque ocultar borra la columna también del origen
 :::
 
 :::ejercicio quiz
@@ -96,5 +102,5 @@ Los pedidos por segmento muestran 12 000 en cada barra. ¿Qué pasa?
 - [ ] Todos los segmentos hacen los mismos pedidos
 - [x] El filtro de clientes no llega a pedidos: falta la relación o su dirección está mal
 - [ ] Hay que usar otra agregación
-- [ ] Es un error de Power BI
+- [ ] Falta actualizar el informe
 :::

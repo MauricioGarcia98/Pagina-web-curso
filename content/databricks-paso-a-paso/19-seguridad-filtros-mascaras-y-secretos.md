@@ -110,6 +110,12 @@ Un **token de acceso personal** es una contraseña larga para que la CLI, un scr
 - Para procesos automáticos, mejor un **service principal** (una identidad de aplicación) que un token tuyo: si te vas de la empresa, el pipeline sigue.
 - Nunca en el código ni en un repositorio: en un secreto o en la configuración del entorno.
 
+:::errores
+- **Probar la máscara solo con tu usuario.** Consulta dentro y fuera del grupo autorizado.
+- **Contraseñas en widgets o celdas.** Van en un secret scope y se leen con `dbutils.secrets.get`.
+- **Tokens personales en producción.** Si te vas, se rompe; usa un service principal.
+:::
+
 ## ✅ Lo que lograste
 
 - Protegiste una tabla con filtro de fila y máscara, y lo probaste con grupos.
@@ -121,7 +127,7 @@ Un **token de acceso personal** es una contraseña larga para que la CLI, un scr
 - [ ] El valor enmascarado
 - [x] Verdadero o falso para cada fila, según quién consulta
 - [ ] Una tabla
-- [ ] Un número
+- [ ] La lista de usuarios autorizados
 :::
 
 :::ejercicio quiz
@@ -144,6 +150,6 @@ Aplicaste una máscara al email. ¿Cómo compruebas que funciona?
 Un pipeline de producción usa un token personal tuyo. ¿Cuál es el problema?
 - [ ] Ninguno
 - [x] Si te vas o revocas el token, el pipeline deja de funcionar; conviene un service principal
-- [ ] Que el token es muy largo
+- [ ] Que los tokens personales no funcionan fuera del navegador
 - [ ] Que no funciona con jobs
 :::

@@ -56,12 +56,18 @@ Mensaje a Rodrigo: *"Listo el informe comercial: Resumen, Canales y categorías,
 
 En Power BI Desktop, guarda este informe como **proyecto (.pbip)** (Archivo → Guardar como): queda una carpeta de texto que puedes subir a Git. En la práctica, **Archivo → Exportar el modelo (TMDL)** descarga la definición del modelo para abrirla allá.
 
+:::errores
+- **Mezclar universos en una división.** Ventas entregadas sobre todos los pedidos da un ticket más bajo del real.
+- **Página de detalle navegable.** Va oculta y se llega ya filtrada.
+- **Probar solo la página de resumen.** Prueba cada interacción: segmentaciones, detalles, botones.
+:::
+
 :::ejercicio quiz
 ¿Por qué la página de detalle va oculta?
 - [ ] Porque está incompleta
 - [x] Porque se llega a ella con clic derecho o un botón ya filtrada; navegarla sola no tiene sentido
 - [ ] Porque Power BI lo exige
-- [ ] Para que no se publique
+- [ ] Porque las páginas ocultas cargan más rápido
 :::
 
 :::ejercicio quiz
@@ -69,5 +75,5 @@ Ticket promedio = DIVIDE([Ventas entregadas], [Pedidos]). ¿Qué problema tiene?
 - [ ] Ninguno
 - [x] Divide ventas de pedidos entregados por todos los pedidos: mezcla universos y da un ticket más bajo del real
 - [ ] DIVIDE no acepta medidas
-- [ ] Da error
+- [ ] Que DIVIDE no se puede usar con CALCULATE
 :::
