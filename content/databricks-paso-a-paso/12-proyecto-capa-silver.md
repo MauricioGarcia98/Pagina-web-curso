@@ -107,12 +107,18 @@ Agrega un comentario a la tabla que diga qué es y de dónde viene, compacta los
 
 Mensaje a Martín: *"`main.ventas.pedidos_silver` lista (12 000 pedidos). El lote de logística se aplicó con MERGE: 143 pedidos de app pasaron de pendiente a enviado. Probé la vuelta atrás con RESTORE y funciona. El cluster `silver-dev` se apaga solo a los 30 minutos."*
 
+:::errores
+- **No calcular el número esperado antes del MERGE.** Sin él, no puedes verificar que `num_updated_rows` es correcto.
+- **Rehacer la tabla para volver atrás.** `RESTORE` a la versión anterior es más rápido y seguro.
+- **Probar el MERGE una sola vez.** La segunda corrida debe cambiar cero filas.
+:::
+
 :::ejercicio quiz
 ¿Por qué contar los pendientes de app antes del MERGE?
 - [ ] Porque el MERGE lo pide
 - [x] Para tener el número esperado y verificar que num_updated_rows coincide
 - [ ] Para borrarlos
-- [ ] No hace falta
+- [ ] Para que el MERGE corra más rápido
 :::
 
 :::ejercicio quiz

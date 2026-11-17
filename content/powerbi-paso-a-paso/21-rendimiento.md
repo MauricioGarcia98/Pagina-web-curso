@@ -60,6 +60,12 @@ En modo Importar, Power BI comprime cada columna por separado. Lo que más pesa:
 | **Direct Lake** (Fabric) | Lee tablas Delta del lago directo, casi tan rápido como Importar | Si los datos ya están en OneLake |
 | **Agregaciones** | Una tabla resumida en memoria responde la mayoría de las consultas; el detalle va a DirectQuery | Modelos de miles de millones de filas |
 
+:::errores
+- **Culpar al dibujo cuando el tiempo está en la consulta DAX.** El analizador separa cálculo y dibujo.
+- **Columnas con un valor distinto por fila que nadie usa.** Son las que más pesan; quítalas.
+- **Columnas calculadas en lugar de medidas.** Ocupan memoria en cada fila.
+:::
+
 ## ✅ Lo que lograste
 
 - Mides el rendimiento y sabes dónde está el problema.
@@ -70,7 +76,7 @@ En modo Importar, Power BI comprime cada columna por separado. Lo que más pesa:
 El analizador muestra que un visual tarda 3 segundos en "Consulta DAX" y 50 ms en "Objeto visual". ¿Dónde está el problema?
 - [ ] En el dibujo
 - [x] En el cálculo: la medida o el modelo
-- [ ] En el tema
+- [ ] En el tamaño de la página
 - [ ] En la red
 :::
 
@@ -87,5 +93,5 @@ Una tabla de hechos tiene 5 años de historia y solo cambian los últimos días.
 - [ ] Recargar todo cada vez
 - [x] Actualización incremental
 - [ ] Borrar la historia
-- [ ] Pasar todo a columnas calculadas
+- [ ] Pasar la tabla a DirectQuery sin cambiar nada más
 :::

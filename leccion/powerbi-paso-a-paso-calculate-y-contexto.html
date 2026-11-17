@@ -107,6 +107,16 @@ ORDER BY [Ventas] DESC</code></pre>
 <td>Usar una relación inactiva (fecha de envío en vez de fecha de pedido)</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Sorprenderse porque una medida con CALCULATE no cambia por fila.</strong> El filtro de CALCULATE reemplaza el del visual sobre esa columna.</li>
+<li><strong><code>ALL(tabla)</code> cuando querías respetar las segmentaciones.</strong> Para el total de lo seleccionado se usa <code>ALLSELECTED</code>.</li>
+<li><strong>Escribir mal el valor del filtro.</strong> <code>&quot;Web&quot;</code> y <code>&quot;web&quot;</code> son distintos si así están los datos; la medida devuelve vacío.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Entiendes el contexto de filtro.</li>

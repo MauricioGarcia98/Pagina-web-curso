@@ -58,6 +58,12 @@ Los conectores **Snowflake**, **BigQuery** y **Databricks** de la práctica mues
 
 El examen **PL-300: Microsoft Power BI Data Analyst** cubre exactamente este recorrido: preparar los datos (Power Query), modelar (relaciones, DAX), visualizar y analizar, e implementar y mantener (servicio, seguridad, actualización). El curso de [Power BI y DAX](#/m/powerbi) profundiza el motor DAX y el de [certificaciones Azure](#/m/cert-azure) te ayuda a organizar el estudio.
 
+:::errores
+- **Publicar en la web datos internos.** Cualquiera con el vínculo los ve, sin iniciar sesión.
+- **Esperar compartir con licencia gratuita.** Para compartir en áreas de trabajo hace falta Pro, PPU o capacidad.
+- **Rehacer el modelo de cero.** El TMDL de la práctica se lleva a un proyecto .pbip.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes instalar Desktop y llevar tu modelo.
@@ -66,7 +72,7 @@ El examen **PL-300: Microsoft Power BI Data Analyst** cubre exactamente este rec
 
 :::ejercicio quiz
 ¿Cómo llevas el modelo de la práctica a Power BI Desktop real?
-- [ ] No se puede
+- [ ] Importando las capturas como imágenes de fondo
 - [x] Exportando el modelo en TMDL y poniéndolo en la carpeta definition de un proyecto .pbip
 - [ ] Copiando las capturas
 - [ ] Publicando desde la práctica
@@ -85,5 +91,5 @@ Tienes licencia gratuita. ¿Qué no puedes hacer?
 - [ ] Siempre
 - [x] Solo con datos públicos: cualquiera con el vínculo puede verlo
 - [ ] Con datos de clientes si el informe tiene RLS
-- [ ] Nunca
+- [ ] Con datos internos, si el vínculo no se comparte
 :::

@@ -82,6 +82,12 @@ texto: Apps - el contenido que publicaron las áreas de trabajo para consumir
 En Power BI real, compartir y ver contenido de otros requiere licencia **Pro** o **Premium por usuario** para cada persona, salvo que el área de trabajo esté en una capacidad (Premium o Fabric F64 o superior), donde los lectores no necesitan licencia propia. Es una conversación que tu empresa ya tuvo: pregunta cuál usan.
 :::
 
+:::errores
+- **Compartir informe por informe con cada persona.** Una app agrupa los informes y se actualiza en un solo lugar.
+- **Dar Miembro a quien solo consulta.** Visor alcanza y, además, es el rol al que se aplica la seguridad por filas.
+- **Mandar el .pbix.** Se desactualiza y salta los permisos.
+:::
+
 ## ✅ Lo que lograste
 
 - Publicaste un informe y lo abriste en el servicio.
@@ -93,7 +99,7 @@ En Power BI real, compartir y ver contenido de otros requiere licencia **Pro** o
 - [ ] Solo el informe
 - [x] El modelo semántico y el informe
 - [ ] Un archivo .pbix
-- [ ] Un panel
+- [ ] Una app lista para compartir
 :::
 
 :::ejercicio quiz

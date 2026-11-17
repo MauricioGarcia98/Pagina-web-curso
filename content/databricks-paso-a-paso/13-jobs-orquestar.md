@@ -109,6 +109,12 @@ texto: Add trigger - cada hora, día o semana, con hora y zona horaria
 Tareas chicas con nombres claros, dependencias explícitas, reintentos solo donde el error puede ser pasajero, una tarea final de control de calidad, aviso al fallar y parámetros en lugar de fechas escritas en el código.
 :::
 
+:::errores
+- **Repetir toda la corrida cuando falló una tarea.** Repair run vuelve a correr solo lo que falló y lo que depende de ello.
+- **Jobs que se pisan.** Sin `Max concurrent runs = 1`, una corrida lenta se superpone con la siguiente.
+- **Reintentos para errores de código.** Fallan igual en cada intento; sirven para fallas pasajeras.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un job con dos tareas encadenadas y lo ejecutaste.
@@ -120,7 +126,7 @@ La tarea A falla y B depende de A con Run if = All succeeded. ¿Qué pasa con B?
 - [ ] Corre igual
 - [x] Queda en UPSTREAM_FAILED: no corre
 - [ ] Se reintenta
-- [ ] Se borra
+- [ ] Corre con los datos de la corrida anterior de A
 :::
 
 :::ejercicio quiz
@@ -128,7 +134,7 @@ La tarea A falla y B depende de A con Run if = All succeeded. ¿Qué pasa con B?
 - [ ] Repite toda la corrida
 - [x] Vuelve a correr solo las tareas que fallaron y las que dependen de ellas
 - [ ] Borra la corrida
-- [ ] Edita el notebook
+- [ ] Repara la tabla que dejó la tarea fallida
 :::
 
 :::ejercicio quiz
@@ -144,5 +150,5 @@ La tarea A falla y B depende de A con Run if = All succeeded. ¿Qué pasa con B?
 - [ ] Para que corra más rápido
 - [x] Para que no arranque otra corrida del mismo job mientras una sigue en marcha
 - [ ] Para limitar los usuarios
-- [ ] Para ahorrar DBU
+- [ ] Para que el job use un solo cluster
 :::

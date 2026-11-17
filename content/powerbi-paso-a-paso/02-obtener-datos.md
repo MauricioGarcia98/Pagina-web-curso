@@ -73,6 +73,12 @@ texto: El panel Datos con las cinco tablas y sus campos (1); la barra de estado 
 
 Al cargar, Power BI **copió** los datos al modelo (modo **Importar**): el informe es rápido porque consulta su propia copia, y para ver datos nuevos hay que **Actualizar** (botón en Inicio, o a horario en el servicio). Existen otros modos para datos que cambian a cada segundo (DirectQuery) o para lagos de datos (Direct Lake en Fabric); el curso de [Power BI y DAX](#/m/powerbi) los compara.
 
+:::errores
+- **Cargar directo datos sucios.** Si hay filas de título, columnas mal tipadas o vacíos, usa Transformar datos antes de cargar.
+- **Marcar todas las tablas "por las dudas".** Cada tabla extra pesa en el modelo y confunde a quien arma el informe.
+- **Esperar que los datos nuevos aparezcan solos.** Hace falta Actualizar en Desktop o una actualización programada en el servicio.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes elegir un origen y usar el Navegador.
@@ -83,7 +89,7 @@ Al cargar, Power BI **copió** los datos al modelo (modo **Importar**): el infor
 ¿Para qué sirve la casilla junto a cada tabla en el Navegador?
 - [ ] Para borrar la tabla
 - [x] Para incluirla en la carga; el clic en el nombre solo muestra la vista previa
-- [ ] Para ordenarla
+- [ ] Para cargarla con las relaciones ya creadas
 - [ ] Para renombrarla
 :::
 
@@ -92,7 +98,7 @@ Los datos vienen de un Excel con dos filas de título antes de los encabezados. 
 - [ ] Cargar
 - [x] Transformar datos, para arreglarlos en Power Query antes de cargar
 - [ ] Cancelar
-- [ ] Buscar
+- [ ] Cargar, y después borrar las filas en la vista Tabla
 :::
 
 :::ejercicio quiz
@@ -100,5 +106,5 @@ Cargaste las tablas ayer y hoy hay pedidos nuevos en el origen. ¿Qué haces par
 - [ ] Nada, se ven solos
 - [x] Inicio → Actualizar (o programar la actualización en el servicio)
 - [ ] Volver a crear el informe
-- [ ] Cambiar de vista
+- [ ] Publicar el informe de nuevo
 :::

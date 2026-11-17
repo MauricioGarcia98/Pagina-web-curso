@@ -118,6 +118,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Repetir toda la corrida cuando falló una tarea.</strong> Repair run vuelve a correr solo lo que falló y lo que depende de ello.</li>
+<li><strong>Jobs que se pisan.</strong> Sin <code>Max concurrent runs = 1</code>, una corrida lenta se superpone con la siguiente.</li>
+<li><strong>Reintentos para errores de código.</strong> Fallan igual en cada intento; sirven para fallas pasajeras.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste un job con dos tareas encadenadas y lo ejecutaste.</li>

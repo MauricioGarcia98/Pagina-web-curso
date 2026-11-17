@@ -106,6 +106,16 @@ databricks bundle deploy -t prod      # lo mismo, en producción (normalmente de
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Desplegar a mano en producción.</strong> Sin historial ni revisión; el bundle se despliega desde CI/CD.</li>
+<li><strong>Confundir validate con deploy.</strong> <code>validate</code> revisa la configuración; <code>deploy</code> crea o actualiza los recursos.</li>
+<li><strong>Un archivo distinto por entorno.</strong> Un solo <code>databricks.yml</code> con targets dev y prod.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Lees un job como código y sabes exportarlo.</li>

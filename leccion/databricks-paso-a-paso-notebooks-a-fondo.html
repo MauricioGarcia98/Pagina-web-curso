@@ -167,6 +167,16 @@ display(df.groupBy(&quot;estado&quot;).count().filter(f&quot;count &gt;= {minimo
 <li><strong>Run all debe funcionar de arriba abajo</strong>: si depende de que ejecutes algo a mano en otro orden, un job va a fallar.</li>
 <li><strong>Sin credenciales en el código</strong>: <code>dbutils.secrets.get</code>.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Notebooks que solo funcionan con celdas corridas a mano.</strong> Un job ejecuta de arriba abajo; prueba con Run all.</li>
+<li><strong>Recibir parámetros con <code>input()</code>.</strong> En un job no hay nadie para escribir; se usan widgets.</li>
+<li><strong><code>%run</code> de un notebook pesado.</strong> Ejecuta todo su contenido en el tuyo; mueve las funciones comunes a un archivo o módulo.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Usas los comandos mágicos y <code>dbutils</code>.</li>

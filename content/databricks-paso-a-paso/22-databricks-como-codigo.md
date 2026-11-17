@@ -129,6 +129,12 @@ El curso de [GitHub](#/m/github) (lecciones 17 y 22) arma este flujo paso a paso
 Un job creado a mano en prod no tiene historial, no se puede revisar, no se puede reproducir en otro workspace y se pierde si alguien lo borra. Con bundles, producción es el resultado de un archivo en Git: se sabe quién cambió qué, se puede volver atrás y dev y prod son iguales salvo por el target.
 :::
 
+:::errores
+- **Desplegar a mano en producción.** Sin historial ni revisión; el bundle se despliega desde CI/CD.
+- **Confundir validate con deploy.** `validate` revisa la configuración; `deploy` crea o actualiza los recursos.
+- **Un archivo distinto por entorno.** Un solo `databricks.yml` con targets dev y prod.
+:::
+
 ## ✅ Lo que lograste
 
 - Lees un job como código y sabes exportarlo.
@@ -156,5 +162,5 @@ Un job creado a mano en prod no tiene historial, no se puede revisar, no se pued
 - [ ] Porque es más rápido escribir YAML
 - [x] Porque queda historial, revisión y reproducibilidad, y dev y prod salen del mismo código
 - [ ] Porque la interfaz no permite crear jobs en prod
-- [ ] No conviene
+- [ ] Porque la interfaz de Databricks no deja editar jobs
 :::

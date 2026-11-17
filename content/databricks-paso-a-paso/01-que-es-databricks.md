@@ -81,6 +81,12 @@ Es el atajo más usado: en lugar de ir a cada sección, **New → Notebook** cre
 Notebooks, tablas, jobs y clusters se guardan en tu navegador: al volver están donde los dejaste. Si quieres empezar de cero, el menú de tu usuario (la **A** arriba a la derecha) tiene la opción de reiniciar la práctica.
 :::
 
+:::errores
+- **Confundir el workspace con los datos.** El workspace es donde trabajas; los datos viven en tu nube y los gobierna Unity Catalog.
+- **Buscar las máquinas en Workspace.** El cómputo está en Compute.
+- **Creer que todo en la práctica es real.** El SQL corre de verdad; los clusters y los costos son una simulación.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué es Databricks y qué es un lakehouse.
@@ -92,7 +98,7 @@ Notebooks, tablas, jobs y clusters se guardan en tu navegador: al volver están 
 - [ ] Una base de datos relacional tradicional
 - [x] Archivos en tu nube con el orden de un warehouse: tablas, transacciones, permisos y buen rendimiento
 - [ ] Un servidor para alojar páginas web
-- [ ] Una hoja de cálculo muy grande
+- [ ] Un data lake sin tablas ni permisos, solo archivos
 :::
 
 :::ejercicio quiz
@@ -107,7 +113,7 @@ Notebooks, tablas, jobs y clusters se guardan en tu navegador: al volver están 
 ¿Qué hace el botón New?
 - [ ] Crea un usuario nuevo
 - [x] Crea un notebook, una consulta, un job, un pipeline, compute y otros objetos desde cualquier lugar
-- [ ] Borra el workspace
+- [ ] Abre una sesión nueva del navegador
 - [ ] Abre la documentación
 :::
 

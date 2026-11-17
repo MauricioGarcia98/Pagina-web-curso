@@ -94,6 +94,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 5 — El cómputo de todo esto</h2>
 <p>Dashboards, alertas y Genie corren sobre un <strong>SQL warehouse</strong> (lección 11). Un tablero con diez gráficos que consultan tablas de millones de filas, abierto por cien personas, necesita un warehouse más grande o más clusters; un tablero sobre tablas <strong>gold</strong> chicas (como <code>pedidos_por_dia</code>) vuela en el más pequeño. Por eso la capa gold existe: no para el ingeniero, sino para el tablero.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Editar y no publicar.</strong> El negocio ve la versión publicada hasta que publiques de nuevo.</li>
+<li><strong>Tableros sobre bronze.</strong> Son lentos y caros; se construyen sobre gold.</li>
+<li><strong>Alertas con consultas de muchas filas.</strong> La alerta mira la primera fila; la consulta debe devolver el valor a vigilar.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste y publicaste un dashboard con dataset, gráfico y filtro.</li>

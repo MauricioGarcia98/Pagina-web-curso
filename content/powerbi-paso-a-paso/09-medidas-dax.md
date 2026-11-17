@@ -82,6 +82,12 @@ Control: **Ventas = 14 878 014,07** · **Pedidos = 12 000** · **Ticket promedio
 Muchos equipos crean una tabla vacía llamada `_Medidas` y guardan ahí todas las medidas: el panel Datos queda ordenado (medidas arriba, tablas abajo) y nadie busca "¿en qué tabla estaba Ventas?".
 :::
 
+:::errores
+- **Multiplicar sumas.** `SUM(cantidad) * SUM(precio)` no es la venta; se multiplica fila por fila con `SUMX`.
+- **Dividir con `/`.** Si el divisor es cero, da error o infinito; `DIVIDE` devuelve vacío.
+- **Repetir la fórmula en vez de reutilizar la medida.** Si Ticket promedio copia la fórmula de Ventas, al cambiar Ventas quedan distintas.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste tus primeras medidas.
@@ -93,7 +99,7 @@ Muchos equipos crean una tabla vacía llamada `_Medidas` y guardan ahí todas la
 - [ ] Porque SUMX es más rápido
 - [x] Porque hay que multiplicar cantidad por precio en cada línea y después sumar; multiplicar las sumas da otro número
 - [ ] Porque SUM no existe
-- [ ] Da lo mismo
+- [ ] Porque SUM no acepta columnas de tipo decimal
 :::
 
 :::ejercicio quiz
@@ -101,7 +107,7 @@ Muchos equipos crean una tabla vacía llamada `_Medidas` y guardan ahí todas la
 - [ ] Un error
 - [x] Vacío (en blanco)
 - [ ] Cero siempre
-- [ ] Infinito
+- [ ] El promedio de los otros canales
 :::
 
 :::ejercicio quiz

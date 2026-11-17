@@ -75,6 +75,12 @@ texto: Las pestañas de página - clic derecho para cambiar el nombre, duplicar,
 | Alinear y dejar aire | El orden transmite confianza en los números |
 | Mismo formato de número en todo el informe | 14,9 M en un lado y 14 878 014 en otro confunde |
 
+:::errores
+- **Títulos técnicos.** "Suma de ventas por canal" describe el visual; un buen título dice qué conclusión mirar.
+- **Tortas para todo.** Para tendencias va línea; para comparar categorías, barras.
+- **Cada informe con sus colores.** Un tema guardado mantiene el estilo del equipo.
+:::
+
 ## ✅ Lo que lograste
 
 - Das formato a los visuales y aplicas temas.
@@ -86,7 +92,7 @@ texto: Las pestañas de página - clic derecho para cambiar el nombre, duplicar,
 - [ ] "Gráfico 1"
 - [ ] "Suma de ventas por canal"
 - [x] Una pregunta o conclusión: "¿Qué canal vende más?" o "La web vende casi la mitad"
-- [ ] Ninguno
+- [ ] El nombre de la tabla de origen
 :::
 
 :::ejercicio quiz
@@ -94,7 +100,7 @@ texto: Las pestañas de página - clic derecho para cambiar el nombre, duplicar,
 - [ ] Para cambiar los datos
 - [x] Para usar los mismos colores y estilos en todos los informes del equipo
 - [ ] Para publicar
-- [ ] Para borrar los visuales
+- [ ] Para guardar una copia del informe con otro nombre
 :::
 
 :::ejercicio quiz

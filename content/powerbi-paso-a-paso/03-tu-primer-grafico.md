@@ -71,6 +71,12 @@ texto: Archivo - Nuevo, Abrir, Guardar como, Exportar el modelo (TMDL), Exportar
 
 En la práctica el informe se guarda solo en tu navegador; **Guardar como** lo descarga. En Power BI real, **Ctrl + S** guarda el `.pbix` (o el proyecto `.pbip`).
 
+:::errores
+- **Dejar la agregación por defecto en un ID.** "Suma de pedido_id" no significa nada; se cuenta con Recuento (o una medida).
+- **Convertir sin querer el visual seleccionado.** Al elegir otro tipo en la galería con un visual seleccionado, ese visual cambia; haz clic en el lienzo vacío para crear uno nuevo.
+- **Ignorar el filtrado cruzado.** Un clic en una barra filtra toda la página; si un número "cambió solo", revisa qué está seleccionado.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste tres objetos visuales y entendiste los pozos.
@@ -82,7 +88,7 @@ Tienes un visual seleccionado y haces clic en "Tarjeta" en la galería. ¿Qué p
 - [ ] Se crea una tarjeta nueva
 - [x] El visual seleccionado se convierte en tarjeta
 - [ ] Se borra el visual
-- [ ] Nada
+- [ ] Se agrega una tarjeta al lado con los mismos campos
 :::
 
 :::ejercicio quiz
@@ -90,7 +96,7 @@ Pusiste pedido_id en Eje Y y muestra "Suma de pedido_id". ¿Qué haces?
 - [ ] Lo borro
 - [x] En el menú del campo dentro del pozo elijo Recuento
 - [ ] Cambio el tipo de visual
-- [ ] Creo otra tabla
+- [ ] Cambio el tipo de dato de pedido_id a texto en el visual
 :::
 
 :::ejercicio quiz
@@ -98,5 +104,5 @@ Pusiste pedido_id en Eje Y y muestra "Suma de pedido_id". ¿Qué haces?
 - [ ] Se abre el editor
 - [x] Los demás visuales de la página se filtran por ese valor
 - [ ] Se borra la barra
-- [ ] Cambia el color de la página
+- [ ] Se ordena el gráfico por esa barra
 :::

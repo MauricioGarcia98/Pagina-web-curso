@@ -109,6 +109,12 @@ Escribe el nombre **Ventas por canal** y Enter. Lo vas a usar en todo el nivel.
 
 Una celda de texto empieza con `%md` y acepta Markdown (`#` títulos, `-` listas, `**negrita**`): sirve para explicar qué hace el notebook.
 
+:::errores
+- **Crear otro notebook para usar SQL.** Una celda que empieza con `%sql` alcanza.
+- **Usar `print(df)` para ver datos.** `display(df)` muestra una tabla interactiva con orden, descarga y gráficos.
+- **Guardar todo en tu carpeta personal.** Lo que usa el equipo va en una carpeta compartida o en un repositorio Git.
+:::
+
 ## ✅ Lo que lograste
 
 - Te mueves por el workspace.
@@ -117,7 +123,7 @@ Una celda de texto empieza con `%md` y acepta Markdown (`#` títulos, `-` listas
 
 :::ejercicio quiz
 ¿Qué hace Shift + Enter en una celda?
-- [ ] La borra
+- [ ] La ejecuta y se queda en la misma celda
 - [x] La ejecuta y pasa a la siguiente
 - [ ] La convierte en texto
 - [ ] Guarda el notebook
@@ -136,7 +142,7 @@ El notebook es Python y quieres una celda con SQL. ¿Qué haces?
 - [ ] Para borrar el DataFrame
 - [x] Para mostrarlo como tabla interactiva, con orden, descarga y gráficos
 - [ ] Para guardarlo en el catálogo
-- [ ] Para imprimirlo en papel
+- [ ] Para convertirlo en un DataFrame de pandas
 :::
 
 :::ejercicio quiz

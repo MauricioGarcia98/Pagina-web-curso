@@ -126,6 +126,16 @@ WHERE table_catalog = 'main';
 -- columnas con etiqueta pii
 SELECT * FROM system.information_schema.column_tags WHERE tag_name = 'pii';</code></pre>
 <p>En Databricks real hay además <code>system.billing.usage</code> (costo por cluster, job y etiqueta), <code>system.access.audit</code> (quién hizo qué) y <code>system.query.history</code>.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Dar SELECT sin USE CATALOG y USE SCHEMA.</strong> El grupo no llega a la tabla.</li>
+<li><strong>Permisos a personas.</strong> Se dan a grupos; al entrar o salir alguien, cambia el grupo.</li>
+<li><strong>Escribir el linaje a mano.</strong> Unity Catalog lo captura solo cuando algo escribe una tabla a partir de otras.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Diseñas catálogos y esquemas con criterio.</li>

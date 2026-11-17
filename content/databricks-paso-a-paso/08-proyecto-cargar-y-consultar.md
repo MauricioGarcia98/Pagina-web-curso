@@ -94,18 +94,24 @@ Respuesta a Sofía: *"Electrónica concentra el 59 % del monto devuelto (767 de 
 
 El asistente **Add data** y los volúmenes funcionan igual. Para archivos que llegan cada semana, en lugar de subirlos a mano se deja una carpeta del volumen como buzón y se automatiza la carga con `COPY INTO` o un pipeline (niveles 3 y 4).
 
+:::errores
+- **Entregar números que no cuadran.** Si un total da 0 o distinto, se revisa la tabla antes de responder.
+- **No conservar el archivo original.** Va en un volumen para volver a él si hace falta.
+- **Responder sin decir de dónde salió cada número.** Deja la consulta con el resultado.
+:::
+
 :::ejercicio quiz
 ¿Por qué guardar también el archivo original en un volumen?
 - [ ] Porque Add data lo exige
 - [x] Para conservar el dato tal como llegó: si hay dudas o errores en la tabla, se vuelve al original
 - [ ] Para que ocupe menos
-- [ ] No tiene sentido
+- [ ] Para que Databricks lo cargue de nuevo cada noche
 :::
 
 :::ejercicio quiz
 El total por categoría da 1293.70 pero por canal da 0. ¿Qué pasó, probablemente?
 - [ ] Hay más canales que categorías
 - [x] Algo en la columna usada o en el tipo de monto está mal: hay que revisar la tabla, no entregar
-- [ ] Es normal
+- [ ] Que el canal no tiene devoluciones
 - [ ] Faltan permisos
 :::

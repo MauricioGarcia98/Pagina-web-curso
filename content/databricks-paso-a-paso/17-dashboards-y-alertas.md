@@ -85,6 +85,12 @@ Una alerta que se dispara siempre se ignora siempre. Define la condición sobre 
 
 Dashboards, alertas y Genie corren sobre un **SQL warehouse** (lección 11). Un tablero con diez gráficos que consultan tablas de millones de filas, abierto por cien personas, necesita un warehouse más grande o más clusters; un tablero sobre tablas **gold** chicas (como `pedidos_por_dia`) vuela en el más pequeño. Por eso la capa gold existe: no para el ingeniero, sino para el tablero.
 
+:::errores
+- **Editar y no publicar.** El negocio ve la versión publicada hasta que publiques de nuevo.
+- **Tableros sobre bronze.** Son lentos y caros; se construyen sobre gold.
+- **Alertas con consultas de muchas filas.** La alerta mira la primera fila; la consulta debe devolver el valor a vigilar.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste y publicaste un dashboard con dataset, gráfico y filtro.
@@ -96,7 +102,7 @@ Editas el borrador de un dashboard publicado. ¿Qué ve el negocio?
 - [ ] Los cambios al instante
 - [x] La versión publicada, sin cambios, hasta que vuelvas a publicar
 - [ ] Un error
-- [ ] Nada
+- [ ] Los cambios al día siguiente
 :::
 
 :::ejercicio quiz
@@ -104,7 +110,7 @@ Editas el borrador de un dashboard publicado. ¿Qué ve el negocio?
 - [ ] Miles de filas
 - [x] Un valor en la columna vigilada (la alerta mira la primera fila)
 - [ ] Un gráfico
-- [ ] Una tabla nueva
+- [ ] La lista de destinatarios
 :::
 
 :::ejercicio quiz

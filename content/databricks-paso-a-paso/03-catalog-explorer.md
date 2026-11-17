@@ -76,6 +76,12 @@ Treinta segundos en **Sample Data** evitan media hora de consultas equivocadas: 
 
 El botón **Query** abre el editor SQL con `SELECT * FROM samples.tienda.pedidos LIMIT 100;` ya escrito. Es el camino más rápido para empezar a consultar una tabla que acabas de encontrar. El menú **⋯** permite editar el comentario de la tabla o crear un notebook que la explore.
 
+:::errores
+- **Invertir el orden del nombre.** Es `catalogo.esquema.tabla`: en `samples.tienda.pedidos`, `tienda` es el esquema.
+- **Intentar escribir en catálogos de solo lectura.** `samples` es para leer; tus tablas van donde tienes permiso (en la práctica, `main`).
+- **Filtrar sin mirar los valores.** Sample Data muestra cómo están escritos ("entregado" o "Entregado") antes de escribir el WHERE.
+:::
+
 ## ✅ Lo que lograste
 
 - Entiendes el nombre de tres partes.
@@ -87,7 +93,7 @@ En `samples.tienda.pedidos`, ¿qué es `tienda`?
 - [ ] El catálogo
 - [x] El esquema
 - [ ] La tabla
-- [ ] El workspace
+- [ ] Una carpeta del workspace
 :::
 
 :::ejercicio quiz
@@ -95,7 +101,7 @@ En `samples.tienda.pedidos`, ¿qué es `tienda`?
 - [ ] samples
 - [x] main
 - [ ] system
-- [ ] En ninguno
+- [ ] En samples, que se puede escribir
 :::
 
 :::ejercicio quiz

@@ -112,6 +112,12 @@ texto: File - clonar, renombrar, mover, exportar e importar
 - **Run all debe funcionar de arriba abajo**: si depende de que ejecutes algo a mano en otro orden, un job va a fallar.
 - **Sin credenciales en el código**: `dbutils.secrets.get`.
 
+:::errores
+- **Notebooks que solo funcionan con celdas corridas a mano.** Un job ejecuta de arriba abajo; prueba con Run all.
+- **Recibir parámetros con `input()`.** En un job no hay nadie para escribir; se usan widgets.
+- **`%run` de un notebook pesado.** Ejecuta todo su contenido en el tuyo; mueve las funciones comunes a un archivo o módulo.
+:::
+
 ## ✅ Lo que lograste
 
 - Usas los comandos mágicos y `dbutils`.
@@ -122,7 +128,7 @@ texto: File - clonar, renombrar, mover, exportar e importar
 ¿Qué hace `%run ./utilidades`?
 - [ ] Borra el notebook utilidades
 - [x] Ejecuta ese notebook dentro del actual y deja disponibles sus funciones y variables
-- [ ] Lo exporta
+- [ ] Lo abre en una pestaña nueva sin ejecutarlo
 - [ ] Lo programa como job
 :::
 
@@ -147,5 +153,5 @@ Un job tiene que pasarle la fecha a tu notebook. ¿Cómo la recibe el notebook?
 - [ ] Porque es más rápido
 - [x] Porque un job ejecuta el notebook en ese orden, sin nadie que corra celdas a mano
 - [ ] Porque Databricks lo exige
-- [ ] No importa el orden
+- [ ] Porque los widgets solo se leen en la primera celda
 :::

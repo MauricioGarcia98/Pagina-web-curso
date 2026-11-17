@@ -99,6 +99,17 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Mensaje a Andrés: <em>&quot;Tenemos 2000 clientes: México, Argentina y Colombia concentran más de la mitad. El 69 % es Consumidor. Hay 89 sin email que no entran en las campañas por correo. Teléfonos y fechas de nacimiento quedaron fuera del modelo.&quot;</em></p>
 <h2>🖥️ Hazlo también en Power BI real</h2>
 <p>Power Query es igual en Power BI Desktop, en Excel (Datos → Obtener datos) y en los Dataflows de Fabric: lo que aprendiste sirve en los tres. Quitar los datos personales lo antes posible (en Power Query o, mejor, en la vista del origen) es una buena práctica que vas a ver en cualquier empresa.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Ocultar datos sensibles en lugar de quitarlos.</strong> Ocultos siguen en el modelo y se pueden exportar; se quitan en Power Query.</li>
+<li><strong>Mismo número en cada barra.</strong> Es casi siempre una relación faltante o con la dirección equivocada.</li>
+<li><strong>No contar los vacíos.</strong> &quot;Cuántos no tienen correo&quot; se responde con el perfil de columna o una medida, no a ojo.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

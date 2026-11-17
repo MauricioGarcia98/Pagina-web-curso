@@ -155,6 +155,16 @@ GROUP BY fecha, canal;</code></pre>
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>DROP ROW</code> para problemas graves.</strong> Descarta en silencio; si el dato roto indica un problema del origen, va <code>FAIL UPDATE</code>.</li>
+<li><strong>Run pipeline después de cambiar la lógica.</strong> Solo procesa lo nuevo; para recalcular todo hace falta Full refresh.</li>
+<li><strong>Streaming table sobre una fuente que se reescribe.</strong> Está pensada para fuentes que crecen (append); si la fuente cambia filas, revisa el diseño.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste y ejecutaste un pipeline con bronze, silver y gold.</li>

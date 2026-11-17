@@ -105,6 +105,17 @@ ORDER BY monto DESC;</code></pre>
 <p>Respuesta a Sofía: <em>&quot;Electrónica concentra el 59 % del monto devuelto (767 de 1294) y la web el 66 %. Casi todo lo de Electrónica es &#39;defectuoso&#39;. Te dejé la consulta &#39;Devoluciones por canal&#39; en Queries: cambiás el canal arriba y ves el detalle.&quot;</em></p>
 <h2>🖥️ Hazlo también en Databricks real</h2>
 <p>El asistente <strong>Add data</strong> y los volúmenes funcionan igual. Para archivos que llegan cada semana, en lugar de subirlos a mano se deja una carpeta del volumen como buzón y se automatiza la carga con <code>COPY INTO</code> o un pipeline (niveles 3 y 4).</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Entregar números que no cuadran.</strong> Si un total da 0 o distinto, se revisa la tabla antes de responder.</li>
+<li><strong>No conservar el archivo original.</strong> Va en un volumen para volver a él si hace falta.</li>
+<li><strong>Responder sin decir de dónde salió cada número.</strong> Deja la consulta con el resultado.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

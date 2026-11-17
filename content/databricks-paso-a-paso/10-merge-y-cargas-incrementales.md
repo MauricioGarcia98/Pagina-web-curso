@@ -105,6 +105,12 @@ Una carga es **idempotente** si correrla dos veces deja el mismo resultado que c
 
 Verifícalo siempre con el historial: `DESCRIBE HISTORY` muestra en `operationMetrics` cuántas filas insertó, actualizó o borró cada operación.
 
+:::errores
+- **`INSERT INTO` para cargas que se pueden repetir.** Si se relanza, duplica; `MERGE` o `COPY INTO` son idempotentes.
+- **Origen con claves repetidas.** El MERGE falla; deduplica antes.
+- **Olvidar la condición de cambio.** Sin `AND` en `WHEN MATCHED`, se reescriben filas iguales.
+:::
+
 ## ✅ Lo que lograste
 
 - Escribes un `MERGE` con sus ramas.
@@ -116,7 +122,7 @@ Verifícalo siempre con el historial: `DESCRIBE HISTORY` muestra en `operationMe
 - [ ] Borra las filas que no coinciden
 - [x] Inserta en el destino las filas del origen que no existían
 - [ ] Actualiza todas las filas
-- [ ] Nada
+- [ ] Inserta las filas del destino que no están en el origen
 :::
 
 :::ejercicio quiz
@@ -124,7 +130,7 @@ Corres COPY INTO dos veces sobre la misma carpeta sin archivos nuevos. ¿Qué pa
 - [ ] Duplica todas las filas
 - [x] No carga nada: ya procesó esos archivos
 - [ ] Da error
-- [ ] Borra la tabla
+- [ ] Vuelve a cargar solo el último archivo
 :::
 
 :::ejercicio quiz
@@ -132,7 +138,7 @@ Un job de carga con INSERT INTO falló a la mitad y lo relanzaron. ¿Qué riesgo
 - [ ] Ninguno
 - [x] Filas duplicadas: INSERT INTO no es idempotente
 - [ ] Que se borre la tabla
-- [ ] Que cambie el esquema
+- [ ] Que la tabla quede bloqueada
 :::
 
 :::ejercicio quiz

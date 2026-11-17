@@ -80,6 +80,12 @@ texto: Atrás, Marcador, Navegación de páginas, Obtener detalles, Preguntas y 
 
 En Power BI Desktop se hace **Ctrl + clic** sobre un botón para probarlo; en el servicio, clic normal.
 
+:::errores
+- **Segmentación para algo que no debe cambiarse.** Si todo el informe es de 2024 sin opción, va un filtro en todas las páginas.
+- **Ordenar y borrar para un top 5.** Al cambiar los datos, el top cambia; el filtro N superior se recalcula.
+- **Página de detalles visible en la navegación.** Sin el filtro que trae el clic derecho, muestra todo y confunde.
+:::
+
 ## ✅ Lo que lograste
 
 - Usas los tres niveles y tipos de filtro.
@@ -99,7 +105,7 @@ Quieres que todo el informe muestre solo 2024, sin que el usuario lo pueda cambi
 - [ ] Ordeno y borro el resto
 - [x] Filtro de objeto visual por país, tipo N superior, 5, por la medida de ventas
 - [ ] Con un marcador
-- [ ] No se puede
+- [ ] Con una segmentación de país y cinco selecciones
 :::
 
 :::ejercicio quiz
@@ -107,5 +113,5 @@ Quieres que todo el informe muestre solo 2024, sin que el usuario lo pueda cambi
 - [ ] Desde el menú Archivo
 - [x] Con clic derecho en un dato de otra página → Obtener detalles (o un botón)
 - [ ] Solo desde el servicio
-- [ ] Escribiendo una URL
+- [ ] Con un filtro de página que el usuario elige
 :::

@@ -91,6 +91,12 @@ Arma una tabla con `Calendario[Año]` y las tres medidas y compara. **Ventas YTD
 La relación usa `fecha_pedido`. Si el negocio mide ventas por fecha de entrega o de pago, los números por mes cambian. Define con el área cuál es "la" fecha antes de construir; si necesitas las dos, una relación queda inactiva y se usa con `USERELATIONSHIP` dentro de CALCULATE.
 :::
 
+:::errores
+- **Usar la columna de fecha de la tabla de hechos.** Las funciones de tiempo necesitan un calendario continuo marcado como tabla de fechas.
+- **Calendario que no cubre todas las fechas.** Si falta un año, el acumulado y el año anterior dan vacío o mal.
+- **Crecimiento como resta.** La resta da la diferencia; el crecimiento es la diferencia dividida por el año anterior.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste, relacionaste y marcaste una tabla de fechas.
@@ -101,7 +107,7 @@ La relación usa `fecha_pedido`. Si el negocio mide ventas por fecha de entrega 
 ¿Por qué crear una tabla de fechas propia en lugar de usar la columna fecha_pedido?
 - [ ] Porque fecha_pedido no se puede usar en gráficos
 - [x] Porque las funciones de tiempo necesitan un calendario continuo, sin huecos, marcado como tabla de fechas
-- [ ] Porque es más lindo
+- [ ] Porque fecha_pedido tiene demasiados valores distintos
 - [ ] No hace falta nunca
 :::
 
@@ -109,7 +115,7 @@ La relación usa `fecha_pedido`. Si el negocio mide ventas por fecha de entrega 
 En 2022, ¿qué muestra Ventas año anterior?
 - [ ] Las ventas de 2022
 - [x] Vacío, porque no hay datos de 2021
-- [ ] Un error
+- [ ] Las ventas de 2022 repetidas
 - [ ] Las ventas de 2023
 :::
 

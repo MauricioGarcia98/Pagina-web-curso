@@ -91,6 +91,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Filtros de fila y máscaras en el origen (Databricks Unity Catalog, Snowflake)</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Probar RLS con un usuario Miembro.</strong> RLS no se aplica a Administradores, Miembros ni Colaboradores; prueba con Ver como y asigna Visor.</li>
+<li><strong>Crear roles y no asignar miembros en el servicio.</strong> Sin miembros, el rol no filtra a nadie.</li>
+<li><strong>Reglas con correos escritos a mano.</strong> Una tabla de usuarios con <code>USERPRINCIPALNAME()</code> escala mejor.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste un rol con una regla y lo probaste con Ver como.</li>

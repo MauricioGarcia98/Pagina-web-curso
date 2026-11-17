@@ -92,9 +92,15 @@ Si **Ventas entregadas** da 14 878 014,07, el filtro de estado no se aplicó: re
 
 Mensaje a Patricia: *"Las ventas entregadas crecieron 23 % en 2024 (4,65 M contra 3,77 M). La web es el 46 % del total y el teléfono, aunque es el canal más chico, es el que más crece (+40 %). Todo calculado solo sobre pedidos entregados."*
 
+:::errores
+- **`ALL(pedidos)` para la participación.** Borra también el filtro de entregados; solo hay que ignorar el canal.
+- **Filtro de estado mal escrito.** Si "entregado" no coincide exactamente con los datos, la medida no filtra.
+- **Comparar años sin tabla de fechas.** El año anterior necesita el calendario marcado.
+:::
+
 :::ejercicio quiz
 ¿Por qué la participación usa ALL(pedidos[canal]) y no ALL(pedidos)?
-- [ ] Da lo mismo
+- [ ] Porque ALL(pedidos) solo funciona en tablas de dimensión
 - [x] Porque ALL(pedidos) también quitaría el filtro de estado entregado y otros filtros de pedidos; solo hay que ignorar el canal
 - [ ] Porque ALL(pedidos) no existe
 - [ ] Porque es más rápido
@@ -102,7 +108,7 @@ Mensaje a Patricia: *"Las ventas entregadas crecieron 23 % en 2024 (4,65 M contr
 
 :::ejercicio quiz
 Ventas entregadas da lo mismo que Ventas. ¿Qué revisas primero?
-- [ ] El tema del informe
+- [ ] El orden de las columnas en la tabla pedidos
 - [x] El filtro pedidos[estado] = "entregado" dentro del CALCULATE (que esté bien escrito el valor)
 - [ ] La tabla de fechas
 - [ ] La segmentación

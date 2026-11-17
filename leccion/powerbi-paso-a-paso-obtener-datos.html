@@ -111,6 +111,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>Paso 4 — Importar: qué pasó con los datos</h2>
 <p>Al cargar, Power BI <strong>copió</strong> los datos al modelo (modo <strong>Importar</strong>): el informe es rápido porque consulta su propia copia, y para ver datos nuevos hay que <strong>Actualizar</strong> (botón en Inicio, o a horario en el servicio). Existen otros modos para datos que cambian a cada segundo (DirectQuery) o para lagos de datos (Direct Lake en Fabric); el curso de <a href="#/m/powerbi">Power BI y DAX</a> los compara.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Cargar directo datos sucios.</strong> Si hay filas de título, columnas mal tipadas o vacíos, usa Transformar datos antes de cargar.</li>
+<li><strong>Marcar todas las tablas &quot;por las dudas&quot;.</strong> Cada tabla extra pesa en el modelo y confunde a quien arma el informe.</li>
+<li><strong>Esperar que los datos nuevos aparezcan solos.</strong> Hace falta Actualizar en Desktop o una actualización programada en el servicio.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Sabes elegir un origen y usar el Navegador.</li>

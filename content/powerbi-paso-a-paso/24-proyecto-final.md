@@ -83,11 +83,17 @@ Ya dominas Power BI como lo usa un equipo de BI. Los caminos naturales desde aqu
 - **[Databricks paso a paso](#/m/databricks-paso-a-paso)**: la capa gold que alimenta tus tableros.
 - **[Portafolio](#/m/portafolio)**: convertir estos proyectos en piezas que te consigan entrevistas.
 
+:::errores
+- **Graficar antes de definir.** "Cuánto tardamos" necesita una definición escrita: desde qué marca, en qué unidad, qué pasa con los pedidos sin entrega.
+- **Afirmar que hay RLS sin mostrarlo.** Ver como con el correo del gerente es la prueba.
+- **Presentar medidas en vez de hallazgos.** El comité quiere conclusiones, una recomendación y cómo medirla.
+:::
+
 :::ejercicio quiz
 El pedido dice "cuánto tardamos en entregar". ¿Qué haces primero?
 - [ ] Hago un gráfico de entregado menos creado
 - [x] Defino qué tiempo mido (desde qué marca hasta cuál, en qué unidad, qué hago con los pedidos sin entrega) y lo escribo en el informe
-- [ ] Le pregunto a Copilot
+- [ ] Uso la mediana sin explicar qué mide
 - [ ] Uso el promedio de cada ciudad
 :::
 

@@ -122,6 +122,16 @@ modelo.predict([4, 10])</code></pre>
 </tr>
 </tbody></table></div>
 <p>Como ingeniero de datos, tu parte suele ser: tablas gold limpias y a tiempo para entrenar, un job que ejecute el entrenamiento y otro que aplique <code>@champion</code> a los datos nuevos.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Cambiar el código de predicción para usar otra versión.</strong> Se mueve el alias (champion) y el código sigue igual.</li>
+<li><strong>Corridas sin parámetros ni métricas.</strong> Sin ellos no se puede comparar qué funcionó.</li>
+<li><strong>Modelos guardados en el notebook.</strong> Se registran en Unity Catalog con versiones y permisos.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Entiendes experimento, corrida, parámetros, métricas y modelo registrado.</li>

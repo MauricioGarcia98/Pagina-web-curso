@@ -107,6 +107,17 @@ SELECT * FROM main.default.ventas_por_canal ORDER BY count DESC</code></pre>
 <p>Respuesta a Lucía: <em>&quot;Listo: el 45 % de los pedidos entra por la web (5400 de 12 000) y el 77 % está entregado. El detalle está en el notebook <code>Ventas por canal</code> y la tabla por canal quedó en <code>main.default.ventas_por_canal</code>.&quot;</em></p>
 <h2>🖥️ Hazlo también en Databricks real</h2>
 <p>En un workspace real el flujo es idéntico: <code>samples</code> también existe (con otras tablas, como <code>samples.nyctaxi.trips</code>), tu catálogo se llamará como lo haya definido tu administrador (<code>main</code>, <code>dev</code>, el nombre de tu área) y el cómputo <strong>Serverless</strong> está listo al instante. La única diferencia que vas a notar: la primera celda de Python tarda unos segundos en conectar, no en cargar.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Guardar sin elegir el modo.</strong> Sin <code>overwrite</code>, la segunda corrida falla porque la tabla ya existe; con <code>append</code> se duplica.</li>
+<li><strong>No cuadrar totales.</strong> Dos cálculos sobre los mismos pedidos deben sumar lo mismo; si no, algo está mal.</li>
+<li><strong>Dejar el resultado solo en el notebook.</strong> Si no se guarda como tabla, nadie más lo puede usar.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

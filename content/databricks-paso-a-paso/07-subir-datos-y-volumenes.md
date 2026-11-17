@@ -106,6 +106,12 @@ texto: read_files lee el archivo del volumen (1) y el resultado confirma las 12 
 | Carga puntual de un CSV pequeño | **Add data** directo a tabla |
 | Archivos que llegan todos los días | Volumen + `COPY INTO` o un **pipeline** (nivel 4) |
 
+:::errores
+- **Crear la tabla con montos como texto.** Después no suman; revisa separador y decimales en la vista previa.
+- **Guardar archivos fuera de un volumen.** Sin volumen, los archivos no tienen los permisos de Unity Catalog.
+- **Borrar el archivo original después de cargarlo.** Si hay dudas sobre la tabla, el original es la referencia.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste una tabla Delta desde un CSV con el asistente.
@@ -117,7 +123,7 @@ texto: read_files lee el archivo del volumen (1) y el resultado confirma las 12 
 - [ ] Una tabla muy grande
 - [x] Una carpeta gobernada para archivos, que vive en un esquema y hereda sus permisos
 - [ ] Un tipo de cluster
-- [ ] Una copia de seguridad
+- [ ] Un disco que se adjunta al cluster
 :::
 
 :::ejercicio quiz
@@ -125,7 +131,7 @@ La vista previa de Add data muestra la columna monto como STRING. ¿Qué haces?
 - [ ] La creo igual y después la sumo
 - [x] Reviso el archivo (separador, decimales) y la corrijo antes de crear la tabla, o la creo con SQL indicando el formato
 - [ ] Borro la columna
-- [ ] Cambio de catálogo
+- [ ] La sumo con CAST en cada consulta y dejo la tabla así
 :::
 
 :::ejercicio quiz

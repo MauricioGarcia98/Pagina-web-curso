@@ -119,6 +119,17 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Mensaje a Rodrigo: <em>&quot;Tablero <code>Ventas comerciales</code> publicado para el grupo <code>comercial</code>; los gerentes regionales ven solo su país y nadie fuera de datos ve correos ni teléfonos (lo probé entrando y saliendo de los grupos). Podés preguntarle al agente <code>Ventas comerciales</code>; respondió bien las 10 preguntas de prueba, que te adjunto. Las alertas avisan si un día vende menos de X o si los rechazos del mes superan Y, con esos umbrales porque…&quot;</em></p>
 <h2>🖥️ Hazlo también en Databricks real</h2>
 <p>Los grupos los crea un administrador de la cuenta; pídelos con sus miembros. Al publicar el dashboard, elige <strong>credenciales del lector</strong> para que los filtros de fila se apliquen a cada gerente. Genie respeta los mismos filtros: un gerente que pregunta &quot;ventas por país&quot; ve solo el suyo.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Publicar el dashboard con tus credenciales.</strong> Todos ven lo que ves tú; el filtro de fila se aplica a quien ejecuta.</li>
+<li><strong>Datasets sobre samples.</strong> La seguridad y la lógica están en gold.</li>
+<li><strong>Probar como administrador.</strong> Prueba como un gerente regional real.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

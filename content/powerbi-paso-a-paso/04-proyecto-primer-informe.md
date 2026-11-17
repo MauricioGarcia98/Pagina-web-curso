@@ -60,6 +60,12 @@ Mensaje a Lucía: *"Lista la página `Pedidos semanal`: 12 000 pedidos, el 45 % 
 
 Descarga Power BI Desktop (gratis, Windows) y repite el proyecto con cualquier tabla tuya: la mecánica de galería, pozos y segmentaciones es idéntica. Si no tienes datos, en la práctica **Archivo → Exportar el modelo (TMDL)** te da el modelo para abrirlo allá.
 
+:::errores
+- **Línea mensual sin el nivel Mes.** Con solo Año en el eje, la línea tiene un punto por año.
+- **No cuadrar los totales.** Si la suma de las barras no coincide con la tarjeta, algún filtro o relación está mal.
+- **Títulos por defecto.** "Recuento de pedido_id por canal" no dice nada a la jefa; el título cuenta qué muestra.
+:::
+
 :::ejercicio quiz
 La línea mensual muestra un solo punto por año. ¿Qué falta?
 - [ ] Más datos
@@ -73,5 +79,5 @@ La línea mensual muestra un solo punto por año. ¿Qué falta?
 - [ ] Mirando los colores
 - [x] Comprobando que la suma de las barras de cada gráfico coincide con el total de la tarjeta
 - [ ] Publicando
-- [ ] No hace falta
+- [ ] Mirando que todos usen el mismo tema
 :::

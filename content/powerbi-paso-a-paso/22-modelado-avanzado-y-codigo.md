@@ -81,6 +81,12 @@ texto: Canalizaciones - Desarrollo → Prueba → Producción
 
 Una canalización copia el contenido de un área de trabajo de **Desarrollo** a una de **Prueba** y luego a **Producción**, cambiando la conexión a la base de cada entorno. Así nadie edita directamente lo que usa toda la empresa. Con Git integrado al área de trabajo (en Fabric), el flujo queda: rama → pull request → área de desarrollo → canalización → producción.
 
+:::errores
+- **Escribir la misma variante para cada medida.** Un grupo de cálculo con `SELECTEDMEASURE()` lo hace una vez.
+- **Versionar .pbix en Git.** Es binario y no se puede revisar; .pbip guarda el modelo en texto.
+- **Editar producción directo.** La canalización de implementación pasa contenido entre etapas.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un grupo de cálculo y conoces los parámetros.
@@ -108,5 +114,5 @@ Tienes 12 medidas y necesitas "año anterior" de cada una. ¿Qué conviene?
 - [ ] Para actualizar los datos
 - [x] Para pasar contenido de Desarrollo a Prueba y a Producción sin editar producción directamente
 - [ ] Para crear medidas
-- [ ] Para compartir con un vínculo
+- [ ] Para programar la actualización de los datos
 :::

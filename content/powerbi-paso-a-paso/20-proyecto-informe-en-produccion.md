@@ -50,12 +50,18 @@ Rodrigo: *"El informe gustó. Ahora lo quiero en serio: que se actualice solo to
 
 Mensaje a Rodrigo: *"El informe está en producción en el área 'Comercial': se actualiza todos los días a las 7:00, cada gerente ve solo su país (lo probé con los tres) y los vendedores lo tienen en la app 'Ventas'. Dejé un documento de operación con qué hacer si falla la actualización y cómo dar acceso a alguien nuevo."*
 
+:::errores
+- **Relacionar la tabla de gerentes con el modelo.** No hace falta y puede filtrar donde no corresponde; la regla la consulta con LOOKUPVALUE.
+- **No prever usuarios nuevos.** Si no están en la tabla, no ven datos; documenta cómo se agregan.
+- **Probar seguridad solo con tu usuario.** Usa Ver como con varios correos.
+:::
+
 :::ejercicio quiz
 ¿Por qué la tabla gerentes no se relaciona con el resto del modelo?
 - [ ] Porque no se puede
 - [x] Porque solo la consulta la regla RLS con LOOKUPVALUE; relacionarla no hace falta y podría filtrar donde no corresponde
 - [ ] Porque es muy grande
-- [ ] Por error
+- [ ] Porque las tablas de seguridad deben estar en otro modelo
 :::
 
 :::ejercicio quiz

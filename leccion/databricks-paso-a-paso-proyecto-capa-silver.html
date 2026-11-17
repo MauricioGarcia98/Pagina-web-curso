@@ -117,6 +117,17 @@ WHEN MATCHED THEN UPDATE SET estado = lote.estado;</code></pre>
 </tbody></table></div>
 <h2>Entrega</h2>
 <p>Mensaje a Martín: <em>&quot;<code>main.ventas.pedidos_silver</code> lista (12 000 pedidos). El lote de logística se aplicó con MERGE: 143 pedidos de app pasaron de pendiente a enviado. Probé la vuelta atrás con RESTORE y funciona. El cluster <code>silver-dev</code> se apaga solo a los 30 minutos.&quot;</em></p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>No calcular el número esperado antes del MERGE.</strong> Sin él, no puedes verificar que <code>num_updated_rows</code> es correcto.</li>
+<li><strong>Rehacer la tabla para volver atrás.</strong> <code>RESTORE</code> a la versión anterior es más rápido y seguro.</li>
+<li><strong>Probar el MERGE una sola vez.</strong> La segunda corrida debe cambiar cero filas.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

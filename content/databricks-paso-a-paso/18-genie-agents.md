@@ -72,6 +72,12 @@ El [módulo de Genie](#/m/genie) del curso profundiza en diseño de espacios, ev
 - No inventa datos, pero sí puede elegir mal una tabla o una columna: por eso se evalúa.
 - Respeta los permisos de Unity Catalog: cada persona ve solo lo que puede ver (incluidos filtros de fila y máscaras, lección 19).
 
+:::errores
+- **Darle todas las tablas.** Más tablas, más chances de que use la equivocada.
+- **Corregir al usuario en vez de la configuración.** Una instrucción y una consulta de ejemplo enseñan al agente.
+- **Entregar sin probar.** Prueba con preguntas cuya respuesta conoces.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un Genie Agent y le preguntaste.
@@ -83,7 +89,7 @@ El [módulo de Genie](#/m/genie) del curso profundiza en diseño de espacios, ev
 - [ ] Porque hay un límite de 3
 - [x] Porque con menos tablas hay menos chance de que use la equivocada
 - [ ] Porque es más barato
-- [ ] No conviene: mejor todas
+- [ ] Porque Genie solo lee tablas de menos de un millón de filas
 :::
 
 :::ejercicio quiz
@@ -96,7 +102,7 @@ Alguien pregunta "¿cuánto facturamos?" y Genie suma la columna equivocada. ¿C
 
 :::ejercicio quiz
 ¿Qué haces antes de entregar un agente al negocio?
-- [ ] Nada: funciona solo
+- [ ] Publicarlo y esperar las quejas
 - [x] Probarlo con preguntas cuya respuesta conozco y corregir la configuración hasta que acierte
 - [ ] Darle todas las tablas
 - [ ] Publicarlo como dashboard

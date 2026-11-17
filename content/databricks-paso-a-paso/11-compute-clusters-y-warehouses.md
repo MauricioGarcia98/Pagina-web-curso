@@ -113,6 +113,12 @@ Si eliges un cluster apagado, la primera celda lo enciende y espera. En la prác
 5. **Etiquetas** (*tags*) en cada cluster: `equipo=datos`, `entorno=dev`, para saber quién gasta qué.
 6. Las **políticas** del administrador limitan tamaños y obligan autoterminación: en una empresa casi siempre vas a crear compute con una política.
 
+:::errores
+- **Clusters sin autoterminación.** Siguen cobrando todo el fin de semana.
+- **Un cluster de uso general para un tablero.** Los tableros y Power BI usan un SQL warehouse.
+- **Agrandar el warehouse para más usuarios.** Para concurrencia se suben los clusters (scaling); el tamaño acelera consultas grandes.
+:::
+
 ## ✅ Lo que lograste
 
 - Distingues los tipos de cómputo y cuándo usar cada uno.
@@ -123,7 +129,7 @@ Si eliges un cluster apagado, la primera celda lo enciende y espera. En la prác
 ¿Qué es un DBU?
 - [ ] Un tipo de tabla
 - [x] La unidad de cómputo de Databricks: se cobran por hora según el tamaño del cluster
-- [ ] Un usuario
+- [ ] El espacio que ocupa una tabla Delta
 - [ ] Una versión del runtime
 :::
 
@@ -132,7 +138,7 @@ Creas un cluster sin autoterminación y te vas el viernes. ¿Qué pasa?
 - [ ] Se apaga solo
 - [x] Sigue encendido y cobrando todo el fin de semana
 - [ ] Databricks te avisa
-- [ ] Pasa a serverless
+- [ ] Se apaga a la medianoche
 :::
 
 :::ejercicio quiz
@@ -148,5 +154,5 @@ Un tablero de Power BI consulta tablas de Databricks. ¿Qué cómputo usa?
 - [ ] Para consultas más grandes
 - [x] Para atender a muchos usuarios a la vez
 - [ ] Para guardar más datos
-- [ ] Para apagarlo antes
+- [ ] Para guardar más resultados en la caché
 :::

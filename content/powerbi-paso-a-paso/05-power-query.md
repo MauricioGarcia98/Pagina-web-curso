@@ -95,6 +95,12 @@ Cada paso usa el resultado del anterior por su nombre. No hace falta escribir M 
 
 **Cerrar y aplicar** (arriba a la izquierda) ejecuta todas las consultas y carga el resultado al modelo. Hasta que no lo hagas, los cambios no llegan al informe.
 
+:::errores
+- **Editar en Power Query y olvidar Cerrar y aplicar.** Los cambios no llegan al modelo hasta aplicarlos.
+- **Borrar un paso del medio sin mirar los siguientes.** Los pasos de después pueden depender de él y fallar.
+- **Limpiar a mano en Excel antes de cargar.** Esa limpieza no se repite sola; en Power Query queda grabada y se aplica en cada actualización.
+:::
+
 ## ✅ Lo que lograste
 
 - Conoces las zonas del editor.
@@ -103,7 +109,7 @@ Cada paso usa el resultado del anterior por su nombre. No hace falta escribir M 
 
 :::ejercicio quiz
 ¿Qué es un paso aplicado?
-- [ ] Un gráfico del informe
+- [ ] Una copia de la tabla guardada en cada momento
 - [x] Una transformación grabada que Power Query repite cada vez que se actualizan los datos
 - [ ] Una relación entre tablas
 - [ ] Una medida DAX
@@ -114,7 +120,7 @@ Quitaste una columna en Power Query pero sigue apareciendo en el panel Datos. ¿
 - [ ] Publicar
 - [x] Cerrar y aplicar
 - [ ] Crear una medida
-- [ ] Reiniciar
+- [ ] Ocultarla en la vista Modelo
 :::
 
 :::ejercicio quiz

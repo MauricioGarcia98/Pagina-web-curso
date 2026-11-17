@@ -111,6 +111,16 @@ Ticket promedio = DIVIDE([Ventas], [Pedidos])</code></pre>
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Multiplicar sumas.</strong> <code>SUM(cantidad) * SUM(precio)</code> no es la venta; se multiplica fila por fila con <code>SUMX</code>.</li>
+<li><strong>Dividir con <code>/</code>.</strong> Si el divisor es cero, da error o infinito; <code>DIVIDE</code> devuelve vacío.</li>
+<li><strong>Repetir la fórmula en vez de reutilizar la medida.</strong> Si Ticket promedio copia la fórmula de Ventas, al cambiar Ventas quedan distintas.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste tus primeras medidas.</li>

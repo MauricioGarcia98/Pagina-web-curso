@@ -107,6 +107,16 @@ SELECT 'version 0', COUNT(*) FROM main.default.clientes_demo VERSION AS OF 0 WHE
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Corregir borrados a mano.</strong> <code>DESCRIBE HISTORY</code> muestra la versión anterior y <code>RESTORE</code> vuelve a ella.</li>
+<li><strong><code>VACUUM</code> con retención corta.</strong> Borra los archivos viejos y con ellos la posibilidad de volver atrás.</li>
+<li><strong>Creer que RESTORE borra el historial.</strong> Crea una versión nueva igual a la elegida; las demás siguen.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Entiendes qué aporta Delta.</li>
