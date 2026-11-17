@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Transformar con Spark SQL y PySpark - escribir tablas nuevas</h1><p class="resumen">Un notebook no solo lee - escribe tablas Delta nuevas en el lakehouse. Creas ventas_por_canal con CREATE OR REPLACE TABLE en Spark SQL y unidades_por_tienda con PySpark y saveAsTable, las ves aparecer en Tables y entiendes los modos de escritura y cuándo usar cada lenguaje.</p>
 <a class="cta" href="../index.html#/l/fabric-paso-a-paso-transformar-con-spark">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una tabla con CREATE OR REPLACE TABLE … AS SELECT</li><li>Agregar con PySpark y guardar con saveAsTable</li><li>Elegir el modo de escritura (overwrite, append)</li><li>Verificar las tablas nuevas en el lakehouse</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Leer, transformar y guardar en el estante</div>
+
+<p>Transformar con Spark es tomar ingredientes de un estante (tablas o archivos), prepararlos en la mesada (el DataFrame) y guardar el resultado en otro estante con etiqueta (una tabla Delta en Tables). El modo de escritura decide si reemplazas el frasco o le agregas más.</p>
+</div>
+
+
 <h2>Paso 1 — Una tabla con Spark SQL</h2>
 <p>En el notebook, <strong>+ Code</strong> y escribe:</p>
 <pre data-norun><code class="language-sql">%%sql
@@ -71,6 +77,16 @@ WHEN NOT MATCHED THEN INSERT *</code></pre>
 <div class="callout callout-tip"><div class="callout-title">💡 ¿SQL o PySpark?</div>
 
 <p>Las dos generan el mismo plan en Spark. <strong>SQL</strong> es más claro para seleccionar, unir y agrupar. <strong>PySpark</strong> conviene cuando hay lógica (bucles, funciones, leer muchos archivos, llamar APIs). En un mismo notebook se mezclan sin problema.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Usar <code>overwrite</code> en una carga diaria.</strong> Borra lo anterior; para sumar se usa <code>append</code>, o <code>MERGE</code> si pueden venir repetidos.</li>
+<li><strong><code>append</code> sin control de duplicados.</strong> Reprocesar un día lo duplica; con MERGE por clave la carga es idempotente.</li>
+<li><strong>Escribir en Files cuando querías una tabla.</strong> <code>saveAsTable</code> crea la tabla en Tables; <code>save</code> con una ruta escribe archivos.</li>
+</ul>
 </div>
 
 

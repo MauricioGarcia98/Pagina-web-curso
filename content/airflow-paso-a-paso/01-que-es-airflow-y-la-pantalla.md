@@ -88,6 +88,12 @@ texto: Admin - Variables, Pools, Providers, Plugins, Connections y Config
 El botón **Volver a Herramientas** arriba a la izquierda te trae de vuelta. Lo que hagas en la práctica se guarda en tu navegador.
 :::
 
+:::errores
+- **Procesar datos dentro de Airflow.** Airflow decide qué corre y cuándo; el trabajo pesado va en el warehouse, en Spark o en un servicio externo.
+- **Buscar un Dag que no aparece en la lista.** Si el archivo tiene un error, el Dag no aparece: está en Dag Import Errors.
+- **Guardar credenciales en el código.** Van en Connections (o en un secrets backend), en el menú Admin.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué problema resuelve un orquestador.
@@ -98,8 +104,8 @@ El botón **Volver a Herramientas** arriba a la izquierda te trae de vuelta. Lo 
 ¿Qué hace Airflow?
 - [ ] Guarda los datos de la empresa
 - [x] Decide qué tareas corren, en qué orden y cuándo, y qué pasa si fallan
-- [ ] Reemplaza a Python
-- [ ] Hace los gráficos del reporte
+- [ ] Ejecuta las transformaciones pesadas en sus propios workers
+- [ ] Guarda una copia de cada tabla que mueve
 :::
 
 :::ejercicio quiz
@@ -107,7 +113,7 @@ El botón **Volver a Herramientas** arriba a la izquierda te trae de vuelta. Lo 
 - [ ] El executor
 - [x] El dag processor
 - [ ] La base de metadatos
-- [ ] El navegador
+- [ ] El webserver, al abrir la página
 :::
 
 :::ejercicio quiz
@@ -115,7 +121,7 @@ El botón **Volver a Herramientas** arriba a la izquierda te trae de vuelta. Lo 
 - [x] En el indicador Dag Import Errors
 - [ ] En Pool Slots
 - [ ] En Admin → Plugins
-- [ ] No se puede ver
+- [ ] En el log de la última tarea que corrió
 :::
 
 :::ejercicio quiz

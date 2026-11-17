@@ -80,6 +80,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <pre data-norun><code class="language-python">df = spark.read.option(&quot;header&quot;, True).csv(&quot;Files/raw/pedidos_2024.csv&quot;)</code></pre>
 <p>OneLake habla la misma API que Azure Data Lake Storage Gen2: por eso las herramientas que ya leían ADLS también leen OneLake.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Pensar que hay un OneLake por workspace.</strong> Hay uno por organización; los workspaces son carpetas dentro de él.</li>
+<li><strong>Copiar la URL del navegador para leer desde otra herramienta.</strong> La ruta que sirve es la ABFS.</li>
+<li><strong>Usar cualquier tabla del catálogo sin mirar si está certificada.</strong> Prefiere los ítems marcados como confiables.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Sabes qué es OneLake y cómo buscar en su catálogo.</li>

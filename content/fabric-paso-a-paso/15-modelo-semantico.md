@@ -8,6 +8,10 @@ prerrequisitos: fabric-paso-a-paso-vistas-y-la-capa-de-negocio
 autoevaluacion: ¿Sabes qué es un modelo semántico? | ¿Sabes qué ventaja tiene Direct Lake? | ¿Sabes escribir una medida que cuente filas? | ¿Sabes de dónde lee el modelo?
 ---
 
+:::analogia El diccionario del negocio
+El modelo semántico es el diccionario del negocio para Power BI: qué tablas hay, cómo se relacionan y qué significa "pedidos" o "ventas" (las medidas). Con Direct Lake, ese diccionario lee las tablas Delta directamente del lago, sin importar una copia.
+:::
+
 ## Paso 1 — Crear el modelo
 
 En `lh_ventas`, **New semantic model**:
@@ -48,6 +52,12 @@ texto: La medida Pedidos en la sección Measures del modelo
 
 Las medidas viven en el modelo, no en cada informe: todos los informes que usan este modelo comparten la misma definición de "Pedidos". El curso [Power BI paso a paso](#/m/powerbi-paso-a-paso) cubre DAX a fondo.
 
+:::errores
+- **Definir la misma medida en cada informe.** Las medidas compartidas van en el modelo; así todos calculan igual.
+- **`COUNT(*)` en DAX.** No existe; se cuenta con `COUNTROWS(tabla)`.
+- **Esperar Direct Lake desde cualquier fuente.** Lee tablas Delta de OneLake; otras fuentes usan importación o DirectQuery.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un modelo semántico sobre el lakehouse.
@@ -58,7 +68,7 @@ Las medidas viven en el modelo, no en cada informe: todos los informes que usan 
 ¿Qué es un modelo semántico?
 - [ ] Un archivo CSV
 - [x] Las tablas, relaciones y medidas que usa Power BI para los informes
-- [ ] Un pipeline
+- [ ] Una copia de las tablas del lakehouse en Excel
 - [ ] Un lakehouse
 :::
 
@@ -67,7 +77,7 @@ Las medidas viven en el modelo, no en cada informe: todos los informes que usan 
 - [ ] Copia los datos cada noche
 - [x] Lee las tablas Delta de OneLake directamente: rápido y al día, sin copiar
 - [ ] Funciona con cualquier base
-- [ ] No necesita tablas
+- [ ] Importa los datos cada vez que se abre el informe
 :::
 
 :::ejercicio quiz
@@ -83,5 +93,5 @@ Las medidas viven en el modelo, no en cada informe: todos los informes que usan 
 - [ ] En cada informe
 - [x] En el modelo semántico
 - [ ] En el lakehouse
-- [ ] En el pipeline
+- [ ] En una vista del warehouse
 :::

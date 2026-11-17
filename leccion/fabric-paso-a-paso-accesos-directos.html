@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un acceso directo del escritorio</div>
+
+<p>Un acceso directo de Fabric funciona como el de tu escritorio: el archivo no se mueve ni se copia, solo aparece en otro lugar. Si el original cambia, lo ves al instante; si no tienes permiso sobre el original, el acceso no te deja entrar.</p>
+</div>
+
+
 <h2>Paso 1 — Un segundo lakehouse</h2>
 <p>En el workspace, <strong>New item → Lakehouse</strong>, <code>lh_reportes</code>. En su página de inicio, <strong>New shortcut</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/fabric/b07-atajo.webp" alt="New shortcut - la tabla de origen (1) y el nombre del acceso directo (2)" loading="lazy"><figcaption>New shortcut - la tabla de origen (1) y el nombre del acceso directo (2)</figcaption></figure>
@@ -66,6 +72,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-nota"><div class="callout-title">📝 Permisos</div>
 
 <p>Quien lee un acceso directo necesita permiso sobre el <strong>origen</strong>. Un acceso directo no saltea la seguridad: si no puedes leer <code>lh_ventas</code>, tampoco puedes leer el acceso directo a sus tablas.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Copiar tablas entre lakehouses &quot;para tenerlas a mano&quot;.</strong> Cada copia se desactualiza; un acceso directo muestra siempre la versión actual.</li>
+<li><strong>Dar permiso solo sobre el acceso directo.</strong> Hace falta permiso sobre el origen; si no, el acceso directo no muestra nada.</li>
+<li><strong>Borrar el origen.</strong> El acceso directo queda roto; revisa el linaje antes de borrar.</li>
+</ul>
 </div>
 
 

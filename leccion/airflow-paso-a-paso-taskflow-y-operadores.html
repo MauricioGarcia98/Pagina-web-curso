@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>TaskFlow y operadores - dos formas de escribir tareas</h1><p class="resumen">Airflow tiene dos estilos para crear tareas - los operadores clásicos y TaskFlow con @task. Escribes resumen_tiendas con TaskFlow, donde cada tarea devuelve un valor que usa la siguiente, comparas con ingesta_api hecho con operadores y un TaskGroup, y aprendes cuándo conviene cada estilo.</p>
 <a class="cta" href="../index.html#/l/airflow-paso-a-paso-taskflow-y-operadores">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir tareas con @dag y @task</li><li>Pasar valores entre tareas devolviéndolos</li><li>Reconocer operadores clásicos y TaskGroup</li><li>Elegir entre TaskFlow y operadores</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Funciones que se pasan resultados</div>
+
+<p>Con TaskFlow escribes las tareas como funciones de Python que se pasan resultados: <code>informar(total_unidades(leer_ventas()))</code>. Airflow ve esas llamadas y arma solo el orden y el traspaso de datos entre tareas.</p>
+</div>
+
+
 <h2>Paso 1 — Un Dag con TaskFlow</h2>
 <p><code>resumen_tiendas.py</code>:</p>
 <pre data-norun><code class="language-python">from datetime import datetime
@@ -123,6 +129,16 @@ inicio &gt;&gt; descargas &gt;&gt; validar &gt;&gt; fin</code></pre>
 </tr>
 </tbody></table></div>
 <p>Se pueden mezclar en el mismo Dag: <code>tarea_taskflow() &gt;&gt; operador_clasico</code>.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Olvidar llamar a la función del Dag al final.</strong> Sin <code>resumen_tiendas()</code>, el Dag no se registra.</li>
+<li><strong>Creer que la función corre al leer el archivo.</strong> Llamarla dentro del <code>@dag</code> crea la tarea; se ejecuta después, en la corrida.</li>
+<li><strong>BashOperator con curl para todo.</strong> Para servicios como Databricks o BigQuery, el operador del provider maneja autenticación, reintentos y estados.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Escribiste un Dag con TaskFlow.</li>

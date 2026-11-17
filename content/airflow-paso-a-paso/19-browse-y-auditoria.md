@@ -8,6 +8,10 @@ prerrequisitos: airflow-paso-a-paso-pools-y-concurrencia
 autoevaluacion: ¿Sabes dónde ver todas las tareas fallidas? | ¿Sabes qué registra el Audit Log? | ¿Sabes reconstruir quién pausó un Dag? | ¿Sabes qué revisar al empezar la guardia?
 ---
 
+:::analogia La vista desde la torre de control
+Browse es la torre de control: en vez de entrar a cada Dag, ves todas las corridas y todas las tareas juntas, y el Audit Log te dice quién pausó, despausó o disparó qué y cuándo.
+:::
+
 ## Paso 1 — Todas las corridas
 
 **Browse → Dag Runs**:
@@ -56,6 +60,12 @@ Cada Dag tiene también su propia pestaña **Audit Log**.
 Nadie mira la pantalla a las 3 de la mañana. La guardia revisa la interfaz, pero las fallas importantes tienen que **avisar solas** (siguiente lección).
 :::
 
+:::errores
+- **Revisar Dag por Dag.** Con decenas de Dags, Browse → Task Instances filtrado por Failed muestra todo junto.
+- **Depender de que alguien mire la interfaz.** Las fallas importantes deben avisar solas (callbacks, notifiers).
+- **Ignorar el Audit Log ante un comportamiento raro.** Un Dag que empezó a correr solo casi siempre tiene un `unpaused` registrado.
+:::
+
 ## ✅ Lo que lograste
 
 - Buscas corridas y tareas en toda la instalación.
@@ -75,21 +85,21 @@ Nadie mira la pantalla a las 3 de la mañana. La guardia revisa la interfaz, per
 - [ ] Solo los errores de Python
 - [x] Las acciones sobre Dags, corridas y configuración, con usuario y hora
 - [ ] Los datos de las tablas
-- [ ] Las contraseñas
+- [ ] Solo los cambios de código de los Dags
 :::
 
 :::ejercicio quiz
 Un Dag empezó a correr solo y nadie sabe por qué. ¿Qué buscas en el Audit Log?
 - [x] El evento unpaused de ese Dag
 - [ ] El evento pool.create
-- [ ] Nada, no sirve
-- [ ] El color de la grilla
+- [ ] El evento variable.set de ese Dag
+- [ ] El evento dag.create del día
 :::
 
 :::ejercicio quiz
 ¿Alcanza con revisar la interfaz para enterarse de las fallas?
 - [ ] Sí, siempre
 - [x] No: las fallas importantes tienen que avisar solas
-- [ ] Solo los fines de semana
-- [ ] Solo en Airflow 2
+- [ ] Sí, si se revisa Browse una vez por día
+- [ ] Sí, porque Airflow manda correos por defecto
 :::

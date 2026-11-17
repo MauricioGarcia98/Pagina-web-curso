@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué tres datos pide la conexión? | ¿Sabes qué muestr
 Lucía: *"Ayer alguien cambió el notebook y rompió el resumen por canal. No sabemos qué cambió ni cómo volver atrás. Quiero historial."*
 :::
 
+:::analogia Guardar la receta, no la comida
+Conectar el workspace a Git es guardar las recetas (las definiciones de los ítems: notebooks, pipelines, modelos) en un cuaderno con historial. La comida (los datos de las tablas) sigue en OneLake: Git no la guarda.
+:::
+
 ## Paso 1 — Crear el repositorio
 
 En el [GitHub de práctica](#/github/new), un repositorio nuevo llamado `fabric-tienda-andina`. En una empresa real, el repositorio lo crea el equipo de plataforma con los permisos ya configurados.
@@ -65,6 +69,12 @@ texto: Changes - cada ítem con su tipo (Lakehouse, Notebook, DataPipeline, Ware
 
 Git guarda **cómo se construye** el workspace, no los datos. Los datos viven en OneLake.
 
+:::errores
+- **Esperar que Git guarde los datos.** Solo versiona definiciones; los datos se protegen con Delta y copias, no con Git.
+- **Trabajar semanas sin hacer commit.** Si algo se rompe, no hay versión a la que volver.
+- **Confundir Changes con Updates.** Changes es lo tuyo sin subir; Updates es lo que llegó al repo y falta traer al workspace.
+:::
+
 ## ✅ Lo que lograste
 
 - Conectaste el workspace a un repositorio.
@@ -83,7 +93,7 @@ Git guarda **cómo se construye** el workspace, no los datos. Los datos viven en
 ¿Qué muestra la pestaña Changes?
 - [x] Lo cambiado en el workspace que todavía no se subió al repo
 - [ ] Lo que alguien subió al repo
-- [ ] Las ejecuciones del Monitor
+- [ ] Las diferencias entre dos workspaces
 - [ ] Las tablas con datos nuevos
 :::
 
@@ -92,7 +102,7 @@ Git guarda **cómo se construye** el workspace, no los datos. Los datos viven en
 - [ ] Sí
 - [x] No: Git guarda la definición de los ítems, los datos viven en OneLake
 - [ ] Solo las primeras mil
-- [ ] Solo en Pro
+- [ ] Sí, en un archivo CSV por tabla
 :::
 
 :::ejercicio quiz

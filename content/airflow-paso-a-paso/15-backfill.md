@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué crea un backfill? | ¿Sabes la diferencia entre Mis
 Lucía: *"Activamos `carga_ventas_tienda` el 15. Comercial necesita la semana anterior también: del 8 al 14."*
 :::
 
+:::analogia Rellenar los días que faltan en la planilla
+Un backfill es completar la planilla de los días anteriores: Airflow crea una corrida por cada fecha lógica del rango, como si cada día hubiera corrido en su momento. Por eso las tareas tienen que usar la fecha lógica, no la fecha de hoy.
+:::
+
 ## Paso 1 — Lanzar el backfill
 
 En `carga_ventas_tienda` → **Backfills → Backfill** (o **Trigger → Backfill**):
@@ -65,6 +69,12 @@ airflow backfill create --dag-id carga_ventas_tienda \
 Un backfill vuelve a correr fechas que quizás ya se cargaron. Si la tarea hace `INSERT` sin borrar antes, duplica filas. Las tareas tienen que ser **idempotentes**: correrlas dos veces para la misma fecha deja el mismo resultado (nivel 6).
 :::
 
+:::errores
+- **Tareas que usan la fecha de hoy.** En un backfill, todas las corridas procesarían el mismo día; usa `{{ ds }}`.
+- **Backfill de todo cuando falló un día.** Para una corrida, Clear alcanza.
+- **Lanzar un backfill enorme sin límite.** Puede saturar la base o la API; limita las corridas activas.
+:::
+
 ## ✅ Lo que lograste
 
 - Lanzaste y seguiste un backfill.
@@ -75,8 +85,8 @@ Un backfill vuelve a correr fechas que quizás ya se cargaron. Si la tarea hace 
 ¿Qué crea un backfill?
 - [ ] Un Dag nuevo
 - [x] Corridas para fechas lógicas pasadas dentro de un rango
-- [ ] Una variable
-- [ ] Una copia del código
+- [ ] Corridas nuevas con la fecha de hoy para cada día del rango
+- [ ] Un Dag temporal que se borra al terminar
 :::
 
 :::ejercicio quiz
@@ -90,9 +100,9 @@ Quieres rehacer solo las fechas sin corrida y las que fallaron. ¿Qué opción e
 :::ejercicio quiz
 ¿Cómo reconoces una corrida de backfill?
 - [x] Su Run Type es backfill y su Run ID empieza con backfill__
-- [ ] Es de color violeta
+- [ ] Su Run ID empieza con manual__
 - [ ] No tiene tareas
-- [ ] Siempre falla
+- [ ] Aparece en Assets
 :::
 
 :::ejercicio quiz
@@ -100,5 +110,5 @@ Solo falló la corrida del 12 y ya corregiste el código. ¿Qué usas?
 - [ ] Un backfill de todo el año
 - [x] Clear de esa corrida
 - [ ] Borrar el Dag
-- [ ] Un Dag nuevo
+- [ ] Un backfill del 12 con la opción All Runs
 :::

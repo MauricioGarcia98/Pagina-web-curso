@@ -54,6 +54,12 @@ texto: El linaje completo - el notebook y el modelo leen lh_ventas, el pipeline 
 | **Seguridad** | La tabla de roles y los permisos SQL de la vista |
 | **Costos** | El SKU propuesto, el horario de pausa y cómo se medirá |
 
+:::errores
+- **Publicar resúmenes de una carga vacía.** El notebook debe fallar si no llegaron datos.
+- **Dejar la seguridad para el final.** Roles y permisos se definen con el diseño, no cuando el negocio ya está usando los informes.
+- **Capturas con datos reales en el portafolio.** Usa la práctica o un tenant propio con datos de ejemplo.
+:::
+
 ## ✅ Rúbrica
 
 | Criterio | Cumple | Destaca |
@@ -83,13 +89,13 @@ Sube el repositorio de Git a tu GitHub con un README que tenga el diagrama, las 
 - [ ] Para que el Monitor se vea rojo por gusto
 - [x] Para no publicar resúmenes vacíos como si estuvieran bien
 - [ ] Porque Spark lo exige
-- [ ] Para gastar menos
+- [ ] Porque un DataFrame vacío no se puede escribir
 :::
 
 :::ejercicio quiz
 ¿Dónde conviene guardar los datos crudos y dónde la capa que consume el negocio?
 - [x] Crudos en el lakehouse; presentación en el warehouse con vistas
-- [ ] Todo en Excel
+- [ ] Todo en el modelo semántico, con importación
 - [ ] Crudos en el modelo semántico
 - [ ] Presentación en Files
 :::
@@ -98,7 +104,7 @@ Sube el repositorio de Git a tu GitHub con un README que tenga el diagrama, las 
 ¿Qué capturas pones en tu portafolio?
 - [ ] Las de tu empresa con datos reales
 - [x] Las de la práctica, o de un tenant propio sin datos de terceros
-- [ ] Ninguna
+- [ ] Las del curso con los datos de tu empresa reemplazados a mano
 - [ ] Las de un compañero
 :::
 

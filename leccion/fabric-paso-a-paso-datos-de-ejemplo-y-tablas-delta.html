@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Datos de ejemplo y tablas Delta - propiedades y mantenimiento</h1><p class="resumen">Cargas las tablas de Tienda Andina como datos de ejemplo, recorres una tabla Delta grande, lees sus propiedades (dónde vive en OneLake y sus columnas) y conoces el mantenimiento que toda tabla Delta necesita - OPTIMIZE, V-Order y VACUUM - y por qué.</p>
 <a class="cta" href="../index.html#/l/fabric-paso-a-paso-datos-de-ejemplo-y-tablas-delta">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Cargar datos de ejemplo en un lakehouse</li><li>Leer las propiedades de una tabla Delta</li><li>Entender qué es Delta y qué ventajas tiene</li><li>Conocer OPTIMIZE, V-Order y VACUUM</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un cuaderno de cambios encima de los archivos</div>
+
+<p>Una tabla Delta son archivos Parquet más un cuaderno que anota cada cambio (el registro de transacciones). Gracias al cuaderno hay transacciones seguras, esquema y viajes en el tiempo. OPTIMIZE junta muchos archivitos en pocos grandes; VACUUM tira las páginas viejas del cuaderno que ya no se necesitan.</p>
+</div>
+
+
 <h2>Paso 1 — Get data → Sample data</h2>
 <p>En <code>lh_ventas</code>, <strong>Get data</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/fabric/b05-get-data.webp" alt="Get data - subir archivos, datos de ejemplo, accesos directos y pipelines" loading="lazy"><figcaption>Get data - subir archivos, datos de ejemplo, accesos directos y pipelines</figcaption></figure>
@@ -92,6 +98,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ VACUUM borra el pasado</div>
 
 <p>Después de un VACUUM con retención de 7 días, ya no se puede hacer <em>time travel</em> más atrás de 7 días. No uses retenciones muy cortas en tablas que podrías necesitar restaurar.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>VACUUM</code> con 0 días.</strong> Borra las versiones anteriores y con ellas el time travel; deja la retención por defecto (7 días) salvo que sepas lo que haces.</li>
+<li><strong>Muchas cargas chicas sin OPTIMIZE.</strong> Generan miles de archivos pequeños y las lecturas se vuelven lentas.</li>
+<li><strong>Creer que Delta es un formato cerrado.</strong> Son archivos abiertos en OneLake que leen otras herramientas por la misma API que ADLS Gen2.</li>
+</ul>
 </div>
 
 

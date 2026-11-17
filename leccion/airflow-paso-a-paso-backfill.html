@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Rellenar los días que faltan en la planilla</div>
+
+<p>Un backfill es completar la planilla de los días anteriores: Airflow crea una corrida por cada fecha lógica del rango, como si cada día hubiera corrido en su momento. Por eso las tareas tienen que usar la fecha lógica, no la fecha de hoy.</p>
+</div>
+
+
 <h2>Paso 1 — Lanzar el backfill</h2>
 <p>En <code>carga_ventas_tienda</code> → <strong>Backfills → Backfill</strong> (o <strong>Trigger → Backfill</strong>):</p>
 <figure class="captura"><img src="assets/img/guias/airflow/a15-backfill.webp" alt="Backfill - desde y hasta, el comportamiento de reproceso, Run Backwards y cuántas corridas se van a crear" loading="lazy"><figcaption>Backfill - desde y hasta, el comportamiento de reproceso, Run Backwards y cuántas corridas se van a crear</figcaption></figure>
@@ -87,6 +93,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Idempotencia</div>
 
 <p>Un backfill vuelve a correr fechas que quizás ya se cargaron. Si la tarea hace <code>INSERT</code> sin borrar antes, duplica filas. Las tareas tienen que ser <strong>idempotentes</strong>: correrlas dos veces para la misma fecha deja el mismo resultado (nivel 6).</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Tareas que usan la fecha de hoy.</strong> En un backfill, todas las corridas procesarían el mismo día; usa <code>{{ ds }}</code>.</li>
+<li><strong>Backfill de todo cuando falló un día.</strong> Para una corrida, Clear alcanza.</li>
+<li><strong>Lanzar un backfill enorme sin límite.</strong> Puede saturar la base o la API; limita las corridas activas.</li>
+</ul>
 </div>
 
 

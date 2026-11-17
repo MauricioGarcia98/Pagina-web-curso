@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Una receta escrita en Python</div>
+
+<p>Un Dag es una receta escrita en Python: dice qué pasos hay (las tareas) y en qué orden (las flechas <code>&gt;&gt;</code>). El archivo no cocina: Airflow lo lee, entiende la receta y la ejecuta cuando corresponde.</p>
+</div>
+
+
 <h2>Paso 1 — Abrir la terminal</h2>
 <p>En la barra izquierda, <strong>Terminal</strong>. Es la misma máquina del curso: los Dags viven en <code>~/airflow/dags</code>.</p>
 <pre data-norun><code class="language-bash">cd ~/airflow/dags
@@ -121,6 +127,16 @@ with DAG(
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ ¿No aparece?</div>
 
 <p>Si el archivo tiene un error de Python, no aparece en la lista: aparece en <strong>Dag Import Errors</strong>. Si tiene código válido pero no aparece, pulsa <strong>Reparse</strong> en la lista. En Airflow real el dag processor revisa la carpeta cada cierto tiempo (<code>refresh_interval</code>), así que puede tardar hasta unos minutos.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Guardar el archivo fuera de la carpeta de Dags.</strong> Airflow solo lee esa carpeta.</li>
+<li><strong>Imports de Airflow 2 en Airflow 3.</strong> <code>DAG</code> y <code>@task</code> se importan de <code>airflow.sdk</code>.</li>
+<li><strong>Ejecutar el archivo con <code>python</code> para &quot;probarlo&quot;.</strong> Solo comprueba que el código no rompe; para que corra, Airflow tiene que leerlo y dispararlo.</li>
+</ul>
 </div>
 
 

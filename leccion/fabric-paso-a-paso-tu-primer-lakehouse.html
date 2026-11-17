@@ -61,6 +61,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p>Arriba a la derecha, el selector cambia entre <strong>Lakehouse</strong> (archivos y tablas) y <strong>SQL analytics endpoint</strong>: una vista SQL de solo lectura de las mismas tablas, que se crea sola con cada lakehouse (lección 6).</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Nombres con guiones o espacios.</strong> Un lakehouse admite letras, números y guion bajo, y debe empezar con una letra: <code>lh_ventas</code>, no <code>lh-ventas</code>.</li>
+<li><strong>Guardar CSV directamente en Tables.</strong> Los crudos van en Files; Tables es para tablas Delta.</li>
+<li><strong>Pensar que cada herramienta tiene su copia.</strong> Spark, el endpoint SQL y Power BI leen las mismas tablas Delta de OneLake.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste <code>lh_ventas</code> respetando las reglas de nombres.</li>

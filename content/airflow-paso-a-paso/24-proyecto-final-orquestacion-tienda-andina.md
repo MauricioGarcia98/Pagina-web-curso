@@ -51,6 +51,12 @@ texto: Home - los indicadores, la salud de los componentes, los eventos de asset
 | **Operación** | La rutina de la guardia y qué dice cada aviso |
 | **Despliegue** | Cómo llegaría a producción (repositorio, CI, servicio elegido) |
 
+:::errores
+- **Programar todo por horario.** Si el reporte depende de las ventas, se dispara por asset; si no, corre con datos viejos cuando la carga se atrasa.
+- **Publicar sin idempotencia.** Recargar un día duplica ventas si publicar no borra o hace MERGE de esa fecha.
+- **Alertas que nadie probó.** Fuerza una falla antes de entregar.
+:::
+
 ## ✅ Rúbrica
 
 | Criterio | Cumple | Destaca |
@@ -77,7 +83,7 @@ Sube la carpeta `dags/`, las pruebas y el documento a un repositorio de GitHub c
 
 :::ejercicio quiz
 ¿Por qué el reporte se programa por asset y no a las 07:00?
-- [ ] Porque es más lindo
+- [ ] Porque así corre una sola vez por semana
 - [x] Porque así corre cuando los datos están, aunque la carga se atrase
 - [ ] Porque Airflow 3 no acepta horas
 - [ ] Porque el asset es más barato
@@ -87,7 +93,7 @@ Sube la carpeta `dags/`, las pruebas y el documento a un repositorio de GitHub c
 ¿Qué garantiza que recargar el día 12 no duplique ventas?
 - [ ] Correrlo dos veces
 - [x] Que publicar sea idempotente: borra o hace MERGE de esa fecha antes de escribir
-- [ ] El pool
+- [ ] Que el Dag tenga catchup=False
 - [ ] El callback de falla
 :::
 
@@ -103,6 +109,6 @@ Sube la carpeta `dags/`, las pruebas y el documento a un repositorio de GitHub c
 ¿Qué capturas pones en tu portafolio?
 - [ ] Las de la empresa con datos de clientes
 - [x] Las de la práctica o de un entorno propio sin datos de terceros
-- [ ] Ninguna
+- [ ] Las de la práctica con el nombre de tu empresa actual
 - [ ] Las de otro estudiante
 :::

@@ -8,6 +8,10 @@ prerrequisitos: airflow-paso-a-paso-proyecto-reproceso-de-un-dia
 autoevaluacion: ¿Sabes por qué un Dag no aparece en la lista? | ¿Sabes qué significa ModuleNotFoundError en un Dag? | ¿Sabes qué diferencia hay entre tasks test y dags test? | ¿Sabes qué prueba poner en el CI?
 ---
 
+:::analogia El portero que revisa los papeles
+El dag processor es el portero: antes de dejar pasar un Dag, lo lee entero. Si tiene un error de Python o le falta un paquete, no entra a la lista y queda anotado en Dag Import Errors con el motivo.
+:::
+
 ## Paso 1 — El error
 
 En Home, **Dag Import Errors**:
@@ -89,6 +93,12 @@ def test_todos_tienen_dueno_y_tags():
 
 Se corre con `pytest` en cada pull request (lo ves en el [curso de GitHub](#/m/github)).
 
+:::errores
+- **Buscar el Dag en la lista cuando no carga.** Míralo en Dag Import Errors o con `airflow dags list-import-errors`.
+- **Probar en producción.** `airflow tasks test` corre una tarea sin guardar estado; una prueba con DagBag en CI detecta errores antes de fusionar.
+- **Instalar el paquete en tu computadora y no en Airflow.** El provider tiene que estar en el entorno donde corren el dag processor y los workers.
+:::
+
 ## ✅ Lo que lograste
 
 - Lees errores de importación en la interfaz y la CLI.
@@ -99,7 +109,7 @@ Se corre con `pytest` en cada pull request (lo ves en el [curso de GitHub](#/m/g
 Un Dag no aparece en la lista después de guardarlo. ¿Qué miras primero?
 - [x] Dag Import Errors
 - [ ] Pool Slots
-- [ ] El calendario
+- [ ] El Audit Log
 - [ ] Admin → Variables
 :::
 
@@ -115,13 +125,13 @@ Un Dag no aparece en la lista después de guardarlo. ¿Qué miras primero?
 ¿Qué hace `airflow tasks test`?
 - [ ] Corre el Dag entero y guarda la corrida
 - [x] Corre una sola tarea sin dependencias y sin guardar estado
-- [ ] Borra la tarea
-- [ ] Muestra el código
+- [ ] Corre la tarea en el worker y deja la corrida en la grilla
+- [ ] Valida la sintaxis del archivo sin ejecutar nada
 :::
 
 :::ejercicio quiz
 ¿Qué conviene correr en el CI de cada pull request?
-- [ ] Nada
+- [ ] airflow dags trigger de todos los Dags
 - [x] Una prueba que cargue los Dags con DagBag y falle si hay import_errors
 - [ ] Un backfill de un año
 - [ ] airflow standalone

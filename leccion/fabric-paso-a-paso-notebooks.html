@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Notebooks - Spark sobre el lakehouse</h1><p class="resumen">Los notebooks de Fabric corren Spark (PySpark y Spark SQL) con un lakehouse por defecto. Abres un notebook desde el lakehouse, recorres su explorador, ejecutas la primera celda que lee la tabla de ventas y entiendes la sesión de Spark, las celdas de código y de texto, y cómo se cambia el lenguaje.</p>
 <a class="cta" href="../index.html#/l/fabric-paso-a-paso-notebooks">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un notebook adjunto a un lakehouse</li><li>Entender el lakehouse por defecto</li><li>Ejecutar celdas y leer su salida</li><li>Distinguir celdas de código y Markdown</li><li>Cambiar de lenguaje con %%sql</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un cuaderno con un motor detrás</div>
+
+<p>Un notebook es un cuaderno donde cada celda le da una orden a Spark, un motor que reparte el trabajo entre varias máquinas. El lakehouse por defecto es la mesa de trabajo: <code>spark.table(&quot;pedidos&quot;)</code> busca ahí. La primera celda tarda porque hay que encender el motor.</p>
+</div>
+
+
 <h2>Paso 1 — Abrir un notebook desde el lakehouse</h2>
 <p>En <code>lh_ventas</code>, <strong>Open notebook → New notebook</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/fabric/b09-notebook.webp" alt="El lakehouse por defecto (1), la primera celda (2) y Run all (3)" loading="lazy"><figcaption>El lakehouse por defecto (1), la primera celda (2) y Run all (3)</figcaption></figure>
@@ -79,6 +85,16 @@ resumen = spark.sql(&quot;SELECT canal, COUNT(*) AS n FROM pedidos GROUP BY cana
 <div class="callout callout-tip"><div class="callout-title">💡 Documenta en el mismo notebook</div>
 
 <p>Una celda Markdown al principio con <strong>qué hace el notebook, qué lee y qué escribe</strong> ahorra horas al próximo que lo abra (que puedes ser tú en tres meses).</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Confundir Files con Tables.</strong> <code>spark.table</code> lee tablas; un archivo de Files se lee con <code>spark.read</code> y su ruta.</li>
+<li><strong>Olvidar el lakehouse por defecto.</strong> Sin él, los nombres cortos de tabla no se encuentran.</li>
+<li><strong>Pensar que la primera celda lenta es un error.</strong> Es el arranque de la sesión de Spark; las siguientes son rápidas.</li>
+</ul>
 </div>
 
 

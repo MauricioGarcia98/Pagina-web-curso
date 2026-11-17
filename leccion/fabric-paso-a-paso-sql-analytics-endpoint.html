@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>El SQL analytics endpoint - consultar el lakehouse con T-SQL</h1><p class="resumen">Cada lakehouse trae un endpoint SQL que permite consultar sus tablas con T-SQL, como si fuera una base de datos, sin copiar nada. Cambias al endpoint, consultas los pedidos por canal y ves por qué un DELETE falla - el endpoint es de solo lectura - y qué hacer cuando necesitas escribir.</p>
 <a class="cta" href="../index.html#/l/fabric-paso-a-paso-sql-analytics-endpoint">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Cambiar entre el lakehouse y su endpoint SQL</li><li>Consultar tablas con T-SQL</li><li>Entender por qué el endpoint es de solo lectura</li><li>Saber dónde escribir datos (Spark o Warehouse)</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Una vidriera del lakehouse</div>
+
+<p>El SQL analytics endpoint es una vidriera: desde afuera ves y consultas todo lo que hay en las tablas del lakehouse con T-SQL, pero no puedes meter la mano para cambiar nada. Para escribir se entra por la puerta de atrás (Spark) o se usa un warehouse.</p>
+</div>
+
+
 <h2>Paso 1 — Cambiar al endpoint</h2>
 <p>En <code>lh_ventas</code>, el selector de arriba a la derecha → <strong>SQL analytics endpoint</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/fabric/b06-endpoint.webp" alt="El selector (1), el explorador SQL con esquemas y tablas (2) y el editor de consultas (3)" loading="lazy"><figcaption>El selector (1), el explorador SQL con esquemas y tablas (2) y el editor de consultas (3)</figcaption></figure>
@@ -59,6 +65,16 @@ ORDER BY pedidos DESC;</code></pre>
 <div class="callout callout-tip"><div class="callout-title">💡 Una cadena de conexión para todo</div>
 
 <p>El endpoint tiene una cadena de conexión SQL: SQL Server Management Studio, Azure Data Studio, Excel o Power BI Desktop se conectan a él como a cualquier base SQL Server.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Intentar <code>DELETE</code> o <code>INSERT</code> en el endpoint.</strong> Es de solo lectura sobre las tablas; las escrituras van con Spark o en un warehouse.</li>
+<li><strong>Creer que el endpoint copia los datos.</strong> Lee las mismas tablas Delta; no hay que sincronizar nada (puede tardar unos segundos en ver una tabla nueva).</li>
+<li><strong>Repetir la misma lógica en cada informe.</strong> Las vistas sí se pueden crear en el endpoint: guarda ahí la consulta que usan todos.</li>
+</ul>
 </div>
 
 

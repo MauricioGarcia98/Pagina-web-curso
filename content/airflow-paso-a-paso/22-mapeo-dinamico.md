@@ -8,6 +8,10 @@ prerrequisitos: airflow-paso-a-paso-buenas-practicas
 autoevaluacion: ¿Sabes qué crea expand? | ¿Sabes cuándo se decide la cantidad de instancias? | ¿Sabes qué recibe la tarea que va después? | ¿Sabes cuándo alcanza con un for?
 ---
 
+:::analogia Una plantilla que se copia por cada tienda
+El mapeo dinámico es como una plantilla de tarea que se copia una vez por cada tienda que aparezca hoy: si mañana hay una tienda más, aparece una copia más, sin tocar el código.
+:::
+
 ## Paso 1 — El Dag
 
 `ventas_por_tienda.py`:
@@ -84,6 +88,12 @@ Con operadores clásicos funciona igual: `BashOperator.partial(task_id="copiar")
 `[core] max_map_length` (1024 por defecto) limita cuántas instancias puede crear una tarea mapeada. Si son miles de elementos, agrúpalos en lotes. Las instancias mapeadas también respetan pools y `max_active_tasks`.
 :::
 
+:::errores
+- **Mapear sobre una lista fija y chica.** Si son siempre las mismas 4 categorías, un `for` al escribir el Dag es más simple.
+- **Pasar con `expand` lo que es igual para todas.** Los argumentos fijos van con `partial`.
+- **Listas enormes sin límite.** Miles de instancias pueden saturar el scheduler; agrupa elementos o usa un pool.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste tareas mapeadas con expand y partial.
@@ -94,23 +104,23 @@ Con operadores clásicos funciona igual: `BashOperator.partial(task_id="copiar")
 ¿Qué crea `procesar.expand(tienda=tiendas())`?
 - [ ] Una sola tarea con la lista entera
 - [x] Una instancia de procesar por cada elemento de la lista
-- [ ] Un Dag por tienda
-- [ ] Nada hasta que se reinicie Airflow
+- [ ] Una instancia por tienda, definida al escribir el archivo
+- [ ] Una tarea que recorre la lista con un for
 :::
 
 :::ejercicio quiz
 ¿Cuándo se decide cuántas instancias hay?
 - [ ] Al escribir el archivo
 - [x] Al correr, según lo que devuelva la tarea anterior
-- [ ] Una vez por semana
-- [ ] Al instalar Airflow
+- [ ] Cuando el dag processor lee el archivo
+- [ ] Al activar el Dag
 :::
 
 :::ejercicio quiz
 ¿Para qué sirve partial?
 - [x] Para fijar los argumentos que son iguales en todas las instancias
 - [ ] Para correr solo la mitad
-- [ ] Para pausar el Dag
+- [ ] Para correr las instancias de a una
 - [ ] Para borrar instancias
 :::
 
@@ -119,5 +129,5 @@ La lista de categorías es fija y son 4. ¿Qué alcanza?
 - [x] Un for al escribir el Dag
 - [ ] Obligatoriamente mapeo dinámico
 - [ ] Un Dag por categoría
-- [ ] Un backfill
+- [ ] Un pool con 4 lugares
 :::

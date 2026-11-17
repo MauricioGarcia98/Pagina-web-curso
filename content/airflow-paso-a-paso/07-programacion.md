@@ -73,6 +73,12 @@ texto: Calendar - un cuadrado por día con el estado de sus corridas
 
 Sirve para ver de un vistazo qué días faltan o fallaron.
 
+:::errores
+- **`start_date=datetime.now()`.** Cambia en cada lectura del archivo; usa una fecha fija.
+- **Confundir el orden del cron.** Es minuto, hora, día del mes, mes, día de la semana: las 6:00 es `0 6 * * *`.
+- **Activar catchup sin querer.** Con catchup y una `start_date` vieja, Airflow crea una corrida por cada intervalo pasado.
+:::
+
 ## ✅ Lo que lograste
 
 - Escribes horarios con atajos, cron y timedelta.
@@ -91,13 +97,13 @@ Sirve para ver de un vistazo qué días faltan o fallaron.
 ¿Qué valor tiene catchup por defecto en Airflow 3?
 - [ ] True
 - [x] False
-- [ ] Depende del día
-- [ ] No existe
+- [ ] True, pero solo para Dags con cron
+- [ ] True, como en Airflow 2
 :::
 
 :::ejercicio quiz
 ¿Por qué no se usa `start_date=datetime.now()`?
-- [ ] Porque es lento
+- [ ] Porque Airflow solo acepta fechas en UTC escritas como texto
 - [x] Porque cambia cada vez que se lee el archivo y el Dag nunca tiene una fecha de inicio estable
 - [ ] Porque Airflow no acepta fechas
 - [ ] Porque es de Airflow 1
@@ -108,5 +114,5 @@ En Airflow 3, un Dag con `0 6 * * *` corre el 16 a las 06:00. ¿Qué fecha lógi
 - [ ] El 15 a las 06:00
 - [x] El 16 a las 06:00
 - [ ] El 17 a las 00:00
-- [ ] Ninguna
+- [ ] El 16 a las 00:00
 :::

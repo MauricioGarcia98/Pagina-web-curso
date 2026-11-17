@@ -8,6 +8,10 @@ prerrequisitos: airflow-paso-a-paso-mapeo-dinamico
 autoevaluacion: ¿Sabes por qué se instala con un archivo de constraints? | ¿Sabes qué es un provider? | ¿Sabes qué servicio administrado usa cada nube? | ¿Sabes cómo llegan los Dags a producción?
 ---
 
+:::analogia Del simulador al avión
+Los Dags, operadores, assets, pools y callbacks que practicaste funcionan igual en un Airflow real. Lo que cambia es dónde corre (tu computadora, Docker, un servicio administrado), cómo llegan los Dags (por Git) y que las credenciales y los datos son de verdad.
+:::
+
 ## Paso 1 — Qué cambia
 
 | En la práctica | En Airflow real |
@@ -67,6 +71,12 @@ Elegir: la nube donde ya están los datos y el equipo suele decidir. Compara tam
 Si compartes capturas de tu Airflow real, difumina hosts, nombres de conexiones, correos y cualquier dato de clientes que aparezca en los logs.
 :::
 
+:::errores
+- **Instalar Airflow con pip sin constraints.** Alguna dependencia incompatible termina rompiendo la instalación.
+- **Editar Dags directo en el servidor.** Llegan por Git, con pull request, CI y revisión.
+- **Olvidar los providers.** Cada servicio (Slack, Databricks, BigQuery) necesita su paquete instalado en el entorno.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué cambia al pasar a Airflow real.
@@ -75,16 +85,16 @@ Si compartes capturas de tu Airflow real, difumina hosts, nombres de conexiones,
 
 :::ejercicio quiz
 ¿Por qué se instala Airflow con un archivo de constraints?
-- [ ] Para que sea más lento
+- [ ] Para limitar la memoria que usa el scheduler
 - [x] Para fijar versiones compatibles de sus muchas dependencias
 - [ ] Porque es obligatorio para Docker
-- [ ] Para borrar los ejemplos
+- [ ] Para que Airflow corra sin base de metadatos
 :::
 
 :::ejercicio quiz
 ¿Qué es un provider de Airflow?
 - [x] Un paquete aparte con operadores, hooks y conexiones para un servicio
-- [ ] Un usuario administrador
+- [ ] El servicio de nube donde se instala Airflow
 - [ ] Un tipo de Dag
 - [ ] La base de metadatos
 :::
@@ -101,6 +111,6 @@ Si compartes capturas de tu Airflow real, difumina hosts, nombres de conexiones,
 ¿Cómo debería llegar un Dag nuevo a producción?
 - [ ] Editándolo directo en el servidor
 - [x] Por Git: pull request con CI y revisión, y despliegue automático al fusionar
-- [ ] Mandándolo por correo
+- [ ] Copiándolo a la carpeta de Dags del servidor con scp
 - [ ] Copiándolo a mano un viernes a la noche
 :::

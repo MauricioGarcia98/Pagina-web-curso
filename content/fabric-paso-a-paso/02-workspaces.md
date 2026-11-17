@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué licencia hace falta para un lakehouse? | ¿Sabes d�
 Lucía, la líder del equipo de datos de Tienda Andina: *"Vamos a probar Fabric para la analítica de ventas. Creá un workspace del equipo para desarrollo, que después hacemos el de producción."*
 :::
 
+:::analogia Una oficina con llave y medidor
+Un workspace es una oficina del equipo: adentro están sus ítems, en la puerta se decide quién entra y con qué permisos, y tiene un medidor que dice a qué capacidad se cobra lo que se hace adentro. Una oficina "Pro" solo tiene lugar para informes de Power BI.
+:::
+
 ## Paso 1 — Crear el workspace
 
 En **Workspaces → New workspace**:
@@ -61,6 +65,12 @@ En el Fabric real, **Manage access** (en el workspace) asigna los roles **Admin*
 Lo habitual es **un workspace por equipo y por entorno**: `Tienda Andina - Datos [Dev]`, `[Test]`, `[Prod]`. Así cada entorno tiene sus permisos y el paso de dev a prod se hace con Git o con *deployment pipelines*, no a mano.
 :::
 
+:::errores
+- **Crear lakehouses en un workspace Pro.** Pro solo admite ítems de Power BI; los ítems de Fabric necesitan una capacidad (de prueba o F).
+- **Un único workspace para dev y prod.** Cualquier prueba rompe lo que usa el negocio; separa entornos y pasa cambios con Git o deployment pipelines.
+- **Dar Admin a todo el equipo.** Admin puede borrar el workspace y cambiar accesos; la mayoría necesita Contributor o Viewer.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste el workspace del equipo con licencia Trial.
@@ -70,8 +80,8 @@ Lo habitual es **un workspace por equipo y por entorno**: `Tienda Andina - Datos
 Un workspace con licencia Pro, ¿puede tener un lakehouse?
 - [ ] Sí
 - [x] No, Pro solo admite ítems de Power BI
-- [ ] Solo los lunes
-- [ ] Solo si es pequeño
+- [ ] Sí, si el lakehouse se crea desde Power BI Desktop
+- [ ] Sí, mientras ocupe menos de 10 GB
 :::
 
 :::ejercicio quiz
@@ -87,12 +97,12 @@ Un workspace con licencia Pro, ¿puede tener un lakehouse?
 - [ ] Porque Fabric lo exige
 - [x] Para tener permisos distintos y pasar cambios de forma controlada
 - [ ] Porque es más barato
-- [ ] Para que tengan colores distintos
+- [ ] Porque cada workspace solo admite un lakehouse
 :::
 
 :::ejercicio quiz
 ¿Qué muestra la vista Lineage de un workspace?
-- [ ] La factura
+- [ ] El historial de ejecuciones de cada ítem
 - [x] Cómo se conectan los ítems entre sí
 - [ ] Los usuarios
 - [ ] Los errores

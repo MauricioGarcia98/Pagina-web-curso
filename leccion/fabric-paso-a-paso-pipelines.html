@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Pipelines en Fabric - copiar y ejecutar notebooks en orden</h1><p class="resumen">Los pipelines de Fabric son el Data Factory de Fabric. Creas pl_cargar_pedidos con una actividad Copy data que trae los pedidos a una tabla del lakehouse y una actividad Notebook que corre la transformación después, lo ejecutas y lees el resultado de cada actividad.</p>
 <a class="cta" href="../index.html#/l/fabric-paso-a-paso-pipelines">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un pipeline en un workspace</li><li>Configurar Copy data con origen y destino</li><li>Encadenar una actividad Notebook</li><li>Ejecutar y leer la salida</li><li>Relacionar los pipelines de Fabric con Azure Data Factory</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Una lista de tareas con flechas</div>
+
+<p>Un pipeline es una lista de tareas con flechas: primero copiar, y solo si salió bien, transformar. Cada actividad hace una cosa; las flechas (verde, roja, gris) dicen qué pasa después según cómo terminó la anterior.</p>
+</div>
+
+
 <h2>Paso 1 — Crear el pipeline</h2>
 <p>En el workspace, <strong>New item → Pipeline</strong>, <code>pl_cargar_pedidos</code>:</p>
 <figure class="captura"><img src="assets/img/guias/fabric/b11-pipeline-vacio.webp" alt="La cinta con Save, Run, Schedule y las actividades (1), y el lienzo vacío (2)" loading="lazy"><figcaption>La cinta con Save, Run, Schedule y las actividades (1), y el lienzo vacío (2)</figcaption></figure>
@@ -48,6 +54,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-nota"><div class="callout-title">📝 Si ya hiciste el curso de Data Factory</div>
 
 <p>Todo lo que aprendiste allá vale aquí: actividades, dependencias, parámetros, expresiones, ForEach, If Condition, Lookup y triggers. La práctica de Fabric tiene solo Copy data y Notebook; para practicar lo demás usa el <a href="#/m/data-factory-paso-a-paso">curso de Data Factory</a>. Diferencias de Fabric: no hay linked services ni datasets separados (las conexiones se eligen en la actividad), no hay que publicar (se guarda y listo) y el monitoreo está en el Monitor de Fabric.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Encadenar con la flecha equivocada.</strong> &quot;On completion&quot; corre el siguiente paso aunque la copia falle; para depender del éxito va &quot;On success&quot;.</li>
+<li><strong>No mirar la salida de la copia.</strong> Un pipeline en verde que copió cero filas no está bien; revisa Output o agrega una verificación.</li>
+<li><strong>Buscar linked services y datasets como en ADF.</strong> En Fabric las conexiones se definen en la actividad y no hay que publicar.</li>
+</ul>
 </div>
 
 

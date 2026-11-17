@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Una oficina con llave y medidor</div>
+
+<p>Un workspace es una oficina del equipo: adentro están sus ítems, en la puerta se decide quién entra y con qué permisos, y tiene un medidor que dice a qué capacidad se cobra lo que se hace adentro. Una oficina &quot;Pro&quot; solo tiene lugar para informes de Power BI.</p>
+</div>
+
+
 <h2>Paso 1 — Crear el workspace</h2>
 <p>En <strong>Workspaces → New workspace</strong>:</p>
 <ol>
@@ -81,6 +87,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-tip"><div class="callout-title">💡 Cómo se organizan los equipos</div>
 
 <p>Lo habitual es <strong>un workspace por equipo y por entorno</strong>: <code>Tienda Andina - Datos [Dev]</code>, <code>[Test]</code>, <code>[Prod]</code>. Así cada entorno tiene sus permisos y el paso de dev a prod se hace con Git o con <em>deployment pipelines</em>, no a mano.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Crear lakehouses en un workspace Pro.</strong> Pro solo admite ítems de Power BI; los ítems de Fabric necesitan una capacidad (de prueba o F).</li>
+<li><strong>Un único workspace para dev y prod.</strong> Cualquier prueba rompe lo que usa el negocio; separa entornos y pasa cambios con Git o deployment pipelines.</li>
+<li><strong>Dar Admin a todo el equipo.</strong> Admin puede borrar el workspace y cambiar accesos; la mayoría necesita Contributor o Viewer.</li>
+</ul>
 </div>
 
 

@@ -35,6 +35,12 @@ archivo: fabric/b08-ws-items.webp
 texto: El workspace con los dos lakehouses, cada uno con su SQL analytics endpoint
 ```
 
+:::errores
+- **Mezclar crudos y tablas limpias.** Los crudos van en Files por carpetas; lo limpio, en Tables. Si se mezclan, nadie sabe qué usar.
+- **Verificar a ojo.** Una consulta de control desde el endpoint (conteos, nulos) deja la comprobación escrita y repetible.
+- **Copiar en vez de crear un acceso directo.** El lakehouse de reportes debe leer los mismos datos, no una copia que se desactualiza.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] `Files/raw` tiene los archivos crudos.
@@ -68,7 +74,7 @@ En el nivel 3 transformas con notebooks y automatizas con pipelines.
 - [x] Sí, son los mismos datos
 - [ ] No, el acceso directo tiene menos filas
 - [ ] No, el acceso directo está atrasado un día
-- [ ] Depende del usuario
+- [ ] No, el acceso directo solo muestra las tablas, no las filas
 :::
 
 :::ejercicio quiz
@@ -84,5 +90,5 @@ En el nivel 3 transformas con notebooks y automatizas con pipelines.
 - [ ] Todo en un solo lakehouse sin carpetas
 - [x] Con lakehouses o esquemas separados para bronze, silver y gold
 - [ ] En workspaces Pro
-- [ ] En Excel
+- [ ] Un workspace distinto por cada tabla
 :::

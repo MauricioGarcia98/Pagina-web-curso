@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Errores de importación y cómo probar un Dag antes de activarlo</h1><p class="resumen">Un Dag con un error de Python no aparece en la lista - aparece en Dag Import Errors. Lees el error de avisos_slack (falta un provider), lo ves también en la CLI, y aprendes a probar sin esperar al scheduler - airflow tasks test para una tarea y airflow dags test para el Dag entero - más una prueba automática para el CI.</p>
 <a class="cta" href="../index.html#/l/airflow-paso-a-paso-errores-de-importacion-y-pruebas">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Encontrar y leer un error de importación</li><li>Distinguir un error de importación de una tarea fallida</li><li>Probar una tarea con airflow tasks test</li><li>Probar un Dag entero con airflow dags test</li><li>Escribir una prueba de carga de Dags para CI</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El portero que revisa los papeles</div>
+
+<p>El dag processor es el portero: antes de dejar pasar un Dag, lo lee entero. Si tiene un error de Python o le falta un paquete, no entra a la lista y queda anotado en Dag Import Errors con el motivo.</p>
+</div>
+
+
 <h2>Paso 1 — El error</h2>
 <p>En Home, <strong>Dag Import Errors</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/airflow/a17-import.webp" alt="Dag Import Errors - avisos_slack.py no carga: ModuleNotFoundError No module named 'airflow.providers.slack'" loading="lazy"><figcaption>Dag Import Errors - avisos_slack.py no carga: ModuleNotFoundError No module named 'airflow.providers.slack'</figcaption></figure>
@@ -94,6 +100,16 @@ def test_todos_tienen_dueno_y_tags():
         assert dag.tags, f&quot;{dag_id} no tiene tags&quot;
         assert dag.owner != &quot;airflow&quot;, f&quot;{dag_id} no tiene dueño&quot;</code></pre>
 <p>Se corre con <code>pytest</code> en cada pull request (lo ves en el <a href="#/m/github">curso de GitHub</a>).</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Buscar el Dag en la lista cuando no carga.</strong> Míralo en Dag Import Errors o con <code>airflow dags list-import-errors</code>.</li>
+<li><strong>Probar en producción.</strong> <code>airflow tasks test</code> corre una tarea sin guardar estado; una prueba con DagBag en CI detecta errores antes de fusionar.</li>
+<li><strong>Instalar el paquete en tu computadora y no en Airflow.</strong> El provider tiene que estar en el entorno donde corren el dag processor y los workers.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Lees errores de importación en la interfaz y la CLI.</li>

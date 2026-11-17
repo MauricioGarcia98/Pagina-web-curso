@@ -51,6 +51,12 @@ El paso típico es: los archivos llegan a **Files**, y con **Load to Tables**, u
 
 Arriba a la derecha, el selector cambia entre **Lakehouse** (archivos y tablas) y **SQL analytics endpoint**: una vista SQL de solo lectura de las mismas tablas, que se crea sola con cada lakehouse (lección 6).
 
+:::errores
+- **Nombres con guiones o espacios.** Un lakehouse admite letras, números y guion bajo, y debe empezar con una letra: `lh_ventas`, no `lh-ventas`.
+- **Guardar CSV directamente en Tables.** Los crudos van en Files; Tables es para tablas Delta.
+- **Pensar que cada herramienta tiene su copia.** Spark, el endpoint SQL y Power BI leen las mismas tablas Delta de OneLake.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste `lh_ventas` respetando las reglas de nombres.
@@ -77,7 +83,7 @@ Llega un CSV de las tiendas. ¿Dónde se guarda primero?
 - [ ] CSV
 - [ ] JSON
 - [x] Delta
-- [ ] Excel
+- [ ] Parquet sin registro de transacciones
 :::
 
 :::ejercicio quiz
@@ -85,5 +91,5 @@ Llega un CSV de las tiendas. ¿Dónde se guarda primero?
 - [ ] Solo Spark
 - [x] Spark, el endpoint SQL y Power BI
 - [ ] Solo Power BI
-- [ ] Nadie
+- [ ] Solo el endpoint SQL
 :::

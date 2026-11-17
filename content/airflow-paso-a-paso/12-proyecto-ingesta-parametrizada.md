@@ -53,6 +53,12 @@ archivo: airflow/a12-rendered.webp
 texto: Rendered Templates de avisar - "Clientes de PE cargados en dev"
 ```
 
+:::errores
+- **Poner el entorno como parámetro.** Quien dispara podría elegir prod por error; el entorno es configuración de la plataforma.
+- **Param sin tipo ni lista.** Sin `enum` o `type`, cualquier valor pasa y falla tarde.
+- **Escribir `$pais` en bash_command.** Los parámetros se usan con Jinja: `{{ params.pais }}`.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] El formulario muestra la lista de países y valida el límite.
@@ -110,7 +116,7 @@ En el nivel 4: assets, ramas, trigger rules y backfills.
 ¿Qué hace `enum` en un Param?
 - [ ] Ordena los parámetros
 - [x] Limita el valor a una lista y el formulario la muestra como selector
-- [ ] Cifra el valor
+- [ ] Hace que el parámetro sea obligatorio
 - [ ] Lo convierte en variable
 :::
 
@@ -119,7 +125,7 @@ En el nivel 4: assets, ramas, trigger rules y backfills.
 - [x] Los valores por defecto de los Param
 - [ ] Los de la última corrida manual
 - [ ] Ninguno, falla
-- [ ] Valores al azar
+- [ ] Los valores de la variable con el mismo nombre
 :::
 
 :::ejercicio quiz
@@ -127,7 +133,7 @@ En el nivel 4: assets, ramas, trigger rules y backfills.
 - [ ] En un parámetro que elige quien dispara
 - [x] En una variable (o configuración) de la plataforma
 - [ ] En el nombre del Dag
-- [ ] En un comentario
+- [ ] En default_args
 :::
 
 :::ejercicio quiz
@@ -135,5 +141,5 @@ En el nivel 4: assets, ramas, trigger rules y backfills.
 - [ ] `$pais`
 - [x] `{{ params.pais }}`
 - [ ] `params["pais"]` directo en el texto
-- [ ] No se puede
+- [ ] `{{ var.value.pais }}`
 :::

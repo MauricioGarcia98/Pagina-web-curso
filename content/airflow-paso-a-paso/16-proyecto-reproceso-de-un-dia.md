@@ -36,6 +36,12 @@ archivo: airflow/a16-mark.webp
 texto: El menú Mark Run as - success o failed
 ```
 
+:::errores
+- **Clear con Upstream marcado.** Vuelve a correr la extracción, que no hacía falta; para validar y publicar va Downstream.
+- **Mark as success para que "se vea verde".** Solo tiene sentido si el trabajo se hizo por fuera.
+- **No dejar constancia.** Una nota en la corrida explica después por qué se reprocesó.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] La corrida `backfill__2026-11-12...` tiene `validar` y `publicar` con un intento más.
@@ -70,7 +76,7 @@ En el nivel 5: operar Airflow - errores de importación, pruebas, pools, auditor
 Quieres repetir validar y publicar pero no extraer. ¿Qué marcas en Clear de validar?
 - [ ] Upstream
 - [x] Downstream
-- [ ] Past
+- [ ] Future
 - [ ] Nada: se limpia todo el Dag
 :::
 
@@ -78,8 +84,8 @@ Quieres repetir validar y publicar pero no extraer. ¿Qué marcas en Clear de va
 ¿Qué hace Mark as success?
 - [ ] Vuelve a correr la tarea
 - [x] Cambia el estado a success sin ejecutar nada
-- [ ] Borra la tarea
-- [ ] Pausa el Dag
+- [ ] Reintenta la tarea y la marca en verde si pasa
+- [ ] Saltea la tarea en las próximas corridas
 :::
 
 :::ejercicio quiz
@@ -87,13 +93,13 @@ Quieres repetir validar y publicar pero no extraer. ¿Qué marcas en Clear de va
 - [x] Cuando el trabajo se hizo por fuera y quieres que las tareas siguientes corran
 - [ ] Siempre que algo falle
 - [ ] Para que el gerente vea todo en verde
-- [ ] Nunca existe ese caso
+- [ ] Cuando la tarea tarda mucho y quieres que termine
 :::
 
 :::ejercicio quiz
 ¿Por qué no se usó un backfill de toda la semana?
 - [ ] Porque los backfills no existen en Airflow 3
 - [x] Porque solo cambió un día y repetir los demás era trabajo innecesario
-- [ ] Porque Clear es más lento
+- [ ] Porque un backfill no puede repetir corridas que ya existen
 - [ ] Porque el Dag estaba pausado
 :::

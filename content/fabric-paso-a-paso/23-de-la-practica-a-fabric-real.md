@@ -8,6 +8,10 @@ prerrequisitos: fabric-paso-a-paso-capacidad-y-costos
 autoevaluacion: ¿Sabes qué ítems no cubrió el curso? | ¿Sabes cómo empezar una prueba real? | ¿Sabes qué datos no compartir en capturas? | ¿Sabes qué hacer el primer día?
 ---
 
+:::analogia Del simulador al avión
+Lo que practicaste (workspace, lakehouse, notebook, pipeline, warehouse, modelo semántico) funciona igual en un tenant real. Lo nuevo es que hay una capacidad que se paga, cuentas de la organización y datos de otras personas: por eso se practica en un workspace propio.
+:::
+
 ## Paso 1 — Todo lo que se puede crear
 
 ```captura
@@ -55,6 +59,12 @@ Si compartes capturas de tu Fabric real (en un foro, un portafolio o un ticket),
 - [ ] Clonar el repo de Git del workspace y leer los notebooks.
 - [ ] Hacer el primer cambio en desarrollo, con commit y revisión.
 
+:::errores
+- **Practicar en el workspace de producción.** Crea uno propio de prueba.
+- **Compartir capturas sin difuminar.** Correos, nombre del tenant, IDs y rutas ABFS identifican a la empresa.
+- **Buscar entrar con una cuenta personal.** Fabric usa cuentas de trabajo o escuela de Microsoft Entra.
+:::
+
 ## ✅ Lo que lograste
 
 - Conoces todos los tipos de ítem y cuáles quedan por aprender.
@@ -65,7 +75,7 @@ Si compartes capturas de tu Fabric real (en un foro, un portafolio o un ticket),
 ¿Qué ítem usas para transformar datos con Power Query, sin código?
 - [ ] Notebook
 - [x] Dataflow Gen2
-- [ ] Eventhouse
+- [ ] Pipeline con una actividad Notebook
 - [ ] Warehouse
 :::
 
@@ -73,7 +83,7 @@ Si compartes capturas de tu Fabric real (en un foro, un portafolio o un ticket),
 ¿Qué cuenta necesitas para entrar a Fabric real?
 - [ ] Una cuenta personal de Gmail
 - [x] Una cuenta de trabajo o escuela de Microsoft Entra
-- [ ] Ninguna
+- [ ] Una suscripción de Azure con tarjeta
 - [ ] Una cuenta de GitHub
 :::
 
@@ -82,7 +92,7 @@ Si compartes capturas de tu Fabric real (en un foro, un portafolio o un ticket),
 - [ ] En el workspace de producción
 - [x] En un workspace propio de práctica
 - [ ] En el workspace de otro equipo
-- [ ] En el de la gerencia
+- [ ] En cualquier workspace donde seas Viewer
 :::
 
 :::ejercicio quiz
@@ -90,5 +100,5 @@ Si compartes capturas de tu Fabric real (en un foro, un portafolio o un ticket),
 - [ ] Nada
 - [x] Correos, nombre del tenant, IDs, rutas ABFS y datos de clientes
 - [ ] Solo los colores
-- [ ] Solo el logo
+- [ ] Solo los números de las tablas
 :::

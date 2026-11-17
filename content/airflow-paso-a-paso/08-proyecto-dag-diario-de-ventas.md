@@ -48,6 +48,12 @@ archivo: airflow/a08-rendered.webp
 texto: Rendered Templates de extraer - {{ ds }} quedó reemplazado por la fecha de la corrida
 ```
 
+:::errores
+- **Repetir dueño y reintentos en cada tarea.** Van una vez en `default_args`.
+- **Validaciones que no fallan.** Si `validar` solo imprime un aviso, el reporte vacío se publica igual.
+- **Probar solo con un disparo manual.** Revisa también que el horario y la próxima corrida sean los esperados.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] El Dag aparece sin errores de importación.
@@ -112,7 +118,7 @@ En el nivel 3: TaskFlow, XComs, variables, conexiones y parámetros.
 - [ ] Para definir el horario
 - [x] Para dar valores comunes (dueño, reintentos) a todas las tareas del Dag
 - [ ] Para importar operadores
-- [ ] Para borrar el Dag
+- [ ] Para pasar parámetros al formulario de Trigger
 :::
 
 :::ejercicio quiz
@@ -120,21 +126,21 @@ En el nivel 3: TaskFlow, XComs, variables, conexiones y parámetros.
 - [x] Muestra el docstring del archivo como documentación del Dag en la interfaz
 - [ ] Borra los comentarios
 - [ ] Ejecuta el docstring
-- [ ] Nada
+- [ ] Exporta la documentación a un archivo README
 :::
 
 :::ejercicio quiz
 ¿Cuándo se reemplaza `{{ ds }}` en un bash_command?
 - [ ] Al escribir el archivo
 - [x] Justo antes de ejecutar la tarea, con la fecha lógica de la corrida
-- [ ] Nunca
-- [ ] Al pausar el Dag
+- [ ] Cuando el dag processor lee el archivo
+- [ ] Al crear la corrida, con la hora actual
 :::
 
 :::ejercicio quiz
 ¿Por qué conviene que validar falle si no hay filas?
-- [ ] Para gastar más
+- [ ] Para que Airflow reintente hasta que lleguen filas
 - [x] Para que el problema se vea en rojo en lugar de publicar un reporte vacío que parece correcto
 - [ ] Porque Airflow lo exige
-- [ ] Para que el Dag se pause
+- [ ] Porque una tarea sin filas queda en skipped
 :::

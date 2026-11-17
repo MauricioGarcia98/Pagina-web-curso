@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué es un asset? | ¿Sabes qué hace outlets? | ¿Sabes
 El reporte corría a las 07:00 "porque las ventas suelen estar a las 06:30". El día que la carga tardó una hora más, el reporte salió con los datos de ayer y nadie se dio cuenta.
 :::
 
+:::analogia Avisar cuando el pan está listo
+Programar el reporte "a las 7" es pasar por la panadería a las 7 aunque el pan todavía no salió. Con assets, la panadería avisa: la tarea que produce las ventas marca el asset como actualizado y el reporte arranca en ese momento.
+:::
+
 ## Paso 1 — Qué es un asset
 
 Un **asset** es un dato con nombre (una tabla, un archivo) identificado por una URI, por ejemplo `tienda://gold/ventas_diarias`. Una tarea declara que lo **produce**, y otro Dag se programa para correr cuando ese dato **se actualiza**.
@@ -87,6 +91,12 @@ texto: Quién lo produce y quién lo espera (1) y cada evento con la tarea que l
 `schedule=[A, B]` corre cuando **los dos** se actualizaron. También existen `AssetAll` y `AssetAny` para combinar condiciones ("cuando se actualice A o B").
 :::
 
+:::errores
+- **Declarar el asset en la tarea que lee.** `outlets` va en la tarea que **produce** el asset; el consumidor usa `schedule=[ASSET]`.
+- **URIs distintas para el mismo asset.** Si productor y consumidor no usan exactamente el mismo identificador, el consumidor nunca corre.
+- **Dejar pausado el Dag consumidor.** El evento llega, pero un Dag pausado no crea la corrida.
+:::
+
 ## ✅ Lo que lograste
 
 - Entiendes qué es un asset.
@@ -98,15 +108,15 @@ texto: Quién lo produce y quién lo espera (1) y cada evento con la tarea que l
 - [ ] Que la tarea lee VENTAS
 - [x] Que la tarea produce (actualiza) el asset VENTAS
 - [ ] Que la tarea borra VENTAS
-- [ ] Que la tarea es opcional
+- [ ] Que la tarea espera a que VENTAS se actualice
 :::
 
 :::ejercicio quiz
 ¿Cuándo corre un Dag con `schedule=[VENTAS]`?
 - [ ] Todos los días a las 00:00
 - [x] Cuando una tarea productora actualiza VENTAS
-- [ ] Nunca
-- [ ] Cada hora
+- [ ] Cuando alguien abre el asset en la interfaz
+- [ ] Cada vez que el dag processor lee el archivo del productor
 :::
 
 :::ejercicio quiz
@@ -120,7 +130,7 @@ texto: Quién lo produce y quién lo espera (1) y cada evento con la tarea que l
 :::ejercicio quiz
 ¿Cómo se llamaban los assets en Airflow 2?
 - [x] Datasets
-- [ ] Tables
+- [ ] Sensors
 - [ ] Sensors
 - [ ] Pools
 :::

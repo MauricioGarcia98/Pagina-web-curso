@@ -168,6 +168,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Procesar datos dentro de Airflow.</strong> Airflow decide qué corre y cuándo; el trabajo pesado va en el warehouse, en Spark o en un servicio externo.</li>
+<li><strong>Buscar un Dag que no aparece en la lista.</strong> Si el archivo tiene un error, el Dag no aparece: está en Dag Import Errors.</li>
+<li><strong>Guardar credenciales en el código.</strong> Van en Connections (o en un secrets backend), en el menú Admin.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Sabes qué problema resuelve un orquestador.</li>

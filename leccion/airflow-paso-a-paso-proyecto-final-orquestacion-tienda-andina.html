@@ -71,6 +71,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Cómo llegaría a producción (repositorio, CI, servicio elegido)</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Programar todo por horario.</strong> Si el reporte depende de las ventas, se dispara por asset; si no, corre con datos viejos cuando la carga se atrasa.</li>
+<li><strong>Publicar sin idempotencia.</strong> Recargar un día duplica ventas si publicar no borra o hace MERGE de esa fecha.</li>
+<li><strong>Alertas que nadie probó.</strong> Fuerza una falla antes de entregar.</li>
+</ul>
+</div>
+
+
 <h2>✅ Rúbrica</h2>
 <div class="table-wrap"><table><thead><tr>
 <th>Criterio</th>

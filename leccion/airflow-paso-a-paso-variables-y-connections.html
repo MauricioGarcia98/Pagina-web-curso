@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Variables y Connections - configuración fuera del código</h1><p class="resumen">Lo que cambia entre entornos (dev o prod, umbrales, hosts, usuarios y contraseñas) no va en el código. Creas las variables entorno y umbral_alerta, la conexión api_tienda, y aprendes cómo se leen en un Dag, por qué Airflow cifra los valores y qué alternativas se usan en producción.</p>
 <a class="cta" href="../index.html#/l/airflow-paso-a-paso-variables-y-connections">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear y editar variables</li><li>Crear una conexión con host, puerto y usuario</li><li>Leer variables con Variable.get y en plantillas</li><li>Conocer variables de entorno y secrets backends</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La configuración fuera de la receta</div>
+
+<p>Variables y Connections son lo que cambia entre cocinas: en qué entorno estás, qué umbral usar, la dirección y la llave de la base. La receta (el Dag) no las trae escritas: las pide al momento de cocinar.</p>
+</div>
+
+
 <h2>Paso 1 — Una variable</h2>
 <p><strong>Admin → Variables → Add Variable</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/airflow/a11-var-nueva.webp" alt="Add Variable - clave entorno, valor dev y una descripción" loading="lazy"><figcaption>Add Variable - clave entorno, valor dev y una descripción</figcaption></figure>
@@ -80,6 +86,16 @@ umbral = float(Variable.get(&quot;umbral_alerta&quot;, default=&quot;100&quot;))
 </tr>
 </tbody></table></div>
 <p>Airflow cifra contraseñas y variables en la base con una clave <strong>Fernet</strong>. Igual, la regla es: <strong>nunca</strong> una contraseña en el código del Dag ni en Git.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Contraseñas en el código o en Variables.</strong> Las credenciales van en Connections o en un secrets backend.</li>
+<li><strong><code>Variable.get</code> en el nivel superior del archivo.</strong> Se ejecuta en cada lectura del archivo y carga la base de metadatos; léela dentro de la tarea o con plantillas.</li>
+<li><strong>Sin valor por defecto.</strong> Si la variable no existe, la tarea falla; usa <code>default=</code> cuando tenga sentido.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste variables y una conexión.</li>

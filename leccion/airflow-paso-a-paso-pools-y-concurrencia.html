@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Mesas en un restaurante</div>
+
+<p>Un pool es la cantidad de mesas del restaurante: si hay dos mesas y llegan cuatro grupos, dos se sientan y los otros esperan. <code>priority_weight</code> decide a quién se sienta primero cuando se libera una mesa.</p>
+</div>
+
+
 <h2>Paso 1 — Crear el pool</h2>
 <p><strong>Admin → Pools → Add Pool</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/airflow/a18-pool-nuevo.webp" alt="Add Pool - api_tienda con 2 lugares y una descripción" loading="lazy"><figcaption>Add Pool - api_tienda con 2 lugares y una descripción</figcaption></figure>
@@ -83,6 +89,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-tip"><div class="callout-title">💡 max_active_runs=1</div>
 
 <p>Si cada corrida escribe la misma tabla, dos corridas a la vez pueden pisarse. <code>max_active_runs=1</code> hace que un backfill de 30 días corra de a uno, en orden.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Confundir pool con max_active_runs.</strong> El pool limita tareas que usan un recurso; <code>max_active_runs</code> limita corridas simultáneas del mismo Dag.</li>
+<li><strong>Esperar que las tareas extra fallen.</strong> Quedan en queued hasta que se libera un lugar.</li>
+<li><strong>Un pool por Dag.</strong> El pool representa el recurso (la API, la base), y lo comparten todos los Dags que lo usan.</li>
+</ul>
 </div>
 
 

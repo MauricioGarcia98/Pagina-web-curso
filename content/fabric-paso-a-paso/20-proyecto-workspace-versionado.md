@@ -42,6 +42,12 @@ texto: El repositorio con el commit "Primera versión: lakehouse, notebook, pipe
 **Decisión a defender:** nadie edita producción a mano; todo cambio pasa por Git y por una revisión.
 </details>
 
+:::errores
+- **Commits con mensajes como "cambios".** Dentro de un mes nadie sabe qué se cambió ni por qué.
+- **Editar producción a mano.** Los cambios quedan sin revisión ni historial; pasan por dev, Git y el despliegue.
+- **No probar la vuelta atrás.** Un procedimiento de reversión que nunca se probó suele fallar el día que hace falta.
+:::
+
 ## Lo que aprendiste en el nivel 5
 
 - Monitor y una rutina de operación.
@@ -55,7 +61,7 @@ Alguien rompió el notebook ayer. ¿Cuál es el procedimiento?
 - [ ] Reescribirlo de memoria
 - [x] Revertir el commit en GitHub y actualizar el workspace desde Updates
 - [ ] Borrar el workspace
-- [ ] Esperar que se arregle solo
+- [ ] Restaurar el workspace desde la papelera de OneLake
 :::
 
 :::ejercicio quiz
@@ -63,7 +69,7 @@ Alguien rompió el notebook ayer. ¿Cuál es el procedimiento?
 - [ ] Los datos de las tablas a otro país
 - [x] Los ítems entre etapas: desarrollo, prueba y producción
 - [ ] Los correos del equipo
-- [ ] Nada
+- [ ] Las filas nuevas de las tablas de desarrollo a producción
 :::
 
 :::ejercicio quiz
@@ -71,7 +77,7 @@ Alguien rompió el notebook ayer. ¿Cuál es el procedimiento?
 - [ ] Porque Fabric no lo permite nunca
 - [x] Porque los cambios quedan sin revisión ni historial y es fácil romper algo
 - [ ] Porque cuesta más
-- [ ] No hay problema
+- [ ] Porque Fabric cobra el doble en producción
 :::
 
 :::ejercicio quiz

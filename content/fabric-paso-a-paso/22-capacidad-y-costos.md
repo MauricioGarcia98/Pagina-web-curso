@@ -54,6 +54,12 @@ Los precios cambian por región y fecha: consulta siempre la página oficial de 
 4. **Separa** desarrollo y producción en capacidades distintas: una prueba pesada no debe frenar los informes de la gerencia.
 5. **Optimiza** lo que más consume: tablas con `OPTIMIZE`, notebooks que leen solo las columnas y particiones necesarias.
 
+:::errores
+- **Pensar que se paga por consulta.** Fabric cobra la capacidad por hora (más el almacenamiento); una consulta cara consume capacidad que se nota en otros ítems.
+- **Dejar la capacidad encendida sin uso.** Una capacidad F de pago por uso se puede pausar para dejar de pagar cómputo.
+- **Ignorar la limitación (throttling).** Si un ítem consume de más por mucho tiempo, demora y después rechaza operaciones de todos.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes cómo se paga Fabric y qué pasa al terminar la prueba.
@@ -72,7 +78,7 @@ Los precios cambian por región y fecha: consulta siempre la página oficial de 
 ¿Qué pasa con los ítems de Fabric al terminar la prueba si no asignas una capacidad?
 - [ ] Siguen gratis
 - [x] Quedan inaccesibles hasta asignar el workspace a una capacidad paga
-- [ ] Se copian a Excel
+- [ ] Se borran el mismo día
 - [ ] Se pasan a Pro solos
 :::
 
@@ -80,8 +86,8 @@ Los precios cambian por región y fecha: consulta siempre la página oficial de 
 ¿Qué es la limitación (throttling)?
 - [x] Demorar y luego rechazar operaciones cuando la capacidad se excede por mucho tiempo
 - [ ] Un descuento
-- [ ] Un tipo de tabla
-- [ ] Una licencia
+- [ ] Un aviso que solo aparece en la factura
+- [ ] Un límite de usuarios por workspace
 :::
 
 :::ejercicio quiz
