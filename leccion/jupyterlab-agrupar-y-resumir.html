@@ -105,6 +105,16 @@ entregados.groupby(&quot;canal&quot;).size().sort_values(ascending=False)</code>
 <td>Tabla dinámica con Columns</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Contar con <code>sum</code> o sumar con <code>count</code>.</strong> Elige la agregación que responde la pregunta.</li>
+<li><strong>Olvidar <code>reset_index()</code>.</strong> El resultado de <code>groupby</code> tiene la clave como índice; para seguir trabajando suele convenir columna.</li>
+<li><strong>pivot_table sin <code>fill_value</code>.</strong> Las combinaciones sin datos quedan como NaN.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Agrupaste y calculaste conteos, tasas y varias métricas.</li>

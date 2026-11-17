@@ -137,6 +137,12 @@ En la hoja **Cobros**, arma un cuadro por canal con los pedidos:
 
 Control: la suma de **G2:G5** tiene que dar **12.000** (todos los pedidos tienen canal).
 
+:::errores
+- **Invertir el orden de SUMIFS.** Primero el rango a sumar, después los pares rango-criterio.
+- **Fechas con "menor o igual al 30".** Febrero no tiene 30; usa "menor al primer día del mes siguiente".
+- **Escribir el criterio fijo en cada fila.** Apuntar a una celda (`F2`) permite copiar la fórmula a todas.
+:::
+
 ## ✅ Lo que lograste
 
 - Contaste, sumaste y promediaste con una y varias condiciones.

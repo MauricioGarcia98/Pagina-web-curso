@@ -107,6 +107,12 @@ texto: File → Download (1) descarga el notebook; Save (2) lo guarda
 - Opción profesional: instalar JupyterLab en tu computadora (lección 23).
 - El `.ipynb` que descargaste se abre igual en cualquiera de ellos.
 
+:::errores
+- **Números escritos a mano en varias celdas.** Si cambia un valor, quedan inconsistentes; define variables arriba.
+- **Entregar sin reiniciar y ejecutar todo.** Puede depender de celdas que borraste.
+- **Resultados sin texto que los explique.** Agrega una conclusión en Markdown.
+:::
+
 :::ejercicio quiz
 ¿Qué muestra `print(f"Total: {total / 3:.2f}")` si total vale 795?
 - [ ] Total: {total / 3:.2f}

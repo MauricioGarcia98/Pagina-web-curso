@@ -123,6 +123,16 @@ clientes[&quot;dias_cliente&quot;].describe()</code></pre>
 )
 resumen_mes</code></pre>
 <p>Cada línea es un paso y se lee de arriba abajo, como una receta. <code>assign</code> crea columnas sin modificar <code>pedidos</code>; <code>query</code> filtra con una condición escrita como texto.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Fechas como texto.</strong> Sin <code>pd.to_datetime</code>, no se puede sacar año, mes ni restar.</li>
+<li><strong>Agrupar por mes sin año.</strong> Se mezclan años distintos; usa período año-mes.</li>
+<li><strong>Formatos de fecha ambiguos.</strong> Indica <code>format=</code> o <code>dayfirst=</code> cuando el archivo usa día/mes.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Conviertes texto a fecha y extraes año, mes, período y día.</li>

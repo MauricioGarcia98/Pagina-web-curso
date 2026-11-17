@@ -97,6 +97,12 @@ La hoja `LEEME` con cinco cosas alcanza:
 Si el libro tiene emails, teléfonos o documentos de clientes, compártelo solo con quien lo necesita, no lo subas a sitios públicos y, si es para un análisis, quita o enmascara esas columnas. En las capturas que publiques (portafolio, LinkedIn), usa siempre datos ficticios como los de este curso.
 :::
 
+:::errores
+- **Mezclar datos, cálculos y presentación en una hoja.** Separa entrada, cálculo y resultados.
+- **Supuestos escondidos dentro de fórmulas.** Un 0.21 escrito en una fórmula nadie lo encuentra; va en una celda con nombre.
+- **Libros sin controles.** Una celda que compara totales avisa cuando algo no cuadra.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes organizar un libro en capas y documentarlo.

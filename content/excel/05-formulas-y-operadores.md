@@ -127,6 +127,12 @@ Cuando te pasan un archivo, no confíes en los números que ves: haz clic en ell
 
 **Formulas → Show Formulas** (Ctrl + `) muestra todas las fórmulas de la hoja a la vez. Es la forma más rápida de auditar una hoja ajena.
 
+:::errores
+- **Olvidar el orden de las operaciones.** Multiplicación antes que suma: `=2+3*4` es 14; usa paréntesis.
+- **Concatenar sin espacio.** `=A2&B2` da "AnaPérez"; va `=A2&" "&B2`.
+- **Totales "pegados como valor".** Si la barra de fórmulas muestra un número, ya no se recalcula.
+:::
+
 ## ✅ Lo que lograste
 
 - Escribiste fórmulas con operadores y funciones.

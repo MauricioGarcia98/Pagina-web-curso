@@ -139,6 +139,17 @@ canal[&quot;alerta&quot;] = np.where(canal[&quot;tasa&quot;] &gt; UMBRAL_CANCELA
 </ul>
 <h2>🖥️ Hazlo también en JupyterLab real</h2>
 <p>En Jupyter real, este patrón (una celda de parámetros) es el que usa <strong>papermill</strong> para ejecutar el mismo notebook con distintos valores de forma automática, y el que usan los <strong>widgets</strong> de Databricks. Lo vemos en la lección 22.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Comparar años con distinta cantidad de meses.</strong> Si 2024 no está completo, compara los mismos meses.</li>
+<li><strong>Tasas con el denominador equivocado.</strong> La cancelación se divide por los pedidos del mismo año.</li>
+<li><strong>Reporte sin conclusiones.</strong> Las tablas solas no son un reporte.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

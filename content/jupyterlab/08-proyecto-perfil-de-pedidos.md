@@ -138,6 +138,12 @@ Al final, una celda Markdown `## Hallazgos` con 3 a 5 puntos, cada uno con un n�
 
 Exporta `pedidos.csv` desde la práctica (clic derecho en el explorador → **Download**), súbelo a Google Colab o a tu JupyterLab y ejecuta el mismo notebook. Si los números coinciden, tu notebook es reproducible.
 
+:::errores
+- **Perfil sin nulos ni duplicados.** Son lo primero que el equipo necesita saber.
+- **Conclusiones sin número.** "Hay pocos cancelados" no alcanza; di cuántos y qué porcentaje.
+- **Celdas de prueba en el entregable.** Borra lo que no aporta antes de compartir.
+:::
+
 :::ejercicio quiz
 ¿Qué devuelve `(pedidos["estado"] == "cancelado").mean()`?
 - [ ] La cantidad de pedidos cancelados

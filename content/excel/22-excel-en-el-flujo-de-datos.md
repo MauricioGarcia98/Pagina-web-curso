@@ -96,6 +96,12 @@ En una empresa con equipo de datos, Excel suele aparecer en estos lugares:
 Una hoja, una tabla, encabezados en la fila 1, sin filas de total, sin celdas combinadas, sin colores con significado (el pipeline no ve colores), fechas reales y un nombre de archivo con fecha. Si vas a pedirle a alguien un Excel que se cargará automáticamente, mándale una plantilla con esas reglas.
 :::
 
+:::errores
+- **Abrir un CSV y guardar encima.** Excel puede cambiar fechas, ceros a la izquierda y decimales.
+- **Forzar Excel más allá de su límite.** Más de un millón de filas no entran; ahí van SQL, Python o Power BI.
+- **Procesos repetidos a mano cada semana.** Si se repite, conviene Power Query o un script.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes importar y exportar CSV sin romper datos.

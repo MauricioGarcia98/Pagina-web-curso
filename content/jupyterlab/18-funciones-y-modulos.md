@@ -101,6 +101,12 @@ Después de editar y guardar el `.py`, reinicia el kernel para que el notebook i
 | Sin variables globales adentro (todo por parámetro) | Funciona igual en cualquier notebook |
 | Pruebas al lado de la función | Si alguien la cambia, sabe si la rompió |
 
+:::errores
+- **Funciones que leen variables globales.** Pasa todo como parámetro; si no, dependen del orden de las celdas.
+- **Funciones sin prueba.** Un `assert` con un caso conocido detecta cambios que la rompen.
+- **Editar un módulo y no recargarlo.** El kernel sigue con la versión vieja hasta reimportar o reiniciar.
+:::
+
 ## ✅ Lo que lograste
 
 - Escribiste funciones con parámetros, valores por defecto y docstring.

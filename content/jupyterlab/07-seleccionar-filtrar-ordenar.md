@@ -106,6 +106,12 @@ pedidos.loc[pedidos["canal"] == "telefono", ["pedido_id", "fecha_pedido", "estad
 | `df.sort_values("f", ascending=False)` | `ORDER BY f DESC` | Sort Z→A |
 | `df["estado"].isin([...])` | `estado IN (...)` | Filtro con varios valores |
 
+:::errores
+- **Usar `and`/`or` en filtros.** En pandas se usan `&` y `|`, con paréntesis en cada condición.
+- **Modificar una porción y esperar que cambie el original.** Usa `.loc` para asignar o `.copy()` si trabajas aparte.
+- **Ordenar sin guardar el resultado.** `sort_values` devuelve otro DataFrame; asígnalo.
+:::
+
 ## ✅ Lo que lograste
 
 - Seleccionas columnas y filtras filas con una o varias condiciones.

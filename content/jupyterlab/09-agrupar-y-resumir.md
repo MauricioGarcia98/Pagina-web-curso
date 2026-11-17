@@ -102,6 +102,12 @@ El orden importa: **filtrar → agrupar → ordenar**. Es el mismo orden que `WH
 | `df.groupby("canal")["monto"].sum()` | `SUM(monto) … GROUP BY canal` | Tabla dinámica, Sum |
 | `pd.pivot_table(df, index=…, columns=…)` | `GROUP BY` + pivot | Tabla dinámica con Columns |
 
+:::errores
+- **Contar con `sum` o sumar con `count`.** Elige la agregación que responde la pregunta.
+- **Olvidar `reset_index()`.** El resultado de `groupby` tiene la clave como índice; para seguir trabajando suele convenir columna.
+- **pivot_table sin `fill_value`.** Las combinaciones sin datos quedan como NaN.
+:::
+
 ## ✅ Lo que lograste
 
 - Agrupaste y calculaste conteos, tasas y varias métricas.

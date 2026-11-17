@@ -114,6 +114,12 @@ Léela de adentro hacia afuera: `FIND("@",D2)` da 14; `14+1` es 15; `MID(D2,15,1
 
 Da `Ventas del mes: 57,500`. Y al revés, `VALUE("1500")` convierte un texto con forma de número en número.
 
+:::errores
+- **Agrupar por mes sin el año.** Marzo de 2023 y marzo de 2024 se mezclan; usa `TEXT(fecha,"yyyy-mm")`.
+- **TODAY() en un informe que se repite.** Cambia cada día; una fecha de corte en una celda hace el informe reproducible.
+- **Fechas como texto.** Si no son fechas reales, restar o filtrar da errores o resultados raros.
+:::
+
 ## ✅ Lo que lograste
 
 - Sacaste año, mes y período de fechas para poder agrupar.

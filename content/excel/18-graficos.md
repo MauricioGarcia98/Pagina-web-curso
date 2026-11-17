@@ -88,6 +88,12 @@ Un gráfico de columnas con el eje que empieza en un valor alto exagera las dife
 
 Un gráfico va acompañado de una frase. Para la serie mensual, por ejemplo: *"Noviembre y diciembre concentran el 24 % de los pedidos del año: hay que reforzar stock y logística desde octubre."* La frase dice qué pasó, cuánto y qué hacer.
 
+:::errores
+- **Torta para muchas categorías.** Con más de 4 o 5 porciones no se lee; usa barras ordenadas.
+- **Eje que no empieza en cero en columnas.** Exagera diferencias pequeñas.
+- **Títulos genéricos.** "Ventas" no dice nada; el título cuenta la conclusión.
+:::
+
 ## ✅ Lo que lograste
 
 - Elegiste el gráfico según la pregunta.

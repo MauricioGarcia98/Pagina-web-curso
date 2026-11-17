@@ -102,6 +102,12 @@ Cambia `ANIO = 2024` por `ANIO = 2023`, **Restart Kernel and Run All Cells**, y 
 
 En Jupyter real, este patrón (una celda de parámetros) es el que usa **papermill** para ejecutar el mismo notebook con distintos valores de forma automática, y el que usan los **widgets** de Databricks. Lo vemos en la lección 22.
 
+:::errores
+- **Comparar años con distinta cantidad de meses.** Si 2024 no está completo, compara los mismos meses.
+- **Tasas con el denominador equivocado.** La cancelación se divide por los pedidos del mismo año.
+- **Reporte sin conclusiones.** Las tablas solas no son un reporte.
+:::
+
 :::ejercicio quiz
 ¿Por qué el año va en una variable `ANIO` y no escrito en cada celda?
 - [ ] Porque pandas no acepta números en los filtros

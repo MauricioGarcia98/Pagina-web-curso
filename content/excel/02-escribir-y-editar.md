@@ -108,6 +108,12 @@ Solo hace falta elegir la **primera celda** de destino: Excel pega el bloque ent
 
 **Cortar** (Ctrl + X) funciona igual, pero mueve en lugar de copiar. Borra ahora la copia: selecciona **F1:I3** y presiona Supr.
 
+:::errores
+- **Números guardados como texto.** Si quedan a la izquierda o con un triangulito verde, no se suman; conviértelos.
+- **Borrar con Supr para corregir.** F2 entra en la celda sin perder lo que había.
+- **Fechas ambiguas.** `03/04/2024` puede ser marzo o abril según la configuración; `2024-04-03` no tiene dudas.
+:::
+
 ## ✅ Lo que lograste
 
 - Escribiste datos de los cuatro tipos y aprendiste a reconocerlos.

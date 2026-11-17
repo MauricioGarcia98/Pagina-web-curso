@@ -80,6 +80,12 @@ En Databricks y Fabric los datos suelen ser demasiado grandes para pandas, y se 
 
 Si quieres seguir por ese camino, el módulo [PySpark](#/m/pyspark) parte de lo que ya sabes de pandas.
 
+:::errores
+- **Usar el notebook como pipeline de producción.** Lo que corre todos los días va como script o en un orquestador.
+- **Celdas que dependen de interacciones.** Un proceso automático no puede hacer clic.
+- **No separar exploración de producción.** El notebook explora; el código probado pasa a módulos.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes cuándo un notebook debe convertirse en script o pipeline.

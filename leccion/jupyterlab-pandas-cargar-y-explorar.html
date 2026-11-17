@@ -149,6 +149,16 @@ pedidos.head()</code></pre>
 <td><code>df.isna().sum()</code></td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Mirar los datos con print del DataFrame entero.</strong> <code>head()</code>, <code>info()</code> y <code>describe()</code> dicen más con menos.</li>
+<li><strong>No revisar los tipos.</strong> Una columna de montos como <code>object</code> no se suma bien.</li>
+<li><strong>Ignorar los nulos.</strong> <code>isna().sum()</code> antes de calcular evita promedios engañosos.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Cargaste un CSV y conoces su tamaño, columnas, tipos y nulos.</li>

@@ -158,6 +158,16 @@ len(perdidos)</code></pre>
 <td>Filtro con varios valores</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Usar <code>and</code>/<code>or</code> en filtros.</strong> En pandas se usan <code>&amp;</code> y <code>|</code>, con paréntesis en cada condición.</li>
+<li><strong>Modificar una porción y esperar que cambie el original.</strong> Usa <code>.loc</code> para asignar o <code>.copy()</code> si trabajas aparte.</li>
+<li><strong>Ordenar sin guardar el resultado.</strong> <code>sort_values</code> devuelve otro DataFrame; asígnalo.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Seleccionas columnas y filtras filas con una o varias condiciones.</li>

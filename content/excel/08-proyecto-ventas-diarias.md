@@ -139,6 +139,12 @@ Sábado + domingo = 13.260 + 9.160 = 22.420; 22.420 / 57.500 = 39 %. Puedes calc
 
 Repite el proyecto en Excel para la web o de escritorio. Todo lo que usaste existe igual. Dos diferencias que vas a notar: en Excel real puedes ajustar el ancho de una columna con **doble clic** en el borde del encabezado, y el controlador de relleno también se puede usar con **doble clic** (rellena hasta donde llegan los datos de la columna de al lado).
 
+:::errores
+- **Promediar promedios.** El ticket de dos días se calcula con el total vendido sobre el total de tickets.
+- **Porcentajes sin referencia fija al total.** `=E2/J1` copiado hacia abajo divide por celdas vacías.
+- **No cuadrar totales.** Si "netas" no coincide con "brutas − devoluciones", alguna fórmula no se copió bien.
+:::
+
 :::ejercicio quiz
 ¿Por qué en G2 hay que escribir `=E2/$J$1` y no `=E2/J1`?
 - [ ] Porque J1 tiene texto

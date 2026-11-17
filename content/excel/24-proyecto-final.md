@@ -87,6 +87,12 @@ Ya dominas Excel como herramienta de análisis. Los caminos naturales desde aqu�
 - **[Python](#/m/python)** y [JupyterLab](#/jupyter): automatizar la limpieza y el análisis.
 - **[Power BI](#/m/powerbi)**: tableros interactivos que muchos consultan.
 
+:::errores
+- **Responder sin definir.** "Perder plata" necesita una definición: margen negativo, devoluciones, descuentos.
+- **Hallazgos sin número.** Cada conclusión necesita la cifra que la respalda.
+- **Entregar sin revisar totales.** Compara con un total conocido antes de presentar.
+:::
+
 :::ejercicio quiz
 El pedido dice "perder plata con los pedidos que no se concretan". ¿Qué haces primero?
 - [ ] Abro los datos y hago todos los gráficos posibles

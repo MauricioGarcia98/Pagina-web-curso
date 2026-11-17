@@ -97,6 +97,12 @@ archivo: jupyter/e23-oscuro.webp
 texto: El tema JupyterLab Dark
 ```
 
+:::errores
+- **Notebook sin estructura.** Títulos, objetivo y conclusiones arriba; detalles abajo.
+- **Salidas gigantes.** Una tabla de 10.000 filas no la lee nadie; muestra un resumen.
+- **Compartir con datos sensibles en las salidas.** Las salidas quedan guardadas en el archivo.
+:::
+
 ## ✅ Lo que lograste
 
 - Estructuras notebooks como informes reproducibles.

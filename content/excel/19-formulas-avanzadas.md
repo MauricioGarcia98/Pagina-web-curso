@@ -141,6 +141,12 @@ Estas fórmulas "derraman" el resultado en varias celdas. Funcionan en Excel 365
 | Excel real: ver de dónde sale un número | Formulas → **Trace Precedents** dibuja flechas a las celdas que usa |
 | Referencia circular | Si una fórmula se usa a sí misma, Excel avisa: revisa la celda que indica |
 
+:::errores
+- **IF anidados para tramos.** Cada cambio obliga a editar todas las fórmulas; una tabla de tramos se edita una vez.
+- **Claves compuestas sin separador.** "12" & "34" y "1" & "234" dan lo mismo; el `|` lo evita.
+- **No auditar fórmulas largas.** Evaluar fórmula y rastrear precedentes muestran dónde se rompe.
+:::
+
 ## ✅ Lo que lograste
 
 - Calculaste totales ponderados con SUMPRODUCT.

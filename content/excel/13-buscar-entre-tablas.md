@@ -127,6 +127,12 @@ Una unión que pierde filas en silencio es un error grave. Después de buscar, c
 Si un cliente_id aparece **dos veces** en la tabla de clientes, XLOOKUP devuelve el primero y no avisa. En SQL, el JOIN duplicaría el pedido. Por eso, antes de unir, se verifica que la clave sea única en la tabla que buscas (nivel 4, lección de limpieza).
 :::
 
+:::errores
+- **VLOOKUP sin FALSE.** Hace coincidencia aproximada y puede traer el dato de otro cliente sin avisar.
+- **Invertir los argumentos de XLOOKUP.** Primero lo buscado, después dónde buscar y después qué devolver.
+- **IFERROR alrededor de una búsqueda.** Esconde errores reales; IFNA solo reemplaza el "no encontrado".
+:::
+
 ## ✅ Lo que lograste
 
 - Uniste dos tablas por una clave con XLOOKUP.

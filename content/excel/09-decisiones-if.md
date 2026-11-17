@@ -129,6 +129,12 @@ Cuando una cuenta puede fallar (dividir por cero, buscar algo que no existe), IF
 IFERROR tapa **cualquier** error, incluido uno que te avisa de un dato mal cargado. Úsalo cuando sabes por qué puede fallar (por ejemplo, un día sin ventas) y no para que "la hoja se vea limpia".
 :::
 
+:::errores
+- **Texto sin comillas.** `=IF(F2=web,...)` da `#NAME?`; el texto va entre comillas.
+- **Condiciones en el orden equivocado en IFS.** Gana la primera verdadera: pon las más exigentes primero.
+- **IFERROR para esconder todo.** Oculta también errores reales; úsalo solo donde sabes qué error esperas.
+:::
+
 ## ✅ Lo que lograste
 
 - Cargaste una tabla real de 12.000 filas.

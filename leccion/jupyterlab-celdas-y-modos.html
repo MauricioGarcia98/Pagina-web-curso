@@ -157,6 +157,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Practica: selecciona la última celda, presiona <strong>B</strong> para agregar una nueva, Enter, escribe <code>2 + 2</code> y Shift + Enter. Después, con esa celda seleccionada en modo comando, presiona <strong>D D</strong> para borrarla y <strong>Z</strong> para recuperarla.</p>
 <h2>Paso 4 — El kernel recuerda</h2>
 <p>Las variables que creas en una celda existen para todas las demás, <strong>en el orden en que las ejecutaste</strong>. La celda que carga <code>pedidos</code> tiene que correr antes que la que usa <code>pedidos</code>. Si abres el notebook mañana, el kernel arranca vacío: hay que volver a ejecutar desde arriba (<strong>Run → Run All Cells</strong>).</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Escribir en modo comando.</strong> Las teclas se interpretan como atajos (por ejemplo, <code>d d</code> borra la celda); entra con Enter.</li>
+<li><strong>Ejecutar celdas en desorden.</strong> El número <code>[n]</code> dice el orden real; reinicia y ejecuta todo para comprobar.</li>
+<li><strong>Celdas de código para texto.</strong> Las explicaciones van en celdas Markdown.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Distingues el modo comando del modo edición.</li>

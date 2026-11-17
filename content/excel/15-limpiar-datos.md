@@ -132,6 +132,12 @@ Comprueba siempre con `ISNUMBER` o mirando la alineación.
 
 Las columnas con fórmulas dependen de las originales. Para quedarte solo con lo limpio en Excel real: copia **H:J** y usa **Paste Special → Values** (pega los resultados, no las fórmulas). Después ya puedes borrar las columnas originales. En esta réplica, exporta la hoja con **File → Export CSV**: el CSV guarda los valores.
 
+:::errores
+- **Remove Duplicates con todas las columnas.** Si hay una columna que cambia en cada fila (un id de carga), nada parece duplicado; elige la clave.
+- **Quitar duplicados sin ordenar antes.** Se queda la primera de cada grupo; ordena para que sea la que quieres.
+- **Aceptar un resultado que no coincide con lo medido.** Si esperabas 243 clientes y quedan 250, algo salió mal.
+:::
+
 ## ✅ Lo que lograste
 
 - Mediste la calidad de una tabla antes de limpiarla.

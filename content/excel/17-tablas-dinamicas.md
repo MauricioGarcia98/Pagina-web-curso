@@ -105,6 +105,12 @@ En esta réplica la tabla dinámica es un resumen fijo: si cambian los datos, vu
 
 En Excel real, el panel **PivotTable Fields** permite arrastrar campos a cuatro zonas (Filters, Columns, Rows, Values), agrupar fechas por mes o año con un clic derecho → **Group**, mostrar valores como **% del total** (**Show Values As**) y agregar **segmentaciones** (Slicers) para filtrar con botones. Lo vemos en la lección 23.
 
+:::errores
+- **Sumar un ID.** "Suma de pedido_id" no significa nada; para contar, usa Count.
+- **Olvidar actualizar la tabla dinámica.** Si cambian los datos, hay que actualizarla.
+- **Rango fijo como origen.** Si se agregan filas, quedan afuera; usa una Tabla de Excel como origen.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste tablas dinámicas que cuentan, suman y promedian.

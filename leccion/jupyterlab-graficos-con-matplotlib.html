@@ -94,6 +94,16 @@ plt.tight_layout()</code></pre>
 <pre data-norun><code class="language-python">ax = por_mes.plot(title=&quot;Pedidos por mes&quot;, figsize=(8, 3))
 ax.figure.savefig(&quot;pedidos_por_mes.png&quot;, dpi=150, bbox_inches=&quot;tight&quot;)</code></pre>
 <p>El PNG aparece en el explorador de archivos; clic derecho → <strong>Download</strong> para llevarlo a un informe o una presentación.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Gráficos sin título ni etiquetas.</strong> El lector no sabe qué está viendo.</li>
+<li><strong>Líneas para categorías sin orden.</strong> Las líneas son para el tiempo; las categorías van en barras.</li>
+<li><strong>Histogramas con pocos o demasiados bins.</strong> Cambia la forma que se ve; prueba más de uno.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Graficas desde pandas eligiendo el tipo según la pregunta.</li>

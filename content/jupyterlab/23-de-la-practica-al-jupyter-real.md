@@ -106,6 +106,12 @@ Se instalan con `pip install nombre` y aparecen al reiniciar JupyterLab.
 - [ ] Genera su `requirements.txt`.
 - [ ] Exporta a HTML (File → Save and Export Notebook As → HTML) y ábrelo en el navegador.
 
+:::errores
+- **Instalar paquetes en el Python del sistema.** Usa un entorno (venv o conda) por proyecto.
+- **Kernel de otro entorno.** Si el paquete no aparece, el notebook usa otro kernel.
+- **No fijar versiones.** Un `requirements.txt` permite que otro reproduzca tu entorno.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes instalar JupyterLab y trabajar con entornos y kernels.

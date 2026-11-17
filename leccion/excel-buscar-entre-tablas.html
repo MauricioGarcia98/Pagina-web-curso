@@ -145,6 +145,16 @@ FROM pedidos p LEFT JOIN clientes c ON c.cliente_id = p.cliente_id;</code></pre>
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>VLOOKUP sin FALSE.</strong> Hace coincidencia aproximada y puede traer el dato de otro cliente sin avisar.</li>
+<li><strong>Invertir los argumentos de XLOOKUP.</strong> Primero lo buscado, después dónde buscar y después qué devolver.</li>
+<li><strong>IFERROR alrededor de una búsqueda.</strong> Esconde errores reales; IFNA solo reemplaza el &quot;no encontrado&quot;.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Uniste dos tablas por una clave con XLOOKUP.</li>

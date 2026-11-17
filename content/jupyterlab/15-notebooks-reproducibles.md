@@ -91,6 +91,12 @@ archivo: jupyter/05-tras-reinicio.webp
 texto: Después de Restart and Run All, la numeración sale ordenada desde [1]: el notebook corre de arriba abajo
 ```
 
+:::errores
+- **Notebook que solo funciona en tu orden.** Reinicia el kernel y ejecuta todo antes de compartir.
+- **Rutas fijas de tu máquina.** Usa rutas relativas o configurables.
+- **Código repetido en muchas celdas.** Pásalo a una función o a un `.py`.
+:::
+
 ## ✅ Lo que lograste
 
 - Usas magics para inspeccionar, medir y crear archivos.

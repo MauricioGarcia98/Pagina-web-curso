@@ -126,6 +126,12 @@ En Excel real hay dos herramientas que hacen esto más cómodo, y vale la pena p
 - **Data → Remove Duplicates** es igual que en la práctica (eliges las columnas).
 - **Data → Get Data → From Table/Range** abre **Power Query**, donde cada paso de limpieza (quitar espacios, minúsculas, quitar duplicados, combinar con otra tabla) queda grabado y se repite solo cuando llegan datos nuevos. Lo vemos en el nivel 6.
 
+:::errores
+- **Limpiar sobre el dato original.** Trabaja en una copia para poder volver y comparar.
+- **Inventar datos que faltan.** Un cliente sin email queda fuera de la lista y se informa.
+- **Contar compras sin filtrar por año.** El pedido era 2024; agrega el rango de fechas.
+:::
+
 :::ejercicio quiz
 ¿Por qué conviene trabajar en una copia de `clientes_crudo`?
 - [ ] Porque Excel no deja modificar tablas cargadas

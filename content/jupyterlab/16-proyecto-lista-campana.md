@@ -103,6 +103,12 @@ Cambia `ANIO = 2023`, **Restart Kernel and Run All Cells**. Todo tiene que corre
 | Entrega | CSV con 139 filas | Solo columnas pedidas, sin índice, nombre con el año |
 | Comunicación | Informa los no contactables | Informe con números y recomendación |
 
+:::errores
+- **Pasos manuales en medio del notebook.** Si alguien tiene que editar un archivo a mano, el pipeline no es repetible.
+- **No verificar el resultado.** Cuenta filas, nulos y duplicados al final.
+- **Inventar datos faltantes.** Los clientes sin email quedan fuera y se informan.
+:::
+
 :::ejercicio quiz
 ¿Por qué conviene la limpieza en una función de un .py?
 - [ ] Porque los notebooks no aceptan funciones
