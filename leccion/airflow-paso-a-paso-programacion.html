@@ -112,6 +112,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p>Sirve para ver de un vistazo qué días faltan o fallaron.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>start_date=datetime.now()</code>.</strong> Cambia en cada lectura del archivo; usa una fecha fija.</li>
+<li><strong>Confundir el orden del cron.</strong> Es minuto, hora, día del mes, mes, día de la semana: las 6:00 es <code>0 6 * * *</code>.</li>
+<li><strong>Activar catchup sin querer.</strong> Con catchup y una <code>start_date</code> vieja, Airflow crea una corrida por cada intervalo pasado.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Escribes horarios con atajos, cron y timedelta.</li>

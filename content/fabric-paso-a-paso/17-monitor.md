@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué muestra la columna Duration? | ¿Sabes de qué work
 Lucía: *"Desde que agregamos el warehouse y el modelo, no sé qué corre y qué no. Quiero revisarlo todo en un solo lugar, cada mañana, en cinco minutos."*
 :::
 
+:::analogia El tablero de control del edificio
+El Monitor es el tablero de control del edificio: en una sola pantalla ves qué se ejecutó en todas las oficinas (workspaces), quién lo lanzó, cuánto tardó y si falló, sin abrir ítem por ítem.
+:::
+
 ## Paso 1 — Abrir el Monitor
 
 Barra izquierda → **Monitor**:
@@ -45,6 +49,12 @@ El Monitor junta **todos los workspaces** a los que tienes acceso. El historial 
 Un pipeline puede terminar bien y copiar cero filas. Para los procesos importantes, agrega una comprobación (un notebook que cuente filas y falle si da cero) o una alerta. El curso de [Data Factory](#/m/data-factory-paso-a-paso) muestra cómo leer las filas copiadas en la salida de Copy data.
 :::
 
+:::errores
+- **Mirar solo Failed.** Una corrida que tardó 20 veces más de lo normal también es una alarma.
+- **Creer que Succeeded significa datos correctos.** Un pipeline puede terminar bien copiando cero filas; agrega comprobaciones.
+- **Revisar cada ítem por separado.** El Monitor junta todos los workspaces a los que tienes acceso.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes leer el Monitor columna por columna.
@@ -55,7 +65,7 @@ Un pipeline puede terminar bien y copiar cero filas. Para los procesos important
 - [ ] Solo del actual
 - [x] De todos los workspaces a los que tienes acceso
 - [ ] Solo de los Pro
-- [ ] De ninguno
+- [ ] Solo de los workspaces en los que eres Admin
 :::
 
 :::ejercicio quiz
@@ -70,7 +80,7 @@ Un pipeline que siempre tarda 2 minutos hoy tardó 40. ¿Qué columna lo muestra
 ¿Qué revisas primero cada mañana?
 - [x] Las corridas en Failed
 - [ ] Los nombres de los ítems
-- [ ] El color del tema
+- [ ] Las corridas en Succeeded, para confirmar la hora
 - [ ] La lista de workspaces
 :::
 
@@ -79,5 +89,5 @@ El pipeline terminó en Succeeded pero copió cero filas. ¿Qué conviene?
 - [ ] Nada, si dice Succeeded está bien
 - [x] Agregar una comprobación que cuente filas y falle si da cero
 - [ ] Borrar el pipeline
-- [ ] Cambiar de workspace
+- [ ] Volver a ejecutarlo hasta que copie filas
 :::

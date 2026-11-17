@@ -8,6 +8,10 @@ prerrequisitos: airflow-paso-a-paso-proyecto-dag-diario-de-ventas
 autoevaluacion: ¿Sabes qué hace @task? | ¿Sabes cómo se arma el orden en TaskFlow? | ¿Sabes qué es un TaskGroup? | ¿Sabes cuándo conviene un operador clásico?
 ---
 
+:::analogia Funciones que se pasan resultados
+Con TaskFlow escribes las tareas como funciones de Python que se pasan resultados: `informar(total_unidades(leer_ventas()))`. Airflow ve esas llamadas y arma solo el orden y el traspaso de datos entre tareas.
+:::
+
 ## Paso 1 — Un Dag con TaskFlow
 
 `resumen_tiendas.py`:
@@ -104,6 +108,12 @@ Un **TaskGroup** agrupa tareas visualmente (en la grilla se pliega) y permite co
 
 Se pueden mezclar en el mismo Dag: `tarea_taskflow() >> operador_clasico`.
 
+:::errores
+- **Olvidar llamar a la función del Dag al final.** Sin `resumen_tiendas()`, el Dag no se registra.
+- **Creer que la función corre al leer el archivo.** Llamarla dentro del `@dag` crea la tarea; se ejecuta después, en la corrida.
+- **BashOperator con curl para todo.** Para servicios como Databricks o BigQuery, el operador del provider maneja autenticación, reintentos y estados.
+:::
+
 ## ✅ Lo que lograste
 
 - Escribiste un Dag con TaskFlow.
@@ -114,16 +124,16 @@ Se pueden mezclar en el mismo Dag: `tarea_taskflow() >> operador_clasico`.
 ¿Qué crea `ventas = leer_ventas()` dentro de un @dag?
 - [ ] Ejecuta la función en ese momento
 - [x] La tarea y una referencia a lo que va a devolver
-- [ ] Un archivo
-- [ ] Un error
+- [ ] Un XCom vacío que se llena al leer el archivo
+- [ ] Una corrida nueva del Dag
 :::
 
 :::ejercicio quiz
 En TaskFlow, ¿cómo se define que informar corre después de total_unidades?
 - [ ] Con un comentario
 - [x] Pasándole el resultado de total_unidades como argumento
-- [ ] Con time.sleep
-- [ ] No se puede
+- [ ] Escribiendo las funciones en ese orden en el archivo
+- [ ] Con un comentario # depende de total_unidades
 :::
 
 :::ejercicio quiz
@@ -131,7 +141,7 @@ En TaskFlow, ¿cómo se define que informar corre después de total_unidades?
 - [x] El Dag no se registra y no aparece en la lista
 - [ ] Corre dos veces
 - [ ] Nada
-- [ ] Se borra el archivo
+- [ ] Corre con el horario por defecto
 :::
 
 :::ejercicio quiz
@@ -139,5 +149,5 @@ Necesitas ejecutar una consulta en Databricks. ¿Qué conviene?
 - [ ] Un BashOperator con curl
 - [x] El operador del provider de Databricks
 - [ ] Un EmptyOperator
-- [ ] Un TaskGroup vacío
+- [ ] Un PythonOperator que copia la tabla al worker
 :::

@@ -41,6 +41,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/fabric/b08-ws-items.webp" alt="El workspace con los dos lakehouses, cada uno con su SQL analytics endpoint" loading="lazy"><figcaption>El workspace con los dos lakehouses, cada uno con su SQL analytics endpoint</figcaption></figure>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Mezclar crudos y tablas limpias.</strong> Los crudos van en Files por carpetas; lo limpio, en Tables. Si se mezclan, nadie sabe qué usar.</li>
+<li><strong>Verificar a ojo.</strong> Una consulta de control desde el endpoint (conteos, nulos) deja la comprobación escrita y repetible.</li>
+<li><strong>Copiar en vez de crear un acceso directo.</strong> El lakehouse de reportes debe leer los mismos datos, no una copia que se desactualiza.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> <code>Files/raw</code> tiene los archivos crudos.</li>

@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>El modelo semántico - de las tablas al modelo de Power BI</h1><p class="resumen">El modelo semántico es lo que Power BI usa para los informes - tablas, relaciones y medidas DAX. Creas uno desde el lakehouse, ves sus tablas en modo Direct Lake, agregas la medida Pedidos con COUNTROWS y entiendes qué es Direct Lake y por qué cambia la forma de hacer informes.</p>
 <a class="cta" href="../index.html#/l/fabric-paso-a-paso-modelo-semantico">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un modelo semántico desde un lakehouse</li><li>Entender el modo Direct Lake</li><li>Agregar una medida DAX</li><li>Ubicar las tablas, columnas y medidas del modelo</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El diccionario del negocio</div>
+
+<p>El modelo semántico es el diccionario del negocio para Power BI: qué tablas hay, cómo se relacionan y qué significa &quot;pedidos&quot; o &quot;ventas&quot; (las medidas). Con Direct Lake, ese diccionario lee las tablas Delta directamente del lago, sin importar una copia.</p>
+</div>
+
+
 <h2>Paso 1 — Crear el modelo</h2>
 <p>En <code>lh_ventas</code>, <strong>New semantic model</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/fabric/b15-modelo.webp" alt="Las tablas del lakehouse en el modelo (1) y la cinta con Edit tables, New measure, New report y Exportar CSV (2)" loading="lazy"><figcaption>Las tablas del lakehouse en el modelo (1) y la cinta con Edit tables, New measure, New report y Exportar CSV (2)</figcaption></figure>
@@ -63,6 +69,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p>Las medidas viven en el modelo, no en cada informe: todos los informes que usan este modelo comparten la misma definición de &quot;Pedidos&quot;. El curso <a href="#/m/powerbi-paso-a-paso">Power BI paso a paso</a> cubre DAX a fondo.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Definir la misma medida en cada informe.</strong> Las medidas compartidas van en el modelo; así todos calculan igual.</li>
+<li><strong><code>COUNT(*)</code> en DAX.</strong> No existe; se cuenta con <code>COUNTROWS(tabla)</code>.</li>
+<li><strong>Esperar Direct Lake desde cualquier fuente.</strong> Lee tablas Delta de OneLake; otras fuentes usan importación o DirectQuery.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste un modelo semántico sobre el lakehouse.</li>

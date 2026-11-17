@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Guardar la receta, no la comida</div>
+
+<p>Conectar el workspace a Git es guardar las recetas (las definiciones de los ítems: notebooks, pipelines, modelos) en un cuaderno con historial. La comida (los datos de las tablas) sigue en OneLake: Git no la guarda.</p>
+</div>
+
+
 <h2>Paso 1 — Crear el repositorio</h2>
 <p>En el <a href="#/github/new">GitHub de práctica</a>, un repositorio nuevo llamado <code>fabric-tienda-andina</code>. En una empresa real, el repositorio lo crea el equipo de plataforma con los permisos ya configurados.</p>
 <h2>Paso 2 — Conectar el workspace</h2>
@@ -93,6 +99,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>Git guarda <strong>cómo se construye</strong> el workspace, no los datos. Los datos viven en OneLake.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Esperar que Git guarde los datos.</strong> Solo versiona definiciones; los datos se protegen con Delta y copias, no con Git.</li>
+<li><strong>Trabajar semanas sin hacer commit.</strong> Si algo se rompe, no hay versión a la que volver.</li>
+<li><strong>Confundir Changes con Updates.</strong> Changes es lo tuyo sin subir; Updates es lo que llegó al repo y falta traer al workspace.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Conectaste el workspace a un repositorio.</li>

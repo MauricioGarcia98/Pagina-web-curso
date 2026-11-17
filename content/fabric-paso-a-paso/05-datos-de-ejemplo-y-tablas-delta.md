@@ -8,6 +8,10 @@ prerrequisitos: fabric-paso-a-paso-proyecto-primera-tabla
 autoevaluacion: ¿Sabes qué agrega Delta sobre Parquet? | ¿Sabes dónde vive una tabla en OneLake? | ¿Sabes para qué sirve OPTIMIZE? | ¿Sabes qué riesgo tiene VACUUM?
 ---
 
+:::analogia Un cuaderno de cambios encima de los archivos
+Una tabla Delta son archivos Parquet más un cuaderno que anota cada cambio (el registro de transacciones). Gracias al cuaderno hay transacciones seguras, esquema y viajes en el tiempo. OPTIMIZE junta muchos archivitos en pocos grandes; VACUUM tira las páginas viejas del cuaderno que ya no se necesitan.
+:::
+
 ## Paso 1 — Get data → Sample data
 
 En `lh_ventas`, **Get data**:
@@ -79,6 +83,12 @@ texto: Optimize (con V-Order) y VACUUM con un umbral de retención
 Después de un VACUUM con retención de 7 días, ya no se puede hacer *time travel* más atrás de 7 días. No uses retenciones muy cortas en tablas que podrías necesitar restaurar.
 :::
 
+:::errores
+- **`VACUUM` con 0 días.** Borra las versiones anteriores y con ellas el time travel; deja la retención por defecto (7 días) salvo que sepas lo que haces.
+- **Muchas cargas chicas sin OPTIMIZE.** Generan miles de archivos pequeños y las lecturas se vuelven lentas.
+- **Creer que Delta es un formato cerrado.** Son archivos abiertos en OneLake que leen otras herramientas por la misma API que ADLS Gen2.
+:::
+
 ## ✅ Lo que lograste
 
 - Cargaste datos de ejemplo y recorriste una tabla Delta.
@@ -87,10 +97,10 @@ Después de un VACUUM con retención de 7 días, ya no se puede hacer *time trav
 
 :::ejercicio quiz
 ¿Qué agrega Delta sobre los archivos Parquet?
-- [ ] Nada
+- [ ] Solo una carpeta con un nombre distinto
 - [x] Un registro de transacciones: ACID, esquema y time travel
 - [ ] Compresión
-- [ ] Gráficos
+- [ ] Índices como en una base relacional
 :::
 
 :::ejercicio quiz
@@ -98,7 +108,7 @@ Hiciste 500 cargas pequeñas y las consultas están lentas. ¿Qué ejecutas?
 - [x] OPTIMIZE
 - [ ] VACUUM con 0 días
 - [ ] DROP TABLE
-- [ ] Nada
+- [ ] Aumentar la capacidad
 :::
 
 :::ejercicio quiz
@@ -106,7 +116,7 @@ Hiciste 500 cargas pequeñas y las consultas están lentas. ¿Qué ejecutas?
 - [ ] Las filas actuales
 - [x] La posibilidad de consultar versiones de más de 7 días
 - [ ] El esquema
-- [ ] Los permisos
+- [ ] El historial de quién consultó la tabla
 :::
 
 :::ejercicio quiz
@@ -114,5 +124,5 @@ Hiciste 500 cargas pequeñas y las consultas están lentas. ¿Qué ejecutas?
 - [ ] Porque es público
 - [x] Porque OneLake expone la misma API que ADLS Gen2 (direcciones abfss)
 - [ ] Porque copia los datos a cada herramienta
-- [ ] No pueden
+- [ ] Porque Fabric exporta CSV cada noche
 :::

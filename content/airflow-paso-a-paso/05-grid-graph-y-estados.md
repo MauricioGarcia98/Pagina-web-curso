@@ -8,6 +8,10 @@ prerrequisitos: airflow-paso-a-paso-proyecto-primer-dag-corriendo
 autoevaluacion: ¿Sabes qué indica la altura de una barra en la grilla? | ¿Sabes cuándo conviene el grafo? | ¿Sabes qué tipos de corrida existen? | ¿Sabes filtrar las corridas fallidas?
 ---
 
+:::analogia Un electrocardiograma del Dag
+La grilla es como un electrocardiograma: cada columna es una corrida, la altura dice cuánto tardó y el color dice cómo terminó. De un vistazo ves si el Dag está sano, si se está volviendo lento o si falla siempre en la misma tarea.
+:::
+
 ## Paso 1 — Varias corridas
 
 Dispara `ventas_diarias` tres veces, cada una con una **Logical Date** distinta (en Advanced Options): 12, 13 y 14 de noviembre a las 06:00.
@@ -64,6 +68,12 @@ texto: Runs - cada corrida con su estado, tipo, fecha lógica, inicio, fin y dur
 
 Los filtros **All States** y **All Run Types** sirven para encontrar, por ejemplo, todas las corridas programadas que fallaron.
 
+:::errores
+- **Mirar solo el color.** Una corrida verde que tardó el triple es una señal: los datos crecieron o algo se trabó.
+- **Usar Grid para entender el paralelismo.** El orden y las ramas se ven en Graph.
+- **Disparar dos veces con la misma fecha lógica.** No puede haber dos corridas con la misma fecha; cambia la fecha o usa Clear.
+:::
+
 ## ✅ Lo que lograste
 
 - Lees la grilla con varias corridas.
@@ -75,7 +85,7 @@ En la grilla, ¿qué indica la altura de la barra de una corrida?
 - [ ] La cantidad de tareas
 - [x] Cuánto tardó la corrida
 - [ ] Cuántas veces se reintentó
-- [ ] La fecha
+- [ ] La cantidad de filas procesadas
 :::
 
 :::ejercicio quiz
@@ -91,7 +101,7 @@ Una corrida tiene Run ID `scheduled__2026-11-15T00:00:00+00:00`. ¿Quién la cre
 - [ ] Un usuario a mano
 - [x] El scheduler, por el horario del Dag
 - [ ] Un backfill
-- [ ] Un asset
+- [ ] Un usuario con la API REST
 :::
 
 :::ejercicio quiz
@@ -99,5 +109,5 @@ Una corrida tiene Run ID `scheduled__2026-11-15T00:00:00+00:00`. ¿Quién la cre
 - [x] Porque no puede haber dos corridas con la misma fecha lógica
 - [ ] Porque Airflow solo permite una corrida por día
 - [ ] Porque el Dag se pausa solo
-- [ ] Porque falta una variable
+- [ ] Porque la primera corrida sigue en la caché
 :::

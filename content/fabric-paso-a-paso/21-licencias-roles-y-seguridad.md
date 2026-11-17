@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes por qué un workspace Pro no admite un lakehouse? | ¿Sa
 Lucía: *"Comercial quiere su propio workspace para informes, y vamos a sumar dos analistas que solo tienen que leer. No quiero que nadie borre el lakehouse por error."*
 :::
 
+:::analogia Llaves del edificio y llaves de cada cajón
+Los roles del workspace son llaves del edificio: Admin, Member, Contributor o Viewer deciden qué puedes hacer con los ítems. Los permisos SQL son llaves de cada cajón: dentro del warehouse, deciden qué tabla o vista puede leer cada uno.
+:::
+
 ## Paso 1 — Un workspace con licencia Pro
 
 Crea `Informes Pro` y en **License mode** elige **Pro**:
@@ -61,6 +65,12 @@ GRANT SELECT ON dbo.v_avance_metas TO [grp-comercial];
 DENY SELECT ON dbo.metas_tienda TO [grp-comercial];
 ```
 
+:::errores
+- **Dar Member a quien solo lee.** Viewer alcanza para consultar y ver informes.
+- **Usar el rol del workspace para ocultar una tabla.** El rol abre todo el workspace; para una tabla o vista se usan permisos SQL (GRANT y DENY).
+- **Crear ítems de Fabric en un workspace Pro.** Pro solo admite Power BI; hace falta capacidad.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué licencia admite qué ítems.
@@ -72,7 +82,7 @@ DENY SELECT ON dbo.metas_tienda TO [grp-comercial];
 - [ ] Porque el nombre tiene espacios
 - [x] Porque la licencia Pro solo admite ítems de Power BI
 - [ ] Porque falta un notebook
-- [ ] Porque está vacío
+- [ ] Porque un workspace Pro necesita un notebook primero
 :::
 
 :::ejercicio quiz
@@ -96,5 +106,5 @@ Comercial debe leer la vista pero no la tabla de metas. ¿Qué capa usas?
 - [ ] Rol de workspace
 - [x] Permisos SQL: GRANT sobre la vista y DENY sobre la tabla
 - [ ] Cambiar la licencia
-- [ ] Borrar la tabla
+- [ ] Mover la tabla a otro workspace
 :::

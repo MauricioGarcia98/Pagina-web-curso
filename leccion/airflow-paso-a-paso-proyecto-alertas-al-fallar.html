@@ -78,6 +78,16 @@ with DAG(
 <p><strong>Decisión a defender:</strong> el aviso tiene que decir <strong>qué</strong> falló y <strong>dónde mirar</strong>. &quot;Algo falló&quot; a las 3 de la mañana obliga a investigar desde cero.</p>
 </details>
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Callback en cada tarea a mano.</strong> Va en <code>default_args</code> para todo el Dag.</li>
+<li><strong>Avisos sin contexto.</strong> &quot;Algo falló&quot; obliga a buscar; el aviso debe decir qué tarea, qué corrida y dónde mirar.</li>
+<li><strong>No probar la alerta.</strong> Fuerza una falla y comprueba que el aviso llega antes de confiar en él.</li>
+</ul>
+</div>
+
+
 <h2>Lo que aprendiste en el nivel 5</h2>
 <ul>
 <li>Errores de importación y pruebas.</li>

@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Avisar cuando el pan está listo</div>
+
+<p>Programar el reporte &quot;a las 7&quot; es pasar por la panadería a las 7 aunque el pan todavía no salió. Con assets, la panadería avisa: la tarea que produce las ventas marca el asset como actualizado y el reporte arranca en ese momento.</p>
+</div>
+
+
 <h2>Paso 1 — Qué es un asset</h2>
 <p>Un <strong>asset</strong> es un dato con nombre (una tabla, un archivo) identificado por una URI, por ejemplo <code>tienda://gold/ventas_diarias</code>. Una tarea declara que lo <strong>produce</strong>, y otro Dag se programa para correr cuando ese dato <strong>se actualiza</strong>.</p>
 <pre data-norun><code class="language-python">from airflow.sdk import Asset, dag, task
@@ -87,6 +93,16 @@ def reporte_ventas():
 <div class="callout callout-tip"><div class="callout-title">💡 Varios assets</div>
 
 <p><code>schedule=[A, B]</code> corre cuando <strong>los dos</strong> se actualizaron. También existen <code>AssetAll</code> y <code>AssetAny</code> para combinar condiciones (&quot;cuando se actualice A o B&quot;).</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Declarar el asset en la tarea que lee.</strong> <code>outlets</code> va en la tarea que <strong>produce</strong> el asset; el consumidor usa <code>schedule=[ASSET]</code>.</li>
+<li><strong>URIs distintas para el mismo asset.</strong> Si productor y consumidor no usan exactamente el mismo identificador, el consumidor nunca corre.</li>
+<li><strong>Dejar pausado el Dag consumidor.</strong> El evento llega, pero un Dag pausado no crea la corrida.</li>
+</ul>
 </div>
 
 

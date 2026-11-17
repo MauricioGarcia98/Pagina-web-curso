@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Browse y auditoría - buscar en toda la instalación</h1><p class="resumen">Cuando hay decenas de Dags, entrar uno por uno no escala. Usas Browse para ver todas las corridas, todas las instancias de tareas filtradas por estado y el Audit Log con quién disparó, pausó, limpió o creó cada cosa, y armas una rutina de revisión de la guardia.</p>
 <a class="cta" href="../index.html#/l/airflow-paso-a-paso-browse-y-auditoria">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Ver todas las corridas de todos los Dags</li><li>Filtrar instancias de tareas por estado</li><li>Usar el Audit Log para reconstruir qué pasó</li><li>Armar una rutina de guardia</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La vista desde la torre de control</div>
+
+<p>Browse es la torre de control: en vez de entrar a cada Dag, ves todas las corridas y todas las tareas juntas, y el Audit Log te dice quién pausó, despausó o disparó qué y cuándo.</p>
+</div>
+
+
 <h2>Paso 1 — Todas las corridas</h2>
 <p><strong>Browse → Dag Runs</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/airflow/a19-dag-runs.webp" alt="Dag Runs - las corridas de todos los Dags con su tipo, fecha lógica, inicio y duración" loading="lazy"><figcaption>Dag Runs - las corridas de todos los Dags con su tipo, fecha lógica, inicio y duración</figcaption></figure>
@@ -61,6 +67,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ La interfaz no es el sistema de alertas</div>
 
 <p>Nadie mira la pantalla a las 3 de la mañana. La guardia revisa la interfaz, pero las fallas importantes tienen que <strong>avisar solas</strong> (siguiente lección).</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Revisar Dag por Dag.</strong> Con decenas de Dags, Browse → Task Instances filtrado por Failed muestra todo junto.</li>
+<li><strong>Depender de que alguien mire la interfaz.</strong> Las fallas importantes deben avisar solas (callbacks, notifiers).</li>
+<li><strong>Ignorar el Audit Log ante un comportamiento raro.</strong> Un Dag que empezó a correr solo casi siempre tiene un <code>unpaused</code> registrado.</li>
+</ul>
 </div>
 
 

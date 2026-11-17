@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>De la práctica a Airflow real - instalar, desplegar y elegir servicio</h1><p class="resumen">Antes de usar Airflow en un proyecto real, repasas qué cambia y qué no respecto de la práctica, las formas de instalarlo en tu computadora (pip con constraints, Docker Compose, Astro CLI), los servicios administrados (Amazon MWAA, Google Cloud Composer, Astronomer, Fabric) y cómo llegan los Dags a producción con Git y CI.</p>
 <a class="cta" href="../index.html#/l/airflow-paso-a-paso-de-la-practica-a-airflow-real">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Saber qué cambia entre la práctica y Airflow real</li><li>Instalar Airflow en tu computadora</li><li>Comparar los servicios administrados</li><li>Desplegar Dags con Git y CI</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Del simulador al avión</div>
+
+<p>Los Dags, operadores, assets, pools y callbacks que practicaste funcionan igual en un Airflow real. Lo que cambia es dónde corre (tu computadora, Docker, un servicio administrado), cómo llegan los Dags (por Git) y que las credenciales y los datos son de verdad.</p>
+</div>
+
+
 <h2>Paso 1 — Qué cambia</h2>
 <div class="table-wrap"><table><thead><tr>
 <th>En la práctica</th>
@@ -114,6 +120,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-tip"><div class="callout-title">💡 Datos sensibles</div>
 
 <p>Si compartes capturas de tu Airflow real, difumina hosts, nombres de conexiones, correos y cualquier dato de clientes que aparezca en los logs.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Instalar Airflow con pip sin constraints.</strong> Alguna dependencia incompatible termina rompiendo la instalación.</li>
+<li><strong>Editar Dags directo en el servidor.</strong> Llegan por Git, con pull request, CI y revisión.</li>
+<li><strong>Olvidar los providers.</strong> Cada servicio (Slack, Databricks, BigQuery) necesita su paquete instalado en el entorno.</li>
+</ul>
 </div>
 
 

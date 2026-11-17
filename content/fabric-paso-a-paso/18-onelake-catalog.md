@@ -62,6 +62,12 @@ df = spark.read.option("header", True).csv("Files/raw/pedidos_2024.csv")
 
 OneLake habla la misma API que Azure Data Lake Storage Gen2: por eso las herramientas que ya leían ADLS también leen OneLake.
 
+:::errores
+- **Pensar que hay un OneLake por workspace.** Hay uno por organización; los workspaces son carpetas dentro de él.
+- **Copiar la URL del navegador para leer desde otra herramienta.** La ruta que sirve es la ABFS.
+- **Usar cualquier tabla del catálogo sin mirar si está certificada.** Prefiere los ítems marcados como confiables.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué es OneLake y cómo buscar en su catálogo.
@@ -88,7 +94,7 @@ Quieres leer un archivo del lakehouse desde Azure Databricks. ¿Qué ruta copias
 - [ ] Que está vacío
 - [x] Que fue marcado como confiable para usar
 - [ ] Que es de pago
-- [ ] Que está borrado
+- [ ] Que se actualiza todos los días
 :::
 
 :::ejercicio quiz
@@ -96,5 +102,5 @@ Quieres leer un archivo del lakehouse desde Azure Databricks. ¿Qué ruta copias
 - [ ] No pueden
 - [x] Porque OneLake expone la misma API que ADLS Gen2
 - [ ] Porque copian los datos
-- [ ] Porque usan Excel
+- [ ] Porque Fabric copia cada tabla a una cuenta de ADLS
 :::

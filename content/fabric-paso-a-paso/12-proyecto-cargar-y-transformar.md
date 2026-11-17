@@ -35,6 +35,12 @@ archivo: fabric/b12-linaje.webp
 texto: Lineage - el notebook usa lh_ventas, y el pipeline escribe en lh_ventas y llama al notebook
 ```
 
+:::errores
+- **Confiar en el verde sin revisar filas.** Succeeded no significa que llegaron datos; compara conteos.
+- **Borrar un ítem sin mirar el linaje.** Lo que dependía de él se rompe en la próxima corrida.
+- **Ejecutar a mano todos los días.** Programa el pipeline con Schedule.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] La última ejecución de `pl_cargar_pedidos` está en **Succeeded**.
@@ -69,12 +75,12 @@ En el nivel 4 sumas el warehouse, las vistas y el modelo semántico.
 - [x] Para ver qué otros ítems dependen de él y se romperían
 - [ ] Para ver la factura
 - [ ] Para cambiarle el nombre
-- [ ] No sirve
+- [ ] Para ver cuántas veces se ejecutó
 :::
 
 :::ejercicio quiz
 ¿Cómo se programa un pipeline en Fabric real?
-- [ ] No se puede
+- [ ] Con una alerta de Monitor que lo dispara
 - [x] Con Schedule en el pipeline
 - [ ] Con un notebook que nunca termina
 - [ ] Desde Power BI Desktop
@@ -85,5 +91,5 @@ En el nivel 4 sumas el warehouse, las vistas y el modelo semántico.
 - [ ] Nada más
 - [x] Las ejecuciones de notebooks, cargas y otros ítems de todos los workspaces
 - [ ] Solo errores
-- [ ] Los correos del equipo
+- [ ] Solo las ejecuciones del workspace actual
 :::

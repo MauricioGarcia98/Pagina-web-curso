@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 La base de siempre, guardada en el lago</div>
+
+<p>El warehouse es la base relacional que conocen los analistas SQL (CREATE TABLE, INSERT, UPDATE, MERGE), con una diferencia: sus tablas también se guardan como Delta en OneLake, así que Spark y Power BI las pueden leer sin copiarlas.</p>
+</div>
+
+
 <h2>Paso 1 — Crear el warehouse</h2>
 <p><strong>New item → Warehouse</strong>, <code>wh_ventas</code>:</p>
 <figure class="captura"><img src="assets/img/guias/fabric/b13-warehouse.webp" alt="La cinta (1), el explorador con esquemas, tablas, vistas y procedimientos (2) y el editor SQL (3)" loading="lazy"><figcaption>La cinta (1), el explorador con esquemas, tablas, vistas y procedimientos (2) y el editor SQL (3)</figcaption></figure>
@@ -72,6 +78,16 @@ JOIN (SELECT tienda, SUM(cantidad) AS unidades
 <td><strong>Los dos</strong>: el lakehouse para ingesta y transformación, el warehouse como capa de presentación</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Buscar las tablas del lakehouse sin nombre completo.</strong> Desde el warehouse se leen con <code>lh_ventas.dbo.tabla</code>.</li>
+<li><strong>Elegir lakehouse para un equipo 100 % SQL que escribe con MERGE.</strong> El endpoint del lakehouse no escribe; el warehouse sí.</li>
+<li><strong>Pensar que el warehouse guarda en un formato cerrado.</strong> Guarda Delta en OneLake, legible por otras herramientas.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste un warehouse y escribiste con T-SQL.</li>

@@ -68,6 +68,12 @@ Todo ítem vive dentro de un **workspace**: la carpeta del equipo con sus permis
 Las pantallas, los nombres de botones, el lakehouse con Files y Tables, Load to Tables, los accesos directos, el endpoint SQL de solo lectura, el warehouse con T-SQL, los notebooks con PySpark y Spark SQL, los pipelines, el modelo semántico y la integración con Git siguen a Fabric. Lo simulado: todo corre en tu navegador con datos chicos; no hay capacidad real ni facturación, y algunos ítems (Dataflow Gen2, Eventstream, informes) solo muestran un aviso.
 :::
 
+:::errores
+- **Buscar Fabric en el portal de Azure.** Fabric se usa desde su propio portal (app.fabric.microsoft.com); en Azure solo se compra la capacidad.
+- **Copiar los mismos datos a cada herramienta.** En Fabric todos los ítems leen el mismo OneLake; duplicar tablas es justo lo que viene a evitar.
+- **Elegir el ítem por costumbre.** T-SQL con escrituras va en un warehouse; Spark y archivos, en un lakehouse; si eliges al revés, te vas a chocar con lo que no permite.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué es Fabric y qué reemplaza.
@@ -76,7 +82,7 @@ Las pantallas, los nombres de botones, el lakehouse con Files y Tables, Load to 
 
 :::ejercicio quiz
 ¿Qué es OneLake?
-- [ ] Un tipo de informe
+- [ ] Una cuenta de almacenamiento distinta para cada workspace
 - [x] El único data lake de la organización, donde todos los ítems de Fabric guardan sus datos
 - [ ] Una base de datos SQL
 - [ ] Un conector de Power BI
@@ -94,7 +100,7 @@ Necesitas T-SQL con INSERT y UPDATE. ¿Qué ítem usas?
 ¿Dónde viven los ítems de Fabric?
 - [ ] En el portal de Azure
 - [x] En un workspace
-- [ ] En tu computadora
+- [ ] En una suscripción de Azure, como recursos
 - [ ] En Power BI Desktop
 :::
 
@@ -103,5 +109,5 @@ Necesitas T-SQL con INSERT y UPDATE. ¿Qué ítem usas?
 - [ ] Notebook
 - [ ] Lakehouse
 - [x] Pipeline
-- [ ] Semantic model
+- [ ] Dataflow Gen2, que es el único que copia datos
 :::

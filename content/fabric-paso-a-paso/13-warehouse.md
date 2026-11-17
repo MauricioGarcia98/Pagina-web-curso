@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué puede hacer el warehouse que el endpoint SQL no? | 
 Lucía: *"Comercial nos manda las metas de unidades de cada tienda para noviembre. Necesito ver la meta junto a lo vendido."*
 :::
 
+:::analogia La base de siempre, guardada en el lago
+El warehouse es la base relacional que conocen los analistas SQL (CREATE TABLE, INSERT, UPDATE, MERGE), con una diferencia: sus tablas también se guardan como Delta en OneLake, así que Spark y Power BI las pueden leer sin copiarlas.
+:::
+
 ## Paso 1 — Crear el warehouse
 
 **New item → Warehouse**, `wh_ventas`:
@@ -70,6 +74,12 @@ Sin copiar nada: los dos guardan en OneLake y el motor SQL los lee juntos.
 | Trabaja con SQL y necesita escribir con T-SQL (cargas, MERGE, procedimientos) | **Warehouse** |
 | Tiene los dos perfiles | **Los dos**: el lakehouse para ingesta y transformación, el warehouse como capa de presentación |
 
+:::errores
+- **Buscar las tablas del lakehouse sin nombre completo.** Desde el warehouse se leen con `lh_ventas.dbo.tabla`.
+- **Elegir lakehouse para un equipo 100 % SQL que escribe con MERGE.** El endpoint del lakehouse no escribe; el warehouse sí.
+- **Pensar que el warehouse guarda en un formato cerrado.** Guarda Delta en OneLake, legible por otras herramientas.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un warehouse y escribiste con T-SQL.
@@ -81,7 +91,7 @@ Sin copiar nada: los dos guardan en OneLake y el motor SQL los lee juntos.
 - [ ] Consultar con SELECT
 - [x] Escribir: CREATE TABLE, INSERT, UPDATE, DELETE, MERGE
 - [ ] Mostrar tablas
-- [ ] Nada
+- [ ] Crear vistas
 :::
 
 :::ejercicio quiz
@@ -89,14 +99,14 @@ Sin copiar nada: los dos guardan en OneLake y el motor SQL los lee juntos.
 - [ ] `ventas_tiendas@lh_ventas`
 - [x] `lh_ventas.dbo.ventas_tiendas`
 - [ ] `Files/ventas_tiendas`
-- [ ] No se puede
+- [ ] Con un acceso directo obligatorio en el warehouse
 :::
 
 :::ejercicio quiz
 ¿En qué formato guarda el warehouse sus tablas?
 - [ ] CSV
 - [x] Delta, en OneLake
-- [ ] Excel
+- [ ] Parquet sin registro de transacciones
 - [ ] Un formato propio que nadie más lee
 :::
 
@@ -105,5 +115,5 @@ El equipo es de analistas SQL que cargan datos con MERGE. ¿Qué ítem conviene?
 - [x] Warehouse
 - [ ] Lakehouse con su endpoint
 - [ ] Solo notebooks
-- [ ] Ninguno
+- [ ] Un Dataflow Gen2
 :::

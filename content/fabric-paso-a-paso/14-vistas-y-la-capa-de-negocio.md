@@ -8,6 +8,10 @@ prerrequisitos: fabric-paso-a-paso-warehouse
 autoevaluacion: ¿Sabes qué guarda una vista? | ¿Sabes si una vista copia datos? | ¿Sabes por qué conviene exponer vistas y no tablas? | ¿Sabes dónde aparecen las vistas?
 ---
 
+:::analogia Una receta con nombre
+Una vista es una receta con nombre: no guarda la comida, guarda cómo prepararla. Cada vez que alguien la pide, se cocina con los ingredientes del momento. Si la receta cambia, todos los que la piden reciben la versión nueva sin enterarse.
+:::
+
 ## Paso 1 — Crear la vista
 
 En `wh_ventas`:
@@ -52,6 +56,12 @@ Una vista **no copia datos**: cada vez que se consulta, ejecuta su SELECT sobre 
 En el **warehouse** y en el **SQL analytics endpoint** de un lakehouse (aunque el endpoint no escriba tablas, sí admite vistas). Power BI y cualquier cliente SQL las consultan como tablas.
 :::
 
+:::errores
+- **Esperar que la vista guarde los datos.** Ejecuta la consulta cada vez; si la consulta es pesada, cada uso cuesta.
+- **Copiar la misma lógica en cada informe.** Cuando cambia la regla, quedan informes con números distintos; la lógica va en la vista.
+- **Cambiar columnas de una vista sin avisar.** Los informes que la usan se rompen; trata sus columnas como un contrato.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste y consultaste una vista con el avance de metas.
@@ -61,13 +71,13 @@ En el **warehouse** y en el **SQL analytics endpoint** de un lakehouse (aunque e
 ¿Una vista copia los datos?
 - [ ] Sí, al crearla
 - [x] No, ejecuta su consulta sobre los datos actuales cada vez
-- [ ] Solo los lunes
-- [ ] Solo si es grande
+- [ ] Sí, una vez por día
+- [ ] Solo las columnas que se usan en Power BI
 :::
 
 :::ejercicio quiz
 ¿Por qué conviene que Power BI lea una vista y no las tablas directamente?
-- [ ] Porque es más lindo
+- [ ] Porque las vistas se cargan en memoria y siempre son más rápidas
 - [x] Porque la lógica vive en un lugar y los cambios de las tablas no rompen los informes
 - [ ] Porque las tablas no se pueden leer
 - [ ] Porque cuesta menos siempre
@@ -86,5 +96,5 @@ En el **warehouse** y en el **SQL analytics endpoint** de un lakehouse (aunque e
 - [x] Sí, aunque no se puedan escribir tablas
 - [ ] No
 - [ ] Solo con Spark
-- [ ] Solo en Pro
+- [ ] Solo si el lakehouse está en un workspace de producción
 :::

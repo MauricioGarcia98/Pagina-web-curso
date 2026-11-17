@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Buenas prácticas - Dags confiables y baratos de operar</h1><p class="resumen">Lo que separa un Dag que funciona de uno que se puede operar años. Idempotencia, tareas atómicas, nada pesado en el nivel superior del archivo, Airflow orquesta pero no procesa, fechas lógicas en lugar de &quot;hoy&quot;, configuración por variables de entorno y una lista de revisión para cada pull request.</p>
 <a class="cta" href="../index.html#/l/airflow-paso-a-paso-buenas-practicas">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir tareas idempotentes y atómicas</li><li>Evitar código pesado al cargar el archivo</li><li>Delegar el procesamiento pesado</li><li>Configurar Airflow con variables de entorno</li><li>Revisar un Dag antes de aprobarlo</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un buen empleado de mantenimiento</div>
+
+<p>Un Dag bien hecho es como un buen empleado de mantenimiento: si le pides que repita una tarea, el resultado queda igual (idempotente); cada tarea hace una sola cosa; y no carga cosas pesadas él mismo, llama a quien corresponde (el warehouse, Spark).</p>
+</div>
+
+
 <h2>Paso 1 — Idempotencia</h2>
 <p>Una tarea es <strong>idempotente</strong> si correrla dos veces para la misma fecha deja el mismo resultado. Es lo que hace seguros los reintentos, Clear y los backfills.</p>
 <div class="table-wrap"><table><thead><tr>
@@ -97,6 +103,16 @@ export AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL=60</code></pre>
 <li><input disabled="" type="checkbox"> Reintentos y alertas de falla.</li>
 <li><input disabled="" type="checkbox"> Pasa la prueba de DagBag del CI.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>INSERT</code> sin control en una carga diaria.</strong> Repetirla duplica; borra la partición del día o usa MERGE.</li>
+<li><strong>Trabajo pesado en el worker.</strong> Un join enorme en Python sobre el worker es lento y frágil; dispáralo en el warehouse o en Spark.</li>
+<li><strong>Código costoso en el nivel superior del archivo.</strong> El dag processor lo ejecuta cada vez que lee el archivo.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Conoces las reglas que hacen operable un Dag.</li>

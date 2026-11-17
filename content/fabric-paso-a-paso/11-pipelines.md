@@ -8,6 +8,10 @@ prerrequisitos: fabric-paso-a-paso-transformar-con-spark
 autoevaluacion: ¿Sabes qué destinos admite Copy data en Fabric? | ¿Sabes en qué orden corren las actividades? | ¿Sabes dónde ves las filas copiadas? | ¿Sabes qué se parece a Data Factory?
 ---
 
+:::analogia Una lista de tareas con flechas
+Un pipeline es una lista de tareas con flechas: primero copiar, y solo si salió bien, transformar. Cada actividad hace una cosa; las flechas (verde, roja, gris) dicen qué pasa después según cómo terminó la anterior.
+:::
+
 ## Paso 1 — Crear el pipeline
 
 En el workspace, **New item → Pipeline**, `pl_cargar_pedidos`:
@@ -58,6 +62,12 @@ texto: Las dos actividades en verde (1) y la salida con filas leídas y copiadas
 Todo lo que aprendiste allá vale aquí: actividades, dependencias, parámetros, expresiones, ForEach, If Condition, Lookup y triggers. La práctica de Fabric tiene solo Copy data y Notebook; para practicar lo demás usa el [curso de Data Factory](#/m/data-factory-paso-a-paso). Diferencias de Fabric: no hay linked services ni datasets separados (las conexiones se eligen en la actividad), no hay que publicar (se guarda y listo) y el monitoreo está en el Monitor de Fabric.
 :::
 
+:::errores
+- **Encadenar con la flecha equivocada.** "On completion" corre el siguiente paso aunque la copia falle; para depender del éxito va "On success".
+- **No mirar la salida de la copia.** Un pipeline en verde que copió cero filas no está bien; revisa Output o agrega una verificación.
+- **Buscar linked services y datasets como en ADF.** En Fabric las conexiones se definen en la actividad y no hay que publicar.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un pipeline con copia y notebook encadenados.
@@ -68,7 +78,7 @@ Todo lo que aprendiste allá vale aquí: actividades, dependencias, parámetros,
 - [ ] A la vez
 - [x] Primero la copia y, si sale bien, el notebook
 - [ ] Primero el notebook
-- [ ] Al azar
+- [ ] Primero la copia y el notebook siempre, aunque la copia falle
 :::
 
 :::ejercicio quiz
@@ -84,7 +94,7 @@ Todo lo que aprendiste allá vale aquí: actividades, dependencias, parámetros,
 - [ ] En el lakehouse, en Files
 - [x] En la salida del pipeline (Output)
 - [ ] En OneLake catalog
-- [ ] No se puede ver
+- [ ] En el SQL analytics endpoint del lakehouse
 :::
 
 :::ejercicio quiz
@@ -92,5 +102,5 @@ Todo lo que aprendiste allá vale aquí: actividades, dependencias, parámetros,
 - [ ] Solo archivos CSV
 - [x] Un lakehouse, un warehouse u otros almacenes de datos
 - [ ] Solo Power BI
-- [ ] Solo OneDrive
+- [ ] Solo tablas de un lakehouse del mismo workspace
 :::

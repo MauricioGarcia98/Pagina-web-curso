@@ -74,6 +74,12 @@ with DAG(
 **Decisión a defender:** el aviso tiene que decir **qué** falló y **dónde mirar**. "Algo falló" a las 3 de la mañana obliga a investigar desde cero.
 </details>
 
+:::errores
+- **Callback en cada tarea a mano.** Va en `default_args` para todo el Dag.
+- **Avisos sin contexto.** "Algo falló" obliga a buscar; el aviso debe decir qué tarea, qué corrida y dónde mirar.
+- **No probar la alerta.** Fuerza una falla y comprueba que el aviso llega antes de confiar en él.
+:::
+
 ## Lo que aprendiste en el nivel 5
 
 - Errores de importación y pruebas.
@@ -86,7 +92,7 @@ En el nivel 6: buenas prácticas, mapeo dinámico y el paso a Airflow real.
 ¿Cuándo se ejecuta on_failure_callback de una tarea con retries=1?
 - [ ] En cada intento fallido
 - [x] Cuando la tarea queda en failed, después del último intento
-- [ ] Antes de empezar
+- [ ] En cada intento, incluido el primero
 - [ ] Cuando termina bien
 :::
 
@@ -95,7 +101,7 @@ En el nivel 6: buenas prácticas, mapeo dinámico y el paso a Airflow real.
 - [ ] Copiándolo en cada tarea a mano, sin otra opción
 - [x] Poniéndolo en default_args
 - [ ] En una variable
-- [ ] No se puede
+- [ ] En la función del Dag con @dag(on_failure_callback=...) para cada tarea por separado
 :::
 
 :::ejercicio quiz
@@ -103,13 +109,13 @@ En el nivel 6: buenas prácticas, mapeo dinámico y el paso a Airflow real.
 - [ ] Un print
 - [x] Un notifier del provider de Slack
 - [ ] Un XCom
-- [ ] Un pool
+- [ ] Un BashOperator con echo
 :::
 
 :::ejercicio quiz
 ¿Qué debe decir un buen aviso de falla?
 - [ ] "Algo falló"
 - [x] Qué tarea falló, en qué corrida y dónde mirar
-- [ ] Solo la hora
+- [ ] El traceback completo en el texto del aviso
 - [ ] Nada, alcanza con que llegue
 :::

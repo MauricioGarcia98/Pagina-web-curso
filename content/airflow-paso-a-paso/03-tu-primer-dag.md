@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes dónde se guardan los Dags? | ¿Sabes qué hace >>? | ¿
 Lucía, líder del equipo de datos: *"Antes de migrar los scripts, quiero ver un Dag mínimo funcionando: un paso que avise que arranca la carga y otro que salude desde Python."*
 :::
 
+:::analogia Una receta escrita en Python
+Un Dag es una receta escrita en Python: dice qué pasos hay (las tareas) y en qué orden (las flechas `>>`). El archivo no cocina: Airflow lo lee, entiende la receta y la ejecuta cuando corresponde.
+:::
+
 ## Paso 1 — Abrir la terminal
 
 En la barra izquierda, **Terminal**. Es la misma máquina del curso: los Dags viven en `~/airflow/dags`.
@@ -101,6 +105,12 @@ texto: La pestaña Code muestra el archivo tal como lo leyó Airflow
 Si el archivo tiene un error de Python, no aparece en la lista: aparece en **Dag Import Errors**. Si tiene código válido pero no aparece, pulsa **Reparse** en la lista. En Airflow real el dag processor revisa la carpeta cada cierto tiempo (`refresh_interval`), así que puede tardar hasta unos minutos.
 :::
 
+:::errores
+- **Guardar el archivo fuera de la carpeta de Dags.** Airflow solo lee esa carpeta.
+- **Imports de Airflow 2 en Airflow 3.** `DAG` y `@task` se importan de `airflow.sdk`.
+- **Ejecutar el archivo con `python` para "probarlo".** Solo comprueba que el código no rompe; para que corra, Airflow tiene que leerlo y dispararlo.
+:::
+
 ## ✅ Lo que lograste
 
 - Escribiste tu primer Dag en la carpeta de Dags.
@@ -109,10 +119,10 @@ Si el archivo tiene un error de Python, no aparece en la lista: aparece en **Dag
 
 :::ejercicio quiz
 ¿Dónde tiene que estar el archivo para que Airflow lo lea?
-- [ ] En el escritorio
+- [ ] En la carpeta de plugins
 - [x] En la carpeta de Dags (~/airflow/dags en la práctica)
 - [ ] En la base de metadatos
-- [ ] En cualquier carpeta
+- [ ] En la misma carpeta que airflow.cfg
 :::
 
 :::ejercicio quiz
@@ -120,21 +130,21 @@ Si el archivo tiene un error de Python, no aparece en la lista: aparece en **Dag
 - [ ] Que corren a la vez
 - [x] Que saludo corre después de que inicio termine bien
 - [ ] Que inicio corre después de saludo
-- [ ] Que saludo reemplaza a inicio
+- [ ] Que saludo corre aunque inicio falle
 :::
 
 :::ejercicio quiz
 En Airflow 3, ¿de dónde se importa DAG?
 - [ ] `from airflow.dag import Dag`
 - [x] `from airflow.sdk import DAG`
-- [ ] `import dag`
-- [ ] `from python import DAG`
+- [ ] `from airflow.models import DAG`, como en todas las versiones
+- [ ] `from airflow.decorators import DAG`
 :::
 
 :::ejercicio quiz
 ¿Con qué comando compruebas que Airflow leyó tu Dag?
 - [x] `airflow dags list`
-- [ ] `ls ~/Desktop`
+- [ ] `airflow tasks list hola_tienda --tree`
 - [ ] `python hola_tienda.py --run`
-- [ ] `git status`
+- [ ] `airflow db check`
 :::

@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>La lista de Dags y la página de un Dag</h1><p class="resumen">La lista de Dags es la pantalla que más vas a usar. Buscas y filtras por estado y etiqueta, entiendes cada columna (horario, próxima corrida, última corrida), abres un Dag y recorres su cabecera, la grilla y las pestañas, y aprendes qué significa pausar y despausar.</p>
 <a class="cta" href="../index.html#/l/airflow-paso-a-paso-la-lista-de-dags">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Buscar y filtrar Dags por estado y etiqueta</li><li>Leer las columnas Schedule, Next Dag Run y Latest Dag Run</li><li>Recorrer la cabecera y las pestañas de un Dag</li><li>Explicar qué hace el interruptor de pausa</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El tablero de salidas del aeropuerto</div>
+
+<p>La lista de Dags es el tablero de salidas: cada fila es un vuelo (un Dag), con su horario, la próxima salida y cómo le fue al último. Un Dag pausado es un vuelo suspendido: no sale solo, aunque puedes despacharlo a mano.</p>
+</div>
+
+
 <h2>Paso 1 — La lista</h2>
 <p>Menú <strong>Dags</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/airflow/a02-dags.webp" alt="El buscador (1), los filtros por estado, pausa, favoritos y etiqueta (2) y la tabla de Dags (3)" loading="lazy"><figcaption>El buscador (1), los filtros por estado, pausa, favoritos y etiqueta (2) y la tabla de Dags (3)</figcaption></figure>
@@ -129,6 +135,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Los Dags nuevos arrancan pausados</div>
 
 <p>Por defecto (<code>dags_are_paused_at_creation = True</code>), un Dag nuevo aparece <strong>pausado</strong>. Es una protección: nada corre solo hasta que alguien lo revisa y lo activa. Vuelve a pausar <code>ventas_diarias</code> para seguir.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Esperar que un Dag nuevo corra solo.</strong> Los Dags nuevos aparecen pausados; hay que activarlos.</li>
+<li><strong>Pensar que pausar impide todo.</strong> Un Dag pausado se puede disparar a mano; lo que no ocurre son las corridas programadas.</li>
+<li><strong>Leer <code>Schedule = None</code> como error.</strong> Significa que el Dag solo corre cuando alguien (o algo) lo dispara.</li>
+</ul>
 </div>
 
 

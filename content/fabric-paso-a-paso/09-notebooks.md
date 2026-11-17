@@ -8,6 +8,10 @@ prerrequisitos: fabric-paso-a-paso-proyecto-lakehouse-ordenado
 autoevaluacion: ¿Sabes qué significa el lakehouse por defecto? | ¿Sabes cómo escribir una celda en Spark SQL? | ¿Sabes qué es la sesión de Spark? | ¿Sabes leer un archivo de Files desde un notebook?
 ---
 
+:::analogia Un cuaderno con un motor detrás
+Un notebook es un cuaderno donde cada celda le da una orden a Spark, un motor que reparte el trabajo entre varias máquinas. El lakehouse por defecto es la mesa de trabajo: `spark.table("pedidos")` busca ahí. La primera celda tarda porque hay que encender el motor.
+:::
+
 ## Paso 1 — Abrir un notebook desde el lakehouse
 
 En `lh_ventas`, **Open notebook → New notebook**:
@@ -68,6 +72,12 @@ resumen = spark.sql("SELECT canal, COUNT(*) AS n FROM pedidos GROUP BY canal")
 Una celda Markdown al principio con **qué hace el notebook, qué lee y qué escribe** ahorra horas al próximo que lo abra (que puedes ser tú en tres meses).
 :::
 
+:::errores
+- **Confundir Files con Tables.** `spark.table` lee tablas; un archivo de Files se lee con `spark.read` y su ruta.
+- **Olvidar el lakehouse por defecto.** Sin él, los nombres cortos de tabla no se encuentran.
+- **Pensar que la primera celda lenta es un error.** Es el arranque de la sesión de Spark; las siguientes son rápidas.
+:::
+
 ## ✅ Lo que lograste
 
 - Abriste un notebook con lakehouse por defecto y ejecutaste celdas.
@@ -77,7 +87,7 @@ Una celda Markdown al principio con **qué hace el notebook, qué lee y qué esc
 ¿Qué lee `spark.table("pedidos")` en un notebook con lh_ventas por defecto?
 - [ ] Una tabla de otro workspace
 - [x] La tabla pedidos de lh_ventas
-- [ ] Un archivo CSV
+- [ ] El archivo pedidos.csv de Files
 - [ ] Nada, da error
 :::
 
@@ -85,16 +95,16 @@ Una celda Markdown al principio con **qué hace el notebook, qué lee y qué esc
 ¿Cómo escribes una celda en Spark SQL?
 - [ ] Con `#sql` al final
 - [x] Con `%%sql` en la primera línea
-- [ ] No se puede
-- [ ] Cambiando el workspace
+- [ ] Con `spark.sql` como única forma
+- [ ] Con `--sql` en la primera línea
 :::
 
 :::ejercicio quiz
 ¿Por qué tarda más la primera celda?
 - [x] Porque arranca la sesión de Spark
-- [ ] Porque descarga Fabric
+- [ ] Porque copia la tabla a la sesión
 - [ ] Porque la tabla es grande siempre
-- [ ] Porque hay un error
+- [ ] Porque falta el lakehouse por defecto
 :::
 
 :::ejercicio quiz
@@ -102,5 +112,5 @@ Una celda Markdown al principio con **qué hace el notebook, qué lee y qué esc
 - [ ] `spark.table("raw")`
 - [x] `spark.read.csv("Files/raw/archivo.csv", header=True)`
 - [ ] `SELECT * FROM Files`
-- [ ] `open("raw")`
+- [ ] `spark.read.table("Files/raw/archivo.csv")`
 :::

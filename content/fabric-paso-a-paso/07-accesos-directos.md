@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué pasa en el acceso directo si cambia el origen? | ¿
 Lucía: *"El equipo de reportes quiere su propio lakehouse, pero no quiero dos copias de los pedidos que se desincronicen."*
 :::
 
+:::analogia Un acceso directo del escritorio
+Un acceso directo de Fabric funciona como el de tu escritorio: el archivo no se mueve ni se copia, solo aparece en otro lugar. Si el original cambia, lo ves al instante; si no tienes permiso sobre el original, el acceso no te deja entrar.
+:::
+
 ## Paso 1 — Un segundo lakehouse
 
 En el workspace, **New item → Lakehouse**, `lh_reportes`. En su página de inicio, **New shortcut**:
@@ -52,6 +56,12 @@ Así, una empresa con datos en ADLS o en S3 puede usarlos en Fabric **sin migrar
 Quien lee un acceso directo necesita permiso sobre el **origen**. Un acceso directo no saltea la seguridad: si no puedes leer `lh_ventas`, tampoco puedes leer el acceso directo a sus tablas.
 :::
 
+:::errores
+- **Copiar tablas entre lakehouses "para tenerlas a mano".** Cada copia se desactualiza; un acceso directo muestra siempre la versión actual.
+- **Dar permiso solo sobre el acceso directo.** Hace falta permiso sobre el origen; si no, el acceso directo no muestra nada.
+- **Borrar el origen.** El acceso directo queda roto; revisa el linaje antes de borrar.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un acceso directo a una tabla de otro lakehouse.
@@ -61,8 +71,8 @@ Quien lee un acceso directo necesita permiso sobre el **origen**. Un acceso dire
 Se cargan pedidos nuevos en lh_ventas. ¿Qué ve el acceso directo de lh_reportes?
 - [x] Los pedidos nuevos, sin hacer nada
 - [ ] Nada hasta copiar otra vez
-- [ ] Un error
-- [ ] Solo los viejos
+- [ ] Solo los nuevos que se cargaron con un pipeline
+- [ ] Los nuevos, después del refresco nocturno
 :::
 
 :::ejercicio quiz
@@ -70,7 +80,7 @@ Se cargan pedidos nuevos en lh_ventas. ¿Qué ve el acceso directo de lh_reporte
 - [ ] ADLS Gen2
 - [ ] Amazon S3
 - [ ] Otro lakehouse
-- [x] Una hoja de papel
+- [x] Una carpeta de tu computadora personal
 :::
 
 :::ejercicio quiz
@@ -78,7 +88,7 @@ Se cargan pedidos nuevos en lh_ventas. ¿Qué ve el acceso directo de lh_reporte
 - [ ] Es más rápido de escribir
 - [x] Una sola copia de los datos, siempre actualizada
 - [ ] No necesita permisos
-- [ ] Cambia el formato
+- [ ] Convierte los datos a CSV para que los lea Excel
 :::
 
 :::ejercicio quiz
@@ -86,5 +96,5 @@ No tienes permiso sobre lh_ventas. ¿Puedes leer el acceso directo a sus tablas?
 - [ ] Sí
 - [x] No, hace falta permiso sobre el origen
 - [ ] Solo con SQL
-- [ ] Solo los viernes
+- [ ] Sí, porque el acceso directo está en tu lakehouse
 :::

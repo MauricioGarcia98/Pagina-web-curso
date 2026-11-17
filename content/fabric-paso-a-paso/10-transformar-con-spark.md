@@ -8,6 +8,10 @@ prerrequisitos: fabric-paso-a-paso-notebooks
 autoevaluacion: ¿Sabes qué hace CREATE OR REPLACE TABLE? | ¿Sabes la diferencia entre overwrite y append? | ¿Sabes dónde aparece una tabla escrita con saveAsTable? | ¿Sabes cuándo conviene SQL y cuándo PySpark?
 ---
 
+:::analogia Leer, transformar y guardar en el estante
+Transformar con Spark es tomar ingredientes de un estante (tablas o archivos), prepararlos en la mesada (el DataFrame) y guardar el resultado en otro estante con etiqueta (una tabla Delta en Tables). El modo de escritura decide si reemplazas el frasco o le agregas más.
+:::
+
 ## Paso 1 — Una tabla con Spark SQL
 
 En el notebook, **+ Code** y escribe:
@@ -70,6 +74,12 @@ WHEN NOT MATCHED THEN INSERT *
 Las dos generan el mismo plan en Spark. **SQL** es más claro para seleccionar, unir y agrupar. **PySpark** conviene cuando hay lógica (bucles, funciones, leer muchos archivos, llamar APIs). En un mismo notebook se mezclan sin problema.
 :::
 
+:::errores
+- **Usar `overwrite` en una carga diaria.** Borra lo anterior; para sumar se usa `append`, o `MERGE` si pueden venir repetidos.
+- **`append` sin control de duplicados.** Reprocesar un día lo duplica; con MERGE por clave la carga es idempotente.
+- **Escribir en Files cuando querías una tabla.** `saveAsTable` crea la tabla en Tables; `save` con una ruta escribe archivos.
+:::
+
 ## ✅ Lo que lograste
 
 - Escribiste tablas Delta con Spark SQL y con PySpark.
@@ -79,7 +89,7 @@ Las dos generan el mismo plan en Spark. **SQL** es más claro para seleccionar, 
 ¿Qué hace `CREATE OR REPLACE TABLE t AS SELECT …`?
 - [ ] Agrega filas a t
 - [x] Crea t con el resultado, reemplazándola si existía
-- [ ] Borra t
+- [ ] Crea t vacía con las columnas del SELECT
 - [ ] Crea una vista
 :::
 
@@ -88,14 +98,14 @@ Cada día llegan pedidos nuevos y hay que sumarlos a la tabla. ¿Qué modo usas?
 - [ ] overwrite
 - [x] append (o MERGE si puede haber repetidos)
 - [ ] ignore
-- [ ] Ninguno
+- [ ] errorifexists
 :::
 
 :::ejercicio quiz
 ¿Dónde aparece una tabla escrita con saveAsTable?
 - [x] En Tables del lakehouse por defecto
 - [ ] En Files
-- [ ] En OneDrive
+- [ ] En Files/tables del lakehouse
 - [ ] En el warehouse
 :::
 
@@ -104,5 +114,5 @@ Cada día llegan pedidos nuevos y hay que sumarlos a la tabla. ¿Qué modo usas?
 - [ ] Une dos tablas en una nueva
 - [x] Inserta lo nuevo y actualiza lo que ya existe, según una condición
 - [ ] Borra duplicados
-- [ ] Cambia el esquema
+- [ ] Agrega todas las filas de la fuente al final
 :::

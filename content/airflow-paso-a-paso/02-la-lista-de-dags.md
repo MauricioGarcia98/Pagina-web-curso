@@ -8,6 +8,10 @@ prerrequisitos: airflow-paso-a-paso-que-es-airflow-y-la-pantalla
 autoevaluacion: ¿Sabes filtrar los Dags por etiqueta? | ¿Sabes qué pasa con un Dag pausado? | ¿Sabes dónde está el código de un Dag? | ¿Sabes por qué los Dags nuevos aparecen pausados?
 ---
 
+:::analogia El tablero de salidas del aeropuerto
+La lista de Dags es el tablero de salidas: cada fila es un vuelo (un Dag), con su horario, la próxima salida y cómo le fue al último. Un Dag pausado es un vuelo suspendido: no sale solo, aunque puedes despacharlo a mano.
+:::
+
 ## Paso 1 — La lista
 
 Menú **Dags**:
@@ -78,6 +82,12 @@ texto: El Dag activo - aparece una corrida programada y la próxima en Next Run
 Por defecto (`dags_are_paused_at_creation = True`), un Dag nuevo aparece **pausado**. Es una protección: nada corre solo hasta que alguien lo revisa y lo activa. Vuelve a pausar `ventas_diarias` para seguir.
 :::
 
+:::errores
+- **Esperar que un Dag nuevo corra solo.** Los Dags nuevos aparecen pausados; hay que activarlos.
+- **Pensar que pausar impide todo.** Un Dag pausado se puede disparar a mano; lo que no ocurre son las corridas programadas.
+- **Leer `Schedule = None` como error.** Significa que el Dag solo corre cuando alguien (o algo) lo dispara.
+:::
+
 ## ✅ Lo que lograste
 
 - Buscas y filtras Dags.
@@ -88,7 +98,7 @@ Por defecto (`dags_are_paused_at_creation = True`), un Dag nuevo aparece **pausa
 ¿Qué significa Schedule = None?
 - [ ] Que corre cada minuto
 - [x] Que solo corre cuando alguien lo dispara
-- [ ] Que está roto
+- [ ] Que usa el horario por defecto: @daily
 - [ ] Que corre una vez por año
 :::
 
@@ -96,7 +106,7 @@ Por defecto (`dags_are_paused_at_creation = True`), un Dag nuevo aparece **pausa
 Un Dag está pausado. ¿Puedes correrlo?
 - [ ] No, nunca
 - [x] Sí, disparándolo a mano; lo que no ocurre son las corridas programadas
-- [ ] Solo los lunes
+- [ ] Sí, pero solo desde la CLI con airflow dags unpause
 - [ ] Solo desde la terminal
 :::
 
@@ -111,7 +121,7 @@ Un Dag está pausado. ¿Puedes correrlo?
 :::ejercicio quiz
 ¿Por qué los Dags nuevos aparecen pausados?
 - [x] Para que nada corra solo hasta que alguien lo revise y lo active
-- [ ] Porque Airflow está roto
+- [ ] Porque todavía no tienen una corrida exitosa
 - [ ] Porque no tienen tareas
-- [ ] Porque falta pagar
+- [ ] Porque el scheduler los revisa una vez por día
 :::

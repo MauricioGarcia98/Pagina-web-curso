@@ -54,6 +54,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/airflow/a08-rendered.webp" alt="Rendered Templates de extraer - {{ ds }} quedó reemplazado por la fecha de la corrida" loading="lazy"><figcaption>Rendered Templates de extraer - {{ ds }} quedó reemplazado por la fecha de la corrida</figcaption></figure>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Repetir dueño y reintentos en cada tarea.</strong> Van una vez en <code>default_args</code>.</li>
+<li><strong>Validaciones que no fallan.</strong> Si <code>validar</code> solo imprime un aviso, el reporte vacío se publica igual.</li>
+<li><strong>Probar solo con un disparo manual.</strong> Revisa también que el horario y la próxima corrida sean los esperados.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> El Dag aparece sin errores de importación.</li>

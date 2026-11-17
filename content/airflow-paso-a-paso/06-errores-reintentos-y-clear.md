@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes dónde está el traceback? | ¿Sabes cuántos intentos h
 Finanzas: *"La conciliación de pagos de hoy no llegó. ¿Qué pasó?"*
 :::
 
+:::analogia Volver a intentar antes de llamar al técnico
+Los reintentos son volver a probar cuando la conexión falla un momento: muchas fallas son pasajeras. Si después de los intentos sigue fallando, el problema es real; lo arreglas y usas Clear para que esa corrida vuelva a ejecutar solo lo que falló.
+:::
+
 ## Paso 1 — Encontrar qué falló
 
 Dispara `conciliacion_pagos`:
@@ -87,6 +91,12 @@ texto: La misma corrida, ahora en success - conciliar con Try Number 4
 **Clear** repite la **misma** corrida (misma fecha lógica, mismos datos). **Trigger** crea una corrida **nueva**. Para recuperar el día que falló, usa Clear.
 :::
 
+:::errores
+- **Leer el traceback desde arriba.** La última línea dice qué pasó; las de arriba, dónde.
+- **Reintentos para errores de código.** Un `NameError` falla igual en cada intento; los reintentos sirven para fallas pasajeras (red, API).
+- **Borrar y volver a crear el Dag para recuperar el día.** Clear de las tareas fallidas en esa corrida alcanza.
+:::
+
 ## ✅ Lo que lograste
 
 - Encontraste la tarea que falló y su causa.
@@ -98,14 +108,14 @@ Una tarea tiene retries=2. ¿Cuántos intentos hace como máximo?
 - [ ] 1
 - [ ] 2
 - [x] 3
-- [ ] Infinitos
+- [ ] 2, porque el primer intento cuenta como reintento
 :::
 
 :::ejercicio quiz
 ¿Cómo se lee un traceback de Python?
 - [x] De abajo hacia arriba: la última línea dice qué pasó y las de arriba dónde
 - [ ] De arriba hacia abajo y solo la primera línea
-- [ ] No se lee, se borra
+- [ ] Solo la primera línea, que dice el archivo
 - [ ] Solo el número de línea
 :::
 
@@ -114,7 +124,7 @@ Una tarea tiene retries=2. ¿Cuántos intentos hace como máximo?
 - [ ] Porque tiene un error propio
 - [x] Porque depende de conciliar, que falló
 - [ ] Porque se pausó el Dag
-- [ ] Porque nadie la programó
+- [ ] Porque superó sus reintentos
 :::
 
 :::ejercicio quiz
@@ -122,5 +132,5 @@ Corregiste el código. ¿Qué haces para recuperar la corrida de hoy?
 - [ ] Borrar el Dag
 - [ ] Esperar a mañana
 - [x] Clear de las tareas fallidas en esa corrida
-- [ ] Cambiar el dag_id
+- [ ] Un backfill del último mes
 :::

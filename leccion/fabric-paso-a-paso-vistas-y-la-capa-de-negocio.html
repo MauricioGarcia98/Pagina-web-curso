@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Vistas - la capa que consume el negocio</h1><p class="resumen">Una vista guarda una consulta con nombre para que el negocio y Power BI la usen sin repetir la lógica. Creas v_avance_metas con el porcentaje de avance de cada tienda, la consultas, la ves en el explorador y conoces por qué las vistas son la forma de exponer datos limpios y estables.</p>
 <a class="cta" href="../index.html#/l/fabric-paso-a-paso-vistas-y-la-capa-de-negocio">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una vista con CREATE VIEW</li><li>Consultar una vista como una tabla</li><li>Explicar para qué sirve una capa de vistas</li><li>Saber dónde se pueden crear vistas en Fabric</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Una receta con nombre</div>
+
+<p>Una vista es una receta con nombre: no guarda la comida, guarda cómo prepararla. Cada vez que alguien la pide, se cocina con los ingredientes del momento. Si la receta cambia, todos los que la piden reciben la versión nueva sin enterarse.</p>
+</div>
+
+
 <h2>Paso 1 — Crear la vista</h2>
 <p>En <code>wh_ventas</code>:</p>
 <pre data-norun><code class="language-sql">CREATE VIEW dbo.v_avance_metas AS
@@ -56,6 +62,16 @@ JOIN (SELECT tienda, SUM(cantidad) AS unidades
 <div class="callout callout-tip"><div class="callout-title">💡 Dónde se crean vistas en Fabric</div>
 
 <p>En el <strong>warehouse</strong> y en el <strong>SQL analytics endpoint</strong> de un lakehouse (aunque el endpoint no escriba tablas, sí admite vistas). Power BI y cualquier cliente SQL las consultan como tablas.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Esperar que la vista guarde los datos.</strong> Ejecuta la consulta cada vez; si la consulta es pesada, cada uso cuesta.</li>
+<li><strong>Copiar la misma lógica en cada informe.</strong> Cuando cambia la regla, quedan informes con números distintos; la lógica va en la vista.</li>
+<li><strong>Cambiar columnas de una vista sin avisar.</strong> Los informes que la usan se rompen; trata sus columnas como un contrato.</li>
+</ul>
 </div>
 
 

@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Ramas y trigger rules - decidir qué corre</h1><p class="resumen">No siempre corren todas las tareas. Con @task.branch, reporte_ventas decide si avisar o no según un umbral guardado en una variable. Cambias el umbral y ves cómo cambia la rama, entiendes el estado skipped y aprendes las trigger rules para que una tarea corra aunque algo anterior se haya saltado o haya fallado.</p>
 <a class="cta" href="../index.html#/l/airflow-paso-a-paso-ramas-y-trigger-rules">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una rama con @task.branch</li><li>Leer el estado skipped</li><li>Cambiar el comportamiento con una variable sin tocar código</li><li>Elegir la trigger rule correcta</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un desvío en el camino</div>
+
+<p>Una tarea branch es un cartel de desvío: según lo que encuentra, manda la corrida por un camino y deja el otro vacío (skipped). Las trigger rules deciden si una tarea más adelante arranca aunque uno de los caminos no se haya recorrido.</p>
+</div>
+
+
 <h2>Paso 1 — La rama</h2>
 <p>En <code>reporte_ventas</code>:</p>
 <pre data-norun><code class="language-python">@task.branch
@@ -78,6 +84,16 @@ decidir(leer_umbral()) &gt;&gt; [enviar_alerta(), sin_alerta()]</code></pre>
 
 <pre data-norun><code class="language-python">fin = EmptyOperator(task_id=&quot;fin&quot;, trigger_rule=&quot;none_failed_min_one_success&quot;)
 limpiar = BashOperator(task_id=&quot;limpiar_tmp&quot;, bash_command=&quot;rm -rf /tmp/ventas_{{ ds_nodash }}&quot;, trigger_rule=&quot;all_done&quot;)</code></pre>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Devolver True o False desde un branch.</strong> Debe devolver el task_id (o la lista) de la rama a seguir.</li>
+<li><strong>Dejar <code>all_success</code> en la tarea que une ramas.</strong> La rama no elegida queda en skipped y la tarea de unión no corre; usa <code>none_failed_min_one_success</code>.</li>
+<li><strong>Limpieza con <code>all_success</code>.</strong> Si algo falla, la limpieza no corre; va con <code>all_done</code>.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste y probaste una rama.</li>

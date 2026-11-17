@@ -69,6 +69,12 @@ texto: La tabla ventas_tiendas en Tables (1) con sus filas, columnas y tipos (2)
 
 Arriba de cada columna se ve el **tipo** que Fabric detectó (`int`, `date`, `string`, `double`).
 
+:::errores
+- **Cargar dos veces con "append".** Las filas se duplican; si recargas el archivo completo, usa "Replace" o deduplica después.
+- **No revisar los tipos detectados.** Una columna de montos detectada como texto rompe sumas y promedios más adelante.
+- **Olvidar el encabezado.** Sin "Use header for column names", la primera fila (los nombres) entra como datos.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] `ventas_tiendas.csv` está en Files.
@@ -98,7 +104,7 @@ Arriba de cada columna se ve el **tipo** que Fabric detectó (`int`, `date`, `st
 Cargas el mismo archivo dos veces con "Existing table (append)". ¿Qué pasa?
 - [ ] Nada, Fabric lo detecta
 - [x] Las filas quedan duplicadas
-- [ ] Falla
+- [ ] Falla porque la tabla ya existe
 - [ ] Se reemplaza la tabla
 :::
 
@@ -107,7 +113,7 @@ Cargas el mismo archivo dos veces con "Existing table (append)". ¿Qué pasa?
 - [ ] El autor
 - [x] El tipo de dato detectado
 - [ ] El tamaño
-- [ ] El color
+- [ ] La cantidad de valores nulos
 :::
 
 :::ejercicio quiz

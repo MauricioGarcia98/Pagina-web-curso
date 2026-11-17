@@ -63,6 +63,12 @@ texto: El log de saludo - se ve el print de la función y "Task instance in succ
 
 Busca la línea del `print`. Ahí está la prueba de que la tarea hizo lo que esperabas, no solo que terminó.
 
+:::errores
+- **Confundir la fecha lógica con la hora de ejecución.** La fecha lógica dice qué día de datos procesa la corrida; puede ser distinta de cuándo corrió.
+- **Leer el log de la corrida equivocada.** Cada cuadrado de la grilla es una tarea en una corrida; fíjate en la columna antes de abrir el log.
+- **Tratar upstream_failed como un error propio.** La tarea no corrió porque falló una anterior; arregla primero esa.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] `hola_tienda` tiene una corrida en **success**.
@@ -89,15 +95,15 @@ En el nivel 2: la grilla y el grafo a fondo, errores y reintentos, y la programa
 - [ ] La hora a la que terminó la corrida
 - [x] La fecha de los datos que procesa la corrida, que llega a las tareas como {{ ds }}
 - [ ] La fecha de creación del archivo
-- [ ] La fecha de instalación de Airflow
+- [ ] La fecha en que se disparó el Dag a mano
 :::
 
 :::ejercicio quiz
 En la grilla, ¿qué es cada columna?
 - [x] Una corrida del Dag
 - [ ] Una tarea
-- [ ] Un día de la semana
-- [ ] Un usuario
+- [ ] Un intento de la misma tarea
+- [ ] Una fecha del calendario, aunque no haya corrida
 :::
 
 :::ejercicio quiz
@@ -110,7 +116,7 @@ En la grilla, ¿qué es cada columna?
 
 :::ejercicio quiz
 ¿Qué significa naranja (upstream_failed)?
-- [ ] Que corrió dos veces
+- [ ] Que falló y se va a reintentar
 - [x] Que no corrió porque falló una tarea anterior
 - [ ] Que está corriendo
 - [ ] Que se canceló a mano

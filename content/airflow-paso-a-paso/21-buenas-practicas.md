@@ -8,6 +8,10 @@ prerrequisitos: airflow-paso-a-paso-proyecto-alertas-al-fallar
 autoevaluacion: ¿Sabes qué es una tarea idempotente? | ¿Sabes por qué no se consulta una base en el nivel superior? | ¿Sabes dónde debería correr un join de 200 millones de filas? | ¿Sabes pisar una opción de airflow.cfg?
 ---
 
+:::analogia Un buen empleado de mantenimiento
+Un Dag bien hecho es como un buen empleado de mantenimiento: si le pides que repita una tarea, el resultado queda igual (idempotente); cada tarea hace una sola cosa; y no carga cosas pesadas él mismo, llama a quien corresponde (el warehouse, Spark).
+:::
+
 ## Paso 1 — Idempotencia
 
 Una tarea es **idempotente** si correrla dos veces para la misma fecha deja el mismo resultado. Es lo que hace seguros los reintentos, Clear y los backfills.
@@ -78,6 +82,12 @@ texto: Details de carga_ventas_tienda - dueño, etiquetas, catchup, start_date f
 - [ ] Reintentos y alertas de falla.
 - [ ] Pasa la prueba de DagBag del CI.
 
+:::errores
+- **`INSERT` sin control en una carga diaria.** Repetirla duplica; borra la partición del día o usa MERGE.
+- **Trabajo pesado en el worker.** Un join enorme en Python sobre el worker es lento y frágil; dispáralo en el warehouse o en Spark.
+- **Código costoso en el nivel superior del archivo.** El dag processor lo ejecuta cada vez que lee el archivo.
+:::
+
 ## ✅ Lo que lograste
 
 - Conoces las reglas que hacen operable un Dag.
@@ -89,7 +99,7 @@ texto: Details de carga_ventas_tienda - dueño, etiquetas, catchup, start_date f
 - [ ] Que corre muy rápido
 - [x] Que correrla dos veces para la misma fecha deja el mismo resultado
 - [ ] Que nunca falla
-- [ ] Que no tiene código
+- [ ] Que solo corre una vez por día
 :::
 
 :::ejercicio quiz
@@ -97,14 +107,14 @@ texto: Details de carga_ventas_tienda - dueño, etiquetas, catchup, start_date f
 - [ ] INSERT sin condición
 - [x] Borrar la partición de esa fecha antes de insertar, o usar MERGE
 - [ ] Insertar dos veces
-- [ ] Usar datetime.now()
+- [ ] Insertar con la fecha de hoy en vez de la fecha lógica
 :::
 
 :::ejercicio quiz
 ¿Dónde debería correr un join de 200 millones de filas?
 - [ ] En el worker de Airflow
 - [x] En el warehouse o en Spark, disparado por Airflow
-- [ ] En el navegador
+- [ ] En un PythonOperator con pandas, en el worker
 - [ ] En el dag processor
 :::
 
@@ -113,5 +123,5 @@ texto: Details de carga_ventas_tienda - dueño, etiquetas, catchup, start_date f
 - [x] Con la variable de entorno AIRFLOW__CORE__PARALLELISM
 - [ ] Con una Variable de Airflow llamada parallelism
 - [ ] Con un XCom
-- [ ] No se puede
+- [ ] Con un Param llamado parallelism en el Dag
 :::

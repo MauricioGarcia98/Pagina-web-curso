@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Grid, Graph y el historial de corridas</h1><p class="resumen">Con varias corridas, la grilla se vuelve la mejor forma de ver la salud de un Dag de un vistazo. Disparas ventas_diarias para tres fechas, lees la grilla (altura = duración, color = estado), cambias al grafo para ver las dependencias y usas la pestaña Runs para filtrar por estado y tipo de corrida.</p>
 <a class="cta" href="../index.html#/l/airflow-paso-a-paso-grid-graph-y-estados">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer la grilla con varias corridas</li><li>Usar el grafo para entender las dependencias</li><li>Filtrar las corridas por estado y tipo</li><li>Distinguir corridas manuales, programadas, backfill y por assets</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un electrocardiograma del Dag</div>
+
+<p>La grilla es como un electrocardiograma: cada columna es una corrida, la altura dice cuánto tardó y el color dice cómo terminó. De un vistazo ves si el Dag está sano, si se está volviendo lento o si falla siempre en la misma tarea.</p>
+</div>
+
+
 <h2>Paso 1 — Varias corridas</h2>
 <p>Dispara <code>ventas_diarias</code> tres veces, cada una con una <strong>Logical Date</strong> distinta (en Advanced Options): 12, 13 y 14 de noviembre a las 06:00.</p>
 <div class="callout callout-nota"><div class="callout-title">📝 ¿Por qué fechas distintas?</div>
@@ -101,6 +107,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>Los filtros <strong>All States</strong> y <strong>All Run Types</strong> sirven para encontrar, por ejemplo, todas las corridas programadas que fallaron.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Mirar solo el color.</strong> Una corrida verde que tardó el triple es una señal: los datos crecieron o algo se trabó.</li>
+<li><strong>Usar Grid para entender el paralelismo.</strong> El orden y las ramas se ven en Graph.</li>
+<li><strong>Disparar dos veces con la misma fecha lógica.</strong> No puede haber dos corridas con la misma fecha; cambia la fecha o usa Clear.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Lees la grilla con varias corridas.</li>

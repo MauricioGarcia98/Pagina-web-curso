@@ -31,6 +31,12 @@ archivo: fabric/b16-linaje.webp
 texto: El linaje - lakehouses, notebook, pipeline, warehouse y el modelo semántico que lee lh_ventas
 ```
 
+:::errores
+- **Calcular el avance en cada gráfico.** Dos informes terminan mostrando números distintos; va en una vista o una medida.
+- **Armar el informe antes de verificar la cadena.** Si la tabla o la vista están mal, el tablero se ve bien y miente.
+- **Mezclar fuentes sin saberlo.** Ten claro qué ítem lee el modelo semántico (el lakehouse, el warehouse) antes de agregar medidas.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] El modelo tiene la medida `Pedidos = COUNTROWS(pedidos)`.
@@ -61,7 +67,7 @@ En el nivel 5: operar el workspace - monitorear, catalogar y versionar con Git.
 ¿Dónde conviene definir el cálculo del avance contra la meta?
 - [ ] En cada gráfico
 - [x] En una vista (o una medida) que usen todos los informes
-- [ ] En un correo a comercial
+- [ ] En una columna calculada de cada informe
 - [ ] En el pipeline
 :::
 
@@ -77,13 +83,13 @@ En el nivel 5: operar el workspace - monitorear, catalogar y versionar con Git.
 ¿Qué hace New report en Fabric real?
 - [ ] Descarga un archivo
 - [x] Abre el editor de informes de Power BI en el navegador sobre ese modelo
-- [ ] Borra el modelo
+- [ ] Exporta el modelo a Power BI Desktop
 - [ ] Crea un lakehouse
 :::
 
 :::ejercicio quiz
 ¿Por qué se pide que "los números salgan de la misma definición"?
-- [ ] Por estética
+- [ ] Porque Power BI no permite dos medidas con el mismo nombre
 - [x] Para que dos informes no muestren valores distintos para lo mismo
 - [ ] Porque Fabric lo exige
 - [ ] Para que cargue más rápido

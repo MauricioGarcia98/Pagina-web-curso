@@ -8,6 +8,10 @@ prerrequisitos: airflow-paso-a-paso-taskflow-y-operadores
 autoevaluacion: ¿Sabes dónde se guarda un XCom? | ¿Sabes qué tamaño de datos conviene pasar? | ¿Sabes qué devuelve {{ ds_nodash }}? | ¿Sabes en qué campos funcionan las plantillas?
 ---
 
+:::analogia Notitas pegadas entre tareas
+Un XCom es una notita que una tarea le deja a la siguiente: un número, una ruta, un nombre de tabla. No es un camión para mudar datos: lo grande se escribe en una tabla o un archivo, y en la notita va solo dónde quedó.
+:::
+
 ## Paso 1 — El XCom de una tarea
 
 En la corrida de `resumen_tiendas`, `leer_ventas` → **XCom**:
@@ -63,6 +67,12 @@ BashOperator(
 
 La pestaña **Rendered Templates** de cada instancia muestra el comando ya resuelto. Es lo primero que se mira cuando una ruta "no existe".
 
+:::errores
+- **Pasar DataFrames grandes por XCom.** Se guardan en la base de metadatos y la saturan; pasa la ruta o la tabla.
+- **Plantillas en campos que no se renderizan.** Jinja solo se resuelve en los campos plantillados del operador; revisa Rendered Templates.
+- **Confundir `ds` con `ds_nodash`.** `ds` es `2026-11-14`; `ds_nodash` es `20261114`.
+:::
+
 ## ✅ Lo que lograste
 
 - Ves los XComs de una tarea y de todo Airflow.
@@ -74,7 +84,7 @@ La pestaña **Rendered Templates** de cada instancia muestra el comando ya resue
 - [ ] En un archivo CSV
 - [x] En la base de metadatos
 - [ ] En la memoria del navegador
-- [ ] En Git
+- [ ] En los logs de la tarea
 :::
 
 :::ejercicio quiz
@@ -82,7 +92,7 @@ Una tarea genera un DataFrame de 5 millones de filas. ¿Qué devuelves?
 - [ ] El DataFrame entero por XCom
 - [x] La ruta o la tabla donde lo escribiste
 - [ ] Nada y que la siguiente lo adivine
-- [ ] Una captura de pantalla
+- [ ] Las primeras mil filas por XCom
 :::
 
 :::ejercicio quiz
@@ -90,7 +100,7 @@ Con fecha lógica 2026-11-14, ¿qué devuelve `{{ ds_nodash }}`?
 - [ ] 2026-11-14
 - [x] 20261114
 - [ ] 14/11/2026
-- [ ] 2026
+- [ ] 2026-11-14T00:00:00
 :::
 
 :::ejercicio quiz
@@ -98,5 +108,5 @@ Con fecha lógica 2026-11-14, ¿qué devuelve `{{ ds_nodash }}`?
 - [ ] En Code
 - [x] En la pestaña Rendered Templates de la instancia
 - [ ] En Admin → Config
-- [ ] En Providers
+- [ ] En el log del dag processor
 :::

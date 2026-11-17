@@ -8,6 +8,10 @@ prerrequisitos: airflow-paso-a-paso-xcoms-y-plantillas
 autoevaluacion: ¿Sabes qué va en una variable y qué en una conexión? | ¿Sabes leer una variable con valor por defecto? | ¿Sabes por qué no se pone una contraseña en el Dag? | ¿Sabes qué es un secrets backend?
 ---
 
+:::analogia La configuración fuera de la receta
+Variables y Connections son lo que cambia entre cocinas: en qué entorno estás, qué umbral usar, la dirección y la llave de la base. La receta (el Dag) no las trae escritas: las pide al momento de cocinar.
+:::
+
 ## Paso 1 — Una variable
 
 **Admin → Variables → Add Variable**:
@@ -73,6 +77,12 @@ SQLExecuteQueryOperator(task_id="contar", conn_id="postgres_tienda", sql="SELECT
 
 Airflow cifra contraseñas y variables en la base con una clave **Fernet**. Igual, la regla es: **nunca** una contraseña en el código del Dag ni en Git.
 
+:::errores
+- **Contraseñas en el código o en Variables.** Las credenciales van en Connections o en un secrets backend.
+- **`Variable.get` en el nivel superior del archivo.** Se ejecuta en cada lectura del archivo y carga la base de metadatos; léela dentro de la tarea o con plantillas.
+- **Sin valor por defecto.** Si la variable no existe, la tarea falla; usa `default=` cuando tenga sentido.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste variables y una conexión.
@@ -91,7 +101,7 @@ Airflow cifra contraseñas y variables en la base con una clave **Fernet**. Igua
 ¿Cómo lees una variable con un valor por defecto en Airflow 3?
 - [x] `Variable.get("entorno", default="dev")`
 - [ ] `Variable("entorno")`
-- [ ] `os.entorno`
+- [ ] `Variable.get("entorno") or "dev"`, que también lee las Connections
 - [ ] `{{ entorno }}`
 :::
 
@@ -99,14 +109,14 @@ Airflow cifra contraseñas y variables en la base con una clave **Fernet**. Igua
 ¿Por qué no conviene llamar a Variable.get en el nivel superior del archivo?
 - [ ] Porque no funciona nunca
 - [x] Porque se ejecuta cada vez que se lee el archivo y carga la base de metadatos
-- [ ] Porque borra la variable
+- [ ] Porque las variables solo existen durante la corrida
 - [ ] Porque es de Airflow 1
 :::
 
 :::ejercicio quiz
 ¿Qué es un secrets backend?
-- [ ] Un plugin de colores
+- [ ] Una Variable cifrada dentro de Airflow
 - [x] Un servicio externo (Key Vault, Secrets Manager, Vault) de donde Airflow lee las credenciales
-- [ ] La carpeta de Dags
+- [ ] El archivo airflow.cfg con las contraseñas
 - [ ] Un tipo de operador
 :::

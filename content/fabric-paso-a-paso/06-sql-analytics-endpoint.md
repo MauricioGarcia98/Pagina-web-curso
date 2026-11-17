@@ -8,6 +8,10 @@ prerrequisitos: fabric-paso-a-paso-datos-de-ejemplo-y-tablas-delta
 autoevaluacion: ¿Sabes cómo llegas al endpoint SQL? | ¿Sabes por qué no puedes hacer un DELETE ahí? | ¿Sabes dónde escribir con T-SQL? | ¿Sabes qué conecta Power BI al endpoint?
 ---
 
+:::analogia Una vidriera del lakehouse
+El SQL analytics endpoint es una vidriera: desde afuera ves y consultas todo lo que hay en las tablas del lakehouse con T-SQL, pero no puedes meter la mano para cambiar nada. Para escribir se entra por la puerta de atrás (Spark) o se usa un warehouse.
+:::
+
 ## Paso 1 — Cambiar al endpoint
 
 En `lh_ventas`, el selector de arriba a la derecha → **SQL analytics endpoint**:
@@ -60,6 +64,12 @@ El endpoint SQL **no escribe**: las tablas del lakehouse las escribe **Spark** (
 El endpoint tiene una cadena de conexión SQL: SQL Server Management Studio, Azure Data Studio, Excel o Power BI Desktop se conectan a él como a cualquier base SQL Server.
 :::
 
+:::errores
+- **Intentar `DELETE` o `INSERT` en el endpoint.** Es de solo lectura sobre las tablas; las escrituras van con Spark o en un warehouse.
+- **Creer que el endpoint copia los datos.** Lee las mismas tablas Delta; no hay que sincronizar nada (puede tardar unos segundos en ver una tabla nueva).
+- **Repetir la misma lógica en cada informe.** Las vistas sí se pueden crear en el endpoint: guarda ahí la consulta que usan todos.
+:::
+
 ## ✅ Lo que lograste
 
 - Consultaste el lakehouse con T-SQL desde su endpoint.
@@ -70,23 +80,23 @@ El endpoint tiene una cadena de conexión SQL: SQL Server Management Studio, Azu
 - [ ] Una copia de las tablas en otra base
 - [x] Una vista SQL de solo lectura de las tablas del lakehouse
 - [ ] Un warehouse
-- [ ] Un informe
+- [ ] Un warehouse que se llena con una copia nocturna
 :::
 
 :::ejercicio quiz
 Necesitas borrar los pedidos cancelados de una tabla del lakehouse. ¿Dónde?
 - [ ] En el endpoint SQL con DELETE
 - [x] En un notebook con Spark
-- [ ] En Monitor
-- [ ] No se puede
+- [ ] En el modelo semántico, con DAX
+- [ ] En el endpoint SQL con TRUNCATE
 :::
 
 :::ejercicio quiz
 ¿Qué se puede crear en el endpoint SQL?
 - [ ] Tablas nuevas con INSERT
 - [x] Vistas
-- [ ] Workspaces
-- [ ] Pipelines
+- [ ] Tablas nuevas con SELECT INTO
+- [ ] Índices sobre las tablas Delta
 :::
 
 :::ejercicio quiz
@@ -94,5 +104,5 @@ Necesitas borrar los pedidos cancelados de una tabla del lakehouse. ¿Dónde?
 - [ ] En el endpoint del lakehouse
 - [x] En un Warehouse
 - [ ] En un notebook Python
-- [ ] En OneLake catalog
+- [ ] En el SQL analytics endpoint, con permisos de Admin
 :::

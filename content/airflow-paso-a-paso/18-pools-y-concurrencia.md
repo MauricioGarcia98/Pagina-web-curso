@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes para qué sirve un pool? | ¿Sabes cuántos lugares tien
 El día que se agregaron más categorías al catálogo, Airflow lanzó todas las descargas a la vez y la API de la tienda empezó a responder con errores 429 (demasiadas solicitudes).
 :::
 
+:::analogia Mesas en un restaurante
+Un pool es la cantidad de mesas del restaurante: si hay dos mesas y llegan cuatro grupos, dos se sientan y los otros esperan. `priority_weight` decide a quién se sienta primero cuando se libera una mesa.
+:::
+
 ## Paso 1 — Crear el pool
 
 **Admin → Pools → Add Pool**:
@@ -65,6 +69,12 @@ Las cuatro descargas no dependen entre sí, pero el pool deja correr **dos a la 
 Si cada corrida escribe la misma tabla, dos corridas a la vez pueden pisarse. `max_active_runs=1` hace que un backfill de 30 días corra de a uno, en orden.
 :::
 
+:::errores
+- **Confundir pool con max_active_runs.** El pool limita tareas que usan un recurso; `max_active_runs` limita corridas simultáneas del mismo Dag.
+- **Esperar que las tareas extra fallen.** Quedan en queued hasta que se libera un lugar.
+- **Un pool por Dag.** El pool representa el recurso (la API, la base), y lo comparten todos los Dags que lo usan.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un pool y lo asignaste.
@@ -72,7 +82,7 @@ Si cada corrida escribe la misma tabla, dos corridas a la vez pueden pisarse. `m
 
 :::ejercicio quiz
 ¿Para qué sirve un pool?
-- [ ] Para guardar datos
+- [ ] Para reservar workers para un Dag
 - [x] Para limitar cuántas tareas usan un recurso a la vez
 - [ ] Para programar Dags
 - [ ] Para guardar contraseñas
@@ -83,7 +93,7 @@ Hay 4 tareas en el pool api_tienda de 2 lugares. ¿Qué pasa?
 - [ ] Fallan dos
 - [x] Corren dos y las otras esperan en queued hasta que se libere un lugar
 - [ ] Corren las cuatro
-- [ ] No corre ninguna
+- [ ] Corren las cuatro con la mitad de velocidad
 :::
 
 :::ejercicio quiz
@@ -91,13 +101,13 @@ Hay 4 tareas en el pool api_tienda de 2 lugares. ¿Qué pasa?
 - [x] Cuántas corridas del mismo Dag pueden estar activas a la vez
 - [ ] Cuántos Dags hay
 - [ ] Cuántas tareas tiene el Dag
-- [ ] Cuántos usuarios entran
+- [ ] Cuántas tareas de todos los Dags corren a la vez
 :::
 
 :::ejercicio quiz
 Dos tareas esperan el último lugar del pool. ¿Qué decide cuál entra primero?
 - [ ] El orden alfabético
 - [x] priority_weight
-- [ ] El color
-- [ ] La fecha del archivo
+- [ ] La que tenga más reintentos
+- [ ] El orden en que aparecen en el archivo
 :::

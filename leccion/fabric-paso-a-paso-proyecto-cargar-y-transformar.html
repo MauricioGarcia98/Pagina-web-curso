@@ -41,6 +41,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/fabric/b12-linaje.webp" alt="Lineage - el notebook usa lh_ventas, y el pipeline escribe en lh_ventas y llama al notebook" loading="lazy"><figcaption>Lineage - el notebook usa lh_ventas, y el pipeline escribe en lh_ventas y llama al notebook</figcaption></figure>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Confiar en el verde sin revisar filas.</strong> Succeeded no significa que llegaron datos; compara conteos.</li>
+<li><strong>Borrar un ítem sin mirar el linaje.</strong> Lo que dependía de él se rompe en la próxima corrida.</li>
+<li><strong>Ejecutar a mano todos los días.</strong> Programa el pipeline con Schedule.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> La última ejecución de <code>pl_cargar_pedidos</code> está en <strong>Succeeded</strong>.</li>

@@ -72,6 +72,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p>Arriba de cada columna se ve el <strong>tipo</strong> que Fabric detectó (<code>int</code>, <code>date</code>, <code>string</code>, <code>double</code>).</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Cargar dos veces con &quot;append&quot;.</strong> Las filas se duplican; si recargas el archivo completo, usa &quot;Replace&quot; o deduplica después.</li>
+<li><strong>No revisar los tipos detectados.</strong> Una columna de montos detectada como texto rompe sumas y promedios más adelante.</li>
+<li><strong>Olvidar el encabezado.</strong> Sin &quot;Use header for column names&quot;, la primera fila (los nombres) entra como datos.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> <code>ventas_tiendas.csv</code> está en Files.</li>

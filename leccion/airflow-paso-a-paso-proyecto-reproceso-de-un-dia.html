@@ -40,6 +40,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/airflow/a16-mark.webp" alt="El menú Mark Run as - success o failed" loading="lazy"><figcaption>El menú Mark Run as - success o failed</figcaption></figure>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Clear con Upstream marcado.</strong> Vuelve a correr la extracción, que no hacía falta; para validar y publicar va Downstream.</li>
+<li><strong>Mark as success para que &quot;se vea verde&quot;.</strong> Solo tiene sentido si el trabajo se hizo por fuera.</li>
+<li><strong>No dejar constancia.</strong> Una nota en la corrida explica después por qué se reprocesó.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> La corrida <code>backfill__2026-11-12...</code> tiene <code>validar</code> y <code>publicar</code> con un intento más.</li>

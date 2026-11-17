@@ -8,6 +8,10 @@ prerrequisitos: airflow-paso-a-paso-assets
 autoevaluacion: ¿Sabes qué devuelve una tarea branch? | ¿Sabes qué pasa con las tareas no elegidas? | ¿Sabes qué hace all_done? | ¿Sabes por qué fin usa none_failed_min_one_success?
 ---
 
+:::analogia Un desvío en el camino
+Una tarea branch es un cartel de desvío: según lo que encuentra, manda la corrida por un camino y deja el otro vacío (skipped). Las trigger rules deciden si una tarea más adelante arranca aunque uno de los caminos no se haya recorrido.
+:::
+
 ## Paso 1 — La rama
 
 En `reporte_ventas`:
@@ -69,6 +73,12 @@ fin = EmptyOperator(task_id="fin", trigger_rule="none_failed_min_one_success")
 limpiar = BashOperator(task_id="limpiar_tmp", bash_command="rm -rf /tmp/ventas_{{ ds_nodash }}", trigger_rule="all_done")
 ```
 
+:::errores
+- **Devolver True o False desde un branch.** Debe devolver el task_id (o la lista) de la rama a seguir.
+- **Dejar `all_success` en la tarea que une ramas.** La rama no elegida queda en skipped y la tarea de unión no corre; usa `none_failed_min_one_success`.
+- **Limpieza con `all_success`.** Si algo falla, la limpieza no corre; va con `all_done`.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste y probaste una rama.
@@ -79,7 +89,7 @@ limpiar = BashOperator(task_id="limpiar_tmp", bash_command="rm -rf /tmp/ventas_{
 ¿Qué devuelve una tarea @task.branch?
 - [ ] Un booleano
 - [x] El task_id (o lista de task_ids) de la rama que debe seguir
-- [ ] Un DataFrame
+- [ ] La lista de tareas que deben quedar en skipped
 - [ ] Nada
 :::
 
@@ -88,7 +98,7 @@ limpiar = BashOperator(task_id="limpiar_tmp", bash_command="rm -rf /tmp/ventas_{
 - [ ] failed
 - [ ] upstream_failed
 - [x] skipped
-- [ ] queued
+- [ ] removed
 :::
 
 :::ejercicio quiz
@@ -102,7 +112,7 @@ Una tarea que borra archivos temporales debe correr siempre, falle o no lo anter
 :::ejercicio quiz
 ¿Por qué una tarea que une dos ramas no puede quedarse con all_success?
 - [x] Porque una de las ramas siempre queda en skipped y all_success exige que todas terminen bien
-- [ ] Porque all_success no existe
+- [ ] Porque la rama elegida siempre queda en upstream_failed
 - [ ] Porque corre dos veces
-- [ ] Porque es más lenta
+- [ ] Porque all_success solo sirve con assets
 :::

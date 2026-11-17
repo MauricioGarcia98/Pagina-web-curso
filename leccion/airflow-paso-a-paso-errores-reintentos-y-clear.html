@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Volver a intentar antes de llamar al técnico</div>
+
+<p>Los reintentos son volver a probar cuando la conexión falla un momento: muchas fallas son pasajeras. Si después de los intentos sigue fallando, el problema es real; lo arreglas y usas Clear para que esa corrida vuelva a ejecutar solo lo que falló.</p>
+</div>
+
+
 <h2>Paso 1 — Encontrar qué falló</h2>
 <p>Dispara <code>conciliacion_pagos</code>:</p>
 <figure class="captura"><img src="assets/img/guias/airflow/a06-fallo.webp" alt="La corrida en rojo (1) - traer_pagos en success, conciliar en failed después de 3 intentos y avisar en upstream_failed (2)" loading="lazy"><figcaption>La corrida en rojo (1) - traer_pagos en success, conciliar en failed después de 3 intentos y avisar en upstream_failed (2)</figcaption></figure>
@@ -93,6 +99,16 @@ grep -n &quot;monto&quot; conciliacion_pagos.py</code></pre>
 <div class="callout callout-tip"><div class="callout-title">💡 Clear o Trigger</div>
 
 <p><strong>Clear</strong> repite la <strong>misma</strong> corrida (misma fecha lógica, mismos datos). <strong>Trigger</strong> crea una corrida <strong>nueva</strong>. Para recuperar el día que falló, usa Clear.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Leer el traceback desde arriba.</strong> La última línea dice qué pasó; las de arriba, dónde.</li>
+<li><strong>Reintentos para errores de código.</strong> Un <code>NameError</code> falla igual en cada intento; los reintentos sirven para fallas pasajeras (red, API).</li>
+<li><strong>Borrar y volver a crear el Dag para recuperar el día.</strong> Clear de las tareas fallidas en esa corrida alcanza.</li>
+</ul>
 </div>
 
 

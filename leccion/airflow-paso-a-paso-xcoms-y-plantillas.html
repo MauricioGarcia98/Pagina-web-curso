@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>XComs y plantillas - cómo viajan los datos entre tareas</h1><p class="resumen">Cuando una tarea devuelve un valor, Airflow lo guarda como XCom y la siguiente lo recibe. Ves el XCom de leer_ventas, la página Browse → XComs, cuándo NO usar XCom, y las plantillas Jinja más útiles (ds, ds_nodash, params, var, macros) para construir comandos y rutas con la fecha de la corrida.</p>
 <a class="cta" href="../index.html#/l/airflow-paso-a-paso-xcoms-y-plantillas">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Ver los XComs de una tarea y de todo Airflow</li><li>Leer un XCom con TaskFlow o con xcom_pull</li><li>Saber qué no debe viajar por XCom</li><li>Usar las plantillas Jinja principales</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Notitas pegadas entre tareas</div>
+
+<p>Un XCom es una notita que una tarea le deja a la siguiente: un número, una ruta, un nombre de tabla. No es un camión para mudar datos: lo grande se escribe en una tabla o un archivo, y en la notita va solo dónde quedó.</p>
+</div>
+
+
 <h2>Paso 1 — El XCom de una tarea</h2>
 <p>En la corrida de <code>resumen_tiendas</code>, <code>leer_ventas</code> → <strong>XCom</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/airflow/a10-xcom.webp" alt="El XCom return_value de leer_ventas - la lista de ventas por tienda" loading="lazy"><figcaption>El XCom return_value de leer_ventas - la lista de ventas por tienda</figcaption></figure>
@@ -78,6 +84,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
     bash_command=&quot;cp /datos/ventas_{{ ds_nodash }}.csv /lake/raw/fecha={{ ds }}/&quot;,
 )</code></pre>
 <p>La pestaña <strong>Rendered Templates</strong> de cada instancia muestra el comando ya resuelto. Es lo primero que se mira cuando una ruta &quot;no existe&quot;.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Pasar DataFrames grandes por XCom.</strong> Se guardan en la base de metadatos y la saturan; pasa la ruta o la tabla.</li>
+<li><strong>Plantillas en campos que no se renderizan.</strong> Jinja solo se resuelve en los campos plantillados del operador; revisa Rendered Templates.</li>
+<li><strong>Confundir <code>ds</code> con <code>ds_nodash</code>.</strong> <code>ds</code> es <code>2026-11-14</code>; <code>ds_nodash</code> es <code>20261114</code>.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Ves los XComs de una tarea y de todo Airflow.</li>

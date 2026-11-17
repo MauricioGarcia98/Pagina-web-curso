@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Llaves del edificio y llaves de cada cajón</div>
+
+<p>Los roles del workspace son llaves del edificio: Admin, Member, Contributor o Viewer deciden qué puedes hacer con los ítems. Los permisos SQL son llaves de cada cajón: dentro del warehouse, deciden qué tabla o vista puede leer cada uno.</p>
+</div>
+
+
 <h2>Paso 1 — Un workspace con licencia Pro</h2>
 <p>Crea <code>Informes Pro</code> y en <strong>License mode</strong> elige <strong>Pro</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/fabric/b21-pro.webp" alt="El aviso - un workspace Pro solo admite ítems de Power BI; lakehouse, notebooks o pipelines necesitan una capacidad de Fabric" loading="lazy"><figcaption>El aviso - un workspace Pro solo admite ítems de Power BI; lakehouse, notebooks o pipelines necesitan una capacidad de Fabric</figcaption></figure>
@@ -115,6 +121,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <pre data-norun><code class="language-sql">GRANT SELECT ON dbo.v_avance_metas TO [grp-comercial];
 DENY SELECT ON dbo.metas_tienda TO [grp-comercial];</code></pre>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Dar Member a quien solo lee.</strong> Viewer alcanza para consultar y ver informes.</li>
+<li><strong>Usar el rol del workspace para ocultar una tabla.</strong> El rol abre todo el workspace; para una tabla o vista se usan permisos SQL (GRANT y DENY).</li>
+<li><strong>Crear ítems de Fabric en un workspace Pro.</strong> Pro solo admite Power BI; hace falta capacidad.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Sabes qué licencia admite qué ítems.</li>

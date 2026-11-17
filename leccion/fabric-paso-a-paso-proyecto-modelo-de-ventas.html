@@ -37,6 +37,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/fabric/b16-linaje.webp" alt="El linaje - lakehouses, notebook, pipeline, warehouse y el modelo semántico que lee lh_ventas" loading="lazy"><figcaption>El linaje - lakehouses, notebook, pipeline, warehouse y el modelo semántico que lee lh_ventas</figcaption></figure>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Calcular el avance en cada gráfico.</strong> Dos informes terminan mostrando números distintos; va en una vista o una medida.</li>
+<li><strong>Armar el informe antes de verificar la cadena.</strong> Si la tabla o la vista están mal, el tablero se ve bien y miente.</li>
+<li><strong>Mezclar fuentes sin saberlo.</strong> Ten claro qué ítem lee el modelo semántico (el lakehouse, el warehouse) antes de agregar medidas.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> El modelo tiene la medida <code>Pedidos = COUNTROWS(pedidos)</code>.</li>

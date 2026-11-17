@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Mapeo dinámico - una tarea por cada elemento</h1><p class="resumen">Cuando la cantidad de tiendas, archivos o países cambia, no conviene escribir una tarea por cada uno. Con dynamic task mapping, procesar.expand(tienda=...) crea una instancia por elemento en el momento de correr. Escribes ventas_por_tienda, ves las instancias mapeadas y aprendes partial, los límites y cuándo usar mapeo en lugar de un for.</p>
 <a class="cta" href="../index.html#/l/airflow-paso-a-paso-mapeo-dinamico">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear tareas mapeadas con expand</li><li>Fijar argumentos comunes con partial</li><li>Leer las instancias mapeadas en la grilla y el log</li><li>Elegir entre mapeo dinámico y un bucle for</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Una plantilla que se copia por cada tienda</div>
+
+<p>El mapeo dinámico es como una plantilla de tarea que se copia una vez por cada tienda que aparezca hoy: si mañana hay una tienda más, aparece una copia más, sin tocar el código.</p>
+</div>
+
+
 <h2>Paso 1 — El Dag</h2>
 <p><code>ventas_por_tienda.py</code>:</p>
 <pre data-norun><code class="language-python">from datetime import datetime
@@ -93,6 +99,16 @@ cargar.partial(destino=&quot;gold.ventas&quot;).expand(tienda=tiendas())</code><
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Límites</div>
 
 <p><code>[core] max_map_length</code> (1024 por defecto) limita cuántas instancias puede crear una tarea mapeada. Si son miles de elementos, agrúpalos en lotes. Las instancias mapeadas también respetan pools y <code>max_active_tasks</code>.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Mapear sobre una lista fija y chica.</strong> Si son siempre las mismas 4 categorías, un <code>for</code> al escribir el Dag es más simple.</li>
+<li><strong>Pasar con <code>expand</code> lo que es igual para todas.</strong> Los argumentos fijos van con <code>partial</code>.</li>
+<li><strong>Listas enormes sin límite.</strong> Miles de instancias pueden saturar el scheduler; agrupa elementos o usa un pool.</li>
+</ul>
 </div>
 
 

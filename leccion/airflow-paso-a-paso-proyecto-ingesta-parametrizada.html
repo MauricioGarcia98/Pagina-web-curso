@@ -55,6 +55,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/airflow/a12-rendered.webp" alt="Rendered Templates de avisar - &quot;Clientes de PE cargados en dev&quot;" loading="lazy"><figcaption>Rendered Templates de avisar - &quot;Clientes de PE cargados en dev&quot;</figcaption></figure>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Poner el entorno como parámetro.</strong> Quien dispara podría elegir prod por error; el entorno es configuración de la plataforma.</li>
+<li><strong>Param sin tipo ni lista.</strong> Sin <code>enum</code> o <code>type</code>, cualquier valor pasa y falla tarde.</li>
+<li><strong>Escribir <code>$pais</code> en bash_command.</strong> Los parámetros se usan con Jinja: <code>{{ params.pais }}</code>.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> El formulario muestra la lista de países y valida el límite.</li>
