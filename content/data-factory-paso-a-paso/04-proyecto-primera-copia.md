@@ -87,6 +87,12 @@ archivo: adf/b04-bronze.webp
 texto: Los cuatro archivos en bronze/ventas
 ```
 
+:::errores
+- **Probar con Trigger now antes de publicar.** Para probar el borrador se usa Debug.
+- **Dejar "Copy data1" como nombre.** En Monitor y en los errores no sabrás qué copia falló.
+- **No mirar las filas copiadas.** Un Succeeded con cero filas no es éxito; revisa el Output.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] El pipeline se llama `pl_copiar_ventas` y la actividad `Copiar ventas a bronze`.
@@ -111,7 +117,7 @@ Debug sirve para probar mientras diseñas: no necesita publicar y no lo dispara 
 - [ ] La última versión publicada
 - [x] El pipeline tal como está en el editor, sin necesidad de publicar
 - [ ] Solo la validación
-- [ ] Nada, es una simulación
+- [ ] Una copia de prueba con las primeras 100 filas
 :::
 
 :::ejercicio quiz
@@ -134,6 +140,6 @@ Debug sirve para probar mientras diseñas: no necesita publicar y no lo dispara 
 ¿Por qué conviene renombrar "Copy data1"?
 - [ ] Porque Data Factory lo exige
 - [x] Porque es lo que verás en Monitor y en los errores; un nombre claro dice qué falló
-- [ ] Porque cuesta menos
-- [ ] No conviene
+- [ ] Porque los nombres con números no se pueden publicar
+- [ ] No conviene: Monitor muestra el tipo de actividad, no el nombre
 :::

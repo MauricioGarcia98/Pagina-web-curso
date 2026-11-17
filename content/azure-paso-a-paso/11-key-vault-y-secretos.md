@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué rol necesitas para crear secretos? | ¿Sabes qué p
 Lucía: *"Vamos a conectar la base de ventas al lago. La contraseña no puede quedar en ningún notebook ni en Git: créate el key vault del entorno y guárdala ahí."*
 :::
 
+:::analogia La caja fuerte con llaves por persona
+Key Vault es una caja fuerte para contraseñas, claves y certificados. Ser Owner del edificio no te da la combinación: con el modelo RBAC, quien lee secretos necesita un rol de datos (Secrets User), y quien los administra, otro (Secrets Officer).
+:::
+
 ## Paso 1 — Qué es Key Vault
 
 **Key Vault** guarda tres tipos de objetos:
@@ -131,6 +135,12 @@ El **Secret Identifier** es `https://kv-tiendaandina-dev.vault.azure.net/secrets
 
 En los tres casos, quien lee necesita el rol **Key Vault Secrets User** sobre el vault. Para Data Factory y Databricks se le da a su **identidad**, no a una persona.
 
+:::errores
+- **Ser Owner y esperar ver los secretos.** Owner administra el vault; leer o escribir secretos requiere un rol del plano de datos.
+- **Dar Administrator a un pipeline.** Si solo lee, Key Vault Secrets User alcanza.
+- **Desactivar soft delete para "poder recrear con el mismo nombre".** Es la red de seguridad ante borrados; está activado por defecto.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un key vault con RBAC y entiendes soft delete y purge protection.
@@ -141,7 +151,7 @@ En los tres casos, quien lee necesita el rol **Key Vault Secrets User** sobre el
 Eres Owner y al abrir Secrets ves "not allowed by RBAC". ¿Qué falta?
 - [ ] Reiniciar el vault
 - [x] Un rol del plano de datos, como Key Vault Secrets Officer
-- [ ] Cambiar a Premium
+- [ ] Agregar tu IP al cortafuegos del vault
 - [ ] Activar purge protection
 :::
 
@@ -158,7 +168,7 @@ Borraste un key vault por error ayer. ¿Qué pasa?
 - [ ] Se perdió para siempre
 - [x] Con soft delete se puede recuperar durante los días de retención configurados
 - [ ] Microsoft lo restaura si llamas al soporte
-- [ ] Vuelve solo al día siguiente
+- [ ] Se puede recuperar desde el Activity log
 :::
 
 :::ejercicio quiz

@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>De la práctica al Data Factory real (y a Fabric)</h1><p class="resumen">Todo lo que hiciste se hace igual en Azure Data Factory, con más opciones. Qué tiene el Data Factory real que no viste (más conectores, mapping data flows, Execute Pipeline, Web, Switch, Until, global parameters, datasets parametrizados), cómo practicar sin gastar, cómo se compara con Data Factory en Microsoft Fabric y con otros orquestadores, y qué estudiar después.</p>
 <a class="cta" href="../index.html#/l/data-factory-paso-a-paso-de-la-practica-a-data-factory-real">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Conocer las funciones del Data Factory real que no están en la práctica</li><li>Practicar en Azure real cuidando el costo</li><li>Comparar Data Factory con Fabric Data Factory, Synapse Pipelines y Airflow</li><li>Elegir los siguientes pasos de aprendizaje</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Del simulador al avión</div>
+
+<p>Linked services, datasets, Copy, expresiones, ForEach, triggers y Monitor funcionan igual en Azure Data Factory real. Lo que suma el real son más conectores, mapping data flows y redes privadas, y lo que cambia es que hay datos y costos de verdad.</p>
+</div>
+
+
 <h2>Paso 1 — Lo que recorriste</h2>
 <figure class="captura"><img src="assets/img/guias/adf/b23-home.webp" alt="La guía de inicio del Studio, con todos los pasos completos" loading="lazy"><figcaption>La guía de inicio del Studio, con todos los pasos completos</figcaption></figure>
 
@@ -141,6 +147,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td><a href="#/m/cert-azure">Certificaciones Azure</a>: <strong>DP-700</strong> (Fabric Data Engineer), que incluye pipelines</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Crear un dataset por carpeta.</strong> Un dataset parametrizado sirve para todas.</li>
+<li><strong>Elegir Data Factory por costumbre en un equipo que ya usa Fabric.</strong> Los pipelines de Fabric son casi iguales y viven junto al lakehouse.</li>
+<li><strong>Forzar Data Factory donde el equipo orquesta con código.</strong> Si todo es Python o multinube, Airflow puede encajar mejor.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Sabes qué más ofrece el Data Factory real.</li>

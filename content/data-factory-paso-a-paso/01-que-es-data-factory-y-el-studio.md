@@ -110,6 +110,12 @@ Con Git configurado (lección 21) el borrador vive en una rama del repositorio y
 Las pantallas, nombres de botones, el JSON de cada objeto, las expresiones (`@concat`, `@item()`, `@pipeline().parameters`), la lógica de dependencias y los mensajes de error siguen a Data Factory. Las copias mueven archivos de verdad entre los contenedores de tu cuenta de práctica y el notebook corre en el Databricks de práctica. Lo simulado: no hay conexión a sistemas reales, los tiempos son cortos y algunos tipos de actividad y conector no están.
 :::
 
+:::errores
+- **Esperar que el trigger use tus cambios sin publicar.** Los triggers ejecutan la última versión publicada; lo que está en el editor es un borrador.
+- **Transformar datos pesados dentro de Data Factory.** Su papel es mover y orquestar; las transformaciones grandes van en Databricks, Spark o el warehouse.
+- **Buscar las fallas en Author.** Las ejecuciones y sus errores están en Monitor.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué resuelve Data Factory y cuáles son sus cinco piezas.
@@ -120,7 +126,7 @@ Las pantallas, nombres de botones, el JSON de cada objeto, las expresiones (`@co
 ¿Cuál es el papel principal de Data Factory en una plataforma de datos?
 - [ ] Guardar los datos
 - [x] Mover datos y orquestar los pasos del procesamiento en el orden correcto
-- [ ] Hacer los gráficos
+- [ ] Guardar una copia histórica de cada archivo que mueve
 - [ ] Reemplazar a Databricks
 :::
 
@@ -137,7 +143,7 @@ Las pantallas, nombres de botones, el JSON de cada objeto, las expresiones (`@co
 - [ ] En Author
 - [x] En Monitor
 - [ ] En Manage
-- [ ] En el portal, en Tags
+- [ ] En Manage, en la lista de triggers
 :::
 
 :::ejercicio quiz

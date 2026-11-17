@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Get Metadata y ForEach - recorrer los archivos de una carpeta</h1><p class="resumen">Cuando hay que hacer algo con cada archivo, Data Factory lista la carpeta con Get Metadata y la recorre con ForEach. Armas pl_copiar_carpeta - listar los archivos de raw/ventas, recorrerlos y copiar cada uno con @item().name -, entras y sales del ForEach, lees childItems en la salida y ves una fila por iteración en Debug.</p>
 <a class="cta" href="../index.html#/l/data-factory-paso-a-paso-get-metadata-y-foreach">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Listar una carpeta con Get Metadata y childItems</li><li>Recorrer una lista con ForEach</li><li>Usar @item() dentro del bucle</li><li>Entrar y salir de las actividades del ForEach</li><li>Leer las iteraciones en la salida</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Listar los sobres y abrir cada uno</div>
+
+<p>Get Metadata hace la lista de los sobres que hay en la carpeta; ForEach abre cada sobre y hace lo mismo con cada uno. Dentro del bucle, <code>@item()</code> es el sobre de esta vuelta.</p>
+</div>
+
+
 <h2>Paso 1 — El patrón &quot;listar y recorrer&quot;</h2>
 <pre><code class="language-text">Get Metadata (childItems)  ──▶  ForEach (items = la lista)  ──▶  [ adentro: Copy con @item().name ]</code></pre>
 <p>Sirve cuando no sabes cuántos archivos hay ni cómo se llaman, y quieres tratar cada uno por separado: copiarlo, registrarlo, validarlo.</p>
@@ -99,6 +105,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Un <strong>ForEach no puede contener otro ForEach</strong>. Para recorrer dos niveles, el ForEach de afuera llama con <strong>Execute Pipeline</strong> a otro pipeline que tiene el segundo ForEach.</li>
 <li>En paralelo, <strong>no uses variables</strong> dentro del bucle (se pisan entre vueltas): usa <code>@item()</code>.</li>
 <li>En la práctica, las vueltas corren en orden aunque elijas paralelo; en Data Factory real corren a la vez.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Pedir <code>itemName</code> en lugar de <code>childItems</code>.</strong> La lista de archivos de una carpeta está en <code>childItems</code>.</li>
+<li><strong>ForEach dentro de ForEach.</strong> No se permite; el bucle interno va en otro pipeline con Execute Pipeline.</li>
+<li><strong>Usar una variable para el archivo en un ForEach paralelo.</strong> Las vueltas se pisan la variable; usa <code>@item().name</code>.</li>
 </ul>
 </div>
 

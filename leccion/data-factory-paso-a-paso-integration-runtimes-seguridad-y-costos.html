@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Integration runtimes, seguridad y costos</h1><p class="resumen">Tres temas que deciden si un factory llega bien a producción. Qué es un integration runtime y cuándo hace falta uno propio para llegar a una base dentro de la red de la empresa, cómo se asegura un factory (identidad administrada, Key Vault, red administrada, roles del equipo) y cómo se cobra, con las palancas que más bajan la factura.</p>
 <a class="cta" href="../index.html#/l/data-factory-paso-a-paso-integration-runtimes-seguridad-y-costos">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es un integration runtime y sus tres tipos</li><li>Saber cuándo hace falta un self-hosted IR</li><li>Aplicar las prácticas de seguridad de un factory</li><li>Entender cómo se cobra Data Factory</li><li>Bajar el costo de un factory sin romperlo</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un mensajero que vive dentro de la oficina</div>
+
+<p>El Azure IR es un mensajero que viaja por internet. Para llegar a una base dentro de la red de la empresa, sin acceso desde afuera, hace falta un mensajero que viva adentro: el self-hosted integration runtime, instalado en un servidor de esa red.</p>
+</div>
+
+
 <h2>Paso 1 — Integration runtimes</h2>
 <p>El <strong>integration runtime (IR)</strong> es el cómputo que hace el trabajo: mueve los datos, ejecuta las actividades, llega a las fuentes. <strong>Manage → Integration runtimes</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/adf/b22-ir.webp" alt="El AutoResolveIntegrationRuntime - el runtime de Azure que administra Microsoft" loading="lazy"><figcaption>El AutoResolveIntegrationRuntime - el runtime de Azure que administra Microsoft</figcaption></figure>
@@ -121,6 +127,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Job clusters</strong> para los notebooks, que se apagan al terminar (lección 19).</li>
 <li><strong>Debug con cuidado</strong>: las pruebas también se cobran.</li>
 </ol>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Abrir una base a internet para que la vea el factory.</strong> Se instala un self-hosted IR dentro de la red.</li>
+<li><strong>Owner para quien diseña pipelines.</strong> Data Factory Contributor alcanza.</li>
+<li><strong>Triggers frecuentes &quot;por si acaso&quot;.</strong> Cada ejecución se cobra; si los archivos llegan esporádicamente, un trigger de eventos cuesta menos.</li>
+</ul>
 </div>
 
 

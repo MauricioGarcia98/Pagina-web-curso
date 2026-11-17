@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un plano en vez de construir a mano</div>
+
+<p>Una plantilla ARM es el plano del edificio: describe qué recursos van y cómo. Desplegarla dos veces no hace dos edificios: Azure compara el plano con lo que existe y solo agrega o cambia lo que falta (es idempotente).</p>
+</div>
+
+
 <h2>Paso 1 — Qué es una plantilla ARM</h2>
 <p><strong>Azure Resource Manager (ARM)</strong> es la API por la que pasa todo lo que creas en Azure, desde el portal, la CLI o cualquier herramienta. Una <strong>plantilla ARM</strong> es un JSON que describe el <strong>estado deseado</strong>: &quot;quiero que existan estos recursos con esta configuración&quot;. Azure compara con lo que ya hay y crea o actualiza lo necesario.</p>
 <div class="table-wrap"><table><thead><tr>
@@ -265,6 +271,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>Las tres describen el estado deseado. En equipos de datos que trabajan solo con Azure se ve mucho Bicep; en equipos multinube, Terraform. El módulo <a href="#/m/terraform">Terraform</a> tiene su propio laboratorio.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Nombres de parámetros que no coinciden.</strong> Un <code>parameters(&#39;entornos&#39;)</code> con el parámetro declarado como <code>entorno</code> falla al desplegar.</li>
+<li><strong>Valores fijos que cambian entre entornos.</strong> Van como parámetros y se pasan en cada despliegue.</li>
+<li><strong>Editar en el portal lo que creó la plantilla.</strong> El próximo despliegue lo pisa; el cambio va en la plantilla.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Lees una plantilla ARM completa y sus funciones.</li>

@@ -8,6 +8,10 @@ prerrequisitos: data-factory-paso-a-paso-integration-runtimes-seguridad-y-costos
 autoevaluacion: ¿Sabes para qué sirve Execute Pipeline? | ¿Sabes qué es un dataset parametrizado? | ¿Sabes en qué se diferencia Fabric Data Factory? | ¿Sabes cuándo elegir Airflow?
 ---
 
+:::analogia Del simulador al avión
+Linked services, datasets, Copy, expresiones, ForEach, triggers y Monitor funcionan igual en Azure Data Factory real. Lo que suma el real son más conectores, mapping data flows y redes privadas, y lo que cambia es que hay datos y costos de verdad.
+:::
+
 ## Paso 1 — Lo que recorriste
 
 ```captura
@@ -66,6 +70,12 @@ Lo que aprendiste se traslada casi tal cual a los pipelines de Fabric y Synapse.
 | Diseñar plataformas | [Arquitectura de datos](#/m/arquitectura) |
 | Certificarte | [Certificaciones Azure](#/m/cert-azure): **DP-700** (Fabric Data Engineer), que incluye pipelines |
 
+:::errores
+- **Crear un dataset por carpeta.** Un dataset parametrizado sirve para todas.
+- **Elegir Data Factory por costumbre en un equipo que ya usa Fabric.** Los pipelines de Fabric son casi iguales y viven junto al lakehouse.
+- **Forzar Data Factory donde el equipo orquesta con código.** Si todo es Python o multinube, Airflow puede encajar mejor.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué más ofrece el Data Factory real.
@@ -84,7 +94,7 @@ Necesitas que un ForEach recorra carpetas y, dentro de cada una, archivos. ¿Qu�
 ¿Qué es un dataset parametrizado?
 - [ ] Un dataset con contraseña
 - [x] Un dataset con parámetros (por ejemplo la carpeta), para no crear uno por carpeta
-- [ ] Un dataset de Fabric
+- [ ] Un dataset que copia su configuración de otro dataset
 - [ ] Un dataset sin linked service
 :::
 
@@ -92,13 +102,13 @@ Necesitas que un ForEach recorra carpetas y, dentro de cada una, archivos. ¿Qu�
 Tu equipo trabaja todo en Microsoft Fabric con lakehouse. ¿Dónde armas los pipelines?
 - [ ] En Azure Data Factory, siempre
 - [x] En Data Factory de Fabric, que tiene pipelines casi iguales y Dataflow Gen2
-- [ ] En Excel
+- [ ] En Azure Data Factory conectado a Fabric con un linked service
 - [ ] No se puede
 :::
 
 :::ejercicio quiz
 ¿Cuándo conviene Airflow en lugar de Data Factory?
-- [ ] Nunca
+- [ ] Cuando hay que copiar archivos entre dos cuentas de Azure
 - [x] Cuando el equipo prefiere orquestar con código Python, o es multinube
 - [ ] Solo para copiar archivos
 - [ ] Cuando no hay internet

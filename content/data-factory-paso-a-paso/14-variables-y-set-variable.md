@@ -8,6 +8,10 @@ prerrequisitos: data-factory-paso-a-paso-parametros-y-contenido-dinamico
 autoevaluacion: ¿Sabes en qué se diferencia una variable de un parámetro? | ¿Sabes qué tipos de variable hay? | ¿Sabes por qué la copia tiene que depender del Set variable? | ¿Sabes dónde ves el valor que tomó?
 ---
 
+:::analogia Una pizarra durante la jornada
+Un parámetro es lo que te dicen al empezar el día; una variable es una pizarra donde vas anotando valores durante la jornada. Set variable escribe en la pizarra y las actividades siguientes la leen, siempre que esperen a que se haya escrito.
+:::
+
 ## Paso 1 — Parámetro o variable
 
 | | Parámetro | Variable |
@@ -68,6 +72,12 @@ texto: La salida de Set variable - el nombre y el valor calculado
 Las variables son del **pipeline entero**, no de cada iteración. Si un ForEach corre en paralelo y cada iteración asigna la misma variable, se pisan entre sí. Dentro de un ForEach paralelo, usa `@item()` en lugar de variables.
 :::
 
+:::errores
+- **Leer la variable antes de asignarla.** La copia tiene que depender de Set variable; si corren en paralelo, la encuentra vacía.
+- **Confundir la sintaxis.** Las variables se leen con `@variables('archivo')`, no con `@pipeline().variables`.
+- **Usar variables dentro de un ForEach en paralelo.** Son del pipeline completo y las vueltas se pisan; usa `@item()` o un pipeline hijo.
+:::
+
 ## ✅ Lo que lograste
 
 - Distingues parámetros y variables.
@@ -78,7 +88,7 @@ Las variables son del **pipeline entero**, no de cada iteración. Si un ForEach 
 ¿Qué valor cambia durante la ejecución?
 - [ ] Un parámetro
 - [x] Una variable
-- [ ] Un linked service
+- [ ] Una expresión
 - [ ] Un dataset
 :::
 
@@ -100,8 +110,8 @@ La copia usa la variable pero a veces la encuentra vacía. ¿Qué falta?
 
 :::ejercicio quiz
 ¿Cuál es una buena forma de ver qué devuelve una expresión complicada?
-- [ ] Adivinar
+- [ ] Escribirla en la descripción del pipeline y publicarlo
 - [x] Asignarla a una variable con Set variable y mirar la salida en Debug
 - [ ] Publicarla y esperar
-- [ ] Escribirla en el nombre del pipeline
+- [ ] Ejecutarla con Trigger now en producción
 :::

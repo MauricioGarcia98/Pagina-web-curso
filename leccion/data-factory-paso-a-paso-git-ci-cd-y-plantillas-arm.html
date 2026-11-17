@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Git, CI/CD y plantillas ARM - llevar el factory de dev a producción</h1><p class="resumen">En un equipo, el factory de dev se conecta a Git y los de qa y prod se actualizan solo con un despliegue automático. Ves la configuración de Git y el flujo de ramas, exportas el factory como plantilla ARM, lo importas al despliegue personalizado del portal con sus parámetros por entorno, y conoces las dos formas de armar el CI/CD.</p>
 <a class="cta" href="../index.html#/l/data-factory-paso-a-paso-git-ci-cd-y-plantillas-arm">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar el flujo de Git en Data Factory (rama de trabajo, collaboration branch, adf_publish)</li><li>Exportar el factory como plantilla ARM</li><li>Identificar qué valores cambian entre entornos</li><li>Importar la plantilla en un despliegue personalizado</li><li>Describir un pipeline de CI/CD para Data Factory</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un solo taller y despachos a las sucursales</div>
+
+<p>El factory de dev es el taller donde se trabaja con Git; qa y prod son sucursales que reciben el producto terminado (las plantillas ARM) por un despacho automático, con los ajustes de cada sucursal (los parámetros).</p>
+</div>
+
+
 <h2>Paso 1 — Por qué Git</h2>
 <p>Sin Git (live mode), todos editan el mismo factory y <strong>Publish all</strong> publica todo, terminado o no. Con Git:</p>
 <pre><code class="language-text">feature/nueva-fuente ──pull request──▶ main (collaboration branch) ──Publish──▶ adf_publish (plantillas ARM)
@@ -89,6 +95,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-tip"><div class="callout-title">💡 Lo que no viaja en la plantilla</div>
 
 <p>Los <strong>secretos</strong> (por eso las conexiones usan identidad administrada o Key Vault), los <strong>permisos</strong> (el rol del factory de prod sobre la cuenta de prod se asigna aparte, idealmente con su propia plantilla) y los <strong>datos</strong>. La plantilla del factory describe el factory, no la plataforma entera.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Conectar prod a Git y editarlo a mano.</strong> Prod se actualiza solo con el despliegue.</li>
+<li><strong>Desplegar con los triggers activos.</strong> Una corrida a mitad del despliegue usa piezas viejas y nuevas; detén triggers antes y reactívalos después.</li>
+<li><strong>Valores de dev en la plantilla de prod.</strong> Lo que cambia entre entornos va como parámetro.</li>
+</ul>
 </div>
 
 

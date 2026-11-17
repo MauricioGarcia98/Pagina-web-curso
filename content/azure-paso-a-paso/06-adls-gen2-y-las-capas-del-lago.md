@@ -92,6 +92,12 @@ Reglas que el equipo acuerda:
 Bronze es la mercadería tal como llega del proveedor. Silver es la mercadería lavada, cortada y en recipientes rotulados. Gold son los platos listos para servir. Nadie sirve la mercadería sin lavar, y nadie tira la caja original hasta estar seguro.
 :::
 
+:::errores
+- **Usar el endpoint blob con Spark.** Spark lee ADLS Gen2 por `dfs.core.windows.net` con `abfss://`.
+- **Invertir contenedor y cuenta en la dirección.** Es `abfss://contenedor@cuenta.dfs.core.windows.net/carpeta/`.
+- **Corregir archivos a mano en bronze.** Bronze guarda lo que llegó tal cual; se pide el reenvío y se vuelve a cargar.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué agrega ADLS Gen2 y por qué importa para Spark.
@@ -118,7 +124,7 @@ Bronze es la mercadería tal como llega del proveedor. Silver es la mercadería 
 Un archivo de pedidos llegó con un error. ¿Qué haces en bronze?
 - [ ] Lo edito a mano para corregirlo
 - [x] No lo modifico: pido que se vuelva a enviar y lo cargo de nuevo
-- [ ] Lo muevo a gold
+- [ ] Lo copio a silver corregido y borro el de bronze
 - [ ] Lo borro y no aviso
 :::
 

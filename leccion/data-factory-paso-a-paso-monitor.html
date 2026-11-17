@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Monitor - seguir cada ejecución, ver qué entró y qué salió, y relanzar</h1><p class="resumen">Monitor es la pantalla que mira el equipo cada mañana. Abres una ejecución y ves cada actividad con su duración y estado, lees lo que recibió una actividad (Input) y lo que devolvió (Output), relanzas una ejecución con Rerun, y conoces cuánto tiempo guarda Data Factory el historial y cómo se arman alertas.</p>
 <a class="cta" href="../index.html#/l/data-factory-paso-a-paso-monitor">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Abrir el detalle de una ejecución</li><li>Leer el Input y el Output de una actividad</li><li>Relanzar con Rerun</li><li>Saber cuánto tiempo se guarda el historial</li><li>Conectar Data Factory con alertas</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El parte diario de la planta</div>
+
+<p>Monitor es el parte diario de la planta: qué corrió, cuánto tardó, qué recibió cada actividad (Input) y qué devolvió (Output). Para entender un error de nombre dinámico, el Input muestra el archivo que realmente buscó.</p>
+</div>
+
+
 <h2>Paso 1 — El detalle de una ejecución</h2>
 <p>En <strong>Monitor → Triggered</strong>, haz clic en el nombre del pipeline de la ejecución disparada por el trigger:</p>
 <figure class="captura"><img src="assets/img/guias/adf/b11-run.webp" alt="La ejecución - estado y datos del run (1), las actividades (2) y Rerun (3)" loading="lazy"><figcaption>La ejecución - estado y datos del run (1), las actividades (2) y Rerun (3)</figcaption></figure>
@@ -80,6 +86,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Una ruta Upon Failure que avise (lección 18)</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Reportar un problema sin Run ID.</strong> &quot;El pipeline de anoche&quot; es ambiguo; el Run ID identifica la ejecución exacta.</li>
+<li><strong>Mirar Monitor a mano cada mañana.</strong> Una alerta sobre Failed pipeline runs avisa sola.</li>
+<li><strong>Esperar historial infinito.</strong> Monitor guarda 45 días; para más, envía los registros a Log Analytics.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Lees el detalle de una ejecución, su Input y su Output.</li>

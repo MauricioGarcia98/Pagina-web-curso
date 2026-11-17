@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Etiqueta, libro de guardia y factura</div>
+
+<p>Las etiquetas dicen de quién es cada cosa; el Activity log es el libro de guardia donde queda anotado quién cambió o borró algo; Cost Management es la factura detallada. Juntas responden las tres preguntas que siempre llegan.</p>
+</div>
+
+
 <h2>Paso 1 — Editar etiquetas</h2>
 <p>En <code>sttiendaandinadev</code>, menú <strong>Tags</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/azure/b07-etiquetas.webp" alt="Tags de la cuenta - se agregan, cambian o borran y se guardan con Apply" loading="lazy"><figcaption>Tags de la cuenta - se agregan, cambian o borran y se guardan con Apply</figcaption></figure>
@@ -115,6 +121,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Un presupuesto avisa, no frena</div>
 
 <p>Cuando el gasto llega al 50, 80 o 100 %, Azure <strong>manda un correo</strong>. <strong>No apaga nada</strong>. Si un clúster de Databricks queda encendido el fin de semana, el presupuesto avisa y el gasto sigue. Para cortar automáticamente hay que conectar la alerta a una automatización (un <em>action group</em> que ejecute un runbook o una Function), o usar los límites propios de cada servicio, como el apagado automático de los clústeres.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Esperar que el presupuesto apague recursos.</strong> Solo avisa; los recursos siguen cobrando.</li>
+<li><strong>Buscar en el Activity log algo de hace cuatro meses.</strong> Guarda 90 días; para más, se envía a Log Analytics.</li>
+<li><strong>Recursos sin etiquetas de entorno o dueño.</strong> Después no se puede repartir el costo ni saber a quién preguntar.</li>
+</ul>
 </div>
 
 

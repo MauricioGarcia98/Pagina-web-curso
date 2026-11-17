@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Quién eres, desde dónde vienes y qué llave traes</div>
+
+<p>Para leer un dato, Azure pregunta tres cosas: quién eres (identidad y rol), desde dónde vienes (la red) y con qué llave (Entra, clave de la cuenta o una SAS). Si cualquiera de las tres falla, no entras.</p>
+</div>
+
+
 <h2>Paso 1 — Las tres preguntas del acceso</h2>
 <pre><code class="language-text">¿DESDE DÓNDE llega?   →  Red (firewall, redes virtuales, private endpoint)
 ¿QUIÉN es?            →  Identidad (Entra) o credencial (clave, SAS)
@@ -142,6 +148,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Evitar</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Pensar que el rol alcanza.</strong> Si la red no permite tu conexión, el rol no sirve.</li>
+<li><strong>SAS con todos los permisos y sin vencimiento.</strong> Da lo justo (Read y List) y por el tiempo necesario.</li>
+<li><strong>Rotar las dos claves a la vez.</strong> Las aplicaciones se cortan; rota una, cambia las aplicaciones y después la otra.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Sabes configurar el acceso de red y qué es un private endpoint.</li>

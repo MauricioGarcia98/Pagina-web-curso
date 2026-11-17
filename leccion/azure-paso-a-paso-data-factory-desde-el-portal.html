@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Data Factory desde el portal - el recurso, su identidad y el Studio</h1><p class="resumen">Azure Data Factory orquesta el movimiento de datos - copia desde las fuentes al lago y dispara los notebooks. Creas adf-tiendaandina-dev, decides qué hacer con Git, conoces su identidad administrada, le das permiso de escritura sobre el lago sin guardar ni un secreto, y abres el Studio, donde se diseñan los pipelines.</p>
 <a class="cta" href="../index.html#/l/azure-paso-a-paso-data-factory-desde-el-portal">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un data factory con un nombre válido</li><li>Entender la opción de Git y cuándo configurarla</li><li>Explicar la identidad administrada del factory</li><li>Dar un rol de datos a una identidad administrada</li><li>Abrir Data Factory Studio desde el portal</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El recurso y el estudio</div>
+
+<p>En el portal creas el recurso de Data Factory (nombre, región, Git); el trabajo de diseñar pipelines se hace en Data Factory Studio, otra pantalla a la que entras desde la hoja del recurso.</p>
+</div>
+
+
 <h2>Paso 1 — Qué es Data Factory</h2>
 <p><strong>Azure Data Factory</strong> (ADF) es el orquestador de datos de Azure: <strong>copia</strong> datos entre más de 90 tipos de origen y destino, <strong>transforma</strong> con data flows o llamando a Databricks, y <strong>programa</strong> todo con triggers. En Tienda Andina, ADF copia cada noche los pedidos de la base de ventas a <code>bronze</code> y después ejecuta el notebook que los limpia.</p>
 <p>Igual que Databricks: el <strong>recurso</strong> se crea en el portal y los <strong>pipelines</strong> se diseñan en el <strong>Studio</strong>. El módulo <a href="#/m/azure">Azure y Azure CLI</a> explica sus piezas, y el Studio de práctica trae su propia guía de inicio.</p>
@@ -90,6 +96,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>Lo que sigue (linked service al lago, la actividad Copy, el trigger) se hace en el Studio, siguiendo la guía <strong>Por dónde empezar</strong> de su página Home.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Diseñar pipelines en el portal.</strong> Se diseñan en Data Factory Studio, pestaña Author.</li>
+<li><strong>Usar la clave de la cuenta para escribir en el lago.</strong> La identidad administrada con un rol de datos no tiene secretos.</li>
+<li><strong>Saltear Git en un equipo.</strong> Sin Git no hay revisión ni forma ordenada de llevar cambios a otros entornos.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste el factory y sabes cuándo conectar Git.</li>

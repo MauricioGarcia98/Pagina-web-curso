@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un formulario con un casillero</div>
+
+<p>Un parámetro es un casillero del formulario del pipeline: el pipeline es el mismo, pero cada vez que lo ejecutas pones otra fecha. Así sirve para hoy, para ayer o para reprocesar el mes pasado sin tocarlo.</p>
+</div>
+
+
 <h2>Paso 1 — Qué es un parámetro</h2>
 <p>Un <strong>parámetro</strong> es un valor que se le pasa al pipeline <strong>al ejecutarlo</strong>. Tiene un valor por defecto y no cambia durante la ejecución. Es la forma de escribir un pipeline una vez y usarlo para cualquier fecha, tienda o carpeta.</p>
 <h2>Paso 2 — Crear el parámetro</h2>
@@ -105,6 +111,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Las expresiones distinguen comillas</div>
 
 <p>Los textos dentro de una expresión van entre <strong>comillas simples</strong>: <code>&#39;ventas_&#39;</code>. Las comillas dobles o un paréntesis de menos dan <code>The expression … is not valid</code>. Si una expresión falla, pruébala por partes en un Set variable (lección siguiente).</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Cambiar el valor por defecto para reprocesar.</strong> Hay que publicar dos veces; pasa la fecha al ejecutar.</li>
+<li><strong>Leer el parámetro como <code>@fecha</code>.</strong> Es <code>@pipeline().parameters.fecha</code>.</li>
+<li><strong>Restar días a <code>utcNow()</code> con <code>-</code>.</strong> Se usa <code>addDays(utcNow(), -1)</code>.</li>
+</ul>
 </div>
 
 

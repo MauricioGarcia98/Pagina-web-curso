@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué guarda el servidor lógico? | ¿Sabes por qué no t
 Lucía: *"Para practicar la ingesta, montemos en dev una copia de la base de ventas. Sin usuarios ni contraseñas de SQL: solo Entra."*
 :::
 
+:::analogia El edificio y los departamentos
+El servidor lógico es el edificio: tiene el portero (el cortafuegos), el administrador y la dirección de conexión. Cada base es un departamento adentro, con sus tablas y su tamaño.
+:::
+
 ## Paso 1 — Servidor lógico y base
 
 | Pieza | Qué es | Ejemplo |
@@ -117,6 +121,12 @@ texto: Las cadenas ADO.NET, JDBC, ODBC y sqlcmd, todas con autenticación de Ent
 
 Todas dicen `Authentication=ActiveDirectoryDefault` (o equivalente): toman la identidad del entorno, sin contraseña. Si algún día usas una cadena con contraseña, va en Key Vault, nunca en el código.
 
+:::errores
+- **Abrir el cortafuegos a todas las IP.** Agrega solo la tuya o usa una red privada.
+- **Elegir un tamaño fijo grande para dev.** Serverless se pausa y cobra por uso.
+- **Contraseña del administrador en el notebook.** Va en Key Vault y se lee por nombre.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste una base con autenticación solo de Entra y datos de ejemplo.
@@ -125,7 +135,7 @@ Todas dicen `Authentication=ActiveDirectoryDefault` (o equivalente): toman la id
 
 :::ejercicio quiz
 Creaste la base y al conectarte ves "Client with IP address … is not allowed". ¿Qué haces?
-- [ ] Borro la base y la creo de nuevo
+- [ ] Espero 24 horas a que se active la base
 - [x] Agrego una regla de cortafuegos para mi IP en Networking
 - [ ] Cambio a Premium
 - [ ] Abro 0.0.0.0 – 255.255.255.255
@@ -144,7 +154,7 @@ Creaste la base y al conectarte ves "Client with IP address … is not allowed".
 - [ ] ADO.NET
 - [x] JDBC
 - [ ] sqlcmd
-- [ ] Ninguna, Databricks no lee SQL
+- [ ] ODBC, con la contraseña escrita en la URL
 :::
 
 :::ejercicio quiz

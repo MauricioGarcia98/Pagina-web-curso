@@ -8,6 +8,10 @@ prerrequisitos: azure-paso-a-paso-proyecto-lago-con-capas
 autoevaluacion: ¿Sabes en qué suscripción está trabajando la CLI? | ¿Sabes mostrar solo los nombres de tus grupos? | ¿Sabes qué hace --yes en un borrado? | ¿Sabes por qué la CLI es mejor que el portal para tareas repetidas?
 ---
 
+:::analogia Del control remoto a escribir la orden
+El portal es un control remoto con botones; la CLI es escribir la orden completa. La orden escrita se puede repetir, guardar en un script y revisar en Git, y ambas hablan con el mismo Azure Resource Manager: lo que creas con una aparece en la otra.
+:::
+
 ## Paso 1 — Qué es Cloud Shell
 
 **Cloud Shell** es una terminal Linux en el navegador, ya conectada a tu cuenta y con la **CLI de Azure (`az`)** instalada. No hay que instalar nada ni iniciar sesión. Ábrela con el ícono de terminal de la barra superior:
@@ -111,6 +115,12 @@ texto: El grupo de prueba borrado y la lista de grupos que queda
 | Guardar los pasos para que otro los repita | **CLI** en un script, o una plantilla |
 | Producción | **Plantillas** (nivel 6) y pipelines de CI/CD |
 
+:::errores
+- **Crear o borrar sin `az account show`.** Si estás en otra suscripción, el comando actúa sobre otra cosa.
+- **Parsear la salida de tabla en scripts.** Usa `--query` y `-o tsv` para obtener valores limpios.
+- **Usar la clave de la cuenta en la CLI.** `--auth-mode login` usa tu identidad y tus roles.
+:::
+
 ## ✅ Lo que lograste
 
 - Abres Cloud Shell y entiendes la forma de cualquier comando `az`.
@@ -138,7 +148,7 @@ Creaste un grupo con la CLI. ¿Aparece en el portal?
 - [x] Sí: portal y CLI usan la misma API de Azure Resource Manager
 - [ ] No, los recursos de la CLI son invisibles en el portal
 - [ ] Solo al día siguiente
-- [ ] Solo si lo importas
+- [ ] Sí, pero solo después de refrescar con az portal sync
 :::
 
 :::ejercicio quiz

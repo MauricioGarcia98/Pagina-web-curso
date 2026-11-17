@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Papelera, historial y depósito barato</div>
+
+<p>Soft delete es la papelera (recupera lo borrado), el versionado es el historial de cada archivo (recupera lo sobrescrito) y el ciclo de vida es mudar a un depósito más barato lo que casi no se usa. Archive es el depósito más lejano: barato, pero traer algo de ahí tarda horas.</p>
+</div>
+
+
 <h2>Paso 1 — La protección de datos</h2>
 <p>En <code>sttiendaandinadev</code>, menú <strong>Data protection</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/azure/b18-proteccion.webp" alt="Días que se conservan los blobs borrados (1), versionado (2) y Save (3)" loading="lazy"><figcaption>Días que se conservan los blobs borrados (1), versionado (2) y Save (3)</figcaption></figure>
@@ -140,6 +146,16 @@ az storage blob undelete --account-name sttiendaandinadev -c bronze -n pedidos/2
 
 
 <p>Es un buen lugar para revisar de un vistazo los valores de seguridad de la cuenta.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Confiar en soft delete para sobrescrituras.</strong> Recupera borrados; para recuperar contenido pisado hace falta versionado.</li>
+<li><strong>Mandar a Archive datos que un pipeline puede necesitar.</strong> Hay que rehidratarlos antes y tarda horas.</li>
+<li><strong>Reglas sin prefijo.</strong> Sin <code>bronze/pedidos/</code>, la regla mueve también silver y gold.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Configuraste soft delete de 14 días y versionado.</li>

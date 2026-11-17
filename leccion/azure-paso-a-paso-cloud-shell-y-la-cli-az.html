@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Cloud Shell y la CLI az - lo mismo, desde la terminal</h1><p class="resumen">Todo lo que hiciste con clics se puede hacer con comandos, y los comandos se pueden repetir, guardar y automatizar. Abres Cloud Shell desde el portal, consultas tu suscripción, grupos y cuentas con az y la opción --query, creas un grupo de recursos de prueba desde la terminal y ves cómo aparece en el portal al instante, y lo borras al terminar.</p>
 <a class="cta" href="../index.html#/l/azure-paso-a-paso-cloud-shell-y-la-cli-az">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Abrir Cloud Shell desde el portal</li><li>Entender la forma de un comando az (grupo, subgrupo, acción, parámetros)</li><li>Elegir el formato de salida con -o table, json o tsv</li><li>Filtrar columnas con --query</li><li>Crear y borrar un grupo de recursos desde la terminal</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Del control remoto a escribir la orden</div>
+
+<p>El portal es un control remoto con botones; la CLI es escribir la orden completa. La orden escrita se puede repetir, guardar en un script y revisar en Git, y ambas hablan con el mismo Azure Resource Manager: lo que creas con una aparece en la otra.</p>
+</div>
+
+
 <h2>Paso 1 — Qué es Cloud Shell</h2>
 <p><strong>Cloud Shell</strong> es una terminal Linux en el navegador, ya conectada a tu cuenta y con la <strong>CLI de Azure (<code>az</code>)</strong> instalada. No hay que instalar nada ni iniciar sesión. Ábrela con el ícono de terminal de la barra superior:</p>
 <figure class="captura"><img src="assets/img/guias/azure/b09-shell.webp" alt="El botón de Cloud Shell (1) abre la terminal abajo del portal (2)" loading="lazy"><figcaption>El botón de Cloud Shell (1) abre la terminal abajo del portal (2)</figcaption></figure>
@@ -128,6 +134,16 @@ az group list --query &quot;[].name&quot; -o tsv</code></pre>
 <td><strong>Plantillas</strong> (nivel 6) y pipelines de CI/CD</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Crear o borrar sin <code>az account show</code>.</strong> Si estás en otra suscripción, el comando actúa sobre otra cosa.</li>
+<li><strong>Parsear la salida de tabla en scripts.</strong> Usa <code>--query</code> y <code>-o tsv</code> para obtener valores limpios.</li>
+<li><strong>Usar la clave de la cuenta en la CLI.</strong> <code>--auth-mode login</code> usa tu identidad y tus roles.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Abres Cloud Shell y entiendes la forma de cualquier comando <code>az</code>.</li>

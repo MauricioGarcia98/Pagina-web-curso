@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes para qué sirven parameters y variables? | ¿Sabes qué 
 Lucía: *"Necesitamos un entorno qa igual a dev para probar antes de producción, y después producción. Nada a mano: quiero una plantilla en Git que cree el lago, el vault y el factory, y que sirva para cualquier entorno cambiando un parámetro."*
 :::
 
+:::analogia Un plano en vez de construir a mano
+Una plantilla ARM es el plano del edificio: describe qué recursos van y cómo. Desplegarla dos veces no hace dos edificios: Azure compara el plano con lo que existe y solo agrega o cambia lo que falta (es idempotente).
+:::
+
 ## Paso 1 — Qué es una plantilla ARM
 
 **Azure Resource Manager (ARM)** es la API por la que pasa todo lo que creas en Azure, desde el portal, la CLI o cualquier herramienta. Una **plantilla ARM** es un JSON que describe el **estado deseado**: "quiero que existan estos recursos con esta configuración". Azure compara con lo que ya hay y crea o actualiza lo necesario.
@@ -226,6 +230,12 @@ Con la plantilla en Git, borrar un entorno ya no da miedo: volver a tenerlo es u
 
 Las tres describen el estado deseado. En equipos de datos que trabajan solo con Azure se ve mucho Bicep; en equipos multinube, Terraform. El módulo [Terraform](#/m/terraform) tiene su propio laboratorio.
 
+:::errores
+- **Nombres de parámetros que no coinciden.** Un `parameters('entornos')` con el parámetro declarado como `entorno` falla al desplegar.
+- **Valores fijos que cambian entre entornos.** Van como parámetros y se pasan en cada despliegue.
+- **Editar en el portal lo que creó la plantilla.** El próximo despliegue lo pisa; el cambio va en la plantilla.
+:::
+
 ## ✅ Lo que lograste
 
 - Lees una plantilla ARM completa y sus funciones.
@@ -237,7 +247,7 @@ Las tres describen el estado deseado. En equipos de datos que trabajan solo con 
 - [ ] `st-tiendaandina-prod`
 - [x] `sttiendaandinaprod`
 - [ ] `tiendaandinaprod`
-- [ ] `stprod`
+- [ ] `sttiendaandina-prod`
 :::
 
 :::ejercicio quiz
@@ -245,7 +255,7 @@ Las tres describen el estado deseado. En equipos de datos que trabajan solo con 
 - [ ] ZRS
 - [x] LRS
 - [ ] GRS
-- [ ] Depende de la región
+- [ ] GZRS
 :::
 
 :::ejercicio quiz

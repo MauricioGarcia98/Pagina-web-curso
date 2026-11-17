@@ -8,6 +8,10 @@ prerrequisitos: azure-paso-a-paso-proteccion-de-datos-y-ciclo-de-vida
 autoevaluacion: ¿Sabes qué diferencia hay entre Delete y Read-only? | ¿Sabes por qué un bloqueo se hereda? | ¿Sabes qué agregación usar para contar fallos? | ¿Sabes qué es un grupo de acciones?
 ---
 
+:::analogia Un candado aunque tengas la llave
+Un bloqueo es un candado puesto sobre el recurso: aunque tengas permiso de Owner, primero hay que sacar el candado para borrar. Azure Monitor es la alarma: mira una métrica y avisa cuando se pasa de un umbral.
+:::
+
 ## Paso 1 — Los bloqueos
 
 En `rg-tiendaandina-dev`, menú **Locks → + Add**:
@@ -114,6 +118,12 @@ texto: Las reglas con su estado (1) y la alerta disparada por la capacidad del l
 **Sev 0** crítico, **Sev 1** error, **Sev 2** advertencia, **Sev 3** informativo, **Sev 4** detallado. Un buen sistema de alertas tiene pocas Sev 0 y 1, y cada una significa "alguien tiene que hacer algo ahora". Si las alertas suenan todo el día, la guardia deja de mirarlas.
 :::
 
+:::errores
+- **Read-only en producción.** Impide también los cambios normales por plantilla; Delete (CanNotDelete) protege sin trabar.
+- **Creer que el bloqueo del grupo no protege los recursos.** Se hereda a todo lo que contiene.
+- **Una alerta con sus propios destinatarios cada vez.** Un grupo de acciones se define una vez y se reutiliza.
+:::
+
 ## ✅ Lo que lograste
 
 - Bloqueaste el grupo dev y comprobaste que impide borrar.
@@ -133,7 +143,7 @@ Hay un bloqueo Delete en el grupo. ¿Puedes borrar una cuenta de almacenamiento 
 - [ ] Sí, el bloqueo es solo del grupo
 - [x] No, el bloqueo se hereda a los recursos del grupo
 - [ ] Sí, si eres Owner
-- [ ] Solo los fines de semana
+- [ ] Sí, si primero la mueves a otro grupo
 :::
 
 :::ejercicio quiz
@@ -141,7 +151,7 @@ Hay un bloqueo Delete en el grupo. ¿Puedes borrar una cuenta de almacenamiento 
 - [x] Sum
 - [ ] Average
 - [ ] Minimum
-- [ ] Ninguna
+- [ ] Count de las ejecuciones exitosas
 :::
 
 :::ejercicio quiz

@@ -56,6 +56,12 @@ pl_ingesta_diaria
 - Dueño: equipo de datos (Lucía).
 ```
 
+:::errores
+- **Detener el trigger sin publicar.** El servicio sigue con la versión publicada y corre igual.
+- **Borrar el trigger para pausar un día.** Se pierde la configuración; Stopped y publicar es reversible.
+- **No escribir la nota de operación.** Si falla y no estás, nadie sabe qué hacer.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] El trigger está **Started** y **publicado** (Publish all sin cambios pendientes).
@@ -83,7 +89,7 @@ Detuviste el trigger en Manage pero no publicaste. ¿Qué pasa a las 6:00?
 - [ ] No corre
 - [x] Corre igual, porque el servicio sigue con la versión publicada del trigger
 - [ ] Corre a medias
-- [ ] Se borra el trigger
+- [ ] Corre una sola vez más y después se detiene
 :::
 
 :::ejercicio quiz
@@ -99,7 +105,7 @@ Detuviste el trigger en Manage pero no publicaste. ¿Qué pasa a las 6:00?
 - [ ] Para nada, el pipeline se explica solo
 - [x] Para que cualquiera del equipo sepa qué hace, cuándo corre y qué hacer si falla
 - [ ] Para que Azure la lea
-- [ ] Para cobrar menos
+- [ ] Para que Monitor muestre la descripción del error
 :::
 
 :::ejercicio quiz

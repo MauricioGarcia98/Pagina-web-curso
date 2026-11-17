@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes cuándo desmarcar First row only? | ¿Sabes qué tiene q
 Lucía: *"Cuando una tienda no manda el archivo, la copia falla con 'UserErrorSourceBlobNotExist' y la guardia pierde media hora entendiendo qué pasó. Quiero que el pipeline revise primero si el archivo llegó y, si no, falle diciendo eso en castellano."*
 :::
 
+:::analogia Mirar la lista y decidir
+Lookup lee una tabla de control (la lista de tareas), If Condition decide qué camino tomar según lo que encontró, y Fail termina el día con un mensaje claro ("no llegó el archivo de hoy") en lugar de un error técnico.
+:::
+
 ## Paso 1 — Lookup: leer una configuración
 
 En `config/tablas_a_copiar.csv` hay una tabla de control. Crea el dataset `ds_config_tablas` (contenedor `config`, archivo `tablas_a_copiar.csv`) y mira la vista previa:
@@ -101,6 +105,12 @@ texto: Ahora el If va por la rama True y copia el archivo
 Un pipeline que "termina bien" sin haber copiado nada es peor que uno que falla: nadie se entera y el informe del día sale vacío. **Fail** convierte una situación de negocio ("no llegó el archivo") en un error visible, con un mensaje que la guardia entiende sin abrir el pipeline, y que dispara las alertas de la lección 11.
 :::
 
+:::errores
+- **First row only marcado para recorrer filas.** Devuelve una sola fila; desmárcalo y usa `output.value`.
+- **Expresiones de If que no devuelven booleano.** Tienen que dar true o false.
+- **Lookup sobre tablas enormes.** Devuelve como máximo 5000 filas; para más, pagina o usa otro enfoque.
+:::
+
 ## ✅ Lo que lograste
 
 - Lees configuraciones con Lookup y sabes usar `firstRow` y `value`.
@@ -120,12 +130,12 @@ Quieres recorrer todas las filas de una tabla de control con un ForEach. ¿Cómo
 - [ ] Un número
 - [ ] Un texto
 - [x] true o false
-- [ ] Una lista
+- [ ] Un número entre 0 y 1
 :::
 
 :::ejercicio quiz
 ¿Para qué sirve la actividad Fail?
-- [ ] Para borrar el pipeline
+- [ ] Para marcar en rojo la actividad anterior
 - [x] Para terminar el pipeline con un error propio, con mensaje y código claros
 - [ ] Para reintentar
 - [ ] Para saltar una actividad
@@ -136,5 +146,5 @@ Quieres recorrer todas las filas de una tabla de control con un ForEach. ¿Cómo
 - [ ] 100
 - [x] 5000
 - [ ] Ilimitadas
-- [ ] 1
+- [ ] 1000
 :::

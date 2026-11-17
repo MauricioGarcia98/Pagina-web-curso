@@ -8,6 +8,10 @@ prerrequisitos: azure-paso-a-paso-azure-databricks-desde-el-portal
 autoevaluacion: ¿Sabes con qué identidad lee el lago un data factory? | ¿Sabes qué rol necesita para escribir en bronze? | ¿Sabes dónde se diseñan los pipelines? | ¿Sabes para qué sirve conectar Git?
 ---
 
+:::analogia El recurso y el estudio
+En el portal creas el recurso de Data Factory (nombre, región, Git); el trabajo de diseñar pipelines se hace en Data Factory Studio, otra pantalla a la que entras desde la hoja del recurso.
+:::
+
 ## Paso 1 — Qué es Data Factory
 
 **Azure Data Factory** (ADF) es el orquestador de datos de Azure: **copia** datos entre más de 90 tipos de origen y destino, **transforma** con data flows o llamando a Databricks, y **programa** todo con triggers. En Tienda Andina, ADF copia cada noche los pedidos de la base de ventas a `bronze` y después ejecuta el notebook que los limpia.
@@ -93,6 +97,12 @@ texto: Azure Data Factory Studio - Home, Author, Monitor y Manage
 
 Lo que sigue (linked service al lago, la actividad Copy, el trigger) se hace en el Studio, siguiendo la guía **Por dónde empezar** de su página Home.
 
+:::errores
+- **Diseñar pipelines en el portal.** Se diseñan en Data Factory Studio, pestaña Author.
+- **Usar la clave de la cuenta para escribir en el lago.** La identidad administrada con un rol de datos no tiene secretos.
+- **Saltear Git en un equipo.** Sin Git no hay revisión ni forma ordenada de llevar cambios a otros entornos.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste el factory y sabes cuándo conectar Git.
@@ -128,5 +138,5 @@ El factory copia archivos a bronze. ¿Qué rol necesita sobre la cuenta?
 - [ ] Para que corra más rápido
 - [x] Para versionar los cambios, revisarlos y desplegarlos a otros entornos con CI/CD
 - [ ] Para guardar los datos copiados
-- [ ] Es obligatorio para crearlo
+- [ ] Para que los pipelines se ejecuten desde GitHub Actions
 :::

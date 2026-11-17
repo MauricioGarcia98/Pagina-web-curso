@@ -8,6 +8,10 @@ prerrequisitos: azure-paso-a-paso-proyecto-un-programa-sin-contrasenas
 autoevaluacion: ¿Sabes qué hay en el grupo administrado? | ¿Sabes por qué no puedes borrarlo? | ¿Sabes qué es Secure Cluster Connectivity? | ¿Sabes qué genera costo en Databricks?
 ---
 
+:::analogia El edificio desde afuera y la oficina por dentro
+En el portal creas el edificio (el recurso de Azure Databricks): región, red, nivel de precio. Lo que pasa adentro (notebooks, clústeres, tablas) se trabaja en el workspace, al que entras con Launch Workspace.
+:::
+
 ## Paso 1 — Portal y workspace: dos lugares distintos
 
 | Dónde | Qué se administra | Quién |
@@ -92,6 +96,12 @@ El grupo tiene una **deny assignment**: una regla que niega cambios aunque seas 
 El workspace en sí no cobra. Cobran las **máquinas virtuales** de los clústeres (en tu suscripción, dentro del grupo administrado) y los **DBU** (la unidad de Databricks) mientras están encendidos. Un clúster olvidado encendido todo el fin de semana es el clásico susto en la factura: configura siempre el **apagado automático** (*auto termination*).
 :::
 
+:::errores
+- **Buscar notebooks en el portal de Azure.** Están en el workspace de Databricks.
+- **Intentar borrar el grupo administrado `databricks-rg-…`.** Tiene una deny assignment; se borra al borrar el workspace.
+- **Clústeres sin apagado automático.** Cobran máquinas y DBU mientras están encendidos.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un workspace Premium con conectividad segura.
@@ -127,5 +137,5 @@ El workspace en sí no cobra. Cobran las **máquinas virtuales** de los clúster
 - [ ] El workspace, aunque no se use
 - [x] Las máquinas virtuales y los DBU mientras los clústeres están encendidos
 - [ ] Solo los notebooks guardados
-- [ ] Nada, es gratis
+- [ ] Solo el espacio que ocupan las tablas en el workspace
 :::

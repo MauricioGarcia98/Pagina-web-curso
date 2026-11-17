@@ -58,6 +58,12 @@ archivo: adf/b20-bronze.webp
 texto: bronze/por_fuente con los archivos de ventas y devoluciones; inventario no se copió
 ```
 
+:::errores
+- **Comparar un CSV con números.** Los valores leídos de CSV son texto: compara con `'1'`, no con `1`.
+- **Un pipeline por fuente "por ahora".** Cada fuente nueva duplica trabajo; una fila en la tabla de control escala.
+- **Tabla de control sin dueño.** Si nadie la mantiene, las fuentes inactivas siguen corriendo.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] El Lookup devuelve las tres filas (`count: 3`).
@@ -90,16 +96,16 @@ En el nivel 6: equipo, despliegue entre entornos, seguridad, costos y el paso al
 En el pipeline guiado por metadatos, ¿cómo se agrega una fuente nueva?
 - [ ] Se copia el pipeline
 - [x] Se agrega una fila a la tabla de control
-- [ ] Se crea un trigger nuevo
+- [ ] Se agrega un linked service con el nombre de la fuente
 - [ ] Se agrega una actividad
 :::
 
 :::ejercicio quiz
 `@equals(item().activo, 1)` siempre da false. ¿Por qué?
 - [x] Porque el valor del CSV es texto: hay que comparar con '1'
-- [ ] Porque equals no existe
+- [ ] Porque equals solo compara fechas
 - [ ] Porque item() está vacío
-- [ ] Porque falta publicar
+- [ ] Porque el If Condition necesita un reintento
 :::
 
 :::ejercicio quiz
@@ -114,6 +120,6 @@ En el pipeline guiado por metadatos, ¿cómo se agrega una fuente nueva?
 ¿Dónde suele vivir la tabla de control en empresas grandes?
 - [ ] En el código del pipeline
 - [x] En una base de datos, con columnas como destino, tipo de carga y última fecha cargada
-- [ ] En un correo
+- [ ] En una variable del pipeline
 - [ ] En el trigger
 :::

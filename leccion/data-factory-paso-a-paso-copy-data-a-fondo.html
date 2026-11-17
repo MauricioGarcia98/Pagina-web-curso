@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Copy data a fondo - comodines, unir archivos y las métricas</h1><p class="resumen">La actividad Copy es la que más se usa en Data Factory. Filtras qué archivos copiar con un comodín, ves cómo cambian las métricas, unes los cuatro días en un solo archivo con Merge files y un nombre de salida, comparas el resultado en el almacenamiento y entiendes qué son las DIU y por qué importan en la factura.</p>
 <a class="cta" href="../index.html#/l/data-factory-paso-a-paso-copy-data-a-fondo">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Filtrar archivos de origen con comodines</li><li>Leer filesRead, rowsCopied y DIU en la salida</li><li>Unir varios archivos en uno con Merge files</li><li>Dar nombre al archivo de destino</li><li>Explicar cómo se cobra una copia</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El camión de mudanza configurable</div>
+
+<p>La actividad Copy es un camión de mudanza que puedes configurar: qué cajas cargar (el comodín), si las juntas en una sola (Merge files), qué hacer con las rotas (tolerancia a fallos) y cuántos camiones mandar a la vez (las DIU, que se pagan por hora).</p>
+</div>
+
+
 <h2>Paso 1 — Copiar un solo día con un comodín</h2>
 <p>En <code>pl_copiar_ventas</code>, pestaña <strong>Source</strong> de la copia, escribe en <strong>Wildcard file name</strong>: <code>*-11-15.csv</code>:</p>
 <figure class="captura"><img src="assets/img/guias/adf/b06-wildcard.webp" alt="El comodín: solo los archivos que terminan en -11-15.csv" loading="lazy"><figcaption>El comodín: solo los archivos que terminan en -11-15.csv</figcaption></figure>
@@ -97,6 +103,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Si el comodín no encuentra nada</div>
 
 <p>La copia <strong>falla</strong> con <code>UserErrorSourceBlobNotExist</code>. Lo provocas a propósito en la lección siguiente. En la lección 17 aprendes a verificar antes si el archivo llegó.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Comodines demasiado amplios.</strong> <code>*.csv</code> copia todo; para un día concreto se filtra el patrón de la fecha.</li>
+<li><strong>Ignorar las filas omitidas.</strong> Si se activó la tolerancia a fallos y se saltearon filas, hay que revisar por qué.</li>
+<li><strong>Subir DIU sin medir.</strong> Más DIU cuesta más; en archivos chicos no acelera nada.</li>
+</ul>
 </div>
 
 

@@ -65,6 +65,12 @@ texto: El registro de actividad con cada cambio de esta etapa
 **Pendientes para Azure real**, que conviene declarar en la entrega: enviar el Activity log a un **Log Analytics workspace** para guardarlo más de 90 días; **desactivar el acceso con clave** cuando todo use Entra; reemplazar la SAS de cuenta por una **user delegation SAS**; y cerrar la red con **private endpoint**. Declarar lo pendiente es parte de un buen informe: Seguridad confía más en quien dice qué falta que en quien dice que está todo.
 </details>
 
+:::errores
+- **Confundir los controles.** Soft delete recupera borrados; versionado recupera sobrescrituras; el bloqueo impide borrar el recurso.
+- **Esconder lo pendiente.** El informe tiene que decir qué riesgo queda abierto.
+- **Evidencia en capturas mensuales.** Para auditoría de un año, el Activity log va a Log Analytics o a una cuenta de almacenamiento.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] Los siete controles tienen evidencia o una explicación de qué falta.
@@ -94,7 +100,7 @@ Seguridad pide recuperar archivos sobrescritos. ¿Qué control lo cumple?
 - [x] En Locks de la cuenta aparece el bloqueo como Inherited
 - [ ] El costo bajó
 - [ ] La cuenta cambió de región
-- [ ] No hay forma de verlo
+- [ ] En las etiquetas de la cuenta
 :::
 
 :::ejercicio quiz

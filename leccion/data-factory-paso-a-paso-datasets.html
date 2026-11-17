@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Datasets - qué datos, en qué formato y dónde</h1><p class="resumen">Un dataset le dice a Data Factory qué datos usar dentro de una conexión - contenedor, carpeta, archivo y formato. Creas el dataset de origen de las ventas en raw, ves sus datos con Preview data, lees su JSON, provocas el error de un contenedor mal escrito, y creas el dataset de destino en bronze y uno en formato JSON para las devoluciones.</p>
 <a class="cta" href="../index.html#/l/data-factory-paso-a-paso-datasets">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un dataset CSV sobre ADLS Gen2</li><li>Elegir carpeta, archivo, delimitador y encabezado</li><li>Verificar un dataset con Preview data</li><li>Interpretar el error FilesystemNotFound</li><li>Crear un dataset JSON</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La dirección exacta dentro del edificio</div>
+
+<p>Si el linked service es la dirección del edificio, el dataset es el piso, la oficina y el tipo de documento: contenedor, carpeta, archivo y formato. Con el archivo vacío, el dataset representa toda la carpeta.</p>
+</div>
+
+
 <h2>Paso 1 — Qué es un dataset</h2>
 <p>Un <strong>dataset</strong> apunta a datos concretos dentro de un linked service:</p>
 <div class="table-wrap"><table><thead><tr>
@@ -105,6 +111,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-tip"><div class="callout-title">💡 Un dataset por lugar, no por archivo</div>
 
 <p>Un error común es crear un dataset por cada archivo (<code>ds_ventas_12</code>, <code>ds_ventas_13</code>…). Se crea <strong>uno por carpeta</strong> y el archivo se elige en la actividad, con comodines o con expresiones (lecciones 6 y 13).</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Un dataset por archivo.</strong> Con un dataset por carpeta (o parametrizado) y el archivo elegido en la actividad alcanza.</li>
+<li><strong>Delimitador equivocado.</strong> Si en Preview data todas las columnas aparecen en una sola, el separador no es el del archivo.</li>
+<li><strong>Mayúsculas en el contenedor.</strong> Los nombres de contenedor van en minúsculas; &quot;FilesystemNotFound&quot; suele ser eso o un contenedor que no existe.</li>
+</ul>
 </div>
 
 

@@ -8,6 +8,10 @@ prerrequisitos: data-factory-paso-a-paso-copy-data-a-fondo
 autoevaluacion: ¿Sabes qué detecta Validate y qué no? | ¿Sabes dónde ver el mensaje completo de un error? | ¿Sabes cuándo un reintento ayuda y cuándo no? | ¿Sabes dónde quedan tus pruebas de Debug?
 ---
 
+:::analogia Revisar el formulario antes de enviarlo
+Validate es revisar el formulario antes de enviarlo: detecta campos vacíos (una copia sin destino). Lo que no puede saber es si la oficina de destino está abierta (si el archivo llegó o si hay permisos): eso solo se ve al ejecutar.
+:::
+
 ## Paso 1 — Un error de validación
 
 En la copia de `pl_copiar_ventas`, pestaña **Sink**, deja el dataset vacío y haz **Validate**:
@@ -84,6 +88,12 @@ texto: La pestaña Debug (1) con todas tus pruebas, la fallida incluida (2)
 
 Monitor separa las ejecuciones **Triggered** (las de verdad) de las **Debug** (tus pruebas), para que una prueba fallida no se confunda con un incidente de producción.
 
+:::errores
+- **Reintentos para errores de configuración.** Un rol faltante o un archivo inexistente fallan igual en cada intento.
+- **Leer solo el código de error.** El mensaje completo suele decir qué ruta o qué permiso faltó.
+- **Creer que Validate garantiza que funcione.** Valida la estructura, no los datos ni los permisos.
+:::
+
 ## ✅ Lo que lograste
 
 - Distingues errores de validación y de ejecución.
@@ -111,7 +121,7 @@ Falla por un rol faltante. ¿Sirve poner Retry = 3?
 - [ ] Sí, al tercer intento funciona
 - [x] No, va a fallar igual las tres veces: hay que asignar el rol
 - [ ] Sí, Azure asigna el rol solo
-- [ ] Depende de la hora
+- [ ] Sí, si los reintentos están separados por 5 minutos
 :::
 
 :::ejercicio quiz
@@ -119,5 +129,5 @@ Falla por un rol faltante. ¿Sirve poner Retry = 3?
 - [ ] En Manage
 - [x] En Monitor, pestaña Debug
 - [ ] En el portal, en el registro de actividad
-- [ ] No quedan registradas
+- [ ] En Author, en el historial del pipeline
 :::

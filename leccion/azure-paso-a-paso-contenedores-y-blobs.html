@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Cajones dentro del depósito</div>
+
+<p>Los contenedores son los cajones grandes del depósito (bronze, silver, gold) y los blobs son los archivos que guardas adentro. Ser dueño del edificio (Owner) no te da la llave de los cajones: para leer archivos hace falta un rol de datos.</p>
+</div>
+
+
 <h2>Paso 1 — Contenedor, blob y carpeta</h2>
 <div class="table-wrap"><table><thead><tr>
 <th>Pieza</th>
@@ -123,6 +129,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p>Vuelve a <strong>Switch to Access key</strong> para seguir trabajando.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Ser Owner y esperar ver los datos.</strong> Owner administra el recurso; para leer blobs con tu usuario hace falta Storage Blob Data Reader o Contributor.</li>
+<li><strong>Nombres de contenedor con mayúsculas o guiones bajos.</strong> Solo minúsculas, números y guiones, de 3 a 63 caracteres.</li>
+<li><strong>Compartir la clave de la cuenta.</strong> Da acceso total y no queda registrado quién la usó; con Entra cada acceso tiene nombre.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste los contenedores <code>bronze</code>, <code>silver</code> y <code>gold</code>.</li>

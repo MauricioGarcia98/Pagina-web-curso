@@ -144,6 +144,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p><strong>Pendientes para Azure real</strong>, que conviene declarar en la entrega: enviar el Activity log a un <strong>Log Analytics workspace</strong> para guardarlo más de 90 días; <strong>desactivar el acceso con clave</strong> cuando todo use Entra; reemplazar la SAS de cuenta por una <strong>user delegation SAS</strong>; y cerrar la red con <strong>private endpoint</strong>. Declarar lo pendiente es parte de un buen informe: Seguridad confía más en quien dice qué falta que en quien dice que está todo.</p>
 </details>
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Confundir los controles.</strong> Soft delete recupera borrados; versionado recupera sobrescrituras; el bloqueo impide borrar el recurso.</li>
+<li><strong>Esconder lo pendiente.</strong> El informe tiene que decir qué riesgo queda abierto.</li>
+<li><strong>Evidencia en capturas mensuales.</strong> Para auditoría de un año, el Activity log va a Log Analytics o a una cuenta de almacenamiento.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> Los siete controles tienen evidencia o una explicación de qué falta.</li>

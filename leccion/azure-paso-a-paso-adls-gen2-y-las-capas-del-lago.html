@@ -136,6 +136,16 @@ df.show()</code></pre>
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Usar el endpoint blob con Spark.</strong> Spark lee ADLS Gen2 por <code>dfs.core.windows.net</code> con <code>abfss://</code>.</li>
+<li><strong>Invertir contenedor y cuenta en la dirección.</strong> Es <code>abfss://contenedor@cuenta.dfs.core.windows.net/carpeta/</code>.</li>
+<li><strong>Corregir archivos a mano en bronze.</strong> Bronze guarda lo que llegó tal cual; se pide el reenvío y se vuelve a cargar.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Sabes qué agrega ADLS Gen2 y por qué importa para Spark.</li>

@@ -8,6 +8,10 @@ prerrequisitos: data-factory-paso-a-paso-lookup-if-condition-y-fail
 autoevaluacion: ¿Sabes qué pasa con una actividad Upon Success si la anterior falla? | ¿Sabes por qué un pipeline puede terminar verde aunque una actividad falló? | ¿Sabes cómo forzar que termine en rojo? | ¿Sabes qué significa Skipped?
 ---
 
+:::analogia Un plan B escrito
+Un pipeline de producción tiene un plan B escrito: si la copia falla, avisa a la guardia. Pero si el plan B sale bien, el día puede terminar "verde" aunque algo falló; por eso el camino de error termina con una actividad Fail.
+:::
+
 ## Paso 1 — Las rutas
 
 En `pl_ingesta_diaria`, selecciona la copia y agrega una **Wait** `Avisar a la guardia`. En **Depends on**, cambia la condición a **Upon Failure**:
@@ -69,6 +73,12 @@ Sin el `Marcar como fallido`, el día sin archivo el pipeline terminaría **verd
 | **Atrapar y seguir** | Upon Failure → actividad alternativa | Succeeded |
 | **Siempre limpiar** | Upon Completion → limpieza | Depende de la limpieza y del resto |
 
+:::errores
+- **Manejar el error y quedar en verde.** Un Upon Failure exitoso puede dejar el pipeline Succeeded; agrega Fail al final del camino de error.
+- **Limpieza con Upon Success.** Si algo falla, los temporales quedan; la limpieza va con Upon Completion.
+- **Avisos sin datos.** El mensaje debe incluir pipeline, Run ID y actividad que falló.
+:::
+
 ## ✅ Lo que lograste
 
 - Armaste rutas de éxito y de error.
@@ -80,7 +90,7 @@ La copia falla. ¿Qué pasa con la actividad conectada con Upon Success?
 - [ ] Corre igual
 - [x] Queda Skipped
 - [ ] Falla también
-- [ ] Se reintenta
+- [ ] Corre con los datos de la ejecución anterior
 :::
 
 :::ejercicio quiz
@@ -96,7 +106,7 @@ Quieres que la guardia reciba el aviso y que el pipeline quede en rojo. ¿Qué a
 - [ ] Un reintento
 - [x] Una actividad Fail al final del camino de error
 - [ ] Un trigger
-- [ ] Nada
+- [ ] Un Upon Skip después del aviso
 :::
 
 :::ejercicio quiz

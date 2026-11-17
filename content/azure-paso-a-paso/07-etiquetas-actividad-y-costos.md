@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes dónde ver quién borró un recurso? | ¿Sabes cuánto t
 Lucía: *"Finanzas nos pide dos cosas: que podamos explicar cada peso que gasta el equipo, y que nos avisen antes de pasarnos de USD 20 por mes en dev."*
 :::
 
+:::analogia Etiqueta, libro de guardia y factura
+Las etiquetas dicen de quién es cada cosa; el Activity log es el libro de guardia donde queda anotado quién cambió o borró algo; Cost Management es la factura detallada. Juntas responden las tres preguntas que siempre llegan.
+:::
+
 ## Paso 1 — Editar etiquetas
 
 En `sttiendaandinadev`, menú **Tags**:
@@ -97,6 +101,12 @@ texto: El presupuesto creado (1) con su gasto evaluado y sus alertas (2)
 Cuando el gasto llega al 50, 80 o 100 %, Azure **manda un correo**. **No apaga nada**. Si un clúster de Databricks queda encendido el fin de semana, el presupuesto avisa y el gasto sigue. Para cortar automáticamente hay que conectar la alerta a una automatización (un *action group* que ejecute un runbook o una Function), o usar los límites propios de cada servicio, como el apagado automático de los clústeres.
 :::
 
+:::errores
+- **Esperar que el presupuesto apague recursos.** Solo avisa; los recursos siguen cobrando.
+- **Buscar en el Activity log algo de hace cuatro meses.** Guarda 90 días; para más, se envía a Log Analytics.
+- **Recursos sin etiquetas de entorno o dueño.** Después no se puede repartir el costo ni saber a quién preguntar.
+:::
+
 ## ✅ Lo que lograste
 
 - Editas etiquetas para que cada recurso tenga dueño y entorno.
@@ -108,7 +118,7 @@ Alguien borró un contenedor ayer. ¿Dónde ves quién fue?
 - [ ] En Cost Management
 - [x] En el Activity log
 - [ ] En las etiquetas
-- [ ] No se puede saber
+- [ ] En las métricas de la cuenta de almacenamiento
 :::
 
 :::ejercicio quiz

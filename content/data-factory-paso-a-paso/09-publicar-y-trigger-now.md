@@ -8,6 +8,10 @@ prerrequisitos: data-factory-paso-a-paso-proyecto-ingesta-diaria
 autoevaluacion: ¿Sabes qué versión ejecuta Trigger now? | ¿Sabes qué pasa si publicas con errores de validación? | ¿Sabes dónde aparece una ejecución de Trigger now? | ¿Sabes qué se publica con Publish all?
 ---
 
+:::analogia Borrador y versión impresa
+Lo que editas es un borrador; Publish all lo imprime y lo deja en la vitrina. Los triggers y Trigger now solo leen la versión de la vitrina. Sin Git, Publish all imprime todo lo pendiente del factory, incluido lo que un compañero dejó a medias.
+:::
+
 ## Paso 1 — Tres versiones del mismo pipeline
 
 | Versión | Dónde vive | Quién la ejecuta |
@@ -72,6 +76,12 @@ texto: La ejecución en Triggered, disparada como Manual trigger, con su duraci�
 **Trigger now** ejecuta el pipeline **una vez, ahora**, sin crear ningún trigger. Se usa para probar la versión publicada o para relanzar a mano. Para que corra solo todos los días hace falta un **trigger programado**: la lección siguiente.
 :::
 
+:::errores
+- **Trigger now sobre un borrador.** Ejecuta la versión publicada; para probar cambios se usa Debug.
+- **Publish all sin mirar la lista.** Sin Git, publica cambios ajenos a medias.
+- **Buscar la corrida en Debug.** Las de Trigger now aparecen en Monitor → Triggered.
+:::
+
 ## ✅ Lo que lograste
 
 - Distingues borrador, versión publicada y ejecución.
@@ -83,7 +93,7 @@ texto: La ejecución en Triggered, disparada como Manual trigger, con su duraci�
 - [ ] El borrador del editor
 - [x] La versión publicada
 - [ ] La del último Debug
-- [ ] La de Git
+- [ ] La de la rama main de Git, aunque no se haya publicado
 :::
 
 :::ejercicio quiz
@@ -107,5 +117,5 @@ Hiciste un cambio en el pipeline A y un compañero dejó a medias el pipeline B 
 - [ ] Sí
 - [x] No, ejecuta una sola vez en ese momento
 - [ ] Solo si lo publicas
-- [ ] Solo los lunes
+- [ ] Sí, a la misma hora en que se lanzó
 :::

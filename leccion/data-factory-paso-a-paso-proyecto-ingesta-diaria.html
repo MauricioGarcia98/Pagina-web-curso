@@ -72,6 +72,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/adf/b08-bronze.webp" alt="El archivo del día, ventas_AAAAMMDD.csv, junto a los anteriores" loading="lazy"><figcaption>El archivo del día, ventas_AAAAMMDD.csv, junto a los anteriores</figcaption></figure>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Mezclar texto y expresión sin <code>@{}</code>.</strong> <code>ventas_formatDateTime(...)</code> queda como texto literal; la expresión va dentro de <code>@{...}</code>.</li>
+<li><strong>Olvidar que <code>utcNow()</code> es UTC.</strong> A las 22:00 en Lima ya es el día siguiente en UTC; ajusta la zona horaria.</li>
+<li><strong>Formatos de fecha en mayúsculas equivocadas.</strong> <code>MM</code> es mes y <code>mm</code> es minutos.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> Existe <code>pl_ingesta_diaria</code> con la copia <code>Copiar ventas del dia</code>.</li>

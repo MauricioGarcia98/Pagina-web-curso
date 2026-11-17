@@ -54,6 +54,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 - Si falla: ver Monitor → Triggered → error de la actividad; relanzar con Rerun.
 - Para frenarlo: Manage → Triggers → Stopped → Publish all.
 - Dueño: equipo de datos (Lucía).</code></pre>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Detener el trigger sin publicar.</strong> El servicio sigue con la versión publicada y corre igual.</li>
+<li><strong>Borrar el trigger para pausar un día.</strong> Se pierde la configuración; Stopped y publicar es reversible.</li>
+<li><strong>No escribir la nota de operación.</strong> Si falla y no estás, nadie sabe qué hacer.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> El trigger está <strong>Started</strong> y <strong>publicado</strong> (Publish all sin cambios pendientes).</li>

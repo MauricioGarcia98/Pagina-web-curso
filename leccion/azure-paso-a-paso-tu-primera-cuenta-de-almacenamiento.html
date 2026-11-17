@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un depósito con dirección web propia</div>
+
+<p>Una cuenta de almacenamiento es un depósito con su propia dirección en internet (<code>nombre.blob.core.windows.net</code>); por eso su nombre tiene que ser único en todo Azure. Con el espacio de nombres jerárquico, el depósito pasa a tener estanterías y carpetas de verdad: un data lake.</p>
+</div>
+
+
 <h2>Paso 1 — Qué es una cuenta de almacenamiento</h2>
 <p>Una <strong>cuenta de almacenamiento</strong> (<em>storage account</em>) agrupa cuatro servicios de datos:</p>
 <div class="table-wrap"><table><thead><tr>
@@ -186,6 +192,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p>Revisa que diga <strong>Hierarchical namespace: Enabled</strong> y <strong>Replication: Locally-redundant storage (LRS)</strong>. Más abajo están los <strong>Endpoints</strong>: la dirección <code>blob</code> y la dirección <code>dfs</code> de Data Lake. El menú de la izquierda tiene todo lo que harás en el nivel 2: <strong>Containers</strong>, <strong>Storage browser</strong>, <strong>Access keys</strong>, <strong>Data protection</strong>, <strong>Lifecycle management</strong>.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Olvidar el espacio de nombres jerárquico.</strong> Sin él no hay carpetas reales ni permisos por carpeta, y no se puede activar después con un clic.</li>
+<li><strong>Elegir la redundancia más cara &quot;por las dudas&quot;.</strong> En dev, LRS alcanza; GZRS o RA-GRS se justifican en producción.</li>
+<li><strong>Nombres con guiones o mayúsculas.</strong> Solo minúsculas y números, de 3 a 24 caracteres.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste <code>sttiendaandinadev</code> como ADLS Gen2 con Standard y LRS.</li>

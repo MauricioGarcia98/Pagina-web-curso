@@ -8,6 +8,10 @@ prerrequisitos: data-factory-paso-a-paso-triggers
 autoevaluacion: ¿Sabes qué ves en el Input de una copia? | ¿Sabes qué versión ejecuta Rerun? | ¿Sabes cuántos días guarda Monitor el historial? | ¿Sabes cómo te enteras de un fallo sin abrir Monitor?
 ---
 
+:::analogia El parte diario de la planta
+Monitor es el parte diario de la planta: qué corrió, cuánto tardó, qué recibió cada actividad (Input) y qué devolvió (Output). Para entender un error de nombre dinámico, el Input muestra el archivo que realmente buscó.
+:::
+
 ## Paso 1 — El detalle de una ejecución
 
 En **Monitor → Triggered**, haz clic en el nombre del pipeline de la ejecución disparada por el trigger:
@@ -59,6 +63,12 @@ Nadie mira Monitor cada cinco minutos. Para enterarte de un fallo:
 | **Alertas desde ADF Monitor** | Monitor → Alerts & metrics, que crea lo mismo |
 | **Dentro del pipeline** | Una ruta Upon Failure que avise (lección 18) |
 
+:::errores
+- **Reportar un problema sin Run ID.** "El pipeline de anoche" es ambiguo; el Run ID identifica la ejecución exacta.
+- **Mirar Monitor a mano cada mañana.** Una alerta sobre Failed pipeline runs avisa sola.
+- **Esperar historial infinito.** Monitor guarda 45 días; para más, envía los registros a Log Analytics.
+:::
+
 ## ✅ Lo que lograste
 
 - Lees el detalle de una ejecución, su Input y su Output.
@@ -94,5 +104,5 @@ Quieres saber qué archivo buscó realmente una copia con un nombre dinámico. �
 - [ ] No se puede
 - [x] Con una alerta sobre la métrica Failed pipeline runs y un grupo de acciones
 - [ ] Mirando el portal cada hora
-- [ ] Con Rerun
+- [ ] Con un trigger de eventos sobre Monitor
 :::

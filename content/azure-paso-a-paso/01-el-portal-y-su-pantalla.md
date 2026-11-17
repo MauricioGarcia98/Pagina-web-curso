@@ -114,6 +114,12 @@ En un Azure real cada recurso cuesta dinero mientras exista, aunque no lo uses. 
 
 El botón **🎯 Retos** (abajo a la derecha del portal de práctica) propone una lista de logros que se marcan solos a medida que avanzas.
 
+:::errores
+- **Hacer producción con clics.** El portal es para aprender y para cambios puntuales; lo que va a producción se describe en plantillas para repetirlo igual.
+- **Crear recursos sin mirar la suscripción activa.** Si tienes varias, el recurso puede terminar en otra (y en otra factura).
+- **No mirar las notificaciones.** Un despliegue puede fallar en silencio; la campana dice si terminó bien.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué es Azure y para qué sirve el portal.
@@ -125,7 +131,7 @@ El botón **🎯 Retos** (abajo a la derecha del portal de práctica) propone un
 - [ ] Para todo lo de producción, porque es lo más seguro
 - [x] Para aprender, explorar y hacer cambios puntuales; producción se automatiza con plantillas
 - [ ] Solo para ver la factura
-- [ ] Para escribir código de Spark
+- [ ] Para guardar los archivos del lago
 :::
 
 :::ejercicio quiz
@@ -146,7 +152,7 @@ El botón **🎯 Retos** (abajo a la derecha del portal de práctica) propone un
 
 :::ejercicio quiz
 ¿Qué es una plantilla ARM, Bicep o Terraform?
-- [ ] Un tema visual del portal
+- [ ] Un panel del portal con accesos directos
 - [x] Un archivo de texto que describe la infraestructura para crearla siempre igual
 - [ ] Un tipo de cuenta de almacenamiento
 - [ ] Un informe de costos
