@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 El edificio y los departamentos</div>
+
+<p>El servidor lógico es el edificio: tiene el portero (el cortafuegos), el administrador y la dirección de conexión. Cada base es un departamento adentro, con sus tablas y su tamaño.</p>
+</div>
+
+
 <h2>Paso 1 — Servidor lógico y base</h2>
 <div class="table-wrap"><table><thead><tr>
 <th>Pieza</th>
@@ -143,6 +149,16 @@ ORDER BY pedidos DESC;</code></pre>
 </tr>
 </tbody></table></div>
 <p>Todas dicen <code>Authentication=ActiveDirectoryDefault</code> (o equivalente): toman la identidad del entorno, sin contraseña. Si algún día usas una cadena con contraseña, va en Key Vault, nunca en el código.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Abrir el cortafuegos a todas las IP.</strong> Agrega solo la tuya o usa una red privada.</li>
+<li><strong>Elegir un tamaño fijo grande para dev.</strong> Serverless se pausa y cobra por uso.</li>
+<li><strong>Contraseña del administrador en el notebook.</strong> Va en Key Vault y se lee por nombre.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste una base con autenticación solo de Entra y datos de ejemplo.</li>

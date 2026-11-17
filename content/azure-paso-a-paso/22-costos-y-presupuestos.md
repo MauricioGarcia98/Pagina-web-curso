@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué servicio gasta más en tu plataforma? | ¿Sabes qu�
 Finanzas: *"El mes que viene entra producción. Necesitamos saber cuánto va a costar, enterarnos rápido si algo se dispara y un plan para gastar menos sin romper nada."*
 :::
 
+:::analogia Leer la factura como un detective
+El costo total no dice mucho: hay que abrirlo por servicio, por recurso y por etiqueta para encontrar qué creció. Después se elige la palanca: apagar lo que no se usa, achicar lo sobredimensionado o comprometer uso estable con reservas.
+:::
+
 ## Paso 1 — La foto actual
 
 Abre **Cost Management**:
@@ -80,6 +84,12 @@ texto: Todos los recursos de dev - ¿cuál podría apagarse, achicarse o borrars
 Una vez por mes: abrir Cost Management agrupado por **etiqueta `owner`**, mirar los cinco recursos más caros, preguntar a cada dueño si sigue haciendo falta, y borrar lo huérfano. Es la práctica de FinOps que más dinero ahorra.
 :::
 
+:::errores
+- **Mirar solo el total.** Ábrelo por servicio y recurso para encontrar qué creció.
+- **Reservas para cargas variables.** Convienen con uso estable 24/7; si se apaga, se paga igual.
+- **Comparar meses con Actual cost después de una reserva.** El pago anual aparece entero un mes; Amortized cost lo reparte.
+:::
+
 ## ✅ Lo que lograste
 
 - Lees el costo por servicio, recurso y vista (real, amortizado, pronóstico).
@@ -90,7 +100,7 @@ Una vez por mes: abrir Cost Management agrupado por **etiqueta `owner`**, mirar 
 El costo de Databricks se duplicó. ¿Qué revisas primero?
 - [ ] Las etiquetas del lago
 - [x] Clústeres encendidos sin apagado automático y su tamaño
-- [ ] La región del key vault
+- [ ] El tamaño de los archivos de gold
 - [ ] Las reglas de ciclo de vida
 :::
 
@@ -115,5 +125,5 @@ Producción corre 24/7 con la misma capacidad todo el año. ¿Qué palanca convi
 - [ ] Apaga los recursos caros
 - [x] Avisa cuando el gasto diario se sale de su patrón habitual
 - [ ] Cambia la redundancia del storage
-- [ ] Reemplaza al presupuesto
+- [ ] Borra los recursos que no tienen etiquetas
 :::

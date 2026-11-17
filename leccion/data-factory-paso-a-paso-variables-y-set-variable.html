@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Variables y Set variable - calcular un valor una vez y reutilizarlo</h1><p class="resumen">Las variables guardan valores que cambian durante la ejecución. Creas la variable archivo, la calculas con una actividad Set variable a partir del parámetro, haces que la copia dependa de ese cálculo y la use con @variables('archivo'), y ves su valor en la salida - la mejor forma de depurar una expresión.</p>
 <a class="cta" href="../index.html#/l/data-factory-paso-a-paso-variables-y-set-variable">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Distinguir parámetro y variable</li><li>Crear una variable de pipeline</li><li>Asignarla con Set variable</li><li>Usar @variables() en otra actividad</li><li>Ver el valor calculado en la salida</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Una pizarra durante la jornada</div>
+
+<p>Un parámetro es lo que te dicen al empezar el día; una variable es una pizarra donde vas anotando valores durante la jornada. Set variable escribe en la pizarra y las actividades siguientes la leen, siempre que esperen a que se haya escrito.</p>
+</div>
+
+
 <h2>Paso 1 — Parámetro o variable</h2>
 <div class="table-wrap"><table><thead><tr>
 <th></th>
@@ -79,6 +85,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-nota"><div class="callout-title">📝 Dentro de un ForEach paralelo</div>
 
 <p>Las variables son del <strong>pipeline entero</strong>, no de cada iteración. Si un ForEach corre en paralelo y cada iteración asigna la misma variable, se pisan entre sí. Dentro de un ForEach paralelo, usa <code>@item()</code> en lugar de variables.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Leer la variable antes de asignarla.</strong> La copia tiene que depender de Set variable; si corren en paralelo, la encuentra vacía.</li>
+<li><strong>Confundir la sintaxis.</strong> Las variables se leen con <code>@variables(&#39;archivo&#39;)</code>, no con <code>@pipeline().variables</code>.</li>
+<li><strong>Usar variables dentro de un ForEach en paralelo.</strong> Son del pipeline completo y las vueltas se pisan; usa <code>@item()</code> o un pipeline hijo.</li>
+</ul>
 </div>
 
 

@@ -8,6 +8,10 @@ prerrequisitos: data-factory-paso-a-paso-pipelines-y-el-lienzo
 autoevaluacion: ¿Sabes qué comodín copia solo el día 15? | ¿Sabes qué hace Merge files con los encabezados? | ¿Sabes qué son las DIU? | ¿Sabes qué pasa si el comodín no encuentra ningún archivo?
 ---
 
+:::analogia El camión de mudanza configurable
+La actividad Copy es un camión de mudanza que puedes configurar: qué cajas cargar (el comodín), si las juntas en una sola (Merge files), qué hacer con las rotas (tolerancia a fallos) y cuántos camiones mandar a la vez (las DIU, que se pagan por hora).
+:::
+
 ## Paso 1 — Copiar un solo día con un comodín
 
 En `pl_copiar_ventas`, pestaña **Source** de la copia, escribe en **Wildcard file name**: `*-11-15.csv`:
@@ -79,6 +83,12 @@ Una **DIU** (*Data Integration Unit*) mezcla CPU, memoria y red. Una copia se co
 La copia **falla** con `UserErrorSourceBlobNotExist`. Lo provocas a propósito en la lección siguiente. En la lección 17 aprendes a verificar antes si el archivo llegó.
 :::
 
+:::errores
+- **Comodines demasiado amplios.** `*.csv` copia todo; para un día concreto se filtra el patrón de la fecha.
+- **Ignorar las filas omitidas.** Si se activó la tolerancia a fallos y se saltearon filas, hay que revisar por qué.
+- **Subir DIU sin medir.** Más DIU cuesta más; en archivos chicos no acelera nada.
+:::
+
 ## ✅ Lo que lograste
 
 - Filtras archivos con comodines.
@@ -89,7 +99,7 @@ La copia **falla** con `UserErrorSourceBlobNotExist`. Lo provocas a propósito e
 ¿Qué comodín copia solo los archivos del 15 de noviembre?
 - [ ] `*.csv`
 - [x] `*-11-15.csv`
-- [ ] `11-15`
+- [ ] `*15*.csv`
 - [ ] `?-11-15`
 :::
 
@@ -98,7 +108,7 @@ Con Merge files, cuatro CSV con encabezado se unen en uno. ¿Cuántos encabezado
 - [x] Uno, al principio
 - [ ] Cuatro
 - [ ] Ninguno
-- [ ] Depende del día
+- [ ] Cuatro, uno por cada archivo original
 :::
 
 :::ejercicio quiz
@@ -106,7 +116,7 @@ Con Merge files, cuatro CSV con encabezado se unen en uno. ¿Cuántos encabezado
 - [ ] Que todo salió bien
 - [x] Que diez filas no se copiaron y hay que revisar por qué
 - [ ] Que el destino ya tenía diez filas
-- [ ] Nada importante
+- [ ] Que la copia tardó diez segundos más
 :::
 
 :::ejercicio quiz
@@ -114,5 +124,5 @@ Con Merge files, cuatro CSV con encabezado se unen en uno. ¿Cuántos encabezado
 - [ ] Un formato de archivo
 - [x] Las unidades de potencia de cómputo que usa una copia, y que se cobran por hora
 - [ ] Los reintentos de una actividad
-- [ ] Un tipo de trigger
+- [ ] Los datasets que usa una copia
 :::

@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes cuánto tiempo se puede recuperar un blob borrado? | ¿S
 Lucía: *"Dos pedidos: que un borrado accidental no nos haga perder datos de bronze, y que los archivos viejos no nos cuesten lo mismo que los nuevos. Bronze se lee mucho el primer mes y casi nunca después; a los dos años se puede borrar."*
 :::
 
+:::analogia Papelera, historial y depósito barato
+Soft delete es la papelera (recupera lo borrado), el versionado es el historial de cada archivo (recupera lo sobrescrito) y el ciclo de vida es mudar a un depósito más barato lo que casi no se usa. Archive es el depósito más lejano: barato, pero traer algo de ahí tarda horas.
+:::
+
 ## Paso 1 — La protección de datos
 
 En `sttiendaandinadev`, menú **Data protection**:
@@ -108,6 +112,12 @@ texto: Configuration - transferencia segura, acceso anónimo, TLS, nivel por def
 
 Es un buen lugar para revisar de un vistazo los valores de seguridad de la cuenta.
 
+:::errores
+- **Confiar en soft delete para sobrescrituras.** Recupera borrados; para recuperar contenido pisado hace falta versionado.
+- **Mandar a Archive datos que un pipeline puede necesitar.** Hay que rehidratarlos antes y tarda horas.
+- **Reglas sin prefijo.** Sin `bronze/pedidos/`, la regla mueve también silver y gold.
+:::
+
 ## ✅ Lo que lograste
 
 - Configuraste soft delete de 14 días y versionado.
@@ -135,7 +145,7 @@ Un pipeline necesita leer archivos de hace 8 meses, que una regla movió a Archi
 - [ ] `pedidos/`
 - [x] `bronze/pedidos/`
 - [ ] `/bronze/pedidos`
-- [ ] `*pedidos*`
+- [ ] `pedidos/` en el contenedor bronze, sin el nombre del contenedor
 :::
 
 :::ejercicio quiz

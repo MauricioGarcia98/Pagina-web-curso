@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué caracteres admite el nombre de un contenedor? | ¿S
 Lucía: *"Vamos a organizar el lago en tres capas: `bronze` para lo que llega tal cual, `silver` para lo limpio y `gold` para lo listo para informes. Sube a bronze los primeros archivos de pedidos y clientes."*
 :::
 
+:::analogia Cajones dentro del depósito
+Los contenedores son los cajones grandes del depósito (bronze, silver, gold) y los blobs son los archivos que guardas adentro. Ser dueño del edificio (Owner) no te da la llave de los cajones: para leer archivos hace falta un rol de datos.
+:::
+
 ## Paso 1 — Contenedor, blob y carpeta
 
 | Pieza | Qué es | Ejemplo |
@@ -124,6 +128,12 @@ La clave de acceso es como la llave maestra del edificio: cualquiera que la teng
 
 Vuelve a **Switch to Access key** para seguir trabajando.
 
+:::errores
+- **Ser Owner y esperar ver los datos.** Owner administra el recurso; para leer blobs con tu usuario hace falta Storage Blob Data Reader o Contributor.
+- **Nombres de contenedor con mayúsculas o guiones bajos.** Solo minúsculas, números y guiones, de 3 a 63 caracteres.
+- **Compartir la clave de la cuenta.** Da acceso total y no queda registrado quién la usó; con Entra cada acceso tiene nombre.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste los contenedores `bronze`, `silver` y `gold`.
@@ -143,7 +153,7 @@ En la dirección `https://sttiendaandinadev.blob.core.windows.net/bronze/cliente
 - [ ] La cuenta
 - [x] El contenedor
 - [ ] La carpeta
-- [ ] El archivo
+- [ ] La región
 :::
 
 :::ejercicio quiz
@@ -151,13 +161,13 @@ Eres Owner de la suscripción y al cambiar a "Microsoft Entra user account" no v
 - [ ] Porque la cuenta está apagada
 - [ ] Porque los blobs se borraron
 - [x] Porque Owner es un rol de administración; para leer datos hace falta un rol Storage Blob Data
-- [ ] Porque hay que esperar 24 horas
+- [ ] Porque los contenedores son privados para todos, incluido Owner, hasta que los publiques
 :::
 
 :::ejercicio quiz
 ¿Por qué se prefiere Microsoft Entra a la clave de la cuenta?
 - [ ] Porque es más rápido
 - [x] Porque da permisos por persona o aplicación y queda registrado quién accedió
-- [ ] Porque no necesita contraseña nunca
+- [ ] Porque la clave de la cuenta vence cada 24 horas
 - [ ] Porque es la única forma de subir archivos
 :::

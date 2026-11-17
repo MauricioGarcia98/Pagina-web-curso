@@ -72,6 +72,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/adf/b20-bronze.webp" alt="bronze/por_fuente con los archivos de ventas y devoluciones; inventario no se copió" loading="lazy"><figcaption>bronze/por_fuente con los archivos de ventas y devoluciones; inventario no se copió</figcaption></figure>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Comparar un CSV con números.</strong> Los valores leídos de CSV son texto: compara con <code>&#39;1&#39;</code>, no con <code>1</code>.</li>
+<li><strong>Un pipeline por fuente &quot;por ahora&quot;.</strong> Cada fuente nueva duplica trabajo; una fila en la tabla de control escala.</li>
+<li><strong>Tabla de control sin dueño.</strong> Si nadie la mantiene, las fuentes inactivas siguen corriendo.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> El Lookup devuelve las tres filas (<code>count: 3</code>).</li>

@@ -36,6 +36,12 @@ archivo: adf/b16-bronze.webp
 texto: El archivo de devoluciones en bronze, junto a las ventas
 ```
 
+:::errores
+- **Paralelismo máximo sin pensar.** El límite lo pone el sistema más débil: el origen, el destino o una API.
+- **Dataset de destino con nombre fijo.** Todas las vueltas escribirían el mismo archivo; el nombre sale de `@item().name`.
+- **Formato equivocado.** Archivos JSON con un dataset DelimitedText fallan o se leen mal.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] `ds_bronze_devoluciones` existe, en formato JSON.
@@ -67,7 +73,7 @@ Llegan 100 archivos de devoluciones. ¿Qué cambia en tu pipeline?
 - [ ] Hay que agregar 100 copias
 - [x] Nada: Get Metadata los lista y el ForEach los recorre
 - [ ] Hay que crear 100 datasets
-- [ ] Hay que unirlos antes
+- [ ] Hay que subir las DIU a 100
 :::
 
 :::ejercicio quiz
@@ -83,7 +89,7 @@ Dentro de un ForEach paralelo, ¿cómo te refieres al archivo de cada vuelta?
 - [ ] Nada, siempre 50
 - [x] Lo que aguanta el sistema más débil: el origen, el destino o una API
 - [ ] La cantidad de datasets
-- [ ] La zona horaria
+- [ ] El número de triggers del factory
 :::
 
 :::ejercicio quiz
@@ -91,5 +97,5 @@ Dentro de un ForEach paralelo, ¿cómo te refieres al archivo de cada vuelta?
 - [ ] DelimitedText
 - [x] JSON
 - [ ] Parquet
-- [ ] Da igual
+- [ ] Da igual: la copia detecta el formato sola
 :::

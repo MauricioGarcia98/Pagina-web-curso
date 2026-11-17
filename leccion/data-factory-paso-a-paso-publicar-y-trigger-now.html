@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Publicar y Trigger now - del borrador a una ejecución de verdad</h1><p class="resumen">Hasta ahora todo fue borrador y Debug. Ves por qué Trigger now se niega a ejecutar un pipeline sin publicar, revisas la lista de cambios pendientes de Publish all, publicas, ejecutas el pipeline publicado con Trigger now y lo encuentras en Monitor como una ejecución disparada, separada de tus pruebas.</p>
 <a class="cta" href="../index.html#/l/data-factory-paso-a-paso-publicar-y-trigger-now">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar la diferencia entre borrador, Debug y versión publicada</li><li>Revisar los cambios pendientes antes de publicar</li><li>Publicar con Publish all</li><li>Ejecutar con Trigger now</li><li>Encontrar la ejecución en Monitor → Triggered</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Borrador y versión impresa</div>
+
+<p>Lo que editas es un borrador; Publish all lo imprime y lo deja en la vitrina. Los triggers y Trigger now solo leen la versión de la vitrina. Sin Git, Publish all imprime todo lo pendiente del factory, incluido lo que un compañero dejó a medias.</p>
+</div>
+
+
 <h2>Paso 1 — Tres versiones del mismo pipeline</h2>
 <div class="table-wrap"><table><thead><tr>
 <th>Versión</th>
@@ -71,6 +77,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-nota"><div class="callout-title">📝 Trigger now no es un trigger</div>
 
 <p><strong>Trigger now</strong> ejecuta el pipeline <strong>una vez, ahora</strong>, sin crear ningún trigger. Se usa para probar la versión publicada o para relanzar a mano. Para que corra solo todos los días hace falta un <strong>trigger programado</strong>: la lección siguiente.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Trigger now sobre un borrador.</strong> Ejecuta la versión publicada; para probar cambios se usa Debug.</li>
+<li><strong>Publish all sin mirar la lista.</strong> Sin Git, publica cambios ajenos a medias.</li>
+<li><strong>Buscar la corrida en Debug.</strong> Las de Trigger now aparecen en Monitor → Triggered.</li>
+</ul>
 </div>
 
 

@@ -8,6 +8,10 @@ prerrequisitos: data-factory-paso-a-paso-proyecto-primera-copia
 autoevaluacion: ¿Sabes cómo se crea una dependencia al agregar una actividad? | ¿Sabes qué significa una flecha verde? | ¿Sabes dónde ves el pipeline completo como JSON? | ¿Sabes qué pasa con las dependencias al borrar una actividad?
 ---
 
+:::analogia Fichas de dominó con flechas de colores
+El lienzo es una mesa de fichas de dominó unidas con flechas de colores: la verde (Upon Success) solo sigue si la anterior salió bien, la roja (Upon Failure) solo si falló, la azul (Upon Completion) siempre. El color de la flecha decide el camino.
+:::
+
 ## Paso 1 — El panel de actividades
 
 Abre `pl_copiar_ventas`. A la izquierda están las actividades, agrupadas. Escribe `wa` en **Search activities**:
@@ -80,6 +84,12 @@ texto: El lienzo vuelve a tener solo la copia; abajo queda la salida del último
 
 Al borrar una actividad, las dependencias que apuntaban a ella también se borran.
 
+:::errores
+- **Conectar con Upon Success algo que debe correr siempre.** Una limpieza o un registro final va con Upon Completion.
+- **Suponer que hay reintentos.** Por defecto una actividad tiene 0 reintentos; configúralos en las que fallan por causas pasajeras.
+- **Actividades sueltas sin dependencia.** Corren en paralelo con todo lo demás, no después.
+:::
+
 ## ✅ Lo que lograste
 
 - Buscas, agregas y encadenas actividades.
@@ -99,7 +109,7 @@ Tienes la copia seleccionada y agregas una actividad Wait. ¿Qué pasa?
 - [ ] Siempre
 - [ ] Solo si la anterior terminó bien
 - [x] Solo si la anterior falló
-- [ ] Nunca
+- [ ] Cuando la anterior queda Skipped
 :::
 
 :::ejercicio quiz

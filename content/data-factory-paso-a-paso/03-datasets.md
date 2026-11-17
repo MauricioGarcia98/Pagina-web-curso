@@ -8,6 +8,10 @@ prerrequisitos: data-factory-paso-a-paso-linked-services
 autoevaluacion: ¿Sabes qué pasa si dejas el archivo vacío? | ¿Sabes para qué sirve First row as header? | ¿Sabes por qué "Raw" no es lo mismo que "raw"? | ¿Sabes por qué conviene un dataset para el origen y otro para el destino?
 ---
 
+:::analogia La dirección exacta dentro del edificio
+Si el linked service es la dirección del edificio, el dataset es el piso, la oficina y el tipo de documento: contenedor, carpeta, archivo y formato. Con el archivo vacío, el dataset representa toda la carpeta.
+:::
+
 ## Paso 1 — Qué es un dataset
 
 Un **dataset** apunta a datos concretos dentro de un linked service:
@@ -99,6 +103,12 @@ texto: Los tres datasets (1) y la vista previa del JSON de devoluciones (2)
 Un error común es crear un dataset por cada archivo (`ds_ventas_12`, `ds_ventas_13`…). Se crea **uno por carpeta** y el archivo se elige en la actividad, con comodines o con expresiones (lecciones 6 y 13).
 :::
 
+:::errores
+- **Un dataset por archivo.** Con un dataset por carpeta (o parametrizado) y el archivo elegido en la actividad alcanza.
+- **Delimitador equivocado.** Si en Preview data todas las columnas aparecen en una sola, el separador no es el del archivo.
+- **Mayúsculas en el contenedor.** Los nombres de contenedor van en minúsculas; "FilesystemNotFound" suele ser eso o un contenedor que no existe.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste datasets de origen y destino, en CSV y en JSON.
@@ -126,7 +136,7 @@ En Preview data todas las columnas aparecen juntas en una sola. ¿Qué revisas?
 - [x] El contenedor no existe en esa cuenta (por ejemplo, por una mayúscula)
 - [ ] El archivo está vacío
 - [ ] Falta un rol
-- [ ] La cuenta está apagada
+- [ ] El linked service está vencido
 :::
 
 :::ejercicio quiz
@@ -134,5 +144,5 @@ Llegan archivos de ventas nuevos todos los días. ¿Cuántos datasets de origen 
 - [ ] Uno por archivo
 - [x] Uno para la carpeta; el archivo se elige en la actividad
 - [ ] Uno por mes
-- [ ] Ninguno
+- [ ] Uno por día de la semana
 :::

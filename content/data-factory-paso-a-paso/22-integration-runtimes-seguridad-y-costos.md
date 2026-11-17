@@ -8,6 +8,10 @@ prerrequisitos: data-factory-paso-a-paso-git-ci-cd-y-plantillas-arm
 autoevaluacion: ¿Sabes cuándo usar un self-hosted IR? | ¿Sabes qué roles dar al equipo? | ¿Sabes qué se cobra por cada actividad? | ¿Sabes qué ahorra más en un factory?
 ---
 
+:::analogia Un mensajero que vive dentro de la oficina
+El Azure IR es un mensajero que viaja por internet. Para llegar a una base dentro de la red de la empresa, sin acceso desde afuera, hace falta un mensajero que viva adentro: el self-hosted integration runtime, instalado en un servidor de esa red.
+:::
+
 ## Paso 1 — Integration runtimes
 
 El **integration runtime (IR)** es el cómputo que hace el trabajo: mueve los datos, ejecuta las actividades, llega a las fuentes. **Manage → Integration runtimes**:
@@ -66,6 +70,12 @@ texto: Cost Management - el factory junto al almacenamiento, el vault y Databric
 5. **Debug con cuidado**: las pruebas también se cobran.
 :::
 
+:::errores
+- **Abrir una base a internet para que la vea el factory.** Se instala un self-hosted IR dentro de la red.
+- **Owner para quien diseña pipelines.** Data Factory Contributor alcanza.
+- **Triggers frecuentes "por si acaso".** Cada ejecución se cobra; si los archivos llegan esporádicamente, un trigger de eventos cuesta menos.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué es un integration runtime y cuándo hace falta uno propio.
@@ -76,7 +86,7 @@ texto: Cost Management - el factory junto al almacenamiento, el vault y Databric
 La fuente es un SQL Server en la oficina, sin acceso desde internet. ¿Qué necesitas?
 - [ ] Un Azure IR AutoResolve
 - [x] Un self-hosted integration runtime en un servidor de esa red
-- [ ] Un trigger por eventos
+- [ ] Un private endpoint del lago
 - [ ] Abrir el SQL Server a internet
 :::
 
@@ -84,13 +94,13 @@ La fuente es un SQL Server en la oficina, sin acceso desde internet. ¿Qué nece
 ¿Qué rol le das a quien diseña pipelines en el factory de dev?
 - [ ] Owner de la suscripción
 - [x] Data Factory Contributor
-- [ ] Ninguno
+- [ ] Reader sobre el factory
 - [ ] Storage Blob Data Owner
 :::
 
 :::ejercicio quiz
 ¿Qué se cobra en una actividad Copy en el Azure IR?
-- [ ] Nada
+- [ ] Solo un monto por cada archivo copiado
 - [x] DIU por hora de copia, además de la ejecución de la actividad
 - [ ] Solo los GB guardados
 - [ ] Un monto fijo mensual
@@ -98,7 +108,7 @@ La fuente es un SQL Server en la oficina, sin acceso desde internet. ¿Qué nece
 
 :::ejercicio quiz
 Un trigger corre cada 5 minutos y casi nunca hay archivos nuevos. ¿Qué cambias?
-- [ ] Nada
+- [ ] Un tumbling window de 5 minutos
 - [x] Un trigger por eventos de almacenamiento, que corre solo cuando llega un archivo
 - [ ] Más DIU
 - [ ] Un clúster más grande

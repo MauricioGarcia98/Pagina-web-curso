@@ -8,6 +8,10 @@ prerrequisitos: data-factory-paso-a-paso-dependencias-y-manejo-de-errores
 autoevaluacion: ¿Sabes cómo recibe el notebook un parámetro de Data Factory? | ¿Sabes cómo devuelve un valor el notebook? | ¿Sabes qué permiso necesita el factory en Databricks? | ¿Sabes por qué conviene un job cluster?
 ---
 
+:::analogia El transportista y la cocina
+Data Factory es el transportista que trae los ingredientes; Databricks es la cocina que los transforma. La actividad Notebook le pasa la orden (los parámetros, como la fecha) y la cocina devuelve una nota con el resultado (runOutput).
+:::
+
 ## Paso 1 — El notebook
 
 En el [Databricks de práctica](#/databricks) está el notebook `limpiar_ventas`:
@@ -88,6 +92,12 @@ texto: runPageUrl (el enlace a la ejecución en Databricks) y runOutput, lo que 
 Databricks tiene su propio orquestador (**Jobs / Lakeflow Jobs**). Muchos equipos usan Data Factory para **traer** los datos de sistemas externos y Databricks Jobs para lo que pasa **dentro** del lago. Llamar notebooks desde Data Factory tiene sentido cuando el flujo mezcla las dos cosas y quieres un solo lugar para orquestar y monitorear.
 :::
 
+:::errores
+- **Clúster interactivo siempre encendido para producción.** Un job cluster se crea para la ejecución y se apaga al terminar.
+- **Leer el parámetro como variable de entorno.** Llega como widget: `dbutils.widgets.get("fecha")`.
+- **Buscar el error del notebook en Data Factory.** El runPageUrl lleva a la ejecución en Databricks, donde está el detalle.
+:::
+
 ## ✅ Lo que lograste
 
 - Conectaste el factory con Databricks y elegiste el tipo de clúster.
@@ -107,7 +117,7 @@ Databricks tiene su propio orquestador (**Jobs / Lakeflow Jobs**). Muchos equipo
 - [ ] Con print
 - [x] Con `dbutils.notebook.exit(valor)`, que aparece como runOutput
 - [ ] Escribiendo un archivo
-- [ ] No puede
+- [ ] Con el último valor que imprime la celda final
 :::
 
 :::ejercicio quiz
@@ -115,7 +125,7 @@ Databricks tiene su propio orquestador (**Jobs / Lakeflow Jobs**). Muchos equipo
 - [ ] Un clúster interactivo siempre encendido
 - [x] Un job cluster que se crea para la ejecución y se apaga al terminar
 - [ ] El más grande disponible
-- [ ] Ninguno
+- [ ] Un clúster compartido con todos los analistas
 :::
 
 :::ejercicio quiz
@@ -123,5 +133,5 @@ El notebook falló. ¿Qué abres primero?
 - [ ] El linked service
 - [x] El runPageUrl de la salida, que lleva a la ejecución en Databricks
 - [ ] El trigger
-- [ ] El dataset
+- [ ] El Input de la actividad Copy anterior
 :::

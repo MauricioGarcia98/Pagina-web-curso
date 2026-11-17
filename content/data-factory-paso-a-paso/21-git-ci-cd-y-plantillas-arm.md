@@ -8,6 +8,10 @@ prerrequisitos: data-factory-paso-a-paso-proyecto-pipeline-por-metadatos
 autoevaluacion: ¿Sabes en qué rama trabaja cada uno? | ¿Sabes qué se genera al publicar con Git? | ¿Sabes qué valores se vuelven parámetros de la plantilla? | ¿Sabes por qué prod no se edita a mano?
 ---
 
+:::analogia Un solo taller y despachos a las sucursales
+El factory de dev es el taller donde se trabaja con Git; qa y prod son sucursales que reciben el producto terminado (las plantillas ARM) por un despacho automático, con los ajustes de cada sucursal (los parámetros).
+:::
+
 ## Paso 1 — Por qué Git
 
 Sin Git (live mode), todos editan el mismo factory y **Publish all** publica todo, terminado o no. Con Git:
@@ -79,6 +83,12 @@ En los dos casos, el despliegue a prod:
 Los **secretos** (por eso las conexiones usan identidad administrada o Key Vault), los **permisos** (el rol del factory de prod sobre la cuenta de prod se asigna aparte, idealmente con su propia plantilla) y los **datos**. La plantilla del factory describe el factory, no la plataforma entera.
 :::
 
+:::errores
+- **Conectar prod a Git y editarlo a mano.** Prod se actualiza solo con el despliegue.
+- **Desplegar con los triggers activos.** Una corrida a mitad del despliegue usa piezas viejas y nuevas; detén triggers antes y reactívalos después.
+- **Valores de dev en la plantilla de prod.** Lo que cambia entre entornos va como parámetro.
+:::
+
 ## ✅ Lo que lograste
 
 - Entiendes el flujo de ramas de Data Factory con Git.
@@ -97,7 +107,7 @@ Los **secretos** (por eso las conexiones usan identidad administrada o Key Vault
 ¿Qué contiene la rama adf_publish?
 - [ ] Los datos copiados
 - [x] Las plantillas ARM generadas al publicar
-- [ ] Los secretos
+- [ ] Las ramas de trabajo de cada persona
 - [ ] Los logs de Monitor
 :::
 
@@ -106,12 +116,12 @@ Los **secretos** (por eso las conexiones usan identidad administrada o Key Vault
 - [ ] Los nombres de los pipelines
 - [x] Los que cambian entre entornos, como las direcciones de las conexiones
 - [ ] Las expresiones
-- [ ] Ninguno
+- [ ] Los nombres de las actividades
 :::
 
 :::ejercicio quiz
 ¿Qué hace un buen pipeline de CI/CD antes de desplegar en prod?
-- [ ] Borra el factory
+- [ ] Publica desde el factory de prod con Publish all
 - [x] Detiene los triggers, despliega con los parámetros de prod y los vuelve a iniciar, tras una aprobación
 - [ ] Copia los datos de dev
 - [ ] Publica desde la rama de cada persona

@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Quién eres y qué puedes tocar</div>
+
+<p>Entra ID responde &quot;quién eres&quot; (un usuario, un grupo, una aplicación, una identidad administrada). El control de acceso responde &quot;qué puedes hacer y dónde&quot;: un rol, asignado en un alcance (la suscripción, un grupo, un recurso). Sin las dos piezas, no hay acceso.</p>
+</div>
+
+
 <h2>Paso 1 — Las identidades</h2>
 <p>Abre <strong>Microsoft Entra ID</strong> (en el buscador, <code>entra</code>):</p>
 <figure class="captura"><img src="assets/img/guias/azure/b10-entra.webp" alt="Microsoft Entra ID - las pestañas Users, Groups y App registrations (1) y los datos del tenant (2)" loading="lazy"><figcaption>Microsoft Entra ID - las pestañas Users, Groups y App registrations (1) y los datos del tenant (2)</figcaption></figure>
@@ -147,6 +153,16 @@ analistas-datos       Storage Blob   sttiendaandinadev
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Mínimo privilegio</div>
 
 <p>Da el rol <strong>más chico</strong>, en el <strong>alcance más chico</strong>, al <strong>grupo</strong> correcto. Un Contributor sobre toda la suscripción &quot;para que no moleste&quot; es la puerta por la que se cuelan los incidentes de seguridad.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Asignar roles a personas una por una.</strong> Se asignan a grupos; cuando alguien entra o sale, solo cambia la membresía.</li>
+<li><strong>Dar Contributor para leer datos.</strong> Contributor administra el recurso pero no lee blobs; el rol de datos es otro.</li>
+<li><strong>Reintentar enseguida.</strong> Una asignación nueva puede tardar varios minutos en propagarse.</li>
+</ul>
 </div>
 
 

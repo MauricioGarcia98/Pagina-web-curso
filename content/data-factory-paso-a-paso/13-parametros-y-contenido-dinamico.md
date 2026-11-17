@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes dónde se crean los parámetros del pipeline? | ¿Sabes 
 Lucía: *"El sistema de la tienda de Bogotá reenvió el archivo del 14 porque el primero vino mal. Necesito reprocesar solo ese día, y que esto se pueda hacer siempre sin tocar el pipeline."*
 :::
 
+:::analogia Un formulario con un casillero
+Un parámetro es un casillero del formulario del pipeline: el pipeline es el mismo, pero cada vez que lo ejecutas pones otra fecha. Así sirve para hoy, para ayer o para reprocesar el mes pasado sin tocarlo.
+:::
+
 ## Paso 1 — Qué es un parámetro
 
 Un **parámetro** es un valor que se le pasa al pipeline **al ejecutarlo**. Tiene un valor por defecto y no cambia durante la ejecución. Es la forma de escribir un pipeline una vez y usarlo para cualquier fecha, tienda o carpeta.
@@ -91,6 +95,12 @@ Reprocesaste el 14 sin tocar el pipeline. Un trigger también puede pasar parám
 Los textos dentro de una expresión van entre **comillas simples**: `'ventas_'`. Las comillas dobles o un paréntesis de menos dan `The expression … is not valid`. Si una expresión falla, pruébala por partes en un Set variable (lección siguiente).
 :::
 
+:::errores
+- **Cambiar el valor por defecto para reprocesar.** Hay que publicar dos veces; pasa la fecha al ejecutar.
+- **Leer el parámetro como `@fecha`.** Es `@pipeline().parameters.fecha`.
+- **Restar días a `utcNow()` con `-`.** Se usa `addDays(utcNow(), -1)`.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un parámetro y lo usaste en origen y destino.
@@ -117,7 +127,7 @@ Los textos dentro de una expresión van entre **comillas simples**: `'ventas_'`.
 Tienes que reprocesar el día 3. ¿Qué haces?
 - [ ] Cambio el valor por defecto, publico, ejecuto y lo vuelvo a cambiar
 - [x] Trigger now con `fecha = 2026-11-03`, sin tocar el pipeline
-- [ ] Copio el archivo a mano
+- [ ] Cambio la zona horaria del trigger
 - [ ] Creo otro pipeline
 :::
 
@@ -125,6 +135,6 @@ Tienes que reprocesar el día 3. ¿Qué haces?
 ¿Qué expresión da la fecha de ayer en formato año-mes-día?
 - [ ] `@utcNow() - 1`
 - [x] `@addDays(utcNow(), -1, 'yyyy-MM-dd')`
-- [ ] `@yesterday()`
+- [ ] `@subtractDays(utcNow(), 1)`
 - [ ] `@formatDateTime('ayer')`
 :::

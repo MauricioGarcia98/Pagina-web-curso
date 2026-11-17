@@ -102,6 +102,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>La cuenta no tiene la etiqueta <code>owner</code>. Las etiquetas del grupo <strong>no se copian solas</strong> a los recursos de adentro: cada recurso tiene las suyas. Agrégala en la cuenta desde el menú <strong>Tags</strong> (<code>owner = equipo-datos</code>) y pulsa <strong>Apply</strong>. En Azure real, una <strong>Azure Policy</strong> puede heredar o exigir etiquetas automáticamente.</p>
 </details>
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Buscar recurso por recurso.</strong> All resources con filtros por tipo y grupo encuentra en segundos.</li>
+<li><strong>Suponer que las etiquetas del grupo se heredan.</strong> No se copian solas a los recursos; se aplican por plantilla o con Azure Policy.</li>
+<li><strong>Usar el nombre en vez del id.</strong> La CLI, las plantillas y los permisos usan el id completo del recurso.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación</h2>
 <ul>
 <li><input disabled="" type="checkbox"> <code>rg-tiendaandina-dev</code> existe en East US 2 con las tres etiquetas.</li>

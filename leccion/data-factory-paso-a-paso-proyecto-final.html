@@ -162,6 +162,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ol>
 </details>
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Calcular el nombre del archivo en cada actividad.</strong> Si una cambia, quedan distintos; una variable lo fija para todas.</li>
+<li><strong>Usar <code>utcNow()</code> en prod.</strong> Un reproceso o un retraso cambia la fecha; usa <code>@trigger().scheduledTime</code>.</li>
+<li><strong>Desactivar alertas porque molestan.</strong> Ajusta su ruido, pero que las fallas avisen.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lista de verificación final</h2>
 <ul>
 <li><input disabled="" type="checkbox"> El pipeline tiene el parámetro <code>fecha</code> y la variable <code>archivo</code>.</li>

@@ -54,6 +54,12 @@ archivo: azure/b08-etiquetas-grupo.webp
 texto: Las tres etiquetas del grupo
 ```
 
+:::errores
+- **Un contenedor por fuente.** Las fuentes van como carpetas dentro de cada capa; los contenedores son las capas.
+- **Acceso anónimo en algún contenedor.** Cualquiera con la dirección podría leer; todo el lago va Private.
+- **Nombres de archivo sin convención.** Sin fecha ni fuente en el nombre o la ruta, no se sabe qué día representa cada archivo.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] Tres contenedores, todos con acceso **Private**.
@@ -90,7 +96,7 @@ Llega una nueva fuente: el inventario de las tiendas. ¿Dónde va?
 - [x] Private: nadie entra sin identificarse
 - [ ] Blob: cualquiera puede leer un archivo si conoce la dirección
 - [ ] Container: cualquiera puede listar y leer
-- [ ] Depende del día
+- [ ] Blob, para que Power BI pueda leer sin credenciales
 :::
 
 :::ejercicio quiz
@@ -106,5 +112,5 @@ Llega una nueva fuente: el inventario de las tiendas. ¿Dónde va?
 - [ ] Porque Azure no permite más de tres
 - [x] Para que los permisos y las reglas se apliquen por capa y la estructura sea predecible
 - [ ] Porque los contenedores son caros
-- [ ] Por costumbre, no tiene importancia
+- [ ] Porque cada contenedor tiene su propia región
 :::

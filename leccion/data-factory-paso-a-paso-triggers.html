@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Despertador, timbre y calendario por turnos</div>
+
+<p>Un trigger Schedule es un despertador: suena a la hora fijada. Uno de eventos de almacenamiento es un timbre: suena cuando llega un archivo. Un tumbling window es un calendario de turnos: cada ventana de tiempo tiene su corrida y se puede volver a procesar.</p>
+</div>
+
+
 <h2>Paso 1 — Crear el trigger</h2>
 <p>En <code>pl_ingesta_diaria</code>, <strong>Add trigger → New/Edit</strong>:</p>
 <ol>
@@ -91,6 +97,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 5 — Detener sin borrar</h2>
 <p>En <strong>Manage → Triggers</strong>, el botón <strong>Started</strong> lo pasa a <strong>Stopped</strong>. Igual que al crearlo, <strong>hay que publicar</strong> para que el servicio deje de dispararlo. Lo practicas en el proyecto de este nivel.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Crear el trigger y no publicarlo.</strong> Un trigger sin publicar no existe para el servicio.</li>
+<li><strong>Dejar la zona horaria en UTC.</strong> Las 6:00 UTC son las 3:00 en Buenos Aires.</li>
+<li><strong>Schedule cada 5 minutos para archivos que llegan a cualquier hora.</strong> Un trigger de eventos corre solo cuando llega el archivo.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste un trigger diario y lo publicaste.</li>

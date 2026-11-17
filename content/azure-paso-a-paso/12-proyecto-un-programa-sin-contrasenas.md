@@ -84,6 +84,12 @@ az login --service-principal -u <client-id> --tenant <tenant-id> -p "$SECRETO_DE
 az storage blob upload --account-name sttiendaandinadev -c bronze -n pedidos/2026/11/16/pedidos.csv -f pedidos.csv --auth-mode login
 ```
 
+:::errores
+- **No copiar el valor del secreto al crearlo.** Solo se muestra una vez; hay que crear otro.
+- **Secretos sin fecha de vencimiento anotada.** El día que vencen, el programa deja de funcionar sin aviso.
+- **Service principal con secreto para algo que corre dentro de Azure.** Ahí conviene una identidad administrada.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] `sp-ingesta-ventas` existe en App registrations.
@@ -125,7 +131,7 @@ El script de ingesta empezó a fallar con "invalid client secret" después de se
 - [ ] Se borró la cuenta
 - [x] Venció el secreto de cliente y hay que rotarlo
 - [ ] El contenedor se llenó
-- [ ] Cambió la región
+- [ ] El service principal se desactivó por inactividad
 :::
 
 :::ejercicio quiz

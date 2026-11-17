@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Azure Databricks desde el portal - el workspace y su grupo administrado</h1><p class="resumen">Desde el portal se crea el recurso de Azure Databricks; lo de adentro (notebooks, clústeres, tablas) se trabaja en el workspace. Creas dbw-tiendaandina-dev eligiendo el nivel de precio y la conectividad segura, ves qué es el grupo de recursos administrado que Azure crea solo, por qué no puedes borrarlo ni tocarlo (deny assignment) y cómo se pasa del portal al workspace con Launch Workspace.</p>
 <a class="cta" href="../index.html#/l/azure-paso-a-paso-azure-databricks-desde-el-portal">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un workspace de Azure Databricks con sus opciones de red</li><li>Explicar qué administra el portal y qué el workspace</li><li>Entender el grupo de recursos administrado y su deny assignment</li><li>Saber qué genera costo en Databricks</li><li>Abrir el workspace desde el portal</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El edificio desde afuera y la oficina por dentro</div>
+
+<p>En el portal creas el edificio (el recurso de Azure Databricks): región, red, nivel de precio. Lo que pasa adentro (notebooks, clústeres, tablas) se trabaja en el workspace, al que entras con Launch Workspace.</p>
+</div>
+
+
 <h2>Paso 1 — Portal y workspace: dos lugares distintos</h2>
 <div class="table-wrap"><table><thead><tr>
 <th>Dónde</th>
@@ -101,6 +107,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Qué cuesta en Databricks</div>
 
 <p>El workspace en sí no cobra. Cobran las <strong>máquinas virtuales</strong> de los clústeres (en tu suscripción, dentro del grupo administrado) y los <strong>DBU</strong> (la unidad de Databricks) mientras están encendidos. Un clúster olvidado encendido todo el fin de semana es el clásico susto en la factura: configura siempre el <strong>apagado automático</strong> (<em>auto termination</em>).</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Buscar notebooks en el portal de Azure.</strong> Están en el workspace de Databricks.</li>
+<li><strong>Intentar borrar el grupo administrado <code>databricks-rg-…</code>.</strong> Tiene una deny assignment; se borra al borrar el workspace.</li>
+<li><strong>Clústeres sin apagado automático.</strong> Cobran máquinas y DBU mientras están encendidos.</li>
+</ul>
 </div>
 
 

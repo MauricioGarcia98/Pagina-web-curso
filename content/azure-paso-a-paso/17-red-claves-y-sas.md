@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué hace un private endpoint? | ¿Sabes por qué hay do
 Lucía: *"Un proveedor de logística necesita descargar hoy los archivos de pedidos para una auditoría. No tiene cuenta en nuestro Entra. Dale acceso de solo lectura que se venza solo, y aprovechemos para revisar cómo está expuesta la cuenta."*
 :::
 
+:::analogia Quién eres, desde dónde vienes y qué llave traes
+Para leer un dato, Azure pregunta tres cosas: quién eres (identidad y rol), desde dónde vienes (la red) y con qué llave (Entra, clave de la cuenta o una SAS). Si cualquiera de las tres falla, no entras.
+:::
+
 ## Paso 1 — Las tres preguntas del acceso
 
 ```text
@@ -106,6 +110,12 @@ Una SAS de cuenta está **firmada con una clave**. No se puede "borrar": sirve h
 | **SAS de cuenta** | Limitado y con vencimiento | Solo rotando la clave | Pobre | Casos puntuales, muy corta |
 | **Clave de la cuenta** | Total | Rotándola | Ninguna por persona | Evitar |
 
+:::errores
+- **Pensar que el rol alcanza.** Si la red no permite tu conexión, el rol no sirve.
+- **SAS con todos los permisos y sin vencimiento.** Da lo justo (Read y List) y por el tiempo necesario.
+- **Rotar las dos claves a la vez.** Las aplicaciones se cortan; rota una, cambia las aplicaciones y después la otra.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes configurar el acceso de red y qué es un private endpoint.
@@ -117,7 +127,7 @@ Un usuario tiene Storage Blob Data Reader pero la cuenta tiene el acceso públic
 - [ ] Sí, el rol alcanza
 - [x] No, la red también tiene que permitir su conexión
 - [ ] Sí, si usa la clave
-- [ ] Depende del navegador
+- [ ] Sí, si entra por el portal
 :::
 
 :::ejercicio quiz
@@ -125,7 +135,7 @@ Un usuario tiene Storage Blob Data Reader pero la cuenta tiene el acceso públic
 - [ ] Una para leer y otra para escribir
 - [x] Para rotar una mientras las aplicaciones usan la otra, sin cortar el servicio
 - [ ] Una para cada región
-- [ ] Por si se olvida una
+- [ ] Una para el portal y otra para la CLI
 :::
 
 :::ejercicio quiz
@@ -141,5 +151,5 @@ Compartiste una SAS de cuenta por error con alguien que no debía tenerla. ¿Có
 - [ ] Borrándola desde el portal
 - [x] Rotando la clave con la que se firmó
 - [ ] Cambiando la red a "all networks"
-- [ ] No se puede, hay que esperar
+- [ ] Desactivando la cuenta de la persona en Entra ID
 :::

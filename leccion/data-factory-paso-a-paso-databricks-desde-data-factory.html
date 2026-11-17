@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Databricks desde Data Factory - copiar y después limpiar</h1><p class="resumen">Data Factory copia; Databricks transforma. Conectas el factory con el workspace de Databricks, agregas una actividad Notebook después de la copia que recibe la fecha como parámetro, ejecutas el pipeline completo y lees en la salida lo que devolvió el notebook. También ves cómo se elige el clúster y por qué conviene un job cluster.</p>
 <a class="cta" href="../index.html#/l/data-factory-paso-a-paso-databricks-desde-data-factory">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un linked service a Azure Databricks</li><li>Agregar una actividad Notebook a un pipeline</li><li>Pasar parámetros al notebook con base parameters</li><li>Leer el runOutput que devuelve dbutils.notebook.exit</li><li>Elegir entre job cluster, clúster existente y serverless</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El transportista y la cocina</div>
+
+<p>Data Factory es el transportista que trae los ingredientes; Databricks es la cocina que los transforma. La actividad Notebook le pasa la orden (los parámetros, como la fecha) y la cocina devuelve una nota con el resultado (runOutput).</p>
+</div>
+
+
 <h2>Paso 1 — El notebook</h2>
 <p>En el <a href="#/databricks">Databricks de práctica</a> está el notebook <code>limpiar_ventas</code>:</p>
 <figure class="captura"><img src="assets/img/guias/adf/b19-notebook.webp" alt="El notebook - recibe la fecha como widget y termina con dbutils.notebook.exit" loading="lazy"><figcaption>El notebook - recibe la fecha como widget y termina con dbutils.notebook.exit</figcaption></figure>
@@ -96,6 +102,16 @@ dbutils.notebook.exit(f&quot;{filas_limpias} filas limpias del {fecha}&quot;)</c
 <div class="callout callout-tip"><div class="callout-title">💡 Data Factory o Databricks Jobs</div>
 
 <p>Databricks tiene su propio orquestador (<strong>Jobs / Lakeflow Jobs</strong>). Muchos equipos usan Data Factory para <strong>traer</strong> los datos de sistemas externos y Databricks Jobs para lo que pasa <strong>dentro</strong> del lago. Llamar notebooks desde Data Factory tiene sentido cuando el flujo mezcla las dos cosas y quieres un solo lugar para orquestar y monitorear.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Clúster interactivo siempre encendido para producción.</strong> Un job cluster se crea para la ejecución y se apaga al terminar.</li>
+<li><strong>Leer el parámetro como variable de entorno.</strong> Llega como widget: <code>dbutils.widgets.get(&quot;fecha&quot;)</code>.</li>
+<li><strong>Buscar el error del notebook en Data Factory.</strong> El runPageUrl lleva a la ejecución en Databricks, donde está el detalle.</li>
+</ul>
 </div>
 
 

@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes por qué un trigger recién creado no dispara? | ¿Sabes
 Lucía: *"Las tiendas dejan los archivos hasta las 5:30. Que la ingesta corra sola todos los días a las 6:00."*
 :::
 
+:::analogia Despertador, timbre y calendario por turnos
+Un trigger Schedule es un despertador: suena a la hora fijada. Uno de eventos de almacenamiento es un timbre: suena cuando llega un archivo. Un tumbling window es un calendario de turnos: cada ventana de tiempo tiene su corrida y se puede volver a procesar.
+:::
+
 ## Paso 1 — Crear el trigger
 
 En `pl_ingesta_diaria`, **Add trigger → New/Edit**:
@@ -76,6 +80,12 @@ Si los archivos llegan a una hora predecible, **Schedule** es simple y fácil de
 
 En **Manage → Triggers**, el botón **Started** lo pasa a **Stopped**. Igual que al crearlo, **hay que publicar** para que el servicio deje de dispararlo. Lo practicas en el proyecto de este nivel.
 
+:::errores
+- **Crear el trigger y no publicarlo.** Un trigger sin publicar no existe para el servicio.
+- **Dejar la zona horaria en UTC.** Las 6:00 UTC son las 3:00 en Buenos Aires.
+- **Schedule cada 5 minutos para archivos que llegan a cualquier hora.** Un trigger de eventos corre solo cuando llega el archivo.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un trigger diario y lo publicaste.
@@ -86,7 +96,7 @@ En **Manage → Triggers**, el botón **Started** lo pasa a **Stopped**. Igual q
 Creaste y activaste un trigger ayer y no corrió nunca. ¿Qué es lo más probable?
 - [ ] El pipeline tiene un error
 - [x] No se publicó el trigger
-- [ ] Los triggers solo corren los lunes
+- [ ] El trigger necesita que lo ejecutes una vez a mano
 - [ ] Falta un rol
 :::
 
@@ -95,7 +105,7 @@ Los archivos llegan a cualquier hora y hay que procesarlos apenas llegan. ¿Qué
 - [ ] Schedule cada día
 - [x] Storage events
 - [ ] Trigger now
-- [ ] Ninguno
+- [ ] Tumbling window de 1 minuto
 :::
 
 :::ejercicio quiz
@@ -103,7 +113,7 @@ Necesitas procesar por horas y poder reprocesar ventanas pasadas. ¿Qué tipo co
 - [ ] Schedule
 - [x] Tumbling window
 - [ ] Storage events
-- [ ] Custom events
+- [ ] Schedule con catchup
 :::
 
 :::ejercicio quiz

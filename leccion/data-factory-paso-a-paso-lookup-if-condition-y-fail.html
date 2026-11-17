@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Mirar la lista y decidir</div>
+
+<p>Lookup lee una tabla de control (la lista de tareas), If Condition decide qué camino tomar según lo que encontró, y Fail termina el día con un mensaje claro (&quot;no llegó el archivo de hoy&quot;) en lugar de un error técnico.</p>
+</div>
+
+
 <h2>Paso 1 — Lookup: leer una configuración</h2>
 <p>En <code>config/tablas_a_copiar.csv</code> hay una tabla de control. Crea el dataset <code>ds_config_tablas</code> (contenedor <code>config</code>, archivo <code>tablas_a_copiar.csv</code>) y mira la vista previa:</p>
 <figure class="captura"><img src="assets/img/guias/adf/b17-config.webp" alt="La tabla de control - qué fuente, con qué patrón y si está activa" loading="lazy"><figcaption>La tabla de control - qué fuente, con qué patrón y si está activa</figcaption></figure>
@@ -90,6 +96,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-tip"><div class="callout-title">💡 ¿Por qué fallar a propósito?</div>
 
 <p>Un pipeline que &quot;termina bien&quot; sin haber copiado nada es peor que uno que falla: nadie se entera y el informe del día sale vacío. <strong>Fail</strong> convierte una situación de negocio (&quot;no llegó el archivo&quot;) en un error visible, con un mensaje que la guardia entiende sin abrir el pipeline, y que dispara las alertas de la lección 11.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>First row only marcado para recorrer filas.</strong> Devuelve una sola fila; desmárcalo y usa <code>output.value</code>.</li>
+<li><strong>Expresiones de If que no devuelven booleano.</strong> Tienen que dar true o false.</li>
+<li><strong>Lookup sobre tablas enormes.</strong> Devuelve como máximo 5000 filas; para más, pagina o usa otro enfoque.</li>
+</ul>
 </div>
 
 

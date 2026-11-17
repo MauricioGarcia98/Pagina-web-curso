@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes por qué el nombre de una cuenta tiene que ser único en
 Lucía: *"Necesitamos dónde guardar los archivos que llegan de las tiendas y de la web. Crea la cuenta `sttiendaandinadev` como data lake (ADLS Gen2), barata, en East US 2. Es dev: no hace falta copia en otra región."*
 :::
 
+:::analogia Un depósito con dirección web propia
+Una cuenta de almacenamiento es un depósito con su propia dirección en internet (`nombre.blob.core.windows.net`); por eso su nombre tiene que ser único en todo Azure. Con el espacio de nombres jerárquico, el depósito pasa a tener estanterías y carpetas de verdad: un data lake.
+:::
+
 ## Paso 1 — Qué es una cuenta de almacenamiento
 
 Una **cuenta de almacenamiento** (*storage account*) agrupa cuatro servicios de datos:
@@ -170,6 +174,12 @@ texto: La cuenta sttiendaandinadev - Essentials (1), propiedades del servicio Bl
 
 Revisa que diga **Hierarchical namespace: Enabled** y **Replication: Locally-redundant storage (LRS)**. Más abajo están los **Endpoints**: la dirección `blob` y la dirección `dfs` de Data Lake. El menú de la izquierda tiene todo lo que harás en el nivel 2: **Containers**, **Storage browser**, **Access keys**, **Data protection**, **Lifecycle management**.
 
+:::errores
+- **Olvidar el espacio de nombres jerárquico.** Sin él no hay carpetas reales ni permisos por carpeta, y no se puede activar después con un clic.
+- **Elegir la redundancia más cara "por las dudas".** En dev, LRS alcanza; GZRS o RA-GRS se justifican en producción.
+- **Nombres con guiones o mayúsculas.** Solo minúsculas y números, de 3 a 24 caracteres.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste `sttiendaandinadev` como ADLS Gen2 con Standard y LRS.
@@ -180,7 +190,7 @@ Revisa que diga **Hierarchical namespace: Enabled** y **Replication: Locally-red
 ¿Por qué falla el nombre `datos` para una cuenta de almacenamiento?
 - [ ] Porque es muy corto
 - [x] Porque el nombre es parte de una dirección web y tiene que ser único en todo Azure
-- [ ] Porque no tiene números
+- [ ] Porque las cuentas solo admiten nombres en inglés
 - [ ] Porque falta el prefijo `st`
 :::
 
@@ -189,7 +199,7 @@ Es un entorno de desarrollo y los datos se pueden volver a cargar. ¿Qué redund
 - [x] LRS: tres copias en un datacenter, la más barata
 - [ ] GZRS: es la más segura
 - [ ] RA-GRS: siempre hay que poder leer la copia
-- [ ] Ninguna: Azure no copia nada
+- [ ] ZRS: la única que admite datos de desarrollo
 :::
 
 :::ejercicio quiz

@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 La tarjeta y las carpetas</div>
+
+<p>La suscripción es la tarjeta con la que se paga; los grupos de recursos son carpetas dentro de ella. Lo que pongas en una carpeta se permisa, se etiqueta y se borra junto. Por eso conviene una carpeta por proyecto y entorno.</p>
+</div>
+
+
 <h2>Paso 1 — La jerarquía de Azure</h2>
 <pre><code class="language-text">Tenant (Microsoft Entra ID: la organización y sus usuarios)
  └── Suscripción (quién paga y un límite de acceso)
@@ -148,6 +154,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Borrar un grupo borra todo lo que tiene</div>
 
 <p><strong>Delete resource group</strong> borra el grupo <strong>y todos sus recursos</strong>, sin papelera. Por eso los grupos se arman por ciclo de vida: lo que se crea y se borra junto va en el mismo grupo. Un grupo para &quot;pruebas de hoy&quot; se borra al terminar y no deja nada cobrando.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Mezclar dev y prod en el mismo grupo.</strong> Al borrar o permisar el grupo, afectas a los dos.</li>
+<li><strong>Borrar un grupo &quot;para limpiar&quot;.</strong> Se borran todos sus recursos, sin papelera para la mayoría.</li>
+<li><strong>Creer que las etiquetas dan permisos.</strong> Sirven para filtrar y repartir costos, no para controlar acceso.</li>
+</ul>
 </div>
 
 

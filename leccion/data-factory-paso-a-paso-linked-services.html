@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Linked services - las conexiones, con la identidad del factory</h1><p class="resumen">Un linked service es la conexión que usan los datasets y las actividades. Creas la conexión al lago con la identidad administrada del factory, ves fallar el Test connection por falta de permiso, asignas el rol justo en el portal y vuelves a probar con éxito; después agregas la conexión a Key Vault y lees el JSON de un linked service para comprobar que no guarda ningún secreto.</p>
 <a class="cta" href="../index.html#/l/data-factory-paso-a-paso-linked-services">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un linked service a ADLS Gen2 con identidad administrada</li><li>Interpretar un error AuthorizationPermissionMismatch</li><li>Asignar el rol de datos correcto al factory</li><li>Crear un linked service a Key Vault</li><li>Leer la definición JSON de una conexión</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La agenda de contactos con la llave</div>
+
+<p>Un linked service es una ficha de la agenda: dice a dónde llamar (la cuenta, la base, el workspace) y con qué llave entrar. Con identidad administrada, la llave es el propio factory: no hay contraseña que guardar ni que se filtre, pero alguien tiene que darle permiso en la puerta (un rol).</p>
+</div>
+
+
 <h2>Paso 1 — Qué es un linked service</h2>
 <p>Un <strong>linked service</strong> es como una cadena de conexión con nombre: dice <strong>a dónde</strong> conectarse (la cuenta, el servidor, el workspace) y <strong>con qué credencial</strong>. Se crea una vez y lo reutilizan todos los datasets y actividades.</p>
 <p>Ve a <strong>Manage → Linked services</strong>:</p>
@@ -114,6 +120,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Bases que no admiten Entra</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Ser Owner y creer que alcanza.</strong> Tu permiso no cuenta: la identidad del factory necesita su propio rol de datos sobre la cuenta.</li>
+<li><strong>Dar Contributor para leer datos.</strong> Contributor administra el recurso pero no lee los blobs; el rol correcto es Storage Blob Data Reader o Contributor.</li>
+<li><strong>Usar la Account key &quot;porque funciona&quot;.</strong> Es una llave maestra que hay que guardar y rotar; con identidad administrada no hay secreto.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Creaste la conexión al lago con identidad administrada.</li>

@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué se hereda de un grupo de recursos a sus recursos? |
 Entras al equipo de datos de **Tienda Andina**, una cadena de tiendas con venta web y por app. Lucía, la líder del equipo, te pide: *"Armemos el entorno de desarrollo en Azure. Empieza por el grupo de recursos `rg-tiendaandina-dev` en East US 2, con las etiquetas del proyecto."* En este nivel lo construyes de a poco.
 :::
 
+:::analogia La tarjeta y las carpetas
+La suscripción es la tarjeta con la que se paga; los grupos de recursos son carpetas dentro de ella. Lo que pongas en una carpeta se permisa, se etiqueta y se borra junto. Por eso conviene una carpeta por proyecto y entorno.
+:::
+
 ## Paso 1 — La jerarquía de Azure
 
 ```text
@@ -148,6 +152,12 @@ El grupo está vacío. En la lección siguiente le agregas la cuenta de almacena
 **Delete resource group** borra el grupo **y todos sus recursos**, sin papelera. Por eso los grupos se arman por ciclo de vida: lo que se crea y se borra junto va en el mismo grupo. Un grupo para "pruebas de hoy" se borra al terminar y no deja nada cobrando.
 :::
 
+:::errores
+- **Mezclar dev y prod en el mismo grupo.** Al borrar o permisar el grupo, afectas a los dos.
+- **Borrar un grupo "para limpiar".** Se borran todos sus recursos, sin papelera para la mayoría.
+- **Creer que las etiquetas dan permisos.** Sirven para filtrar y repartir costos, no para controlar acceso.
+:::
+
 ## ✅ Lo que lograste
 
 - Entiendes la jerarquía tenant → suscripción → grupo → recurso y qué se hereda.
@@ -167,7 +177,7 @@ Te dan el rol Reader en el grupo `rg-tiendaandina-dev`. ¿Sobre qué lo tienes?
 - [ ] `rg tienda andina`
 - [ ] `rg-tiendaandina.`
 - [x] `rg-tiendaandina-dev`
-- [ ] Cualquiera, Azure lo corrige solo
+- [ ] `rg_tienda andina`
 :::
 
 :::ejercicio quiz
@@ -183,5 +193,5 @@ Te dan el rol Reader en el grupo `rg-tiendaandina-dev`. ¿Sobre qué lo tienes?
 - [ ] Solo se borra el grupo y los recursos pasan a otro
 - [x] Se borran el grupo y todos sus recursos
 - [ ] Nada, hay que borrar cada recurso antes
-- [ ] Se archiva por 30 días
+- [ ] Se borra el grupo y los recursos quedan sin grupo
 :::

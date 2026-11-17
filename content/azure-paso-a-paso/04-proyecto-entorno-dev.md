@@ -81,6 +81,12 @@ Con lo que viste, completa el inventario:
 La cuenta no tiene la etiqueta `owner`. Las etiquetas del grupo **no se copian solas** a los recursos de adentro: cada recurso tiene las suyas. Agrégala en la cuenta desde el menú **Tags** (`owner = equipo-datos`) y pulsa **Apply**. En Azure real, una **Azure Policy** puede heredar o exigir etiquetas automáticamente.
 </details>
 
+:::errores
+- **Buscar recurso por recurso.** All resources con filtros por tipo y grupo encuentra en segundos.
+- **Suponer que las etiquetas del grupo se heredan.** No se copian solas a los recursos; se aplican por plantilla o con Azure Policy.
+- **Usar el nombre en vez del id.** La CLI, las plantillas y los permisos usan el id completo del recurso.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] `rg-tiendaandina-dev` existe en East US 2 con las tres etiquetas.
@@ -101,8 +107,8 @@ En el nivel 2 llenas el data lake: contenedores, archivos y las capas bronze, si
 Tienes 300 recursos y buscas las cuentas de almacenamiento de un grupo. ¿Qué haces?
 - [ ] Abro cada recurso hasta encontrarlas
 - [x] En All resources filtro por Type = Storage account y por Resource group
-- [ ] Le pregunto a Microsoft
-- [ ] Creo una nueva
+- [ ] Uso el Activity log filtrado por tipo de recurso
+- [ ] Busco en Cost Management por nombre
 :::
 
 :::ejercicio quiz

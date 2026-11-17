@@ -96,6 +96,12 @@ texto: Los grupos de la suscripción - dev, el administrado de Databricks y prod
 
 </details>
 
+:::errores
+- **Elegir la redundancia de prod a mano.** Si la decide la plantilla según el entorno, no hay olvidos.
+- **Read-only en prod.** Traba los despliegues normales; Delete alcanza.
+- **Dar Owner o Contributor a los analistas.** Para mirar sin cambiar, Reader al grupo.
+:::
+
 ## ✅ Lista de verificación final
 
 - [ ] `rg-tiendaandina-prod` y sus recursos salieron de un único despliegue de plantilla.
@@ -120,7 +126,7 @@ texto: Los grupos de la suscripción - dev, el administrado de Databricks y prod
 - [ ] Porque Azure usa ZRS por defecto en prod
 - [x] Porque la plantilla usa `if(equals(parameters('entorno'), 'prod'), 'Standard_ZRS', 'Standard_LRS')`
 - [ ] Porque la región lo exige
-- [ ] Porque el grupo se llama prod
+- [ ] Porque las cuentas creadas por plantilla son siempre ZRS
 :::
 
 :::ejercicio quiz
@@ -141,7 +147,7 @@ Los analistas tienen que ver qué hay en prod sin cambiar nada. ¿Qué asignas?
 
 :::ejercicio quiz
 ¿Cuál de estos es un pendiente legítimo para el informe?
-- [ ] "Todo está perfecto"
+- [ ] Pasar la cuenta de prod a acceso público para simplificar
 - [x] Desplegar la plantilla desde un pipeline de CI/CD con aprobación en lugar de a mano
 - [ ] Borrar el bloqueo para trabajar más rápido
 - [ ] Dar Owner a todos los ingenieros

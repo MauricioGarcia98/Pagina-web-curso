@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Validate, Debug y los errores - leer un fallo y arreglarlo</h1><p class="resumen">Los pipelines fallan, y saber leer el error es la mitad del trabajo. Provocas un error de validación (una copia sin destino), un fallo en ejecución (un archivo que no llegó), lees el código y el mensaje del error, configuras reintentos para fallos pasajeros y encuentras todas tus pruebas en la pestaña Debug de Monitor.</p>
 <a class="cta" href="../index.html#/l/data-factory-paso-a-paso-validate-debug-y-errores">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Distinguir errores de validación y errores de ejecución</li><li>Leer el código, el tipo y el mensaje de un error</li><li>Configurar reintentos y saber cuándo sirven</li><li>Encontrar las ejecuciones de Debug en Monitor</li><li>Seguir un método para diagnosticar fallos</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Revisar el formulario antes de enviarlo</div>
+
+<p>Validate es revisar el formulario antes de enviarlo: detecta campos vacíos (una copia sin destino). Lo que no puede saber es si la oficina de destino está abierta (si el archivo llegó o si hay permisos): eso solo se ve al ejecutar.</p>
+</div>
+
+
 <h2>Paso 1 — Un error de validación</h2>
 <p>En la copia de <code>pl_copiar_ventas</code>, pestaña <strong>Sink</strong>, deja el dataset vacío y haz <strong>Validate</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/adf/b07-validacion-error.webp" alt="Pipeline validation output - &quot;Found 1 error&quot; con la actividad, el tipo y el mensaje" loading="lazy"><figcaption>Pipeline validation output - &quot;Found 1 error&quot; con la actividad, el tipo y el mensaje</figcaption></figure>
@@ -101,6 +107,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p>Monitor separa las ejecuciones <strong>Triggered</strong> (las de verdad) de las <strong>Debug</strong> (tus pruebas), para que una prueba fallida no se confunda con un incidente de producción.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Reintentos para errores de configuración.</strong> Un rol faltante o un archivo inexistente fallan igual en cada intento.</li>
+<li><strong>Leer solo el código de error.</strong> El mensaje completo suele decir qué ruta o qué permiso faltó.</li>
+<li><strong>Creer que Validate garantiza que funcione.</strong> Valida la estructura, no los datos ni los permisos.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Distingues errores de validación y de ejecución.</li>

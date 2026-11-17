@@ -8,6 +8,10 @@ prerrequisitos: azure-paso-a-paso-costos-y-presupuestos
 autoevaluacion: ¿Sabes qué hacer apenas abres una cuenta nueva? | ¿Sabes para qué sirve Azure Policy? | ¿Sabes exportar lo que creaste a Bicep? | ¿Sabes qué certificación corresponde a tu rol?
 ---
 
+:::analogia Del simulador al avión
+Grupos, cuentas, contenedores, roles, Key Vault y plantillas funcionan igual en un Azure de verdad. Lo que cambia es que cada recurso cuesta dinero real y que en una empresa hay políticas que impiden crear cosas inseguras.
+:::
+
 ## Paso 1 — Una cuenta propia sin sorpresas
 
 | Opción | Qué incluye | Para |
@@ -105,6 +109,12 @@ texto: El portal con el tema oscuro
 | Ver la teoría de Azure y la CLI | [Azure y Azure CLI](#/m/azure) |
 | Certificarte | [Certificaciones Azure](#/m/cert-azure): **DP-700** (Fabric Data Engineer) para ingeniería de datos; **AZ-900** como introducción general |
 
+:::errores
+- **Crear recursos antes de poner un presupuesto.** Configura alertas el primer día.
+- **Compartir IDs de suscripción o tenant en foros.** Difumínalos en capturas.
+- **Reescribir de cero lo que se creó a mano.** Export template da una base para pasarlo a código.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes abrir una cuenta propia y protegerte de costos inesperados.
@@ -115,7 +125,7 @@ texto: El portal con el tema oscuro
 Abriste una cuenta gratis. ¿Qué haces antes de crear el primer recurso?
 - [ ] Crear un clúster grande para probar
 - [x] Un presupuesto chico con alertas
-- [ ] Desactivar las notificaciones
+- [ ] Pedir un aumento de cuota de CPU
 - [ ] Compartir el ID de la suscripción en un foro
 :::
 
@@ -132,7 +142,7 @@ Abriste una cuenta gratis. ¿Qué haces antes de crear el primer recurso?
 - [ ] Porque Azure lo exige
 - [x] Para separar costos, límites y permisos
 - [ ] Porque es más barato
-- [ ] Para usar regiones distintas
+- [ ] Porque una suscripción no puede tener más de un grupo
 :::
 
 :::ejercicio quiz

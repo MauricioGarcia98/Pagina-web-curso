@@ -8,6 +8,10 @@ prerrequisitos: data-factory-paso-a-paso-variables-y-set-variable
 autoevaluacion: ¿Sabes qué devuelve childItems? | ¿Sabes qué expresión va en Items? | ¿Sabes cómo se llama cada elemento dentro del bucle? | ¿Sabes qué pasa si un ForEach contiene otro?
 ---
 
+:::analogia Listar los sobres y abrir cada uno
+Get Metadata hace la lista de los sobres que hay en la carpeta; ForEach abre cada sobre y hace lo mismo con cada uno. Dentro del bucle, `@item()` es el sobre de esta vuelta.
+:::
+
 ## Paso 1 — El patrón "listar y recorrer"
 
 ```text
@@ -98,6 +102,12 @@ texto: childItems - los cuatro archivos con su nombre y tipo
 - En la práctica, las vueltas corren en orden aunque elijas paralelo; en Data Factory real corren a la vez.
 :::
 
+:::errores
+- **Pedir `itemName` en lugar de `childItems`.** La lista de archivos de una carpeta está en `childItems`.
+- **ForEach dentro de ForEach.** No se permite; el bucle interno va en otro pipeline con Execute Pipeline.
+- **Usar una variable para el archivo en un ForEach paralelo.** Las vueltas se pisan la variable; usa `@item().name`.
+:::
+
 ## ✅ Lo que lograste
 
 - Listaste una carpeta con Get Metadata.
@@ -132,6 +142,6 @@ Dentro del bucle, ¿cómo obtienes el nombre del archivo de esta vuelta?
 Necesitas recorrer carpetas y, dentro de cada una, sus archivos. ¿Cómo?
 - [ ] Un ForEach dentro de otro
 - [x] Un ForEach que llama con Execute Pipeline a otro pipeline con el segundo ForEach
-- [ ] No se puede
-- [ ] Con un trigger
+- [ ] Con un Until que recorre las carpetas
+- [ ] Con un Lookup que devuelve las carpetas y los archivos
 :::

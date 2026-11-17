@@ -76,6 +76,12 @@ Arma una tabla como esta, con tus propios hallazgos:
 
 </details>
 
+:::errores
+- **Dar acceso de lectura a todo el lago a los analistas.** Solo necesitan gold.
+- **Patrones con usuarios personales o claves.** Los procesos usan identidades administradas con roles de datos.
+- **No mirar Deployments.** Ahí se ve qué se creó, en qué orden y qué falló.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] Tu inventario nombra los 5 servicios y para qué sirve cada uno.
@@ -121,5 +127,5 @@ Los analistas solo deberían ver datos listos para el negocio. ¿Qué ajuste pro
 - [ ] Porque el portal es inseguro
 - [x] Porque no se puede repetir exactamente igual en otro entorno
 - [ ] Porque cuesta más
-- [ ] No es un hallazgo
+- [ ] Porque el portal no registra lo que se crea
 :::

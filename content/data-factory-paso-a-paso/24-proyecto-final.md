@@ -86,6 +86,12 @@ texto: La ejecución completa (1) - el camino de error Skipped y la limpieza en 
 
 </details>
 
+:::errores
+- **Calcular el nombre del archivo en cada actividad.** Si una cambia, quedan distintos; una variable lo fija para todas.
+- **Usar `utcNow()` en prod.** Un reproceso o un retraso cambia la fecha; usa `@trigger().scheduledTime`.
+- **Desactivar alertas porque molestan.** Ajusta su ruido, pero que las fallas avisen.
+:::
+
 ## ✅ Lista de verificación final
 
 - [ ] El pipeline tiene el parámetro `fecha` y la variable `archivo`.
@@ -110,7 +116,7 @@ texto: La ejecución completa (1) - el camino de error Skipped y la limpieza en 
 ¿Por qué el nombre del archivo se calcula en una variable y no en cada actividad?
 - [ ] Porque Data Factory lo exige
 - [x] Para que todas las actividades usen exactamente el mismo valor y se pueda ver en la salida
-- [ ] Porque es más barato
+- [ ] Porque los parámetros no se pueden usar en una copia
 - [ ] Porque las variables son más rápidas
 :::
 
@@ -127,7 +133,7 @@ En prod, ¿de dónde conviene tomar la fecha a procesar?
 - [ ] Del valor por defecto del parámetro
 - [x] De la hora programada del trigger, por ejemplo `@trigger().scheduledTime`
 - [ ] De la hora en que alguien abre Monitor
-- [ ] De un archivo de texto
+- [ ] De utcNow(), que siempre coincide con la fecha del trigger
 :::
 
 :::ejercicio quiz

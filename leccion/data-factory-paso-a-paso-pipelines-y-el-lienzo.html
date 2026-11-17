@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Pipelines y el lienzo - actividades, dependencias y el JSON</h1><p class="resumen">Cómo se trabaja en el editor de pipelines - buscar y agregar actividades, encadenarlas con dependencias, configurar cada una en sus pestañas, leer el pipeline completo como JSON y borrar lo que sobra. Agregas una espera después de la copia para ver cómo nace una dependencia y qué significa cada color de flecha.</p>
 <a class="cta" href="../index.html#/l/data-factory-paso-a-paso-pipelines-y-el-lienzo">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Buscar y agregar actividades al lienzo</li><li>Encadenar actividades con Depends on</li><li>Distinguir Upon Success, Failure, Completion y Skip</li><li>Leer el JSON de un pipeline</li><li>Borrar una actividad sin romper el pipeline</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Fichas de dominó con flechas de colores</div>
+
+<p>El lienzo es una mesa de fichas de dominó unidas con flechas de colores: la verde (Upon Success) solo sigue si la anterior salió bien, la roja (Upon Failure) solo si falló, la azul (Upon Completion) siempre. El color de la flecha decide el camino.</p>
+</div>
+
+
 <h2>Paso 1 — El panel de actividades</h2>
 <p>Abre <code>pl_copiar_ventas</code>. A la izquierda están las actividades, agrupadas. Escribe <code>wa</code> en <strong>Search activities</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/adf/b05-buscar-actividad.webp" alt="La búsqueda (1) filtra el panel de actividades (2)" loading="lazy"><figcaption>La búsqueda (1) filtra el panel de actividades (2)</figcaption></figure>
@@ -101,6 +107,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p>Al borrar una actividad, las dependencias que apuntaban a ella también se borran.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Conectar con Upon Success algo que debe correr siempre.</strong> Una limpieza o un registro final va con Upon Completion.</li>
+<li><strong>Suponer que hay reintentos.</strong> Por defecto una actividad tiene 0 reintentos; configúralos en las que fallan por causas pasajeras.</li>
+<li><strong>Actividades sueltas sin dependencia.</strong> Corren en paralelo con todo lo demás, no después.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Buscas, agregas y encadenas actividades.</li>

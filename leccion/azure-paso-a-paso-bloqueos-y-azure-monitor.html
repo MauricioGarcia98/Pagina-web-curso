@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Bloqueos y Azure Monitor - que nada se borre por error y enterarte cuando algo falla</h1><p class="resumen">Un bloqueo impide borrar o cambiar recursos aunque tengas permiso de Owner, y Azure Monitor avisa cuando algo pasa. Pones un bloqueo CanNotDelete en el grupo dev y compruebas que un borrado falla, lees métricas de la cuenta, creas un grupo de acciones para la guardia y dos reglas de alerta - pipelines fallidos en Data Factory y capacidad del lago - y ves una alerta dispararse.</p>
 <a class="cta" href="../index.html#/l/azure-paso-a-paso-bloqueos-y-azure-monitor">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un bloqueo Delete o Read-only y entender su herencia</li><li>Comprobar que un bloqueo impide un borrado</li><li>Leer métricas con distintas agregaciones</li><li>Crear un grupo de acciones</li><li>Crear reglas de alerta con umbral y severidad, y leer las alertas disparadas</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un candado aunque tengas la llave</div>
+
+<p>Un bloqueo es un candado puesto sobre el recurso: aunque tengas permiso de Owner, primero hay que sacar el candado para borrar. Azure Monitor es la alarma: mira una métrica y avisa cuando se pasa de un umbral.</p>
+</div>
+
+
 <h2>Paso 1 — Los bloqueos</h2>
 <p>En <code>rg-tiendaandina-dev</code>, menú <strong>Locks → + Add</strong>:</p>
 <ol>
@@ -139,6 +145,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-tip"><div class="callout-title">💡 Severidades</div>
 
 <p><strong>Sev 0</strong> crítico, <strong>Sev 1</strong> error, <strong>Sev 2</strong> advertencia, <strong>Sev 3</strong> informativo, <strong>Sev 4</strong> detallado. Un buen sistema de alertas tiene pocas Sev 0 y 1, y cada una significa &quot;alguien tiene que hacer algo ahora&quot;. Si las alertas suenan todo el día, la guardia deja de mirarlas.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Read-only en producción.</strong> Impide también los cambios normales por plantilla; Delete (CanNotDelete) protege sin trabar.</li>
+<li><strong>Creer que el bloqueo del grupo no protege los recursos.</strong> Se hereda a todo lo que contiene.</li>
+<li><strong>Una alerta con sus propios destinatarios cada vez.</strong> Un grupo de acciones se define una vez y se reutiliza.</li>
+</ul>
 </div>
 
 

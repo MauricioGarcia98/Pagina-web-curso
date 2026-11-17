@@ -23,6 +23,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 Leer la factura como un detective</div>
+
+<p>El costo total no dice mucho: hay que abrirlo por servicio, por recurso y por etiqueta para encontrar qué creció. Después se elige la palanca: apagar lo que no se usa, achicar lo sobredimensionado o comprometer uso estable con reservas.</p>
+</div>
+
+
 <h2>Paso 1 — La foto actual</h2>
 <p>Abre <strong>Cost Management</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/azure/b22-costos.webp" alt="El costo por servicio (1) y por recurso (2) de toda la plataforma dev" loading="lazy"><figcaption>El costo por servicio (1) y por recurso (2) de toda la plataforma dev</figcaption></figure>
@@ -131,6 +137,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-tip"><div class="callout-title">💡 La revisión mensual de 15 minutos</div>
 
 <p>Una vez por mes: abrir Cost Management agrupado por <strong>etiqueta <code>owner</code></strong>, mirar los cinco recursos más caros, preguntar a cada dueño si sigue haciendo falta, y borrar lo huérfano. Es la práctica de FinOps que más dinero ahorra.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Mirar solo el total.</strong> Ábrelo por servicio y recurso para encontrar qué creció.</li>
+<li><strong>Reservas para cargas variables.</strong> Convienen con uso estable 24/7; si se apaga, se paga igual.</li>
+<li><strong>Comparar meses con Actual cost después de una reserva.</strong> El pago anual aparece entero un mes; Amortized cost lo reparte.</li>
+</ul>
 </div>
 
 

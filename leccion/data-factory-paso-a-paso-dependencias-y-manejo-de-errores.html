@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Dependencias y manejo de errores - qué hacer cuando algo falla</h1><p class="resumen">Un pipeline de producción tiene un camino para cuando todo sale bien y otro para cuando algo falla. Agregas a pl_ingesta_diaria una ruta Upon Failure que avisa a la guardia y marca el pipeline como fallido, y una ruta Upon Success que registra el éxito; lo ejecutas con un día sin archivo y con un día con archivo, y entiendes la regla que decide si el pipeline termina en verde o en rojo.</p>
 <a class="cta" href="../index.html#/l/data-factory-paso-a-paso-dependencias-y-manejo-de-errores">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Usar Upon Failure para avisar o compensar</li><li>Combinar rutas de éxito y de error en un mismo pipeline</li><li>Entender cuándo un pipeline termina Succeeded o Failed</li><li>Mantener el estado Failed cuando hace falta</li><li>Leer Skipped en la salida</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un plan B escrito</div>
+
+<p>Un pipeline de producción tiene un plan B escrito: si la copia falla, avisa a la guardia. Pero si el plan B sale bien, el día puede terminar &quot;verde&quot; aunque algo falló; por eso el camino de error termina con una actividad Fail.</p>
+</div>
+
+
 <h2>Paso 1 — Las rutas</h2>
 <p>En <code>pl_ingesta_diaria</code>, selecciona la copia y agrega una <strong>Wait</strong> <code>Avisar a la guardia</code>. En <strong>Depends on</strong>, cambia la condición a <strong>Upon Failure</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/adf/b18-condicion.webp" alt="Avisar a la guardia depende de la copia con Upon Failure" loading="lazy"><figcaption>Avisar a la guardia depende de la copia con Upon Failure</figcaption></figure>
@@ -101,6 +107,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Depende de la limpieza y del resto</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Manejar el error y quedar en verde.</strong> Un Upon Failure exitoso puede dejar el pipeline Succeeded; agrega Fail al final del camino de error.</li>
+<li><strong>Limpieza con Upon Success.</strong> Si algo falla, los temporales quedan; la limpieza va con Upon Completion.</li>
+<li><strong>Avisos sin datos.</strong> El mensaje debe incluir pipeline, Run ID y actividad que falló.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Armaste rutas de éxito y de error.</li>

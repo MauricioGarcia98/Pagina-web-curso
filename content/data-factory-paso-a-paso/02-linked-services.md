@@ -8,6 +8,10 @@ prerrequisitos: data-factory-paso-a-paso-que-es-data-factory-y-el-studio
 autoevaluacion: ¿Sabes qué método de autenticación conviene para el lago? | ¿Sabes qué rol necesita el factory para escribir? | ¿Sabes para qué sirve probar la conexión antes de crear? | ¿Sabes por qué el JSON no tiene contraseña?
 ---
 
+:::analogia La agenda de contactos con la llave
+Un linked service es una ficha de la agenda: dice a dónde llamar (la cuenta, la base, el workspace) y con qué llave entrar. Con identidad administrada, la llave es el propio factory: no hay contraseña que guardar ni que se filtre, pero alguien tiene que darle permiso en la puerta (un rol).
+:::
+
 ## Paso 1 — Qué es un linked service
 
 Un **linked service** es como una cadena de conexión con nombre: dice **a dónde** conectarse (la cuenta, el servidor, el workspace) y **con qué credencial**. Se crea una vez y lo reutilizan todos los datasets y actividades.
@@ -115,6 +119,12 @@ Todo en Data Factory es **JSON**. Esta conexión solo tiene el tipo y la direcci
 | Service principal | Secreto en Key Vault | Para conectarse a otro tenant |
 | SQL auth (usuario y contraseña) | En Key Vault | Bases que no admiten Entra |
 
+:::errores
+- **Ser Owner y creer que alcanza.** Tu permiso no cuenta: la identidad del factory necesita su propio rol de datos sobre la cuenta.
+- **Dar Contributor para leer datos.** Contributor administra el recurso pero no lee los blobs; el rol correcto es Storage Blob Data Reader o Contributor.
+- **Usar la Account key "porque funciona".** Es una llave maestra que hay que guardar y rotar; con identidad administrada no hay secreto.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste la conexión al lago con identidad administrada.
@@ -123,7 +133,7 @@ Todo en Data Factory es **JSON**. Esta conexión solo tiene el tipo y la direcci
 
 :::ejercicio quiz
 El Test connection dice "AuthorizationPermissionMismatch". ¿Qué falta?
-- [ ] Reiniciar el factory
+- [ ] Esperar unos minutos a que se sincronice el linked service
 - [x] Un rol de datos para la identidad del factory sobre la cuenta
 - [ ] Que tú seas Owner de la cuenta
 - [ ] Cambiar a Account key
@@ -141,7 +151,7 @@ El factory tiene que leer de raw y escribir en bronze. ¿Qué rol le das?
 ¿Por qué conviene la identidad administrada para el lago?
 - [ ] Porque es más rápida
 - [x] Porque no hay ningún secreto que guardar, rotar o filtrar
-- [ ] Porque es la única que existe
+- [ ] Porque no hace falta asignarle ningún rol
 - [ ] Porque no necesita roles
 :::
 

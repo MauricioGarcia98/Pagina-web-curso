@@ -65,6 +65,12 @@ archivo: adf/b08-bronze.webp
 texto: El archivo del día, ventas_AAAAMMDD.csv, junto a los anteriores
 ```
 
+:::errores
+- **Mezclar texto y expresión sin `@{}`.** `ventas_formatDateTime(...)` queda como texto literal; la expresión va dentro de `@{...}`.
+- **Olvidar que `utcNow()` es UTC.** A las 22:00 en Lima ya es el día siguiente en UTC; ajusta la zona horaria.
+- **Formatos de fecha en mayúsculas equivocadas.** `MM` es mes y `mm` es minutos.
+:::
+
 ## ✅ Lista de verificación
 
 - [ ] Existe `pl_ingesta_diaria` con la copia `Copiar ventas del dia`.
@@ -99,7 +105,7 @@ En el nivel 3 el pipeline sale del modo prueba: se publica, se programa y se mon
 - [ ] `ventas_formatDateTime(utcNow()).csv`
 - [x] `ventas_@{formatDateTime(utcNow(), 'yyyyMMdd')}.csv`
 - [ ] `@ventas_formatDateTime(utcNow())`
-- [ ] `{ventas}_{utcNow}`
+- [ ] `ventas_${utcNow()}.csv`
 :::
 
 :::ejercicio quiz
@@ -107,7 +113,7 @@ El pipeline corre a las 22:00 hora de Lima y el archivo sale con la fecha de ma�
 - [ ] Por un error de Data Factory
 - [x] Porque utcNow() usa la hora UTC, que ya está en el día siguiente
 - [ ] Porque el trigger está adelantado
-- [ ] Porque el archivo es grande
+- [ ] Porque Data Factory suma un día a los archivos programados
 :::
 
 :::ejercicio quiz
@@ -115,5 +121,5 @@ El pipeline corre a las 22:00 hora de Lima y el archivo sale con la fecha de ma�
 - [x] `@concat('ventas_', '20261115', '.csv')`
 - [ ] `ventas_@{utcNow()}.csv`
 - [ ] `ventas_20261115.csv`
-- [ ] `{concat}`
+- [ ] `ventas_{formatDateTime(utcNow())}.csv`
 :::

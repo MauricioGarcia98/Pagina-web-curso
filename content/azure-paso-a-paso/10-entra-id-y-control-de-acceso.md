@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes por qué se asignan roles a grupos y no a personas? | ¿
 Lucía: *"Entra María López, analista. Tiene que poder leer el lago pero no cambiar nada. Y tú necesitas escribir en el lago con tu usuario, no con la clave de la cuenta."*
 :::
 
+:::analogia Quién eres y qué puedes tocar
+Entra ID responde "quién eres" (un usuario, un grupo, una aplicación, una identidad administrada). El control de acceso responde "qué puedes hacer y dónde": un rol, asignado en un alcance (la suscripción, un grupo, un recurso). Sin las dos piezas, no hay acceso.
+:::
+
 ## Paso 1 — Las identidades
 
 Abre **Microsoft Entra ID** (en el buscador, `entra`):
@@ -137,6 +141,12 @@ En Azure real, una asignación nueva puede tardar **hasta 10 minutos** en hacer 
 Da el rol **más chico**, en el **alcance más chico**, al **grupo** correcto. Un Contributor sobre toda la suscripción "para que no moleste" es la puerta por la que se cuelan los incidentes de seguridad.
 :::
 
+:::errores
+- **Asignar roles a personas una por una.** Se asignan a grupos; cuando alguien entra o sale, solo cambia la membresía.
+- **Dar Contributor para leer datos.** Contributor administra el recurso pero no lee blobs; el rol de datos es otro.
+- **Reintentar enseguida.** Una asignación nueva puede tardar varios minutos en propagarse.
+:::
+
 ## ✅ Lo que lograste
 
 - Conoces los cuatro tipos de identidad de Entra ID.
@@ -155,7 +165,7 @@ María tiene que leer el lago sin cambiar nada. ¿Qué asignas?
 ¿Qué diferencia hay entre Contributor y Storage Blob Data Contributor?
 - [ ] Ninguna
 - [x] Contributor administra el recurso; Storage Blob Data Contributor lee y escribe sus datos
-- [ ] Contributor solo lee
+- [ ] Contributor es para Azure y el otro es para Fabric
 - [ ] Storage Blob Data Contributor puede borrar la cuenta
 :::
 
@@ -171,6 +181,6 @@ María tiene que leer el lago sin cambiar nada. ¿Qué asignas?
 Asignaste un rol hace un minuto y la persona sigue sin acceso. ¿Qué es lo más probable?
 - [x] La asignación todavía no se propagó; puede tardar varios minutos
 - [ ] El rol no existe
-- [ ] Hay que borrar la cuenta y crearla de nuevo
+- [ ] Hay que asignar el rol también a nivel de suscripción
 - [ ] Azure perdió la asignación
 :::
