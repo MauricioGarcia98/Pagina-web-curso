@@ -41,7 +41,7 @@ Curso **gratuito, interactivo y en español** para pasar de no saber nada a trab
 
 ## Cómo funciona por dentro
 
-- **SQL**: SQLite compilado a WebAssembly ([sql.js](https://github.com/sql-js/sql.js)). El dataset se genera en el navegador con una semilla fija (`assets/js/data.js`), así los resultados son siempre los mismos y se pueden corregir comparando con la solución.
+- **SQL**: los ejemplos, ejercicios y misiones corren en **DuckDB** compilado a WebAssembly ([duckdb-wasm](https://github.com/duckdb/duckdb-wasm), licencia MIT). Las lecciones usan el dialecto de SQLite y `assets/js/sqlite-a-duckdb.js` lo traduce (fechas, `CAST`, división entera, `%`, orden de los NULL, `LIKE`…); `tools/duckdb.mjs` comprueba en CI que todas las soluciones corren. Lo propio de SQLite (PRAGMA, su plan de consulta, triggers) y el respaldo cuando DuckDB no carga usan SQLite compilado a WebAssembly ([sql.js](https://github.com/sql-js/sql.js)). El dataset se genera en el navegador con una semilla fija (`assets/js/data.js`), así los resultados son siempre los mismos y se pueden corregir comparando con la solución.
 - **Python**: CPython 3.14 en WebAssembly ([Pyodide](https://pyodide.org) 314.0.7, con pandas 3) dentro de un Web Worker de tipo módulo.
 - **PySpark**: *mini-Spark* (`assets/py/minispark`), un simulador en Python puro de gran parte de `pyspark.sql` (DataFrames, funciones, joins, ventanas, Spark SQL, lectura/escritura, RDDs básicos).
 - **Airflow**: *mini-Airflow* (`assets/py/miniairflow`), con `DAG`, operadores, `>>`, XCom, TaskFlow, ramas, trigger rules y `TaskGroup`; el corrector inspecciona y ejecuta el DAG.

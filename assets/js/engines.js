@@ -1,6 +1,7 @@
 /*
  * Motores de ejecución en el navegador:
- *  - SQL: SQLite compilado a WebAssembly (sql.js) con el dataset "Tienda Andina".
+ *  - SQL: SQLite compilado a WebAssembly (sql.js) con el dataset "Tienda Andina". Las lecciones usan
+ *    CursoSQL (más abajo), que corre sobre DuckDB y vuelve a SQLite si hace falta.
  *  - Python / PySpark / Airflow: Pyodide (CPython en WebAssembly) dentro de un Web Worker,
  *    con los simuladores mini-Spark y mini-Airflow.
  *  - dbt: plantillas Jinja renderizadas con jinja2 (Pyodide) y ejecutadas en SQLite.
@@ -611,5 +612,75 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
     }
   };
 
-  window.Engines = { SQL, PY, DBT, CLI, compareResults };
+  // ------------------------------------------------------------------ SQL del curso
+  // Ejemplos, ejercicios y misiones corren en DuckDB (WebAssembly), con el SQL de las lecciones traducido desde
+  // SQLite (sqlite-a-duckdb.js). Si DuckDB no carga, o la consulta usa algo propio de SQLite (PRAGMA, su plan de
+  // consulta, triggers, transacciones explícitas), corre en SQLite. Tu consulta y la solución siempre se
+  // comparan en el mismo motor.
+  const CursoSQL = {
+    preferencia: 'duckdb', _sinDuck: false, _esperado: new Map(), _ejSqlite: new Set(), _preparando: null,
+    duck() { return this.preferencia !== 'sqlite' && !this._sinDuck && window.SqlMotores && window.SqliteADuckdb ? window.SqlMotores.DUCK : null; },
+    nombre() { return this.duck() ? 'DuckDB' : 'SQLite'; },
+    listo() { const D = this.duck(); return D ? D.estado === 'listo' : !!SQL._bytes; },
+    preparar(progreso = () => {}) {
+      if (this.listo()) return Promise.resolve(this.duck() ? 'duckdb' : 'sqlite');
+      if (!this._preparando) {
+        this._preparando = (async () => {
+          const D = this.duck();
+          if (D) {
+            try { await D.init(progreso); return 'duckdb'; } catch (e) { this._sinDuck = true; console.warn('DuckDB no se pudo cargar; el curso sigue con SQLite.', e); }
+          }
+          if (!SQL._bytes) { progreso('Cargando la base de datos SQLite…'); await SQL.init(); }
+          return 'sqlite';
+        })().finally(() => { this._preparando = null; });
+      }
+      return this._preparando;
+    },
+    _usa(sqls) {
+      const D = this.duck();
+      return D && D.estado === 'listo' && !sqls.some((s) => s && window.SqliteADuckdb.soloSqlite(s)) ? D : null;
+    },
+    /** Ejecuta y devuelve todas las sentencias. sesion: true = los cambios se mantienen entre ejecuciones (ejemplos). */
+    async exec(sql, { previo, sesion } = {}) {
+      const D = this._usa([sql, previo]);
+      if (D) return { ...(await D.execSqlite(sql, { previo, sesion: sesion ? 'juego' : null })), motor: 'DuckDB' };
+      if (!SQL._bytes) await SQL.init();
+      if (sesion) return { ...SQL.exec(sql, SQL.playground()), motor: 'SQLite' };
+      const db = SQL.fresh();
+      try {
+        if (previo) { const p = SQL.exec(previo, db); if (!p.ok) return { ...p, motor: 'SQLite' }; }
+        return { ...SQL.exec(sql, db), motor: 'SQLite' };
+      } finally { db.close(); }
+    },
+    async runForGrade(sql, check) {
+      const D = this._usa([sql, check]);
+      if (D) {
+        const r = await D.execSqlite(sql, { check });
+        if (!r.ok) return { ok: false, error: r.error, motor: 'DuckDB' };
+        const sets = check ? r.check : r.results;
+        return { ok: true, result: sets[sets.length - 1] || { columns: [], values: [] }, all: r.results, motor: 'DuckDB' };
+      }
+      if (!SQL._bytes) await SQL.init();
+      return { ...SQL.runForGrade(sql, check), motor: 'SQLite' };
+    },
+    async grade(ex, userSql) {
+      const pre = ex.setup ? ex.setup + ';\n' : '';
+      let D = this._ejSqlite.has(ex.id) ? null : this._usa([pre + ex.solucion, pre + userSql, ex.check]);
+      if (D && !this._esperado.has(ex.id)) {
+        const e = await this.runForGrade(pre + ex.solucion, ex.check);
+        if (e.ok && e.motor === 'DuckDB') this._esperado.set(ex.id, e.result);
+        else { this._ejSqlite.add(ex.id); D = null; if (!e.ok) console.warn(`La solución de ${ex.id} no corre en DuckDB; este ejercicio se corrige en SQLite.`, e.error); }
+      }
+      if (!D) {
+        if (!SQL._bytes) await SQL.init();
+        try { return { ...SQL.grade(ex, userSql), motor: 'SQLite' }; } catch (e) { return { ok: false, error: e.message }; }
+      }
+      const r = await this.runForGrade(pre + userSql, ex.check);
+      if (!r.ok) return { ok: false, error: r.error };
+      return { ok: true, ...compareResults(r.result, this._esperado.get(ex.id), !!ex.ordenado), result: r.result, motor: 'DuckDB' };
+    },
+    async reiniciarSesion() { SQL.resetPlayground(); const D = this.duck(); if (D) await D.limpiar('juego'); },
+  };
+
+  window.Engines = { SQL, CursoSQL, PY, DBT, CLI, compareResults };
 })();

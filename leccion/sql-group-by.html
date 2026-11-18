@@ -103,9 +103,9 @@ GROUP BY canal;</code></pre>
 </blockquote>
 <p>¿Por qué? Porque cada fila del resultado representa <strong>un grupo</strong>. Si pones <code>nombre</code> en el <code>SELECT</code> agrupando por <code>pais</code>, en el grupo &quot;Chile&quot; hay 167 nombres distintos: ¿cuál mostraría? No hay respuesta. En cambio <code>pais</code> tiene un único valor por grupo (por definición), y <code>COUNT(*)</code> también.</p>
 <pre><code class="language-sql">-- ❌ nombre no está agrupado ni agregado
-SELECT pais, nombre, COUNT(*) FROM clientes GROUP BY pais;
-
--- ✅ Agrupar por varias columnas: un grupo por cada combinación
+SELECT pais, nombre, COUNT(*) FROM clientes GROUP BY pais;</code></pre>
+<p>Ejecútalo: el motor responde con un error que dice exactamente eso, que <code>nombre</code> tiene que estar en el <code>GROUP BY</code> o dentro de una función de agregación. PostgreSQL, SQL Server y Databricks hacen lo mismo. Algunos motores (SQLite, MySQL con cierta configuración) no protestan y devuelven un nombre cualquiera del grupo, que es peor: el resultado parece correcto y no lo es.</p>
+<pre><code class="language-sql">-- ✅ Agrupar por varias columnas: un grupo por cada combinación
 SELECT pais, segmento, COUNT(*) AS clientes
 FROM clientes
 GROUP BY pais, segmento

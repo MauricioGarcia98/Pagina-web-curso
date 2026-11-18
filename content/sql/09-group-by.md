@@ -131,7 +131,11 @@ web,5
 ```sql
 -- ❌ nombre no está agrupado ni agregado
 SELECT pais, nombre, COUNT(*) FROM clientes GROUP BY pais;
+```
 
+Ejecútalo: el motor responde con un error que dice exactamente eso, que `nombre` tiene que estar en el `GROUP BY` o dentro de una función de agregación. PostgreSQL, SQL Server y Databricks hacen lo mismo. Algunos motores (SQLite, MySQL con cierta configuración) no protestan y devuelven un nombre cualquiera del grupo, que es peor: el resultado parece correcto y no lo es.
+
+```sql
 -- ✅ Agrupar por varias columnas: un grupo por cada combinación
 SELECT pais, segmento, COUNT(*) AS clientes
 FROM clientes

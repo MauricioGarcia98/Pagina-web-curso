@@ -572,29 +572,25 @@
         const con = await this._db.connect();
         progreso('Creando las tablas del dataset…');
         const SQL = window.Engines.SQL; if (!SQL._bytes) await SQL.init();
-        const T = SQL.tables, nombres = Object.keys(T);
-        const fecha = /^\d{4}-\d{2}-\d{2}$/, fechaHora = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/;
+        // mismos tipos declarados y misma clave primaria que en el esquema de SQLite (sqlite-a-duckdb.js);
+        // las fechas guardadas como texto pasan a DATE o TIMESTAMP
+        const tablas = window.SqliteADuckdb.tablasDuckdb(window.DataGen.SCHEMA, SQL.tables);
+        this._ddl = {};
         let hechas = 0, total = 0;
-        for (const nombre of nombres) {
-          const t = T[nombre];
-          const tipos = t.columns.map((c, j) => {
-            const vals = t.rows.map((r) => r[j]).filter((v) => v !== null && v !== undefined && v !== '');
-            if (!vals.length) return 'VARCHAR';
-            if (vals.every((v) => typeof v === 'number')) return vals.every((v) => Number.isInteger(v)) ? (vals.some((v) => Math.abs(v) > 2147483647) ? 'BIGINT' : 'INTEGER') : 'DOUBLE';
-            if (vals.every((v) => typeof v === 'string' && fecha.test(v))) return 'DATE';
-            if (vals.every((v) => typeof v === 'string' && (fechaHora.test(v) || fecha.test(v)))) return 'TIMESTAMP';
-            return 'VARCHAR';
-          });
-          const q = (v) => (v === null || v === undefined ? '' : typeof v === 'number' ? String(v) : `"${String(v).replace(/"/g, '""')}"`);
-          const archivo = `__${nombre}.csv`;
-          await this._db.registerFileText(archivo, t.rows.map((r) => r.map(q).join(',')).join('\n') + '\n');
-          const cols = '{' + t.columns.map((c, j) => `'${c.replace(/'/g, "''")}': '${tipos[j]}'`).join(', ') + '}';
-          await con.query(`CREATE OR REPLACE TABLE "${nombre}" AS SELECT * FROM read_csv('${archivo}', header = false, columns = ${cols}, nullstr = '', quote = '"', escape = '"', auto_detect = false)`);
+        for (const tb of tablas) {
+          const archivo = `__${tb.nombre}.csv`;
+          await this._db.registerFileText(archivo, tb.csv());
+          await con.query(tb.crear);
+          await con.query(`INSERT INTO "${tb.nombre}" SELECT * FROM read_csv('${archivo}', header = false, columns = ${tb.columnas}, nullstr = '', quote = '"', escape = '"', auto_detect = false)`);
           await this._db.dropFile(archivo);
-          total += t.rows.length; hechas++;
-          if (hechas % 6 === 0) progreso(`Cargando datos: ${hechas} de ${nombres.length} tablas (${total.toLocaleString('es')} filas)…`);
+          this._ddl[tb.nombre.toLowerCase()] = tb.crear;
+          total += SQL.tables[tb.nombre].rows.length; hechas++;
+          if (hechas % 6 === 0) progreso(`Cargando datos: ${hechas} de ${tablas.length} tablas (${total.toLocaleString('es')} filas)…`);
         }
-        for (const v of (window.DataGen && window.DataGen.VIEWS || '').split(';').map((x) => x.trim()).filter(Boolean)) { try { await con.query(v); } catch (e) { /* vista con sintaxis propia de SQLite */ } }
+        // ajustes de compatibilidad con SQLite (las macros quedan en main; old_implicit_casting es global)
+        for (const a of window.SqliteADuckdb.AJUSTES) await con.query(a);
+        for (const v of (window.DataGen && window.DataGen.VIEWS || '').split(';').map((x) => x.trim()).filter(Boolean)) { try { await con.query(window.SqliteADuckdb.traducir(v)); } catch (e) { /* vista con sintaxis propia de SQLite */ } }
+        this._sesiones = {};
         this._con = con; this.estado = 'listo';
         return con;
       })();
@@ -613,25 +609,116 @@
       if (typeof v === 'object') { try { return JSON.stringify(v.toJSON ? v.toJSON() : v, (k, x) => (typeof x === 'bigint' ? Number(x) : x)); } catch (e) { return String(v); } }
       return v;
     },
-    async exec(sql) {
-      const t0 = performance.now();
-      const sentencias = partirSentencias(sql, 'duckdb');
-      const results = []; let changes = 0;
-      try {
-        for (const s of sentencias) {
-          const r = await this._con.query(s);
-          const campos = r.schema.fields;
-          if (campos.length === 1 && campos[0].name === 'Count' && /^\s*(INSERT|UPDATE|DELETE|CREATE|DROP|ALTER)\b/i.test(s)) { const fila = r.toArray()[0]; changes += Number(fila ? fila.Count : 0); continue; }
-          if (!campos.length) continue;
-          results.push({ columns: campos.map((f) => f.name), values: r.toArray().map((fila) => campos.map((f) => this._celda(fila[f.name], f.type))) });
-        }
-        return { ok: true, results, changes, ms: performance.now() - t0 };
-      } catch (e) {
-        return { ok: false, error: String(e.message || e).replace(/^(\w+ Error): /, '$1: '), ms: performance.now() - t0 };
+    // Cada uso tiene su conexión. 'grado' (corregir ejercicios) trabaja sobre las tablas originales dentro de
+    // una transacción que se deshace; 'juego' (ejemplos de las lecciones) y 'lab' (laboratorio) crean lo suyo en
+    // un esquema propio y, si modifican una tabla del curso, primero se hace una copia en ese esquema. Así lo que
+    // pruebas nunca cambia las tablas con las que se corrigen los ejercicios.
+    async sesion(nombre, sqlite) {
+      await this.init();
+      const clave = nombre + (sqlite ? ':sqlite' : '');
+      if (!this._sesiones[clave]) {
+        this._sesiones[clave] = (async () => {
+          const con = await this._db.connect();
+          if (sqlite) for (const a of window.SqliteADuckdb.AJUSTES.filter((x) => /^SET/i.test(x))) await con.query(a);
+          if (nombre !== 'grado') {
+            await con.query(`CREATE SCHEMA IF NOT EXISTS ${nombre}`);
+            await con.query(`SET search_path = '${nombre},main'`);
+            await con.query(`SET schema = '${nombre}'`);
+          }
+          return { con, nombre, sqlite, copias: new Set(), cola: Promise.resolve() };
+        })();
+        this._sesiones[clave].catch(() => { delete this._sesiones[clave]; });
+      }
+      return this._sesiones[clave];
+    },
+    _enCola(ses, fn) { const p = ses.cola.then(fn, fn); ses.cola = p.catch(() => {}); return p; },
+    async _copiarSiCambia(ses, sql) {
+      if (ses.nombre === 'grado') return;
+      const re = /\b(?:INSERT\s+(?:OR\s+\w+\s+)?INTO|UPDATE|DELETE\s+FROM|ALTER\s+TABLE|DROP\s+TABLE(?:\s+IF\s+EXISTS)?|TRUNCATE(?:\s+TABLE)?|CREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:IF\s+NOT\s+EXISTS\s+)?\w+\s+ON)\s+(?:main\.)?"?(\w+)"?/gi;
+      for (const m of sql.matchAll(re)) {
+        const t = m[1].toLowerCase();
+        if (!this._ddl[t] || ses.copias.has(t)) continue;
+        await ses.con.query(this._ddl[t].replace(/^CREATE OR REPLACE TABLE "(\w+)"/, `CREATE OR REPLACE TABLE ${ses.nombre}."$1"`));
+        await ses.con.query(`INSERT INTO ${ses.nombre}."${t}" SELECT * FROM main."${t}"`);
+        ses.copias.add(t);
       }
     },
-    async reiniciar(progreso) { if (this._con) { try { await this._con.close(); } catch (e) { /* ya cerrada */ } } this._con = null; this._cargando = null; if (this._db) { try { await this._db.reset(); } catch (e) { this._db = null; } } return this.init(progreso); },
+    async _correr(ses, sql) {
+      const TR = window.SqliteADuckdb;
+      const sentencias = ses.sqlite ? TR.partir(TR.traducir(sql)) : partirSentencias(sql, 'duckdb');
+      const results = []; let changes = 0;
+      for (const s of sentencias) {
+        await this._copiarSiCambia(ses, s);
+        const r = await ses.con.query(s);
+        const campos = r.schema.fields;
+        if (campos.length === 1 && campos[0].name === 'Count' && /^\s*(INSERT|UPDATE|DELETE|CREATE|DROP|ALTER)\b/i.test(s)) { const fila = r.toArray()[0]; changes += Number(fila ? fila.Count : 0); continue; }
+        if (!campos.length) continue;
+        // en modo SQLite, verdadero y falso se muestran como 1 y 0
+        const celda = ses.sqlite ? (v, tipo) => (typeof v === 'boolean' ? (v ? 1 : 0) : this._celda(v, tipo)) : (v, tipo) => this._celda(v, tipo);
+        results.push({ columns: campos.map((f) => f.name), values: r.toArray().map((fila) => campos.map((f) => celda(fila[f.name], f.type))) });
+      }
+      return { results, changes };
+    },
+    // SQL de DuckDB tal cual (pestaña DuckDB del laboratorio)
+    async exec(sql) {
+      const ses = await this.sesion('lab', false);
+      return this._enCola(ses, async () => {
+        const t0 = performance.now();
+        try { const r = await this._correr(ses, sql); return { ok: true, ...r, ms: performance.now() - t0 }; }
+        catch (e) { return { ok: false, error: String(e.message || e).replace(/^(\w+ Error): /, '$1: '), ms: performance.now() - t0 }; }
+      });
+    },
+    // SQL del curso (escrito para SQLite), traducido a DuckDB. Sin sesión: se deshace todo al terminar.
+    async execSqlite(sql, { previo, check, sesion } = {}) {
+      const ses = await this.sesion(sesion || 'grado', true);
+      return this._enCola(ses, async () => {
+        const t0 = performance.now(), aislado = !sesion;
+        try {
+          if (aislado) await ses.con.query('BEGIN TRANSACTION');
+          if (previo) await this._correr(ses, previo);
+          const r = await this._correr(ses, sql);
+          const c = check ? await this._correr(ses, check) : null;
+          return { ok: true, results: r.results, changes: r.changes, check: c && c.results, ms: performance.now() - t0 };
+        } catch (e) {
+          return { ok: false, error: errorDuckSqlite(e), ms: performance.now() - t0 };
+        } finally {
+          if (aislado) { try { await ses.con.query('ROLLBACK'); } catch (e) { /* ya cerrada */ } }
+        }
+      });
+    },
+    // borra lo creado en un esquema de práctica ('lab' o 'juego') y vuelve a las tablas originales
+    async limpiar(nombre) {
+      if (this.estado !== 'listo') return;
+      for (const sqlite of [false, true]) {
+        const s = this._sesiones[nombre + (sqlite ? ':sqlite' : '')]; if (!s) continue;
+        const ses = await s;
+        await this._enCola(ses, async () => { await ses.con.query(`DROP SCHEMA IF EXISTS ${nombre} CASCADE`); await ses.con.query(`CREATE SCHEMA ${nombre}`); ses.copias.clear(); });
+      }
+    },
+    async reiniciar(progreso) { await this.init(progreso); await this.limpiar('lab'); },
   };
+  // Errores de DuckDB explicados en español (en modo SQLite no se muestra la posición: es la del SQL traducido)
+  function errorDuckSqlite(e) {
+    const m = String(e.message || e).split('\n').filter((l) => !/^\s*(LINE \d+:|\^)/.test(l)).join('\n').trim();
+    const tips = [
+      [/Table with name (\w+) does not exist/i, (x) => `La tabla "${x[1]}" no existe. Revisa el nombre (mira el panel "Tablas").`],
+      [/Referenced column "?([\w.]+)"? not found/i, (x) => `La columna "${x[1]}" no existe. Revisa la ortografía o de qué tabla viene.`],
+      [/Referenced table "?(\w+)"? not found/i, (x) => `"${x[1]}" no es una tabla ni un alias de esta consulta. Revisa el FROM y los JOIN.`],
+      [/syntax error at or near "([^"]*)"/i, (x) => `Error de sintaxis cerca de "${x[1]}". Revisa comas, paréntesis y palabras clave.`],
+      [/syntax error at end of input|unterminated quoted string/i, () => 'La consulta está incompleta (¿falta cerrar un paréntesis o una comilla?).'],
+      [/Ambiguous reference to column name "(\w+)"/i, (x) => `La columna "${x[1]}" es ambigua: existe en varias tablas. Escribe tabla.${x[1]} o alias.${x[1]}.`],
+      [/column "([\w.]+)" must appear in the GROUP BY clause/i, (x) => `La columna "${x[1]}" tiene que estar en el GROUP BY o dentro de una función de agregación (SUM, COUNT, MAX…). Cada fila del resultado es un grupo: ¿qué valor de ${x[1]} mostraría?`],
+      [/WHERE clause cannot contain aggregates|aggregate function calls cannot be nested|aggregates are not allowed/i, () => 'Uso incorrecto de una función de agregación (¿pusiste SUM/COUNT en el WHERE? Para filtrar grupos se usa HAVING).'],
+      [/Duplicate key "([^"]*)"/i, (x) => `Ese valor ya existe en una columna que no admite repetidos (${x[1]}).`],
+      [/NOT NULL constraint failed: ([\w.]+)/i, (x) => `La columna ${x[1]} no admite NULL.`],
+      [/same number of result columns/i, () => 'Las consultas a ambos lados de UNION / EXCEPT / INTERSECT deben tener el mismo número de columnas.'],
+      [/(Table|View) with name "?(\w+)"? already exists/i, (x) => `Ya existe una tabla o vista llamada "${x[2]}". Usa CREATE TABLE IF NOT EXISTS o bórrala antes con DROP TABLE.`],
+      [/Scalar Function with name (\w+) does not exist/i, (x) => `La función ${x[1]}() no existe en este motor.`],
+      [/Could not convert string '([^']*)' to (\w+)/i, (x) => `No se puede convertir '${x[1]}' a ${x[2]}: revisa el dato o usa CAST con un valor válido.`],
+    ];
+    for (const [re, f] of tips) { const x = m.match(re); if (x) return f(x) + `\n(DuckDB: ${m.split('\n')[0]})`; }
+    return m;
+  }
   function errorPg(e, sql) {
     let msg = `ERROR:  ${e.message}`;
     if (e.position) {

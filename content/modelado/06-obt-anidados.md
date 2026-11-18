@@ -87,7 +87,7 @@ FROM pedidos p
 JOIN clientes c ON c.cliente_id = p.cliente_id
 JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
 WHERE p.pedido_id BETWEEN 1 AND 3
-GROUP BY p.pedido_id;
+GROUP BY p.pedido_id, p.fecha_pedido, c.cliente_id, c.pais;
 ```
 
 | Ventajas de anidar | Desventajas |

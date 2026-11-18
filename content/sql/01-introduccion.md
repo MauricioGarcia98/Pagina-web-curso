@@ -79,7 +79,7 @@ Compáralo con Python, que es **imperativo**: ahí sí escribes los pasos uno po
 
 ## La base de datos del curso: Tienda Andina
 
-Para practicar usarás una base **SQLite** que corre **dentro de tu navegador**: no hay que instalar nada y no puedes romper nada (si algo sale mal, se recarga). Representa a **Tienda Andina**, un e-commerce de tecnología que vende en varios países de Latinoamérica y España. Las tablas principales:
+Para practicar usarás una base de datos que corre **dentro de tu navegador**: no hay que instalar nada y no puedes romper nada (los cambios que hagas en los ejemplos no afectan a los ejercicios, y si algo sale mal, se recarga). El motor es **DuckDB**, el mismo que usan muchos equipos de análisis. Las lecciones escriben el SQL al estilo de **SQLite**, el dialecto más sencillo para aprender; el curso lo adapta solo cuando hace falta, así que lo que ves en la lección funciona tal cual. Representa a **Tienda Andina**, un e-commerce de tecnología que vende en varios países de Latinoamérica y España. Las tablas principales:
 
 | Tabla | Qué contiene | Filas |
 |---|---|---|
@@ -146,7 +146,7 @@ paso tu: Escribes una pregunta en SQL
 SELECT cliente_id, nombre, ciudad
 FROM clientes;
 paso motor: El motor la lee y la revisa
-Al presionar **Ejecutar**, el programa que maneja la base (el *motor*: SQLite en este curso) revisa que esté bien escrita y que existan la tabla y las columnas. Si algo está mal, responde con un **error** que dice qué.
+Al presionar **Ejecutar**, el programa que maneja la base (el *motor*: DuckDB en este curso) revisa que esté bien escrita y que existan la tabla y las columnas. Si algo está mal, responde con un **error** que dice qué.
 >>> log
 ¿la tabla "clientes" existe?      sí
 ¿cliente_id, nombre, ciudad?     sí

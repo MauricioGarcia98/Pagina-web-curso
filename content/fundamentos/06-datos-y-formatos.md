@@ -57,7 +57,7 @@ Prueba a contar cu√°ntos pedidos tiene cada uno de los primeros clientes. Todav√
 SELECT c.cliente_id, c.nombre, c.pais, COUNT(p.pedido_id) AS pedidos
 FROM clientes c
 JOIN pedidos p ON p.cliente_id = c.cliente_id
-GROUP BY c.cliente_id
+GROUP BY c.cliente_id, c.nombre, c.pais
 ORDER BY c.cliente_id
 LIMIT 5;
 ```

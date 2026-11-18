@@ -16,6 +16,7 @@
 
   const C = window.COURSE;
   const { SQL, PY, DBT, CLI } = window.Engines;
+  const CursoSQL = window.Engines.CursoSQL;
   const $ = (sel, el = document) => el.querySelector(sel);
   const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -166,6 +167,8 @@
     saveSoon() { clearTimeout(this._t); this._t = setTimeout(() => this.save(), 400); }
   };
   Store.load();
+  // motor SQL del curso: DuckDB salvo que se haya elegido SQLite (Store.data.motorSql = 'sqlite')
+  CursoSQL.preferencia = Store.data.motorSql === 'sqlite' ? 'sqlite' : 'duckdb';
 
   function moduleProgress(m) {
     const total = m.lecciones.length;
@@ -406,14 +409,14 @@
     if (!r.ok) { out.append(h(`<pre class="console"><span class="err">${esc(r.error)}</span></pre>`)); return; }
     const sets = r.results || [];
     if (!sets.length) {
-      out.append(h(`<div class="out-meta">✔ Ejecutado en ${r.ms.toFixed(0)} ms${r.changes ? ` · ${r.changes} fila(s) modificada(s)` : ''} · sin filas para mostrar</div>`));
+      out.append(h(`<div class="out-meta">✔ Ejecutado en ${r.ms.toFixed(0)} ms${r.motor ? ` en ${esc(r.motor)}` : ''}${r.changes ? ` · ${r.changes} fila(s) modificada(s)` : ''} · sin filas para mostrar</div>`));
       return;
     }
     const shown = sets.slice(-3);
     for (const res of shown) {
       const n = res.values.length;
       const block = h('<div></div>');
-      block.append(h(`<div class="out-meta"><span>${n} fila${n === 1 ? '' : 's'}${n > 200 ? ' (mostrando 200)' : ''}</span><span>· ${res.columns.length} columnas</span><span>· ${r.ms.toFixed(0)} ms</span><span class="spacer"></span><button class="btn btn-ghost btn-sm" data-csv>⬇ CSV</button></div>`));
+      block.append(h(`<div class="out-meta"><span>${n} fila${n === 1 ? '' : 's'}${n > 200 ? ' (mostrando 200)' : ''}</span><span>· ${res.columns.length} columnas</span><span>· ${r.ms.toFixed(0)} ms</span>${r.motor ? `<span title="${r.motor === 'DuckDB' ? 'DuckDB en tu navegador: el SQL de la lección se traduce desde SQLite automáticamente' : 'SQLite en tu navegador'}">· ${esc(r.motor)}</span>` : ''}<span class="spacer"></span><button class="btn btn-ghost btn-sm" data-csv>⬇ CSV</button></div>`));
       block.insertAdjacentHTML('beforeend', tableHtml(res));
       $('[data-csv]', block).addEventListener('click', () => downloadCsv(res));
       out.append(block);
@@ -437,6 +440,13 @@
   }
   function loadingInto(out, msg) { out.innerHTML = `<div class="out-meta"><span class="spinner"></span> ${esc(msg)}</div>`; }
 
+  // SQL de las lecciones, ejercicios y misiones: DuckDB (con SQLite como respaldo automático)
+  async function ensureSqlCurso(out) {
+    if (CursoSQL.listo()) return true;
+    loadingInto(out, CursoSQL.duck() ? 'Cargando DuckDB, el motor SQL del curso, con más de 500.000 filas (solo la primera vez; después el navegador lo guarda)…' : 'Cargando la base de datos SQLite (solo la primera vez)…');
+    try { await CursoSQL.preparar((msg) => loadingInto(out, msg)); return true; } catch (e) { out.innerHTML = `<pre class="console"><span class="err">${esc(e.message)}</span></pre>`; return false; }
+  }
+  function precargarSqlCurso() { if (!CursoSQL.listo()) CursoSQL.preparar().catch(() => {}); }
   async function ensureSql(out) {
     if (SQL._bytes) return true;
     loadingInto(out, 'Cargando la base de datos SQLite con más de 500.000 filas (solo la primera vez)…');
@@ -552,6 +562,7 @@
     const runner = h('<div class="inline-runner"></div>');
     box.replaceWith(runner);
     const ed = createEditor(runner, { lang, value: code, onRun: () => run() });
+    if (lang === 'sql') runner.addEventListener('focusin', precargarSqlCurso, { once: true });
     const bar = h('<div class="runner-bar"><button class="btn btn-primary btn-sm" data-run>▶ Ejecutar <span class="kbd">Ctrl+↵</span></button><button class="btn btn-ghost btn-sm" data-reset>↺ Original</button></div>');
     const out = h('<div class="output"></div>');
     runner.append(bar, out);
@@ -560,8 +571,8 @@
     async function run() {
       const src = ed.getValue();
       if (lang === 'sql') {
-        if (!(await ensureSql(out))) return;
-        renderSqlOutput(out, SQL.exec(src, SQL.playground()));
+        if (!(await ensureSqlCurso(out))) return;
+        renderSqlOutput(out, await CursoSQL.exec(src, { sesion: true }));
       } else if (lang === 'dbt') {
         if (!(await ensureSql(out))) return;
         loadingInto(out, pyLoadingMsg());
@@ -1514,6 +1525,8 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (ex.type === 'abierto') return mountOpen(card, ex, markPassed, extra, showExtra);
 
     const lang = ex.type === 'sql' || ex.type === 'dbsql' ? 'sql' : ex.type === 'dbt' ? 'dbt' : ex.type === 'dax' ? 'dax' : 'python';
+    // apenas empiezas a escribir, el motor SQL se va cargando (así al ejecutar ya está listo)
+    if (ex.type === 'sql') card.addEventListener('focusin', precargarSqlCurso, { once: true });
     const starter = ex.inicial ?? (ex.type === 'dbsql' ? (ex.modo === 'pipeline' ? '-- Código del pipeline (destino: main.default)\nCREATE OR REFRESH STREAMING TABLE …\n' : '-- Databricks SQL (catálogo main, esquema default)\n') : ex.type === 'sql' ? '-- Escribe tu consulta aquí\n' : ex.type === 'dbt' ? '-- Escribe tu modelo dbt aquí\n' : ex.type === 'dax' ? (ex.prueba ? 'Medida = ' : '// Escribe tu consulta DAX\nEVALUATE\n    ') : '# Escribe tu código aquí\n');
     if (ex.type === 'dbsql' && (ex.setup || ex.check)) card.append(h(`<details class="dax-prueba"><summary>${ex.modo === 'pipeline' ? 'Cómo se corrige: se ejecuta tu pipeline (destino <code>main.default</code>) y después la consulta de control' : 'Cómo se corrige: se corre en un catálogo limpio con estas tablas; después de tu código se ejecuta la consulta de control'}</summary>${ex.setup ? `<p class="small muted">Tablas que ya existen (setup):</p><pre data-lang="sql"><code>${esc(ex.setup)}</code></pre>` : ''}${ex.archivos ? `<p class="small muted">Archivos en el volumen:</p><pre data-lang="texto"><code>${esc(ex.archivos)}</code></pre>` : ''}${ex.check ? `<p class="small muted">Consulta de control (tu resultado se compara con el de la solución):</p><pre data-lang="sql"><code>${esc(ex.check)}</code></pre>` : ''}</details>`));
     if (ex.type === 'dax' && ex.prueba) card.append(h(`<details class="dax-prueba"><summary>Tu medida se llama <code>[?]</code> y se evalúa con esta consulta DAX (como un objeto visual)</summary><pre data-lang="dax"><code>${esc(ex.prueba)}</code></pre>${ex.medidas ? `<p class="small muted">Medidas que ya existen en el modelo:</p><pre data-lang="dax"><code>${esc(ex.medidas)}</code></pre>` : ''}</details>`));
@@ -1553,10 +1566,8 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       busy(true);
       try {
         if (ex.type === 'sql') {
-          if (!(await ensureSql(out))) return;
-          const db = SQL.fresh();
-          if (ex.setup) db.exec(ex.setup);
-          renderSqlOutput(out, SQL.exec(code, db)); db.close();
+          if (!(await ensureSqlCurso(out))) return;
+          renderSqlOutput(out, await CursoSQL.exec(code, { previo: ex.setup }));
         } else if (ex.type === 'dax') {
           if (!(await ensureSql(out))) return;
           renderSqlOutput(out, await window.Engines.DAX.run(ex, code));
@@ -1583,10 +1594,12 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       busy(true);
       try {
         if (ex.type === 'sql') {
-          if (!(await ensureSql(out))) return;
-          const r = SQL.grade(ex, code);
+          if (!(await ensureSqlCurso(out))) return;
+          loadingInto(out, 'Comprobando…');
+          const t0 = performance.now();
+          const r = await CursoSQL.grade(ex, code);
           if (!r.ok) { feedback('bad', '✗ Error: ' + r.error); out.innerHTML = ''; return; }
-          renderSqlOutput(out, { ok: true, results: [r.result], ms: 0 });
+          renderSqlOutput(out, { ok: true, results: [r.result], ms: performance.now() - t0, motor: r.motor });
           if (r.pass) { feedback('ok', '✓ ' + r.msg); markPassed(); } else feedback('bad', '✗ ' + r.msg);
         } else if (ex.type === 'dbsql') {
           if (!(await ensureSql(out))) return;
@@ -2495,7 +2508,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   function viewLabSql() {
     const SM = window.SqlMotores;
     const MOT = SM.MOTORES;
-    let motor = Store.data.code['lab-sql-motor'] || 'sqlite';
+    let motor = Store.data.code['lab-sql-motor'] || 'duckdb';
     if (!MOT[motor]) motor = 'sqlite';
     const clave = (m) => (m === 'sqlite' ? 'lab-sql' : 'lab-sql-' + m);
     const ejemplos = (m) => (m === 'sqlite' ? SQL_SAMPLES : SM.EJEMPLOS[m]);
@@ -3868,7 +3881,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'lesson') conContenido([r.lesson.modulo.id], () => { viewLesson(r.lesson); ponerAnuncio('leccion'); });
     else if (r.name.startsWith('lab-') && !r.libre && window.Misiones) {
       const lab = r.name.slice(4);
-      window.Misiones.vista(main, { h, Store, toast, createEditor, Engines: window.Engines, renderSqlOutput, renderConsole, ensureSql, loadingInto, pyLoadingMsg, compiledBlock, libre: () => { location.hash = `#/lab/${lab}?modo=libre`; } }, lab);
+      window.Misiones.vista(main, { h, Store, toast, createEditor, Engines: window.Engines, renderSqlOutput, renderConsole, ensureSql, ensureSqlCurso, loadingInto, pyLoadingMsg, compiledBlock, libre: () => { location.hash = `#/lab/${lab}?modo=libre`; } }, lab);
     }
     else if (r.name === 'lab-sql') { viewLabSql(); tabsLabLibre('sql'); }
     else if (r.name === 'lab-python') { viewLabPython('python'); tabsLabLibre('python'); }

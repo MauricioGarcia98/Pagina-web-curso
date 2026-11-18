@@ -220,7 +220,7 @@ Para cada almacén, ¿qué **día de la semana** despacha más envíos en promed
 ```sql solucion
 WITH d AS (
   SELECT almacen_id, date(fecha_despacho) AS dia, CAST(strftime('%w', fecha_despacho) AS INTEGER) AS dia_semana, COUNT(*) AS n
-  FROM logistica_envios GROUP BY almacen_id, dia
+  FROM logistica_envios GROUP BY almacen_id, dia, dia_semana
 ),
 p AS (
   SELECT almacen_id, dia_semana, AVG(n) AS prom FROM d GROUP BY almacen_id, dia_semana
