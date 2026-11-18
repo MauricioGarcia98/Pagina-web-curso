@@ -139,7 +139,24 @@
     f('current_database', () => uc().cur.schema);
     f('current_version', () => '{"dbsql_version":"2025.35","dbr_version":"16.4"}');
     f('to_date', (x, fm) => { if (x == null) return null; if (fm) { const s = String(x); const map = { yyyy: 'Y', MM: 'M', dd: 'D' }; void map; const re = String(fm).replace(/yyyy|MM|dd/g, (k) => ({ yyyy: '(\\d{4})', MM: '(\\d{2})', dd: '(\\d{2})' }[k])); const o = String(fm).match(/yyyy|MM|dd/g) || []; const m = new RegExp('^' + re).exec(s); if (!m) return null; const p = {}; o.forEach((k, i) => { p[k] = m[i + 1]; }); return `${p.yyyy}-${p.MM}-${p.dd}`; } const d0 = fecha(x); return d0 ? iso(d0) : null; });
-    f('to_timestamp', (x) => { const d0 = fecha(x); return d0 ? isoTs(d0) : null; });
+    // to_timestamp(texto, 'dd/MM/yyyy HH:mm'): con formato, como en Databricks SQL (modo ANSI), un texto que no
+    // cumple el formato es un error; try_to_timestamp devuelve NULL en ese caso
+    const conFormato = (x, fm) => {
+      const toks = { yyyy: '(\\d{4})', MM: '(\\d{1,2})', dd: '(\\d{1,2})', HH: '(\\d{1,2})', mm: '(\\d{2})', ss: '(\\d{2})', SSS: '(\\d{1,3})' };
+      const orden = []; const re = String(fm).replace(/yyyy|MM|dd|HH|mm|ss|SSS|'[^']*'|[.*+?^${}()|[\]\\]/g, (k) => { if (toks[k]) { orden.push(k); return toks[k]; } if (k[0] === "'") return k.slice(1, -1).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); return '\\' + k; });
+      const m = new RegExp('^' + re + '$').exec(String(x).trim()); if (!m) return null;
+      const v = { yyyy: 1970, MM: 1, dd: 1, HH: 0, mm: 0, ss: 0 }; orden.forEach((k, i) => { v[k] = Number(m[i + 1]); });
+      if (v.MM < 1 || v.MM > 12 || v.dd < 1 || v.dd > 31 || v.HH > 23 || v.mm > 59 || v.ss > 59) return null;
+      return new Date(Date.UTC(v.yyyy, v.MM - 1, v.dd, v.HH, v.mm, v.ss));
+    };
+    f('to_timestamp', (x, fm) => {
+      if (x == null) return null;
+      if (fm == null) { const d0 = fecha(x); return d0 ? isoTs(d0) : null; }
+      const d0 = conFormato(x, fm);
+      if (!d0) throw new Error(`[CANNOT_PARSE_TIMESTAMP] Text '${x}' could not be parsed with the pattern '${fm}'. Use \`try_to_timestamp\` to tolerate invalid input string and return NULL instead. SQLSTATE: 22007`);
+      return isoTs(d0);
+    });
+    f('try_to_timestamp', (x, fm) => { if (x == null) return null; const d0 = fm == null ? fecha(x) : conFormato(x, fm); return d0 ? isoTs(d0) : null; });
     f('date_add', (x, n) => { const d0 = fecha(x); if (!d0 || n == null) return null; d0.setUTCDate(d0.getUTCDate() + Number(n)); return iso(d0); });
     f('dateadd', (u, n, x) => { const d0 = fecha(x); if (!d0) return null; const U = String(u).toUpperCase(); if (/DAY/.test(U)) d0.setUTCDate(d0.getUTCDate() + n); else if (/MONTH/.test(U)) d0.setUTCMonth(d0.getUTCMonth() + n); else if (/YEAR/.test(U)) d0.setUTCFullYear(d0.getUTCFullYear() + n); return iso(d0); });
     f('date_sub', (x, n) => { const d0 = fecha(x); if (!d0 || n == null) return null; d0.setUTCDate(d0.getUTCDate() - Number(n)); return iso(d0); });
@@ -616,6 +633,39 @@
   }
   const existeFisica = (nom) => !!db.exec(`SELECT 1 FROM sqlite_master WHERE name = ${lit(nom)}`).length;
 
+  // ------------------------------------------------------------------ el lago de Azure (ubicaciones externas)
+  // Como en Unity Catalog: para leer o escribir abfss://… hace falta una EXTERNAL LOCATION que cubra la ruta,
+  // con una STORAGE CREDENTIAL. La credencial del workspace es la identidad administrada del Access Connector
+  // (unity-catalog-access-connector), que necesita un rol "Storage Blob Data …" en la cuenta (IAM del portal).
+  const CREDENCIAL_LAGO = { nombre: 'credencial_lago', identidad: 'unity-catalog-access-connector' };
+  const normUri = (u) => { const p = window.LagoAzure.parsear(u); return p ? `abfss://${p.contenedor}@${p.cuenta}.dfs.core.windows.net/${p.ruta.replace(/\/$/, '')}` : u; };
+  function ubicacionDe(uri) {
+    const U = uc(); const n = normUri(uri);
+    return Object.entries(U.extLocs || {}).map(([k, v]) => ({ nombre: k, ...v })).filter((l) => n === normUri(l.url) || n.startsWith(normUri(l.url).replace(/\/$/, '') + '/')).sort((a, b) => b.url.length - a.url.length)[0] || null;
+  }
+  function rolLago(uri, escribe) {
+    const s = window.CloudSim && window.CloudSim.az ? window.CloudSim.az() : null; const p = window.LagoAzure.parsear(uri);
+    const A = s && s.storage && s.storage[p.cuenta]; if (!A) return true; // el lago dará el error de cuenta inexistente
+    const id = `/subscriptions/${s.sub}/resourceGroups/${A.rg}/providers/Microsoft.Storage/storageAccounts/${p.cuenta}`;
+    const roles = escribe ? /^Storage Blob Data (Contributor|Owner)$/ : /^Storage Blob Data (Reader|Contributor|Owner)$/;
+    return (s.roles || []).some((a) => a.principalName === CREDENCIAL_LAGO.identidad && roles.test(a.roleDefinitionName) && (a.scope === id || id.startsWith(a.scope + '/')));
+  }
+  function accesoLago(uri, escribe) {
+    const p = window.LagoAzure.parsear(uri);
+    if (!p) err('INVALID_PARAMETER_VALUE', `'${uri}' no es una dirección de Azure Storage.`);
+    if (!/^abfss?$/.test(p.esquema)) err('INVALID_PARAMETER_VALUE', `Unity Catalog lee el lago con abfss://<contenedor>@<cuenta>.dfs.core.windows.net/<ruta> (recibió ${p.esquema}://).`);
+    const loc = ubicacionDe(uri);
+    if (!loc) err('UNAUTHORIZED_ACCESS', `PERMISSION_DENIED: no hay una ubicación externa (external location) que cubra '${normUri(uri)}'. Créala con:\nCREATE EXTERNAL LOCATION mi_lago URL 'abfss://${p.contenedor}@${p.cuenta}.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL ${CREDENCIAL_LAGO.nombre})`);
+    if (loc.soloLectura && escribe) err('PERMISSION_DENIED', `La ubicación externa ${loc.nombre} es de solo lectura (READ ONLY).`);
+    if (!window.LagoAzure.esGen2(uri)) err('INVALID_PARAMETER_VALUE', `La cuenta ${p.cuenta} no tiene el espacio de nombres jerárquico (ADLS Gen2). abfss:// lo necesita: créala con "Enable hierarchical namespace" (pestaña Advanced).`);
+    if (!rolLago(uri, escribe)) err('UNAUTHORIZED_ACCESS', `Failed to ${escribe ? 'write' : 'read'} ${normUri(uri)}: This request is not authorized to perform this operation using this permission. (AuthorizationPermissionMismatch, 403)\nLa credencial ${CREDENCIAL_LAGO.nombre} usa la identidad administrada "${CREDENCIAL_LAGO.identidad}". En el portal de Azure, en la cuenta ${p.cuenta} → Access control (IAM) → Add role assignment, dale el rol "Storage Blob Data ${escribe ? 'Contributor' : 'Reader'}" (o Contributor para leer y escribir).`);
+    return loc;
+  }
+  function lagoLeer(uri) {
+    accesoLago(uri, false);
+    try { return window.LagoAzure.listar(normUri(uri)); } catch (e) { err(e.codigo === 'AccountNotFound' ? 'INVALID_PARAMETER_VALUE' : 'PATH_NOT_FOUND', e.message); }
+  }
+
   // ------------------------------------------------------------------ archivos en volúmenes (read_files)
   let archivosAislados = null; // los ejercicios corren con sus propios archivos
   function archivos() { return archivosAislados || (window.CloudSim ? window.CloudSim.dbx().files : {}); }
@@ -625,11 +675,19 @@
     if (!ruta) err('INVALID_PARAMETER_VALUE', "read_files necesita la ruta entre comillas: read_files('/Volumes/main/default/raw/archivo.csv', format => 'csv', header => true)");
     const op = {};
     for (const a of args.slice(1)) { const s = unirOriginal(a); const m = /^\s*(\w+)\s*=>\s*(.+?)\s*$/s.exec(s); if (m) op[m[1].toLowerCase()] = m[2].replace(/^['"]|['"]$/g, ''); }
-    const r = ruta.v.replace(/^dbfs:/, '').replace(/\/$/, '');
-    if (!/^\/Volumes\/\w+\/\w+\/\w+/.test(r) && !r.startsWith('/FileStore') && !r.startsWith('/tmp')) err('INVALID_PARAMETER_VALUE', `La ruta '${r}' no está en un volumen. En Unity Catalog los archivos van en /Volumes/<catálogo>/<esquema>/<volumen>/.`);
-    const F = archivos();
-    const lista = Object.keys(F).filter((k) => k === r || k.startsWith(r + '/')).filter((k) => !k.split('/').pop().startsWith('_') && !k.split('/').pop().startsWith('.'));
-    if (!lista.length) err('PATH_NOT_FOUND', `Path does not exist: dbfs:${r}. SQLSTATE: 42K03`);
+    let F, lista;
+    if (window.LagoAzure && window.LagoAzure.esDelLago(ruta.v)) {
+      // archivos del lago de Azure (los mismos que ve el portal y que escribe Data Factory)
+      const del = lagoLeer(ruta.v);
+      F = Object.fromEntries(del.map((a) => [a.uri, a.texto])); lista = del.map((a) => a.uri);
+      if (!lista.length) err('PATH_NOT_FOUND', `Path does not exist: ${ruta.v}. SQLSTATE: 42K03`);
+    } else {
+      const r = ruta.v.replace(/^dbfs:/, '').replace(/\/$/, '');
+      if (!/^\/Volumes\/\w+\/\w+\/\w+/.test(r) && !r.startsWith('/FileStore') && !r.startsWith('/tmp')) err('INVALID_PARAMETER_VALUE', `La ruta '${r}' no está en un volumen. En Unity Catalog los archivos van en /Volumes/<catálogo>/<esquema>/<volumen>/ (o en el lago: abfss://<contenedor>@<cuenta>.dfs.core.windows.net/…).`);
+      F = archivos();
+      lista = Object.keys(F).filter((k) => k === r || k.startsWith(r + '/')).filter((k) => !k.split('/').pop().startsWith('_') && !k.split('/').pop().startsWith('.'));
+      if (!lista.length) err('PATH_NOT_FOUND', `Path does not exist: dbfs:${r}. SQLSTATE: 42K03`);
+    }
     const formato = (op.format || lista[0].split('.').pop() || 'csv').toLowerCase();
     let cols = null; const filas0 = [];
     for (const k of lista) {
@@ -986,6 +1044,53 @@
     }
     if (/^ANALYZE\s+TABLE\b/i.test(txt)) return OK();
     if (/^(CACHE|UNCACHE|REFRESH|MSCK)\b/i.test(txt)) return OK();
+    // ---- lago de Azure: credenciales y ubicaciones externas
+    if (/^SHOW\s+STORAGE\s+CREDENTIALS$/i.test(txt.trim())) return R(['name', 'comment'], [[CREDENCIAL_LAGO.nombre, `Azure Managed Identity: ${CREDENCIAL_LAGO.identidad} (Access Connector del workspace)`]]);
+    if ((x = m(/^CREATE\s+(OR\s+REPLACE\s+)?EXTERNAL\s+LOCATION\s+(IF\s+NOT\s+EXISTS\s+)?(`?[\w-]+`?)\s+URL\s+'([^']+)'\s+WITH\s*\(\s*STORAGE\s+CREDENTIAL\s+(`?[\w-]+`?)\s*\)(\s+READ\s+ONLY)?(?:\s+COMMENT\s+'([^']*)')?$/i))) {
+      const nom = x[3].replace(/`/g, '').toLowerCase(), url = x[4], cred = x[5].replace(/`/g, '').toLowerCase();
+      U.extLocs = U.extLocs || {};
+      if (U.extLocs[nom] && !x[1]) { if (x[2]) return OK(); err('EXTERNAL_LOCATION_ALREADY_EXISTS', `External location '${nom}' already exists.`); }
+      if (cred !== CREDENCIAL_LAGO.nombre) err('STORAGE_CREDENTIAL_DOES_NOT_EXIST', `Storage Credential '${cred}' does not exist. Mira las que hay con SHOW STORAGE CREDENTIALS.`);
+      const p = window.LagoAzure && window.LagoAzure.parsear(url);
+      if (!p || !/^abfss$/.test(p.esquema)) err('INVALID_PARAMETER_VALUE', `La URL de una ubicación externa en Azure es abfss://<contenedor>@<cuenta>.dfs.core.windows.net/<ruta>.`);
+      try { window.LagoAzure.listar(url); } catch (e) { err('INVALID_PARAMETER_VALUE', e.message); }
+      const otra = Object.entries(U.extLocs).find(([k, v]) => k !== nom && (normUri(v.url).startsWith(normUri(url)) || normUri(url).startsWith(normUri(v.url))) && normUri(v.url) !== normUri(url));
+      if (otra && normUri(otra[1].url) === normUri(url)) err('INVALID_PARAMETER_VALUE.LOCATION_OVERLAP', `La URL se superpone con la ubicación externa ${otra[0]}.`);
+      U.extLocs[nom] = { url: normUri(url) + (normUri(url).endsWith('/') ? '' : '/'), credencial: cred, soloLectura: !!x[6], comment: x[7] || null, owner: USUARIO, creado: ahora() };
+      audit('createExternalLocation', { name: nom, url }); guardar();
+      const aviso = rolLago(url, false) ? '' : ` Ojo: la identidad ${CREDENCIAL_LAGO.identidad} todavía no tiene un rol "Storage Blob Data …" en la cuenta ${p.cuenta}; asígnalo en el portal (IAM) o fallarán las lecturas.`;
+      return OK(`Ubicación externa ${nom} creada.${aviso}`);
+    }
+    if (/^SHOW\s+EXTERNAL\s+LOCATIONS$/i.test(txt.trim())) return R(['name', 'url', 'credential_name', 'read_only', 'comment', 'owner'], Object.entries(U.extLocs || {}).map(([k, v]) => [k, v.url, v.credencial, v.soloLectura ? 'true' : 'false', v.comment, v.owner]));
+    if ((x = m(/^(?:DESCRIBE|DESC)\s+EXTERNAL\s+LOCATION\s+(`?[\w-]+`?)$/i))) { const L = (U.extLocs || {})[x[1].replace(/`/g, '').toLowerCase()]; if (!L) err('EXTERNAL_LOCATION_DOES_NOT_EXIST', `External Location '${x[1]}' does not exist.`); return R(['name', 'url', 'credential_name', 'read_only', 'comment', 'owner', 'created_at'], [[x[1].replace(/`/g, ''), L.url, L.credencial, L.soloLectura ? 'true' : 'false', L.comment, L.owner, L.creado]]); }
+    if ((x = m(/^DROP\s+EXTERNAL\s+LOCATION\s+(IF\s+EXISTS\s+)?(`?[\w-]+`?)(\s+FORCE)?$/i))) { const k = x[2].replace(/`/g, '').toLowerCase(); if (!(U.extLocs || {})[k]) { if (x[1]) return OK(); err('EXTERNAL_LOCATION_DOES_NOT_EXIST', `External Location '${k}' does not exist.`); } delete U.extLocs[k]; guardar(); return OK(); }
+    if ((x = m(/^LIST\s+'([^']+)'(?:\s+LIMIT\s+(\d+))?$/i)) && window.LagoAzure && window.LagoAzure.esDelLago(x[1])) {
+      const l = lagoLeer(x[1]); return R(['path', 'name', 'size', 'modification_time'], l.slice(0, x[2] ? Number(x[2]) : undefined).map((a) => [a.uri, a.nombre.split('/').pop(), a.texto.length, Date.now()]));
+    }
+    // INSERT OVERWRITE DIRECTORY 'abfss://…' USING CSV|JSON [OPTIONS (…)] SELECT …: escribe el resultado como archivos
+    if ((x = /^INSERT\s+OVERWRITE\s+(?:LOCAL\s+)?DIRECTORY\s+'([^']+)'\s+USING\s+(CSV|JSON|PARQUET|DELTA|TEXT)\s*(OPTIONS\s*\(([^)]*)\))?\s*([\s\S]+)$/i.exec(txt.trim()))) {
+      const uri = x[1], fmt = x[2].toUpperCase();
+      if (!window.LagoAzure || !window.LagoAzure.esDelLago(uri)) err('INVALID_PARAMETER_VALUE', 'En esta práctica INSERT OVERWRITE DIRECTORY escribe en el lago: abfss://<contenedor>@<cuenta>.dfs.core.windows.net/<carpeta>.');
+      if (fmt !== 'CSV' && fmt !== 'JSON') err('UNSUPPORTED_FEATURE', `En esta práctica se escribe CSV o JSON (pediste ${fmt}). En Databricks real lo habitual es Parquet o Delta; para que Snowflake o BigQuery lo carguen fácil, CSV sirve.`);
+      accesoLago(uri, true);
+      const opc = {}; for (const par of (x[4] || '').split(',')) { const kv = /^\s*'?([\w.]+)'?\s*=?\s*'([^']*)'\s*$/.exec(par); if (kv) opc[kv[1].toLowerCase()] = kv[2]; }
+      const consulta = x[5].trim();
+      const res = ejecutarUna({ T: tokenizar(consulta), texto: consulta }, opts);
+      const sep = opc.sep || opc.delimiter || ',';
+      const celda = (v) => { if (v === null || v === undefined) return ''; const s = String(v); return s.includes(sep) || /["\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+      const cuerpo = fmt === 'CSV'
+        ? [...(String(opc.header || 'false').toLowerCase() === 'true' ? [res.cols.map(celda).join(sep)] : []), ...res.filas.map((f) => f.map(celda).join(sep))].join('\n') + '\n'
+        : res.filas.map((f) => JSON.stringify(Object.fromEntries(res.cols.map((c, i) => [c, f[i]])))).join('\n') + '\n';
+      const dir = normUri(uri).replace(/\/$/, '');
+      try {
+        window.LagoAzure.vaciar(dir);
+        const parte = `part-00000-${hashHex(consulta + Date.now(), 8)}-${hashHex(dir, 4)}-c000.${fmt === 'CSV' ? 'csv' : 'json'}`;
+        window.LagoAzure.escribir(`${dir}/${parte}`, cuerpo);
+        window.LagoAzure.escribir(`${dir}/_SUCCESS`, '');
+      } catch (e) { err('PATH_NOT_FOUND', e.message); }
+      audit('writeExternalFiles', { url: dir, rows: res.filas.length });
+      return R(['num_affected_rows'], [[res.filas.length]], { msg: `Se escribieron ${res.filas.length} filas en ${dir}/ (un archivo ${fmt} y el marcador _SUCCESS).` });
+    }
     // ---- COPY INTO
     if (/^COPY\s+INTO\b/i.test(txt)) return copyInto(st);
     // ---- MERGE INTO
@@ -1532,13 +1637,14 @@
   function copyInto(st) {
     const txt = st.texto.replace(/\s+/g, ' ').trim();
     const x = /^COPY INTO (\S+) FROM '([^']+)' FILEFORMAT = (\w+)(?: FORMAT_OPTIONS \(([^)]*)\))?(?: COPY_OPTIONS \(([^)]*)\))?$/i.exec(txt);
-    if (!x) err('PARSE_SYNTAX_ERROR', "COPY INTO tabla FROM '/Volumes/…' FILEFORMAT = CSV FORMAT_OPTIONS ('header' = 'true') COPY_OPTIONS ('mergeSchema' = 'true')");
+    if (!x) err('PARSE_SYNTAX_ERROR', "COPY INTO tabla FROM '/Volumes/…' (o 'abfss://…') FILEFORMAT = CSV FORMAT_OPTIONS ('header' = 'true') COPY_OPTIONS ('mergeSchema' = 'true')");
     const ref = resolver(x[1]); escribible(ref);
     const fo = Object.fromEntries([...(x[4] || '').matchAll(/'([^']+)'\s*=\s*'([^']*)'/g)].map((m2) => [m2[1].toLowerCase(), m2[2]]));
     const co = Object.fromEntries([...(x[5] || '').matchAll(/'([^']+)'\s*=\s*'([^']*)'/g)].map((m2) => [m2[1].toLowerCase(), m2[2]]));
     const M = ref.meta; M.cargados = M.cargados || [];
-    const r0 = x[2].replace(/\/$/, ''); const F = archivos();
-    const todos = Object.keys(F).filter((k) => k === r0 || k.startsWith(r0 + '/'));
+    const r0 = x[2].replace(/\/$/, '');
+    const delLago = window.LagoAzure && window.LagoAzure.esDelLago(r0);
+    const todos = delLago ? lagoLeer(r0).map((a) => a.uri) : Object.keys(archivos()).filter((k) => k === r0 || k.startsWith(r0 + '/'));
     if (!todos.length) err('PATH_NOT_FOUND', `Path does not exist: dbfs:${r0}`);
     const nuevos = todos.filter((k) => co.force === 'true' || !M.cargados.includes(k));
     if (!nuevos.length) return { cols: ['num_affected_rows', 'num_inserted_rows', 'num_skipped_corrupt_files'], filas: [[0, 0, 0]], msg: 'Todos los archivos ya se habían cargado (COPY INTO es idempotente: carga cada archivo una sola vez).' };

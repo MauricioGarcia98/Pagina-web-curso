@@ -1174,3 +1174,12 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .prose > details > :last-child { margin-bottom: 4px; }
 /* enlaces dentro de texto atenuado: subrayados para distinguirlos sin depender solo del color */
 .muted a, .small.muted a { text-decoration: underline; text-underline-offset: 2px; }
+
+/* proyecto integrador (Pedalia): entrega de datos y revisión del proyecto */
+.pedalia-panel { margin: 18px 0; }
+.pedalia-dias { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin: 10px 0; }
+.pedalia-dias > div { border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+.pedalia-dias .btn { margin-top: 6px; }
+.pedalia-chequeos { margin: 12px 0 0; padding-left: 22px; }
+.pedalia-chequeos li { margin: 6px 0; }
+.pedalia-chequeos li.falta .small { margin-top: 2px; }

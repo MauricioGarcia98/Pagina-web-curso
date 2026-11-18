@@ -612,36 +612,122 @@ print("\u0000AFJSON" + _json.dumps({"state": _run.state, "states": _run.states, 
     return L;
   }
 
-  // DatabricksRunNowOperator: la tarea dispara de verdad el job en el Databricks de práctica (el mismo estado que
-  // usa la réplica y el comando `databricks jobs` de la terminal). Necesita la conexión databricks_default.
-  async function enlazarDatabricks(datos, solo) {
-    const tareas = datos.dag.tasks.filter((t) => t.op === 'DatabricksRunNowOperator' && datos.states[t.id] === 'success' && (!solo || solo.includes(t.id)));
-    if (!tareas.length) return;
+  // Las tareas de proveedores que hablan con otra réplica hacen el trabajo de verdad, con el mismo estado que
+  // usa cada réplica (y su CLI en la terminal). Se recorren en el orden del grafo: si una falla, lo que depende
+  // de ella queda upstream_failed y no se ejecuta.
+  //  - DatabricksRunNowOperator → un job del Databricks de práctica (conexión databricks_default)
+  //  - AzureDataFactoryRunPipelineOperator → la versión publicada de un pipeline de Data Factory (azure_data_factory_default)
+  //  - SQLExecuteQueryOperator con una conexión de tipo snowflake / SnowflakeSqlApiOperator → SQL en el Snowflake de práctica
+  //  - BigQueryInsertJobOperator → un job (query o LOAD DATA) en el BigQuery de práctica (google_cloud_default)
+  const OPS_ENLAZADOS = new Set(['DatabricksRunNowOperator', 'AzureDataFactoryRunPipelineOperator', 'SQLExecuteQueryOperator', 'SnowflakeSqlApiOperator', 'BigQueryInsertJobOperator']);
+  async function enlazarReplicas(datos, solo) {
+    const T = datos.dag.tasks;
+    if (!T.some((t) => OPS_ENLAZADOS.has(t.op) && datos.states[t.id] === 'success')) return;
+    // orden topológico
+    const grado = Object.fromEntries(T.map((t) => [t.id, 0])); for (const t of T) for (const d of t.down) if (d in grado) grado[d]++;
+    const cola = T.filter((t) => !grado[t.id]).map((t) => t.id), orden = [];
+    while (cola.length) { const id = cola.shift(); orden.push(id); const t = T.find((x) => x.id === id); for (const d of t.down) if (--grado[d] === 0) cola.push(d); }
+    const archivoOp = { DatabricksRunNowOperator: ['databricks/operators/databricks.py', 912], AzureDataFactoryRunPipelineOperator: ['microsoft/azure/operators/data_factory.py', 211], SQLExecuteQueryOperator: ['common/sql/operators/sql.py', 296], SnowflakeSqlApiOperator: ['snowflake/operators/snowflake.py', 470], BigQueryInsertJobOperator: ['google/cloud/operators/bigquery.py', 2936] };
     const fallar = (t, intento, msg) => {
-      intento.ok = false; intento.tipo = 'AirflowException'; intento.msg = msg; intento.err = `Traceback (most recent call last):\n  File "airflow/providers/databricks/operators/databricks.py", line 912, in execute\nairflow.exceptions.AirflowException: ${msg}`;
+      const [arch, linea] = archivoOp[t.op] || ['models/baseoperator.py', 1];
+      intento.ok = false; intento.tipo = 'AirflowException'; intento.msg = msg; intento.err = `Traceback (most recent call last):\n  File "airflow/providers/${arch}", line ${linea}, in execute\nairflow.exceptions.AirflowException: ${msg}`;
       datos.states[t.id] = 'failed';
-      // lo que depende de esta tarea ya no corre
-      const cola = [...t.down];
-      while (cola.length) { const id = cola.shift(); const d = datos.dag.tasks.find((x) => x.id === id); if (!d || datos.states[id] === 'upstream_failed') continue; if (/all_success|none_failed/.test(d.tr)) { datos.states[id] = 'upstream_failed'; if (datos.tis[id]) datos.tis[id].tries = []; cola.push(...d.down); } }
+      const c = [...t.down];
+      while (c.length) { const id = c.shift(); const d = T.find((x) => x.id === id); if (!d || datos.states[id] === 'upstream_failed') continue; if (/all_success|none_failed/.test(d.tr)) { datos.states[id] = 'upstream_failed'; if (datos.tis[id]) datos.tis[id].tries = []; c.push(...d.down); } }
     };
-    for (const t of tareas) {
+    const anotar = (k) => { const s = st(); s.cruces = s.cruces || {}; s.cruces[k] = Date.now(); };
+    const quitarSimulado = (intento) => { intento.out = (intento.out || '').replace(/^.*\(simulado\).*\n?/m, ''); };
+    const almacen = window.__almacen && window.__almacen();
+    const cargar = async (grupo, listo) => { try { if (!listo() && window.__cargarGrupo) await window.__cargarGrupo(grupo); } catch (e) { /* sin red */ } return listo(); };
+    const conexion = (t, intento, id, tipo, ayuda) => {
+      const c = st().conns[id];
+      if (!c) { fallar(t, intento, `The conn_id \`${id}\` isn't defined. Créala en Admin → Connections (tipo ${tipo}) o con: ${ayuda}`); return null; }
+      return c;
+    };
+    const extra = (c) => { try { return c.extra ? JSON.parse(c.extra) : {}; } catch (e) { return {}; } };
+
+    for (const id of orden) {
+      const t = T.find((x) => x.id === id);
+      if (!OPS_ENLAZADOS.has(t.op) || datos.states[t.id] !== 'success' || (solo && !solo.includes(t.id))) continue;
       const rec = datos.tis[t.id]; const intento = rec && rec.tries[rec.tries.length - 1]; if (!intento) continue;
-      const rend = intento.rend || {}; const conn = rend.databricks_conn_id || 'databricks_default';
-      if (!st().conns[conn]) { fallar(t, intento, `The conn_id \`${conn}\` isn't defined. Créala en Admin → Connections (tipo databricks) o con: airflow connections add ${conn} --conn-type databricks --conn-host https://adb-1234567890123456.7.azuredatabricks.net`); continue; }
+      const rend = intento.rend || {};
+      try {
+        if (t.op === 'DatabricksRunNowOperator') await databricks(t, intento, rend);
+        else if (t.op === 'AzureDataFactoryRunPipelineOperator') await dataFactory(t, intento, rend);
+        else if (t.op === 'BigQueryInsertJobOperator') await bigquery(t, intento, rend);
+        else await snowflake(t, intento, rend);
+      } catch (e) { fallar(t, intento, String(e.message || e)); }
+    }
+
+    async function databricks(t, intento, rend) {
+      const conn = rend.databricks_conn_id || 'databricks_default';
+      if (!st().conns[conn]) { fallar(t, intento, `The conn_id \`${conn}\` isn't defined. Créala en Admin → Connections (tipo databricks) o con: airflow connections add ${conn} --conn-type databricks --conn-host https://adb-1234567890123456.7.azuredatabricks.net`); return; }
       try { if (!(window.DBX && window.DBX.correrJob) && window.__cargarGrupo) await window.__cargarGrupo('databricks'); } catch (e) { /* sin red */ }
       const D = window.DBX;
-      if (!D || !D.correrJob) { fallar(t, intento, 'No se pudo cargar el Databricks de práctica (revisa tu conexión).'); continue; }
+      if (!D || !D.correrJob) { fallar(t, intento, 'No se pudo cargar el Databricks de práctica (revisa tu conexión).'); return; }
       const almacen = window.__almacen && window.__almacen();
       if (almacen) { if (D.asegurarStore) D.asegurarStore(almacen); try { if (window.DBSQL) await window.DBSQL.init({ Store: almacen }); } catch (e) { /* se informa al correr */ } }
       const J = D.cli().jobs || {};
       let jobId = rend.job_id !== undefined && rend.job_id !== null ? String(rend.job_id) : null;
       if (!jobId && rend.job_name) jobId = Object.keys(J).find((k) => ((J[k].settings || J[k]).name) === rend.job_name) || null;
-      if (!jobId || !J[jobId]) { fallar(t, intento, rend.job_name && !jobId ? `Job with name ${rend.job_name} does not exist. Créalo en Databricks → Jobs & Pipelines.` : `Job ${jobId} does not exist. Mira el Job ID en Databricks → Jobs & Pipelines (o con databricks jobs list).`); continue; }
+      if (!jobId || !J[jobId]) { fallar(t, intento, rend.job_name && !jobId ? `Job with name ${rend.job_name} does not exist. Créalo en Databricks → Jobs & Pipelines.` : `Job ${jobId} does not exist. Mira el Job ID en Databricks → Jobs & Pipelines (o con databricks jobs list).`); return; }
       const host = (st().conns[conn].host || 'https://adb-1234567890123456.7.azuredatabricks.net').replace(/\/$/, '');
       const run = await D.correrJob(jobId, { trigger: 'API', params: rend.notebook_params || rend.job_parameters || {} });
       intento.out = (intento.out || '').replace(/^.*\(simulado\).*\n?/m, '') + `     Run submitted with run_id: ${run.run_id}\n     View run status, Spark UI, and logs at ${host}/#job/${jobId}/run/${run.run_id}\n     ${t.id} in run state: {'life_cycle_state': 'RUNNING', 'result_state': '', 'state_message': 'In run'}\n     Sleeping for 30 seconds.\n     ${t.id} in run state: {'life_cycle_state': 'TERMINATED', 'result_state': '${run.result || run.state}', 'state_message': ''}\n`;
       if (run.result === 'SUCCESS') { intento.out += `     ${t.id} completed successfully.\n`; intento.ret = String(run.run_id); const s = st(); s.cruces = s.cruces || {}; s.cruces.airflowDatabricks = Date.now(); }
       else fallar(t, intento, `${t.id} failed with terminal state: {'life_cycle_state': 'TERMINATED', 'result_state': '${run.result || run.state}', 'state_message': 'Mira la corrida en Databricks → Jobs & Pipelines → Runs.'}`);
+    }
+
+    async function dataFactory(t, intento, rend) {
+      const cid = rend.azure_data_factory_conn_id || 'azure_data_factory_default';
+      const c = conexion(t, intento, cid, 'azure_data_factory', `airflow connections add ${cid} --conn-type azure_data_factory --conn-login <client_id> --conn-password <secret> --conn-extra '{"tenantId": "…", "subscriptionId": "…"}'`); if (!c) return;
+      const fab = rend.factory_name || extra(c).factory_name, rg = rend.resource_group_name || extra(c).resource_group_name, pipe = rend.pipeline_name;
+      if (!fab || !rg || !pipe) return fallar(t, intento, 'AzureDataFactoryRunPipelineOperator necesita pipeline_name, factory_name y resource_group_name (los dos últimos pueden ir en el extra de la conexión).');
+      if (!(await cargar('azure', () => window.ADFStudio && window.ADFStudio.correrDesdeFuera))) return fallar(t, intento, 'No se pudo cargar el Data Factory de práctica (revisa tu conexión).');
+      const s = window.CloudSim.az(); const R = (s.adf || {})[fab];
+      if (!R) return fallar(t, intento, `ResourceNotFound: The Resource 'Microsoft.DataFactory/factories/${fab}' under resource group '${rg}' was not found.`);
+      if (R.rg && R.rg !== rg) return fallar(t, intento, `ResourceNotFound: el factory ${fab} está en el grupo de recursos ${R.rg}, no en ${rg}.`);
+      quitarSimulado(intento);
+      intento.out += `     Executing the ${pipe} pipeline.\n`;
+      const run = await window.ADFStudio.correrDesdeFuera(fab, pipe, rend.parameters || {}, 'Manual');
+      intento.out += `     ${pipe} pipeline run ID: ${run.runId}\n     Waiting for pipeline run ${run.runId} to terminate.\n`;
+      for (const a of run.acts || []) intento.out += `       ${a.name || a.nombre || 'actividad'}: ${a.estado || a.status || ''}\n`;
+      if (run.estado !== 'Succeeded') return fallar(t, intento, `Pipeline run ${run.runId} has failed or has been cancelled. Status: ${run.estado}.${run.error ? ' ' + (run.error.message || run.error) : ''} Mira el detalle en Data Factory → Monitor → Pipeline runs.`);
+      intento.out += `     Pipeline run ${run.runId} has completed successfully.\n`; intento.ret = run.runId; anotar('airflowDataFactory');
+    }
+
+    async function snowflake(t, intento, rend) {
+      const cid = rend.snowflake_conn_id || rend.conn_id || 'snowflake_default';
+      const c = conexion(t, intento, cid, 'snowflake', `airflow connections add ${cid} --conn-type snowflake --conn-login <usuario> --conn-password <clave> --conn-extra '{"account": "practica01", "warehouse": "COMPUTE_WH", "database": "…", "role": "SYSADMIN"}'`); if (!c) return;
+      if (t.op === 'SQLExecuteQueryOperator' && c.conn_type !== 'snowflake') { quitarSimulado(intento); intento.out += `     (simulado) SQL en ${cid} (${c.conn_type || 'sin tipo'}): solo las conexiones de tipo snowflake van a una réplica.\n`; return; }
+      if (!(await cargar('snowflake', () => window.SnowflakeMotor))) return fallar(t, intento, 'No se pudo cargar el Snowflake de práctica.');
+      const M = window.SnowflakeMotor; if (almacen) M.conectar(almacen); await M.init();
+      const x = extra(c); const prev = [x.role && `USE ROLE ${x.role}`, x.warehouse && `USE WAREHOUSE ${x.warehouse}`, (rend.database || x.database) && `USE DATABASE ${rend.database || x.database}`, (rend.schema || x.schema || c.schema) && `USE SCHEMA ${rend.schema || x.schema || c.schema}`].filter(Boolean);
+      const sql = Array.isArray(rend.sql) ? rend.sql.join(';\n') : String(rend.sql || '');
+      if (!sql.trim()) return fallar(t, intento, 'La tarea no tiene sql.');
+      quitarSimulado(intento);
+      const rs = await M.ejecutar([...prev, sql].join(';\n'), { seguir: false });
+      for (const r of rs.slice(prev.length)) intento.out += `     Running statement: ${r.sql.replace(/\s+/g, ' ').slice(0, 160)}\n     ${r.error ? 'Error' : 'Rows affected / returned: ' + ((r.r && r.r.values && r.r.values.length) || 0)} (query id ${r.qid})\n`;
+      const malo = rs.find((r) => r.error);
+      if (malo) return fallar(t, intento, `snowflake.connector.errors.ProgrammingError: ${malo.error.codigo || '000000'}: ${String(malo.error.message).split('\n')[0]}`);
+      anotar('airflowSnowflake');
+    }
+
+    async function bigquery(t, intento, rend) {
+      const cid = rend.gcp_conn_id || 'google_cloud_default';
+      const c = conexion(t, intento, cid, 'google_cloud_platform', `airflow connections add ${cid} --conn-type google_cloud_platform --conn-extra '{"project": "tienda-andina-dev"}'`); if (!c) return;
+      const cfg = typeof rend.configuration === 'string' ? (() => { try { return JSON.parse(rend.configuration.replace(/'/g, '"').replace(/\bTrue\b/g, 'true').replace(/\bFalse\b/g, 'false')); } catch (e) { return {}; } })() : (rend.configuration || {});
+      const sql = cfg.query && cfg.query.query;
+      if (!sql) return fallar(t, intento, 'BigQueryInsertJobOperator necesita configuration={"query": {"query": "…", "useLegacySql": False}}.');
+      if (cfg.query.useLegacySql === true) return fallar(t, intento, 'Legacy SQL no está disponible en esta práctica: usa "useLegacySql": False (GoogleSQL).');
+      if (!(await cargar('bigquery', () => window.BigQueryMotor))) return fallar(t, intento, 'No se pudo cargar el BigQuery de práctica.');
+      const B = window.BigQueryMotor; if (almacen) B.conectar(almacen); await B.init();
+      quitarSimulado(intento);
+      const rs = await B.ejecutar(sql, { usuario: 'airflow@tienda-andina-dev.iam.gserviceaccount.com', sinCache: true });
+      for (const r of rs) intento.out += `     Inserting job ${r.job.id}\n     ${r.error ? 'Job failed' : (r.r && r.r.estado) || `Job done: ${(r.r && r.r.values && r.r.values.length) || 0} filas`}\n`;
+      const malo = rs.find((r) => r.error);
+      if (malo) return fallar(t, intento, `google.api_core.exceptions.BadRequest: 400 ${String(malo.error.message).split('\n')[0]}`);
+      intento.ret = rs[rs.length - 1].job.id; anotar('airflowBigQuery');
     }
   }
   async function ejecutar(id, r, o = {}) {
@@ -652,7 +738,7 @@ print("\u0000AFJSON" + _json.dumps({"state": _run.state, "states": _run.states, 
     const prev = {}; const solo = o.solo || null;
     if (solo) for (const [tid, ti] of Object.entries(r.tis)) if (!solo.includes(tid)) prev[tid] = { state: ti.state, xcom: ti.xcom || {} };
     const { datos } = await py(CORRER, { files: { [d.file]: archivos().find((f) => f.ruta === d.file).codigo }, vars: st().vars, conns: conns(), dag_id: id, logical_date: r.logical.replace('Z', ''), conf: r.conf, run_id: r.run_id, prev, solo });
-    await enlazarDatabricks(datos, solo);
+    await enlazarReplicas(datos, solo);
     // tiempos simulados: cada tarea empieza cuando terminan sus dependencias (en paralelo si se puede)
     const t0 = Date.now(); const fin = {}; const plan = [];
     for (const t of datos.dag.tasks) {
@@ -812,12 +898,14 @@ print("\u0000AFJSON" + _json.dumps({"state": _run.state, "states": _run.states, 
     if (!d.tasks.some((t) => t.id === tarea)) throw new Error(`Task ${tarea} not found in Dag ${id}`);
     const prev = {}; for (const t of d.tasks) if (t.id !== tarea) prev[t.id] = { state: 'success', xcom: {} };
     const { datos } = await py(CORRER, { files: { [d.file]: archivos().find((f) => f.ruta === d.file).codigo }, vars: st().vars, conns: conns(), dag_id: id, logical_date: (fecha || new Date().toISOString().slice(0, 10)) + 'T00:00:00', conf: {}, run_id: '__airflow_temporary_run_' + new Date().toISOString(), prev, solo: [tarea] });
+    await enlazarReplicas(datos, [tarea]);
     return { estado: datos.states[tarea], rec: datos.tis[tarea], dag: datos.dag };
   }
   async function probarDag(id, fecha, conf) {
     await parsear();
     const d = dag(id); if (!d) throw new Error(`Dag '${id}' could not be found`);
     const { datos } = await py(CORRER, { files: { [d.file]: archivos().find((f) => f.ruta === d.file).codigo }, vars: st().vars, conns: conns(), dag_id: id, logical_date: (fecha || new Date().toISOString().slice(0, 10)) + 'T00:00:00', conf: conf || {}, run_id: 'manual__' + new Date().toISOString(), prev: {}, solo: null });
+    await enlazarReplicas(datos, null);
     return datos;
   }
 

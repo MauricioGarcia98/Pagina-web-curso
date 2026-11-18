@@ -855,5 +855,20 @@
     render(sub.slice(1));
   }
   window.addEventListener('hashchange', () => { if (!/^#\/azure\/studio\//.test(location.hash)) document.body.classList.remove('adf-abierto'); });
-  window.ADFStudio = { vista: vistaPublica, importarObjeto, _arm: () => plantillaArm(), _correr: (n, o) => correrPipeline(n, o), _validar: (n) => validar(n) };
+  // Ejecutar la versión publicada de un pipeline desde fuera del Studio (por ejemplo, desde Airflow con
+  // AzureDataFactoryRunPipelineOperator, que llama a la API "Pipelines - Create Run" del servicio).
+  async function correrDesdeFuera(nombreFab, nombre, parametros = {}, tipo = 'Manual') {
+    const antes = { fabrica, ctx };
+    fabrica = nombreFab;
+    ctx = ctx || { guardarAz: () => { try { window.CloudSim.save(); } catch (e) { /* sin terminal */ } }, actividad: null };
+    try {
+      if (!F()) { const e = new Error(`ResourceNotFound: The Resource 'Microsoft.DataFactory/factories/${nombreFab}' under resource group was not found.`); e.codigo = 'ResourceNotFound'; throw e; }
+      const S = st(); const pub = S.publicado ? JSON.parse(S.publicado) : null;
+      if (!pub || !pub.pipelines[nombre]) { const e = new Error(`PipelineNotFound: Entity ${nombre} not found. El servicio solo ejecuta pipelines publicados: abre el Studio y presiona "Publish all".`); e.codigo = 'PipelineNotFound'; throw e; }
+      const def = JSON.parse(JSON.stringify(pub.pipelines[nombre]));
+      def.parameters = { ...(def.parameters || {}), ...parametros };
+      return await correrPipeline(nombre, { tipo, definicion: def });
+    } finally { fabrica = antes.fabrica; ctx = antes.ctx; }
+  }
+  window.ADFStudio = { vista: vistaPublica, importarObjeto, correrDesdeFuera, _arm: () => plantillaArm(), _correr: (n, o) => correrPipeline(n, o), _validar: (n) => validar(n) };
 })();

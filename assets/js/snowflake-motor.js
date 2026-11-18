@@ -477,7 +477,7 @@ ORDER BY ventas DESC;
       const ts = (await tablas(d, e)).filter((t) => (m[1].toUpperCase() === 'VIEWS') === t.vista && likeOk(sql, t.nombre));
       return filas(['created_on', 'name', 'database_name', 'schema_name', 'kind', 'rows', 'owner'], ts.map((t) => [fecha(Date.now() - 3600000), t.nombre, d, e, t.vista ? 'VIEW' : 'TABLE', t.vista ? null : t.filas, 'SYSADMIN']));
     }
-    if (/^SHOW\s+STAGES/i.test(sql)) return filas(['created_on', 'name', 'database_name', 'schema_name', 'type', 'owner'], Object.values(s.stages).map((x) => [fecha(x.creado), x.nombre, x.db, x.esquema, 'INTERNAL', x.dueno]));
+    if (/^SHOW\s+STAGES/i.test(sql)) return filas(['created_on', 'name', 'database_name', 'schema_name', 'url', 'type', 'owner'], Object.values(s.stages).map((x) => [fecha(x.creado), x.nombre, x.db, x.esquema, x.url || '', x.url ? 'EXTERNAL' : 'INTERNAL', x.dueno]));
     if (/^SHOW\s+USERS/i.test(sql)) return filas(['name', 'login_name', 'default_role', 'default_warehouse', 'has_password'], [[USUARIO, USUARIO, 'SYSADMIN', 'COMPUTE_WH', 'true']]);
     // --- bases y esquemas
     if ((m = /^CREATE\s+(OR\s+REPLACE\s+)?(?:TRANSIENT\s+)?DATABASE\s+(IF\s+NOT\s+EXISTS\s+)?("?[\w$]+"?)(?:\s+CLONE\s+("?[\w$]+"?))?/i.exec(sql))) {
@@ -505,16 +505,28 @@ ORDER BY ventas DESC;
     // --- stages y COPY INTO
     if ((m = /^CREATE\s+(OR\s+REPLACE\s+)?(?:TEMPORARY\s+)?STAGE\s+(IF\s+NOT\s+EXISTS\s+)?("?[\w$]+"?)/i.exec(sql))) {
       const x = nombreSf(m[3]); if (s.stages[x] && !m[1]) { if (m[2]) return { estado: `${x} already exists, statement succeeded.` }; throw err(`Object '${x}' already exists.`, '002002'); }
-      s.stages[x] = { nombre: x, db: s.ctx.db, esquema: s.ctx.esquema, dueno: s.ctx.rol, creado: Date.now(), archivos: (s.stages[x] && s.stages[x].archivos) || {} };
+      // stage externo: URL = 'azure://<cuenta>.blob.core.windows.net/<contenedor>/<ruta>' CREDENTIALS = (AZURE_SAS_TOKEN = '…')
+      const url = (/\bURL\s*=\s*'([^']+)'/i.exec(sql) || [])[1] || null;
+      const sas = (/AZURE_SAS_TOKEN\s*=\s*'([^']*)'/i.exec(sql) || [])[1] || null;
+      if (url) {
+        const L = window.LagoAzure; const p = L && L.parsear(url);
+        if (!p || p.esquema !== 'azure') throw err(`Invalid URL '${url}'. Un stage externo en Azure usa azure://<cuenta>.blob.core.windows.net/<contenedor>/<ruta>.`, '001003');
+        if (/STORAGE_INTEGRATION/i.test(sql)) throw err('En esta práctica el stage externo se autentica con CREDENTIALS = (AZURE_SAS_TOKEN = \'…\'). Una STORAGE INTEGRATION es lo recomendado en producción (sin tokens que vencen), pero pide permisos en el tenant de Azure.', '000002');
+        if (!sas) throw err('Falta CREDENTIALS = (AZURE_SAS_TOKEN = \'?sv=…\'). Genera el token en el portal de Azure: cuenta de almacenamiento → Shared access signature (permisos Read y List).', '091003');
+        try { L.listar(url); } catch (e) { throw err(`Failure using stage area. Cause: [${e.message}]`, '091003'); }
+      }
+      s.stages[x] = { nombre: x, db: s.ctx.db, esquema: s.ctx.esquema, dueno: s.ctx.rol, creado: Date.now(), archivos: (s.stages[x] && s.stages[x].archivos) || {}, ...(url ? { url, sas } : {}) };
       guardar(); return { estado: `Stage area ${x} successfully created.` };
     }
     if ((m = /^(?:LIST|LS)\s+@("?[\w$]+"?)(\/\S*)?(?:\s+PATTERN\s*=\s*'([^']*)')?$/i.exec(sql))) {
       const x = s.stages[nombreSf(m[1])]; if (!x) throw err(`Stage '${s.ctx.db}.${s.ctx.esquema}.${nombreSf(m[1])}' does not exist or not authorized.`, '002003');
       const re = m[3] ? new RegExp(m[3], 'i') : null;
+      if (x.url) return filas(['name', 'size', 'md5', 'last_modified'], Object.entries(archivosStage(x)).filter(([n]) => (!m[2] || n.startsWith(m[2].slice(1))) && (!re || re.test(n))).map(([n, a]) => [`${x.url.replace(/\/$/, '')}/${n}`, a.texto.length, md5ish(a.texto), new Date(a.cuando).toUTCString()]));
       return filas(['name', 'size', 'md5', 'last_modified'], Object.entries(x.archivos).filter(([n]) => (!m[2] || n.startsWith(m[2].slice(1))) && (!re || re.test(n))).map(([n, a]) => [`${x.nombre.toLowerCase()}/${n}`, a.texto.length, md5ish(a.texto), new Date(a.cuando).toUTCString()]));
     }
     if ((m = /^REMOVE\s+@("?[\w$]+"?)\/?(\S*)$/i.exec(sql))) {
       const x = s.stages[nombreSf(m[1])]; if (!x) throw err('Stage does not exist or not authorized.', '002003');
+      if (x.url) throw err('REMOVE en un stage externo borraría archivos del lago: en esta práctica bórralos desde el portal de Azure.', '091003');
       const borrados = Object.keys(x.archivos).filter((n) => !m[2] || n.startsWith(m[2])); borrados.forEach((n) => delete x.archivos[n]); guardar();
       return filas(['name', 'result'], borrados.map((n) => [`${x.nombre.toLowerCase()}/${n}`, 'removed']));
     }
@@ -527,7 +539,7 @@ ORDER BY ventas DESC;
       const onErr = /ON_ERROR\s*=\s*'?(\w+)/i.exec(resto); const force = /FORCE\s*=\s*TRUE/i.test(resto);
       const cargados = (x.cargados = x.cargados || {});
       const res = [];
-      for (const [nom, a] of Object.entries(x.archivos)) {
+      for (const [nom, a] of Object.entries(archivosStage(x))) {
         if (m[3] && !nom.startsWith(m[3].slice(1))) continue; if (pat && !new RegExp(pat[1], 'i').test(nom)) continue;
         const clave = `${n.db}.${n.esquema}.${n.tabla}`;
         if (!force && (cargados[clave] || []).includes(nom)) { res.push([`${x.nombre.toLowerCase()}/${nom}`, 'LOAD_SKIPPED', 0, 0, null]); continue; }
@@ -678,9 +690,22 @@ ORDER BY ventas DESC;
     try { await con.query('USE memory'); await con.query('DETACH tienda_andina'); await con.query('DETACH snowflake_sample_data'); } catch (e) { /* nada */ }
     delete Store.data.snowflake; con = null; cargando = null; st(); guardar(); await init(); avisar();
   }
+  // archivos de un stage: los subidos (interno) o los del lago de Azure (externo), validando el token SAS
+  function archivosStage(x) {
+    if (!x.url) return x.archivos;
+    const q2 = new URLSearchParams(String(x.sas || '').replace(/^\?/, ''));
+    const se = q2.get('se'), sp = q2.get('sp') || '', srt = q2.get('srt'), ss = q2.get('ss');
+    if (!q2.get('sig') || !q2.get('sv')) throw err('Failure using stage area. Cause: [Server failed to authenticate the request. Make sure the value of Authorization header is formed correctly including the signature. (AuthenticationFailed)]', '091003');
+    if (se && new Date(se) < new Date()) throw err(`Failure using stage area. Cause: [Signed expiry time [${se}] must be after signed start time. El token SAS venció: genera uno nuevo en el portal y recrea el stage con CREATE OR REPLACE STAGE.]`, '091003');
+    if ((ss && !ss.includes('b')) || (srt && !(srt.includes('c') && srt.includes('o'))) || !sp.includes('r') || !sp.includes('l')) throw err(`Failure using stage area. Cause: [This request is not authorized to perform this operation using this permission. (AuthorizationPermissionMismatch)] El token necesita el servicio Blob, los tipos de recurso Container y Object, y los permisos Read y List (tiene sp=${sp}).`, '091003');
+    const p = window.LagoAzure.parsear(x.url); const base = p.ruta.replace(/\/$/, '');
+    let lista; try { lista = window.LagoAzure.listar(x.url); } catch (e) { throw err(`Failure using stage area. Cause: [${e.message}]`, '091003'); }
+    return Object.fromEntries(lista.map((a) => [base ? a.nombre.slice(base.length + 1) : a.nombre, { texto: a.texto, cuando: Date.now() }]));
+  }
   // archivos que el alumno sube a un stage (o los de ejemplo del curso)
   function subirArchivo(stage, nombre, texto) {
     const s = st(); const x = s.stages[stage]; if (!x) throw new Error('El stage no existe');
+    if (x.url) throw new Error('Es un stage externo: sus archivos viven en el lago de Azure. Súbelos desde el portal (cuenta de almacenamiento → Containers → Upload).');
     x.archivos[nombre] = { texto, cuando: Date.now() }; guardar(); avisar();
   }
 

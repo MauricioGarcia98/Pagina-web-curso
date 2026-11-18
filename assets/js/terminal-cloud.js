@@ -256,6 +256,18 @@
         if (!A.flags['--auth-mode'] && !A.get('--account-key') && !A.get('--sas-token')) return { x, warn: col.warn('\nThere are no credentials provided in your command and environment, we will query for account key for your storage account.\nIt is recommended to provide --connection-string, --account-key or --sas-token in your command as credentials.\nYou also can add `--auth-mode login` in your command to use Azure Active Directory (Azure AD) for authorization if your login account is assigned required RBAC roles.') };
         return { x, warn: '' };
       };
+      // token SAS de un contenedor (lo que pide un stage externo de Snowflake, por ejemplo)
+      if (p[1] === 'container' && p[2] === 'generate-sas') {
+        const r = acct(); if (r.e) return fail(r.e, 2);
+        const name = A.get('--name', '-n'); if (!name || name === true) return fail('the following arguments are required: --name/-n', 2);
+        if (!r.x.containers[name]) return fail('The specified container does not exist.\nErrorCode:ContainerNotFound');
+        const perm = A.get('--permissions'); const exp = A.get('--expiry');
+        if (!perm || perm === true || !exp || exp === true) return fail('the following arguments are required: --permissions, --expiry (por ejemplo --permissions rl --expiry 2027-01-01T00:00Z)', 2);
+        if (/[^racwdl]/.test(perm)) return fail(`--permissions: '${perm}' no es válido. Letras admitidas: r (read), a (add), c (create), w (write), d (delete), l (list).`, 2);
+        const se = /T/.test(exp) ? exp : exp + 'T00:00Z';
+        const tok = `se=${encodeURIComponent(se)}&sp=${perm}&spr=https&sv=2022-11-02&sr=c&sig=${encodeURIComponent(btoa(uid(32)).slice(0, 43) + '=')}`;
+        return { out: (r.warn ? r.warn + '\n' : '') + (A.get('--output', '-o') === 'tsv' ? tok : JSON.stringify(tok)), code: 0 };
+      }
       if ((p[1] === 'container' || p[1] === 'fs') && ['create', 'list', 'delete', 'exists'].includes(p[2])) {
         const r = acct(); if (r.e) return fail(r.e, 2);
         const name = A.get('--name', '-n', '--file-system', '-f');
@@ -358,7 +370,19 @@
         const n = A.get('--factory-name', '--name', '-n');
         if (p[1] === 'create') { const e = azNeedRg(s, rg); if (e) return fail(e, 2); if (!n || n === true) return fail('the following arguments are required: --factory-name/--name/-n', 2); s.adf[n] = { rg, location: azLoc(A, s, rg) }; save(); return output({ name: n, location: s.adf[n].location, provisioningState: 'Succeeded', resourceGroup: rg }, A); }
         if (p[1] === 'list') return output(Object.entries(s.adf).map(([k, x]) => ({ name: k, location: x.location, resourceGroup: x.rg })), A);
-        if (p[1] === 'pipeline' && p[2] === 'create-run') return output({ runId: uid(8) + '-' + uid(4) + '-' + uid(4) + '-' + uid(4) + '-' + uid(12) }, A);
+        if (p[1] === 'pipeline' && p[2] === 'create-run') {
+          // corre de verdad la versión publicada del pipeline en el Data Factory de práctica (como la API "Create Run")
+          const pipe = A.get('--name', '-n'); const fab = A.get('--factory-name');
+          if (!fab || fab === true || !pipe || pipe === true) return fail('the following arguments are required: --factory-name, --name/-n', 2);
+          if (!s.adf[fab]) return fail(`(ResourceNotFound) The Resource 'Microsoft.DataFactory/factories/${fab}' under resource group '${rg}' was not found.`, 3);
+          let params = {}; const pa = A.get('--parameters'); if (pa && pa !== true) { try { params = JSON.parse(pa); } catch (e) { return fail('--parameters debe ser JSON, por ejemplo: --parameters \'{"fecha": "2026-11-09"}\'', 2); } }
+          return (async () => {
+            try { if (!(window.ADFStudio && window.ADFStudio.correrDesdeFuera) && window.__cargarGrupo) await window.__cargarGrupo('azure'); } catch (e) { /* sin red */ }
+            if (!(window.ADFStudio && window.ADFStudio.correrDesdeFuera)) return fail('No se pudo cargar el Data Factory de práctica.', 1);
+            try { const run = await window.ADFStudio.correrDesdeFuera(fab, pipe, params, 'Manual'); return output({ runId: run.runId, status: run.estado }, A); }
+            catch (e) { return fail(`(${e.codigo || 'BadRequest'}) ${e.message}`, 1); }
+          })();
+        }
       }
       if (p[0] === 'eventhubs') {
         if (p[1] === 'namespace' && p[2] === 'create') { const n = A.get('--name', '-n'); const e = azNeedRg(s, rg); if (e) return fail(e, 2); s.eh[n] = { rg, location: azLoc(A, s, rg), hubs: {} }; save(); return output({ name: n, sku: { name: A.get('--sku') || 'Standard' }, provisioningState: 'Succeeded' }, A); }

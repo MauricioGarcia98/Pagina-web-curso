@@ -1434,7 +1434,9 @@ models:
   def('cp', 'copia (-r carpetas)', (a) => {
     const { flags, pos } = parseArgs(a, { bool: ['-r', '-R'] });
     if (pos.length < 2) return fail('cp: falta el archivo de destino');
-    const dst = norm(pos.pop());
+    const crudo = pos.pop(); const dst = norm(crudo);
+    // como en GNU cp: con varios orígenes, o con un destino que termina en /, el destino tiene que ser una carpeta existente
+    if ((pos.length > 1 || /\/$/.test(crudo)) && !isDir(dst)) return fail(exists(dst) ? `cp: el destino '${crudo}' no es un directorio` : `cp: no se puede crear el fichero regular '${crudo}': No existe el archivo o el directorio`);
     for (const s of pos) {
       const p = norm(s);
       if (!exists(p)) return fail(`cp: no se puede efectuar stat de '${s}': No existe el archivo o el directorio`);
