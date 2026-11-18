@@ -18,6 +18,7 @@
 
   function vista(main, ctx, lab) {
     const { h, Store, toast, createEditor, Engines, renderSqlOutput, renderConsole, ensureSql, loadingInto, pyLoadingMsg, libre } = ctx;
+    const ensureSqlCurso = ctx.ensureSqlCurso || ensureSql;
     const L = LABS[lab];
     const lista = (window.MISIONES && window.MISIONES[lab]) || [];
     const prog = () => (Store.data.misiones = Store.data.misiones || {});
@@ -143,7 +144,7 @@
       const out = $('#misOut'); const code = ed.getValue();
       let r;
       // cada ejecución arranca de cero: SQL usa una copia nueva de la base y Python un intérprete sin variables viejas
-      if (lab === 'sql') { if (!(await ensureSql(out))) return; r = Engines.SQL.exec(code); renderSqlOutput(out, r); }
+      if (lab === 'sql') { if (!(await ensureSqlCurso(out))) return; r = await Engines.CursoSQL.exec(code); renderSqlOutput(out, r); }
       else if (lab === 'dbt') { if (!(await ensureSql(out))) return; loadingInto(out, pyLoadingMsg()); r = await Engines.DBT.run(exDe(actual), code); renderSqlOutput(out, r); if (r.compiled && ctx.compiledBlock) out.append(ctx.compiledBlock(r.compiled)); }
       else { loadingInto(out, pyLoadingMsg()); r = await Engines.PY.run(lab === 'pyspark' ? 'pyspark' : lab === 'airflow' ? 'airflow' : 'python', (actual.previo ? actual.previo + '\n' : '') + code); renderConsole(out, r); }
       if (expC) expC.actualizar(code, r);
@@ -168,7 +169,7 @@
           const falta = (m.requiere || []).find(([re]) => !new RegExp(re, 'im').test(sinComent));
           if (falta) { e.intentos++; guardar(); habilitarSol(); pintarSide(); fb('bad', `✗ ${falta[1]}`); return; }
           let r;
-          if (lab === 'sql') { if (!(await ensureSql(out))) return; r = Engines.SQL.grade(exDe(m), code); if (r.ok) renderSqlOutput(out, { ok: true, results: [r.result], ms: 0 }); }
+          if (lab === 'sql') { if (!(await ensureSqlCurso(out))) return; r = await Engines.CursoSQL.grade(exDe(m), code); if (r.ok) renderSqlOutput(out, { ok: true, results: [r.result], ms: 0 }); }
           else if (lab === 'dbt') { if (!(await ensureSql(out))) return; loadingInto(out, pyLoadingMsg()); r = await Engines.DBT.grade(exDe(m), code); if (r.ok) renderSqlOutput(out, { ok: true, results: [r.result], ms: 0 }); }
           else { loadingInto(out, pyLoadingMsg()); r = await Engines.PY.grade(lab === 'pyspark' ? 'pyspark' : lab === 'airflow' ? 'airflow' : 'python', exDe(m), (m.previo ? m.previo + '\n' : '') + code); renderConsole(out, r); }
           if (expC) expC.actualizar(code, lab === 'sql' || lab === 'dbt' ? (r.ok ? { ok: true, results: [r.result], compiled: r.compiled } : { ok: false, error: r.error, compiled: r.compiled }) : r);
