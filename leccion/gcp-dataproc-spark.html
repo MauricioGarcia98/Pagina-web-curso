@@ -238,6 +238,17 @@ crear &gt;&gt; correr &gt;&gt; borrar</code></pre>
 <p>Fíjate en <code>trigger_rule=&quot;all_done&quot;</code> en <code>borrar_cluster</code>: el clúster <strong>se borra aunque el job falle</strong>. Es exactamente lo que viste en la lección de control de flujo de Airflow.</p>
 <h2>Ejercicios de PySpark con los casos</h2>
 <p>Estos ejercicios corren en el simulador de Spark del curso, con las tablas de los casos de negocio.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Clusters de Dataproc que quedan encendidos.</strong> Usa eliminación por inactividad o Dataproc Serverless.</li>
+<li><strong>Copiar tablas de BigQuery a archivos para leerlas con Spark.</strong> El conector de BigQuery las lee directo.</li>
+<li><strong>Clusters grandes para jobs chicos.</strong> Empieza chico y mide.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

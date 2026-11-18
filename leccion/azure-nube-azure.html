@@ -192,6 +192,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Pruébalo en la terminal</h2>
 <p>En las próximas lecciones vas a manejar Azure con la <strong>Azure CLI</strong> (<code>az</code>). Abre la terminal del curso (botón ⌨ Terminal) y prueba: <code>az login</code>, luego <code>az account show</code> (en qué suscripción estás) y <code>az group list -o table</code> (los grupos de recursos que existen; al principio, ninguno). Es un simulador: nada se crea de verdad ni cuesta dinero.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Confundir suscripción con grupo de recursos.</strong> La suscripción es quién paga; el grupo es la carpeta donde se agrupan recursos para administrarlos y borrarlos juntos.</li>
+<li><strong>Recursos de un proyecto en regiones distintas sin motivo.</strong> Moverse entre regiones suma latencia y costo de transferencia.</li>
+<li><strong>Borrar un grupo de recursos para limpiar algo.</strong> Se borra todo lo que contiene.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -203,6 +203,16 @@ spark.table(&quot;productos&quot;).join(F.broadcast(spark.table(&quot;categorias
 <li>Claves no únicas multiplican filas: verifica conteos.</li>
 <li>Tabla chica + tabla grande → <code>F.broadcast(chica)</code>.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Joins con columnas del mismo nombre en ambos lados.</strong> Quedan columnas ambiguas; usa <code>on=&quot;col&quot;</code> o renombra.</li>
+<li><strong>Usar <code>inner</code> cuando hacía falta <code>left</code>.</strong> Se pierden filas sin pareja.</li>
+<li><strong>Hacer un join para filtrar.</strong> <code>left_semi</code> y <code>left_anti</code> filtran sin traer columnas de la otra tabla.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

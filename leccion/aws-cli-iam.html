@@ -182,6 +182,17 @@ aws iam attach-role-policy --role-name GlueJobSilver \
 aws iam list-roles --query &quot;Roles[].RoleName&quot; --output text</code></pre>
 <h2>Ejercicios</h2>
 <p>Las terminales de los ejercicios ya tienen una sesión iniciada. Escribe el comando y presiona Enter.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Claves de acceso de larga duración en tu computadora.</strong> Si se filtran, dan acceso hasta que alguien las revoque; usa SSO o roles con credenciales temporales.</li>
+<li><strong>Políticas con <code>&quot;Action&quot;: &quot;*&quot;</code> y <code>&quot;Resource&quot;: &quot;*&quot;</code>.</strong> Dan todo sobre todo; empieza con lo mínimo y agrega lo que falte.</li>
+<li><strong>Comandos con el perfil equivocado.</strong> Revisa <code>--profile</code> o <code>aws sts get-caller-identity</code> antes de crear o borrar.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

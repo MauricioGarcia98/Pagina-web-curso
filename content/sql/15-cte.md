@@ -217,6 +217,12 @@ Una **CTE** y una **subconsulta** existen solo durante esa consulta; la CTE tien
 - Ventajas: legibilidad, depuración paso a paso, reutilización. Es el estilo de dbt.
 - Patrón profesional: importaciones → pasos lógicos → `final` → `SELECT * FROM final`.
 
+:::errores
+- **CTE con el mismo nombre que una tabla.** Confunde a quien lee y puede tapar la tabla real.
+- **Creer que la CTE guarda el resultado.** Muchos motores la recalculan en cada uso.
+- **Una CTE gigante.** Varias CTE chicas con nombres claros se leen y prueban mejor.
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

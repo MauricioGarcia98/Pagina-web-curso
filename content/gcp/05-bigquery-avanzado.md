@@ -134,6 +134,12 @@ WHERE creation_time > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 7 DAY)
 ORDER BY total_bytes_billed DESC LIMIT 10;
 ```
 
+:::errores
+- **Funciones sobre la columna de partición.** `EXTRACT(YEAR FROM fecha)` impide descartar particiones.
+- **Clustering por columnas que nadie filtra.** No ayuda; elige las que más se filtran.
+- **MERGE con claves repetidas en la fuente.** Falla; deduplica antes.
+:::
+
 ## Ejercicios de SQL
 
 :::ejercicio sql ordenado titulo="Banco: saldo de fin de mes por cuenta"

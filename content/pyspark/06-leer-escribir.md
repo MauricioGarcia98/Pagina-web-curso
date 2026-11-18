@@ -184,6 +184,12 @@ ignore    → no hace nada si existe
 - `df.write.mode(…).partitionBy(…).save(…)` o `.saveAsTable(…)`; modos `error`, `overwrite`, `append`, `ignore`.
 - Particiona por columnas de baja cardinalidad; controla la cantidad de archivos; sobrescribe solo las particiones del lote para ser idempotente.
 
+:::errores
+- **`mode("overwrite")` sobre la tabla equivocada.** Borra todo; revisa el destino.
+- **Leer CSV sin esquema en producción.** `inferSchema` puede cambiar tipos entre archivos.
+- **Escribir sin particionar tablas grandes.** Las consultas por fecha leen todo.
+:::
+
 ## Ejercicios
 
 :::ejercicio pyspark

@@ -239,6 +239,12 @@ Fíjate en `trigger_rule="all_done"` en `borrar_cluster`: el clúster **se borra
 
 Estos ejercicios corren en el simulador de Spark del curso, con las tablas de los casos de negocio.
 
+:::errores
+- **Clusters de Dataproc que quedan encendidos.** Usa eliminación por inactividad o Dataproc Serverless.
+- **Copiar tablas de BigQuery a archivos para leerlas con Spark.** El conector de BigQuery las lee directo.
+- **Clusters grandes para jobs chicos.** Empieza chico y mide.
+:::
+
 :::ejercicio pyspark titulo="Streaming 🎧: minutos escuchados por género"
 Con `streaming_reproducciones` y `streaming_contenidos`, calcula por `genero`: `reproducciones` (cantidad) y `minutos` (suma de `segundos_escuchados` / 60, redondeado a 1). Guarda en `resultado`.
 ```python solucion

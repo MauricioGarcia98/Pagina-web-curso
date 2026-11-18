@@ -189,6 +189,12 @@ az storage blob list --account-name stdatosdev001 --container-name bronze --outp
 - Usa `--auth-mode login` con un rol de **datos** (Storage Blob Data Contributor).
 - Desde Spark: `abfss://contenedor@cuenta.dfs.core.windows.net/ruta`.
 
+:::errores
+- **Olvidar el espacio de nombres jerárquico.** Sin él no hay ADLS Gen2: ni carpetas reales ni permisos por carpeta.
+- **Usar la clave de la cuenta en scripts.** `--auth-mode login` usa tu identidad y tus roles.
+- **Invertir contenedor y cuenta en la ruta.** Es `abfss://contenedor@cuenta.dfs.core.windows.net/`.
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

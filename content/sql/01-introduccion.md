@@ -224,6 +224,12 @@ Respuesta modelo: "Es una columna (o combinación de columnas) cuyo valor identi
 - `SELECT * FROM tabla` muestra todas las columnas de una tabla; `LIMIT n` muestra solo `n` filas.
 - La palabra clave va en mayúsculas por costumbre, el texto entre comillas simples y los comentarios después de `--`.
 
+:::errores
+- **`SELECT *` por costumbre.** Trae columnas que no necesitas y, en tablas grandes o en la nube, cuesta más; nombra las columnas.
+- **Olvidar el punto y coma entre sentencias.** Algunos motores ejecutan solo la primera o dan error.
+- **Texto con comillas dobles.** En SQL estándar el texto va entre comillas simples; las dobles son para nombres de columna.
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

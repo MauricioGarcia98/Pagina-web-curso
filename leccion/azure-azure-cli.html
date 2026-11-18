@@ -120,6 +120,16 @@ az account set --subscription sub-datos-dev</code></pre>
 <li>Patrón: <code>az &lt;servicio&gt; &lt;subgrupo&gt; &lt;acción&gt; --parámetros</code>; respuestas en JSON, <code>-o table</code> para leer.</li>
 <li><code>--help</code> y <code>az find</code> para descubrir; extensiones para servicios como Databricks.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Ejecutar sin revisar la suscripción.</strong> <code>az account show</code> antes de crear o borrar.</li>
+<li><strong>Comandos de memoria.</strong> <code>az &lt;grupo&gt; --help</code> muestra los parámetros reales.</li>
+<li><strong>Defaults olvidados.</strong> Un grupo o región por defecto configurado hace tiempo puede mandar recursos a otro lado; revisa <code>az config get</code>.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

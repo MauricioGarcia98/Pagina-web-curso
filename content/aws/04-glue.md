@@ -173,6 +173,12 @@ GROUP BY fecha;
 
 Los jobs de Glue son PySpark. Este ejercicio corre en el simulador de Spark del curso, con los datos del **banco** (caso 🏦).
 
+:::errores
+- **Crawlers que corren sobre todo el lago cada hora.** Cuestan y pueden cambiar esquemas; apúntalos a carpetas concretas y con la frecuencia necesaria.
+- **Jobs de Glue sin bookmarks en cargas incrementales.** Cada corrida vuelve a procesar todos los archivos.
+- **Esquemas que cambia el crawler solo.** Un archivo raro puede cambiar los tipos de la tabla; fija el esquema en producción.
+:::
+
 :::ejercicio pyspark titulo="Job bronze → silver del banco"
 Escribe la transformación de un job que prepara `banco_transacciones` para silver: conserva solo las **compras** (`tipo == 'compra'`), agrega la columna `fecha` (la parte de fecha de `fecha_hora`, como texto `YYYY-MM-DD`) y `mes` (`YYYY-MM`), y deja las columnas `tx_id`, `cuenta_id`, `fecha`, `mes`, `monto`, `canal`, `comercio`. Guarda el DataFrame en `resultado`.
 ```python solucion

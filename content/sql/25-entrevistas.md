@@ -114,6 +114,12 @@ cliente_id,gasto
 - Al terminar, valida en voz alta: "revisemos un cliente concreto", "¿qué pasa si un mes no tiene ventas?". Encontrar tu propio error antes que el entrevistador es una de las mejores señales que puedes dar.
 :::
 
+:::errores
+- **Escribir sin aclarar la pregunta.** Pregunta por empates, nulos y períodos antes de empezar.
+- **No probar con un caso chico.** Verifica la consulta con pocas filas que puedas calcular a mano.
+- **Callarse mientras piensas.** En una entrevista, explicar el razonamiento cuenta tanto como el resultado.
+:::
+
 :::ejercicio sql dificultad=Experto titulo="Producto estrella por país"
 Para cada **país** de cliente, encuentra la **marca** con más unidades vendidas (pedidos no cancelados). Si hay empate, todas las marcas empatadas. Columnas: `pais`, `marca`, `unidades`.
 ```sql solucion

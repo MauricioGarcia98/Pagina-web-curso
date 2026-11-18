@@ -223,6 +223,12 @@ La última fila de la tabla (contar nulos de todas las columnas en una pasada) e
 - `F.when(…).when(…).otherwise(…)` = `CASE WHEN`.
 - Nulos: `isNull`, `coalesce`, `fillna`, `na.drop`; nunca `== None`.
 
+:::errores
+- **UDFs de Python para lo que ya existe en `pyspark.sql.functions`.** Las funciones nativas son mucho más rápidas.
+- **`when` sin `otherwise`.** Las filas que no cumplen quedan en NULL.
+- **Fechas como texto.** Convierte con `to_date` antes de calcular.
+:::
+
 ## Ejercicios
 
 :::ejercicio pyspark

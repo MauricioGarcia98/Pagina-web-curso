@@ -119,6 +119,12 @@ checkpoint: procesados = {001, 002, 003, 004}
 Databricks ofrece una forma **declarativa** de construir pipelines batch y streaming: declaras las tablas y sus reglas de calidad (*expectations*) y la plataforma se encarga del orden, los reintentos y la infraestructura.
 :::
 
+:::errores
+- **Streaming sin checkpoint.** Si el job se cae, no sabe dónde retomar y reprocesa o pierde datos.
+- **Cambiar el checkpoint de lugar.** El job empieza de cero.
+- **Agregaciones sin watermark.** El estado crece sin límite esperando datos tardíos.
+:::
+
 :::ejercicio quiz
 ¿Para qué sirve el `checkpointLocation` en un stream?
 

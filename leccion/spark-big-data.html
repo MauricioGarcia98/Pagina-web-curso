@@ -193,6 +193,16 @@ ventas.groupBy(&quot;pais&quot;).sum(&quot;total&quot;).write.parquet(&quot;s3:/
 <li>El shuffle es la parte cara, porque mueve datos por la red. Vas a escuchar esa palabra durante todo el módulo.</li>
 <li>Spark hace todo esto por ti, en memoria, y con una API sencilla en SQL o Python.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Usar herramientas distribuidas para datos chicos.</strong> Si los datos entran en una máquina, pandas o SQL suelen ser más simples y rápidos.</li>
+<li><strong>Creer que más máquinas siempre es más rápido.</strong> El shuffle y la coordinación tienen costo.</li>
+<li><strong>Ignorar dónde están los datos.</strong> Mover datos por la red es lo más caro.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

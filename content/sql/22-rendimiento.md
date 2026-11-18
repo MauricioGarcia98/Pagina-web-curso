@@ -195,6 +195,12 @@ En PostgreSQL usa `EXPLAIN ANALYZE` (ejecuta la consulta y muestra los tiempos *
 Una buena respuesta es un método: 1) ¿Cambió el volumen de datos o la consulta? 2) Mirar el plan de ejecución: ¿dejó de usar un índice o de podar particiones? 3) Revisar si las estadísticas están desactualizadas. 4) Buscar cambios recientes (un JOIN nuevo que multiplica filas, una función sobre una columna filtrada). 5) Probar la corrección y medir.
 :::
 
+:::errores
+- **Índices en todo.** Aceleran lecturas pero hacen más lentas las escrituras y ocupan espacio.
+- **Funciones sobre la columna indexada.** `WHERE YEAR(fecha) = 2024` no usa el índice; filtra por rango.
+- **Optimizar sin mirar el plan.** `EXPLAIN` dice qué hace el motor; adivinar lleva a cambios inútiles.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

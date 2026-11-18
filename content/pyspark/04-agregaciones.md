@@ -230,6 +230,12 @@ Agrupar en un cluster obliga a **mover** datos: todas las filas de "Chile" tiene
 - `collect_list`/`collect_set` juntan valores en arrays.
 - `pivot` convierte valores en columnas (pasa la lista de valores); `rollup`/`cube` agregan subtotales.
 
+:::errores
+- **Columnas sin alias después de `agg`.** Quedan como `sum(monto)`; usa `.alias()`.
+- **`pivot` sin lista de valores.** Spark tiene que calcularlos primero; pasarlos ahorra una pasada.
+- **Contar filas después de un join que duplica.** Revisa la cardinalidad antes de agregar.
+:::
+
 ## Ejercicios
 
 :::ejercicio pyspark

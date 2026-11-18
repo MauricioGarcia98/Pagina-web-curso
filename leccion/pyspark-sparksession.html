@@ -257,6 +257,16 @@ Lucía España</code></pre>
 <li>Rutina de exploración: <code>printSchema()</code>, <code>show(n)</code>, <code>count()</code>.</li>
 <li>Transformaciones (<code>select</code>, <code>filter</code>…) no ejecutan nada; acciones (<code>show</code>, <code>count</code>, <code>write</code>) sí. Evita <code>collect()</code> con datos grandes.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>collect()</code> para ver datos.</strong> Trae todo al driver; usa <code>show()</code> o <code>limit()</code>.</li>
+<li><strong>Crear una SparkSession nueva en cada celda.</strong> <code>getOrCreate()</code> reutiliza la existente.</li>
+<li><strong>Esperar resultados de una transformación.</strong> Hace falta una acción para que Spark ejecute.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <p>En los ejercicios de PySpark guarda tu resultado en la variable <strong><code>resultado</code></strong> (un DataFrame). El corrector compara tus filas con las de la solución (sin importar el orden, salvo que se pida).</p>
 <div class="exercise-slot"></div>

@@ -182,6 +182,16 @@ df.rdd.getNumPartitions()        # ¿en cuántos pedazos quedó? p. ej. 80</code
 <td>Es lo más caro: minimízalo</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Traer todo al driver.</strong> <code>collect()</code> sobre millones de filas llena la memoria del driver.</li>
+<li><strong>Confundir driver con executor.</strong> El driver planifica; el trabajo pesado lo hacen los executors.</li>
+<li><strong>Más executors sin más particiones.</strong> Si hay pocas particiones, los executors extra quedan ociosos.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

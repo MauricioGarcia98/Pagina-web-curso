@@ -148,6 +148,12 @@ gcloud projects add-iam-policy-binding academia-datos-dev \
 Las llaves de cuentas de servicio (`.json`) son el equivalente a las *access keys* de AWS: si se filtran, cualquiera actúa como tu ETL. Prefiere la identidad asociada al servicio (Composer, Cloud Run), la **suplantación** (`--impersonate-service-account`) o *Workload Identity Federation* desde GitHub Actions.
 :::
 
+:::errores
+- **Comandos en el proyecto equivocado.** Revisa `gcloud config list` antes de crear o borrar.
+- **Claves JSON de cuentas de servicio descargadas.** Son secretos de larga duración; usa Workload Identity o impersonación.
+- **Roles básicos (Owner, Editor) para todo.** Usa roles predefinidos con el mínimo necesario.
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

@@ -214,6 +214,16 @@ df.repartition(&quot;anio&quot;, &quot;mes&quot;).write.partitionBy(&quot;anio&q
 <li><code>df.write.mode(…).partitionBy(…).save(…)</code> o <code>.saveAsTable(…)</code>; modos <code>error</code>, <code>overwrite</code>, <code>append</code>, <code>ignore</code>.</li>
 <li>Particiona por columnas de baja cardinalidad; controla la cantidad de archivos; sobrescribe solo las particiones del lote para ser idempotente.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>mode(&quot;overwrite&quot;)</code> sobre la tabla equivocada.</strong> Borra todo; revisa el destino.</li>
+<li><strong>Leer CSV sin esquema en producción.</strong> <code>inferSchema</code> puede cambiar tipos entre archivos.</li>
+<li><strong>Escribir sin particionar tablas grandes.</strong> Las consultas por fecha leen todo.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

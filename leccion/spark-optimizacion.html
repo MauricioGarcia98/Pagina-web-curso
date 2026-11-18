@@ -200,6 +200,16 @@ df.withColumn(&quot;dominio&quot;, dominio_vec(&quot;email&quot;))</code></pre>
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Tunear sin medir.</strong> La Spark UI dice dónde se va el tiempo.</li>
+<li><strong>Subir memoria antes de revisar el plan.</strong> Muchas veces el problema es un shuffle o un skew, no la memoria.</li>
+<li><strong><code>repartition</code> antes de cada escritura.</strong> Fuerza un shuffle; <code>coalesce</code> reduce particiones sin shuffle completo.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -190,6 +190,12 @@ GOLD    fecha=2024-03-15  pais=Chile  pedidos=1.284  ventas=98.410,50           
 Si mañana descubres un error en la limpieza, puedes **reprocesar** silver y gold desde bronze sin volver a pedir los datos al origen (que quizá ya no existan).
 :::
 
+:::errores
+- **Guardar en CSV las tablas de trabajo.** Parquet o Delta son columnares, comprimidos y con esquema.
+- **Sobrescribir bronze.** Bronze guarda lo que llegó tal cual para poder reprocesar.
+- **Delta sin mantenimiento.** Muchas escrituras chicas generan archivos pequeños; OPTIMIZE los compacta.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

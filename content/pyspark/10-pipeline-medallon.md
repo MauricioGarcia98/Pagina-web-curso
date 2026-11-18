@@ -142,6 +142,12 @@ test_lineas_con_importe()
 print("✔ test OK")
 ```
 
+:::errores
+- **Limpiar en bronze.** Bronze guarda el crudo; la limpieza va en silver.
+- **Gold que lee bronze.** Saltea las reglas de calidad de silver.
+- **Pipeline que no es idempotente.** Correrlo dos veces debe dar lo mismo.
+:::
+
 ## Ejercicios
 
 :::ejercicio pyspark

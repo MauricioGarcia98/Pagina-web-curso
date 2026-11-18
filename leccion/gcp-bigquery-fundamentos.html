@@ -164,6 +164,16 @@ bq query --use_legacy_sql=false 'SELECT canal, COUNT(*) AS pedidos, ROUND(SUM(to
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>SELECT *</code> en tablas grandes.</strong> BigQuery cobra por columnas leídas.</li>
+<li><strong>Ejecutar sin <code>--dry_run</code> o sin mirar el validador.</strong> Es gratis saber cuánto va a leer.</li>
+<li><strong>Confiar en LIMIT para ahorrar.</strong> No baja lo que se escanea.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios de SQL</h2>
 <div class="exercise-slot"></div>
 

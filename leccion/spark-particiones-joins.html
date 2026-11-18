@@ -206,6 +206,16 @@ unido = ventas_s.join(clientes_s, [&quot;cliente_id&quot;, &quot;sal&quot;]).dro
 <td>Skew: AQE, filtrar NULLs, broadcast o salting</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Joins grandes sin broadcast cuando una tabla es chica.</strong> Broadcast evita el shuffle de la tabla grande.</li>
+<li><strong>Ignorar el skew.</strong> Una clave con muchísimas filas deja una tarea trabajando sola; AQE o salting lo reparten.</li>
+<li><strong>Particionar por columnas con millones de valores.</strong> Crea millones de archivos chicos.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

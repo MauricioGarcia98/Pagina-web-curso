@@ -185,6 +185,16 @@ spark.createDataFrame([(36,), (42,), (None,)], [&quot;talla&quot;]).withColumn(&
 <li>JSON en texto: <code>get_json_object</code> para un campo, <code>from_json</code> con esquema para muchos.</li>
 <li>UDFs solo cuando no hay función nativa: son lentas; prefiere <code>F</code> o pandas UDF.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>explode</code> cuando hay arrays vacíos.</strong> Se pierden filas; usa <code>explode_outer</code>.</li>
+<li><strong>Parsear JSON sin esquema.</strong> Sin <code>schema</code>, los campos salen como texto o nulos.</li>
+<li><strong>Acceder a campos de struct con corchetes.</strong> Se usa <code>col(&quot;struct.campo&quot;)</code>.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

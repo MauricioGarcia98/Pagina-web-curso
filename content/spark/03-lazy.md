@@ -199,6 +199,12 @@ Spark encadena todas las transformaciones narrow seguidas en **un mismo stage** 
 `collect()` trae **todas** las filas al driver. Con millones de filas, el driver se queda sin memoria. Usa `show()`, `take(n)`, `limit(n)` o escribe el resultado a una tabla.
 :::
 
+:::errores
+- **Esperar que una transformación se ejecute al escribirla.** Nada pasa hasta una acción (count, write, show).
+- **Llamar varias acciones sobre el mismo DataFrame caro.** Cada acción recalcula todo; usa `cache()` si lo reutilizas.
+- **Usar RDDs para todo.** Los DataFrames tienen optimizador; los RDDs no.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

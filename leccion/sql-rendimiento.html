@@ -193,6 +193,16 @@ GROUP BY c.pais;</code></pre>
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Índices en todo.</strong> Aceleran lecturas pero hacen más lentas las escrituras y ocupan espacio.</li>
+<li><strong>Funciones sobre la columna indexada.</strong> <code>WHERE YEAR(fecha) = 2024</code> no usa el índice; filtra por rango.</li>
+<li><strong>Optimizar sin mirar el plan.</strong> <code>EXPLAIN</code> dice qué hace el motor; adivinar lleva a cambios inútiles.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

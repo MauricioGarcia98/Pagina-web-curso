@@ -327,6 +327,16 @@ ORDER BY pedidos_entregados DESC;</code></pre>
 <li><code>WHERE</code> filtra filas antes; <code>HAVING</code> filtra grupos después.</li>
 <li>Define el grano (&quot;una fila por…&quot;) antes de escribir el <code>GROUP BY</code>.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Columnas en el SELECT que no están en el GROUP BY ni agregadas.</strong> La mayoría de los motores da error; los que no, devuelven un valor cualquiera.</li>
+<li><strong>Filtrar agregados en el WHERE.</strong> <code>WHERE COUNT(*) &gt; 5</code> da error; va en <code>HAVING</code>.</li>
+<li><strong>Contar filas después de un JOIN.</strong> Si el JOIN multiplica filas, <code>COUNT(*)</code> cuenta de más; usa <code>COUNT(DISTINCT id)</code>.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

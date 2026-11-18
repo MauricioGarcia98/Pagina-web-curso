@@ -120,6 +120,12 @@ AWS cobra por tres cosas: **almacenamiento** (GB por mes), **cómputo** (segundo
 AWS tiene una capa gratuita (*Free Tier*) para aprender. Aun así, crea una alerta de presupuesto de USD 5 y borra lo que crees al terminar cada laboratorio. En este curso practicas en una **terminal simulada**, así que acá no gastas nada.
 :::
 
+:::errores
+- **Crear recursos sin mirar la región.** Cada región es independiente: un bucket o una tabla en `us-east-1` no aparece si estás mirando `sa-east-1`.
+- **Trabajar con la cuenta raíz.** Se usa solo para tareas de facturación y cuenta; el trabajo diario va con usuarios o roles de IAM.
+- **No poner un presupuesto.** Un servicio olvidado encendido cobra todo el mes; configura AWS Budgets el primer día.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

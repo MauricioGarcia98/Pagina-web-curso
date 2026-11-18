@@ -281,6 +281,12 @@ ORDER BY CASE WHEN telefono IS NULL THEN 1 ELSE 0 END, telefono;
 - Las agregaciones ignoran `NULL`: `COUNT(*)` ≠ `COUNT(columna)`.
 - `COALESCE` reemplaza nulos; `NULLIF` crea nulos (ideal para evitar dividir por cero).
 
+:::errores
+- **`WHERE columna = NULL`.** Nunca es verdadero; se usa `IS NULL`.
+- **Contar con `COUNT(columna)` esperando todas las filas.** Ignora los NULL; `COUNT(*)` cuenta todas.
+- **`NOT IN` con una lista que tiene NULL.** No devuelve nada; usa `NOT EXISTS` o filtra los NULL.
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

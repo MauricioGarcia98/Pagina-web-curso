@@ -130,6 +130,16 @@ SELECT user_email, total_bytes_billed / POW(1024, 4) AS tb, LEFT(query, 80) AS c
 FROM `region-us`.INFORMATION_SCHEMA.JOBS
 WHERE creation_time &gt; TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 7 DAY)
 ORDER BY total_bytes_billed DESC LIMIT 10;</code></pre>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Funciones sobre la columna de partición.</strong> <code>EXTRACT(YEAR FROM fecha)</code> impide descartar particiones.</li>
+<li><strong>Clustering por columnas que nadie filtra.</strong> No ayuda; elige las que más se filtran.</li>
+<li><strong>MERGE con claves repetidas en la fuente.</strong> Falla; deduplica antes.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios de SQL</h2>
 <div class="exercise-slot"></div>
 

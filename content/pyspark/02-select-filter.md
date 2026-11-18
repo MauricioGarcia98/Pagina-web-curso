@@ -236,6 +236,12 @@ print(spark.table("pedidos").dropDuplicates(["cliente_id"]).count())         # u
 - `.isin`, `.like`, `.contains`, `.between`, `.isNull()` cubren los operadores de SQL.
 - `withColumnRenamed`, `drop`, `.cast(tipo)` (devuelve `null` si no puede convertir), `distinct`, `orderBy`, `limit`.
 
+:::errores
+- **Usar `and`/`or` en filtros.** En PySpark se usan `&` y `|` con paréntesis.
+- **Encadenar `withColumn` en un bucle de cientos.** Hace el plan enorme; usa un solo `select` con todas las columnas.
+- **Comparar con un string donde va una columna.** `"precio" > 100` compara texto; usa `F.col("precio") > 100`.
+:::
+
 ## Ejercicios
 
 :::ejercicio pyspark

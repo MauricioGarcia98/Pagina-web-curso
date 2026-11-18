@@ -123,6 +123,17 @@ aws logs tail /aws/lambda/procesar-archivo --follow</code></pre>
 
 <h2>Ejercicios: programa la lógica de los handlers</h2>
 <p>Estos ejercicios corren Python de verdad en tu navegador. No hay <code>boto3</code> (no estamos en AWS), así que programamos <strong>la lógica</strong>: lo que el handler hace con el evento. Es exactamente la parte que más se prueba con tests unitarios en un proyecto real.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Lambda para procesos largos.</strong> Tiene un límite de 15 minutos; los trabajos largos van en Glue, EMR o Step Functions.</li>
+<li><strong>Handlers sin manejo de reintentos.</strong> Lambda y Kinesis reintentan; si el handler no es idempotente, duplica datos.</li>
+<li><strong>Firehose sin pensar el tamaño del buffer.</strong> Buffers chicos crean miles de archivos pequeños en S3.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

@@ -219,6 +219,12 @@ Está activado por defecto en Databricks y en Spark ≥ 3.2 (`spark.sql.adaptive
 | Join de dos tablas grandes | Sort-merge (el defecto); filtra y selecciona columnas antes |
 | Una tarea tarda mucho más que el resto | Skew: AQE, filtrar NULLs, broadcast o salting |
 
+:::errores
+- **Joins grandes sin broadcast cuando una tabla es chica.** Broadcast evita el shuffle de la tabla grande.
+- **Ignorar el skew.** Una clave con muchísimas filas deja una tarea trabajando sola; AQE o salting lo reparten.
+- **Particionar por columnas con millones de valores.** Crea millones de archivos chicos.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

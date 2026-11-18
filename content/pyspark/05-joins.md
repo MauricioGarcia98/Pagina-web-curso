@@ -222,6 +222,12 @@ Lo verás en detalle en la lección de rendimiento; por ahora quédate con la id
 - Claves no únicas multiplican filas: verifica conteos.
 - Tabla chica + tabla grande → `F.broadcast(chica)`.
 
+:::errores
+- **Joins con columnas del mismo nombre en ambos lados.** Quedan columnas ambiguas; usa `on="col"` o renombra.
+- **Usar `inner` cuando hacía falta `left`.** Se pierden filas sin pareja.
+- **Hacer un join para filtrar.** `left_semi` y `left_anti` filtran sin traer columnas de la otra tabla.
+:::
+
 ## Ejercicios
 
 :::ejercicio pyspark

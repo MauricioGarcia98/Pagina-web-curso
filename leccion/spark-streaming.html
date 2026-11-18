@@ -116,6 +116,16 @@ checkpoint:  &quot;leí hasta e3&quot;   &quot;leí hasta e5&quot;     &quot;le�
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Streaming sin checkpoint.</strong> Si el job se cae, no sabe dónde retomar y reprocesa o pierde datos.</li>
+<li><strong>Cambiar el checkpoint de lugar.</strong> El job empieza de cero.</li>
+<li><strong>Agregaciones sin watermark.</strong> El estado crece sin límite esperando datos tardíos.</li>
+</ul>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

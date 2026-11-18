@@ -135,6 +135,12 @@ aws s3 cp dags/pipeline_banco.py s3://mwaa-datos-dev/dags/
 aws mwaa list-environments
 ```
 
+:::errores
+- **Orquestar todo con Lambda encadenadas.** Step Functions o MWAA dan reintentos, estados y visibilidad.
+- **Permisos del lago en cada bucket a mano.** Lake Formation centraliza permisos por tabla y columna.
+- **Infraestructura creada desde la consola.** Sin código (CloudFormation, CDK o Terraform), no se puede repetir igual en otro entorno.
+:::
+
 :::ejercicio airflow titulo="DAG del banco en MWAA"
 Crea el DAG `pipeline_banco` (diario, `schedule="@daily"`, `start_date` 2024-01-01, `catchup=False`) con este flujo:
 

@@ -144,6 +144,16 @@ gcloud projects add-iam-policy-binding academia-datos-dev \
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Comandos en el proyecto equivocado.</strong> Revisa <code>gcloud config list</code> antes de crear o borrar.</li>
+<li><strong>Claves JSON de cuentas de servicio descargadas.</strong> Son secretos de larga duración; usa Workload Identity o impersonación.</li>
+<li><strong>Roles básicos (Owner, Editor) para todo.</strong> Usa roles predefinidos con el mínimo necesario.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

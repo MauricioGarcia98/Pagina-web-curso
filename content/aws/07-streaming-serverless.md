@@ -149,6 +149,12 @@ S3, Kinesis y SQS garantizan entrega **al menos una vez** (*at-least-once*). Tu 
 
 Estos ejercicios corren Python de verdad en tu navegador. No hay `boto3` (no estamos en AWS), así que programamos **la lógica**: lo que el handler hace con el evento. Es exactamente la parte que más se prueba con tests unitarios en un proyecto real.
 
+:::errores
+- **Lambda para procesos largos.** Tiene un límite de 15 minutos; los trabajos largos van en Glue, EMR o Step Functions.
+- **Handlers sin manejo de reintentos.** Lambda y Kinesis reintentan; si el handler no es idempotente, duplica datos.
+- **Firehose sin pensar el tamaño del buffer.** Buffers chicos crean miles de archivos pequeños en S3.
+:::
+
 :::ejercicio python titulo="Handler de S3: qué archivos procesar"
 Escribe `handler(event, context)` que devuelva un diccionario `{"procesar": [...], "ignorados": N}`:
 

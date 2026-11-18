@@ -176,6 +176,16 @@ aws emr terminate-clusters --cluster-ids j-ABC123</code></pre>
 <div class="recorrido"></div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Elegir Redshift para todo.</strong> Para consultas esporádicas sobre el lago, Athena puede ser más barato.</li>
+<li><strong>Clusters de EMR que quedan encendidos.</strong> Configura terminación automática o usa EMR Serverless.</li>
+<li><strong>Cargar Redshift fila por fila.</strong> <code>COPY</code> desde S3 es la forma rápida de cargar volumen.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

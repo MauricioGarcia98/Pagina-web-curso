@@ -182,6 +182,12 @@ aws athena get-query-results --query-execution-id $QID --output table
 
 Imagina que estas tablas son tablas de `lake_silver` en Athena. Resuélvelas en el dialecto de este curso (SQLite).
 
+:::errores
+- **Consultas sin filtro de partición.** Athena cobra por datos escaneados; sin filtro, lee todo el lago.
+- **Consultar CSV crudos todo el tiempo.** Convertirlos a Parquet con CTAS baja mucho el costo y el tiempo.
+- **Particiones nuevas que no aparecen.** Hay que registrarlas (MSCK REPAIR, ALTER TABLE ADD PARTITION) o usar partition projection.
+:::
+
 :::ejercicio sql ordenado titulo="Embudo web por dispositivo"
 Con `eventos_web`, arma el embudo por `dispositivo`: `vistas` (eventos `vista`), `carritos` (`agregar_carrito`), `compras` (`compra`) y `conversion_pct` = compras / vistas × 100 (redondeado a 2). Ordena por `conversion_pct` descendente.
 ```sql solucion

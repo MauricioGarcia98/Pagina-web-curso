@@ -151,6 +151,12 @@ aws s3api put-public-access-block --bucket lake-tienda-dev \
 Parquet guarda datos, pero no sabe de transacciones. **Apache Iceberg** (muy usado en AWS: Athena, Glue y EMR lo soportan nativamente, y existen las **S3 Tables**), **Delta Lake** y **Hudi** agregan una capa de metadatos encima: `MERGE`, `UPDATE`, `DELETE`, *time travel* y evolución de esquema sobre S3. Es la base del *lakehouse*.
 :::
 
+:::errores
+- **Buckets públicos.** Block Public Access debe estar activado salvo un motivo muy claro.
+- **Particiones con nombres sin formato Hive.** `fecha=2024-01-15/` permite que Athena y Glue reconozcan la partición; `2024-01-15/` solo, no.
+- **`aws s3 sync --delete` sin pensar.** Borra en el destino lo que no está en el origen; prueba antes con `--dryrun`.
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

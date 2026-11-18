@@ -393,6 +393,16 @@ SELECT * FROM v_ventas_diarias ORDER BY dia DESC LIMIT 5;</code></pre>
 <li>Upsert: <code>INSERT … ON CONFLICT</code> (SQLite/PostgreSQL) o <code>MERGE</code> (Databricks, Snowflake, BigQuery…).</li>
 <li>Transacciones = todo o nada (ACID). Vistas = consultas guardadas sin datos.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>UPDATE</code> o <code>DELETE</code> sin <code>WHERE</code>.</strong> Afecta todas las filas; corre antes un SELECT con la misma condición.</li>
+<li><strong>Cambios sin transacción.</strong> Si algo falla a la mitad, quedan cambios a medias; usa BEGIN / COMMIT / ROLLBACK.</li>
+<li><strong>Tablas sin clave primaria.</strong> Después no se pueden actualizar filas puntuales ni evitar duplicados.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <p>Estos ejercicios se corrigen ejecutando una consulta de verificación <strong>después</strong> de tu código.</p>
 <div class="exercise-slot"></div>
