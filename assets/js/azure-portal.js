@@ -86,7 +86,7 @@
   const PRINCIPALES_BASE = [[USUARIO, 'User', 'Alumno Academia (tú)'], ['ana.datos@academia.dev', 'User', 'Ana Datos'], ['ingenieros-datos', 'Group', 'Grupo de ingeniería de datos'], ['sp-pipeline-adf', 'ServicePrincipal', 'Service principal de los pipelines'], ['adb-access-connector', 'ManagedIdentity', 'Identidad administrada de Databricks (Access Connector)']];
   // cada data factory tiene su identidad administrada (system-assigned): se le asignan roles como a cualquier principal
   const extBlade = (box, o) => { const f = (window.AzurePortal.ext || {}).blade; return !!(f && f(box, o)); };
-  const principales = () => [...PRINCIPALES_BASE, ...(((window.AzurePortal || {}).ext || {}).principales ? window.AzurePortal.ext.principales() : []), ...Object.keys(az().adf || {}).map((n) => [n, 'ManagedIdentity', `Data factory ${n} (identidad administrada)`])];
+  const principales = () => [...PRINCIPALES_BASE, ...(((window.AzurePortal || {}).ext || {}).principales ? window.AzurePortal.ext.principales() : []), ...Object.keys(az().adf || {}).map((n) => [n, 'ManagedIdentity', `Data factory ${n} (identidad administrada)`]), ['unity-catalog-access-connector', 'ManagedIdentity', 'Access Connector for Azure Databricks (identidad de Unity Catalog)']];
   // el alumno es Owner de la suscripción (como quien crea una cuenta de prueba)
   const asignaciones = () => [{ principalName: USUARIO, roleDefinitionName: 'Owner', scope: `/subscriptions/${sub().id}`, id: 'propietario', implicita: true }, ...(az().roles || [])];
   const tieneRol = (scope, roles, quien = USUARIO) => asignaciones().some((a) => a.principalName === quien && roles.includes(a.roleDefinitionName) && (scope === a.scope || scope.startsWith(a.scope + '/')));

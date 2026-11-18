@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La ingesta - Data Factory copia el día de landing a bronze · Academia de Datos</title><meta name="description" content="Armas en Data Factory Studio el pipeline que todos los días copia los archivos de la app de landing a bronze - linked service con identidad administrada, datasets, una actividad Copy con un comodín que depende de la fecha y un parámetro para elegir el día. Lo publicas, lo ejecutas desde la terminal como lo haría otro sistema y lo guardas en el repositorio."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-ingesta-con-data-factory.html">
+<meta property="og:type" content="article"><meta property="og:title" content="La ingesta - Data Factory copia el día de landing a bronze · Academia de Datos"><meta property="og:description" content="Armas en Data Factory Studio el pipeline que todos los días copia los archivos de la app de landing a bronze - linked service con identidad administrada, datasets, una actividad Copy con un comodín que depende de la fecha y un parámetro para elegir el día. Lo publicas, lo ejecutas desde la terminal como lo haría otro sistema y lo guardas en el repositorio."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-ingesta-con-data-factory.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-pedalia">🚲 Proyecto integrador: Pedalia, de cero a producción</a> · Intermedio · 50 min</div>
+<h1>La ingesta - Data Factory copia el día de landing a bronze</h1><p class="resumen">Armas en Data Factory Studio el pipeline que todos los días copia los archivos de la app de landing a bronze - linked service con identidad administrada, datasets, una actividad Copy con un comodín que depende de la fecha y un parámetro para elegir el día. Lo publicas, lo ejecutas desde la terminal como lo haría otro sistema y lo guardas en el repositorio.</p>
+<a class="cta" href="../index.html#/l/proyecto-pedalia-ingesta-con-data-factory">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un linked service a ADLS Gen2 con identidad administrada</li><li>Usar un parámetro de pipeline y una expresión para elegir los archivos del día</li><li>Diferenciar Debug de una ejecución de la versión publicada</li><li>Ejecutar un pipeline desde la CLI y revisar el resultado en Monitor</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Martes, 11:30</div>
+
+<p>Ya está la entrega en landing. Ahora necesitas que &quot;algo&quot; la copie a bronze todos los días, sin que nadie tenga que acordarse. Eso es una ingesta, y en Azure el servicio para eso es Data Factory.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 La cinta transportadora con etiqueta del día</div>
+
+<p>Data Factory es una cinta transportadora: toma cajas de un lugar y las deja en otro, sin abrirlas. El parámetro <code>fecha</code> es la etiqueta que le pones cada mañana: &quot;hoy lleva las cajas del 9 de noviembre&quot;. La cinta es la misma todos los días; lo único que cambia es la etiqueta.</p>
+</div>
+
+
+<h2>1. Abrir el Studio</h2>
+<p>En el <a href="#/azure">portal de Azure de práctica</a>: <strong>adf-pedalia-dev → Launch studio</strong>.</p>
+<h2>2. Linked service: la conexión al lago</h2>
+<p><strong>Manage → Linked services → New → Azure Data Lake Storage Gen2</strong>:</p>
+<ul>
+<li>Name: <code>ls_lago</code></li>
+<li>Authentication: <strong>System-assigned managed identity</strong> (la identidad del factory, a la que le diste el rol)</li>
+<li>Storage account: <code>stpedaliadev</code></li>
+<li><strong>Test connection</strong>: si falla con <em>AuthorizationPermissionMismatch</em>, falta el rol de la lección anterior.</li>
+</ul>
+<h2>3. Datasets: de dónde y a dónde</h2>
+<p><strong>Author → + → Dataset → Azure Data Lake Storage Gen2 → DelimitedText</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Dataset</th>
+<th>Linked service</th>
+<th>Contenedor</th>
+<th>Carpeta</th>
+<th>Primera fila es encabezado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>ds_landing_pedalia</code></td>
+<td>ls_lago</td>
+<td>landing</td>
+<td><code>pedalia</code></td>
+<td>sí</td>
+</tr>
+<tr>
+<td><code>ds_bronze_viajes</code></td>
+<td>ls_lago</td>
+<td>bronze</td>
+<td><code>pedalia/viajes</code></td>
+<td>sí</td>
+</tr>
+</tbody></table></div>
+<p>No pongas nombre de archivo: el archivo lo elige el pipeline cada día.</p>
+<h2>4. El pipeline</h2>
+<p><strong>Author → + → Pipeline</strong>, nombre <code>pl_ingesta_pedalia</code>:</p>
+<ol>
+<li>En <strong>Parameters</strong> (abajo, con el lienzo vacío seleccionado): agrega <code>fecha</code>, tipo String, valor por defecto <code>2026-11-09</code>.</li>
+<li>Arrastra una actividad <strong>Copy data</strong>, nombre <code>Copiar viajes</code>:<ul>
+<li><strong>Source</strong>: <code>ds_landing_pedalia</code>, y en <strong>Wildcard file name</strong> el contenido dinámico:<pre><code class="language-text">@concat(pipeline().parameters.fecha, '/viajes_*.csv')</code></pre>
+</li>
+<li><strong>Sink</strong>: <code>ds_bronze_viajes</code>.</li>
+</ul>
+</li>
+<li><strong>Validate</strong>, después <strong>Debug</strong> con <code>fecha = 2026-11-09</code>. En la salida de la actividad mira <code>filesRead</code>, <code>rowsCopied</code> y <code>dataWritten</code>.</li>
+</ol>
+<p>El JSON que queda (lo vas a guardar en el repositorio):</p>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;pl_ingesta_pedalia&quot;,
+  &quot;properties&quot;: {
+    &quot;parameters&quot;: { &quot;fecha&quot;: { &quot;type&quot;: &quot;String&quot;, &quot;defaultValue&quot;: &quot;2026-11-09&quot; } },
+    &quot;activities&quot;: [{
+      &quot;name&quot;: &quot;Copiar viajes&quot;,
+      &quot;type&quot;: &quot;Copy&quot;,
+      &quot;inputs&quot;: [{ &quot;referenceName&quot;: &quot;ds_landing_pedalia&quot;, &quot;type&quot;: &quot;DatasetReference&quot; }],
+      &quot;outputs&quot;: [{ &quot;referenceName&quot;: &quot;ds_bronze_viajes&quot;, &quot;type&quot;: &quot;DatasetReference&quot; }],
+      &quot;typeProperties&quot;: {
+        &quot;source&quot;: { &quot;type&quot;: &quot;DelimitedTextSource&quot;, &quot;storeSettings&quot;: { &quot;type&quot;: &quot;AzureBlobFSReadSettings&quot;, &quot;recursive&quot;: true,
+          &quot;wildcardFileName&quot;: { &quot;value&quot;: &quot;@concat(pipeline().parameters.fecha, '/viajes_*.csv')&quot;, &quot;type&quot;: &quot;Expression&quot; } } },
+        &quot;sink&quot;: { &quot;type&quot;: &quot;DelimitedTextSink&quot; }
+      }
+    }]
+  }
+}</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 Un pipeline de ingesta no transforma</div>
+
+<p>Fíjate que la copia no filtra duplicados ni corrige nada: lleva el archivo tal cual. Si mañana descubres un error en la limpieza, puedes volver a calcular todo desde bronze sin pedirle los archivos de nuevo a la app. Esa es la razón de ser de bronze.</p>
+</div>
+
+
+<h2>5. Publicar y ejecutar como lo haría otro sistema</h2>
+<p><strong>Publish all</strong>. Desde ahora existe la versión publicada, que es la que ejecutan los triggers, la API y Airflow. Lo que edites después no corre hasta que vuelvas a publicar.</p>
+<p>Ejecútalo desde la terminal, como lo haría un script o un orquestador (es la API &quot;Create Run&quot; del servicio):</p>
+<pre><code class="language-bash">az datafactory pipeline create-run -g rg-pedalia-dev --factory-name adf-pedalia-dev \
+  -n pl_ingesta_pedalia --parameters '{&quot;fecha&quot;: &quot;2026-11-09&quot;}'
+az storage blob list --account-name stpedaliadev -c bronze -o table</code></pre>
+<p>En el Studio, <strong>Monitor → Pipeline runs</strong>: vas a ver la corrida con su <code>runId</code>, quién la disparó y cuánto tardó. Entra a la actividad para ver la entrada y la salida.</p>
+<h2>6. Al repositorio</h2>
+<p>En Data Factory real se conecta el Studio a un repositorio Git (Manage → Git configuration) y cada pipeline queda como un JSON en <code>pipeline/</code>. Acá guarda el JSON a mano:</p>
+<pre><code class="language-bash">cd ~/pedalia-datos
+git checkout main &amp;&amp; git pull
+git checkout -b adf/ingesta
+mkdir -p adf/pipeline
+# pega el JSON de arriba en el archivo
+nano adf/pipeline/pl_ingesta_pedalia.json
+git add adf &amp;&amp; git commit -m &quot;Pipeline de ingesta de Pedalia&quot; &amp;&amp; git push -u origin adf/ingesta</code></pre>
+<p>Abre el PR y fusiónalo cuando el check esté en verde.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Probar con Debug y creer que ya está en producción</strong>: Debug corre lo que estás editando; los triggers y Airflow corren lo <strong>publicado</strong>. Si olvidas <strong>Publish all</strong>, el pipeline &quot;no existe&quot; para ellos (<em>PipelineNotFound</em>).</li>
+<li><strong>Escribir la fecha en el comodín</strong> (<code>2026-11-09/viajes_*.csv</code>): funciona el primer día y copia siempre el mismo archivo. Para eso está el parámetro.</li>
+<li><strong>Linked service con la clave de la cuenta</strong> en vez de identidad administrada: la clave da control total y hay que rotarla.</li>
+<li><strong>Error <em>UserErrorSourceBlobNotExist</em></strong>: el comodín no encontró nada. Revisa que la fecha exista en landing y que la carpeta del dataset sea <code>pedalia</code> (el comodín se aplica desde ahí).</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li><strong>Linked service</strong> = cómo conectarse (con identidad administrada); <strong>dataset</strong> = qué carpeta; <strong>pipeline</strong> = qué hacer.</li>
+<li>Un <strong>parámetro</strong> y una <strong>expresión</strong> hacen que el mismo pipeline sirva para cualquier día.</li>
+<li><strong>Debug</strong> prueba lo que editas; lo <strong>publicado</strong> es lo que corre de verdad.</li>
+<li>La ingesta copia sin transformar: bronze es tu seguro para recalcular.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-pedalia-ingesta-con-data-factory">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-pedalia-el-lago-en-azure.html">← El lago en Azure - capas, permisos y la primera carga</a><a href="proyecto-pedalia-bronze-y-silver-en-databricks.html">Bronze y silver en Databricks - leer el lago y aplicar el contrato →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

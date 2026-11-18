@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recibir los datos - la primera entrega y el contrato de datos · Academia de Datos</title><meta name="description" content="El equipo de la app te manda la exportación del primer día. Antes de cargarla, la miras con ojos de detective desde la terminal, encuentras los problemas que trae (algunos avisados y otros no) y escribes el contrato de datos que va a decidir qué es un viaje válido. Tus datos son solo tuyos - salen de una semilla propia."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-recibir-los-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Recibir los datos - la primera entrega y el contrato de datos · Academia de Datos"><meta property="og:description" content="El equipo de la app te manda la exportación del primer día. Antes de cargarla, la miras con ojos de detective desde la terminal, encuentras los problemas que trae (algunos avisados y otros no) y escribes el contrato de datos que va a decidir qué es un viaje válido. Tus datos son solo tuyos - salen de una semilla propia."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-recibir-los-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-pedalia">🚲 Proyecto integrador: Pedalia, de cero a producción</a> · Intermedio · 40 min</div>
+<h1>Recibir los datos - la primera entrega y el contrato de datos</h1><p class="resumen">El equipo de la app te manda la exportación del primer día. Antes de cargarla, la miras con ojos de detective desde la terminal, encuentras los problemas que trae (algunos avisados y otros no) y escribes el contrato de datos que va a decidir qué es un viaje válido. Tus datos son solo tuyos - salen de una semilla propia.</p>
+<a class="cta" href="../index.html#/l/proyecto-pedalia-recibir-los-datos">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Exportar y explorar archivos desde la terminal</li><li>Encontrar duplicados, nulos y valores imposibles antes de cargar</li><li>Distinguir problemas avisados de problemas descubiertos</li><li>Escribir un contrato de datos y subirlo con un pull request</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Lunes, 15:30</div>
+
+<p>Llega un mensaje del equipo de la app: &quot;Les dejamos la exportación del lunes. Ojo que hay cosas raras, en el LEEME están las que conocemos&quot;. La palabra clave es <strong>las que conocemos</strong>.</p>
+</div>
+
+
+<h2>1. Tu entrega</h2>
+<p>Los datos de Pedalia se generan para ti: otra persona que haga el proyecto recibe otros números. Puedes descargarlos acá, pero lo realista es exportarlos desde &quot;el sistema de la app&quot; en la terminal.</p>
+<div></div>
+
+<pre><code class="language-bash">pedalia exportar --dia 1
+pedalia estado
+ls -R ~/pedalia/entrega
+cat ~/pedalia/entrega/LEEME.md</code></pre>
+<h2>2. Mirar antes de cargar</h2>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El control de llegada en un almacén</div>
+
+<p>Cuando llega un camión, alguien cuenta las cajas y mira si alguna viene rota <strong>antes</strong> de firmar el remito. Si firmas sin mirar, el problema ya es tuyo. Explorar los archivos antes de cargarlos es ese control: lo que encuentras ahora es una conversación con el equipo de la app; lo que encuentras en producción es un incidente.</p>
+</div>
+
+
+<pre><code class="language-bash">cd ~/pedalia/entrega/2026-11-09
+head -5 viajes_2026-11-09.csv            # columnas y formato
+wc -l viajes_2026-11-09.csv              # filas (incluye el encabezado)</code></pre>
+<p><strong>¿Hay viajes repetidos?</strong> El LEEME avisa que el sistema reintenta y puede repetir filas:</p>
+<pre><code class="language-bash">cut -d, -f1 viajes_2026-11-09.csv | sort | uniq -d | wc -l      # cuántos viaje_id aparecen más de una vez</code></pre>
+<p><strong>¿Viajes sin cerrar?</strong> Fin vacío (columna 6):</p>
+<pre><code class="language-bash">awk -F, 'NR &gt; 1 &amp;&amp; $6 == &quot;&quot;' viajes_2026-11-09.csv | wc -l</code></pre>
+<p><strong>¿Bicis fuera de estación?</strong> Destino 99:</p>
+<pre><code class="language-bash">awk -F, 'NR &gt; 1 &amp;&amp; $4 == 99' viajes_2026-11-09.csv | wc -l</code></pre>
+<p><strong>Lo que nadie avisó con precisión:</strong> &quot;la estación 13 tuvo problemas de reloj&quot;. ¿Qué significa en los datos? Busca viajes que terminan antes de empezar. Como las fechas tienen formato <code>AAAA-MM-DD HH:MM:SS</code>, se pueden comparar como texto:</p>
+<pre><code class="language-bash">awk -F, 'NR &gt; 1 &amp;&amp; $6 != &quot;&quot; &amp;&amp; $6 &lt; $5 {print $3}' viajes_2026-11-09.csv | sort | uniq -c</code></pre>
+<p>Todos salen de la estación 13. Ahora ya sabes <strong>qué</strong> problema causa el reloj: viajes con duración negativa.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Anota los números</div>
+
+<p>Guarda lo que encontraste: filas totales, repetidas, sin fin, con fin antes del inicio y fuera de estación. Al final de la limpieza, <strong>la cuenta tiene que cerrar</strong>: filas del archivo − repetidas − sin fin − error de reloj = viajes válidos. Si no cierra, algo se perdió en el camino.</p>
+</div>
+
+
+<h2>3. El contrato de datos</h2>
+<p>El contrato es el documento que dice <strong>qué se espera de la fuente y qué se hace con cada problema</strong>. Lo firman (en sentido figurado) quien produce los datos y quien los usa. Va al repositorio, con historial, porque las reglas cambian y hay que saber desde cuándo.</p>
+<pre><code class="language-bash">cd ~/pedalia-datos
+git checkout -b docs/contrato
+cat &gt; docs/contrato.md &lt;&lt; 'EOF'
+# Contrato de datos · viajes de Pedalia (v1)
+
+Fuente: exportación diaria de la app (viajes_AAAA-MM-DD.csv), equipo-app@pedalia.example
+Llega: todos los días antes de las 03:00 en landing/pedalia/&lt;fecha&gt;/
+
+## Columnas
+| columna | tipo | regla |
+|---|---|---|
+| viaje_id | entero | identifica el viaje; puede venir repetido (reintentos) |
+| bici_id | texto | B-0001 … B-0180 |
+| estacion_origen | entero | 1 … 24 |
+| estacion_destino | entero | 1 … 24, o 99 = fuera de estación; vacío si el viaje no terminó |
+| inicio, fin | fecha y hora | formato AAAA-MM-DD HH:MM:SS, hora local |
+| tipo_usuario | texto | abono o pase_dia |
+| monto | decimal | pesos; vacío si el viaje no terminó |
+
+## Qué es un viaje válido (silver)
+1. Una fila por viaje_id (se descartan las repetidas).
+2. Sin fin → en curso: no entra hoy.
+3. fin &lt; inicio → error de reloj: no entra (se cuenta aparte).
+4. destino 99 → entra, con estacion_destino NULL y fuera_de_estacion = true.
+5. fecha del viaje = día de inicio.
+
+## Control
+filas del archivo − repetidas − en curso − error de reloj = viajes válidos.
+Si un archivo no llega a las 03:00 o cambia de columnas, el pipeline falla y avisa (no se publica nada a medias).
+EOF
+git add docs/contrato.md
+git commit -m &quot;Contrato de datos de viajes v1&quot;
+git push -u origin docs/contrato</code></pre>
+<p>Abre el pull request y, en la descripción, pega los números que encontraste. En un equipo real, este PR lo revisan quien produce los datos (equipo de la app) y quien los usa (finanzas): es el momento de discutir las reglas, <strong>antes</strong> de que haya números publicados.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El contrato no es eterno</div>
+
+<p>Si mañana finanzas decide que los viajes en curso sí cuentan, la regla cambia, <strong>pero los números de los días anteriores también cambian</strong>. Por eso el contrato tiene versión y el cambio se anuncia: &quot;desde el 15/11, los ingresos incluyen viajes en curso; recalculamos los días anteriores&quot;.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Cargar sin mirar</strong> y descubrir los duplicados cuando finanzas pregunta por qué los ingresos subieron 2 %.</li>
+<li><strong>Arreglar el archivo original a mano</strong> (borrar las filas raras con un editor). El archivo de la fuente no se toca: se guarda tal cual en bronze y la limpieza se hace con reglas, para poder repetirla.</li>
+<li><strong>Creer que el LEEME dice todo</strong>. Avisaba &quot;problemas de reloj&quot;, pero no que eso produce duraciones negativas. Siempre verifica con los datos.</li>
+<li><strong>Dejar las reglas en un chat</strong>: cuando alguien pregunte en tres meses por qué los viajes de la estación 13 no suman, la respuesta tiene que estar en el repositorio.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Mira los archivos <strong>antes</strong> de cargarlos: cuenta filas, repetidos, nulos y valores imposibles.</li>
+<li>El LEEME de la fuente ayuda, pero los datos mandan: verifica cada aviso.</li>
+<li>El <strong>contrato de datos</strong> dice qué es válido y qué se hace con cada problema; va versionado en el repositorio.</li>
+<li>La cuenta de control (filas − descartes = válidos) es tu prueba de que la limpieza no perdió nada.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-pedalia-recibir-los-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-pedalia-el-repositorio.html">← El repositorio - el proyecto vive en GitHub desde el primer minuto</a><a href="proyecto-pedalia-el-lago-en-azure.html">El lago en Azure - capas, permisos y la primera carga →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

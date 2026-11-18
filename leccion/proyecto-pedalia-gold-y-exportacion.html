@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gold y exportación - las métricas de cada área y un job que las calcula · Academia de Datos</title><meta name="description" content="Calculas en Databricks las tres tablas gold que pidió el negocio, las exportas como archivos al contenedor gold para que Snowflake y BigQuery las carguen, y empaquetas todo en un job con tareas SQL, que es lo que va a disparar Airflow todos los días."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-gold-y-exportacion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Gold y exportación - las métricas de cada área y un job que las calcula · Academia de Datos"><meta property="og:description" content="Calculas en Databricks las tres tablas gold que pidió el negocio, las exportas como archivos al contenedor gold para que Snowflake y BigQuery las carguen, y empaquetas todo en un job con tareas SQL, que es lo que va a disparar Airflow todos los días."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-gold-y-exportacion.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-pedalia">🚲 Proyecto integrador: Pedalia, de cero a producción</a> · Intermedio · 45 min</div>
+<h1>Gold y exportación - las métricas de cada área y un job que las calcula</h1><p class="resumen">Calculas en Databricks las tres tablas gold que pidió el negocio, las exportas como archivos al contenedor gold para que Snowflake y BigQuery las carguen, y empaquetas todo en un job con tareas SQL, que es lo que va a disparar Airflow todos los días.</p>
+<a class="cta" href="../index.html#/l/proyecto-pedalia-gold-y-exportacion">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Construir tablas gold a partir de silver con el grano acordado</li><li>Unir con un maestro (estaciones) para agregar por barrio</li><li>Exportar resultados como archivos con INSERT OVERWRITE DIRECTORY</li><li>Crear un job de Databricks con tareas SQL encadenadas</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Miércoles, 10:00</div>
+
+<p>Silver cierra. Lucía (finanzas) pregunta si ya puede ver algo. Todavía no: silver tiene un viaje por fila y ella quiere un número por día. Eso es gold.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 La cocina y los platos</div>
+
+<p>Silver son los ingredientes lavados y cortados. Gold son los platos servidos: cada área recibe el suyo, con la porción (el grano) que pidió. No se le da a cada comensal la bolsa de ingredientes para que cocine solo.</p>
+</div>
+
+
+<h2>1. El maestro de estaciones</h2>
+<p>Para agrupar por barrio necesitas saber en qué barrio está cada estación. Ese dato viene en <code>estaciones.json</code>, que subiste a landing. Agrega una ubicación externa de solo lectura para landing y carga el maestro:</p>
+<pre data-norun><code class="language-sql">CREATE EXTERNAL LOCATION lago_landing
+URL 'abfss://landing@stpedaliadev.dfs.core.windows.net/'
+WITH (STORAGE CREDENTIAL credencial_lago) READ ONLY;
+
+CREATE OR REPLACE TABLE pedalia.silver.estaciones AS
+SELECT CAST(estacion_id AS INT) AS estacion_id, nombre, barrio, CAST(capacidad AS INT) AS capacidad
+FROM read_files('abfss://landing@stpedaliadev.dfs.core.windows.net/pedalia/estaciones', format =&gt; 'json');</code></pre>
+<h2>2. Las tres tablas gold</h2>
+<p>Cada una con el grano que se acordó en la primera lección:</p>
+<pre data-norun><code class="language-sql">-- finanzas: un número por día y tipo de usuario
+CREATE OR REPLACE TABLE pedalia.gold.ingresos_diarios AS
+SELECT fecha, tipo_usuario, COUNT(*) AS viajes, SUM(monto) AS ingresos
+FROM pedalia.silver.viajes
+GROUP BY fecha, tipo_usuario;
+
+-- marketing: un número por día y barrio de salida
+CREATE OR REPLACE TABLE pedalia.gold.uso_por_barrio AS
+SELECT v.fecha, e.barrio,
+       COUNT(*) AS viajes,
+       SUM(CASE WHEN v.tipo_usuario = 'pase_dia' THEN 1 ELSE 0 END) AS viajes_pase_dia
+FROM pedalia.silver.viajes v
+JOIN pedalia.silver.estaciones e ON e.estacion_id = v.estacion_origen
+GROUP BY v.fecha, e.barrio;
+
+-- operaciones: un número por día y estación de salida
+CREATE OR REPLACE TABLE pedalia.gold.viajes_por_estacion AS
+SELECT v.fecha, v.estacion_origen AS estacion_id, e.nombre, e.barrio,
+       COUNT(*) AS viajes_salida,
+       ROUND(AVG(v.minutos), 2) AS minutos_promedio,
+       SUM(CASE WHEN v.fuera_de_estacion THEN 1 ELSE 0 END) AS fuera_de_estacion
+FROM pedalia.silver.viajes v
+JOIN pedalia.silver.estaciones e ON e.estacion_id = v.estacion_origen
+GROUP BY v.fecha, v.estacion_origen, e.nombre, e.barrio;</code></pre>
+<p>Revisa los totales: la suma de <code>viajes</code> en las tres tablas tiene que ser la misma, e igual a las filas de silver. Si <code>uso_por_barrio</code> suma menos, hay viajes con una estación que no está en el maestro (el <code>JOIN</code> los dejó afuera).</p>
+<h2>3. Exportar gold para los otros sistemas</h2>
+<p>Snowflake y BigQuery no leen tablas de Databricks: leen <strong>archivos</strong>. El patrón más común es dejar cada tabla gold como archivos en una carpeta conocida del lago:</p>
+<pre data-norun><code class="language-sql">INSERT OVERWRITE DIRECTORY 'abfss://gold@stpedaliadev.dfs.core.windows.net/ingresos_diarios'
+USING CSV OPTIONS ('header' = 'true')
+SELECT * FROM pedalia.gold.ingresos_diarios;
+
+INSERT OVERWRITE DIRECTORY 'abfss://gold@stpedaliadev.dfs.core.windows.net/uso_por_barrio'
+USING CSV OPTIONS ('header' = 'true')
+SELECT * FROM pedalia.gold.uso_por_barrio;</code></pre>
+<p><code>OVERWRITE</code> reemplaza la carpeta completa: queda un archivo <code>part-00000-….csv</code> y un <code>_SUCCESS</code> vacío. Ese <code>_SUCCESS</code> es la señal, para quien lee, de que la escritura terminó entera. Míralo en el portal (contenedor <code>gold</code>) o con:</p>
+<pre><code class="language-bash">az storage blob list --account-name stpedaliadev -c gold -o table</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 ¿Por qué CSV y no Parquet?</div>
+
+<p>En Databricks real exportarías Parquet: guarda los tipos, ocupa menos y lo leen Snowflake y BigQuery. En esta práctica la exportación es CSV para que puedas abrir el archivo y ver qué hay adentro. El patrón (carpeta por tabla + <code>_SUCCESS</code> + reemplazo completo) es el mismo.</p>
+</div>
+
+
+<h2>4. El job</h2>
+<p>Lo que acabas de correr a mano tiene que correr solo todos los días. En <strong>Jobs &amp; Pipelines → Create job</strong>, nombre <strong><code>pedalia_transformar</code></strong>, con tres tareas de tipo <strong>SQL</strong> encadenadas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tarea</th>
+<th>Depende de</th>
+<th>SQL</th>
+</tr>
+</thead><tbody><tr>
+<td><code>bronze_y_silver</code></td>
+<td>—</td>
+<td>crear <code>bronze.viajes</code>, <code>silver.estaciones</code>, <code>silver.viajes</code> y la cuarentena</td>
+</tr>
+<tr>
+<td><code>gold</code></td>
+<td><code>bronze_y_silver</code></td>
+<td>las tres tablas gold</td>
+</tr>
+<tr>
+<td><code>exportar</code></td>
+<td><code>gold</code></td>
+<td>los dos <code>INSERT OVERWRITE DIRECTORY</code></td>
+</tr>
+</tbody></table></div>
+<p>Pega en cada tarea el SQL correspondiente. Ejecuta el job con <strong>Run now</strong> y mira el gráfico de tareas: si <code>gold</code> falla, <code>exportar</code> no corre. Es lo mismo que va a pasar cuando lo dispare Airflow.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Recalcular todo o solo lo nuevo</div>
+
+<p>Este job recalcula todo desde bronze en cada corrida (<code>CREATE OR REPLACE</code>). Con pocos días de datos es lo más simple y siempre da el mismo resultado: es <strong>idempotente</strong>. Cuando bronze tenga años, conviene procesar solo los días nuevos con <code>MERGE</code>. Anótalo en el README como el siguiente paso de escala.</p>
+</div>
+
+
+<p>Guarda el SQL de gold y de la exportación en <code>sql/databricks/gold.sql</code> y súbelo con un PR.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Mezclar granos en una tabla gold</strong> (por ejemplo, filas por día y una fila de &quot;total&quot; en la misma tabla). Cualquier suma en Power BI lo cuenta dos veces.</li>
+<li><strong>JOIN que pierde filas sin avisar</strong>: si el maestro no tiene una estación, el viaje desaparece de <code>uso_por_barrio</code>. Compara totales entre tablas.</li>
+<li><strong>Exportar sin <code>OVERWRITE</code></strong>: cada corrida agrega otro archivo y quien carga termina con los datos duplicados.</li>
+<li><strong>Leer la carpeta antes de que aparezca <code>_SUCCESS</code></strong>: un archivo a medio escribir se carga incompleto. Los procesos que leen deben esperar la marca.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Gold = una tabla por necesidad de negocio, <strong>con un grano claro</strong>.</li>
+<li>Compara totales entre tablas para detectar <strong>JOINs que pierden filas</strong>.</li>
+<li>Los otros sistemas reciben <strong>archivos en el lago</strong>: una carpeta por tabla, reemplazo completo y marca <code>_SUCCESS</code>.</li>
+<li>Un <strong>job</strong> encadena las tareas; si una falla, las siguientes no corren.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-pedalia-gold-y-exportacion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-pedalia-bronze-y-silver-en-databricks.html">← Bronze y silver en Databricks - leer el lago y aplicar el contrato</a><a href="proyecto-pedalia-snowflake-y-bigquery.html">Snowflake y BigQuery - cada área recibe sus datos desde el lago →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -8,6 +8,10 @@ prerrequisitos: interfaces-airflow-por-dentro | interfaces-databricks-por-dentro
 autoevaluacion: ¿Sabes qué necesita Airflow para hablar con Databricks? | ¿Sabes dónde ver por qué falló un job que disparó Airflow? | ¿Sabes qué diferencia hay entre importar y consultar en directo desde Power BI? | ¿Sabes qué consulta ejecuta Power BI en Snowflake al importar una tabla? | ¿Sabes por qué el orquestador no debería transformar los datos él mismo?
 ---
 
+:::nota Hay una versión completa
+Este es el recorrido corto, con los datos de la tienda del curso. El módulo [Proyecto integrador: Pedalia, de cero a producción](#/m/proyecto-pedalia) hace lo mismo como en un trabajo real: una empresa y datos nuevos solo para ti, GitHub con CI/CD, Data Factory, el lago en Azure, BigQuery, y un incidente de verdad al tercer día.
+:::
+
 :::tip Cómo trabajar este proyecto
 Abre cada herramienta en una pestaña del navegador: [Airflow](#/airflow), [Databricks](#/databricks), [Snowflake](#/snowflake), [Fabric](#/fabric) y [Power BI](#/powerbi). Todas comparten el mismo navegador: lo que haces en una lo ve la otra. Los **🎯 Retos** de Databricks y Snowflake tienen un nivel "Con otras herramientas" que se marca solo cuando completas cada conexión.
 :::

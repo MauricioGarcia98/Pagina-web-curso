@@ -206,6 +206,7 @@ ORDER BY pedidos DESC;
     // EXTRACT(YEAR FROM col), TRIM(x FROM y)…: ese FROM no nombra una tabla
     const plano = sinTextos(sql).replace(/\b(EXTRACT|SUBSTRING|TRIM|POSITION)\s*\(([^()]*?)\bFROM\b/gi, '$1($2 , ');
     if (/^(CREATE\s+SCHEMA|DROP|ALTER|TRUNCATE)\b/i.test(sql)) return { bytes: 0, tablas: [], ddl: true };
+    if (/^LOAD\s+DATA\b/i.test(sql)) return { bytes: 0, real: 0, tablas: [], ddl: true }; // un job de carga no cobra bytes procesados
     if (/\bINFORMATION_SCHEMA\b/i.test(sql)) return { bytes: 0, real: 0, tablas: [], meta: true };
     if (/^(UPDATE|DELETE)\b/i.test(sql) && !/\bWHERE\b/i.test(plano)) throw err(`${sql.split(/\s+/)[0].toUpperCase()} must have a WHERE clause`);
     const refs = referencias(plano); const detalle = []; let bytes = 0, real = 0;
@@ -357,6 +358,39 @@ ORDER BY pedidos DESC;
       if (!m[3] && (await tablas(ds)).length) throw err(`Dataset ${PROYECTO}:${ds} is still in use. Usa DROP SCHEMA ${ds} CASCADE para borrar también sus tablas.`);
       await con.query(`DROP SCHEMA ${q(ds)} CASCADE`); for (const k of Object.keys(s.meta)) if (k.startsWith(ds + '.')) delete s.meta[k]; version++;
       return { estado: `Dropped ${PROYECTO}.${ds}`, persistir: true };
+    }
+    // LOAD DATA {INTO|OVERWRITE} ds.tabla FROM FILES (format = 'CSV', skip_leading_rows = 1, uris = ['azure://…'])
+    //   WITH CONNECTION `azure-eastus2.mi_conexion`: carga archivos del lago de Azure (carga entre nubes)
+    if ((m = /^LOAD\s+DATA\s+(INTO|OVERWRITE)\s+(`[^`]+`|[\w.-]+)\s*(?:\([^)]*\)\s*)?FROM\s+FILES\s*\(([\s\S]*?)\)\s*(?:WITH\s+CONNECTION\s+`?([\w.-]+)`?)?$/i.exec(sql))) {
+      const p = refTabla(m[2]); if (p.length !== 2) throw err(`Table "${p.join('.')}" must be qualified with a dataset (e.g. dataset.table).`);
+      const [ds, tabla] = p; const opc = m[3];
+      if (!(await datasets()).includes(ds)) throw err(`Not found: Dataset ${PROYECTO}:${ds}`);
+      const uris = [...(/uris\s*=\s*\[([^\]]*)\]/i.exec(opc) || [, ''])[1].matchAll(/'([^']+)'|"([^"]+)"/g)].map((x) => x[1] || x[2]);
+      if (!uris.length) throw err("LOAD DATA necesita uris = ['azure://<cuenta>.blob.core.windows.net/<contenedor>/<ruta>/*.csv']");
+      const formato = ((/format\s*=\s*'(\w+)'/i.exec(opc) || [, 'CSV'])[1]).toUpperCase();
+      const salto = Number((/skip_leading_rows\s*=\s*(\d+)/i.exec(opc) || [, 0])[1]);
+      const L = window.LagoAzure; const archivos = [];
+      for (const u of uris) {
+        if (/^gs:\/\//i.test(u)) throw err('En esta práctica no hay buckets de Cloud Storage: carga desde el lago de Azure (azure://…) o sube el archivo con "Add data → Local file".');
+        if (!L || !L.esDelLago(u) || L.parsear(u).esquema !== 'azure') throw err(`Invalid uri '${u}'. Para Azure Blob Storage el formato es azure://<cuenta>.blob.core.windows.net/<contenedor>/<ruta>.`);
+        if (!m[4]) throw err('Loading from Azure requires a connection. Agrega WITH CONNECTION `azure-eastus2.<nombre>`: es la conexión de BigQuery a Azure (en la consola: Add data → Connections to external data sources → BigLake on Azure).');
+        if (!/^azure-[\w-]+\.\w+$/i.test(m[4])) throw err(`Connection '${m[4]}' no tiene el formato <región de Azure>.<nombre>, por ejemplo azure-eastus2.lago_operaciones.`);
+        let l; try { l = L.listar(u); } catch (e) { throw err(`Error while reading data, error message: ${e.message}`); }
+        if (!l.length) throw err(`Not found: Uris ${u}`);
+        archivos.push(...l);
+      }
+      const D = window.SqlMotores.DUCK; const esJson = formato === 'JSON' || formato === 'NEWLINE_DELIMITED_JSON';
+      const texto = esJson ? archivos.map((a) => a.texto.trim()).join('\n') : archivos.map((a, i) => { const lineas = a.texto.split('\n'); return (i === 0 ? lineas : lineas.slice(salto)).join('\n').replace(/\n+$/, ''); }).join('\n') + '\n';
+      const tmp = `__bqload_${Date.now()}.${esJson ? 'json' : 'csv'}`; await D._db.registerFileText(tmp, texto);
+      const lector = esJson ? `read_json_auto('${tmp}')` : `read_csv('${tmp}', header = ${salto > 0}, auto_detect = true)`;
+      const existe = (await tablas(ds)).some((x) => x.nombre === tabla);
+      try {
+        if (m[1].toUpperCase() === 'OVERWRITE' || !existe) await con.query(`CREATE OR REPLACE TABLE ${q(ds)}.${q(tabla)} AS SELECT * FROM ${lector}`);
+        else await con.query(`INSERT INTO ${q(ds)}.${q(tabla)} SELECT * FROM ${lector}`);
+      } catch (e) { throw err(`Error while reading data, error message: ${mensaje(String(e.message))}`); } finally { await D._db.dropFile(tmp); }
+      const n = Number((await con.query(`SELECT count(*) AS n FROM ${q(ds)}.${q(tabla)}`)).toArray()[0].n);
+      version++; cacheRes.clear(); s.cruces = s.cruces || {}; s.cruces.cargaAzure = Date.now();
+      return { estado: `Se cargaron ${archivos.length} archivo(s) en ${PROYECTO}.${ds}.${tabla} (${n} filas en total). Un job de carga no cobra bytes procesados.`, persistir: true };
     }
     if (/^(UPDATE|DELETE)\b/i.test(sql) && !/\bWHERE\b/i.test(sinTextos(sql))) throw err(`${sql.split(/\s+/)[0].toUpperCase()} must have a WHERE clause`);
     let tr = sql, metaNueva = null, destino = null;

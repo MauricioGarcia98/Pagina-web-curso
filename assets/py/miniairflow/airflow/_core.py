@@ -416,6 +416,11 @@ class BaseOperator:
                     raise AirflowException("UndefinedError al renderizar la plantilla: '%s' is undefined.%s" % (n, extra))
             except ImportError:
                 return value.replace("{{ ds }}", context["ds"]).replace("{{ds}}", context["ds"])
+        # como en Airflow: las plantillas dentro de diccionarios, listas y tuplas también se renderizan
+        if isinstance(value, dict):
+            return {k: self.render(v, context) for k, v in value.items()}
+        if isinstance(value, (list, tuple)):
+            return type(value)(self.render(v, context) for v in value)
         return value
 
     def execute(self, context):
@@ -610,6 +615,25 @@ class DatabricksSqlOperator(_RecordingOperator):
 
 class SQLExecuteQueryOperator(_RecordingOperator):
     pass
+
+
+class AzureDataFactoryRunPipelineOperator(_RecordingOperator):
+    """Ejecuta un pipeline publicado de Azure Data Factory (en la práctica, el del portal de Azure)."""
+
+    def __init__(self, task_id, pipeline_name=None, resource_group_name=None, factory_name=None, azure_data_factory_conn_id="azure_data_factory_default", parameters=None, wait_for_termination=True, **kw):
+        if not pipeline_name:
+            raise TypeError("AzureDataFactoryRunPipelineOperator necesita pipeline_name")
+        super().__init__(task_id, pipeline_name=pipeline_name, resource_group_name=resource_group_name, factory_name=factory_name,
+                         azure_data_factory_conn_id=azure_data_factory_conn_id, parameters=parameters or {}, wait_for_termination=wait_for_termination, **kw)
+
+
+class SnowflakeSqlApiOperator(_RecordingOperator):
+    """Ejecuta SQL en Snowflake (en la práctica, en el Snowflake de práctica)."""
+
+    def __init__(self, task_id, sql=None, snowflake_conn_id="snowflake_default", statement_count=0, **kw):
+        if not sql:
+            raise TypeError("SnowflakeSqlApiOperator necesita sql")
+        super().__init__(task_id, sql=sql, snowflake_conn_id=snowflake_conn_id, statement_count=statement_count, **kw)
 
 
 class EmailOperator(_RecordingOperator):

@@ -511,9 +511,20 @@ models:
     }
     return res;
   }
+  // como en bash: un # al principio de una palabra (fuera de comillas) empieza un comentario hasta el final de la línea
+  function sinComentario(line) {
+    let q = null;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (q) { if (ch === q && line[i - 1] !== '\\') q = null; continue; }
+      if (ch === "'" || ch === '"') { q = ch; continue; }
+      if (ch === '#' && (i === 0 || /\s/.test(line[i - 1]))) return line.slice(0, i).replace(/\s+$/, '');
+    }
+    return line;
+  }
   async function runLine(line, opts = {}) {
     if (/\n/.test(line.trim()) || esCompuesto(line)) return runScript(line, opts);
-    return runLineSimple(line, opts);
+    return runLineSimple(sinComentario(line), opts);
   }
   // una línea es una lista de comandos separados por ; o & (con & no se espera: va a segundo plano);
   // cada elemento puede encadenar con && y ||, que unen más fuerte: `a && b &` manda "a && b" entero al fondo
@@ -1434,7 +1445,9 @@ models:
   def('cp', 'copia (-r carpetas)', (a) => {
     const { flags, pos } = parseArgs(a, { bool: ['-r', '-R'] });
     if (pos.length < 2) return fail('cp: falta el archivo de destino');
-    const dst = norm(pos.pop());
+    const crudo = pos.pop(); const dst = norm(crudo);
+    // como en GNU cp: con varios orígenes, o con un destino que termina en /, el destino tiene que ser una carpeta existente
+    if ((pos.length > 1 || /\/$/.test(crudo)) && !isDir(dst)) return fail(exists(dst) ? `cp: el destino '${crudo}' no es un directorio` : `cp: no se puede crear el fichero regular '${crudo}': No existe el archivo o el directorio`);
     for (const s of pos) {
       const p = norm(s);
       if (!exists(p)) return fail(`cp: no se puede efectuar stat de '${s}': No existe el archivo o el directorio`);
