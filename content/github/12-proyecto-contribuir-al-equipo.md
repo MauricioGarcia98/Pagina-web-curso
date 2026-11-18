@@ -116,6 +116,12 @@ Si comentó algo, corrige, `git commit -am "..." && git push`, responde y vuelve
 
 Comentario en el issue #3 (el de CI): *"Los tests de #2 ya están en main (PR #4). Este issue ya se puede trabajar."* Eso conecta el trabajo: el siguiente paso, CI, depende del tuyo.
 
+:::errores
+- **No leer CONTRIBUTING.** Cada equipo tiene sus reglas de ramas y mensajes.
+- **Cambiar cosas que no te pidieron.** Un PR, un tema.
+- **No responder la revisión.** Contesta cada comentario o explica por qué no aplica.
+:::
+
 :::ejercicio quiz
 ¿Por qué comentas en el issue que lo tomas?
 - [ ] Porque GitHub lo exige

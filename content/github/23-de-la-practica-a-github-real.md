@@ -90,6 +90,12 @@ Ingeniera de datos en formación. Construyo pipelines con Python, SQL, dbt y Dat
 | Push protection activa en repos públicos | Lección 18 |
 | Minutos de Actions limitados en repos privados | Los públicos son gratis; los privados tienen una cuota mensual gratuita |
 
+:::errores
+- **Autenticar con contraseña.** GitHub usa tokens o SSH; las contraseñas no funcionan para Git.
+- **Tokens con todos los permisos y sin vencimiento.** Dale lo mínimo y con fecha.
+- **Perfil sin proyectos fijados.** Fija los mejores repos del portafolio.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes crear una cuenta segura y autenticarte desde tu computadora.

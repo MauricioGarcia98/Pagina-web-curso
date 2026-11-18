@@ -72,6 +72,12 @@ texto: Las seis zonas de la pantalla, numeradas
 
 Haz clic en cada una para ver qué muestra y vuelve al **Explorador**. **Ctrl + B** oculta o muestra la barra lateral; **Ctrl + `** (acento grave) muestra u oculta la terminal.
 
+:::errores
+- **Abrir archivos sueltos en vez de la carpeta.** Sin la carpeta abierta, el explorador, la búsqueda y Git no ven el proyecto.
+- **Confundir VS Code con Python.** VS Code es el editor; Python es el programa que ejecuta tu código y se instala aparte.
+- **Ignorar la barra de estado.** Ahí se ven la rama, los errores y el intérprete en uso.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes para qué usa VS Code un equipo de datos.

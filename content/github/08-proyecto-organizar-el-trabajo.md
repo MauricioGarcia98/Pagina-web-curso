@@ -83,6 +83,12 @@ Mensaje a tu líder: *"Listo: README completo y el backlog en 5 issues (4 abiert
 
 En GitHub real hay además **Projects** (un tablero tipo Kanban con columnas Todo / In progress / Done que se llena con tus issues) y **Milestones** (agrupar issues por entrega). Pruébalos en tu repositorio de portafolio.
 
+:::errores
+- **Issues gigantes.** Divide en tareas que se terminen en uno o dos días.
+- **Sin responsable.** Un issue sin asignar no lo hace nadie.
+- **Tablero que no refleja la realidad.** Mueve las tarjetas cuando cambia el estado.
+:::
+
 :::ejercicio quiz
 ¿Para qué sirve "Terminado cuando:" en un issue?
 - [ ] Para poner la fecha límite

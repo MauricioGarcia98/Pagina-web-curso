@@ -133,6 +133,12 @@ on:
 | Pipelines de Data Factory y Fabric | Integración con Git (cada cambio es un commit) |
 | Informes de Power BI | Formato PBIP en el repositorio |
 
+:::errores
+- **Desplegar desde la máquina de alguien.** El despliegue va desde CI con revisión.
+- **Workflows programados sin aviso de falla.** Si falla de noche, nadie se entera.
+- **Mismas credenciales para dev y prod.** Usa environments con secretos separados.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes cómo es el CI de dbt y por qué usa un esquema temporal.

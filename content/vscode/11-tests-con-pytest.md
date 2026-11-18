@@ -91,6 +91,12 @@ El valor de un test no es el día que lo escribes, sino el día que alguien camb
 
 La extensión de Python tiene una vista **Testing** (ícono de matraz) que descubre los tests, los ejecuta con un clic y muestra ✓ o ✗ al lado de cada uno, incluso dentro del editor. En esta práctica se ejecutan desde la terminal o la paleta.
 
+:::errores
+- **Tests que no fallan nunca.** Comprueba que el test falla si rompes el código.
+- **Probar solo el caso feliz.** Vacíos, nulos y bordes son donde se rompe.
+- **Archivos de test con otro nombre.** pytest busca `test_*.py`; con otro nombre no los encuentra.
+:::
+
 ## ✅ Lo que lograste
 
 - Separaste lógica en funciones y la probaste con pytest.

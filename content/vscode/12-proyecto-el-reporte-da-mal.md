@@ -102,6 +102,12 @@ Para importar la función, el script no debería imprimir al importarse. Envuelv
 | Calidad | ruff sin problemas | Código formateado y con `if __name__ == "__main__":` |
 | Comunicación | Avisa que está corregido | Explica la causa en lenguaje del negocio |
 
+:::errores
+- **Corregir sin reproducir.** Primero reproduce el error con un caso concreto.
+- **Arreglar sin agregar un test.** Sin test, el error puede volver.
+- **Cambiar varias cosas a la vez.** Si algo se rompe, no sabes qué fue.
+:::
+
 :::ejercicio quiz
 ¿Por qué conviene un test con ventas exactamente iguales a 10.000?
 - [ ] Porque es un número redondo

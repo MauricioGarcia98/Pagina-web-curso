@@ -90,6 +90,12 @@ En GitHub real, el botón **±** del comentario inserta un bloque `suggestion`: 
 Comenta el código, no a la persona. Pregunta antes de afirmar. Y si algo está bien hecho, dilo: también es información útil.
 :::
 
+:::errores
+- **Revisar solo el estilo.** Lo importante es si el cambio es correcto y está probado.
+- **Comentarios sin propuesta.** "Esto está mal" no ayuda; sugiere cómo.
+- **Aprobar sin leer.** Una aprobación es responsabilidad compartida.
+:::
+
 ## ✅ Lo que lograste
 
 - Pediste revisión y leíste una aprobación.

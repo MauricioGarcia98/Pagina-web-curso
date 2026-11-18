@@ -115,6 +115,12 @@ git push
 Si haces commit con `<<<<<<<` dentro de un `.py`, el código ni siquiera corre. En la práctica, si pides revisión con marcas en el código, el revisor te lo marca. Antes de `git add`, busca: `grep -rn "<<<<<<<" .`
 :::
 
+:::errores
+- **Resolver conflictos borrando el cambio del otro.** Lee ambos lados y combina.
+- **Squash sin pensar en el historial.** Junta todos los commits en uno; está bien para PRs chicos.
+- **No borrar la rama después de fusionar.** Se acumulan ramas viejas.
+:::
+
 ## ✅ Lo que lograste
 
 - Fusionaste un PR, cerraste el issue y borraste la rama.

@@ -106,6 +106,12 @@ En `notas/decisiones.md`:
 2. **Archivo → Abrir carpeta…** y elige o crea `analisis_diciembre`.
 3. Repite los pasos. La primera vez que abras un `.py`, VS Code te ofrece instalar la extensión de Python: acéptala.
 
+:::errores
+- **Carpeta sin README.** Quien la abre no sabe qué hay ni cómo usarla.
+- **Mezclar datos, código y resultados en la raíz.** Carpetas como `datos/`, `src/` y `salidas/` ordenan.
+- **Archivos de prueba que quedan.** Bórralos antes de entregar.
+:::
+
 :::ejercicio quiz
 ¿Qué tres cosas debería responder un README?
 - [ ] Autor, fecha y licencia

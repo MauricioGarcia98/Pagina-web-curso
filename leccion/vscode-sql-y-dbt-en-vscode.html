@@ -107,6 +107,16 @@ group by canal</code></pre>
 
 
 <p>Para profundizar en dbt (materializaciones, incrementales, fuentes, macros), está el módulo <a href="#/m/dbt">dbt</a> y el <a href="#/lab/dbt">laboratorio de dbt</a>.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Escribir nombres de tablas fijos en dbt.</strong> Se usa <code>ref()</code> para que dbt conozca las dependencias.</li>
+<li><strong>Leer solo el último error.</strong> Un modelo que falla puede deberse a otro que falló antes.</li>
+<li><strong>Ejecutar todo el proyecto para probar un modelo.</strong> <code>dbt run --select</code> ejecuta solo lo necesario.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Reconoces la estructura de un proyecto dbt y editas modelos con ref().</li>

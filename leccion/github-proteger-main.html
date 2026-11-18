@@ -125,6 +125,16 @@ git push</code></pre>
 </tbody></table></div>
 <h2>Paso 6 — En GitHub real: rulesets</h2>
 <p>GitHub real tiene además <strong>Rulesets</strong> (Settings → Rules → Rulesets): las mismas reglas pero con más control (varias reglas por rama, aplicar a toda una organización, modo <em>Evaluate</em> para probar sin bloquear). Las <em>classic branch protection rules</em> que usaste siguen funcionando y son las que vas a ver en la mayoría de los repositorios.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Proteger main sin exigir los checks.</strong> Sin checks obligatorios, se puede fusionar en rojo.</li>
+<li><strong>Permitir que los administradores salteen las reglas.</strong> Las reglas valen para todos.</li>
+<li><strong>Exigir aprobaciones en un repo de una sola persona.</strong> Ajusta las reglas al equipo real.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Protegiste main con PR, aprobación y check obligatorios.</li>

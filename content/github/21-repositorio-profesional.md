@@ -139,6 +139,12 @@ La réplica no simula releases ni etiquetas en la web. Créalas en tu repositori
 | ☐ | Sin secretos en el historial (Security sin alertas abiertas) |
 | ☐ | Etiquetas de issues útiles y sin issues abandonados de hace meses |
 
+:::errores
+- **README que solo dice el nombre.** Debe explicar qué es, cómo instalar y cómo usar.
+- **Releases sin notas.** Las notas dicen qué cambió en cada versión.
+- **Sin plantillas de issues y PR.** Las plantillas piden la información que siempre falta.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes cómo se ordena un proyecto de datos y qué no va al repositorio.

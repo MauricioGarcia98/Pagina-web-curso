@@ -77,6 +77,12 @@ git branch -d feature/validaciones
 
 `main` ahora tiene la validación. En un equipo, en lugar de fusionar en tu máquina, se abre un **pull request** para que alguien revise antes (lección 15 y proyecto 4).
 
+:::errores
+- **Trabajar directo en main.** Una rama por cambio deja main estable.
+- **Cambiar de rama con cambios sin guardar.** Haz commit o stash antes.
+- **Borrar el trabajo para "volver atrás".** El historial permite revertir un commit sin perder nada.
+:::
+
 ## ✅ Lo que lograste
 
 - Trabajas en ramas y sabes en cuál estás.

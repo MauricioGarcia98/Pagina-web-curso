@@ -73,6 +73,12 @@ Imagina que el revisor comenta: *"¿Y un email en mayúsculas, como ANA@CORREO.C
 | PR | Título y descripción | La descripción explica problema, cambio, prueba y alcance |
 | Revisión | Se corrigió lo pedido | Se respondió el comentario con la decisión tomada |
 
+:::errores
+- **PR sin descripción.** El revisor necesita saber qué cambia y cómo probarlo.
+- **No correr los tests antes de abrir el PR.** Un PR en rojo frena a todos.
+- **Mezclar varios cambios en un PR.** Uno por tema.
+:::
+
 :::ejercicio quiz
 ¿Desde dónde conviene crear la rama de un cambio nuevo?
 - [ ] Desde la rama de un compañero

@@ -58,6 +58,12 @@ Mensaje a Martín con el enlace al PR: *"Listo. main protegida (PR + 1 aprobaci�
 
 Repite el proyecto en tu repositorio de portafolio en GitHub real. Para la aprobación vas a necesitar a otra persona (un compañero de curso): un repositorio personal no deja que te apruebes tú. Si estás solo, deja **Required approvals** en 0 y conserva el check obligatorio: igual te protege de subir código roto.
 
+:::errores
+- **CI que no corre en pull requests.** El objetivo es saber antes de fusionar.
+- **Protección sin probarla.** Intenta un push directo a main y comprueba que se rechaza.
+- **Workflow que pasa sin tests.** Verifica que el job realmente ejecuta pytest.
+:::
+
 :::ejercicio quiz
 Creas la regla de protección antes de que el workflow haya corrido nunca. ¿Qué problema hay?
 - [ ] Ninguno

@@ -117,6 +117,12 @@ gh run list            # últimas ejecuciones
 gh run view            # detalle de la última
 ```
 
+:::errores
+- **Workflows que nadie mira cuando fallan.** Un CI en rojo ignorado es igual a no tener CI.
+- **Secretos escritos en el YAML.** Van en Secrets y se leen con `${{ secrets.NOMBRE }}`.
+- **Instalar todo en cada corrida.** La caché de dependencias acelera el workflow.
+:::
+
 ## ✅ Lo que lograste
 
 - Escribiste tu primer workflow de CI.

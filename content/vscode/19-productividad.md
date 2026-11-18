@@ -82,6 +82,12 @@ Si todo el día escribes `ruff check . && pytest`, conviértelo en una **tarea**
 
 Después: **Terminal → Ejecutar tarea…** (o un atajo) y se corre en la terminal. Como está en el repositorio, todo el equipo tiene las mismas tareas.
 
+:::errores
+- **Repetir los mismos comandos a mano.** Una tarea en `tasks.json` los ejecuta con un atajo.
+- **Saltar entre pestañas para comparar.** El editor dividido muestra dos archivos a la vez.
+- **Leer archivos largos de arriba abajo.** El esquema salta a cada función.
+:::
+
 ## ✅ Lo que lograste
 
 - Trabajas con el editor dividido y controlas el espacio de la pantalla.

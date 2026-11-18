@@ -110,6 +110,17 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Mensaje a Martín con el enlace al PR: <em>&quot;Listo. main protegida (PR + 1 aprobación + check <code>checks</code>). En el PR #N se ve el bloqueo con el test en rojo y después el merge con todo en verde. La guía para contribuir está en el README.&quot;</em></p>
 <h2>🖥️ Hazlo también en GitHub real</h2>
 <p>Repite el proyecto en tu repositorio de portafolio en GitHub real. Para la aprobación vas a necesitar a otra persona (un compañero de curso): un repositorio personal no deja que te apruebes tú. Si estás solo, deja <strong>Required approvals</strong> en 0 y conserva el check obligatorio: igual te protege de subir código roto.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>CI que no corre en pull requests.</strong> El objetivo es saber antes de fusionar.</li>
+<li><strong>Protección sin probarla.</strong> Intenta un push directo a main y comprueba que se rechaza.</li>
+<li><strong>Workflow que pasa sin tests.</strong> Verifica que el job realmente ejecuta pytest.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

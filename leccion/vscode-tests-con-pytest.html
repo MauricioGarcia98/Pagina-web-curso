@@ -104,6 +104,16 @@ pytest</code></pre>
 
 <h2>Paso 6 — En VS Code real</h2>
 <p>La extensión de Python tiene una vista <strong>Testing</strong> (ícono de matraz) que descubre los tests, los ejecuta con un clic y muestra ✓ o ✗ al lado de cada uno, incluso dentro del editor. En esta práctica se ejecutan desde la terminal o la paleta.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Tests que no fallan nunca.</strong> Comprueba que el test falla si rompes el código.</li>
+<li><strong>Probar solo el caso feliz.</strong> Vacíos, nulos y bordes son donde se rompe.</li>
+<li><strong>Archivos de test con otro nombre.</strong> pytest busca <code>test_*.py</code>; con otro nombre no los encuentra.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Separaste lógica en funciones y la probaste con pytest.</li>

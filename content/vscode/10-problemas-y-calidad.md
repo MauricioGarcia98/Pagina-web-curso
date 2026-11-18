@@ -74,6 +74,12 @@ En un equipo nadie debería discutir "¿comillas simples o dobles?". Se elige un
 
 Con las extensiones **Python** y **Ruff** instaladas, los problemas aparecen mientras escribes y puedes activar **formatear al guardar** (`"editor.formatOnSave": true`). En esta práctica, ruff se ejecuta desde la terminal o la paleta, y el panel Problemas muestra los errores de sintaxis.
 
+:::errores
+- **Ignorar el panel de problemas.** Muchas advertencias son errores futuros (variables sin usar, imports que faltan).
+- **Discutir el estilo en cada revisión.** Un formateador y un linter configurados lo resuelven solos.
+- **Desactivar reglas para que "no moleste".** Si una regla no aplica, desactívala con un comentario que explique por qué.
+:::
+
 ## ✅ Lo que lograste
 
 - Lees los errores en el editor y en el panel Problemas.

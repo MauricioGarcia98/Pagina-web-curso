@@ -122,6 +122,16 @@ git push</code></pre>
 <h2>Paso 6 — Desde la terminal</h2>
 <pre><code class="language-bash">gh run list            # últimas ejecuciones
 gh run view            # detalle de la última</code></pre>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Workflows que nadie mira cuando fallan.</strong> Un CI en rojo ignorado es igual a no tener CI.</li>
+<li><strong>Secretos escritos en el YAML.</strong> Van en Secrets y se leen con <code>${{ secrets.NOMBRE }}</code>.</li>
+<li><strong>Instalar todo en cada corrida.</strong> La caché de dependencias acelera el workflow.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Escribiste tu primer workflow de CI.</li>

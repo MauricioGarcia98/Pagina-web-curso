@@ -82,6 +82,12 @@ Ya dominas GitHub como lo usa un equipo de datos. Los caminos naturales desde aq
 - **[Databricks](#/m/databricks)**: desplegar jobs desde GitHub con bundles.
 - **[Portafolio](#/m/portafolio)**: más proyectos para tu perfil.
 
+:::errores
+- **Entregar sin CI ni protección.** El pedido es un repo listo para equipo.
+- **Secretos en el repositorio.** Revisa el historial antes de entregar.
+- **README sin cómo ejecutar.** Quien llega tiene que poder correr el pipeline.
+:::
+
 :::ejercicio quiz
 ¿Qué haces antes de escribir la primera línea de código del pipeline?
 - [ ] Creo el workflow de CI

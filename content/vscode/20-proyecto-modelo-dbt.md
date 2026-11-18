@@ -53,6 +53,12 @@ Esta práctica corre dbt sobre SQLite, donde el mes se obtiene con `strftime('%Y
 | Git | Todo en un commit en main | Rama y dos commits | Commits con buenos mensajes y PR completo |
 | Comunicación | PR sin descripción | Descripción con qué y cómo | Incluye los números de verificación y el alcance |
 
+:::errores
+- **Modelo sin tests.** Al menos `unique` y `not_null` en la clave.
+- **PR sin evidencia.** Incluye el resultado de `dbt build` o de los tests.
+- **No mirar la rúbrica.** Cumple cada requisito antes de entregar.
+:::
+
 :::ejercicio quiz
 ¿En qué carpeta va un modelo de negocio como ventas_mensuales?
 - [ ] models/staging

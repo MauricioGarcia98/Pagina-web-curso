@@ -99,6 +99,12 @@ Escribe la descripción para alguien que no sabe nada de lo que hiciste. Si el P
 - **Draft pull request**: en el botón verde de crear, la flecha permite **Create draft pull request**. Sirve para mostrar trabajo a medio hacer y pedir opinión temprano; no se puede fusionar hasta marcarlo **Ready for review**. Con gh: `gh pr create --draft`.
 - **PRs chicos**: un PR de 50 líneas se revisa en 10 minutos; uno de 1500 se aprueba sin leer. Un PR = una idea.
 
+:::errores
+- **PR desde main.** Crea una rama para el cambio; main queda estable.
+- **PR sin descripción.** Explica qué cambia, por qué y cómo probarlo.
+- **PR enorme.** Cuanto más chico, más rápida y mejor la revisión.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes qué es un PR y para qué sirve.

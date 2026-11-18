@@ -108,6 +108,12 @@ permissions:
 - Revisa de vez en cuando **Settings → Applications** y **Sessions**.
 - Un archivo **SECURITY.md** en el repositorio explica cómo reportar una vulnerabilidad de forma privada.
 
+:::errores
+- **Borrar el archivo con la clave y seguir.** La clave quedó en el historial; revócala y genera otra.
+- **Ignorar las alertas de Dependabot.** Son vulnerabilidades conocidas en tus dependencias.
+- **Desactivar push protection para subir rápido.** Bloquea justamente lo que no debe subir.
+:::
+
 ## ✅ Lo que lograste
 
 - Viste una alerta de secret scanning y sabes qué es push protection.
