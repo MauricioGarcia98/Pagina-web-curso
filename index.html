@@ -16,28 +16,18 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Kalam:wght@400;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Kalam:wght@400;700&family=JetBrains+Mono:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Kalam:wght@400;700&family=JetBrains+Mono:wght@400;500;600&display=swap"></noscript>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@vscode/codicons@0.0.36/dist/codicon.css">
-  <link rel="stylesheet" href="assets/css/style.css?v=187hl72">
-  <link rel="stylesheet" href="assets/css/ui.css?v=xdlhm9">
-  <link rel="stylesheet" href="assets/css/powerbi.css?v=fsinmi">
-  <link rel="stylesheet" href="assets/css/databricks.css?v=3b42ze">
-  <link rel="stylesheet" href="assets/css/azure.css?v=qqq6g2">
-  <link rel="stylesheet" href="assets/css/github.css?v=z4ep4f">
-  <link rel="stylesheet" href="assets/css/fabric.css?v=kuam09">
-  <link rel="stylesheet" href="assets/css/airflow.css?v=uip8gl">
-  <link rel="stylesheet" href="assets/css/snowflake.css?v=yxnjpj">
-  <link rel="stylesheet" href="assets/css/bigquery.css?v=v2dblx">
-  <link rel="stylesheet" href="assets/css/excel.css?v=1la9a1j">
-  <link rel="stylesheet" href="assets/css/jupyter.css?v=1ejn3as">
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css"></noscript>
+  <link rel="preload" as="style" href="https://cdn.jsdelivr.net/npm/@vscode/codicons@0.0.36/dist/codicon.css" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@vscode/codicons@0.0.36/dist/codicon.css"></noscript>
+  <link rel="stylesheet" href="assets/css/style.css?v=a85ma6">
+  <link rel="stylesheet" href="assets/css/ui.css?v=39bo7a">
 </head>
 <body>
   <a class="skip-link" href="#main">Saltar al contenido</a>
   <header class="topbar">
     <button class="icon-btn menu-btn" id="menuBtn" aria-label="Abrir menú">☰</button>
-    <a class="brand" href="#/">
+    <a class="brand" href="#/" aria-label="Academia de Datos: inicio">
       <span class="brand-logo" aria-hidden="true">
         <svg viewBox="0 0 64 64" width="28" height="28"><rect width="64" height="64" rx="14" fill="currentColor"/><g fill="var(--brand-ink)"><ellipse cx="32" cy="18" rx="16" ry="6"/><path d="M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z"/><path d="M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z"/></g></svg>
       </span>
@@ -68,61 +58,61 @@
 
   <noscript><p style="padding:24px">Este curso necesita JavaScript para funcionar.</p></noscript>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/shell/shell.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/yaml/yaml.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/sql-hint.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script src="assets/vendor/rough.min.js?v=1il99t0"></script>
-  <script src="assets/js/iconos-lib.js?v=1wmwb3b"></script>
-  <script src="assets/js/diagram.js?v=c5dlnu"></script>
-  <script src="assets/js/recorrido.js?v=1qyphl9"></script>
-  <script src="assets/js/data-casos.js?v=131q35e"></script>
-  <script src="assets/js/data-extra.js?v=15lq74v"></script>
-  <script src="assets/js/data.js?v=lbwuj3"></script>
-  <script src="assets/js/content.js?v=1uil02z"></script>
-  <script src="assets/js/api-practica.js?v=428qft"></script>
-  <script src="assets/js/config.js?v=1noegp1"></script>
-  <script src="assets/js/sitio.js?v=1on7of3"></script>
-  <script src="assets/js/sin-conexion.js?v=9nqwcd"></script>
-  <script src="assets/js/mis-datos.js?v=1jhq5ro"></script>
-  <script src="assets/js/engines.js?v=xz70g9"></script>
-  <script src="assets/js/sql-motores.js?v=335vgb"></script>
-  <script src="assets/js/bases.js?v=7knagv"></script>
-  <script src="assets/js/modelado.js?v=1v8khq8"></script>
-  <script src="assets/js/notas.js?v=nfuvff"></script>
-  <script src="assets/js/misiones-datos.js?v=drrchf"></script>
-  <script src="assets/js/misiones-ruta.js?v=1er3e70"></script>
-  <script src="assets/js/misiones.js?v=46g96a"></script>
-  <script src="assets/js/terminal.js?v=15x2qf1"></script>
-  <script src="assets/js/terminal-cloud.js?v=1hesjo8"></script>
-  <script src="assets/js/terminal-cloud-ia.js?v=bjn02q"></script>
-  <script src="assets/js/terminal-limpieza.js?v=e9ebd0"></script>
-  <script src="assets/js/terminal-iac.js?v=1hb8xb7"></script>
-  <script src="assets/js/terminal-local.js?v=xove3k"></script>
-  <script src="assets/js/terminal-basicos.js?v=189hf1"></script>
-  <script src="assets/js/terminal-sistema.js?v=5s6tnv"></script>
-  <script src="assets/js/explica.js?v=gqbpe3"></script>
-  <script src="assets/js/explica-codigo.js?v=n0379h"></script>
-  <script src="assets/js/terminal-incidentes.js?v=pt21m0"></script>
-  <script src="assets/js/terminal-git.js?v=1b2ldrg"></script>
-  <script src="assets/js/terminal-editores.js?v=1cvmgxt"></script>
-  <script src="assets/js/generador.js?v=177nplz"></script>
-  <script src="assets/js/revisar-repo.js?v=t2hf2o"></script>
-  <script src="assets/js/trabajo.js?v=1rbj52l"></script>
-  <script src="assets/js/powerbi-dax.js?v=19uftx0"></script>
-  <script src="assets/js/powerbi-datos.js?v=1vg8ygy"></script>
-  <script src="assets/js/dbsql.js?v=m8e0nm"></script>
-  <script src="assets/js/dbsql-curso.js?v=1sf1pta"></script>
-  <script src="assets/js/retos-herramientas.js?v=5v2y77"></script>
-  <script src="assets/js/dax-curso.js?v=s58khp"></script>
-  <script src="assets/js/vscode-real.js?v=fd3s8c"></script>
-  <script src="assets/js/app.js?v=w7bc1l"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/shell/shell.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/yaml/yaml.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/sql-hint.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script defer src="assets/vendor/rough.min.js?v=1il99t0"></script>
+  <script defer src="assets/js/iconos-lib.js?v=1wmwb3b"></script>
+  <script defer src="assets/js/diagram.js?v=c5dlnu"></script>
+  <script defer src="assets/js/recorrido.js?v=1qyphl9"></script>
+  <script defer src="assets/js/data-casos.js?v=131q35e"></script>
+  <script defer src="assets/js/data-extra.js?v=15lq74v"></script>
+  <script defer src="assets/js/data.js?v=lbwuj3"></script>
+  <script defer src="assets/js/content.js?v=14p3p8v"></script>
+  <script defer src="assets/js/api-practica.js?v=428qft"></script>
+  <script defer src="assets/js/config.js?v=1noegp1"></script>
+  <script defer src="assets/js/sitio.js?v=1on7of3"></script>
+  <script defer src="assets/js/sin-conexion.js?v=9nqwcd"></script>
+  <script defer src="assets/js/mis-datos.js?v=1jhq5ro"></script>
+  <script defer src="assets/js/engines.js?v=xz70g9"></script>
+  <script defer src="assets/js/sql-motores.js?v=335vgb"></script>
+  <script defer src="assets/js/bases.js?v=7knagv"></script>
+  <script defer src="assets/js/modelado.js?v=1v8khq8"></script>
+  <script defer src="assets/js/notas.js?v=nfuvff"></script>
+  <script defer src="assets/js/misiones-datos.js?v=drrchf"></script>
+  <script defer src="assets/js/misiones-ruta.js?v=1er3e70"></script>
+  <script defer src="assets/js/misiones.js?v=46g96a"></script>
+  <script defer src="assets/js/terminal.js?v=15x2qf1"></script>
+  <script defer src="assets/js/terminal-cloud.js?v=1hesjo8"></script>
+  <script defer src="assets/js/terminal-cloud-ia.js?v=bjn02q"></script>
+  <script defer src="assets/js/terminal-limpieza.js?v=e9ebd0"></script>
+  <script defer src="assets/js/terminal-iac.js?v=1hb8xb7"></script>
+  <script defer src="assets/js/terminal-local.js?v=xove3k"></script>
+  <script defer src="assets/js/terminal-basicos.js?v=189hf1"></script>
+  <script defer src="assets/js/terminal-sistema.js?v=5s6tnv"></script>
+  <script defer src="assets/js/explica.js?v=gqbpe3"></script>
+  <script defer src="assets/js/explica-codigo.js?v=n0379h"></script>
+  <script defer src="assets/js/terminal-incidentes.js?v=pt21m0"></script>
+  <script defer src="assets/js/terminal-git.js?v=1b2ldrg"></script>
+  <script defer src="assets/js/terminal-editores.js?v=1cvmgxt"></script>
+  <script defer src="assets/js/generador.js?v=177nplz"></script>
+  <script defer src="assets/js/revisar-repo.js?v=t2hf2o"></script>
+  <script defer src="assets/js/trabajo.js?v=1rbj52l"></script>
+  <script defer src="assets/js/powerbi-dax.js?v=19uftx0"></script>
+  <script defer src="assets/js/powerbi-datos.js?v=1vg8ygy"></script>
+  <script defer src="assets/js/dbsql.js?v=m8e0nm"></script>
+  <script defer src="assets/js/dbsql-curso.js?v=1sf1pta"></script>
+  <script defer src="assets/js/retos-herramientas.js?v=5v2y77"></script>
+  <script defer src="assets/js/dax-curso.js?v=s58khp"></script>
+  <script defer src="assets/js/vscode-real.js?v=fd3s8c"></script>
+  <script defer src="assets/js/app.js?v=2td2i5"></script>
 </body>
 </html>
