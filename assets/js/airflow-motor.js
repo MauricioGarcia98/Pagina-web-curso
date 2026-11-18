@@ -906,6 +906,8 @@ print("\u0000AFJSON" + _json.dumps({"state": _run.state, "states": _run.states, 
     const d = dag(id); if (!d) throw new Error(`Dag '${id}' could not be found`);
     const { datos } = await py(CORRER, { files: { [d.file]: archivos().find((f) => f.ruta === d.file).codigo }, vars: st().vars, conns: conns(), dag_id: id, logical_date: (fecha || new Date().toISOString().slice(0, 10)) + 'T00:00:00', conf: conf || {}, run_id: 'manual__' + new Date().toISOString(), prev: {}, solo: null });
     await enlazarReplicas(datos, null);
+    // si una tarea enlazada falló, la corrida también (el estado lo había calculado Python antes del enlace)
+    if (Object.values(datos.states).some((s) => s === 'failed' || s === 'upstream_failed')) datos.state = 'failed';
     return datos;
   }
 

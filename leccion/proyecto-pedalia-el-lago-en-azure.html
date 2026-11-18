@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El lago en Azure - capas, permisos y la primera carga · Academia de Datos</title><meta name="description" content="Creas la infraestructura del proyecto en el portal de Azure de práctica - grupo de recursos, una cuenta de almacenamiento ADLS Gen2 con las cuatro capas, el data factory - y das permisos con mínimo privilegio a las identidades que van a leer y escribir. Después subes la entrega del día a landing desde la terminal, como lo haría un proceso automático."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-el-lago-en-azure.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El lago en Azure - capas, permisos y la primera carga · Academia de Datos"><meta property="og:description" content="Creas la infraestructura del proyecto en el portal de Azure de práctica - grupo de recursos, una cuenta de almacenamiento ADLS Gen2 con las cuatro capas, el data factory - y das permisos con mínimo privilegio a las identidades que van a leer y escribir. Después subes la entrega del día a landing desde la terminal, como lo haría un proceso automático."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-el-lago-en-azure.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-pedalia">🚲 Proyecto integrador: Pedalia, de cero a producción</a> · Intermedio · 45 min</div>
+<h1>El lago en Azure - capas, permisos y la primera carga</h1><p class="resumen">Creas la infraestructura del proyecto en el portal de Azure de práctica - grupo de recursos, una cuenta de almacenamiento ADLS Gen2 con las cuatro capas, el data factory - y das permisos con mínimo privilegio a las identidades que van a leer y escribir. Después subes la entrega del día a landing desde la terminal, como lo haría un proceso automático.</p>
+<a class="cta" href="../index.html#/l/proyecto-pedalia-el-lago-en-azure">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una cuenta ADLS Gen2 y explicar por qué necesita el espacio de nombres jerárquico</li><li>Organizar el lago en landing, bronze, silver y gold</li><li>Asignar roles de datos a identidades administradas con alcance mínimo</li><li>Subir archivos al lago con la CLI de Azure</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Martes, 9:00</div>
+
+<p>&quot;Ya tienes acceso a la suscripción de desarrollo&quot;, te escriben desde infraestructura. &quot;Crea lo que necesites en un grupo de recursos propio y avísanos qué permisos das. Nada de Owner para los servicios&quot;.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un depósito con cuatro salas</div>
+
+<p>El lago es un depósito con cuatro salas. A <strong>landing</strong> llegan los camiones y se descarga tal cual. En <strong>bronze</strong> se guarda una copia ordenada de todo lo que llegó, sin tocar. En <strong>silver</strong> está lo limpio y revisado. En <strong>gold</strong>, lo empaquetado para cada cliente. Cada empleado tiene llave solo de las salas donde trabaja: eso es el mínimo privilegio.</p>
+</div>
+
+
+<h2>1. Grupo de recursos y cuenta de almacenamiento</h2>
+<p>Puedes hacerlo desde el <a href="#/azure">portal de Azure de práctica</a> o con la CLI. Las dos formas dejan lo mismo.</p>
+<p><strong>Desde el portal:</strong> Create a resource → Storage account:</p>
+<ul>
+<li>Resource group: crea <strong><code>rg-pedalia-dev</code></strong>, región <strong>East US 2</strong>.</li>
+<li>Storage account name: <strong><code>stpedaliadev</code></strong> (en Azure real el nombre es único en todo el mundo: agrégale tus iniciales).</li>
+<li>En la pestaña <strong>Advanced</strong>, marca <strong>Enable hierarchical namespace</strong>. Sin esto, la cuenta es Blob Storage común y no ADLS Gen2.</li>
+</ul>
+<p><strong>Desde la terminal:</strong></p>
+<pre><code class="language-bash">az login
+az group create -n rg-pedalia-dev -l eastus2
+az storage account create -n stpedaliadev -g rg-pedalia-dev -l eastus2 --sku Standard_LRS --hns true
+for capa in landing bronze silver gold; do
+  az storage container create --account-name stpedaliadev -n $capa
+done</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 ¿Por qué el espacio de nombres jerárquico?</div>
+
+<p>Con él, las carpetas son carpetas de verdad (renombrar una carpeta es una operación, no copiar miles de archivos) y aparece la dirección <code>abfss://…dfs.core.windows.net</code>, que es la que usan Databricks y Spark. Sin él, Databricks no puede usar la cuenta como ubicación externa.</p>
+</div>
+
+
+<h2>2. El data factory</h2>
+<pre><code class="language-bash">az extension add --name datafactory
+az datafactory create -g rg-pedalia-dev -n adf-pedalia-dev -l eastus2</code></pre>
+<p>Cada data factory tiene una <strong>identidad administrada</strong> con su mismo nombre: es la &quot;cuenta&quot; con la que el servicio entra a otros recursos sin guardar contraseñas.</p>
+<h2>3. Permisos con mínimo privilegio</h2>
+<p>Dos identidades necesitan entrar al lago:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Identidad</th>
+<th>Para qué</th>
+<th>Rol</th>
+</tr>
+</thead><tbody><tr>
+<td><code>adf-pedalia-dev</code> (identidad del data factory)</td>
+<td>Leer landing y escribir bronze</td>
+<td>Storage Blob Data Contributor</td>
+</tr>
+<tr>
+<td><code>unity-catalog-access-connector</code> (identidad de Databricks)</td>
+<td>Leer bronze y escribir gold</td>
+<td>Storage Blob Data Contributor</td>
+</tr>
+</tbody></table></div>
+<p>El <strong>alcance</strong> es la cuenta de almacenamiento, no la suscripción ni el grupo de recursos. Primero obtén su identificador:</p>
+<pre><code class="language-bash">ID=$(az storage account show -n stpedaliadev -g rg-pedalia-dev --query id -o tsv)
+echo $ID
+az role assignment create --assignee adf-pedalia-dev --role &quot;Storage Blob Data Contributor&quot; --scope $ID
+az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID
+az role assignment list --scope $ID -o table</code></pre>
+<p>O desde el portal: la cuenta → <strong>Access control (IAM)</strong> → <strong>Add role assignment</strong> → el rol → <strong>Managed identity</strong> → la identidad.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Owner no es lo mismo que leer datos</div>
+
+<p>Como dueño de la suscripción puedes <strong>administrar</strong> la cuenta (crearla, borrarla, ver sus claves), pero para <strong>leer blobs con tu usuario de Entra ID</strong> necesitas además un rol de datos (Storage Blob Data Reader o Contributor). Son dos planos distintos: el de control y el de datos. Es una de las confusiones más comunes en Azure, y el portal de práctica la reproduce: cambia el contenedor a &quot;Microsoft Entra user account&quot; y mira el mensaje.</p>
+</div>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 En producción</div>
+
+<p>Lo ideal es un rol por contenedor (el data factory solo escribe en <code>bronze</code>, Databricks solo en <code>silver</code> y <code>gold</code>). Acá lo damos a nivel cuenta para no alargar el proyecto: anótalo como mejora en tu README.</p>
+</div>
+
+
+<h2>4. Subir la entrega a landing</h2>
+<p>Simula lo que haría el proceso automático de la app: dejar los archivos del día en <code>landing/pedalia/&lt;fecha&gt;/</code>.</p>
+<pre><code class="language-bash">az storage blob upload-batch --account-name stpedaliadev -d landing/pedalia/2026-11-09 -s ~/pedalia/entrega/2026-11-09
+az storage blob upload --account-name stpedaliadev -c landing -n pedalia/estaciones/estaciones.json -f ~/pedalia/entrega/estaciones.json
+az storage blob list --account-name stpedaliadev -c landing -o table</code></pre>
+<p>Ábrelo también en el portal: <strong>stpedaliadev → Containers → landing</strong>. Vas a ver la carpeta <code>pedalia/2026-11-09</code> con los dos archivos y <code>pedalia/estaciones</code>.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Crear la cuenta sin espacio de nombres jerárquico</strong>. Después no se puede activar sin migrar, y Databricks no la acepta como ubicación externa.</li>
+<li><strong>Dar Owner o Contributor a los servicios</strong> &quot;para que funcione&quot;. Funcionan, pero cualquier error o credencial filtrada puede borrar la cuenta entera. Los roles de datos alcanzan.</li>
+<li><strong>Asignar el rol en la suscripción</strong> en vez de en la cuenta: el data factory termina con acceso a todos los lagos de la empresa.</li>
+<li><strong>Esperar que el permiso funcione al instante</strong>: en Azure real una asignación de rol tarda hasta unos minutos en aplicarse. Si da 403 justo después, espera y reintenta antes de cambiar otra cosa.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>El lago tiene capas con roles distintos: <strong>landing → bronze → silver → gold</strong>.</li>
+<li><strong>ADLS Gen2</strong> = cuenta con espacio de nombres jerárquico; sin él no hay <code>abfss://</code>.</li>
+<li>Los servicios entran con <strong>identidades administradas</strong> y <strong>roles de datos</strong>, con el alcance más chico posible.</li>
+<li>Ser Owner (plano de control) no da acceso a los datos (plano de datos).</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-pedalia-el-lago-en-azure">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-pedalia-recibir-los-datos.html">← Recibir los datos - la primera entrega y el contrato de datos</a><a href="proyecto-pedalia-ingesta-con-data-factory.html">La ingesta - Data Factory copia el día de landing a bronze →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El tablero en Power BI - tres fuentes, un modelo y números que cuadran · Academia de Datos</title><meta name="description" content="Armas el tablero de operaciones importando datos de Snowflake (ingresos), BigQuery (uso por barrio) y Databricks (viajes por estación). Construyes una tabla de fechas, relacionas las tres fuentes por día, escribes las medidas con DAX y verificas que el tablero dice lo mismo que gold antes de mostrarlo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-el-tablero-en-power-bi.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El tablero en Power BI - tres fuentes, un modelo y números que cuadran · Academia de Datos"><meta property="og:description" content="Armas el tablero de operaciones importando datos de Snowflake (ingresos), BigQuery (uso por barrio) y Databricks (viajes por estación). Construyes una tabla de fechas, relacionas las tres fuentes por día, escribes las medidas con DAX y verificas que el tablero dice lo mismo que gold antes de mostrarlo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-el-tablero-en-power-bi.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-pedalia">🚲 Proyecto integrador: Pedalia, de cero a producción</a> · Intermedio · 45 min</div>
+<h1>El tablero en Power BI - tres fuentes, un modelo y números que cuadran</h1><p class="resumen">Armas el tablero de operaciones importando datos de Snowflake (ingresos), BigQuery (uso por barrio) y Databricks (viajes por estación). Construyes una tabla de fechas, relacionas las tres fuentes por día, escribes las medidas con DAX y verificas que el tablero dice lo mismo que gold antes de mostrarlo.</p>
+<a class="cta" href="../index.html#/l/proyecto-pedalia-el-tablero-en-power-bi">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Conectar Power BI a Snowflake, BigQuery y Databricks</li><li>Relacionar tablas de distintas fuentes con una tabla de fechas</li><li>Escribir medidas DAX en vez de usar columnas sumadas</li><li>Verificar los números del tablero contra la fuente</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Jueves, 15:00</div>
+
+<p>Rocío (operaciones) quiere el tablero para la reunión del viernes. Finanzas y marketing también van a mirarlo. Si cada área ve un número distinto del mismo día, la reunión se va a tratar de eso y no de las bicis.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 El mapa con una sola escala</div>
+
+<p>Si juntas tres mapas dibujados en escalas distintas, las calles no coinciden. La tabla de fechas es la escala común: las tres fuentes se pegan a ella, y así &quot;el 9 de noviembre&quot; significa lo mismo en todos los gráficos.</p>
+</div>
+
+
+<h2>1. Traer las tres fuentes</h2>
+<p>En el <a href="#/powerbi">Power BI de práctica</a>: <strong>Inicio → Obtener datos</strong>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Conector</th>
+<th>Qué importar</th>
+<th>Qué pasa por detrás</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Snowflake</strong></td>
+<td><code>PEDALIA</code> → <code>FINANZAS.INGRESOS_DIARIOS</code> (warehouse <code>COMPUTE_WH</code>)</td>
+<td>Power BI ejecuta un <code>SELECT</code> con el warehouse: aparece en Query History de Snowflake y consume créditos</td>
+</tr>
+<tr>
+<td><strong>Google BigQuery</strong></td>
+<td><code>pedalia_mkt.uso_por_barrio</code></td>
+<td>Un job de consulta en BigQuery, con sus bytes procesados</td>
+</tr>
+<tr>
+<td><strong>Azure Databricks</strong></td>
+<td><code>pedalia.gold.viajes_por_estacion</code></td>
+<td>Una consulta al SQL warehouse de Databricks</td>
+</tr>
+</tbody></table></div>
+<p>En la vista previa de cada tabla, confirma que las fechas vienen como fecha y los números como número. Si una columna de fecha llega como texto, corrígelo en <strong>Transformar datos</strong> (Power Query) antes de cargar.</p>
+<h2>2. La tabla de fechas</h2>
+<p>Las tres tablas tienen una columna de fecha, pero ninguna tiene todos los días. Crea una tabla de fechas en <strong>Modelado → Nueva tabla</strong>:</p>
+<pre><code class="language-text">Calendario = CALENDAR(DATE(2026, 11, 1), DATE(2026, 11, 30))</code></pre>
+<p>Márcala como tabla de fechas (<strong>Herramientas de tabla → Marcar como tabla de fechas</strong>) y relaciona, en la vista <strong>Modelo</strong>:</p>
+<ul>
+<li><code>Calendario[Date]</code> → <code>INGRESOS_DIARIOS[FECHA]</code></li>
+<li><code>Calendario[Date]</code> → <code>uso_por_barrio[fecha]</code></li>
+<li><code>Calendario[Date]</code> → <code>viajes_por_estacion[fecha]</code></li>
+</ul>
+<p>Las tres relaciones son de uno a muchos, con filtro en una sola dirección (del calendario a cada tabla).</p>
+<h2>3. Las medidas</h2>
+<p>Arrastrar una columna numérica al gráfico funciona, pero cada visual decide cómo sumarla. Una <strong>medida</strong> se define una vez y vale igual en todos lados:</p>
+<pre><code class="language-text">Ingresos = SUM(INGRESOS_DIARIOS[INGRESOS])
+Viajes = SUM(viajes_por_estacion[viajes_salida])
+Viajes pase día = SUM(uso_por_barrio[viajes_pase_dia])
+% pase día = DIVIDE([Viajes pase día], SUM(uso_por_barrio[viajes]))
+Fuera de estación = SUM(viajes_por_estacion[fuera_de_estacion])</code></pre>
+<p><code>DIVIDE</code> en vez de <code>/</code> evita el error de división por cero en un día sin viajes.</p>
+<h2>4. El informe</h2>
+<p>Una página, pensada para la reunión:</p>
+<ul>
+<li>Tarjetas arriba: <strong>Viajes</strong>, <strong>Ingresos</strong>, <strong>% pase día</strong>, <strong>Fuera de estación</strong>.</li>
+<li>Columnas: <strong>Viajes por día</strong> (eje: <code>Calendario[Date]</code>).</li>
+<li>Barras: <strong>% pase día por barrio</strong> (para marketing).</li>
+<li>Tabla: estaciones con viajes, minutos promedio y fuera de estación, ordenada por viajes (para operaciones).</li>
+<li>Segmentador por fecha.</li>
+</ul>
+<h2>5. Antes de mostrarlo: ¿cuadra?</h2>
+<p>Elige un día en el segmentador y compara con la fuente:</p>
+<pre data-norun><code class="language-sql">-- en Databricks
+SELECT SUM(viajes) AS viajes, SUM(ingresos) AS ingresos
+FROM pedalia.gold.ingresos_diarios WHERE fecha = '2026-11-09';</code></pre>
+<p>La tarjeta <strong>Viajes</strong> del tablero tiene que dar lo mismo que <code>viajes</code>, e <strong>Ingresos</strong> lo mismo que <code>ingresos</code>. Si no coinciden, no se presenta: se busca la diferencia (una relación mal hecha, una carga duplicada en Snowflake, un día que falta en BigQuery).</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Lo que finanzas va a preguntar</div>
+
+<p>&quot;¿De qué hora es este número?&quot;. Agrega al informe una tarjeta con la fecha de la última actualización (la fecha máxima del calendario con datos) y escribe en el pie de página: &quot;Fuente: app de Pedalia, procesado cada día a las 7:00. Viajes válidos según el contrato v1&quot;.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Relacionar las tablas entre sí por fecha</strong> (Snowflake con BigQuery directamente): crea relaciones de muchos a muchos y totales duplicados. Todas van contra la tabla de fechas.</li>
+<li><strong>Usar la fecha de cada tabla en el eje</strong> en vez de <code>Calendario[Date]</code>: los días sin datos en una fuente desaparecen del gráfico y las comparaciones mienten.</li>
+<li><strong>Columnas sumadas en vez de medidas</strong>: un visual promedia, otro suma, y el mismo número sale distinto.</li>
+<li><strong>Presentar sin comparar contra la fuente</strong>: el primer número equivocado en una reunión le quita confianza a todo el tablero.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Cada conector ejecuta una consulta real en su fuente (con su costo).</li>
+<li>Una <strong>tabla de fechas</strong> marcada como tal es la escala común de todas las fuentes.</li>
+<li>Las <strong>medidas</strong> definen el cálculo una vez; <code>DIVIDE</code> evita errores.</li>
+<li>Antes de mostrar, <strong>compara un día contra gold</strong>. Si no cuadra, no se presenta.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-pedalia-el-tablero-en-power-bi">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-pedalia-orquestar-con-airflow.html">← Orquestar con Airflow - un DAG que mueve cuatro herramientas</a><a href="proyecto-pedalia-dia-3-el-incidente.html">Día 3 - el formato cambia sin aviso y te toca la guardia →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

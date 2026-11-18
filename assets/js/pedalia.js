@@ -190,6 +190,31 @@ Siguiente paso: subirlos al contenedor landing del lago, por ejemplo:
     });
   }
 
+  // ---------------------------------------------------------------- terminal: airflow → la réplica cuando corresponde
+  // El comando `airflow` de las lecciones es un mini-Airflow que lee ~/dags. Si el comando habla de un DAG que está
+  // en la carpeta del Airflow de práctica (~/airflow/dags, donde lo despliega el CI), o es `airflow connections`
+  // con DAGs desplegados, se carga la réplica y se usa esa, aunque no hayas abierto su página.
+  if (Sh && Sh.def && Sh.Commands && Sh.Commands.airflow) {
+    const mini = Sh.Commands.airflow;
+    const quiereReplica = (a) => {
+      const dir = Sh.HOME + '/airflow/dags/'; const fs0 = Sh.Machine.fs || {};
+      const pys = Object.keys(fs0).filter((k) => k.startsWith(dir) && k.endsWith('.py') && fs0[k].t === 'f');
+      if (!pys.length) return false;
+      if (a[0] === 'connections') return true;
+      const txt = pys.map((k) => fs0[k].c || '').join('\n');
+      return a.slice(1).some((x) => /^[\w.-]+$/.test(x) && (txt.includes(`"${x}"`) || txt.includes(`'${x}'`)));
+    };
+    window.__airflowQuiereReplica = quiereReplica;
+    const envoltorio = async (a, ctx) => {
+      if (!window.AirflowMotor && quiereReplica(a) && window.__cargarGrupo) {
+        try { await window.__cargarGrupo('airflow'); } catch (e) { /* sin red: sigue el mini-Airflow */ }
+        const nuevo = Sh.Commands.airflow; if (nuevo !== envoltorio) return nuevo(a, ctx);
+      }
+      return mini(a, ctx);
+    };
+    Sh.def('airflow', null, envoltorio);
+  }
+
   // ---------------------------------------------------------------- panel de la lección: la entrega
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   function descargar(nombre, texto) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([texto], { type: 'text/plain' })); a.download = nombre; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
@@ -266,7 +291,7 @@ Siguiente paso: subirlos al contenedor landing del lago, por ejemplo:
     }],
     ['Databricks', 'Una ubicación externa (external location) sobre el lago', async () => {
       if (!(await cargar('databricks', () => window.DBSQL))) return 'No se pudo cargar Databricks.';
-      const U = window.DBSQL.uc(); return Object.keys(U.extLocs || {}).length ? true : "CREATE EXTERNAL LOCATION lago_pedalia URL 'abfss://bronze@<cuenta>.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago)";
+      await window.DBSQL.init({ Store: almacen() }); const U = window.DBSQL.uc(); return Object.keys(U.extLocs || {}).length ? true : "CREATE EXTERNAL LOCATION lago_pedalia URL 'abfss://bronze@<cuenta>.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago)";
     }],
     ['Databricks', 'pedalia.silver.viajes tiene los viajes válidos de cada día (según el contrato)', async () => {
       let f; try { f = await filasDbx('SELECT CAST(fecha AS STRING) AS fecha, COUNT(*) AS n, COUNT(DISTINCT viaje_id) AS u FROM pedalia.silver.viajes GROUP BY fecha ORDER BY fecha'); } catch (e) { return `No se pudo leer pedalia.silver.viajes: ${e.message.split('\n')[0]}`; }

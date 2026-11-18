@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bronze y silver en Databricks - leer el lago y aplicar el contrato · Academia de Datos</title><meta name="description" content="Conectas Databricks al lago con una ubicación externa de Unity Catalog, lees los archivos de bronze con read_files y escribes la tabla silver de viajes aplicando cada regla del contrato - tipos, duplicados, viajes en curso, errores de reloj y bicis fuera de estación - y compruebas que la cuenta de control cierra."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-bronze-y-silver-en-databricks.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Bronze y silver en Databricks - leer el lago y aplicar el contrato · Academia de Datos"><meta property="og:description" content="Conectas Databricks al lago con una ubicación externa de Unity Catalog, lees los archivos de bronze con read_files y escribes la tabla silver de viajes aplicando cada regla del contrato - tipos, duplicados, viajes en curso, errores de reloj y bicis fuera de estación - y compruebas que la cuenta de control cierra."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-bronze-y-silver-en-databricks.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-pedalia">🚲 Proyecto integrador: Pedalia, de cero a producción</a> · Intermedio · 55 min</div>
+<h1>Bronze y silver en Databricks - leer el lago y aplicar el contrato</h1><p class="resumen">Conectas Databricks al lago con una ubicación externa de Unity Catalog, lees los archivos de bronze con read_files y escribes la tabla silver de viajes aplicando cada regla del contrato - tipos, duplicados, viajes en curso, errores de reloj y bicis fuera de estación - y compruebas que la cuenta de control cierra.</p>
+<a class="cta" href="../index.html#/l/proyecto-pedalia-bronze-y-silver-en-databricks">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una ubicación externa con una credencial de almacenamiento</li><li>Leer archivos del lago con read_files sin inferir tipos</li><li>Convertir texto a fechas con un formato explícito</li><li>Deduplicar con ROW_NUMBER y aplicar el contrato con reglas verificables</li><li>Comprobar que la cuenta de control cierra</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Martes, 15:00</div>
+
+<p>Los archivos ya están en bronze. Es hora de convertirlos en una tabla en la que finanzas pueda confiar. Antes de escribir una sola línea, abres <code>docs/contrato.md</code> en otra pestaña: cada regla de ese documento tiene que convertirse en una línea de SQL.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 El colador con etiquetas</div>
+
+<p>Silver es un colador, pero uno que no tira nada sin anotarlo. Lo repetido se aparta, lo que no terminó espera, lo imposible va a una caja de &quot;revisar&quot;. Al final pesas lo que entró y lo que salió por cada agujero: si no suma, el colador tiene un agujero que no conocías.</p>
+</div>
+
+
+<h2>1. Conectar Databricks al lago</h2>
+<p>En Unity Catalog, para leer <code>abfss://…</code> hace falta una <strong>ubicación externa</strong> (external location): un permiso que dice &quot;esta carpeta del lago se puede usar desde Databricks, con esta credencial&quot;. La credencial del workspace es la identidad del <strong>Access Connector</strong>, a la que ya le diste el rol en la cuenta.</p>
+<p>Abre el <a href="#/databricks">Databricks de práctica</a> → <strong>SQL Editor</strong> y ejecuta:</p>
+<pre data-norun><code class="language-sql">SHOW STORAGE CREDENTIALS;
+
+CREATE EXTERNAL LOCATION lago_bronze
+URL 'abfss://bronze@stpedaliadev.dfs.core.windows.net/'
+WITH (STORAGE CREDENTIAL credencial_lago)
+COMMENT 'Capa bronze de Pedalia';
+
+CREATE EXTERNAL LOCATION lago_gold
+URL 'abfss://gold@stpedaliadev.dfs.core.windows.net/'
+WITH (STORAGE CREDENTIAL credencial_lago)
+COMMENT 'Exportaciones gold para otros sistemas';</code></pre>
+<p>Prueba que puedes listar los archivos:</p>
+<pre data-norun><code class="language-sql">LIST 'abfss://bronze@stpedaliadev.dfs.core.windows.net/pedalia/viajes';</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Si te da 403</div>
+
+<p><em>AuthorizationPermissionMismatch</em> quiere decir que la ubicación externa existe pero la identidad <code>unity-catalog-access-connector</code> no tiene un rol de datos en la cuenta. Es exactamente lo que pasa en Azure real cuando alguien olvida el paso de IAM. Vuelve a la lección del lago y asigna <strong>Storage Blob Data Contributor</strong>.</p>
+</div>
+
+
+<h2>2. El catálogo del proyecto</h2>
+<pre data-norun><code class="language-sql">CREATE CATALOG IF NOT EXISTS pedalia;
+CREATE SCHEMA IF NOT EXISTS pedalia.bronze;
+CREATE SCHEMA IF NOT EXISTS pedalia.silver;
+CREATE SCHEMA IF NOT EXISTS pedalia.gold;</code></pre>
+<h2>3. Bronze: leer sin interpretar</h2>
+<p>En bronze <strong>todo es texto</strong>. Si dejas que Databricks adivine los tipos y un día llega <code>&quot;N/A&quot;</code> en una columna numérica, la lectura falla o, peor, convierte en silencio. Con <code>inferSchema =&gt; &#39;false&#39;</code> guardas exactamente lo que vino:</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE pedalia.bronze.viajes AS
+SELECT *
+FROM read_files(
+  'abfss://bronze@stpedaliadev.dfs.core.windows.net/pedalia/viajes',
+  format =&gt; 'csv', header =&gt; true, inferSchema =&gt; 'false'
+);
+
+SELECT COUNT(*) AS filas, COUNT(DISTINCT viaje_id) AS viajes FROM pedalia.bronze.viajes;</code></pre>
+<p>Compara con lo que anotaste en la terminal: <code>filas</code> tiene que ser igual a las líneas del archivo menos el encabezado.</p>
+<h2>4. Silver: el contrato en SQL</h2>
+<p>Una consulta, tres pasos con nombre (CTE). Cada paso corresponde a una parte del contrato:</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE pedalia.silver.viajes AS
+WITH tipado AS (
+  -- 1. tipos: el formato de fecha va explícito, tal como dice el contrato
+  SELECT
+    CAST(viaje_id AS BIGINT)           AS viaje_id,
+    bici_id,
+    CAST(estacion_origen AS INT)       AS estacion_origen,
+    CAST(estacion_destino AS INT)      AS estacion_destino,
+    to_timestamp(inicio, 'yyyy-MM-dd HH:mm:ss') AS inicio,
+    to_timestamp(fin, 'yyyy-MM-dd HH:mm:ss')    AS fin,
+    tipo_usuario,
+    CAST(monto AS DECIMAL(10,2))       AS monto
+  FROM pedalia.bronze.viajes
+),
+numerados AS (
+  -- 2. una fila por viaje: las repetidas tienen el mismo viaje_id
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY viaje_id ORDER BY inicio) AS rn
+  FROM tipado
+)
+-- 3. reglas de validez del contrato
+SELECT
+  viaje_id, bici_id, estacion_origen,
+  CASE WHEN estacion_destino = 99 THEN NULL ELSE estacion_destino END AS estacion_destino,
+  inicio, fin,
+  (unix_timestamp(fin) - unix_timestamp(inicio)) / 60.0 AS minutos,
+  tipo_usuario, monto,
+  estacion_destino = 99 AS fuera_de_estacion,
+  CAST(inicio AS DATE) AS fecha
+FROM numerados
+WHERE rn = 1
+  AND fin IS NOT NULL      -- en curso: todavía no
+  AND fin &gt;= inicio;       -- error de reloj: a cuarentena</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 Un formato explícito es una alarma</div>
+
+<p><code>to_timestamp(inicio, &#39;yyyy-MM-dd HH:mm:ss&#39;)</code> falla si llega una fecha con otro formato. Podrías usar <code>try_to_timestamp</code>, que devuelve NULL en vez de fallar, pero entonces los viajes con fecha rara desaparecerían en silencio (el filtro <code>fin IS NOT NULL</code> los saca). Por ahora preferimos que <strong>falle y avise</strong>. En la última lección vas a ver por qué esta decisión importa.</p>
+</div>
+
+
+<h2>5. La cuarentena</h2>
+<p>Lo que no entra en silver no se borra: se guarda con el motivo, para contarlo y avisar.</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE pedalia.silver.viajes_cuarentena AS
+SELECT b.*, 'error_reloj' AS motivo
+FROM pedalia.bronze.viajes b
+WHERE b.fin &lt;&gt; '' AND to_timestamp(b.fin, 'yyyy-MM-dd HH:mm:ss') &lt; to_timestamp(b.inicio, 'yyyy-MM-dd HH:mm:ss');</code></pre>
+<h2>6. La cuenta de control</h2>
+<pre data-norun><code class="language-sql">SELECT
+  (SELECT COUNT(*) FROM pedalia.bronze.viajes)                                   AS filas_archivo,
+  (SELECT COUNT(*) - COUNT(DISTINCT viaje_id) FROM pedalia.bronze.viajes)        AS repetidas,
+  (SELECT COUNT(DISTINCT viaje_id) FROM pedalia.bronze.viajes WHERE fin = '' OR fin IS NULL) AS en_curso,
+  (SELECT COUNT(DISTINCT viaje_id) FROM pedalia.silver.viajes_cuarentena)        AS error_reloj,
+  (SELECT COUNT(*) FROM pedalia.silver.viajes)                                   AS validos;</code></pre>
+<p><code>filas_archivo − repetidas − en_curso − error_reloj</code> tiene que dar <code>validos</code>. Si da otra cosa, hay un caso que el contrato no previó: encuéntralo antes de seguir.</p>
+<p>Cuando cierre, guarda la consulta de silver en el repositorio, en <code>sql/databricks/silver_viajes.sql</code>, con su PR.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Inferir tipos en bronze</strong>: el día que la fuente manda un valor raro, la carga se rompe o convierte mal sin avisar.</li>
+<li><strong>Usar <code>DISTINCT</code> para deduplicar</strong>: si dos filas repetidas difieren en un detalle (un espacio, un monto corregido), <code>DISTINCT</code> deja las dos. <code>ROW_NUMBER</code> por la clave deja exactamente una.</li>
+<li><strong>Filtrar sin contar</strong>: un <code>WHERE</code> que saca filas sin dejar registro hace que nadie sepa por qué el total bajó. La cuarentena y la cuenta de control lo hacen visible.</li>
+<li><strong>Usar la hora de fin para la fecha del viaje</strong>: el contrato dice día de <strong>inicio</strong>. Un viaje que cruza la medianoche cambiaría de día y los ingresos no cuadrarían con finanzas.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Una <strong>ubicación externa</strong> + una <strong>credencial</strong> con rol en la cuenta = Databricks puede usar el lago.</li>
+<li>En <strong>bronze</strong> todo es texto; los tipos se aplican en silver, con formatos explícitos.</li>
+<li>Cada regla del contrato es una línea de SQL; lo descartado va a <strong>cuarentena</strong>.</li>
+<li>La <strong>cuenta de control</strong> prueba que la limpieza no perdió nada sin explicación.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-pedalia-bronze-y-silver-en-databricks">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-pedalia-ingesta-con-data-factory.html">← La ingesta - Data Factory copia el día de landing a bronze</a><a href="proyecto-pedalia-gold-y-exportacion.html">Gold y exportación - las métricas de cada área y un job que las calcula →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

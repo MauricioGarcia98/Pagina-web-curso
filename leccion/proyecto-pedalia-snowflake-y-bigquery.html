@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snowflake y BigQuery - cada área recibe sus datos desde el lago · Academia de Datos</title><meta name="description" content="Preparas los dos destinos. En Snowflake, para finanzas, creas la tabla, un stage externo que apunta al contenedor gold con un token SAS de solo lectura, y la carga idempotente con COPY INTO. En BigQuery, para marketing, creas el dataset y cargas desde Azure con LOAD DATA y una conexión. Pruebas las dos cargas a mano antes de automatizarlas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-snowflake-y-bigquery.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Snowflake y BigQuery - cada área recibe sus datos desde el lago · Academia de Datos"><meta property="og:description" content="Preparas los dos destinos. En Snowflake, para finanzas, creas la tabla, un stage externo que apunta al contenedor gold con un token SAS de solo lectura, y la carga idempotente con COPY INTO. En BigQuery, para marketing, creas el dataset y cargas desde Azure con LOAD DATA y una conexión. Pruebas las dos cargas a mano antes de automatizarlas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-snowflake-y-bigquery.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-pedalia">🚲 Proyecto integrador: Pedalia, de cero a producción</a> · Intermedio · 50 min</div>
+<h1>Snowflake y BigQuery - cada área recibe sus datos desde el lago</h1><p class="resumen">Preparas los dos destinos. En Snowflake, para finanzas, creas la tabla, un stage externo que apunta al contenedor gold con un token SAS de solo lectura, y la carga idempotente con COPY INTO. En BigQuery, para marketing, creas el dataset y cargas desde Azure con LOAD DATA y una conexión. Pruebas las dos cargas a mano antes de automatizarlas.</p>
+<a class="cta" href="../index.html#/l/proyecto-pedalia-snowflake-y-bigquery">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Generar un token SAS con permisos mínimos y fecha de vencimiento</li><li>Crear un stage externo en Snowflake y cargar con COPY INTO sin duplicar</li><li>Cargar archivos de Azure en BigQuery con LOAD DATA</li><li>Explicar qué hace idempotente a cada carga</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Miércoles, 15:00</div>
+
+<p>Los archivos gold ya están en el lago. Lucía quiere verlos en Snowflake y Tomás en BigQuery. Ninguno de los dos va a entrar a Databricks: cada área trabaja en su herramienta, y tu trabajo es que los datos lleguen ahí, iguales y a tiempo.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 El correo con llave</div>
+
+<p>El lago es un edificio de casillas. Para que Snowflake retire las cartas de finanzas, le das una <strong>llave que abre una sola casilla, solo para leer y que vence en una fecha</strong> (el token SAS). No le das la llave maestra del edificio (la clave de la cuenta).</p>
+</div>
+
+
+<h2>Parte 1 · Snowflake (finanzas)</h2>
+<h3>El token SAS</h3>
+<p>Un token SAS es un permiso firmado con alcance, permisos y vencimiento. Para leer una carpeta, Snowflake necesita <strong>listar</strong> (<code>l</code>) y <strong>leer</strong> (<code>r</code>), nada más:</p>
+<pre><code class="language-bash">az storage container generate-sas --account-name stpedaliadev -n gold \
+  --permissions rl --expiry 2027-01-31T00:00Z -o tsv</code></pre>
+<p>Copia el resultado (empieza con <code>se=</code>). También puedes generarlo en el portal: cuenta → <strong>Shared access signature</strong>, con servicio Blob, tipos Container y Object, y permisos Read y List.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El token vence</div>
+
+<p>Eso es bueno (si se filtra, deja de servir) y es una fuente clásica de incidentes: un día la carga falla con <em>AuthenticationFailed</em> porque venció el token. Anota la fecha en el README y, en producción, usa una <strong>storage integration</strong> (Snowflake se autentica con su propia identidad en Azure, sin tokens que vencen).</p>
+</div>
+
+
+<h3>Tabla y stage</h3>
+<p>Abre el <a href="#/snowflake">Snowflake de práctica</a> y ejecuta (reemplaza <code>&lt;TOKEN&gt;</code> por el que generaste):</p>
+<pre data-norun><code class="language-sql">USE ROLE SYSADMIN;
+USE WAREHOUSE COMPUTE_WH;
+CREATE DATABASE IF NOT EXISTS PEDALIA;
+CREATE SCHEMA IF NOT EXISTS PEDALIA.FINANZAS;
+USE SCHEMA PEDALIA.FINANZAS;
+
+CREATE OR REPLACE TABLE INGRESOS_DIARIOS (
+  FECHA DATE, TIPO_USUARIO STRING, VIAJES NUMBER, INGRESOS NUMBER(12, 2)
+);
+
+CREATE OR REPLACE STAGE LAGO_GOLD
+  URL = 'azure://stpedaliadev.blob.core.windows.net/gold/'
+  CREDENTIALS = (AZURE_SAS_TOKEN = '?&lt;TOKEN&gt;');
+
+LIST @LAGO_GOLD;</code></pre>
+<p><code>LIST</code> tiene que mostrar el <code>part-00000-….csv</code> de <code>ingresos_diarios/</code> y de <code>uso_por_barrio/</code> (el <code>_SUCCESS</code> no aparece: Snowflake no lo considera un dato).</p>
+<h3>La carga idempotente</h3>
+<pre data-norun><code class="language-sql">TRUNCATE TABLE INGRESOS_DIARIOS;
+COPY INTO INGRESOS_DIARIOS
+  FROM @LAGO_GOLD/ingresos_diarios/
+  FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1)
+  FORCE = TRUE;
+
+SELECT FECHA, TIPO_USUARIO, VIAJES, INGRESOS FROM INGRESOS_DIARIOS ORDER BY FECHA, TIPO_USUARIO;</code></pre>
+<p>¿Por qué <code>TRUNCATE</code> y <code>FORCE = TRUE</code>? Porque la exportación de gold <strong>reemplaza todo</strong> en cada corrida. La tabla de Snowflake tiene que ser una copia exacta de ese archivo:</p>
+<ul>
+<li>Sin <code>TRUNCATE</code>, cada corrida agregaría las filas otra vez (duplicados).</li>
+<li>Sin <code>FORCE</code>, si el archivo no cambió de nombre, <code>COPY INTO</code> lo <strong>saltea</strong> (recuerda qué archivos ya cargó) y después del <code>TRUNCATE</code> la tabla quedaría vacía.</li>
+</ul>
+<p>Ejecuta el bloque dos veces: el resultado tiene que ser idéntico. Eso es <strong>idempotente</strong>.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 El otro patrón</div>
+
+<p>Si cada día llegara un archivo nuevo con solo ese día (en vez de todo), lo correcto sería lo contrario: <code>COPY INTO</code> sin <code>FORCE</code>, que carga solo los archivos nuevos y saltea los ya cargados. Elegir el patrón depende de cómo escribe el productor.</p>
+</div>
+
+
+<p>Guarda este SQL en <code>sql/snowflake/finanzas.sql</code> (sin el token: el token <strong>nunca</strong> va al repositorio).</p>
+<h2>Parte 2 · BigQuery (marketing)</h2>
+<p>BigQuery puede cargar archivos de Azure Blob Storage con <code>LOAD DATA … FROM FILES</code> y una <strong>conexión</strong> a Azure (en la consola: Add data → Connections to external data sources). La conexión guarda cómo autenticarse; la consulta solo la nombra.</p>
+<p>En el <a href="#/bigquery">BigQuery de práctica</a>:</p>
+<pre data-norun><code class="language-sql">CREATE SCHEMA IF NOT EXISTS pedalia_mkt;
+
+LOAD DATA OVERWRITE pedalia_mkt.uso_por_barrio
+FROM FILES (
+  format = 'CSV',
+  skip_leading_rows = 1,
+  uris = ['azure://stpedaliadev.blob.core.windows.net/gold/uso_por_barrio/*.csv']
+)
+WITH CONNECTION `azure-eastus2.lago_pedalia`;
+
+SELECT barrio, SUM(viajes) AS viajes, SUM(viajes_pase_dia) AS pase_dia
+FROM pedalia_mkt.uso_por_barrio
+GROUP BY barrio
+ORDER BY pase_dia DESC;</code></pre>
+<p><code>OVERWRITE</code> reemplaza la tabla completa: correrlo dos veces da lo mismo. Con <code>LOAD DATA INTO</code> agregarías filas en cada corrida.</p>
+<p>Fíjate en el detalle del job: una carga <strong>no cobra bytes procesados</strong>. La consulta de abajo sí (mira la estimación arriba a la derecha antes de ejecutar).</p>
+<p>Guarda el SQL en <code>sql/bigquery/marketing.sql</code>.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Token SAS con todos los permisos</strong> (<code>racwdl</code>) &quot;para no tener problemas&quot;: quien lo encuentre puede borrar el contenedor. Lectura y listado alcanzan.</li>
+<li><strong>Token en el repositorio o en el DAG</strong>: va en la configuración del stage (o en un secreto), nunca en un archivo versionado.</li>
+<li><strong><code>COPY INTO</code> repetido sin pensar en la idempotencia</strong>: según cómo escribe el productor, terminas con duplicados o con una tabla vacía.</li>
+<li><strong><code>LOAD DATA INTO</code> en una carga diaria completa</strong>: cada día suma todo de nuevo y los viajes de marketing se multiplican.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>A otros sistemas se les da acceso <strong>mínimo y con vencimiento</strong> (token SAS r+l), o mejor, una integración con identidad propia.</li>
+<li>Una carga es <strong>idempotente</strong> si correrla dos veces da lo mismo; cómo lograrlo depende de cómo escribe el productor.</li>
+<li>Snowflake: stage externo + <code>COPY INTO</code> (con <code>TRUNCATE</code> y <code>FORCE</code> cuando el archivo trae todo).</li>
+<li>BigQuery: <code>LOAD DATA OVERWRITE … FROM FILES … WITH CONNECTION</code>; las cargas no cobran bytes procesados.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-pedalia-snowflake-y-bigquery">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-pedalia-gold-y-exportacion.html">← Gold y exportación - las métricas de cada área y un job que las calcula</a><a href="proyecto-pedalia-orquestar-con-airflow.html">Orquestar con Airflow - un DAG que mueve cuatro herramientas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -536,6 +536,21 @@
     ]
   },
   {
+    "id": "proyecto-pedalia",
+    "titulo": "Proyecto integrador: Pedalia, de cero a producción",
+    "icono": "🚲",
+    "color": "#15803d",
+    "descripcion": "Un proyecto completo como en un trabajo real, con una empresa y datos nuevos que no están en ninguna otra parte del curso. Recibes los archivos de la app de Pedalia (bicicletas compartidas), los llevas a un lago en Azure con Data Factory, los limpias en Databricks, orquestas todo con Airflow, cargas Snowflake para finanzas y BigQuery para marketing, armas el tablero en Power BI y lo mantienes con GitHub y CI/CD. El tercer día los datos cambian sin aviso y te toca resolver el incidente.",
+    "objetivos": [
+      "Pasar de un pedido de negocio a una arquitectura y un contrato de datos",
+      "Mover archivos reales entre herramientas por un lago de datos compartido, con permisos de mínimo privilegio",
+      "Limpiar datos sucios con reglas explícitas y verificables",
+      "Orquestar varias herramientas desde un solo DAG y entender qué pasa cuando una falla",
+      "Trabajar con Git, pull requests y CI/CD como en un equipo",
+      "Resolver un incidente de datos de punta a punta y escribir el postmortem"
+    ]
+  },
+  {
     "id": "proyecto",
     "titulo": "Proyecto final y entrevistas",
     "icono": "🏆",

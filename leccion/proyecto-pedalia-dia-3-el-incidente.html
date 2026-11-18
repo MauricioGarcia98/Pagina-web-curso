@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Día 3 - el formato cambia sin aviso y te toca la guardia · Academia de Datos</title><meta name="description" content="Llegan los días 2 y 3. El primero pasa sin problemas; el segundo rompe el pipeline porque la app cambió el formato de las fechas sin avisar. Lo diagnosticas siguiendo los logs de herramienta en herramienta, lo arreglas con un pull request que pasa por CI, re-ejecutas el día, compruebas que todo cuadra con la revisión automática y escribes el postmortem. Cierra el proyecto con lo que vas a contar en una entrevista."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-dia-3-el-incidente.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Día 3 - el formato cambia sin aviso y te toca la guardia · Academia de Datos"><meta property="og:description" content="Llegan los días 2 y 3. El primero pasa sin problemas; el segundo rompe el pipeline porque la app cambió el formato de las fechas sin avisar. Lo diagnosticas siguiendo los logs de herramienta en herramienta, lo arreglas con un pull request que pasa por CI, re-ejecutas el día, compruebas que todo cuadra con la revisión automática y escribes el postmortem. Cierra el proyecto con lo que vas a contar en una entrevista."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-dia-3-el-incidente.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-pedalia">🚲 Proyecto integrador: Pedalia, de cero a producción</a> · Avanzado · 60 min</div>
+<h1>Día 3 - el formato cambia sin aviso y te toca la guardia</h1><p class="resumen">Llegan los días 2 y 3. El primero pasa sin problemas; el segundo rompe el pipeline porque la app cambió el formato de las fechas sin avisar. Lo diagnosticas siguiendo los logs de herramienta en herramienta, lo arreglas con un pull request que pasa por CI, re-ejecutas el día, compruebas que todo cuadra con la revisión automática y escribes el postmortem. Cierra el proyecto con lo que vas a contar en una entrevista.</p>
+<a class="cta" href="../index.html#/l/proyecto-pedalia-dia-3-el-incidente">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Procesar días nuevos y comprobar que el resultado sigue siendo correcto</li><li>Diagnosticar una falla siguiendo el rastro de Airflow a Databricks</li><li>Corregir con un cambio revisado y re-ejecutar solo lo necesario</li><li>Escribir un postmortem sin culpas con acciones concretas</li><li>Presentar el proyecto en un portafolio o una entrevista</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Martes y miércoles, 7:00</div>
+
+<p>El martes todo corre en verde. El miércoles a las 7:12 te llega la alerta: <strong>pedalia_diario falló</strong>. A las 9:00 Lucía va a abrir el tablero de ingresos. Tienes poco menos de dos horas.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 El detective que sigue las huellas</div>
+
+<p>Un buen detective no adivina: sigue las huellas en orden. Airflow te dice <strong>en qué tarea</strong> se rompió. Esa tarea te da un identificador que te lleva a la herramienta que hizo el trabajo. Ahí está el <strong>por qué</strong>. Y el por qué, casi siempre, está en los datos que llegaron.</p>
+</div>
+
+
+<h2>1. El día 2: todo en verde</h2>
+<pre><code class="language-bash">pedalia exportar --dia 2
+az storage blob upload-batch --account-name stpedaliadev -d landing/pedalia/2026-11-10 -s ~/pedalia/entrega/2026-11-10
+airflow dags test pedalia_diario 2026-11-10</code></pre>
+<p>Todas las tareas en verde. Revisa en Databricks que haya dos fechas en <code>pedalia.silver.viajes</code> y que el día 10 tenga menos viajes que el 9. ¿Por qué? Llovió el martes: es un dato real del negocio, no un error. Confírmalo con operaciones antes de &quot;arreglar&quot; algo que no está roto.</p>
+<h2>2. El día 3: la alerta</h2>
+<pre><code class="language-bash">pedalia exportar --dia 3
+az storage blob upload-batch --account-name stpedaliadev -d landing/pedalia/2026-11-11 -s ~/pedalia/entrega/2026-11-11
+airflow dags test pedalia_diario 2026-11-11</code></pre>
+<p><code>ingesta_adf</code> en verde. <code>transformar_databricks</code> en <strong>rojo</strong>. Las cargas de Snowflake y BigQuery, <strong>upstream_failed</strong>.</p>
+<h3>Seguir las huellas</h3>
+<ol>
+<li><strong>Airflow</strong>: el log de <code>transformar_databricks</code> dice que el job terminó con <code>result_state: FAILED</code> y trae el enlace a la corrida.</li>
+<li><strong>Databricks → Jobs &amp; Pipelines → pedalia_transformar → la corrida</strong>: falló la tarea <code>bronze_y_silver</code> con:</li>
+</ol>
+<pre><code class="language-text">[CANNOT_PARSE_TIMESTAMP] Text '11/11/2026 12:49' could not be parsed with the pattern 'yyyy-MM-dd HH:mm:ss'.</code></pre>
+<ol start="3">
+<li><strong>Los datos</strong>: confírmalo en la terminal.</li>
+</ol>
+<pre><code class="language-bash">head -3 ~/pedalia/entrega/2026-11-11/viajes_2026-11-11.csv</code></pre>
+<p>La app ahora manda <code>DD/MM/AAAA HH:MM</code>. Nadie avisó: el LEEME es el mismo.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 Fallar fue lo correcto</div>
+
+<p>Si en silver hubieras usado <code>try_to_timestamp</code> &quot;para que no falle&quot;, hoy el job estaría en verde y <strong>todos los viajes del día 3 habrían desaparecido</strong> (fecha NULL → filtrados). Lucía vería ingresos de cero para el miércoles y pensaría que el sistema de cobro se cayó. Un pipeline que falla con un mensaje claro es mucho mejor que uno que publica números equivocados en silencio.</p>
+</div>
+
+
+<h2>3. Comunicar antes de arreglar</h2>
+<p>Antes de tocar código, un mensaje corto al canal del equipo:</p>
+<pre><code class="language-text">🔴 pedalia_diario (11/11) falló en la transformación. Causa: la app cambió el formato de fecha de los viajes
+sin aviso (ahora DD/MM/AAAA). Los números de ayer siguen publicados y son correctos; los de hoy todavía no están.
+Estimo tenerlo resuelto antes de las 9:00. Aviso cuando esté.</code></pre>
+<p>Y otro al equipo de la app: &quot;Desde hoy las fechas llegan como DD/MM/AAAA HH:MM, sin segundos. ¿Fue intencional? ¿Van a quedar así?&quot;. El arreglo no puede esperar la respuesta, pero la pregunta va igual: puede haber más cambios.</p>
+<h2>4. El arreglo, con un pull request</h2>
+<p>El contrato cambia: aceptar los dos formatos. El SQL de silver también:</p>
+<pre data-norun><code class="language-sql">coalesce(try_to_timestamp(inicio, 'yyyy-MM-dd HH:mm:ss'), try_to_timestamp(inicio, 'dd/MM/yyyy HH:mm')) AS inicio,
+coalesce(try_to_timestamp(fin,    'yyyy-MM-dd HH:mm:ss'), try_to_timestamp(fin,    'dd/MM/yyyy HH:mm')) AS fin,</code></pre>
+<p>¿Y si mañana llega un tercer formato? Con <code>coalesce</code> de dos <code>try_to_timestamp</code>, una fecha con otro formato quedaría NULL y el viaje se perdería en silencio, justo lo que acabamos de evitar. Agrega una <strong>alarma</strong>: si alguna fecha no se pudo leer, el job falla.</p>
+<pre data-norun><code class="language-sql">-- al final de la tarea bronze_y_silver
+SELECT CASE WHEN COUNT(*) &gt; 0 THEN raise_error(CONCAT(COUNT(*), ' viajes con una fecha que no tiene formato conocido'))
+            ELSE 'fechas OK' END AS control
+FROM pedalia.bronze.viajes
+WHERE inicio IS NOT NULL
+  AND coalesce(try_to_timestamp(inicio, 'yyyy-MM-dd HH:mm:ss'), try_to_timestamp(inicio, 'dd/MM/yyyy HH:mm')) IS NULL;</code></pre>
+<p>En el repositorio:</p>
+<pre><code class="language-bash">cd ~/pedalia-datos
+git checkout main &amp;&amp; git pull
+git checkout -b fix/formato-fecha-app
+nano sql/databricks/silver_viajes.sql     # los dos formatos + la alarma
+nano docs/contrato.md                     # &quot;inicio, fin: AAAA-MM-DD HH:MM:SS o DD/MM/AAAA HH:MM (desde el 11/11)&quot;
+git commit -am &quot;Silver acepta el formato de fecha nuevo de la app (DD/MM/AAAA) y falla ante uno desconocido&quot;
+git push -u origin fix/formato-fecha-app</code></pre>
+<p>Abre el PR con una descripción que alguien pueda entender en seis meses: qué pasó, qué cambia, cómo lo probaste. Con el check en verde y la aprobación, fusiona. Después actualiza el SQL de la tarea <code>bronze_y_silver</code> en el job de Databricks.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 En producción</div>
+
+<p>El job se desplegaría también desde el CI, con <strong>Databricks Asset Bundles</strong> (<code>databricks bundle deploy</code>), igual que el DAG. Así lo que corre en Databricks es siempre lo que está en <code>main</code>, sin copiar y pegar SQL en la interfaz.</p>
+</div>
+
+
+<h2>5. Re-ejecutar solo lo que falló</h2>
+<p>En <a href="#/airflow">Airflow</a>, la corrida del 11/11 → la tarea <code>transformar_databricks</code> → <strong>Clear</strong> (con <em>downstream</em>). Airflow vuelve a ejecutar la transformación y, si sale bien, las dos cargas. La ingesta no se repite: ya estaba bien.</p>
+<p>O desde la terminal:</p>
+<pre><code class="language-bash">airflow dags test pedalia_diario 2026-11-11</code></pre>
+<p>Todo en verde. Avisa en el canal: &quot;✅ Resuelto. Los datos del 11/11 ya están en Snowflake, BigQuery y el tablero&quot;.</p>
+<h2>6. ¿Cuadra todo?</h2>
+<p>El panel de abajo lee el estado real de cada herramienta y lo compara con <strong>lo que tiene que dar tu entrega</strong> según el contrato (con tus datos, que son solo tuyos). No modifica nada: úsalo tantas veces como quieras.</p>
+<div></div>
+
+<p>Si algo no cuadra, el panel dice qué y dónde. Las causas más comunes: un día que no se subió a landing, el pipeline sin publicar, una carga duplicada en Snowflake o la tabla de BigQuery cargada con <code>INTO</code> en vez de <code>OVERWRITE</code>.</p>
+<h2>7. El postmortem</h2>
+<p>Un incidente no termina cuando vuelve el verde: termina cuando se escribió qué aprendió el equipo. Sin culpas: el objetivo es que no se repita, no encontrar a quién señalar.</p>
+<pre><code class="language-markdown"># Postmortem · pedalia_diario 11/11/2026
+
+## Resumen
+La transformación falló porque la app cambió el formato de fecha de los viajes sin aviso.
+Los datos del 11/11 se publicaron a las 8:40, con 1 h 28 min de demora. No se publicaron datos incorrectos.
+
+## Cronología
+- 07:12 Falla transformar_databricks (CANNOT_PARSE_TIMESTAMP). Alerta a la guardia.
+- 07:20 Diagnóstico: formato DD/MM/AAAA en el archivo del día. Aviso al canal y al equipo de la app.
+- 08:05 PR con el arreglo y la alarma de formatos desconocidos; CI en verde, aprobado.
+- 08:40 Re-ejecución con Clear. Cargas y tablero actualizados.
+
+## Qué salió bien
+- El formato explícito hizo fallar el pipeline en vez de perder los viajes en silencio.
+- Las cargas no corrieron: no se publicaron números a medias.
+
+## Qué salió mal
+- El cambio en la fuente no estaba en ningún acuerdo: el contrato no decía que los cambios de formato se avisan.
+
+## Acciones
+1. Contrato v2: la app avisa los cambios de formato con 48 h de anticipación (responsable: equipo de datos, con el equipo de la app). Fecha: 15/11.
+2. Control de formato al inicio de la ingesta, antes de Databricks (responsable: equipo de datos). Fecha: 18/11.
+3. Alerta automática al canal cuando falla pedalia_diario (responsable: equipo de datos). Fecha: 13/11.</code></pre>
+<p>Súbelo a <code>docs/postmortems/2026-11-11-formato-fecha.md</code> con un PR.</p>
+<h2>8. Contarlo</h2>
+<p>Este proyecto es una historia de entrevista completa. Así se cuenta en dos minutos:</p>
+<blockquote>
+<p>&quot;Armé el pipeline de datos de una red de bicicletas compartidas: archivos diarios de la app, un lago en Azure con capas, ingesta con Data Factory, limpieza en Databricks con un contrato de datos explícito, cargas idempotentes a Snowflake y BigQuery para dos áreas, y un tablero en Power BI. Todo orquestado con Airflow y desplegado con GitHub Actions. Al tercer día la app cambió el formato de las fechas sin avisar; el pipeline falló en vez de perder datos, lo arreglé con un PR, re-ejecuté solo ese día y escribí el postmortem. Si lo volviera a hacer, procesaría de forma incremental con MERGE y usaría identidades en vez del token SAS.&quot;</p>
+</blockquote>
+<p>Para tu portafolio: el repositorio <code>pedalia-datos</code> con el README (arquitectura, cómo correrlo, decisiones y lo que mejorarías), el contrato, el DAG, el SQL, el postmortem y una captura del tablero.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>&quot;Arreglar&quot; con <code>try_to_timestamp</code> solo</strong>, sin alarma: el próximo formato raro vuelve a perder viajes en silencio.</li>
+<li><strong>Editar el SQL directo en la interfaz de Databricks y olvidar el repositorio</strong>: la próxima vez que alguien despliegue desde <code>main</code>, vuelve el error.</li>
+<li><strong>Re-ejecutar el DAG completo</strong> cuando solo falló la transformación: repites la ingesta sin necesidad (y en algunos sistemas, eso duplica datos).</li>
+<li><strong>Postmortem con culpables</strong> (&quot;el equipo de la app la rompió&quot;): la gente deja de contar lo que pasa. Se analizan sistemas y acuerdos, no personas.</li>
+<li><strong>No avisar mientras se arregla</strong>: dos horas de silencio con un tablero viejo generan más daño que el incidente.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Un pipeline que <strong>falla con un mensaje claro</strong> es mejor que uno que publica datos equivocados.</li>
+<li>Se diagnostica <strong>siguiendo el rastro</strong>: Airflow (qué) → la herramienta que trabajó (por qué) → los datos.</li>
+<li>Se <strong>comunica</strong> antes y después; se arregla con un <strong>PR</strong> (código y contrato), se re-ejecuta <strong>solo lo necesario</strong>.</li>
+<li>El <strong>postmortem</strong> sin culpas, con acciones concretas, responsable y fecha, es lo que evita que se repita.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-pedalia-dia-3-el-incidente">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-pedalia-el-tablero-en-power-bi.html">← El tablero en Power BI - tres fuentes, un modelo y números que cuadran</a><a href="proyecto-arquitectura.html">El proyecto final: arquitectura de punta a punta →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

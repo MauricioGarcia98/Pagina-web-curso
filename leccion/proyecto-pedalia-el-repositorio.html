@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El repositorio - el proyecto vive en GitHub desde el primer minuto · Academia de Datos</title><meta name="description" content="Antes de mover un solo dato, creas el repositorio pedalia-datos en el GitHub de práctica, con una estructura pensada para que otra persona lo entienda, una rama principal protegida, un workflow de Actions que valida cada cambio y una variable para desplegar el DAG. Así trabajan los equipos de datos de verdad."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-el-repositorio.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El repositorio - el proyecto vive en GitHub desde el primer minuto · Academia de Datos"><meta property="og:description" content="Antes de mover un solo dato, creas el repositorio pedalia-datos en el GitHub de práctica, con una estructura pensada para que otra persona lo entienda, una rama principal protegida, un workflow de Actions que valida cada cambio y una variable para desplegar el DAG. Así trabajan los equipos de datos de verdad."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-el-repositorio.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-pedalia">🚲 Proyecto integrador: Pedalia, de cero a producción</a> · Intermedio · 40 min</div>
+<h1>El repositorio - el proyecto vive en GitHub desde el primer minuto</h1><p class="resumen">Antes de mover un solo dato, creas el repositorio pedalia-datos en el GitHub de práctica, con una estructura pensada para que otra persona lo entienda, una rama principal protegida, un workflow de Actions que valida cada cambio y una variable para desplegar el DAG. Así trabajan los equipos de datos de verdad.</p>
+<a class="cta" href="../index.html#/l/proyecto-pedalia-el-repositorio">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un repositorio y subirlo desde la terminal</li><li>Organizar carpetas para DAGs, SQL, pipelines y documentación</li><li>Escribir un workflow de GitHub Actions que valide y despliegue</li><li>Proteger la rama principal para que todo cambio pase por un pull request</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Lunes, 11:00</div>
+
+<p>Tu jefa aprobó el plan con un comentario: &quot;Todo en GitHub desde el día uno. La última persona guardaba los scripts en su escritorio y cuando se fue no sabíamos qué corría en producción&quot;.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 El cuaderno compartido del laboratorio</div>
+
+<p>En un laboratorio, cada experimento se anota en un cuaderno con fecha, quién lo hizo y qué cambió. Si algo sale mal, se vuelve a la página anterior. El repositorio es ese cuaderno: cada commit es una entrada firmada, cada pull request es una propuesta que otro revisa antes de que entre al cuaderno oficial.</p>
+</div>
+
+
+<h2>1. La estructura</h2>
+<pre><code class="language-text">pedalia-datos/
+├── README.md                    qué es, cómo se corre, a quién preguntar
+├── docs/
+│   └── contrato.md              reglas de los datos (lección siguiente)
+├── dags/
+│   └── pedalia_diario.py        el DAG de Airflow
+├── sql/
+│   ├── databricks/              silver y gold
+│   ├── snowflake/               tabla y stage de finanzas
+│   └── bigquery/                carga de marketing
+├── adf/                         pipelines de Data Factory (JSON)
+└── .github/workflows/ci.yml     validación y despliegue</code></pre>
+<p>La regla: <strong>si algo corre en producción, está en el repositorio</strong>. Si está en tu computadora o pegado en la interfaz de una herramienta, para el equipo no existe.</p>
+<h2>2. Crear el repositorio y subirlo</h2>
+<ol>
+<li>Abre el <a href="#/github">GitHub de práctica</a> y crea un repositorio nuevo llamado <strong><code>pedalia-datos</code></strong> (botón <strong>New</strong>). Déjalo vacío: sin README ni .gitignore.</li>
+<li>En la terminal (botón <strong>⌨</strong> abajo a la derecha):</li>
+</ol>
+<pre><code class="language-bash">mkdir -p ~/pedalia-datos/dags ~/pedalia-datos/sql/databricks ~/pedalia-datos/docs ~/pedalia-datos/.github/workflows
+cd ~/pedalia-datos
+git init -b main
+git config user.name &quot;Tu Nombre&quot;
+git config user.email &quot;tu@correo.com&quot;</code></pre>
+<ol start="3">
+<li>Crea un README mínimo y el primer DAG de prueba (el definitivo llega en la lección de Airflow):</li>
+</ol>
+<pre><code class="language-bash">cat &gt; README.md &lt;&lt; 'EOF'
+# pedalia-datos
+Pipelines de datos de Pedalia: ingesta de la app, limpieza en Databricks y cargas a Snowflake y BigQuery.
+Contacto: equipo de datos.
+EOF
+
+cat &gt; dags/pedalia_diario.py &lt;&lt; 'EOF'
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+
+with DAG(&quot;pedalia_diario&quot;, start_date=datetime(2026, 11, 9), schedule=&quot;@daily&quot;, catchup=False):
+    EmptyOperator(task_id=&quot;inicio&quot;)
+EOF
+
+echo &quot;-- silver de viajes (lección 6)&quot; &gt; sql/databricks/silver_viajes.sql
+echo &quot;-- gold (lección 7)&quot; &gt; sql/databricks/gold.sql</code></pre>
+<h2>3. El workflow de Actions</h2>
+<p>Este archivo corre <strong>en cada push y en cada pull request</strong>. El job <code>validar</code> revisa que el DAG compile y que el SQL esté en su lugar; el job <code>desplegar</code> copia el DAG a Airflow, pero <strong>solo</strong> cuando el cambio llega a <code>main</code>.</p>
+<pre><code class="language-bash">cat &gt; .github/workflows/ci.yml &lt;&lt; 'EOF'
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: &quot;3.12&quot;
+      - name: El DAG compila
+        run: python -c &quot;import ast; ast.parse(open('dags/pedalia_diario.py').read()); print('DAG OK')&quot;
+      - name: Está el SQL de cada capa
+        run: ls sql/databricks/silver_viajes.sql sql/databricks/gold.sql
+
+  desplegar:
+    needs: validar
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copiar el DAG al Airflow del equipo
+        run: |
+          mkdir -p &quot;${{ vars.AIRFLOW_DAGS_DIR }}&quot;
+          cp dags/*.py &quot;${{ vars.AIRFLOW_DAGS_DIR }}/&quot;
+          ls &quot;${{ vars.AIRFLOW_DAGS_DIR }}&quot;
+EOF</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 ¿Por qué la ruta de despliegue es una variable?</div>
+
+<p>En la vida real, &quot;desplegar un DAG&quot; es copiarlo al lugar que lee Airflow: el bucket de Cloud Composer, el de MWAA en AWS o la carpeta del servidor. Esa ruta cambia entre desarrollo y producción, así que <strong>no se escribe en el workflow</strong>: va en una variable del repositorio. En esta práctica, el Airflow de práctica lee la carpeta <code>/home/alumno/airflow/dags</code>.</p>
+</div>
+
+
+<ol start="4">
+<li><p>En el GitHub de práctica: <strong>Settings → Secrets and variables → Actions → Variables → New repository variable</strong>:</p>
+<ul>
+<li>Name: <code>AIRFLOW_DAGS_DIR</code></li>
+<li>Value: <code>/home/alumno/airflow/dags</code></li>
+</ul>
+</li>
+<li><p>Sube todo:</p>
+</li>
+</ol>
+<pre><code class="language-bash">git add .
+git commit -m &quot;Estructura del proyecto, DAG inicial y CI&quot;
+git remote add origin https://github.com/alumno/pedalia-datos.git
+git push -u origin main</code></pre>
+<ol start="6">
+<li>En la pestaña <strong>Actions</strong> del repositorio vas a ver la corrida: <code>validar</code> y después <code>desplegar</code>, las dos en verde. Abre <a href="#/airflow">Airflow</a>: el DAG <code>pedalia_diario</code> ya aparece en la lista. <strong>Lo desplegó el workflow, no tú.</strong></li>
+</ol>
+<h2>4. Proteger main</h2>
+<p>En <strong>Settings → Branches → Add classic branch protection rule</strong>, con el patrón <code>main</code>:</p>
+<ul>
+<li><strong>Require a pull request before merging</strong> (con al menos una aprobación).</li>
+<li><strong>Require status checks to pass</strong>, con el check <code>validar</code>.</li>
+</ul>
+<p>Desde ahora nadie empuja directo a <code>main</code>: cada cambio va en una rama, con PR, revisión y CI en verde. Pruébalo:</p>
+<pre><code class="language-bash">git checkout -b docs/contacto
+echo &quot;Guardia: ver canal #datos-pedalia&quot; &gt;&gt; README.md
+git commit -am &quot;Agrega el canal de guardia al README&quot;
+git push -u origin docs/contacto</code></pre>
+<p>Abre el PR en el GitHub de práctica, espera el check verde y fusiónalo con <strong>Merge pull request</strong>.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Empujar directo a main</strong> &quot;porque es un cambio chico&quot;: así entran los errores que nadie revisó. La protección de rama lo impide.</li>
+<li><strong>Escribir rutas, contraseñas o claves en el workflow</strong>. Las rutas van en variables y las claves en <em>secrets</em>, que Actions oculta en los logs con <code>***</code>.</li>
+<li><strong>Un CI que no valida nada</strong>: si el workflow solo imprime &quot;hola&quot;, el check verde no significa nada. Lo mínimo es que el código compile y que estén los archivos que se despliegan.</li>
+<li><strong>Desplegar desde un pull request</strong>: el <code>if: github.ref == &#39;refs/heads/main&#39;</code> evita que una rama a medio hacer llegue a producción.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>El repositorio es la <strong>única fuente de verdad</strong> de lo que corre en producción.</li>
+<li>El workflow valida <strong>en cada cambio</strong> y despliega <strong>solo desde main</strong>.</li>
+<li>La configuración por entorno va en <strong>variables</strong>; las claves, en <strong>secrets</strong>.</li>
+<li>Con la rama protegida, todo cambio pasa por <strong>PR + revisión + CI en verde</strong>.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-pedalia-el-repositorio">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-pedalia-el-encargo.html">← El encargo - Pedalia necesita datos, y nadie sabe bien cuáles</a><a href="proyecto-pedalia-recibir-los-datos.html">Recibir los datos - la primera entrega y el contrato de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

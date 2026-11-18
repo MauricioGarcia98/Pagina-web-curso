@@ -926,7 +926,7 @@
     }
     if ((x = m(/^DESCRIBE\s+VOLUME\s+(\S+)$/i))) { const p = partes(x[1]); const full = p.length === 3 ? p : [U.cur.catalog, U.cur.schema, p[p.length - 1]]; return R(['name', 'catalog', 'database', 'storage_location', 'volume_type'], [[full[2], full[0], full[1], `/Volumes/${full.join('/')}`, 'MANAGED']]); }
     // ---- LIST (archivos de un volumen)
-    if ((x = m(/^LIST\s+'([^']+)'(?:\s+LIMIT\s+(\d+))?$/i))) {
+    if ((x = m(/^LIST\s+'([^']+)'(?:\s+LIMIT\s+(\d+))?$/i)) && !(window.LagoAzure && window.LagoAzure.esDelLago(x[1]))) {
       const r = x[1].replace(/\/$/, ''); const F = archivos();
       const hijos = new Map();
       for (const k of Object.keys(F)) if (k.startsWith(r + '/')) { const resto = k.slice(r.length + 1); const n0 = resto.split('/')[0]; hijos.set(n0, resto.includes('/') ? null : F[k].length); }

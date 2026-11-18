@@ -45,9 +45,9 @@ ${col.dim('(simulado: los DAGs se leen de ~/airflow/dags y la interfaz está en 
   // cambiar los ejercicios de las lecciones.
   const base = Sh.Commands && Sh.Commands.airflow;
   const hayPy = (dir) => Object.keys(Sh.Machine.fs).some((k) => k.startsWith(dir + '/') && k.endsWith('.py'));
-  const enReplica = () => { const cwd = Sh.Machine.cwd || ''; return /^#\/airflow/.test(location.hash) || cwd === Sh.HOME + '/airflow' || cwd.startsWith(Sh.HOME + '/airflow/') || !hayPy(Sh.HOME + '/dags'); };
+  const enReplica = (a) => { const cwd = Sh.Machine.cwd || ''; return /^#\/airflow/.test(location.hash) || cwd === Sh.HOME + '/airflow' || cwd.startsWith(Sh.HOME + '/airflow/') || !hayPy(Sh.HOME + '/dags') || !!(window.__airflowQuiereReplica && window.__airflowQuiereReplica(a || [])); };
   Sh.def('airflow', 'Apache Airflow CLI (simulada): airflow dags list · dags test · dags trigger · tasks test · variables · connections', async (a, ctx) => {
-    if (base && (!A() || !enReplica())) return base(a, ctx);
+    if (base && (!A() || !enReplica(a))) return base(a, ctx);
     if (!A()) return fail('Airflow no está disponible en esta página');
     const [g, c] = a; const p = posicionales(a.slice(2));
     if (!g || g === '-h' || g === '--help') return ok(AYUDA);

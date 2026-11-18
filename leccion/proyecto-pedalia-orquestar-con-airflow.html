@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orquestar con Airflow - un DAG que mueve cuatro herramientas · Academia de Datos</title><meta name="description" content="Escribes el DAG pedalia_diario que todas las mañanas dispara la ingesta en Data Factory, el job de Databricks y las cargas de Snowflake y BigQuery, en ese orden. Creas las conexiones, lo despliegas con un pull request (el CI lo copia a Airflow), lo ejecutas para un día concreto y aprendes a leer qué pasó cuando algo falla."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-orquestar-con-airflow.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Orquestar con Airflow - un DAG que mueve cuatro herramientas · Academia de Datos"><meta property="og:description" content="Escribes el DAG pedalia_diario que todas las mañanas dispara la ingesta en Data Factory, el job de Databricks y las cargas de Snowflake y BigQuery, en ese orden. Creas las conexiones, lo despliegas con un pull request (el CI lo copia a Airflow), lo ejecutas para un día concreto y aprendes a leer qué pasó cuando algo falla."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-orquestar-con-airflow.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-pedalia">🚲 Proyecto integrador: Pedalia, de cero a producción</a> · Intermedio · 55 min</div>
+<h1>Orquestar con Airflow - un DAG que mueve cuatro herramientas</h1><p class="resumen">Escribes el DAG pedalia_diario que todas las mañanas dispara la ingesta en Data Factory, el job de Databricks y las cargas de Snowflake y BigQuery, en ese orden. Creas las conexiones, lo despliegas con un pull request (el CI lo copia a Airflow), lo ejecutas para un día concreto y aprendes a leer qué pasó cuando algo falla.</p>
+<a class="cta" href="../index.html#/l/proyecto-pedalia-orquestar-con-airflow">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear conexiones de Airflow para servicios externos sin escribir secretos en el código</li><li>Encadenar operadores de proveedores (Data Factory, Databricks, SQL, BigQuery)</li><li>Usar la fecha lógica ({{ ds }}) para que cada corrida procese su día</li><li>Desplegar el DAG con CI y diagnosticar una falla siguiendo los logs</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Jueves, 9:00</div>
+
+<p>Hasta ahora corriste cada paso a mano, en orden. Funciona, pero depende de que tú te acuerdes, a la hora correcta y sin saltearte nada. El objetivo de hoy: que a las 7:00 todo corra solo y que, si algo falla, quede claro qué y dónde.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 El director de orquesta</div>
+
+<p>El director no toca ningún instrumento. Marca cuándo entra cada uno, escucha que todo suene y, si un músico se pierde, detiene la pieza antes de que el error se contagie. Airflow es eso: no copia archivos ni calcula ingresos; dice &quot;ahora Data Factory, después Databricks&quot; y no deja seguir si algo salió mal.</p>
+</div>
+
+
+<h2>1. Las conexiones</h2>
+<p>Cada tarea habla con un servicio distinto. Las credenciales viven en <strong>conexiones</strong> de Airflow (en producción, en un gestor de secretos como Key Vault), nunca en el DAG. En la terminal:</p>
+<pre><code class="language-bash">airflow connections add azure_data_factory_default --conn-type azure_data_factory \
+  --conn-extra '{&quot;resource_group_name&quot;: &quot;rg-pedalia-dev&quot;, &quot;factory_name&quot;: &quot;adf-pedalia-dev&quot;}'
+airflow connections add databricks_default --conn-type databricks \
+  --conn-host https://adb-1234567890123456.7.azuredatabricks.net
+airflow connections add snowflake_default --conn-type snowflake \
+  --conn-extra '{&quot;account&quot;: &quot;practica01&quot;, &quot;warehouse&quot;: &quot;COMPUTE_WH&quot;, &quot;database&quot;: &quot;PEDALIA&quot;, &quot;schema&quot;: &quot;FINANZAS&quot;, &quot;role&quot;: &quot;SYSADMIN&quot;}'
+airflow connections add google_cloud_default --conn-type google_cloud_platform \
+  --conn-extra '{&quot;project&quot;: &quot;tienda-andina-dev&quot;}'
+airflow connections list</code></pre>
+<p>También puedes crearlas en <a href="#/airflow">Airflow</a> → <strong>Admin → Connections</strong>.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 En una cuenta real</div>
+
+<p>Cada conexión llevaría además su secreto: el <em>client secret</em> de una entidad de servicio de Azure para Data Factory, un token personal de Databricks, la clave privada de un usuario de servicio de Snowflake y el JSON de una cuenta de servicio de Google. Acá no hacen falta porque las herramientas son de práctica, pero el lugar donde irían es el mismo: la conexión, no el código.</p>
+</div>
+
+
+<h2>2. El DAG</h2>
+<pre><code class="language-bash">cd ~/pedalia-datos
+git checkout main &amp;&amp; git pull
+git checkout -b dag/pedalia-diario
+cat &gt; dags/pedalia_diario.py &lt;&lt; 'EOF'
+from datetime import datetime, timedelta
+
+from airflow.sdk import DAG
+from airflow.providers.microsoft.azure.operators.data_factory import AzureDataFactoryRunPipelineOperator
+from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
+from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
+from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
+
+default_args = {&quot;retries&quot;: 1, &quot;retry_delay&quot;: timedelta(minutes=5)}
+
+with DAG(
+    &quot;pedalia_diario&quot;,
+    start_date=datetime(2026, 11, 9),
+    schedule=&quot;0 7 * * *&quot;,
+    catchup=False,
+    default_args=default_args,
+    tags=[&quot;pedalia&quot;],
+    doc_md=&quot;Ingesta de la app de Pedalia → Databricks → Snowflake (finanzas) y BigQuery (marketing).&quot;,
+):
+    ingesta = AzureDataFactoryRunPipelineOperator(
+        task_id=&quot;ingesta_adf&quot;,
+        pipeline_name=&quot;pl_ingesta_pedalia&quot;,
+        parameters={&quot;fecha&quot;: &quot;{{ ds }}&quot;},
+    )
+
+    transformar = DatabricksRunNowOperator(
+        task_id=&quot;transformar_databricks&quot;,
+        job_name=&quot;pedalia_transformar&quot;,
+    )
+
+    finanzas = SQLExecuteQueryOperator(
+        task_id=&quot;cargar_snowflake&quot;,
+        conn_id=&quot;snowflake_default&quot;,
+        sql=[
+            &quot;TRUNCATE TABLE INGRESOS_DIARIOS&quot;,
+            &quot;COPY INTO INGRESOS_DIARIOS FROM @LAGO_GOLD/ingresos_diarios/ &quot;
+            &quot;FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1) FORCE = TRUE&quot;,
+        ],
+    )
+
+    marketing = BigQueryInsertJobOperator(
+        task_id=&quot;cargar_bigquery&quot;,
+        configuration={
+            &quot;query&quot;: {
+                &quot;query&quot;: &quot;LOAD DATA OVERWRITE pedalia_mkt.uso_por_barrio FROM FILES (&quot;
+                         &quot;format = 'CSV', skip_leading_rows = 1, &quot;
+                         &quot;uris = ['azure://stpedaliadev.blob.core.windows.net/gold/uso_por_barrio/*.csv']) &quot;
+                         &quot;WITH CONNECTION `azure-eastus2.lago_pedalia`&quot;,
+                &quot;useLegacySql&quot;: False,
+            }
+        },
+    )
+
+    ingesta &gt;&gt; transformar &gt;&gt; [finanzas, marketing]
+EOF</code></pre>
+<p>Fíjate en tres decisiones:</p>
+<ul>
+<li><strong><code>{{ ds }}</code></strong> es la <strong>fecha lógica</strong> de la corrida, no la fecha de hoy. Con <code>schedule=&quot;0 7 * * *&quot;</code>, la corrida que arranca el 10/11 a las 7:00 tiene <code>ds = 2026-11-09</code>: procesa el día que <strong>terminó</strong>. Si mañana re-ejecutas la corrida del 9, vuelve a procesar el 9, no &quot;hoy&quot;.</li>
+<li><strong><code>retries: 1</code></strong>: un fallo pasajero (la red, un servicio lento) se reintenta solo una vez antes de marcar la tarea en rojo.</li>
+<li><strong><code>[finanzas, marketing]</code></strong> corren en paralelo, las dos después de la transformación. Si una falla, la otra igual termina.</li>
+</ul>
+<h2>3. Desplegar con un pull request</h2>
+<pre><code class="language-bash">git add dags/pedalia_diario.py
+git commit -m &quot;DAG diario de Pedalia: ADF → Databricks → Snowflake y BigQuery&quot;
+git push -u origin dag/pedalia-diario</code></pre>
+<p>Abre el PR. El job <code>validar</code> revisa que el DAG compile. Al fusionarlo, <code>desplegar</code> lo copia a Airflow: en unos segundos el DAG actualizado aparece en <a href="#/airflow">Airflow</a> con sus cuatro tareas en el <strong>Graph</strong>.</p>
+<h2>4. Ejecutarlo para un día concreto</h2>
+<p>Primero pruébalo completo para el 9 de noviembre, sin esperar al horario:</p>
+<pre><code class="language-bash">airflow dags test pedalia_diario 2026-11-09</code></pre>
+<p>O en la interfaz: el DAG → <strong>Trigger</strong> con fecha lógica <code>2026-11-09</code>. Mira cada tarea:</p>
+<ul>
+<li><code>ingesta_adf</code>: el log muestra el <strong>run ID</strong> del pipeline. Búscalo en Data Factory → <strong>Monitor</strong>: es la misma corrida.</li>
+<li><code>transformar_databricks</code>: el log tiene el enlace a la corrida del job en Databricks.</li>
+<li><code>cargar_snowflake</code>: cada sentencia con su <strong>query id</strong>. En Snowflake → <strong>Query History</strong> aparecen ejecutadas.</li>
+<li><code>cargar_bigquery</code>: el <strong>id del job de carga</strong>, que puedes buscar en el historial de BigQuery.</li>
+</ul>
+<h2>5. Cuando algo falla</h2>
+<p>Provoca una falla a propósito: en Data Factory, cambia el comodín del pipeline a <code>@concat(pipeline().parameters.fecha, &#39;/viajes_X*.csv&#39;)</code>, <strong>publica</strong> y vuelve a ejecutar el DAG.</p>
+<ul>
+<li><code>ingesta_adf</code> queda en rojo (<strong>failed</strong>). El log dice <em>UserErrorSourceBlobNotExist</em> y te manda a <strong>Monitor</strong>.</li>
+<li><code>transformar_databricks</code>, <code>cargar_snowflake</code> y <code>cargar_bigquery</code> quedan <strong>upstream_failed</strong>: ni siquiera arrancan. Eso es lo que quieres: es mejor no publicar nada que publicar números de ayer como si fueran de hoy.</li>
+</ul>
+<p>Arréglalo (vuelve al comodín correcto, publica) y usa <strong>Clear</strong> sobre la tarea fallida: Airflow la vuelve a ejecutar junto con las que dependían de ella.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Usar <code>datetime.now()</code> en vez de <code>{{ ds }}</code></strong>: al re-ejecutar un día viejo, procesa el de hoy. La fecha lógica hace que cada corrida sea repetible.</li>
+<li><strong>Credenciales en el DAG</strong>: el archivo está en el repositorio y en el servidor; cualquiera que lo lea tiene acceso. Van en las conexiones.</li>
+<li><strong>Buscar el error solo en Airflow</strong>: el log de Airflow dice <strong>qué</strong> tarea falló y te da el identificador; el <strong>por qué</strong> está en la herramienta que hizo el trabajo (Monitor de Data Factory, la corrida del job en Databricks, Query History en Snowflake).</li>
+<li><strong>Re-ejecutar todo el DAG desde cero</strong> después de un arreglo: con <strong>Clear</strong> sobre la tarea que falló se retoma desde ahí, sin repetir lo que ya salió bien.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Airflow <strong>ordena y vigila</strong>; cada herramienta hace su trabajo y deja su propio registro.</li>
+<li>Las credenciales van en <strong>conexiones</strong>, no en el DAG.</li>
+<li><code>{{ ds }}</code> hace que cada corrida procese <strong>su</strong> día y se pueda repetir.</li>
+<li>Si una tarea falla, las siguientes quedan <strong>upstream_failed</strong>; el detalle del error está en la herramienta que hizo el trabajo.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-pedalia-orquestar-con-airflow">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-pedalia-snowflake-y-bigquery.html">← Snowflake y BigQuery - cada área recibe sus datos desde el lago</a><a href="proyecto-pedalia-el-tablero-en-power-bi.html">El tablero en Power BI - tres fuentes, un modelo y números que cuadran →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

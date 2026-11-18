@@ -511,9 +511,20 @@ models:
     }
     return res;
   }
+  // como en bash: un # al principio de una palabra (fuera de comillas) empieza un comentario hasta el final de la línea
+  function sinComentario(line) {
+    let q = null;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (q) { if (ch === q && line[i - 1] !== '\\') q = null; continue; }
+      if (ch === "'" || ch === '"') { q = ch; continue; }
+      if (ch === '#' && (i === 0 || /\s/.test(line[i - 1]))) return line.slice(0, i).replace(/\s+$/, '');
+    }
+    return line;
+  }
   async function runLine(line, opts = {}) {
     if (/\n/.test(line.trim()) || esCompuesto(line)) return runScript(line, opts);
-    return runLineSimple(line, opts);
+    return runLineSimple(sinComentario(line), opts);
   }
   // una línea es una lista de comandos separados por ; o & (con & no se espera: va a segundo plano);
   // cada elemento puede encadenar con && y ||, que unen más fuerte: `a && b &` manda "a && b" entero al fondo
