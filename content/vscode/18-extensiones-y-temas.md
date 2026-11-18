@@ -75,6 +75,12 @@ Los temas son preferencia personal; los de **alto contraste** existen por accesi
 
 Un **perfil** es un conjunto de extensiones y ajustes: "Datos" con Python, Jupyter y dbt; "Web" con otras. Se cambia desde la ruedita → **Perfiles**. Útil si usas el mismo VS Code para cosas muy distintas, o para tener un perfil limpio cuando enseñas o presentas.
 
+:::errores
+- **Instalar extensiones de cualquier autor.** Pueden leer tu código; revisa el editor y las descargas.
+- **Demasiadas extensiones.** Vuelven lento al editor; usa perfiles por tipo de trabajo.
+- **Configuraciones que solo están en tu máquina.** Las recomendadas del proyecto van en `.vscode/extensions.json`.
+:::
+
 ## ✅ Lo que lograste
 
 - Instalas y desinstalas extensiones con criterio.

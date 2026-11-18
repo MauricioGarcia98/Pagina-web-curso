@@ -109,6 +109,12 @@ permissions:
 
 Con `azure/login`, `aws-actions/configure-aws-credentials` o `google-github-actions/auth` se configura en pocas líneas. Es lo recomendado para desplegar a producción.
 
+:::errores
+- **Secretos en el código o en variables.** Variables son visibles; las contraseñas van en Secrets.
+- **Imprimir un secreto en el log.** GitHub lo enmascara, pero no confíes: no lo imprimas.
+- **Un secreto para todo.** Separa por entorno (dev, prod) con environments.
+:::
+
 ## ✅ Lo que lograste
 
 - Guardaste un secreto y lo usaste en un workflow.

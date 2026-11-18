@@ -96,6 +96,12 @@ Dice que en `ventas_por_canal` la columna `canal` no puede repetirse ni estar va
 
 Para profundizar en dbt (materializaciones, incrementales, fuentes, macros), está el módulo [dbt](#/m/dbt) y el [laboratorio de dbt](#/lab/dbt).
 
+:::errores
+- **Escribir nombres de tablas fijos en dbt.** Se usa `ref()` para que dbt conozca las dependencias.
+- **Leer solo el último error.** Un modelo que falla puede deberse a otro que falló antes.
+- **Ejecutar todo el proyecto para probar un modelo.** `dbt run --select` ejecuta solo lo necesario.
+:::
+
 ## ✅ Lo que lograste
 
 - Reconoces la estructura de un proyecto dbt y editas modelos con ref().

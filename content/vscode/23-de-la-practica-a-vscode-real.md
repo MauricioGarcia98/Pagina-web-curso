@@ -84,6 +84,12 @@ Ruedita (abajo a la izquierda) → **Backup and Sync Settings** (Sincronización
 - [ ] El proyecto 4 rehecho contra un repositorio tuyo en GitHub.
 - [ ] Sincronización de configuración activada.
 
+:::errores
+- **Instalar Python sin agregarlo al PATH.** VS Code y la terminal no lo encuentran.
+- **No elegir el intérprete del entorno.** VS Code usa otro Python y faltan paquetes.
+- **Sincronizar settings con datos de la empresa.** Revisa qué se sincroniza a tu cuenta personal.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes instalar y configurar VS Code real para datos.

@@ -91,6 +91,12 @@ El botón **Fork** se ve pero no está simulado. Para practicarlo de verdad, haz
 
 En un equipo, la notificación que no puedes perder es **Review requested**: alguien está esperando tu revisión para seguir.
 
+:::errores
+- **Dar Admin a todos.** La mayoría necesita Write o Triage.
+- **CODEOWNERS sin mantener.** Si la persona se va, los PRs quedan esperando.
+- **Notificaciones de todo.** Configura las que importan o terminas ignorándolas.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes dar el permiso justo a cada persona.

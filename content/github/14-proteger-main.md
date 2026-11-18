@@ -92,6 +92,12 @@ El dueño del repositorio ve la opción de fusionar igual (**bypass**). La opci�
 
 GitHub real tiene además **Rulesets** (Settings → Rules → Rulesets): las mismas reglas pero con más control (varias reglas por rama, aplicar a toda una organización, modo *Evaluate* para probar sin bloquear). Las *classic branch protection rules* que usaste siguen funcionando y son las que vas a ver en la mayoría de los repositorios.
 
+:::errores
+- **Proteger main sin exigir los checks.** Sin checks obligatorios, se puede fusionar en rojo.
+- **Permitir que los administradores salteen las reglas.** Las reglas valen para todos.
+- **Exigir aprobaciones en un repo de una sola persona.** Ajusta las reglas al equipo real.
+:::
+
 ## ✅ Lo que lograste
 
 - Protegiste main con PR, aprobación y check obligatorios.

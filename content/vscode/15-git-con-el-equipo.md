@@ -86,6 +86,12 @@ Para practicar conflictos con casos guiados está la lección [Git en equipo](#/
 | Subir datos o claves | `.gitignore` desde el primer commit |
 | Commits enormes con "varios cambios" | Un commit, una idea |
 
+:::errores
+- **Push sin pull.** Si alguien subió cambios, el push se rechaza; trae primero.
+- **Resolver conflictos eligiendo todo "lo mío".** Lee ambos lados y conserva lo correcto.
+- **Pull requests enormes.** Cuanto más chico, más fácil de revisar.
+:::
+
 ## ✅ Lo que lograste
 
 - Conectas un repositorio con GitHub y sincronizas con push y pull.

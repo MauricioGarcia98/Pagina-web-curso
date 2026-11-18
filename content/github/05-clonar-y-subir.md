@@ -83,6 +83,12 @@ En la práctica responde sola; en tu computadora te muestra un código y abre el
 Desde 2021, `git push` con usuario y contraseña falla. Se usa `gh auth login`, un token personal o una clave SSH. Si alguna guía vieja te dice "escribe tu contraseña", ese paso ya no funciona.
 :::
 
+:::errores
+- **Push sin pull.** Si hay cambios remotos, el push se rechaza.
+- **Clonar dentro de otro repositorio.** Termina con repos anidados; clona en una carpeta propia.
+- **Subir archivos grandes o secretos.** Revisa `git status` antes de cada commit.
+:::
+
 ## ✅ Lo que lograste
 
 - Clonas, trabajas en una rama, haces commit y subes con push.

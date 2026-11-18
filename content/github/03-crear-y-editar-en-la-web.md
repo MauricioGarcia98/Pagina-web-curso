@@ -79,6 +79,12 @@ texto: El último commit del repositorio es el que acabas de hacer, y el README 
 La web sirve para cambios chicos: una errata, un README, una configuración. Para cambios de código que hay que probar, se clona el repositorio y se trabaja en VS Code (lección 5): en la web no puedes ejecutar los tests antes del commit.
 :::
 
+:::errores
+- **Repositorio sin README ni .gitignore.** Quien entra no sabe qué es y se suben archivos que no van.
+- **Sin licencia en un repo público.** Sin licencia, nadie puede usar el código legalmente.
+- **Commits desde la web sin mensaje claro.** El mensaje por defecto ("Update file") no dice nada.
+:::
+
 ## ✅ Lo que lograste
 
 - Creaste un repositorio con README, .gitignore y licencia.

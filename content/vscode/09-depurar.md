@@ -101,6 +101,12 @@ Te muestra el valor que tendría `total` con la corrección. Es la forma de comp
 Un `print` sirve para una duda rápida. El depurador conviene cuando no sabes **dónde** está el problema, cuando hay bucles o funciones anidadas, o cuando necesitas ver muchas variables a la vez. Y no te deja `print` olvidados en el código.
 :::
 
+:::errores
+- **Llenar el código de `print` para encontrar un error.** Un punto de interrupción muestra todas las variables en ese momento.
+- **Step Into en todo.** Entra hasta en las librerías; Step Over avanza por tu código.
+- **Depurar con datos enormes.** Reproduce el error con un caso chico.
+:::
+
 ## ✅ Lo que lograste
 
 - Reconoces un error lógico.

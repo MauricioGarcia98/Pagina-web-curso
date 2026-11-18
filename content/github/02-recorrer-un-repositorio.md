@@ -92,6 +92,12 @@ texto: Los issues abiertos del equipo, con etiquetas como enhancement, good firs
 
 El issue **#2 Agregar tests al ETL** es `good first issue`: lo vas a resolver en el proyecto 3.
 
+:::errores
+- **Leer solo main.** El trabajo en curso puede estar en otras ramas o en pull requests.
+- **Ignorar el historial.** Los commits explican por qué está así el código.
+- **Abrir un issue sin buscar antes.** Puede existir ya.
+:::
+
 ## ✅ Lo que lograste
 
 - Lees la página de un repositorio y su README.

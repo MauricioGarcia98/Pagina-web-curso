@@ -107,6 +107,12 @@ Revisa **siempre** el diff antes de hacer commit: es donde aparecen el `print` d
 
 3. Haz commit: `README: cómo se ejecuta`.
 
+:::errores
+- **Commits gigantes con todo junto.** Agrupa cambios relacionados con un mensaje claro.
+- **Subir archivos que no van.** Entornos virtuales, datos o secretos se excluyen con `.gitignore`.
+- **Mensajes como "cambios".** El mensaje dice qué se cambió y por qué.
+:::
+
 ## ✅ Lo que lograste
 
 - Inicializaste un repositorio y lees el estado de cada archivo.

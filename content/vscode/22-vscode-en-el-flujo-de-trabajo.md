@@ -68,6 +68,12 @@ Sugieren código mientras escribes y responden preguntas sobre el proyecto en un
 Lo que sugiere la IA puede estar mal, usar funciones que no existen o tener errores sutiles (como el `>=` del proyecto 3). Reglas: entiende cada línea antes de aceptarla, prueba con tests, nunca pegues datos de clientes ni claves en un chat externo, y respeta la política de tu empresa sobre qué herramientas se pueden usar.
 :::
 
+:::errores
+- **Usar notebooks para lo que se ejecuta todos los días.** Pasa el código probado a módulos.
+- **Aceptar sugerencias de IA sin leerlas.** Revisa y prueba el código como cualquier otro.
+- **Trabajar en remoto sin saber dónde corre el código.** En un contenedor o servidor remoto, los archivos y Python son los de esa máquina.
+:::
+
 ## ✅ Lo que lograste
 
 - Sabes trabajar con notebooks en VS Code.

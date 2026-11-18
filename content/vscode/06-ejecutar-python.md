@@ -74,6 +74,12 @@ En la barra de estado, a la derecha, aparece la versión de Python (por ejemplo 
 
 VS Code abre los dos: en la lección 22 vemos los notebooks dentro de VS Code.
 
+:::errores
+- **Intérprete equivocado.** Si falta un paquete que instalaste, VS Code puede estar usando otro Python; revísalo en la barra de estado.
+- **Buscar el archivo de salida en otra carpeta.** El script escribe relativo a la carpeta desde donde se ejecuta.
+- **Leer solo la primera línea del error.** El traceback se lee desde abajo.
+:::
+
 ## ✅ Lo que lograste
 
 - Ejecutas scripts con ▷ y desde la terminal.

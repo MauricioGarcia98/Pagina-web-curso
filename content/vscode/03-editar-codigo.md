@@ -86,6 +86,12 @@ No hace falta memorizar menús: si sabes cómo se llama lo que quieres, la palet
 | **Ctrl + P** | Archivos por nombre |
 | **Ctrl + Shift + P** (o F1) | Comandos |
 
+:::errores
+- **Reemplazar todo sin revisar.** "Replace All" puede cambiar coincidencias que no querías; revisa la lista antes.
+- **Editar línea por línea lo que se repite.** El multicursor o seleccionar todas las coincidencias lo hace de una vez.
+- **Buscar el comando en los menús.** La paleta (Ctrl+Shift+P) encuentra cualquier acción por nombre.
+:::
+
 ## ✅ Lo que lograste
 
 - Buscas, reemplazas y saltas a líneas.

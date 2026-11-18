@@ -62,6 +62,12 @@ No son pistas: tu entrega debería responderlas.
 - **[dbt](#/m/dbt)** y **[Airflow](#/m/airflow)**: los proyectos de datos que vas a editar en VS Code todos los días.
 - **[JupyterLab paso a paso](#/m/jupyterlab)**: la exploración que después se convierte en código como el de este proyecto.
 
+:::errores
+- **Entregar sin README.** Debe decir qué hace, cómo instalar y cómo ejecutar.
+- **Sin tests ni CI.** El equipo necesita saber que el código sigue funcionando.
+- **Valores fijos de tu máquina.** Rutas y credenciales van como configuración.
+:::
+
 :::ejercicio quiz
 ¿Qué haces antes de reorganizar el script?
 - [ ] Borro el script viejo

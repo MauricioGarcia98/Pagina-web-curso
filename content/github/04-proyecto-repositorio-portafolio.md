@@ -88,6 +88,12 @@ Vuelve a editar el README y agrega una fila a la tabla de proyectos (por ejemplo
 3. Repite los pasos: el formulario de **New repository** y el editor web son iguales.
 4. Truco: un repositorio con **el mismo nombre que tu usuario** (por ejemplo `ana-perez/ana-perez`) muestra su README en tu perfil público. Es la portada de tu GitHub.
 
+:::errores
+- **Portafolio sin explicar cada proyecto.** El README debe contar el problema, la solución y el resultado.
+- **Capturas con datos reales de empresas.** Usa datos de práctica.
+- **Repos sin orden.** Un repositorio por proyecto, con nombre claro.
+:::
+
 :::ejercicio quiz
 ¿Qué debería tener el README de un portafolio?
 - [ ] El código de todos los proyectos

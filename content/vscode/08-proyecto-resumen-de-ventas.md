@@ -95,6 +95,12 @@ La última fila del control es una verificación cruzada: los pedidos que sumast
 
 Copia el script a un proyecto en tu VS Code y crea `datos/ventas_2024_12.csv` con algunas filas: en la terminal de práctica, `head -20 datos/ventas_2024_12.csv` te muestra el formato (columnas `pedido_id,fecha,cliente_id,canal,estado,total`) para copiarlo y pegarlo. El script funciona igual con cualquier CSV que tenga esas columnas.
 
+:::errores
+- **Cambiar el script sin probarlo con los datos de ejemplo.** Ejecútalo y compara con el resultado esperado.
+- **Valores escritos dentro del código.** Rutas o fechas van como constantes arriba o como parámetros.
+- **No explicar el cambio.** Una línea en el README o en el commit dice qué mejoró.
+:::
+
 :::ejercicio quiz
 ¿Cómo calculas el ticket promedio general correcto?
 - [ ] Promediando los cuatro tickets de los canales

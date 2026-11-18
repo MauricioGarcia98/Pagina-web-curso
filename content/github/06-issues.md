@@ -79,6 +79,12 @@ Se combinan: `is:open label:bug assignee:@me`.
 
 En los comentarios puedes mencionar a alguien con `@camila` (le llega una notificación) y a otro issue o PR con `#2`. En el repositorio del equipo, si comentas un issue, Camila o Martín responden.
 
+:::errores
+- **Issues sin descripción.** "No anda" no ayuda; cuenta qué hiciste, qué esperabas y qué pasó.
+- **Cerrar a mano lo que cerró un commit.** Escribe `Closes #12` en el commit o PR y se cierra solo.
+- **Etiquetas sin criterio.** Pocas, claras y usadas por todo el equipo.
+:::
+
 ## ✅ Lo que lograste
 
 - Escribes issues claros con tareas, etiquetas y responsables.

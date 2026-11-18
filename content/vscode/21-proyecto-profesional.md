@@ -126,6 +126,12 @@ pytest && ruff check .
 
 La prueba de fuego: alguien que nunca vio el proyecto lo clona, sigue el README y lo ejecuta sin preguntarte nada.
 
+:::errores
+- **Instalar paquetes en el Python global.** Un entorno virtual por proyecto evita choques.
+- **Dependencias sin listar.** Sin `requirements.txt` o `pyproject.toml`, nadie reproduce tu entorno.
+- **Secretos en el repositorio.** Van en variables de entorno o en un `.env` ignorado por Git.
+:::
+
 ## ✅ Lo que lograste
 
 - Conoces la estructura de un repositorio de datos ordenado.

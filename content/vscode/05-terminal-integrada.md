@@ -69,6 +69,12 @@ Clic derecho sobre una carpeta del explorador → **Abrir en la terminal integra
 Esta lección cubre lo que necesitas dentro de VS Code. El [laboratorio de terminal](#/lab/terminal) tiene misiones de cero a experto: tuberías, grep, permisos, variables de entorno, scripts de bash.
 :::
 
+:::errores
+- **Ejecutar comandos en la carpeta equivocada.** Mira el directorio actual en el prompt antes de correr algo.
+- **Abrir una terminal fuera de VS Code para todo.** La integrada ya abre en la carpeta del proyecto.
+- **Muchas terminales sin nombre.** Termina sin saber cuál corre qué; ciérralas o renómbralas.
+:::
+
 ## ✅ Lo que lograste
 
 - Abres y manejas la terminal integrada.

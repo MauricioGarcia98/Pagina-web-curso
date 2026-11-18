@@ -121,6 +121,16 @@ python -m ventas_app.limpieza datos/clientes.csv
 ## Tests
 pytest &amp;&amp; ruff check .</code></pre>
 <p>La prueba de fuego: alguien que nunca vio el proyecto lo clona, sigue el README y lo ejecuta sin preguntarte nada.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Instalar paquetes en el Python global.</strong> Un entorno virtual por proyecto evita choques.</li>
+<li><strong>Dependencias sin listar.</strong> Sin <code>requirements.txt</code> o <code>pyproject.toml</code>, nadie reproduce tu entorno.</li>
+<li><strong>Secretos en el repositorio.</strong> Van en variables de entorno o en un <code>.env</code> ignorado por Git.</li>
+</ul>
+</div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Conoces la estructura de un repositorio de datos ordenado.</li>

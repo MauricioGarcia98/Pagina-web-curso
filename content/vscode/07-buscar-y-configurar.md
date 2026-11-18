@@ -77,6 +77,12 @@ En esta práctica el archivo vive en `~/.config/Code/User/settings.json` y puede
 
 En Configuración, busca `guardado` y elige **afterDelay** en **Guardado automático**. Desde ahora, los cambios se guardan solos. Si prefieres control total, déjalo en **off** y usa Ctrl + S: lo importante es saber cuál de los dos tienes.
 
+:::errores
+- **Cambiar settings de usuario para un proyecto.** Lo que es del proyecto va en `.vscode/settings.json` para que lo comparta el equipo.
+- **Buscar sin excluir carpetas pesadas.** `node_modules` o entornos virtuales llenan los resultados.
+- **Guardado automático sin formato.** Activa también formatear al guardar si el equipo usa un formateador.
+:::
+
 ## ✅ Lo que lograste
 
 - Buscas en todo el proyecto antes de cambiar algo.

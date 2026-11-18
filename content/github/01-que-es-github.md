@@ -61,6 +61,12 @@ texto: El panel de inicio: la barra superior (1) y el botón de la terminal de l
 
 A la izquierda, **Top repositories** lista tus repositorios. En el centro, el botón **Abrir tienda-andina/pipelines** lleva al repositorio del equipo de datos con el que vamos a practicar.
 
+:::errores
+- **Confundir Git con GitHub.** Git guarda el historial en tu computadora; GitHub aloja repositorios y suma colaboración.
+- **Repositorios públicos con datos de la empresa.** Revisa la visibilidad antes de subir nada.
+- **Usar GitHub como carpeta de archivos grandes.** Datos pesados van en almacenamiento de datos, no en el repo.
+:::
+
 ## ✅ Lo que lograste
 
 - Distingues Git de GitHub y local de remoto.

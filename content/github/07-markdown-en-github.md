@@ -105,6 +105,12 @@ texto: Un README con título, descripción y la sección Cómo se usa
 Pide a alguien que nunca vio el proyecto que lo siga al pie de la letra. Cada vez que te pregunte algo, falta una línea en el README.
 :::
 
+:::errores
+- **Listas sin línea en blanco antes.** Algunos renderizadores no las reconocen.
+- **Código sin bloque.** Sin las tres comillas invertidas, el formato se pierde.
+- **Tablas a mano mal alineadas.** Revisa la vista previa antes de publicar.
+:::
+
 ## ✅ Lo que lograste
 
 - Das formato a README, issues y comentarios con Markdown.

@@ -120,6 +120,12 @@ texto: Pulse - 1 PR fusionado, 1 issue cerrado, y alumno con 6 commits en Contri
 Más commits no es más trabajo: un commit puede ser un error de tipeo y otro una semana de diseño. Usa Insights para ver el ritmo del proyecto (¿se acumulan PRs sin revisar?), no para comparar personas.
 :::
 
+:::errores
+- **Pages con datos privados.** Lo publicado es público.
+- **Medir productividad con commits.** Insights muestra actividad, no calidad.
+- **Documentación desactualizada.** Publícala desde el repo para que cambie con el código.
+:::
+
 ## ✅ Lo que lograste
 
 - Publicaste un sitio con Pages desde una rama.

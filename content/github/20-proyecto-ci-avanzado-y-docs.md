@@ -66,6 +66,12 @@ on:
 
 La réplica no corre workflows programados; GitHub real sí (con hasta unos minutos de demora, y se pausan si el repositorio no tiene actividad por 60 días).
 
+:::errores
+- **Matriz sin necesidad.** Probar en muchas versiones multiplica el tiempo; elige las que usan.
+- **Artefactos que nadie descarga.** Publica el reporte donde el equipo lo vea.
+- **No cumplir la rúbrica.** Revisa cada punto antes de entregar.
+:::
+
 :::ejercicio quiz
 Agregas una matriz con 3.11 y 3.12 al job tests. ¿Qué pasa con la regla que exigía el check "tests"?
 - [ ] Sigue funcionando igual

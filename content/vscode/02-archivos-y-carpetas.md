@@ -87,6 +87,12 @@ texto: El menú contextual: abrir, abrir en la terminal, copiar ruta, renombrar,
 Minúsculas, sin espacios ni tildes, con guion bajo: `limpiar_clientes.py`, `ventas_por_canal.sql`. Los espacios y tildes dan problemas en la terminal, en Git y en los pipelines.
 :::
 
+:::errores
+- **Renombrar o mover archivos desde fuera del editor sin avisar.** VS Code puede ofrecer actualizar imports; hacerlo desde el explorador es más seguro.
+- **Nombres con espacios y mayúsculas mezcladas.** `Reporte Final (2).py` complica la terminal; usa `reporte_final.py`.
+- **Buscar archivos a mano en el árbol.** Ctrl+P los abre por nombre.
+:::
+
 ## ✅ Lo que lograste
 
 - Abres archivos desde el árbol y con Ctrl+P.
