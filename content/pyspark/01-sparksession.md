@@ -239,6 +239,12 @@ Lucía España
 - Rutina de exploración: `printSchema()`, `show(n)`, `count()`.
 - Transformaciones (`select`, `filter`…) no ejecutan nada; acciones (`show`, `count`, `write`) sí. Evita `collect()` con datos grandes.
 
+:::errores
+- **`collect()` para ver datos.** Trae todo al driver; usa `show()` o `limit()`.
+- **Crear una SparkSession nueva en cada celda.** `getOrCreate()` reutiliza la existente.
+- **Esperar resultados de una transformación.** Hace falta una acción para que Spark ejecute.
+:::
+
 ## Ejercicios
 
 En los ejercicios de PySpark guarda tu resultado en la variable **`resultado`** (un DataFrame). El corrector compara tus filas con las de la solución (sin importar el orden, salvo que se pida).

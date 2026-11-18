@@ -254,6 +254,16 @@ LIMIT 10;</code></pre>
 <li>Las agregaciones ignoran <code>NULL</code>: <code>COUNT(*)</code> ≠ <code>COUNT(columna)</code>.</li>
 <li><code>COALESCE</code> reemplaza nulos; <code>NULLIF</code> crea nulos (ideal para evitar dividir por cero).</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>WHERE columna = NULL</code>.</strong> Nunca es verdadero; se usa <code>IS NULL</code>.</li>
+<li><strong>Contar con <code>COUNT(columna)</code> esperando todas las filas.</strong> Ignora los NULL; <code>COUNT(*)</code> cuenta todas.</li>
+<li><strong><code>NOT IN</code> con una lista que tiene NULL.</strong> No devuelve nada; usa <code>NOT EXISTS</code> o filtra los NULL.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

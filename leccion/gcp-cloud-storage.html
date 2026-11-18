@@ -221,6 +221,16 @@ gcloud storage buckets describe gs://lake-tienda-dev      # verifica que quedó 
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Nombres de bucket con datos sensibles.</strong> Los nombres son globales y visibles; no pongas el nombre de un cliente.</li>
+<li><strong>Permisos por objeto (ACL) mezclados con IAM.</strong> El acceso uniforme a nivel de bucket simplifica y evita fugas.</li>
+<li><strong><code>rsync --delete-unmatched-destination-objects</code> sin probar.</strong> Borra en el destino; prueba con <code>--dry-run</code>.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

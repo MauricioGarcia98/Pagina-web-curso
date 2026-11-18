@@ -201,6 +201,12 @@ Para ejecutar una UDF, Spark tiene que **sacar** cada valor del motor (en la JVM
 - JSON en texto: `get_json_object` para un campo, `from_json` con esquema para muchos.
 - UDFs solo cuando no hay función nativa: son lentas; prefiere `F` o pandas UDF.
 
+:::errores
+- **`explode` cuando hay arrays vacíos.** Se pierden filas; usa `explode_outer`.
+- **Parsear JSON sin esquema.** Sin `schema`, los campos salen como texto o nulos.
+- **Acceder a campos de struct con corchetes.** Se usa `col("struct.campo")`.
+:::
+
 ## Ejercicios
 
 :::ejercicio pyspark

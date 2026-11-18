@@ -221,6 +221,12 @@ done
 Con `-o json` obtienes `"valor"`, con comillas, y con `-o table` obtienes también el encabezado. Con `-o tsv` obtienes `valor` limpio, listo para asignar a una variable.
 :::
 
+:::errores
+- **Parsear la salida de tabla en scripts.** Usa `--query` con `-o tsv` para valores limpios.
+- **Comillas mal puestas en JMESPath.** En bash, la consulta va entre comillas dobles y los literales entre comillas simples o invertidas.
+- **Crear recursos sin etiquetas.** Después no se puede saber de quién son ni repartir costos.
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

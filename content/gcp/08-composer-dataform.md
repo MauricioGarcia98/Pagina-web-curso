@@ -29,6 +29,12 @@ gcloud composer environments storage dags import --environment airflow-datos --l
 gcloud composer environments run airflow-datos --location us-central1 dags list
 ```
 
+:::errores
+- **Composer para un SQL diario sin dependencias.** Una consulta programada o Dataform alcanza y cuesta menos.
+- **SQL de transformación sin versionar.** Dataform guarda las transformaciones en Git con dependencias y pruebas.
+- **Gobierno al final.** Policy tags y permisos se definen con el diseño, no cuando los datos ya circulan.
+:::
+
 :::ejercicio airflow titulo="DAG de Composer para el caso streaming"
 Crea el DAG `streaming_diario` (`schedule="@daily"`, `start_date` 2024-01-01, `catchup=False`) con:
 

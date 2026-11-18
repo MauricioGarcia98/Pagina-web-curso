@@ -134,6 +134,17 @@ aws events list-rules --query &quot;Rules[].{Nombre:Name, Horario:ScheduleExpres
 </tbody></table></div>
 <pre data-norun><code class="language-bash">aws s3 cp dags/pipeline_banco.py s3://mwaa-datos-dev/dags/
 aws mwaa list-environments</code></pre>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Orquestar todo con Lambda encadenadas.</strong> Step Functions o MWAA dan reintentos, estados y visibilidad.</li>
+<li><strong>Permisos del lago en cada bucket a mano.</strong> Lake Formation centraliza permisos por tabla y columna.</li>
+<li><strong>Infraestructura creada desde la consola.</strong> Sin código (CloudFormation, CDK o Terraform), no se puede repetir igual en otro entorno.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

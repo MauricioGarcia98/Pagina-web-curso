@@ -97,6 +97,12 @@ cliente_id | sesiones
          3 |        2
 ```
 
+:::errores
+- **Resolver sin aclarar el caso.** Pregunta por empates, nulos y orden antes de escribir.
+- **Soluciones con `collect()` y Python.** En una entrevista de PySpark, se espera que todo quede distribuido.
+- **No probar con datos chicos.** Arma 5 filas y verifica a mano.
+:::
+
 :::ejercicio pyspark dificultad=Experto titulo="Sesionización"
 Sesioniza `eventos_web` (solo eventos con `cliente_id`): una nueva sesión empieza si pasaron **más de 30 minutos** desde el evento anterior del mismo cliente. Devuelve, por cliente, la cantidad de sesiones. Columnas: `cliente_id`, `sesiones`.
 ```python solucion

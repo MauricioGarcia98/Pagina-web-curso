@@ -130,6 +130,16 @@ az keyvault secret set --vault-name kv-datos-dev --name databricks-token --value
 az keyvault secret list --vault-name kv-datos-dev -o table
 az keyvault secret show --vault-name kv-datos-dev --name databricks-token --query value -o tsv</code></pre>
 <p>Fíjate en el último comando: <code>--query value -o tsv</code> devuelve <strong>solo</strong> el valor, listo para guardarlo en una variable (<code>TOKEN=$(az keyvault secret show … )</code>) sin que quede escrito en ningún archivo.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Owner o Contributor para leer datos.</strong> Administran el recurso; para leer blobs hace falta un rol de datos.</li>
+<li><strong>Service principals con secretos para todo.</strong> Dentro de Azure, una identidad administrada no tiene secretos.</li>
+<li><strong>Secretos en el código.</strong> Van en Key Vault y se leen por nombre.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

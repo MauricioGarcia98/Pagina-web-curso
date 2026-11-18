@@ -61,6 +61,17 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <pre data-norun><code class="language-bash">gcloud composer environments list --locations us-central1
 gcloud composer environments storage dags import --environment airflow-datos --location us-central1 --source dags/pipeline_streaming.py
 gcloud composer environments run airflow-datos --location us-central1 dags list</code></pre>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Composer para un SQL diario sin dependencias.</strong> Una consulta programada o Dataform alcanza y cuesta menos.</li>
+<li><strong>SQL de transformación sin versionar.</strong> Dataform guarda las transformaciones en Git con dependencias y pruebas.</li>
+<li><strong>Gobierno al final.</strong> Policy tags y permisos se definen con el diseño, no cuando los datos ya circulan.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

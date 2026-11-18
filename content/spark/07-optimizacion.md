@@ -197,6 +197,12 @@ Antes de agrandar las máquinas, revisa estos sospechosos:
 En Databricks, **Photon** es un motor de ejecución vectorizado escrito en C++ que reemplaza partes de Spark y acelera mucho SQL y DataFrames, sin cambiar tu código. Las UDF de Python no se benefician: otra razón para usar funciones nativas.
 :::
 
+:::errores
+- **Tunear sin medir.** La Spark UI dice dónde se va el tiempo.
+- **Subir memoria antes de revisar el plan.** Muchas veces el problema es un shuffle o un skew, no la memoria.
+- **`repartition` antes de cada escritura.** Fuerza un shuffle; `coalesce` reduce particiones sin shuffle completo.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

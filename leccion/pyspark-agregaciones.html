@@ -198,6 +198,16 @@ spark.table(&quot;productos&quot;).agg(F.max(&quot;precio&quot;), F.min(&quot;pr
 <li><code>collect_list</code>/<code>collect_set</code> juntan valores en arrays.</li>
 <li><code>pivot</code> convierte valores en columnas (pasa la lista de valores); <code>rollup</code>/<code>cube</code> agregan subtotales.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Columnas sin alias después de <code>agg</code>.</strong> Quedan como <code>sum(monto)</code>; usa <code>.alias()</code>.</li>
+<li><strong><code>pivot</code> sin lista de valores.</strong> Spark tiene que calcularlos primero; pasarlos ahorra una pasada.</li>
+<li><strong>Contar filas después de un join que duplica.</strong> Revisa la cardinalidad antes de agregar.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

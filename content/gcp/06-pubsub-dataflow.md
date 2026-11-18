@@ -127,6 +127,12 @@ ventana,compras,total
 10:01–10:02,1,10
 ```
 
+:::errores
+- **Asumir que Pub/Sub entrega una sola vez.** Entrega al menos una vez; el consumidor tiene que tolerar duplicados.
+- **Ventanas por tiempo de procesamiento cuando importa el del evento.** Los eventos tardíos caen en la ventana equivocada.
+- **Ignorar los datos tardíos.** Define cuánto esperar (allowed lateness) y qué hacer después.
+:::
+
 ## Ejercicios: programa la lógica de streaming
 
 :::ejercicio python titulo="Deduplicar mensajes de Pub/Sub"

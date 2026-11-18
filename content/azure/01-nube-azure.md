@@ -143,6 +143,12 @@ Azure ofrece una cuenta gratuita con crédito inicial para probar. Crea todo lo 
 
 En las próximas lecciones vas a manejar Azure con la **Azure CLI** (`az`). Abre la terminal del curso (botón ⌨ Terminal) y prueba: `az login`, luego `az account show` (en qué suscripción estás) y `az group list -o table` (los grupos de recursos que existen; al principio, ninguno). Es un simulador: nada se crea de verdad ni cuesta dinero.
 
+:::errores
+- **Confundir suscripción con grupo de recursos.** La suscripción es quién paga; el grupo es la carpeta donde se agrupan recursos para administrarlos y borrarlos juntos.
+- **Recursos de un proyecto en regiones distintas sin motivo.** Moverse entre regiones suma latencia y costo de transferencia.
+- **Borrar un grupo de recursos para limpiar algo.** Se borra todo lo que contiene.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

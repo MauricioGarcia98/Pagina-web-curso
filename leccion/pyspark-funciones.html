@@ -271,6 +271,16 @@ print(c.na.drop(subset=[&quot;email&quot;]).count())                # descartar 
 <li><code>F.when(…).when(…).otherwise(…)</code> = <code>CASE WHEN</code>.</li>
 <li>Nulos: <code>isNull</code>, <code>coalesce</code>, <code>fillna</code>, <code>na.drop</code>; nunca <code>== None</code>.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>UDFs de Python para lo que ya existe en <code>pyspark.sql.functions</code>.</strong> Las funciones nativas son mucho más rápidas.</li>
+<li><strong><code>when</code> sin <code>otherwise</code>.</strong> Las filas que no cumplen quedan en NULL.</li>
+<li><strong>Fechas como texto.</strong> Convierte con <code>to_date</code> antes de calcular.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

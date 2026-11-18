@@ -209,6 +209,16 @@ print(spark.table(&quot;pedidos&quot;).dropDuplicates([&quot;cliente_id&quot;]).
 <li><code>.isin</code>, <code>.like</code>, <code>.contains</code>, <code>.between</code>, <code>.isNull()</code> cubren los operadores de SQL.</li>
 <li><code>withColumnRenamed</code>, <code>drop</code>, <code>.cast(tipo)</code> (devuelve <code>null</code> si no puede convertir), <code>distinct</code>, <code>orderBy</code>, <code>limit</code>.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Usar <code>and</code>/<code>or</code> en filtros.</strong> En PySpark se usan <code>&amp;</code> y <code>|</code> con paréntesis.</li>
+<li><strong>Encadenar <code>withColumn</code> en un bucle de cientos.</strong> Hace el plan enorme; usa un solo <code>select</code> con todas las columnas.</li>
+<li><strong>Comparar con un string donde va una columna.</strong> <code>&quot;precio&quot; &gt; 100</code> compara texto; usa <code>F.col(&quot;precio&quot;) &gt; 100</code>.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

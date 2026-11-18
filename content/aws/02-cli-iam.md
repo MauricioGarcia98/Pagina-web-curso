@@ -202,6 +202,12 @@ aws iam list-roles --query "Roles[].RoleName" --output text
 
 Las terminales de los ejercicios ya tienen una sesión iniciada. Escribe el comando y presiona Enter.
 
+:::errores
+- **Claves de acceso de larga duración en tu computadora.** Si se filtran, dan acceso hasta que alguien las revoque; usa SSO o roles con credenciales temporales.
+- **Políticas con `"Action": "*"` y `"Resource": "*"`.** Dan todo sobre todo; empieza con lo mínimo y agrega lo que falte.
+- **Comandos con el perfil equivocado.** Revisa `--profile` o `aws sts get-caller-identity` antes de crear o borrar.
+:::
+
 :::ejercicio cli
 Averigua con qué identidad (cuenta y usuario o rol) estás conectado a AWS.
 ```respuesta

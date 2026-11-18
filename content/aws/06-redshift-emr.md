@@ -159,6 +159,12 @@ No hay "el mejor" servicio: depende de **cuántas veces**, **qué tan rápido**,
 ¿cuántas consultas?  ¿qué latencia?  ¿qué volumen?  ¿quién administra?
 ```
 
+:::errores
+- **Elegir Redshift para todo.** Para consultas esporádicas sobre el lago, Athena puede ser más barato.
+- **Clusters de EMR que quedan encendidos.** Configura terminación automática o usa EMR Serverless.
+- **Cargar Redshift fila por fila.** `COPY` desde S3 es la forma rápida de cargar volumen.
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="Consulta de dashboard en el warehouse"

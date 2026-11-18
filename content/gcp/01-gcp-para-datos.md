@@ -102,6 +102,12 @@ En BigQuery cobran por las **columnas** que lees, no por las filas que devuelves
 GCP ofrece crédito inicial y una capa gratuita permanente (BigQuery: 10 GB de almacenamiento y 1 TB de consultas por mes; además el **BigQuery Sandbox** no pide tarjeta). En este curso practicas en la terminal simulada: no gastas nada.
 :::
 
+:::errores
+- **Confundir proyecto con cuenta.** En Google Cloud todo vive en un proyecto, que tiene su facturación y sus permisos.
+- **Elegir regiones distintas para datos que se cruzan.** BigQuery no une tablas de regiones distintas en una consulta.
+- **Sin presupuesto ni alertas.** Configúralos el primer día.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

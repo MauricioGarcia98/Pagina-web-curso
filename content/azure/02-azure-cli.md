@@ -151,6 +151,12 @@ az account set --subscription sub-datos-dev
 - Patrón: `az <servicio> <subgrupo> <acción> --parámetros`; respuestas en JSON, `-o table` para leer.
 - `--help` y `az find` para descubrir; extensiones para servicios como Databricks.
 
+:::errores
+- **Ejecutar sin revisar la suscripción.** `az account show` antes de crear o borrar.
+- **Comandos de memoria.** `az <grupo> --help` muestra los parámetros reales.
+- **Defaults olvidados.** Un grupo o región por defecto configurado hace tiempo puede mandar recursos a otro lado; revisa `az config get`.
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

@@ -192,6 +192,16 @@ por_canal.show()        # ACCIÓN: ejecuta</code></pre>
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Esperar que una transformación se ejecute al escribirla.</strong> Nada pasa hasta una acción (count, write, show).</li>
+<li><strong>Llamar varias acciones sobre el mismo DataFrame caro.</strong> Cada acción recalcula todo; usa <code>cache()</code> si lo reutilizas.</li>
+<li><strong>Usar RDDs para todo.</strong> Los DataFrames tienen optimizador; los RDDs no.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

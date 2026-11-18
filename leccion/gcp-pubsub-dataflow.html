@@ -147,6 +147,16 @@ gcloud dataflow jobs list --region us-central1</code></pre>
 <div class="recorrido"></div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Asumir que Pub/Sub entrega una sola vez.</strong> Entrega al menos una vez; el consumidor tiene que tolerar duplicados.</li>
+<li><strong>Ventanas por tiempo de procesamiento cuando importa el del evento.</strong> Los eventos tardíos caen en la ventana equivocada.</li>
+<li><strong>Ignorar los datos tardíos.</strong> Define cuánto esperar (allowed lateness) y qué hacer después.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios: programa la lógica de streaming</h2>
 <div class="exercise-slot"></div>
 

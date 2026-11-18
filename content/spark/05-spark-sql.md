@@ -133,6 +133,12 @@ SELECT
 FROM ...
 ```
 
+:::errores
+- **Vistas temporales que se pierden.** Una temp view vive en la sesión; para compartir, guarda una tabla.
+- **Mezclar SQL y DataFrames sin saber que es lo mismo.** Ambos pasan por el mismo optimizador; elige lo que se lea mejor.
+- **Nombres de tabla sin catálogo y esquema.** En un entorno compartido, puede leer otra tabla con el mismo nombre.
+:::
+
 :::ejercicio pyspark
 Registra el DataFrame de la tabla `clientes` como vista temporal `cli` y, con `spark.sql`, cuenta los clientes por `pais` y `segmento`. Guarda el DataFrame resultante en `resultado` con columnas `pais`, `segmento`, `n`.
 ```python inicial

@@ -165,6 +165,17 @@ aws athena get-query-execution --query-execution-id $QID --query &quot;QueryExec
 aws athena get-query-results --query-execution-id $QID --output table</code></pre>
 <h2>Ejercicios de SQL sobre el lago</h2>
 <p>Imagina que estas tablas son tablas de <code>lake_silver</code> en Athena. Resuélvelas en el dialecto de este curso (SQLite).</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Consultas sin filtro de partición.</strong> Athena cobra por datos escaneados; sin filtro, lee todo el lago.</li>
+<li><strong>Consultar CSV crudos todo el tiempo.</strong> Convertirlos a Parquet con CTAS baja mucho el costo y el tiempo.</li>
+<li><strong>Particiones nuevas que no aparecen.</strong> Hay que registrarlas (MSCK REPAIR, ALTER TABLE ADD PARTITION) o usar partition projection.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

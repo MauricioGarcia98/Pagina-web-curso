@@ -290,6 +290,16 @@ LIMIT 5;          -- solo 5 filas</code></pre>
 <li><code>SELECT * FROM tabla</code> muestra todas las columnas de una tabla; <code>LIMIT n</code> muestra solo <code>n</code> filas.</li>
 <li>La palabra clave va en mayúsculas por costumbre, el texto entre comillas simples y los comentarios después de <code>--</code>.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>SELECT *</code> por costumbre.</strong> Trae columnas que no necesitas y, en tablas grandes o en la nube, cuesta más; nombra las columnas.</li>
+<li><strong>Olvidar el punto y coma entre sentencias.</strong> Algunos motores ejecutan solo la primera o dan error.</li>
+<li><strong>Texto con comillas dobles.</strong> En SQL estándar el texto va entre comillas simples; las dobles son para nombres de columna.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

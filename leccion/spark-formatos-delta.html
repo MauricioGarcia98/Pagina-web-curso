@@ -215,6 +215,16 @@ GOLD    fecha=2024-03-15  pais=Chile  pedidos=1.284  ventas=98.410,50           
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Guardar en CSV las tablas de trabajo.</strong> Parquet o Delta son columnares, comprimidos y con esquema.</li>
+<li><strong>Sobrescribir bronze.</strong> Bronze guarda lo que llegó tal cual para poder reprocesar.</li>
+<li><strong>Delta sin mantenimiento.</strong> Muchas escrituras chicas generan archivos pequeños; OPTIMIZE los compacta.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

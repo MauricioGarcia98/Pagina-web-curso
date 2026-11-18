@@ -314,6 +314,12 @@ Según el estándar, no, porque `GROUP BY` y `HAVING` se evalúan antes que el `
 - `WHERE` filtra filas antes; `HAVING` filtra grupos después.
 - Define el grano ("una fila por…") antes de escribir el `GROUP BY`.
 
+:::errores
+- **Columnas en el SELECT que no están en el GROUP BY ni agregadas.** La mayoría de los motores da error; los que no, devuelven un valor cualquiera.
+- **Filtrar agregados en el WHERE.** `WHERE COUNT(*) > 5` da error; va en `HAVING`.
+- **Contar filas después de un JOIN.** Si el JOIN multiplica filas, `COUNT(*)` cuenta de más; usa `COUNT(DISTINCT id)`.
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

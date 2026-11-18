@@ -192,6 +192,12 @@ Una ventana con `partitionBy` necesita que todas las filas de cada grupo estén 
 - `lag`/`lead` para comparar con filas vecinas; `rowsBetween` para acumulados y promedios móviles.
 - Evita ventanas sin `partitionBy` sobre datos grandes.
 
+:::errores
+- **Ventanas sin `partitionBy`.** Toda la tabla va a una sola partición.
+- **`row_number` sin `orderBy` determinista.** Con empates, el resultado cambia entre corridas.
+- **Confundir `rank` con `dense_rank`.** `rank` salta posiciones después de un empate.
+:::
+
 ## Ejercicios
 
 :::ejercicio pyspark

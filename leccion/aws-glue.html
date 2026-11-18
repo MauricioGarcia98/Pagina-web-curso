@@ -167,6 +167,17 @@ aws glue get-job-runs --job-name etl-ventas-silver --query &quot;JobRuns[].{Id:I
 </tbody></table></div>
 <h2>Practica la lógica del job en PySpark</h2>
 <p>Los jobs de Glue son PySpark. Este ejercicio corre en el simulador de Spark del curso, con los datos del <strong>banco</strong> (caso 🏦).</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Crawlers que corren sobre todo el lago cada hora.</strong> Cuestan y pueden cambiar esquemas; apúntalos a carpetas concretas y con la frecuencia necesaria.</li>
+<li><strong>Jobs de Glue sin bookmarks en cargas incrementales.</strong> Cada corrida vuelve a procesar todos los archivos.</li>
+<li><strong>Esquemas que cambia el crawler solo.</strong> Un archivo raro puede cambiar los tipos de la tabla; fija el esquema en producción.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

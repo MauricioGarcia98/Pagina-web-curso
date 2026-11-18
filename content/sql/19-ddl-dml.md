@@ -366,6 +366,12 @@ En dbt, elegir entre vista y tabla es elegir la **materialización** de un model
 - Upsert: `INSERT … ON CONFLICT` (SQLite/PostgreSQL) o `MERGE` (Databricks, Snowflake, BigQuery…).
 - Transacciones = todo o nada (ACID). Vistas = consultas guardadas sin datos.
 
+:::errores
+- **`UPDATE` o `DELETE` sin `WHERE`.** Afecta todas las filas; corre antes un SELECT con la misma condición.
+- **Cambios sin transacción.** Si algo falla a la mitad, quedan cambios a medias; usa BEGIN / COMMIT / ROLLBACK.
+- **Tablas sin clave primaria.** Después no se pueden actualizar filas puntuales ni evitar duplicados.
+:::
+
 ## Ejercicios
 
 Estos ejercicios se corrigen ejecutando una consulta de verificación **después** de tu código.

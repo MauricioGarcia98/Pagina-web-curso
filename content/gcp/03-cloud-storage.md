@@ -210,6 +210,12 @@ Usar `fecha=2024-12-01` en la ruta (particionado estilo Hive) permite que BigQue
 En GCP muchas veces la capa silver/gold vive directamente en **BigQuery** (tablas nativas), y GCS guarda bronze y los archivos que llegan. Si quieres formatos abiertos, **BigLake** permite tablas Iceberg o Parquet en GCS consultadas desde BigQuery con permisos finos.
 :::
 
+:::errores
+- **Nombres de bucket con datos sensibles.** Los nombres son globales y visibles; no pongas el nombre de un cliente.
+- **Permisos por objeto (ACL) mezclados con IAM.** El acceso uniforme a nivel de bucket simplifica y evita fugas.
+- **`rsync --delete-unmatched-destination-objects` sin probar.** Borra en el destino; prueba con `--dry-run`.
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

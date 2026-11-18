@@ -129,6 +129,16 @@ aws s3api put-public-access-block --bucket lake-tienda-dev \
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Buckets públicos.</strong> Block Public Access debe estar activado salvo un motivo muy claro.</li>
+<li><strong>Particiones con nombres sin formato Hive.</strong> <code>fecha=2024-01-15/</code> permite que Athena y Glue reconozcan la partición; <code>2024-01-15/</code> solo, no.</li>
+<li><strong><code>aws s3 sync --delete</code> sin pensar.</strong> Borra en el destino lo que no está en el origen; prueba antes con <code>--dryrun</code>.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

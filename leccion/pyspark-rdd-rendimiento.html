@@ -106,6 +106,17 @@ for fila in df.collect():
 # ❌ toPandas() de una tabla grande
 # ❌ Joins sin pensar en la cardinalidad (explosión de filas)
 # ❌ Escribir miles de archivos pequeños (particionar por una columna de alta cardinalidad)</code></pre>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Leer el plan de arriba hacia abajo.</strong> Se lee desde abajo: primero la lectura, al final el resultado.</li>
+<li><strong>RDDs para operaciones que un DataFrame hace mejor.</strong> Pierdes el optimizador.</li>
+<li><strong><code>cache()</code> en todo.</strong> Ocupa memoria; úsalo solo en lo que se reutiliza.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

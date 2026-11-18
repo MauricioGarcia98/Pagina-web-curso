@@ -139,6 +139,12 @@ Las consultas de los ejercicios corren en SQLite. Las diferencias más comunes c
 En BigQuery puedes filtrar por una función de ventana sin subconsulta: `SELECT * FROM pedidos QUALIFY ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha_pedido DESC) = 1` devuelve el último pedido de cada cliente. En los ejercicios usa la versión con CTE, que funciona en todos los motores.
 :::
 
+:::errores
+- **`SELECT *` en tablas grandes.** BigQuery cobra por columnas leídas.
+- **Ejecutar sin `--dry_run` o sin mirar el validador.** Es gratis saber cuánto va a leer.
+- **Confiar en LIMIT para ahorrar.** No baja lo que se escanea.
+:::
+
 ## Ejercicios de SQL
 
 :::ejercicio sql ordenado titulo="Último pedido de cada cliente (deduplicación)"

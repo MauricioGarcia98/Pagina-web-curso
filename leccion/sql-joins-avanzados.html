@@ -276,6 +276,16 @@ GROUP BY r.nombre;</code></pre>
 <li>Condiciones sobre la tabla derecha van en el <code>ON</code>; en el <code>WHERE</code> convierten el <code>LEFT</code> en <code>INNER</code>.</li>
 <li><code>FULL</code> sirve para comparar fuentes; <code>SELF JOIN</code> une una tabla consigo misma con dos alias; <code>CROSS JOIN</code> genera grillas.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Filtrar la tabla de la derecha en el WHERE de un LEFT JOIN.</strong> Las filas sin pareja tienen NULL y desaparecen: el LEFT pasa a ser INNER. El filtro va en el ON.</li>
+<li><strong>CROSS JOIN sin querer.</strong> Olvidar la condición multiplica todas las filas por todas.</li>
+<li><strong>SELF JOIN sin alias.</strong> Sin alias distintos no se puede saber de qué copia es cada columna.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

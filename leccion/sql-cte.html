@@ -214,6 +214,16 @@ GROUP BY p.canal, m.meta_mensual;</code></pre>
 <li>Ventajas: legibilidad, depuración paso a paso, reutilización. Es el estilo de dbt.</li>
 <li>Patrón profesional: importaciones → pasos lógicos → <code>final</code> → <code>SELECT * FROM final</code>.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>CTE con el mismo nombre que una tabla.</strong> Confunde a quien lee y puede tapar la tabla real.</li>
+<li><strong>Creer que la CTE guarda el resultado.</strong> Muchos motores la recalculan en cada uso.</li>
+<li><strong>Una CTE gigante.</strong> Varias CTE chicas con nombres claros se leen y prueban mejor.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

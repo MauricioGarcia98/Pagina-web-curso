@@ -156,6 +156,16 @@ w_movil = Window.orderBy(&quot;fecha_pedido&quot;).rowsBetween(-6, Window.curren
 <li><code>lag</code>/<code>lead</code> para comparar con filas vecinas; <code>rowsBetween</code> para acumulados y promedios móviles.</li>
 <li>Evita ventanas sin <code>partitionBy</code> sobre datos grandes.</li>
 </ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Ventanas sin <code>partitionBy</code>.</strong> Toda la tabla va a una sola partición.</li>
+<li><strong><code>row_number</code> sin <code>orderBy</code> determinista.</strong> Con empates, el resultado cambia entre corridas.</li>
+<li><strong>Confundir <code>rank</code> con <code>dense_rank</code>.</strong> <code>rank</code> salta posiciones después de un empate.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

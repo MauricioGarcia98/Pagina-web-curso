@@ -125,6 +125,12 @@ for fila in df.collect():
 # ❌ Escribir miles de archivos pequeños (particionar por una columna de alta cardinalidad)
 ```
 
+:::errores
+- **Leer el plan de arriba hacia abajo.** Se lee desde abajo: primero la lectura, al final el resultado.
+- **RDDs para operaciones que un DataFrame hace mejor.** Pierdes el optimizador.
+- **`cache()` en todo.** Ocupa memoria; úsalo solo en lo que se reutiliza.
+:::
+
 :::ejercicio pyspark variable=conteo
 Con RDDs, haz un **word count** de `lineas` (palabras separadas por espacio) y guarda en `conteo` una **lista de tuplas** `(palabra, cantidad)` ordenada por cantidad descendente y, si empatan, por palabra. Usa `flatMap`, `map`, `reduceByKey` y `collect`.
 ```python inicial

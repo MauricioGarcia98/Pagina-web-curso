@@ -167,6 +167,12 @@ No siempre. Si tus datos entran cómodamente en una máquina (pocos GB), pandas,
 - El shuffle es la parte cara, porque mueve datos por la red. Vas a escuchar esa palabra durante todo el módulo.
 - Spark hace todo esto por ti, en memoria, y con una API sencilla en SQL o Python.
 
+:::errores
+- **Usar herramientas distribuidas para datos chicos.** Si los datos entran en una máquina, pandas o SQL suelen ser más simples y rápidos.
+- **Creer que más máquinas siempre es más rápido.** El shuffle y la coordinación tienen costo.
+- **Ignorar dónde están los datos.** Mover datos por la red es lo más caro.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

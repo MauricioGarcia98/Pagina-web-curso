@@ -307,6 +307,12 @@ Las dos encuentran filas de A sin pareja en B y, en los motores modernos, suelen
 - Condiciones sobre la tabla derecha van en el `ON`; en el `WHERE` convierten el `LEFT` en `INNER`.
 - `FULL` sirve para comparar fuentes; `SELF JOIN` une una tabla consigo misma con dos alias; `CROSS JOIN` genera grillas.
 
+:::errores
+- **Filtrar la tabla de la derecha en el WHERE de un LEFT JOIN.** Las filas sin pareja tienen NULL y desaparecen: el LEFT pasa a ser INNER. El filtro va en el ON.
+- **CROSS JOIN sin querer.** Olvidar la condición multiplica todas las filas por todas.
+- **SELF JOIN sin alias.** Sin alias distintos no se puede saber de qué copia es cada columna.
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

@@ -154,6 +154,12 @@ Ahí se pierde la aplicación completa, porque el driver es quien tiene el plan.
 | Partición | Un pedazo de los datos = 1 task = 1 core | — |
 | Shuffle | Mover datos entre máquinas; separa stages | Es lo más caro: minimízalo |
 
+:::errores
+- **Traer todo al driver.** `collect()` sobre millones de filas llena la memoria del driver.
+- **Confundir driver con executor.** El driver planifica; el trabajo pesado lo hacen los executors.
+- **Más executors sin más particiones.** Si hay pocas particiones, los executors extra quedan ociosos.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

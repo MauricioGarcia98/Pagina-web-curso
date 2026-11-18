@@ -115,6 +115,17 @@ SELECT * FROM main.ventas.pedidos WHERE estado = 'entregado';</code></pre>
   percentile_approx(monto, 0.5)                   AS mediana,
   try_cast(codigo AS INT)                         AS codigo_num      -- NULL en vez de error
 FROM ...</code></pre>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Vistas temporales que se pierden.</strong> Una temp view vive en la sesión; para compartir, guarda una tabla.</li>
+<li><strong>Mezclar SQL y DataFrames sin saber que es lo mismo.</strong> Ambos pasan por el mismo optimizador; elige lo que se lea mejor.</li>
+<li><strong>Nombres de tabla sin catálogo y esquema.</strong> En un entorno compartido, puede leer otra tabla con el mismo nombre.</li>
+</ul>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

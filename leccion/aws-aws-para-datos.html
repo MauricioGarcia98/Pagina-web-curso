@@ -240,6 +240,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Crear recursos sin mirar la región.</strong> Cada región es independiente: un bucket o una tabla en <code>us-east-1</code> no aparece si estás mirando <code>sa-east-1</code>.</li>
+<li><strong>Trabajar con la cuenta raíz.</strong> Se usa solo para tareas de facturación y cuenta; el trabajo diario va con usuarios o roles de IAM.</li>
+<li><strong>No poner un presupuesto.</strong> Un servicio olvidado encendido cobra todo el mes; configura AWS Budgets el primer día.</li>
+</ul>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 
