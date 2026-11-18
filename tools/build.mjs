@@ -748,6 +748,8 @@ function build() {
     '// Archivo generado por tools/build.mjs — fuentes de los simuladores mini-Spark y mini-Airflow\nwindow.PY_SOURCES = ' + JSON.stringify(sources) + ';\n');
   // versión del código de las herramientas (se descargan a pedido): cambia cuando cambia algún archivo
   const dirJs = path.join(ROOT, 'assets/js');
+  const dirCss = path.join(ROOT, 'assets/css');
+  const vCss = hash(fs.readdirSync(dirCss).filter((n) => n.endsWith('.css')).sort().map((n) => n + ':' + hash(fs.readFileSync(path.join(dirCss, n), 'utf8'))).join('|'));
   const vJs = hash(fs.readdirSync(dirJs).filter((n) => n.endsWith('.js') && n !== 'content.js').sort().map((n) => n + ':' + hash(fs.readFileSync(path.join(dirJs, n), 'utf8'))).join('|'));
   // El glosario completo y las preguntas de examen pesan cerca de 2 MB: van en archivos aparte que la app descarga
   // recién al entrar al glosario, al repaso o a un examen. En el índice queda lo justo para listar, buscar y mostrar
@@ -761,7 +763,7 @@ function build() {
   const jsExamenes = completas(examenes.filter((x) => x.id === x.modulo)), jsExamenesCert = completas(examenes.filter((x) => x.id !== x.modulo));
   fs.writeFileSync(path.join(dirC, '_examenes.js'), jsExamenes);
   fs.writeFileSync(path.join(dirC, '_examenes_cert.js'), jsExamenesCert);
-  const course = { generado: new Date().toISOString().slice(0, 10), vJs, vBuscar: hash(jsBuscar), vExtras: { glosario: hash(jsGlosario), examenes: hash(jsExamenes), examenes_cert: hash(jsExamenesCert) }, modulos: indice, glosario: glosarioIndice, examenes: examenesIndice, certificaciones };
+  const course = { generado: new Date().toISOString().slice(0, 10), vJs, vCss, vBuscar: hash(jsBuscar), vExtras: { glosario: hash(jsGlosario), examenes: hash(jsExamenes), examenes_cert: hash(jsExamenesCert) }, modulos: indice, glosario: glosarioIndice, examenes: examenesIndice, certificaciones };
   fs.writeFileSync(path.join(ROOT, 'assets/js/content.js'),
     '// Archivo generado por tools/build.mjs — no editar a mano. Edita content/**/*.md\nwindow.COURSE = ' + JSON.stringify(course) + ';\n');
 

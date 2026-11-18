@@ -67,8 +67,23 @@
     excel: ['@iconos', 'excel-motor', 'excel'],
   };
   const grupoCargas = {};
+  // la hoja de estilos de cada herramienta se pide al abrirla (no frena la portada ni las lecciones)
+  const CSS_GRUPO = { powerbi: 'powerbi', databricks: 'databricks', azure: 'azure', github: 'github', fabric: 'fabric', airflow: 'airflow', snowflake: 'snowflake', bigquery: 'bigquery', jupyter: 'jupyter', excel: 'excel' };
+  const cssPedidas = {};
+  function cargarCss(nombre) {
+    if (!cssPedidas[nombre]) cssPedidas[nombre] = new Promise((ok) => {
+      const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = `assets/css/${nombre}.css?v=${C.vCss || C.generado}`;
+      l.onload = ok; l.onerror = () => { delete cssPedidas[nombre]; l.remove(); ok(); }; document.head.append(l);
+    });
+    return cssPedidas[nombre];
+  }
+  window.__cargarCss = cargarCss;
   function cargarGrupo(g) {
-    if (!grupoCargas[g]) grupoCargas[g] = GRUPOS[g].reduce((p, n) => p.then(() => (n[0] === '@' ? cargarGrupo(n.slice(1)) : cargarScript(`assets/js/${n}.js?v=${V_APP}`))), Promise.resolve()).then(() => { grupoCargas[g].listo = true; }, (e) => { delete grupoCargas[g]; throw e; });
+    if (!grupoCargas[g]) {
+      const css = CSS_GRUPO[g] ? cargarCss(CSS_GRUPO[g]) : null;
+      const js = GRUPOS[g].reduce((p, n) => p.then(() => (n[0] === '@' ? cargarGrupo(n.slice(1)) : cargarScript(`assets/js/${n}.js?v=${V_APP}`))), Promise.resolve());
+      grupoCargas[g] = Promise.all([css, js]).then(() => { grupoCargas[g].listo = true; }, (e) => { delete grupoCargas[g]; throw e; });
+    }
     return grupoCargas[g];
   }
   window.__cargarGrupo = cargarGrupo;
@@ -83,6 +98,7 @@
     ...[...new Set(Object.values(GRUPOS).flat().filter((n) => n[0] !== '@'))].map((n) => `assets/js/${n}.js?v=${V_APP}`),
     ...['glosario', 'examenes', 'examenes_cert'].map((n) => `assets/content/_${n}.js?v=${(C.vExtras || {})[n] || C.generado}`),
     `assets/js/pysrc.js?v=${V_APP}`,
+    ...Object.values(CSS_GRUPO).map((n) => `assets/css/${n}.css?v=${C.vCss || C.generado}`),
   ];
   // ---------------------------------------------------------------- glosario completo y preguntas de examen (carga diferida)
   // El índice trae lo justo para listar y buscar; el detalle llega en assets/content/_glosario.js, _examenes.js y
@@ -311,6 +327,14 @@
     return ed;
   }
 
+  // Monaco pesa unos 660 KB: en celular (pantalla táctil o angosta) se queda CodeMirror, que anda mejor con el teclado
+  // del teléfono. Quien elige el editor completo en Ajustes (editor: 'monaco') lo tiene igual.
+  const quiereMonaco = () => Store.data.editor === 'monaco' || (Store.data.editor !== 'simple' && !(window.matchMedia && matchMedia('(pointer: coarse)').matches) && window.innerWidth >= 900);
+  function cuandoVisible(el, fn) {
+    if (!('IntersectionObserver' in window)) { fn(); return; }
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); fn(); } }, { rootMargin: '300px' });
+    io.observe(el);
+  }
   function createEditor(parent, opts = {}) {
     const { lang = 'sql', value = '', onRun, onCheck, onChange, tall = false } = opts;
     const wrap = h(`<div class="editor-host ${tall ? 'editor-tall' : ''}"></div>`);
@@ -353,10 +377,10 @@
       api.kind = 'cm'; api.cm = cm;
       api.impl = { getValue: () => cm.getValue(), setValue: (v) => cm.setValue(v), focus: () => cm.focus(), refresh: () => cm.refresh() };
     };
-    if (Store.data.editor !== 'simple' && Monaco.ready) useMonaco();
+    if (quiereMonaco() && Monaco.ready) useMonaco();
     else {
       useCm();
-      if (Store.data.editor !== 'simple') Monaco.load().then(() => { if (!api.touched && wrap.isConnected) useMonaco(); }).catch(() => {});
+      if (quiereMonaco()) cuandoVisible(wrap, () => Monaco.load().then(() => { if (!api.touched && wrap.isConnected) useMonaco(); }).catch(() => {}));
     }
     api.getValue = () => api.impl.getValue();
     api.setValue = (v) => api.impl.setValue(v);
@@ -1465,7 +1489,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   function mountExercise(slot, ex, num) {
     const done = Store.exDone(ex.id);
     const card = h(`<section class="exercise ${done ? 'passed' : ''}" id="${esc(ex.id)}">
-      <div class="ex-head"><span class="badge b-type">${TYPE_LABEL[ex.type] || ex.type}</span><h4>Ejercicio ${num}${ex.titulo ? ' · ' + esc(ex.titulo) : ''}</h4>${ex.dificultad ? `<span class="badge ${levelClass(ex.dificultad)}"${ex.dificultadLeccion ? ' title="Dificultad: el nivel de la lección"' : ''}>${esc(ex.dificultad)}</span>` : ''}<span class="status">${done ? '✓ Resuelto' : 'Pendiente'}</span></div>
+      <div class="ex-head"><span class="badge b-type">${TYPE_LABEL[ex.type] || ex.type}</span><h3>Ejercicio ${num}${ex.titulo ? ' · ' + esc(ex.titulo) : ''}</h3>${ex.dificultad ? `<span class="badge ${levelClass(ex.dificultad)}"${ex.dificultadLeccion ? ' title="Dificultad: el nivel de la lección"' : ''}>${esc(ex.dificultad)}</span>` : ''}<span class="status">${done ? '✓ Resuelto' : 'Pendiente'}</span></div>
       <div class="ex-body"><div class="ex-prompt prose">${ex.enunciado}</div></div>
     </section>`);
     slot.replaceWith(card);
@@ -2258,7 +2282,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     });
     const ejs = $$('.exercise', body);
     const cuerpo = () => `${secs.length ? `<ol class="ind-secs">${secs.map((x) => `<li><a href="#${x.id}" data-sec="${x.id}">${esc(x.t)}</a></li>`).join('')}</ol>` : ''}
-      ${ejs.length ? `<div class="indice-t ind-ej-t">Ejercicios <span class="muted" data-ej-cuenta></span></div><div class="ind-ejs">${ejs.map((e, i) => `<a href="#${esc(e.id)}" data-ej="${esc(e.id)}" title="${esc($('.ex-head h4', e)?.textContent || 'Ejercicio ' + (i + 1))}">${i + 1}</a>`).join('')}</div>` : ''}
+      ${ejs.length ? `<div class="indice-t ind-ej-t">Ejercicios <span class="muted" data-ej-cuenta></span></div><div class="ind-ejs">${ejs.map((e, i) => `<a href="#${esc(e.id)}" data-ej="${esc(e.id)}" title="${esc($('.ex-head h3', e)?.textContent || 'Ejercicio ' + (i + 1))}">${i + 1}</a>`).join('')}</div>` : ''}
       <div class="ind-acc"><a class="small" href="#/notas?leccion=${l.id}">📝 Mis notas de esta lección</a></div>`;
     const hosts = [$('#indiceLateral .indice-cuerpo'), $('#indiceMovil .indice-cuerpo')].filter(Boolean);
     if (!secs.length && !ejs.length) { $('#indiceLateral')?.remove(); $('#indiceMovil')?.remove(); $('.leccion-layout')?.classList.add('sin-indice'); return; }
@@ -3924,7 +3948,6 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   updateProgressPill();
   $('#termBtn').addEventListener('click', () => Dock.toggle());
   document.addEventListener('keydown', (e) => { if (e.key === '`' && e.ctrlKey) { e.preventDefault(); Dock.toggle(); } });
-  if (Store.data.editor !== 'simple') Monaco.load().catch(() => {});
   if (window.Sitio) { window.Sitio.iniciar({ Store, toast }); window.Sitio.avisoConsentimiento(); window.Sitio.iniciarMedicion(); }
   route();
 })();

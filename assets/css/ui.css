@@ -177,7 +177,7 @@
 /* ejercicios: el número del ejercicio destaca y el resuelto se reconoce de un vistazo */
 .exercise { scroll-margin-top: calc(var(--topbar-h) + 20px); }
 .exercise.passed .ex-head { background: color-mix(in srgb, var(--ok) 7%, var(--surface-2)); }
-.ex-head h4 { font-size: 15.5px; }
+.ex-head h3, .ex-head h4 { font-size: 15.5px; }
 .lesson-done-bar { border-color: color-mix(in srgb, var(--brand) 25%, var(--line)); }
 .lesson-nav a { transition: border-color .12s, box-shadow .12s; }
 .lesson-nav a:hover { box-shadow: var(--shadow-hover); }
