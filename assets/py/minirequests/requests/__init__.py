@@ -34,6 +34,10 @@ try:
     from js import AlmacenesSolApi as _sol
 except Exception:
     _sol = None
+try:
+    from js import ConectaApi as _conecta
+except Exception:
+    _conecta = None
 
 __version__ = "2.32.3-curso"
 
@@ -57,6 +61,8 @@ if _api is not None and not getattr(_time.sleep, "_curso", False):
             _cuentas.avanzar(segundos)
         if _sol is not None:
             _sol.avanzar(segundos)
+        if _conecta is not None:
+            _conecta.avanzar(segundos)
         _sleep_real(min(float(segundos), 0.01))
 
     _sleep._curso = True
@@ -167,6 +173,8 @@ def request(method, url, params=None, headers=None, json=None, data=None, timeou
         destino = _cuentas
     elif _sol is not None and _sol.esDeLaApi(url):
         destino = _sol
+    elif _conecta is not None and _conecta.esDeLaApi(url):
+        destino = _conecta
     elif _pedalia is not None and _pedalia.esDeLaApi(url):
         destino = _pedalia
     elif _api is not None and _api.esDeLaApi(url):
