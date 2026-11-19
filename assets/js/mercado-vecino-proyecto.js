@@ -187,12 +187,171 @@
     });
   }
 
+  // ================================================================== el día a día: tickets, incidentes y preguntas
+  const DIA = 86400000, MIN = 60000;
+  const norm = (x) => String(x ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+  const casi = (a, b, tol = 0.011) => Math.abs(Number(a) - Number(b)) <= tol;
+  const diaAnterior = (ms) => MV.sumarDias(MV.diaLocal(ms), -1);
+  // ---- la verdad de las preguntas de negocio
+  function pedidosCreadosEl(fecha) { return MV.mundo().cambios.filter((c) => c.tabla === 'pedidos' && c.op === 'c' && MV.diaLocal(c.ts) === fecha).map((c) => c.despues); }
+  function pctSinPagar(fecha) {
+    const ped = pedidosCreadosEl(fecha); const cobrados = new Set(MV.mundo().cobros.filter((c) => c.aprobado <= MV.ahora()).map((c) => c.pedido));
+    const est = MV.estadoEn(MV.ahora()).est.pedidos; const vivos = ped.filter((p) => est.has(p.id));
+    const r1 = (x) => Math.round(x * 1000) / 10;
+    return { real: r1((ped.length - ped.filter((p) => cobrados.has(p.id)).length) / ped.length), realVivos: r1((vivos.length - vivos.filter((p) => cobrados.has(p.id)).length) / vivos.length), soloBase: Math.round((vivos.filter((p) => !est.get(p.id).pago_ref).length / vivos.length) * 1000) / 10, n: ped.length };
+  }
+  function tasaPorRubro(fechas) {
+    const { est } = MV.estadoEn(MV.ahora()); const W = MV.mundo();
+    const rubroDeProducto = new Map(W.ini.productos.map((p) => [p.id, W.ini.vendedores.find((v) => v.id === p.vendedor_id).rubro]));
+    const itemsPorPedido = new Map(); for (const it of est.items_pedido.values()) { if (!itemsPorPedido.has(it.pedido_id)) itemsPorPedido.set(it.pedido_id, new Set()); itemsPorPedido.get(it.pedido_id).add(rubroDeProducto.get(it.producto_id)); }
+    const t = {};
+    for (const f of fechas) for (const p0 of pedidosCreadosEl(f)) { const p = est.pedidos.get(p0.id); if (!p) continue; for (const r of itemsPorPedido.get(p.id) || []) { const x = (t[r] = t[r] || { n: 0, c: 0 }); x.n++; if (p.estado === 'cancelado') x.c++; } }
+    const tasas = Object.entries(t).map(([r, x]) => [r, x.c / x.n]); const max = Math.max(...tasas.map((x) => x[1]));
+    return { tasas, ganadores: tasas.filter((x) => Math.abs(x[1] - max) < 1e-9).map((x) => x[0]) };
+  }
+  function descuentoDel(fecha) {
+    const { est } = MV.estadoEn(MV.ahora());
+    const ps = pedidosCreadosEl(fecha).map((p) => est.pedidos.get(p.id)).filter((p) => p && p.cupon && p.estado !== 'cancelado');
+    return { total: ps.reduce((a, p) => a + p.descuento, 0) / 100, pedidos: ps.length };
+  }
+  const snapshotsCdc = () => MV.mundo().cambios.filter((c) => c.op === 'r' && c.tabla === 'pedidos').length;
+  function conciliacionDiariaVerdad() { return MV.liquidaciones().map((l) => { const L = MV.lineasLiquidacion(l.fecha); const sum = (f, tipo) => L.filter((x) => !tipo || x.tipo === tipo).reduce((a, x) => a + x[f], 0) / 100; return { fecha: l.fecha, cobros: sum('bruto', 'cobro'), reembolsos: sum('bruto', 'reembolso'), contracargos: sum('bruto', 'contracargo'), comisiones: sum('comision'), neto: sum('neto') }; }); }
+  const chequeo = (texto) => CHEQUEOS.find((c) => c[1].startsWith(texto))[2];
+  async function repoMercado() {
+    const G = window.Shell && window.Shell.github; const rem = G && G.remotos ? G.remotos() : {};
+    const [, r] = Object.entries(rem).find(([u]) => /\/mercado-datos(\.git)?$/i.test(u)) || []; return r || null;
+  }
+
+  // ---- los tickets (aparecen con los días, como en un trabajo)
+  const TICKETS = [
+    { id: 'MV-101', tipo: 'requerimiento', de: 'Valentina Ruiz · Finanzas', cuando: (I) => I, titulo: 'Conciliación diaria con PagoYa',
+      texto: 'Lo del correo: una tabla con cada pago aprobado, su pedido, la categoría y si ya se liquidó. La especificación está en "La entrega".',
+      criterios: ['mercado.silver.pedidos al día (snapshot + CDC)', 'mercado.silver.pagoya_eventos sin falsos ni repetidos', 'mercado.gold.conciliacion con las categorías acordadas'],
+      check: async () => { for (const k of ['mercado.silver.pedidos', 'mercado.silver.pagoya_eventos', 'mercado.gold.conciliacion']) { const r = await chequeo(k)(); if (r !== true) return r; } return true; } },
+    { id: 'MV-102', tipo: 'requerimiento', de: 'Legales', cuando: (I) => I, titulo: 'Derecho al olvido en las copias de datos',
+      texto: 'Cuando un cliente pide que borremos sus datos, la app lo anonimiza. Necesitamos que pase lo mismo en todas las copias del equipo de datos, en el mismo día.',
+      criterios: ['mercado.silver.clientes sin email para los clientes anonimizados'], check: () => chequeo('mercado.silver.clientes')() },
+    { id: 'MV-103', tipo: 'requerimiento', de: 'Seguridad', cuando: (I) => I, titulo: 'Credenciales fuera del código',
+      texto: 'Auditoría de rutina: ninguna credencial en scripts, notebooks ni repositorios. Todo en Key Vault.', criterios: ['Las credenciales del correo de accesos guardadas en un Key Vault'], check: () => chequeo('Las credenciales')() },
+    { id: 'MV-104', tipo: 'pregunta', de: 'Martín Paz · Dirección', cuando: (I) => I + 9 * 60 * MIN, titulo: '¿Cuántos pedidos se nos caen sin pagar?',
+      texto: (T) => `Para la reunión de directorio: ¿qué porcentaje de los pedidos creados el ${diaAnterior(T)} (hora de la tienda) nunca se pagó? Con un decimal.`,
+      comentarios: ['Martín: "nunca se pagó" es que la plata no entró, no lo que diga la app.'],
+      respuesta: { tipo: 'numero', unidad: '%', verificar: (v, T) => { const x = pctSinPagar(diaAnterior(T)); if (casi(v, x.real, 0.15) || casi(v, x.realVivos, 0.15)) return true; if (casi(v, x.soloBase, 0.15)) return 'Ese número sale de la base (pago_ref vacío). Hay pedidos que PagoYa cobró y la app nunca marcó como pagados: la plata sí entró.'; return 'No coincide. Cuenta los pedidos creados ese día (hora de Ciudad del Río, la base guarda UTC) y fíjate cuáles tienen un pago aprobado en PagoYa.'; } } },
+    { id: 'MV-105', tipo: 'pregunta', de: 'Rocío Medina · Operaciones', cuando: (I) => I + 11 * 60 * MIN, titulo: '¿Qué rubro cancela más?',
+      texto: (T) => { const d = MV.diaLocal(T); return `Quiero hablar con los comercios que más cancelan. ¿Qué rubro tuvo la mayor tasa de cancelación en los pedidos creados entre el ${MV.sumarDias(d, -3)} y el ${MV.sumarDias(d, -1)}?`; },
+      comentarios: ['Tú: ¿cuento los que vencieron sin pagar?', 'Rocío: sí, todos los cancelados. Y si un pedido tiene productos de dos comercios, cuenta para los dos rubros.', 'Tú: ¿tasa sobre qué?', 'Rocío: cancelados sobre pedidos de ese rubro.'],
+      respuesta: { tipo: 'texto', ayuda: 'El rubro, tal como está en la tabla vendedores', verificar: (v, T) => { const d = MV.diaLocal(T); const x = tasaPorRubro([-3, -2, -1].map((k) => MV.sumarDias(d, k))); if (x.ganadores.some((g) => norm(g) === norm(v))) return true; return x.tasas.some(([r]) => norm(r) === norm(v)) ? 'Ese rubro existe, pero no es el de mayor tasa. ¿Usaste la hora de la tienda para los días y contaste cada pedido en todos sus rubros?' : 'No es un rubro de la tabla vendedores.'; } } },
+    { id: 'MV-106', tipo: 'requerimiento', de: 'Valentina Ruiz · Finanzas', cuando: (I) => I + DIA + 8 * 60 * MIN, titulo: 'Resumen diario que cuadre con el banco (y en Power BI)',
+      texto: 'Gracias por la conciliación. Ahora necesito, por cada liquidación, cuánto fue de cobros, reembolsos, contracargos y comisiones, y el neto. Ese neto tiene que ser exactamente lo que entró al banco. Y lo quiero ver en Power BI, no en una consulta.',
+      criterios: ['mercado.gold.conciliacion_diaria: fecha_liquidacion, cobros, reembolsos, contracargos, comisiones, neto (en pesos, un registro por liquidación publicada)', 'Un informe de Power BI que importe la tabla desde Databricks'],
+      check: async () => {
+        const T = await tabla('mercado.gold.conciliacion_diaria'); if (T.error) return `No se pudo leer mercado.gold.conciliacion_diaria: ${T.error}`;
+        const ix = Object.fromEntries(['fecha_liquidacion', 'cobros', 'reembolsos', 'contracargos', 'comisiones', 'neto'].map((k) => [k, colDe(T, k)])); const falta = Object.entries(ix).filter(([, i]) => i < 0).map(([k]) => k); if (falta.length) return `Faltan columnas: ${falta.join(', ')}.`;
+        const V = conciliacionDiariaVerdad(); const tuyo = new Map(T.filas.map((f) => [fechaTxt(f[ix.fecha_liquidacion]), f])); const mal = [];
+        for (const v of V) { const f = tuyo.get(v.fecha); if (!f) { mal.push(`falta ${v.fecha}`); continue; } for (const k of ['cobros', 'reembolsos', 'contracargos', 'comisiones', 'neto']) if (!casi(Math.abs(num(f[ix[k]])), Math.abs(v[k]))) mal.push(`${v.fecha} ${k}: ${f[ix[k]]} (el reporte da ${v[k].toFixed(2)})`); }
+        const sobran = [...tuyo.keys()].filter((f) => !V.some((v) => v.fecha === f)); if (sobran.length) mal.push(`sobran fechas sin liquidación publicada: ${lista(sobran, 3)}`);
+        if (mal.length) return mal.slice(0, 6).join(' · ') + (mal.some((m) => /neto/.test(m)) ? ' — el neto sale del reporte de liquidación, no de las ventas del día.' : '');
+        const c = (almacen() && almacen().data.cruces) || {}; return c.pbiDatabricks ? true : 'La tabla cuadra. Falta el informe: en Power BI → Obtener datos → Azure Databricks → mercado.gold.conciliacion_diaria → Cargar.';
+      } },
+    { id: 'MV-114', tipo: 'requerimiento', de: 'Valentina Ruiz · Finanzas', cuando: (I) => I + DIA + 8 * 60 * MIN + MIN, titulo: 'Que las liquidaciones lleguen solas todos los días',
+      texto: 'Hoy alguien baja el reporte a mano. Plataforma pide que lo haga Data Factory (es lo que usamos para las ingestas): todos los días a las 07:00, después de que PagoYa publica a las 06:00.',
+      comentarios: ['Plataforma: la API tiene GET /v1/liquidaciones/{fecha}/lineas en JSON, es lo que lee el conector REST. La clave va como cabecera Authorization: Bearer … (guárdenla así en el Key Vault).'],
+      criterios: ['Un pipeline publicado de Data Factory que copie las líneas de una liquidación desde la API de PagoYa al lago (corrida exitosa, no debug)', 'Un trigger diario'],
+      check: async () => {
+        const adf = (window.CloudSim && window.CloudSim.az().adf) || {}; let ok = false, trig = false;
+        for (const F of Object.values(adf)) { const S = F.studio || {}; const restPagoya = Object.entries(S.datasets || {}).filter(([, d]) => d.type === 'RestResource' && /pagoya/.test(((S.linked || {})[d.linked] || {}).url || '')).map(([n]) => n);
+          if (!restPagoya.length) continue;
+          const pipes = Object.entries(S.pipelines || {}).filter(([, P]) => JSON.stringify(P.activities || []).match(new RegExp(restPagoya.map((n) => `"${n}"`).join('|')))).map(([n]) => n);
+          if ((S.runs || []).some((r) => !r.debug && r.estado === 'Succeeded' && pipes.includes(r.pipeline))) ok = true;
+          if (Object.values(S.triggers || {}).some((t) => pipes.some((p) => JSON.stringify(t).includes(p)))) trig = true; }
+        return (ok && trig) || `${ok ? '' : 'No hay una corrida publicada y exitosa de un pipeline que copie desde un dataset REST de PagoYa (linked service REST, Anonymous + cabecera Authorization desde Key Vault). '}${trig ? '' : 'Falta el trigger diario (Add trigger → New → Schedule, 07:00).'}`;
+      } },
+    { id: 'MV-107', tipo: 'incidente', de: 'Rocío Medina · Operaciones', cuando: (I, H) => H.cupones + 22 * 60 * MIN, titulo: 'Los totales no cuadran con el detalle desde ayer',
+      texto: 'Algunos pedidos tienen un total menor que la suma de sus ítems más el envío. ¿Está mal la base o está mal lo de ustedes?',
+      comentarios: ['Martín (app): ayer a las 10 lanzamos cupones de descuento. Agregamos dos columnas a pedidos: descuento y cupon. ¿No les avisamos? Perdón.', 'Plataforma: Debezium manda las columnas nuevas solo desde el cambio de esquema. Los mensajes viejos no las tienen.'],
+      criterios: ['mercado.silver.pedidos con las columnas descuento y cupon, iguales a la base', 'Un postmortem corto en tus notas: qué pasó, cómo te enteraste, qué cambias para enterarte antes'],
+      check: async () => {
+        const T = await tabla('mercado.silver.pedidos'); if (T.error) return T.error; const iId = colDe(T, 'pedido_id', 'id'), iD = colDe(T, 'descuento'), iC = colDe(T, 'cupon'), iL = colDe(T, '_lsn');
+        if (iD < 0 || iC < 0) return 'La tabla todavía no tiene las columnas descuento y cupon (ALTER TABLE … ADD COLUMNS, y el MERGE tiene que llenarlas).';
+        const L = Math.max(...T.filas.map((f) => num(f[iL]) || 0)); const V = MV.estadoEnLsn(L).est.pedidos; const mal = [];
+        for (const f of T.filas) { const v = V.get(num(f[iId])); if (!v || !v.cupon) continue; if (String(f[iC] ?? '') !== v.cupon || !casi(num(f[iD]), v.descuento / 100)) mal.push(f[iId]); }
+        const conCupon = [...V.values()].filter((v) => v.cupon).length;
+        if (!conCupon) return 'Todavía no aplicaste cambios posteriores al lanzamiento de los cupones: consume el CDC.';
+        return !mal.length || `${mal.length} pedidos con cupón tienen otro descuento o cupon (${lista(mal)}).`;
+      } },
+    { id: 'MV-108', tipo: 'pregunta', de: 'Lucas Ferreyra · Marketing', cuando: (I, H) => H.cupones + 23 * 60 * MIN, titulo: '¿Cuánto nos costaron los cupones el primer día?',
+      texto: (T, H) => `¿Cuánto descuento dimos en total con cupones en los pedidos creados el ${MV.diaLocal(H.cupones)}? En pesos.`,
+      comentarios: ['Lucas: solo los pedidos que no se cancelaron, los cancelados no nos costaron nada.'],
+      respuesta: { tipo: 'numero', unidad: '$', verificar: (v, T, H) => { const x = descuentoDel(MV.diaLocal(H.cupones)); return casi(v, x.total, 0.02) || `No coincide (sobre ${x.pedidos} pedidos con cupón no cancelados, si no me equivoco). ¿Excluiste los cancelados y usaste la hora de la tienda?`; } } },
+    { id: 'MV-112', tipo: 'requerimiento', de: 'Carla Núñez · Líder de datos', cuando: (I) => I + DIA + 14 * 60 * MIN, titulo: 'El código va al repositorio, con revisión',
+      texto: 'Si mañana te enfermas, otro tiene que poder correr y entender todo. Repo mercado-datos en GitHub, con el SQL, los scripts y un workflow que al menos valide la sintaxis. Nada de secretos en el repo.',
+      criterios: ['Repositorio mercado-datos en el GitHub de práctica', 'Al menos un pull request fusionado y un workflow en verde'],
+      check: async () => { const r = await repoMercado(); if (!r) return 'Crea el repositorio mercado-datos en el GitHub de práctica, agrégalo como remoto y haz push.'; const pr = (r.prs || []).some((p) => p.estado === 'fusionado'); const run = (r.runs || []).some((x) => x.conclusion === 'success'); const C = MV.claves(); const snap = JSON.stringify(Object.values(r.commits || {}).map((c) => c.snap || {})); const fuga = [C.pagoya, C.pg.clave, C.webhook].some((v) => snap.includes(v)); if (fuga) return 'Hay una credencial dentro del repositorio. Sácala, rótala (en un trabajo real ya se considera filtrada) y léela del Key Vault o de variables.'; return (pr && run) || `${pr ? '' : 'Abre un PR y fusiónalo. '}${run ? '' : 'El workflow tiene que terminar en verde.'}`; } },
+    { id: 'MV-109', tipo: 'requerimiento', de: 'Plataforma', cuando: (I) => I + 2 * DIA + 9 * 60 * MIN, titulo: 'Automatizar: que corra solo cada hora',
+      texto: 'Que nadie tenga que correr nada a mano. Un DAG en Airflow que cada hora consuma el CDC y actualice silver y gold en Databricks. Si se atrasa más de 12 horas, perdemos datos (retención de 24 h).',
+      criterios: ['Un DAG con "mercado" en el dag_id, programado cada hora', 'Que dispare un job de Databricks (DatabricksRunNowOperator)', 'Al menos una corrida exitosa'],
+      check: async () => {
+        if (!(await cargar('airflow', () => window.AirflowMotor))) return 'No se pudo cargar Airflow.'; const AM = window.AirflowMotor; try { await AM.parsear(); } catch (e) { /* nada */ }
+        const ds = (AM.bolsa().dags || []).filter((d) => /mercado/i.test(d.id)); if (!ds.length) return 'No hay ningún DAG con "mercado" en el dag_id en ~/airflow/dags.';
+        const d = ds.find((x) => /@hourly|^0 \* \* \* \*$|^\d{1,2} \* \* \* \*$/.test(String((x.sched || {}).txt || '').trim())) ; if (!d) return `El DAG ${ds[0].id} no está programado cada hora (schedule="@hourly").`;
+        if (!JSON.stringify(d.tasks || []).includes('Databricks')) return `El DAG ${d.id} no tiene una tarea que dispare Databricks.`;
+        return (AM.runs(d.id) || []).some((r) => r.state === 'success') || !!(AM.st().pruebasOk || {})[d.id] || `El DAG ${d.id} todavía no tiene una corrida exitosa (dispáralo en la interfaz o prueba con airflow dags test ${d.id}).`;
+      } },
+    { id: 'MV-110', tipo: 'incidente', de: 'Seguridad', cuando: (I, H) => H.rotacion + 10 * MIN, titulo: 'PagoYa rotó el secreto de firma de los webhooks',
+      texto: 'PagoYa nos avisó que rotó el secreto de firma (rotación anual). Durante 24 horas cada entrega viene firmada con los dos secretos (dos valores v1 en la cabecera). Después, solo con el nuevo. El nuevo está en el correo de accesos (mercado accesos).',
+      criterios: ['El secreto nuevo en el Key Vault y el viejo ya no', 'Tu verificación acepta cualquiera de los v1 de la cabecera (no solo el último)'],
+      check: async () => { const kv = (window.CloudSim && window.CloudSim.az().kv) || {}; const vals = Object.values(kv).flatMap((V) => Object.values(V.secrets || {}).map((x) => (typeof x === 'string' ? x : x && x.value))); const nuevo = MV.claves().webhook; const viejo = 'whsec_' + (MV.claves(MV.hitos().rotacion - 1).webhook.slice(6)); if (!vals.includes(nuevo)) return 'El secreto nuevo no está en ningún Key Vault (az keyvault secret set con el mismo nombre crea una versión nueva).'; if (vals.includes(viejo)) return 'El secreto viejo sigue guardado: actualiza el secreto (nueva versión) en lugar de crear otro.'; return true; } },
+    { id: 'MV-111', tipo: 'incidente', de: 'Plataforma', cuando: (I, H) => H.reinicioCdc + 290 * MIN, titulo: 'Debezium se reinició y volvió a publicar todo',
+      texto: 'A las 04:10 alguien reinició el conector sin sus offsets y Debezium hizo un snapshot completo: miles de mensajes op = "r" en todos los tópicos. ¿Nos duplicó algo? ¿Lo procesamos bien?',
+      criterios: ['mercado.silver.pedidos correcto y al día después del reinicio (sin duplicados)', 'Saber cuántos mensajes de snapshot llegaron al tópico de pedidos (pregunta MV-115)'],
+      check: async () => { const r = await chequeo('mercado.silver.pedidos')(); if (r !== true) return r; const T = await tabla('mercado.silver.pedidos'); const L = Math.max(...T.filas.map((f) => num(f[colDe(T, '_lsn')]) || 0)); const lr = (MV.mundo().cambios.find((c) => c.op === 'r') || {}).lsn; return L >= lr || 'Tu tabla todavía no incluye cambios posteriores al reinicio: consume el CDC (ojo: si tu MERGE solo entiende c, u y d, ¿qué hace con r?).'; } },
+    { id: 'MV-115', tipo: 'pregunta', de: 'Plataforma', cuando: (I, H) => H.reinicioCdc + 291 * MIN, titulo: '¿Cuántos mensajes de snapshot llegaron a pedidos?',
+      texto: '¿Cuántos mensajes con op = "r" publicó Debezium en mv_prod.public.pedidos con el reinicio? Lo necesitamos para el informe del incidente.',
+      comentarios: ['Plataforma: ojo que la retención es de 24 horas.'],
+      respuesta: { tipo: 'numero', unidad: 'mensajes', verificar: (v) => (Number(v) === snapshotsCdc()) || 'No coincide. Un snapshot publica una fila por cada registro que había en la tabla en ese momento.' } },
+    { id: 'MV-113', tipo: 'requerimiento', de: 'Valentina Ruiz · Finanzas', cuando: (I) => I + 2 * DIA + 14 * 60 * MIN, titulo: 'Finanzas trabaja en Snowflake',
+      texto: 'Nuestro contador y el estudio de auditoría consultan todo en Snowflake. Necesitamos el resumen diario ahí, en MERCADO.FINANZAS.CONCILIACION_DIARIA, actualizado cada día.',
+      criterios: ['MERCADO.FINANZAS.CONCILIACION_DIARIA en Snowflake, cargada desde el lago, con el mismo neto que el reporte de cada liquidación'],
+      check: async () => {
+        if (!(await cargar('snowflake', () => window.SnowflakeMotor))) return 'No se pudo cargar Snowflake.'; const SM = window.SnowflakeMotor; SM.conectar(almacen()); await SM.init();
+        let x; try { x = await SM.leer('SELECT CAST(FECHA_LIQUIDACION AS VARCHAR) AS F, NETO FROM MERCADO.FINANZAS.CONCILIACION_DIARIA'); } catch (e) { return `No se pudo leer la tabla: ${String(e.message).split('\n')[0]}`; }
+        if (!x.values.length) return 'La tabla está vacía.'; const V = new Map(conciliacionDiariaVerdad().map((v) => [v.fecha, v.neto]));
+        const mal = x.values.filter(([f, n]) => !V.has(String(f).slice(0, 10)) || !casi(n, V.get(String(f).slice(0, 10)))).map(([f, n]) => `${String(f).slice(0, 10)}: ${n}`);
+        const faltan = [...V.keys()].filter((f) => !x.values.some(([g]) => String(g).slice(0, 10) === f));
+        return (!mal.length && !faltan.length) || `${mal.length ? 'No cuadra: ' + lista(mal, 3) + '. ¿Cargaste dos veces el mismo archivo con FORCE? ' : ''}${faltan.length ? 'Faltan: ' + lista(faltan, 3) : ''}`;
+      } },
+  ];
+  const ICON = { requerimiento: '📋', incidente: '🔥', pregunta: '❓' };
+  function panelTablero(el) {
+    const pintar = () => {
+      Host.sincronizar(); const D = Host.datos(); if (!D) { el.textContent = 'El almacenamiento del navegador no está disponible.'; return; }
+      D.tickets = D.tickets || {}; const I = MV.inicioDiaLocal(MV.cfg.inicio); const H = MV.hitos(); const t = MV.ahora();
+      const visibles = TICKETS.map((k) => ({ ...k, T: k.cuando(I, H) })).filter((k) => k.T <= t).sort((a, b) => a.T - b.T);
+      const futuros = TICKETS.length - visibles.length; const hechos = visibles.filter((k) => D.tickets[k.id] && D.tickets[k.id].hecho).length;
+      const txt = (k) => (typeof k.texto === 'function' ? k.texto(k.T, H) : k.texto);
+      el.innerHTML = `<div class="card mv-panel"><h4 style="margin-top:0">🗂️ Tablero del equipo de datos</h4>
+        <p class="small muted">${visibles.length} tickets abiertos para ti · ${hechos} resueltos${futuros ? ` · <b>${futuros}</b> más van a llegar en los próximos días (como en un trabajo: no sabes cuáles ni cuándo)` : ''}.</p>
+        ${visibles.slice().reverse().map((k) => { const e = D.tickets[k.id] || {}; return `<details class="mv-ticket ${e.hecho ? 'hecho' : ''}" ${e.hecho ? '' : 'open'}><summary>${ICON[k.tipo]} <b>${esc(k.id)}</b> · ${esc(k.titulo)} <span class="small muted">· ${esc(k.de)} · ${esc(MV.tsSql(k.T - 3 * 3600000).slice(0, 16))}</span> ${e.hecho ? '<span class="mv-ok">✅ resuelto</span>' : ''}</summary>
+          <p>${esc(txt(k))}</p>
+          ${(k.comentarios || []).length ? `<div class="mv-hilo">${k.comentarios.map((c) => `<div class="small">💬 ${esc(c)}</div>`).join('')}</div>` : ''}
+          ${k.criterios ? `<p class="small" style="margin-bottom:4px"><b>Criterios de aceptación</b></p><ul class="small">${k.criterios.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}
+          ${k.respuesta ? `<div class="mv-resp"><input class="input" data-r="${k.id}" placeholder="${esc(k.respuesta.ayuda || (k.respuesta.unidad ? 'Respuesta (' + k.respuesta.unidad + ')' : 'Respuesta'))}" value="${esc(e.respuesta || '')}"> <button class="btn btn-primary btn-sm" data-responder="${k.id}">Responder</button></div>` : `<button class="btn btn-sm" data-cerrar="${k.id}">Revisar y cerrar</button>`}
+          <div class="small mv-res" data-res="${k.id}">${e.nota ? esc(e.nota) : ''}</div></details>`; }).join('')}
+      </div>`;
+      const marcar = (id, r, valor) => { const e = (D.tickets[id] = D.tickets[id] || {}); e.intentos = (e.intentos || 0) + 1; if (valor !== undefined) e.respuesta = valor; if (r === true) { e.hecho = Date.now(); e.nota = ''; } else e.nota = r; Host.guardar(); pintar(); };
+      el.querySelectorAll('[data-cerrar]').forEach((b) => b.addEventListener('click', async () => { const k = TICKETS.find((x) => x.id === b.dataset.cerrar); b.disabled = true; b.textContent = 'Revisando…'; let r; try { r = await k.check(); } catch (e) { r = String(e.message || e); } marcar(k.id, r); }));
+      el.querySelectorAll('[data-responder]').forEach((b) => b.addEventListener('click', () => { const k = TICKETS.find((x) => x.id === b.dataset.responder); const v = el.querySelector(`[data-r="${k.id}"]`).value.trim(); if (!v) return; const val = k.respuesta.tipo === 'numero' ? Number(v.replace(/[%$\s]/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.')) : v; const T = k.cuando(MV.inicioDiaLocal(MV.cfg.inicio), MV.hitos()); let r; try { r = k.respuesta.tipo === 'numero' && !Number.isFinite(val) ? 'Escribe un número.' : k.respuesta.verificar(val, T, MV.hitos()); } catch (e) { r = String(e.message || e); } marcar(k.id, r, v); }));
+    };
+    pintar();
+    const iv = setInterval(() => { if (!document.body.contains(el)) return clearInterval(iv); if (!el.querySelector('input:focus')) pintar(); }, 60000);
+  }
+
   function montar(root) {
     (root || document).querySelectorAll('[data-mercado]').forEach((el) => {
       if (el.dataset.montado) return; el.dataset.montado = '1';
       const k = el.dataset.mercado;
-      if (k === 'accesos') panelAccesos(el); else if (k === 'fuentes') panelFuentes(el); else if (k === 'revisar') panelRevisar(el);
+      if (k === 'accesos') panelAccesos(el); else if (k === 'fuentes') panelFuentes(el); else if (k === 'revisar') panelRevisar(el); else if (k === 'tablero') panelTablero(el);
     });
   }
-  window.MercadoVecino = { montar, CHEQUEOS };
+  window.MercadoVecino = { montar, CHEQUEOS, TICKETS, verdad: { pctSinPagar, tasaPorRubro, descuentoDel, snapshotsCdc, conciliacionDiariaVerdad } };
 })();

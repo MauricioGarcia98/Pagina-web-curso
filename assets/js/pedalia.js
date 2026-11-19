@@ -199,8 +199,8 @@ Siguiente paso: subirlos al contenedor landing del lago, por ejemplo:
     const quiereReplica = (a) => {
       const dir = Sh.HOME + '/airflow/dags/'; const fs0 = Sh.Machine.fs || {};
       const pys = Object.keys(fs0).filter((k) => k.startsWith(dir) && k.endsWith('.py') && fs0[k].t === 'f');
+      if (a[0] === 'connections' && (pys.length || window.AirflowMotor)) return true;
       if (!pys.length) return false;
-      if (a[0] === 'connections') return true;
       const txt = pys.map((k) => fs0[k].c || '').join('\n');
       return a.slice(1).some((x) => /^[\w.-]+$/.test(x) && (txt.includes(`"${x}"`) || txt.includes(`'${x}'`)));
     };

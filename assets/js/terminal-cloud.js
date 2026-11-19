@@ -332,6 +332,11 @@
     // ---- keyvault
     if (p[0] === 'keyvault') {
       const vn = A.get('--vault-name', '--name', '-n');
+      if (p[1] === 'show') {
+        const V = s.kv[vn]; if (!vn || vn === true) return fail('the following arguments are required: --name/-n', 2);
+        if (!V) return fail(`(ResourceNotFound) The Resource 'Microsoft.KeyVault/vaults/${vn}' under resource group was not found.`, 3);
+        return output({ id: `${azRgId(V.rg)}/providers/Microsoft.KeyVault/vaults/${vn}`, name: vn, location: V.location, resourceGroup: V.rg, properties: { vaultUri: `https://${vn}.vault.azure.net/`, enableRbacAuthorization: true, tenantId: '72f988bf-0000-4000-8000-2d7cd011db47' } }, A);
+      }
       if (p[1] === 'create') {
         const rg = A.get('--resource-group', '-g') || s.defaults.group;
         const e = need(A, [['--name', '-n']]) || azNeedRg(s, rg); if (e) return fail(e, 2);

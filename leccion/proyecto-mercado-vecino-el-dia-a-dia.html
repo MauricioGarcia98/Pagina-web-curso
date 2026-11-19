@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El día a día - tickets, incidentes y preguntas de negocio · Academia de Datos</title><meta name="description" content="La entrega inicial es solo el comienzo. Durante los días siguientes llegan pedidos nuevos de finanzas, marketing, operaciones, seguridad y plataforma; la app cambia sin avisar; PagoYa rota un secreto; el conector del CDC se reinicia. Todo aparece en el tablero del equipo, con su revisión automática, y te obliga a usar las otras herramientas - Data Factory, Airflow, Power BI, Snowflake y GitHub - como en una empresa."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-mercado-vecino-el-dia-a-dia.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El día a día - tickets, incidentes y preguntas de negocio · Academia de Datos"><meta property="og:description" content="La entrega inicial es solo el comienzo. Durante los días siguientes llegan pedidos nuevos de finanzas, marketing, operaciones, seguridad y plataforma; la app cambia sin avisar; PagoYa rota un secreto; el conector del CDC se reinicia. Todo aparece en el tablero del equipo, con su revisión automática, y te obliga a usar las otras herramientas - Data Factory, Airflow, Power BI, Snowflake y GitHub - como en una empresa."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-mercado-vecino-el-dia-a-dia.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-mercado-vecino">🛒 Proyecto 2: Mercado Vecino, conciliar la app con la pasarela de pagos</a> · Avanzado · 40 min</div>
+<h1>El día a día - tickets, incidentes y preguntas de negocio</h1><p class="resumen">La entrega inicial es solo el comienzo. Durante los días siguientes llegan pedidos nuevos de finanzas, marketing, operaciones, seguridad y plataforma; la app cambia sin avisar; PagoYa rota un secreto; el conector del CDC se reinicia. Todo aparece en el tablero del equipo, con su revisión automática, y te obliga a usar las otras herramientas - Data Factory, Airflow, Power BI, Snowflake y GitHub - como en una empresa.</p>
+<a class="cta" href="../index.html#/l/proyecto-mercado-vecino-el-dia-a-dia">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Priorizar un tablero con requerimientos, incidentes y preguntas</li><li>Pedir aclaraciones antes de calcular una métrica ambigua</li><li>Responder preguntas de negocio con números que se puedan defender</li><li>Absorber cambios de esquema y de credenciales sin perder datos</li><li>Conectar la solución con orquestación, BI, el almacén de finanzas y el repositorio</li><li>Escribir un postmortem útil</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Miércoles, 9:00</div>
+
+<p>Entregaste la conciliación. Valentina está contenta y, como pasa siempre, eso trae más trabajo. En el tablero del equipo ya hay preguntas de dirección y de operaciones, y Carla, tu líder, te avisa que en los próximos días plataforma y seguridad van a pedir lo suyo.</p>
+</div>
+
+
+<h2>El tablero</h2>
+<div></div>
+
+<p>Los tickets <strong>aparecen con los días</strong>, a la hora en que alguien los escribiría, según cuándo empezaste el proyecto. No es un orden de lectura: es tu cola de trabajo. Cada uno se cierra solo cuando la revisión lee el estado real de tus herramientas (o tu respuesta) y da bien.</p>
+<h2>Cómo trabaja un equipo de datos con esto</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Qué es</th>
+<th>Cómo se atiende</th>
+</tr>
+</thead><tbody><tr>
+<td>🔥 <strong>Incidente</strong></td>
+<td>Algo dejó de funcionar o los números están mal <em>ahora</em></td>
+<td>Primero. Contienes (que no empeore), arreglas, verificas y escribes el postmortem</td>
+</tr>
+<tr>
+<td>❓ <strong>Pregunta</strong></td>
+<td>Alguien necesita un número para decidir</td>
+<td>Aclaras la definición, calculas, y respondes con el número <strong>y</strong> cómo lo calculaste</td>
+</tr>
+<tr>
+<td>📋 <strong>Requerimiento</strong></td>
+<td>Algo nuevo que construir</td>
+<td>Se planifica: criterios de aceptación, estimación, PR, revisión</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Las preguntas de negocio no son consultas</div>
+
+<p>&quot;¿Cuántos pedidos se nos caen sin pagar?&quot; parece una línea de SQL, pero antes hay que decidir qué es &quot;caerse&quot;, qué es &quot;pagar&quot; y qué día es &quot;ayer&quot; (¿en UTC o en hora de la tienda?). En los tickets vas a ver el hilo de aclaraciones: léelo antes de calcular. Cuando respondas en un trabajo de verdad, acompaña el número con la definición que usaste (&quot;pedidos creados el 18, hora de Ciudad del Río; pagado = con pago aprobado en PagoYa&quot;). Así nadie compara peras con manzanas.</p>
+</div>
+
+
+<h2>Las herramientas que vas a necesitar</h2>
+<p>Ningún ticket te dice qué herramienta usar, pero cada área ya tiene las suyas:</p>
+<ul>
+<li><strong>Data Factory</strong> es lo que plataforma usa para las ingestas programadas. Su conector REST se autentica con OAuth (como en Pedalia) o, para una API con clave como PagoYa, con <em>Anonymous</em> más una cabecera <code>Authorization</code> cuyo valor sale del Key Vault.</li>
+<li><strong>Airflow</strong> orquesta todo lo que corre solo: un DAG puede disparar el pipeline de Data Factory y el job de Databricks que consume el CDC.</li>
+<li><strong>Power BI</strong> es donde finanzas mira los números. Se conecta a Databricks.</li>
+<li><strong>Snowflake</strong> es donde trabajan el contador y la auditoría. Se carga desde el lago con un stage externo, como en Pedalia.</li>
+<li><strong>GitHub</strong>: el código del equipo, con PRs y un workflow. Sin secretos.</li>
+<li><strong>Jupyter, Excel o el SQL de Databricks</strong> para las preguntas: lo que te resulte más rápido y más fácil de explicar.</li>
+</ul>
+<h2>Cuando algo se rompe: el postmortem</h2>
+<p>Cada incidente se cierra con un postmortem corto en <a href="#/notas">Mis notas</a>. No busca culpables: busca que no vuelva a pasar.</p>
+<pre><code class="language-text">Incidente: &lt;título&gt;                      Fecha: &lt;día&gt;
+Impacto:   qué números estuvieron mal, para quién y durante cuánto tiempo
+Detección: cómo nos enteramos (¿una persona? ¿una alerta?) y cuánto tardamos
+Causa:     qué pasó de verdad (no &quot;error humano&quot;: qué permitió el error)
+Arreglo:   qué hicimos para volver a la normalidad
+Acciones:  qué cambiamos para enterarnos antes o para que no se repita (con responsable)</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Lo que más se olvida</div>
+
+<p>Que <strong>nadie te avisa</strong> de los cambios: la app agrega columnas, un proveedor rota un secreto, alguien reinicia un conector. Un buen pipeline no lo adivina, pero tampoco se queda callado: falla con un mensaje claro o genera una alerta. En cada postmortem pregúntate qué alerta te hubiera avisado antes que la persona que escribió el ticket.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>El trabajo no termina con la entrega: llegan <strong>requerimientos</strong>, <strong>incidentes</strong> y <strong>preguntas</strong>, y se atienden en ese orden de urgencia (incidentes primero).</li>
+<li>Una pregunta de negocio empieza por <strong>la definición</strong>: léela en el hilo o pregúntala.</li>
+<li>Los cambios llegan <strong>sin aviso</strong>: esquema, credenciales, conectores. Prepara el pipeline para fallar ruidosamente.</li>
+<li>Cada área usa su herramienta: la solución completa cruza Data Factory, Databricks, Airflow, Power BI, Snowflake y GitHub.</li>
+<li>Cada incidente termina en un <strong>postmortem</strong> con acciones concretas.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-mercado-vecino-el-dia-a-dia">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-mercado-vecino-la-entrega.html">← La entrega - qué tablas, con qué columnas, y la revisión automática</a><a href="proyecto-arquitectura.html">El proyecto final: arquitectura de punta a punta →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

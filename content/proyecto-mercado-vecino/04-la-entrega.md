@@ -74,7 +74,7 @@ La realidad sigue cambiando (llegan disputas, reembolsos, liquidaciones): la rev
 - **Orquestar**: un DAG de Airflow o un job de Databricks que corra todo cada hora, con el offset de Kafka guardado en una tabla de control.
 - **Alertas**: avisar si el grupo de consumo se atrasa más de 12 horas (antes de que la retención borre algo).
 - **Calidad**: una tabla de "entregas rechazadas" (firma inválida, repetición) con el motivo, para que seguridad la mire.
-- **El correo a Valentina**: una tabla `gold.conciliacion_diaria` con, por día, cobrado, reembolsado, contracargos, comisiones y neto, que cuadre con cada liquidación.
+- **Lo que viene**: en [El día a día](#/l/proyecto-mercado-vecino-el-dia-a-dia) van a llegar más pedidos (el resumen diario para el banco, la automatización, Snowflake, el repositorio) e incidentes.
 
 ## Ejercicios
 

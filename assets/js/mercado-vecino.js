@@ -66,13 +66,14 @@
     }
 
     // ---------------------------------------------------------------- accesos (propios de cada estudiante)
-    function claves() {
+    function claves(t = ahora()) {
       const b64 = (tag) => { const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'; let o = ''; for (let i = 0; i < 43; i++) o += A[h32(cfg.semilla, tag, i) % 64]; return o + '='; };
       return {
         pg: { host: 'mv-prod-replica.postgres.database.azure.com', puerto: 5432, base: 'mercado', usuario: 'lector_datos', clave: 'Lx' + hex('pg', 12) + '!7' },
         eh: { broker: 'mv-eventos.servicebus.windows.net:9093', cs: `Endpoint=sb://mv-eventos.servicebus.windows.net/;SharedAccessKeyName=lector-lago;SharedAccessKey=${b64('eh')}` },
         pagoya: 'sk_test_' + hex('sk', 24),
-        webhook: 'whsec_' + hex('wh', 32),
+        webhook: t >= hitos().rotacion ? 'whsec_' + hex('wh2', 32) : 'whsec_' + hex('wh', 32),
+        webhookAnterior: t >= hitos().rotacion && t < hitos().rotacion + DIA ? 'whsec_' + hex('wh', 32) : null,
       };
     }
 
@@ -97,6 +98,11 @@
     const sinTilde = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
     const T0 = () => inicioDiaLocal(cfg.inicio) - DIAS_HISTORIA * DIA; // desde acá la tienda usa PagoYa
+    // lo que va a pasar en la empresa mientras trabajas (propio de cada estudiante, desde el día en que empezaste)
+    function hitos() {
+      const i = inicioDiaLocal(cfg.inicio);
+      return { cupones: i + DIA + 10 * HORA, rotacion: i + 2 * DIA + 15 * HORA, reinicioCdc: i + 3 * DIA + 4 * HORA + 10 * MIN };
+    }
     const HORIZONTE = () => inicioDiaLocal(cfg.inicio) + DIAS_VIVOS * DIA;
     const ANONIMO = { nombre: '(eliminado)', email: null, telefono: null };
 
@@ -126,7 +132,13 @@
         for (let j = 0; j < k; j++) { let p = R.int(1, NP); while (usados.has(p)) p = (p % NP) + 1; usados.add(p); its.push({ id: ++itemId, pedido_id: pedidoId, producto_id: p, cantidad: R.pickW([1, 2, 3], [70, 22, 8]), precio_unitario: precios[p] }); }
         return its;
       };
-      const totales = (its) => { const sub = its.reduce((a, x) => a + x.cantidad * x.precio_unitario, 0); const env = sub >= 250000 ? 0 : 19000; return { subtotal: sub, envio: env, total: sub + env }; };
+      const totales = (its, cupon) => {
+        const sub = its.reduce((a, x) => a + x.cantidad * x.precio_unitario, 0); const env = sub >= 250000 ? 0 : 19000;
+        if (cupon === undefined) return { subtotal: sub, envio: env, total: sub + env };
+        const desc = cupon === 'VECINO10' ? Math.min(Math.round(sub * 0.10), 40000) : cupon === 'BIENVENIDA15' ? Math.min(Math.round(sub * 0.15), 60000) : cupon === 'ENVIOGRATIS' ? env : 0;
+        return { subtotal: sub, envio: env, descuento: desc, cupon: cupon || null, total: sub + env - desc };
+      };
+      const H = hitos();
       // pedidos viejos (antes de PagoYa: se cobraban con CobroSur)
       for (let i = 1; i <= N_PED0; i++) {
         const R = azar(h32(s, 'ped0', i)); const c = t0 - 60 * DIA + Math.floor(i * (59 * DIA) / N_PED0) + R.int(0, 3000) * SEG;
@@ -167,7 +179,9 @@
           let cid;
           if (R.chance(0.2)) { cid = ++maxCli; const tc = c - R.int(2, 9) * MIN; intento(tc, 'clientes', 'c', cid, nuevoCliente(cid, azar(h32(s, 'cli', cid)), tc)); clientesVivos.push(cid); }
           else { do { cid = R.pick(clientesVivos); } while (anonimos.has(cid)); if (R.chance(0.02)) { const tt = c - R.int(1, 30) * MIN; intento(tt, 'clientes', 'u', cid, { telefono: `09${R.int(1, 9)} ${R.int(100, 999)} ${R.int(100, 999)}`, actualizado_en: tt }); } }
-          const its = armarItems(R, id); let tt = totales(its);
+          const its = armarItems(R, id);
+          const cupon = c >= H.cupones ? (R.chance(0.22) ? (cid > N_CLI0 && R.chance(0.5) ? 'BIENVENIDA15' : R.pick(['VECINO10', 'VECINO10', 'ENVIOGRATIS'])) : null) : undefined;
+          let tt = totales(its, cupon);
           intento(c, 'pedidos', 'c', id, { id, cliente_id: cid, estado: 'creado', ...tt, proveedor_pago: 'pagoya', pago_ref: null, creado_en: c, actualizado_en: c }, tx);
           for (const it of its) intento(c, 'items_pedido', 'c', it.id, it, tx);
           if (R.chance(0.12)) {
@@ -182,7 +196,7 @@
           }
           let tPago = c + R.int(2, 12) * MIN;
           if (its.length >= 2 && R.chance(0.06)) { // sacó un producto antes de pagar
-            const tq = c + R.int(60, 230) * SEG; const sacado = its.pop(); tt = totales(its);
+            const tq = c + R.int(60, 230) * SEG; const sacado = its.pop(); tt = totales(its, cupon);
             intento(tq, 'items_pedido', 'd', sacado.id, null); intento(tq, 'pedidos', 'u', id, { ...tt, actualizado_en: tq });
             tPago = c + R.int(5, 12) * MIN;
           }
@@ -210,7 +224,12 @@
       I.sort((a, b) => a.ts - b.ts || a.tx - b.tx);
       const est = {}; for (const t of Object.keys(ini)) est[t] = new Map(ini[t].map((r) => [r.id, r]));
       const cambios = []; let lsn = 0x5A00_0000;
+      let reiniciado = false; const tx0 = 900000;
       for (const x of I) {
+        if (!reiniciado && x.ts > H.reinicioCdc) { // alguien borró los offsets del conector: snapshot completo otra vez (op r)
+          reiniciado = true; lsn += 512; let k = 0;
+          for (const tb of ['vendedores', 'productos', 'clientes', 'pedidos', 'items_pedido']) for (const r of [...est[tb].values()].sort((a, b) => a.id - b.id)) cambios.push({ i: cambios.length, lsn, ts: H.reinicioCdc + Math.floor(k++ / 40) * 100, tx: tx0, tabla: tb, op: 'r', id: r.id, antes: null, despues: r, snapshot: true });
+        }
         const M = est[x.tabla]; const antes = M.get(x.id) || null;
         let despues = null;
         if (x.op === 'c') despues = { ...x.datos };
@@ -246,20 +265,23 @@
       pedidos: ['id', 'cliente_id', 'estado', 'subtotal', 'envio', 'total', 'proveedor_pago', 'pago_ref', 'creado_en', 'actualizado_en'],
       items_pedido: ['id', 'pedido_id', 'producto_id', 'cantidad', 'precio_unitario'],
     };
-    const DINERO = new Set(['precio', 'subtotal', 'envio', 'total', 'precio_unitario']);
+    const DINERO = new Set(['precio', 'subtotal', 'envio', 'descuento', 'total', 'precio_unitario']);
     const FECHAS = new Set(['creado_en', 'actualizado_en']);
     // fila como la guarda PostgreSQL: dinero en pesos con 2 decimales, fechas UTC sin zona
-    function filaSql(tabla, r) { const o = {}; for (const c of COLUMNAS[tabla]) { const v = r[c]; o[c] = v == null ? null : DINERO.has(c) ? pesos(v) : FECHAS.has(c) ? tsSql(v) : v; } return o; }
+    const COLS_CUPON = ['descuento', 'cupon'];
+    function columnasEn(tabla, t) { return tabla === 'pedidos' && t >= hitos().cupones ? [...COLUMNAS.pedidos, 'descuento', 'cupon'] : COLUMNAS[tabla]; }
+    const conDefecto = (tabla, r, t) => (tabla === 'pedidos' && t >= hitos().cupones && r.descuento === undefined ? { ...r, descuento: 0, cupon: null } : r);
+    function filaSql(tabla, r0, t = ahora()) { const r = conDefecto(tabla, r0, t); const o = {}; for (const c of columnasEn(tabla, t)) { const v = r[c]; o[c] = v == null ? null : DINERO.has(c) ? pesos(v) : FECHAS.has(c) ? tsSql(v) : v; } return o; }
 
     // ---------------------------------------------------------------- CDC: Debezium → Event Hubs (Kafka)
     const TEMA = (t) => `mv_prod.public.${t}`;
     const TABLAS_CDC = ['clientes', 'productos', 'pedidos', 'items_pedido', 'vendedores'];
     const IDENT_COMPLETA = new Set(['clientes', 'pedidos']); // REPLICA IDENTITY FULL: el "before" viene completo
-    function valorDebezium(tabla, r) { if (!r) return null; const o = {}; for (const c of COLUMNAS[tabla]) { const v = r[c]; o[c] = v == null ? null : DINERO.has(c) ? pesos(v) : FECHAS.has(c) ? v * 1000 : v; } return o; }
+    function valorDebezium(tabla, r0, t) { if (!r0) return null; const r = conDefecto(tabla, r0, t); const o = {}; for (const c of columnasEn(tabla, t)) { const v = r[c]; o[c] = v == null ? null : DINERO.has(c) ? pesos(v) : FECHAS.has(c) ? v * 1000 : v; } return o; }
     function mensaje(c, offset) {
-      const antes = c.op === 'c' ? null : IDENT_COMPLETA.has(c.tabla) ? valorDebezium(c.tabla, c.antes) : c.op === 'd' ? { id: c.id } : null;
+      const antes = c.op === 'c' || c.op === 'r' ? null : IDENT_COMPLETA.has(c.tabla) ? valorDebezium(c.tabla, c.antes, c.ts) : c.op === 'd' ? { id: c.id } : null;
       const ts = c.ts + 180 + (h32(cfg.semilla, 'k', c.i) % 700);
-      const valor = { before: antes, after: c.op === 'd' ? null : valorDebezium(c.tabla, c.despues), source: { version: '2.7.3.Final', connector: 'postgresql', name: 'mv_prod', ts_ms: c.ts, snapshot: 'false', db: 'mercado', sequence: null, schema: 'public', table: c.tabla, txId: c.tx, lsn: c.lsn, xmin: null }, op: c.op, ts_ms: ts, transaction: null };
+      const valor = { before: antes, after: c.op === 'd' ? null : valorDebezium(c.tabla, c.despues, c.ts), source: { version: '2.7.3.Final', connector: 'postgresql', name: 'mv_prod', ts_ms: c.ts, snapshot: c.snapshot ? 'true' : 'false', db: 'mercado', sequence: null, schema: 'public', table: c.tabla, txId: c.tx, lsn: c.lsn, xmin: null }, op: c.op, ts_ms: ts, transaction: null };
       return { offset, ts, clave: JSON.stringify({ id: c.id }), valor: JSON.stringify(valor), tema: TEMA(c.tabla), particion: 0 };
     }
     // el conector hizo su snapshot inicial (op r) cuando se creó, hace días: esos offsets ya vencieron
@@ -325,7 +347,8 @@
     }
     /** Entregas recibidas en (desde, hasta] por un endpoint creado en `alta`, para los tipos pedidos. */
     function entregas(alta, desde, hasta, tipos) {
-      const sec = claves().webhook; const endpoint = 'we_' + hex('we', 14); const tiposSet = new Set(tipos && tipos.length ? tipos : TIPOS_WEBHOOK);
+      const firmaEn = (t, cuerpo) => { const C = claves(t * 1000); return C.webhookAnterior ? `t=${t},v1=${hmacHex(C.webhook, `${t}.${cuerpo}`)},v1=${hmacHex(C.webhookAnterior, `${t}.${cuerpo}`)}` : firmar(t, cuerpo, C.webhook); };
+      const endpoint = 'we_' + hex('we', 14); const tiposSet = new Set(tipos && tipos.length ? tipos : TIPOS_WEBHOOK);
       const out = [];
       for (const e of mundo().eventosPY) {
         if (e.ts < alta || e.ts > hasta) continue; if (e.ts < desde - 12 * HORA) continue; if (!tiposSet.has(e.tipo)) continue;
@@ -334,8 +357,8 @@
         const reintentos = [MIN, 5 * MIN, 30 * MIN, 2 * HORA, 5 * HORA, 10 * HORA]; let k = 0; const base = at;
         while (enCaida(at) && k < reintentos.length) at = base + reintentos[k++];
         const t = Math.floor(at / 1000);
-        const lista = [[at + R.int(30, 600), firmar(t, cuerpo, sec), 0]];
-        if (R.chance(0.03)) { const at2 = at + R.int(5, 50) * MIN; lista.push([at2 + R.int(30, 600), firmar(Math.floor(at2 / 1000), cuerpo, sec), 1]); } // la función tardó en responder 2xx: PagoYa reintenta
+        const lista = [[at + R.int(30, 600), firmaEn(t, cuerpo), 0]];
+        if (R.chance(0.03)) { const at2 = at + R.int(5, 50) * MIN; lista.push([at2 + R.int(30, 600), firmaEn(Math.floor(at2 / 1000), cuerpo), 1]); } // la función tardó en responder 2xx: PagoYa reintenta
         for (const [ms, firma, n] of lista) if (ms > desde && ms <= hasta) out.push(entregaDe(e.id + ':' + n, ms, cuerpo, firma, endpoint));
       }
       // tráfico que no es de PagoYa: alguien prueba el endpoint con eventos inventados, y repeticiones viejas
@@ -351,7 +374,7 @@
         }
         if (R.chance(0.03)) { // repetición: alguien reenvía una entrega vieja tal cual (firma válida, pero de hace días)
           const ms = th + R.int(10, 3590) * SEG; const viejos = mundo().eventosPY.filter((e) => e.ts < ms - 26 * HORA && e.ts >= alta && tiposSet.has(e.tipo));
-          if (viejos.length && ms > desde && ms <= hasta) { const e = viejos[R.int(Math.max(0, viejos.length - 200), viejos.length - 1)]; const cuerpo = JSON.stringify(eventoPublico(e)); const t = Math.floor((e.ts + 2000) / 1000); out.push(entregaDe('rep:' + h, ms, cuerpo, firmar(t, cuerpo, sec), endpoint)); }
+          if (viejos.length && ms > desde && ms <= hasta) { const e = viejos[R.int(Math.max(0, viejos.length - 200), viejos.length - 1)]; const cuerpo = JSON.stringify(eventoPublico(e)); const t = Math.floor((e.ts + 2000) / 1000); out.push(entregaDe('rep:' + h, ms, cuerpo, firmaEn(t, cuerpo), endpoint)); }
         }
       }
       return out.sort((a, b) => a.recibido - b.recibido);
@@ -408,7 +431,8 @@
         L = L.slice().reverse(); // los más nuevos primero
         if (q.despues_de) { const i = L.findIndex((e) => e.id === q.despues_de); if (i < 0) return ERR(400, 'pedido_invalido', `No existe el evento ${q.despues_de} (o tiene más de 30 días).`); L = L.slice(i + 1); }
         if (q.antes_de) { const i = L.findIndex((e) => e.id === q.antes_de); if (i < 0) return ERR(400, 'pedido_invalido', `No existe el evento ${q.antes_de}.`); L = L.slice(Math.max(0, i - lim), i); return res(200, { objeto: 'lista', url: '/v1/eventos', hay_mas: i - lim > 0, datos: L.map(eventoPublico) }); }
-        return res(200, { objeto: 'lista', url: '/v1/eventos', hay_mas: L.length > lim, datos: L.slice(0, lim).map(eventoPublico) });
+        const pag = L.slice(0, lim); const sig = new URL(url); sig.searchParams.set('despues_de', pag.length ? pag[pag.length - 1].id : ''); sig.searchParams.delete('antes_de');
+        return res(200, { objeto: 'lista', url: '/v1/eventos', hay_mas: L.length > lim, url_siguiente: L.length > lim ? sig.toString() : null, datos: pag.map(eventoPublico) });
       }
       if ((m = /^\/v1\/eventos\/(evt_\w+)$/.exec(ruta))) { const e = eventosHasta(t).find((x) => x.id === m[1]); return e ? res(200, eventoPublico(e)) : ERR(404, 'pedido_invalido', `No existe el evento ${m[1]}.`); }
       if (ruta === '/v1/pagos') {
@@ -425,6 +449,10 @@
         return res(200, { objeto: 'lista', url: '/v1/disputas', hay_mas: false, datos: D });
       }
       if (ruta === '/v1/liquidaciones') return res(200, { objeto: 'lista', url: '/v1/liquidaciones', hay_mas: false, datos: liquidaciones(t) });
+      if ((m = /^\/v1\/liquidaciones\/(\d{4}-\d{2}-\d{2})\/lineas$/.exec(ruta))) {
+        if (!liquidacionDisponible(m[1], t)) return ERR(404, 'pedido_invalido', `No hay liquidación para ${m[1]} (todavía). Se publican a las 06:00 hora de Ciudad del Río.`);
+        return res(200, { objeto: 'lista', url: ruta, hay_mas: false, url_siguiente: null, datos: lineasLiquidacion(m[1]).map((l) => ({ fecha_liquidacion: m[1], tipo: l.tipo, pago_id: l.pago, pedido_id: String(l.pedido), bruto: l.bruto, comision: l.comision, neto: l.neto, moneda: 'CRP' })) });
+      }
       if ((m = /^\/v1\/liquidaciones\/(\d{4}-\d{2}-\d{2})(\/reporte\.csv)?$/.exec(ruta))) {
         if (!liquidacionDisponible(m[1], t)) return ERR(404, 'pedido_invalido', `No hay liquidación para ${m[1]} (todavía). Las liquidaciones se publican a las 06:00 hora de Ciudad del Río del día de pago.`);
         if (m[2]) return res(200, reporteCsv(m[1]), { 'content-disposition': `attachment; filename="liquidacion_${m[1]}.csv"` });
@@ -442,7 +470,7 @@
       avanzar(seg) { cfg.desfase += Math.max(0, Number(seg) || 0) * 1000; },
     };
     const MUNDO = {
-      cfg, ahora, claves, mundo, estadoEn, estadoEnLsn, COLUMNAS, filaSql, valorDebezium, TABLAS_CDC, TEMA, kafkaTemas, kafkaLeer, offsetPorTiempo,
+      cfg, ahora, claves, hitos, columnasEn, mundo, estadoEn, estadoEnLsn, COLUMNAS, filaSql, valorDebezium, TABLAS_CDC, TEMA, kafkaTemas, kafkaLeer, offsetPorTiempo,
       eventosHasta, eventoPublico, pagoEn, lineasLiquidacion, liquidaciones, liquidacionDisponible, reporteCsv, entregas, TIPOS_WEBHOOK, caida,
       conciliacion, categoriaEn, fechaLiqCobro, hmacHex, firmar, diaLocal, inicioDiaLocal, msDeDia, sumarDias, T0, RETENCION_KAFKA, ANONIMO, tsSql, pesos, API,
     };

@@ -212,7 +212,8 @@ CDC (Debezium → Event Hubs, protocolo Kafka)
 PagoYa (modo prueba)
   API:            https://api.pagoya.example/v1   (Authorization: Bearer <clave>)
   clave secreta:  ${C.pagoya}
-  secreto firma:  ${C.webhook}   (webhooks: cabecera PagoYa-Signature)`);
+  secreto firma:  ${C.webhook}   (webhooks: cabecera PagoYa-Signature)${C.webhookAnterior ? `
+  secreto anterior (válido hasta ${new Date(MV.hitos().rotacion + 86400000).toISOString().slice(0, 16)} UTC): ${C.webhookAnterior}` : ''}`);
     });
 
     // ---------------------------------------------------------------- psql contra la réplica (PostgreSQL real)
@@ -235,6 +236,7 @@ CREATE INDEX items_pedido_pedido_id_idx ON items_pedido (pedido_id);
 COMMENT ON TABLE pedidos IS 'Pedidos de la tienda. estado: creado, pagado, enviado, entregado, cancelado';
 COMMENT ON COLUMN pedidos.proveedor_pago IS 'cobrosur (hasta el cambio de pasarela) o pagoya';
 COMMENT ON COLUMN pedidos.pago_ref IS 'Id del pago en la pasarela (py_… en PagoYa)';`;
+  const ALTER_CUPONES = "ALTER TABLE pedidos ADD COLUMN descuento numeric(12,2) NOT NULL DEFAULT 0, ADD COLUMN cupon text; COMMENT ON COLUMN pedidos.descuento IS 'Descuento del cupón, en pesos. total = subtotal + envio - descuento';";
   const lit = (v) => (v == null ? 'NULL' : typeof v === 'number' ? String(v) : typeof v === 'boolean' ? (v ? 'true' : 'false') : `'${String(v).replace(/'/g, "''")}'`);
   const PG = { db: null, cargando: null, t: 0, clave: null };
   const lag = () => 2000 + (Math.floor(Date.now() / 60000) % 7) * 1500; // la réplica va unos segundos atrás
@@ -250,11 +252,12 @@ COMMENT ON COLUMN pedidos.pago_ref IS 'Id del pago en la pasarela (py_… en Pag
         const id = (x) => x;
         const db = new mod.PGlite({ parsers: { [mod.types.DATE]: id, [mod.types.TIMESTAMP]: id, [mod.types.TIMESTAMPTZ]: id, [mod.types.NUMERIC]: id, [mod.types.INT8]: id } });
         await db.exec(DDL);
-        const t = Date.now() - lag(); const { est } = MV.estadoEn(MV.ahora() - lag());
+        const t = Date.now() - lag(); const tm = MV.ahora() - lag(); const { est } = MV.estadoEn(tm);
+        if (tm >= MV.hitos().cupones) { await db.exec(ALTER_CUPONES); PG.cupones = true; } else PG.cupones = false;
         for (const tabla of ['vendedores', 'productos', 'clientes', 'pedidos', 'items_pedido']) {
-          const cols = MV.COLUMNAS[tabla]; const filas = [...est[tabla].values()].sort((x, y) => x.id - y.id);
+          const cols = MV.columnasEn(tabla, tm); const filas = [...est[tabla].values()].sort((x, y) => x.id - y.id);
           for (let i = 0; i < filas.length; i += 400) {
-            const vals = filas.slice(i, i + 400).map((r) => { const f = MV.filaSql(tabla, r); return '(' + cols.map((c) => lit(f[c])).join(',') + ')'; });
+            const vals = filas.slice(i, i + 400).map((r) => { const f = MV.filaSql(tabla, r, tm); return '(' + cols.map((c) => lit(f[c])).join(',') + ')'; });
             await db.exec(`INSERT INTO ${tabla} (${cols.join(',')}) VALUES ${vals.join(',')};`);
           }
         }
@@ -268,10 +271,11 @@ COMMENT ON COLUMN pedidos.pago_ref IS 'Id del pago en la pasarela (py_… en Pag
     const hasta = MV.ahora() - lag();
     if (hasta > PG.t) {
       const sql = [];
+      if (!PG.cupones && hasta >= MV.hitos().cupones) { sql.push(ALTER_CUPONES); PG.cupones = true; }
       for (const c of MV.mundo().cambios) {
-        if (c.ts <= PG.t) continue; if (c.ts > hasta) break;
+        if (c.ts <= PG.t) continue; if (c.ts > hasta) break; if (c.op === 'r') continue;
         if (c.op === 'd') sql.push(`DELETE FROM ${c.tabla} WHERE id = ${c.id};`);
-        else { const cols = MV.COLUMNAS[c.tabla]; const f = MV.filaSql(c.tabla, c.despues); sql.push(`INSERT INTO ${c.tabla} (${cols.join(',')}) VALUES (${cols.map((k) => lit(f[k])).join(',')}) ON CONFLICT (id) DO UPDATE SET ${cols.filter((k) => k !== 'id').map((k) => `${k} = EXCLUDED.${k}`).join(', ')};`); }
+        else { const cols = MV.columnasEn(c.tabla, c.ts); const f = MV.filaSql(c.tabla, c.despues, c.ts); sql.push(`INSERT INTO ${c.tabla} (${cols.join(',')}) VALUES (${cols.map((k) => lit(f[k])).join(',')}) ON CONFLICT (id) DO UPDATE SET ${cols.filter((k) => k !== 'id').map((k) => `${k} = EXCLUDED.${k}`).join(', ')};`); }
       }
       if (sql.length) await PG.db.exec(sql.join('\n'));
       PG.t = hasta;
