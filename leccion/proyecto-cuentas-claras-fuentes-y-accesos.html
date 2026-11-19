@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fuentes y accesos - CRM, Cobrable, Medidor y las definiciones de negocio · Academia de Datos</title><meta name="description" content="La referencia de las tres APIs (autenticación, paginación, límites y formatos) y las definiciones que acordó finanzas para el MRR, los movimientos y el health score."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-cuentas-claras-fuentes-y-accesos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Fuentes y accesos - CRM, Cobrable, Medidor y las definiciones de negocio · Academia de Datos"><meta property="og:description" content="La referencia de las tres APIs (autenticación, paginación, límites y formatos) y las definiciones que acordó finanzas para el MRR, los movimientos y el health score."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-cuentas-claras-fuentes-y-accesos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-cuentas-claras">📈 Proyecto 5: Cuentas Claras, MRR, cliente 360 y reverse ETL</a> · Avanzado · 40 min</div>
+<h1>Fuentes y accesos - CRM, Cobrable, Medidor y las definiciones de negocio</h1><p class="resumen">La referencia de las tres APIs (autenticación, paginación, límites y formatos) y las definiciones que acordó finanzas para el MRR, los movimientos y el health score.</p>
+<a class="cta" href="../index.html#/l/proyecto-cuentas-claras-fuentes-y-accesos">▶ Abrir la lección interactiva (2 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Paginar APIs con cursor y con starting_after</li><li>Reconstruir el estado de suscripciones a partir de un log de eventos</li><li>Unir entidades por id externo y por dominio</li><li>Escribir en una API respetando límites</li></ul>
+<h2>Accesos</h2>
+<pre><code class="language-bash">cuentas accesos</code></pre>
+<h2>Contacto CRM · <code>https://api.contactocrm.example</code></h2>
+<p><code>Authorization: Bearer pat-…</code> · <strong>100 pedidos cada 10 segundos</strong> (429 con <code>Retry-After</code>).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Ruta</th>
+<th>Qué devuelve</th>
+</tr>
+</thead><tbody><tr>
+<td><code>GET /crm/v3/objects/companies?limit=100&amp;after=&lt;id&gt;&amp;properties=name,domain,hubspot_owner_id,lifecyclestage&amp;archived=false</code></td>
+<td>Empresas, de a 100. La respuesta trae <code>paging.next.after</code> mientras haya más. <code>archived=true</code> lista las archivadas (con <code>mergedInto</code> si se fusionaron)</td>
+</tr>
+<tr>
+<td><code>GET /crm/v3/objects/companies/{id}</code></td>
+<td>Una empresa</td>
+</tr>
+<tr>
+<td><code>PATCH /crm/v3/objects/companies/{id}</code></td>
+<td>Cuerpo <code>{&quot;properties&quot;: {&quot;health_score&quot;: &quot;72&quot;, &quot;mrr_actual&quot;: &quot;79.00&quot;, &quot;plan_actual&quot;: &quot;pro&quot;}}</code>. Solo esas tres propiedades personalizadas. No se puede escribir en una empresa archivada</td>
+</tr>
+<tr>
+<td><code>GET /crm/v3/owners</code></td>
+<td>Vendedores</td>
+</tr>
+</tbody></table></div>
+<p>El <code>domain</code> lo escriben los vendedores a mano: a veces con <code>www.</code>, a veces en mayúsculas.</p>
+<h2>Cobrable · <code>https://api.cobrable.example</code></h2>
+<p><code>Authorization: Bearer ck_live_…</code> · solo lectura · listas del <strong>más nuevo al más viejo</strong> con <code>limit</code> y <code>starting_after</code>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Ruta</th>
+<th>Qué devuelve</th>
+</tr>
+</thead><tbody><tr>
+<td><code>GET /v1/customers</code></td>
+<td>Clientes. <code>metadata.crm_company_id</code> cuando Ventas lo cargó (no siempre)</td>
+</tr>
+<tr>
+<td><code>GET /v1/subscriptions</code></td>
+<td>El estado <strong>actual</strong> de cada suscripción</td>
+</tr>
+<tr>
+<td><code>GET /v1/events</code></td>
+<td>Toda la historia: <code>customer.subscription.created</code>, <code>.updated</code> (con <code>previous_attributes</code>) y <code>.deleted</code>. Cada evento trae la suscripción completa como quedó</td>
+</tr>
+</tbody></table></div>
+<p>Suscripción: <code>status</code> (<code>trialing</code>, <code>active</code>, <code>past_due</code>, <code>canceled</code>), <code>plan.interval</code> (<code>month</code> o <code>year</code>), <code>plan.amount</code> en <strong>centavos</strong> (el anual cobra 10 meses), <code>quantity</code> (asientos, solo el plan Empresa) y <code>discount.coupon.percent_off</code>.</p>
+<h2>Medidor · <code>https://api.medidor.example</code></h2>
+<p>HTTP Basic: el secreto del proyecto como usuario, contraseña vacía (<code>curl -u mx_…:</code>).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Ruta</th>
+<th>Qué devuelve</th>
+</tr>
+</thead><tbody><tr>
+<td><code>GET /api/2.0/export?from_date=AAAA-MM-DD&amp;to_date=AAAA-MM-DD</code></td>
+<td>Eventos en JSON por líneas. Máximo <strong>7 días</strong> por pedido y solo días completos</td>
+</tr>
+<tr>
+<td><code>GET /api/2.0/users</code></td>
+<td>Usuarios: <code>user_id</code>, <code>account_id</code>, <code>billing_customer_id</code></td>
+</tr>
+</tbody></table></div>
+<p>Eventos: <code>pagina_vista</code> (antes del login, con un id <strong>anónimo</strong>), <code>$identify</code> (une el id anónimo con el usuario), <code>login</code>, <code>factura_emitida</code>, <code>usuario_invitado</code>. <code>time</code> en milisegundos.</p>
+<h2>Las definiciones (acordadas con finanzas)</h2>
+<p><strong>MRR</strong> de una suscripción en un instante: si <code>status</code> es <code>active</code> o <code>past_due</code>, precio mensual (el anual dividido por 12) × asientos × (1 − descuento). Si no, 0. El MRR de un mes es el del <strong>cierre del mes</strong> (hora de Ciudad del Río).</p>
+<p><strong>Movimiento</strong> de un cliente en un mes, comparando con el cierre del mes anterior:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Antes → ahora</th>
+<th>Movimiento</th>
+</tr>
+</thead><tbody><tr>
+<td>0 → &gt; 0, nunca tuvo MRR</td>
+<td><code>nuevo</code></td>
+</tr>
+<tr>
+<td>0 → &gt; 0, ya había tenido</td>
+<td><code>reactivacion</code></td>
+</tr>
+<tr>
+<td>&gt; 0 → 0</td>
+<td><code>churn</code></td>
+</tr>
+<tr>
+<td>sube / baja</td>
+<td><code>expansion</code> / <code>contraccion</code></td>
+</tr>
+<tr>
+<td>igual (&gt; 0)</td>
+<td><code>sin_cambio</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Health score</strong> (0 a 100) = <code>round(50 × activos / usuarios + 50 × min(1, facturas / 60))</code>, donde, en los últimos 30 días cerrados: <code>activos</code> = usuarios distintos de la cuenta que hicieron login, <code>usuarios</code> = total de usuarios de la cuenta y <code>facturas</code> = facturas emitidas.</p>
+<pre data-norun><code class="language-sql">-- del log de eventos al estado al cierre de cada mes: el último evento de cada suscripción hasta esa fecha
+SELECT * FROM (
+  SELECT m.mes, e.*, ROW_NUMBER() OVER (PARTITION BY m.mes, e.cliente ORDER BY e.creado DESC) AS rn
+  FROM meses m JOIN eventos e ON e.creado &lt;= m.cierre) x WHERE rn = 1;</code></pre>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>CRM: cursor <code>after</code>, archivadas aparte, 100 pedidos / 10 s, PATCH de tres propiedades.</li>
+<li>Cobrable: el <strong>log de eventos</strong> es la historia; <code>/v1/subscriptions</code> es solo el presente.</li>
+<li>Medidor: export de 7 días, identidad anónima y usuarios por cuenta.</li>
+<li>Definiciones exactas de MRR, movimiento y health score.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-cuentas-claras-fuentes-y-accesos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-cuentas-claras-el-pedido.html">← El pedido - tres sistemas, un cliente y nadie sabe cuánto facturamos de verdad</a><a href="proyecto-cuentas-claras-la-entrega.html">La entrega - las tablas, el reverse ETL y la revisión →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

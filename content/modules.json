@@ -597,6 +597,21 @@
     ]
   },
   {
+    "id": "proyecto-cuentas-claras",
+    "titulo": "Proyecto 5: Cuentas Claras, MRR, cliente 360 y reverse ETL",
+    "icono": "📈",
+    "color": "#be185d",
+    "descripcion": "Un SaaS B2B con tres sistemas que no se hablan: un CRM (empresas con duplicados, cursor y límite de pedidos), una plataforma de cobros por suscripción (planes mensuales y anuales, pruebas gratis, descuentos, cambios de plan y bajas, todo como eventos) y la analítica del producto (eventos con identidad anónima). Calculas el MRR por movimiento, armas la vista 360 de cada cliente con su health score y lo escribes de vuelta en el CRM. En los días siguientes sube un precio, la app renombra un evento y Ventas fusiona los duplicados.",
+    "objetivos": [
+      "Definir y calcular métricas SaaS (MRR, movimientos, churn) a partir de un log de eventos",
+      "Paginar APIs con cursor y respetar límites de pedidos",
+      "Unir entidades entre sistemas por id externo y por dominio normalizado",
+      "Construir un health score con datos de uso de producto",
+      "Hacer un reverse ETL hacia el CRM y mantenerlo cuando cambian los ids",
+      "Responder preguntas del directorio con definiciones auditables"
+    ]
+  },
+  {
     "id": "proyecto",
     "titulo": "Proyecto final y entrevistas",
     "icono": "🏆",

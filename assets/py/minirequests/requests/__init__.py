@@ -26,6 +26,10 @@ try:
     from js import RutaSurApi as _rutasur
 except Exception:
     _rutasur = None
+try:
+    from js import CuentasClarasApi as _cuentas
+except Exception:
+    _cuentas = None
 
 __version__ = "2.32.3-curso"
 
@@ -43,6 +47,10 @@ if _api is not None and not getattr(_time.sleep, "_curso", False):
             _pedalia.avanzar(segundos)
         if _pagoya is not None:
             _pagoya.avanzar(segundos)
+        if _rutasur is not None:
+            _rutasur.avanzar(segundos)
+        if _cuentas is not None:
+            _cuentas.avanzar(segundos)
         _sleep_real(min(float(segundos), 0.01))
 
     _sleep._curso = True
@@ -149,6 +157,8 @@ def request(method, url, params=None, headers=None, json=None, data=None, timeou
         destino = _pagoya
     elif _rutasur is not None and _rutasur.esDeLaApi(url):
         destino = _rutasur
+    elif _cuentas is not None and _cuentas.esDeLaApi(url):
+        destino = _cuentas
     elif _pedalia is not None and _pedalia.esDeLaApi(url):
         destino = _pedalia
     elif _api is not None and _api.esDeLaApi(url):

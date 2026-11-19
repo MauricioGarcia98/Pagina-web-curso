@@ -455,6 +455,8 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
       if (msg.mercadoCfg && self.PagoYa) self.PagoYa.configurar(msg.mercadoCfg);
       if (msg.rutaSrc && !self.RutaSurApi) { try { new Function('g', 'return (' + msg.rutaSrc + ')(g)')(self); } catch (e) { /* sin TMS */ } }
       if (msg.rutaCfg && self.RutaSurApi) self.RutaSurApi.configurar(msg.rutaCfg);
+      if (msg.ccSrc && !self.CuentasClarasApi) { try { new Function('g', 'return (' + msg.ccSrc + ')(g)')(self); } catch (e) { /* sin Cuentas Claras */ } }
+      if (msg.ccCfg && self.CuentasClarasApi) self.CuentasClarasApi.configurar(msg.ccCfg);
       const need = [];
       // desde Pyodide 314, sqlite3 viene incluido en la biblioteca estándar (no se instala aparte)
       if ((mode === 'dbt' || mode === 'airflow') && !loaded.has('jinja2')) need.push('jinja2');
@@ -464,7 +466,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
         loaded.add('tables');
       }
     }
-    const enviar = (o) => self.postMessage(self.ApiPedalia ? { ...o, apiPedalia: { log: self.ApiPedalia.tomarLog(), cuota: self.ApiPedalia.config().cuota } } : o);
+    const enviar = (o) => { const x = self.ApiPedalia ? { ...o, apiPedalia: { log: self.ApiPedalia.tomarLog(), cuota: self.ApiPedalia.config().cuota } } : { ...o }; if (self.CuentasClarasApi) x.ccCambios = self.CuentasClarasApi.tomarCambios(); self.postMessage(x); };
     self.onmessage = async (e) => {
       const msg = e.data;
       try {
@@ -519,6 +521,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
       this._sentTables = false;
       this.worker.onmessage = (e) => {
         if (e.data && e.data.apiPedalia && window.ApiPedaliaHost) window.ApiPedaliaHost.incorporar(e.data.apiPedalia.log, e.data.apiPedalia.cuota);
+        if (e.data && e.data.ccCambios && e.data.ccCambios.length && window.CuentasClarasHost) window.CuentasClarasHost.incorporar(e.data.ccCambios);
         const p = this.pending.get(e.data.id);
         if (p) { clearTimeout(p.timer); this.pending.delete(e.data.id); this._setStatus('ready'); p.resolve(e.data); }
       };
@@ -550,7 +553,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
       const id = ++this.seq;
       const first = this.status !== 'ready';
       if (first) this._setStatus('loading');
-      const full = { ...msg, id, pyodideUrl: PYODIDE_URL, sources: window.PY_SOURCES, apiSrc: window.API_TIENDA_SRC, apiPedaliaSrc: window.API_PEDALIA_SRC, apiPedaliaCfg: window.ApiPedaliaHost ? window.ApiPedaliaHost.configParaWorker() : null, mercadoSrc: window.MERCADO_VECINO_SRC, mercadoCfg: window.MercadoVecinoHost ? window.MercadoVecinoHost.configParaWorker() : null, rutaSrc: window.RUTA_SUR_SRC, rutaCfg: window.RutaSurHost ? window.RutaSurHost.configParaWorker() : null };
+      const full = { ...msg, id, pyodideUrl: PYODIDE_URL, sources: window.PY_SOURCES, apiSrc: window.API_TIENDA_SRC, apiPedaliaSrc: window.API_PEDALIA_SRC, apiPedaliaCfg: window.ApiPedaliaHost ? window.ApiPedaliaHost.configParaWorker() : null, mercadoSrc: window.MERCADO_VECINO_SRC, mercadoCfg: window.MercadoVecinoHost ? window.MercadoVecinoHost.configParaWorker() : null, rutaSrc: window.RUTA_SUR_SRC, rutaCfg: window.RutaSurHost ? window.RutaSurHost.configParaWorker() : null, ccSrc: window.CUENTAS_CLARAS_SRC, ccCfg: window.CuentasClarasHost ? window.CuentasClarasHost.configParaWorker() : null };
       if (msg.mode === 'pyspark' && !this._sentTables) { full.tables = this._tables(); this._sentTables = true; }
       return new Promise((resolve) => {
         const ms = first ? Math.max(timeoutMs, 180000) : timeoutMs;

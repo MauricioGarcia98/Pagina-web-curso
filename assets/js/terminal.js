@@ -1482,7 +1482,7 @@ models:
   def('curl', 'peticiones HTTP (simuladas, sin red)', (a) => {
     const url = a.find((x) => /^https?:/.test(x)) || '';
     // la API de práctica (api-practica.js) responde de verdad: códigos, cabeceras, tokens, paginación y 429
-    const apiLocal = [window.PagoYa, window.RutaSurApi, window.ApiPedalia, window.ApiTienda].find((x) => x && x.esDeLaApi(url));
+    const apiLocal = [window.PagoYa, window.RutaSurApi, window.CuentasClarasApi, window.ApiPedalia, window.ApiTienda].find((x) => x && x.esDeLaApi(url));
     if (apiLocal) {
       let metodo = 'GET', datos = null, incluir = false, soloCab = false, falla = false, salida = null;
       const hs = {};
