@@ -612,6 +612,21 @@
     ]
   },
   {
+    "id": "proyecto-almacenes-sol",
+    "titulo": "Proyecto 6: Almacenes del Sol, la historia que el ERP no guarda",
+    "icono": "🛒",
+    "color": "#ca8a04",
+    "descripcion": "Una cadena de 8 supermercados: un ERP viejo (PostgreSQL de solo lectura) que pisa precios y costos todas las noches sin guardar historia, una API de cajas que entrega los tickets de cada sucursal al día siguiente y una planilla de metas que mantiene una persona. Sacas fotos diarias del catálogo, construyes una dimensión SCD tipo 2, calculas ventas y margen con el costo de cada día y el cumplimiento de metas. En los días siguientes Compras reorganiza categorías directo en la base, una sucursal se queda sin internet y Planeamiento cambia la planilla.",
+    "objetivos": [
+      "Construir una dimensión SCD tipo 2 a partir de fotos diarias de un sistema sin historia",
+      "Entender por qué un incremental por fecha de modificación puede perder cambios",
+      "Calcular ventas y margen bruto con el costo vigente el día de la venta",
+      "Manejar datos que llegan tarde y repetidos (deduplicar por llave)",
+      "Ingerir planillas hechas para personas y sobrevivir a sus cambios de formato",
+      "Automatizar la foto diaria con un orquestador y publicar en Power BI"
+    ]
+  },
+  {
     "id": "proyecto",
     "titulo": "Proyecto final y entrevistas",
     "icono": "🏆",

@@ -369,6 +369,9 @@ def _shell(mode, code, argv_json, files_json, cwd, env_json="{}"):
     importlib.invalidate_caches()
     sys.path[:] = [x for x in sys.path if not str(x).startswith("/home/")]
     for path, content in json.loads(files_json).items():
+        if content is None:  # carpeta (vacía o no) creada con mkdir en la terminal
+            os.makedirs(path, exist_ok=True)
+            continue
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
             f.write(content)
@@ -391,6 +394,9 @@ def _shell(mode, code, argv_json, files_json, cwd, env_json="{}"):
             try:
                 if os.path.getsize(full) < 2000000:
                     out_files[full] = open(full, encoding="utf-8").read()
+                else:
+                    stdout += f"\\n[terminal del curso] {full} pesa {os.path.getsize(full) / 1e6:.1f} MB y no se guardó: los archivos de la terminal del navegador pueden pesar hasta 2 MB. Divídelo en varios (por ejemplo, uno por día).\\n"
+                    os.remove(full)
             except (UnicodeDecodeError, OSError):
                 pass
     return {"ok": err is None, "stdout": stdout, "error": err, "files": out_files}
@@ -457,6 +463,8 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
       if (msg.rutaCfg && self.RutaSurApi) self.RutaSurApi.configurar(msg.rutaCfg);
       if (msg.ccSrc && !self.CuentasClarasApi) { try { new Function('g', 'return (' + msg.ccSrc + ')(g)')(self); } catch (e) { /* sin Cuentas Claras */ } }
       if (msg.ccCfg && self.CuentasClarasApi) self.CuentasClarasApi.configurar(msg.ccCfg);
+      if (msg.solSrc && !self.AlmacenesSolApi) { try { new Function('g', 'return (' + msg.solSrc + ')(g)')(self); } catch (e) { /* sin Almacenes del Sol */ } }
+      if (msg.solCfg && self.AlmacenesSolApi) self.AlmacenesSolApi.configurar(msg.solCfg);
       const need = [];
       // desde Pyodide 314, sqlite3 viene incluido en la biblioteca estándar (no se instala aparte)
       if ((mode === 'dbt' || mode === 'airflow') && !loaded.has('jinja2')) need.push('jinja2');
@@ -553,7 +561,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
       const id = ++this.seq;
       const first = this.status !== 'ready';
       if (first) this._setStatus('loading');
-      const full = { ...msg, id, pyodideUrl: PYODIDE_URL, sources: window.PY_SOURCES, apiSrc: window.API_TIENDA_SRC, apiPedaliaSrc: window.API_PEDALIA_SRC, apiPedaliaCfg: window.ApiPedaliaHost ? window.ApiPedaliaHost.configParaWorker() : null, mercadoSrc: window.MERCADO_VECINO_SRC, mercadoCfg: window.MercadoVecinoHost ? window.MercadoVecinoHost.configParaWorker() : null, rutaSrc: window.RUTA_SUR_SRC, rutaCfg: window.RutaSurHost ? window.RutaSurHost.configParaWorker() : null, ccSrc: window.CUENTAS_CLARAS_SRC, ccCfg: window.CuentasClarasHost ? window.CuentasClarasHost.configParaWorker() : null };
+      const full = { ...msg, id, pyodideUrl: PYODIDE_URL, sources: window.PY_SOURCES, apiSrc: window.API_TIENDA_SRC, apiPedaliaSrc: window.API_PEDALIA_SRC, apiPedaliaCfg: window.ApiPedaliaHost ? window.ApiPedaliaHost.configParaWorker() : null, mercadoSrc: window.MERCADO_VECINO_SRC, mercadoCfg: window.MercadoVecinoHost ? window.MercadoVecinoHost.configParaWorker() : null, rutaSrc: window.RUTA_SUR_SRC, rutaCfg: window.RutaSurHost ? window.RutaSurHost.configParaWorker() : null, ccSrc: window.CUENTAS_CLARAS_SRC, ccCfg: window.CuentasClarasHost ? window.CuentasClarasHost.configParaWorker() : null, solSrc: window.ALMACENES_SOL_SRC, solCfg: window.AlmacenesSolHost ? window.AlmacenesSolHost.configParaWorker() : null };
       if (msg.mode === 'pyspark' && !this._sentTables) { full.tables = this._tables(); this._sentTables = true; }
       return new Promise((resolve) => {
         const ms = first ? Math.max(timeoutMs, 180000) : timeoutMs;

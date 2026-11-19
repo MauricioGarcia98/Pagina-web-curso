@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El día a día - categorías nuevas, una sucursal sin internet, una planilla que cambia y preguntas de Dirección · Academia de Datos</title><meta name="description" content="En los días siguientes Compras divide una categoría directo en la base, una sucursal se queda sin internet y manda las ventas repetidas, Planeamiento reorganiza la planilla y Dirección, Comercial y Finanzas te hacen preguntas. Todo en el tablero."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-almacenes-sol-el-dia-a-dia.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El día a día - categorías nuevas, una sucursal sin internet, una planilla que cambia y preguntas de Dirección · Academia de Datos"><meta property="og:description" content="En los días siguientes Compras divide una categoría directo en la base, una sucursal se queda sin internet y manda las ventas repetidas, Planeamiento reorganiza la planilla y Dirección, Comercial y Finanzas te hacen preguntas. Todo en el tablero."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-almacenes-sol-el-dia-a-dia.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-almacenes-sol">🛒 Proyecto 6: Almacenes del Sol, la historia que el ERP no guarda</a> · Avanzado · 35 min</div>
+<h1>El día a día - categorías nuevas, una sucursal sin internet, una planilla que cambia y preguntas de Dirección</h1><p class="resumen">En los días siguientes Compras divide una categoría directo en la base, una sucursal se queda sin internet y manda las ventas repetidas, Planeamiento reorganiza la planilla y Dirección, Comercial y Finanzas te hacen preguntas. Todo en el tablero.</p>
+<a class="cta" href="../index.html#/l/proyecto-almacenes-sol-el-dia-a-dia">▶ Abrir la lección interactiva</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Detectar cambios que no pasan por el proceso habitual</li><li>Manejar datos que llegan tarde y repetidos</li><li>Mantener una ingesta de planillas cuando cambia el formato</li><li>Responder preguntas de retail con definiciones claras</li></ul>
+<h2>El tablero</h2>
+<div></div>
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Calcular el margen con el costo de hoy</strong>: el margen del pasado cambia cada vez que cambia un costo.</li>
+<li><strong>Cargar el ERP por <code>ult_modif</code></strong>: los cambios cargados a mano no la actualizan.</li>
+<li><strong>Saltear un día de foto</strong>: lo que cambió ese día no se puede reconstruir.</li>
+<li><strong>Mostrar &quot;0&quot; cuando faltan datos</strong>: una sucursal sin datos no es una sucursal sin ventas.</li>
+<li><strong>No deduplicar al reintentar</strong>: las cajas reenvían tickets cuando vuelve la conexión; <code>ticket_id</code> es la llave.</li>
+<li><strong>Leer la planilla por posición</strong>: cuando Planeamiento cambia columnas o nombres, usa el código de sucursal, no el nombre ni la columna 2.</li>
+</ul>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Los cambios &quot;por fuera&quot; del proceso habitual existen: compara fotos completas.</li>
+<li>Los datos llegan tarde y repetidos: deduplica y distingue &quot;sin datos&quot; de &quot;cero&quot;.</li>
+<li>Las planillas cambian: une por códigos, no por nombres ni posiciones.</li>
+</ul>
+
+
+<nav class="nav"><a href="proyecto-almacenes-sol-la-entrega.html">← La entrega - la dimensión SCD2, las ventas diarias y la revisión</a><a href="proyecto-arquitectura.html">El proyecto final: arquitectura de punta a punta →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

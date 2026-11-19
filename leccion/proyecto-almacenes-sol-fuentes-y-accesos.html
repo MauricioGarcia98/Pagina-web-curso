@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fuentes y accesos - el ERP, las cajas y la planilla de metas · Academia de Datos</title><meta name="description" content="Cómo conectarte al ERP (PostgreSQL de solo lectura), la API de las cajas (tickets por sucursal y día, paginada), la planilla de metas y las reglas de negocio acordadas con Dirección y Comercial."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-almacenes-sol-fuentes-y-accesos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Fuentes y accesos - el ERP, las cajas y la planilla de metas · Academia de Datos"><meta property="og:description" content="Cómo conectarte al ERP (PostgreSQL de solo lectura), la API de las cajas (tickets por sucursal y día, paginada), la planilla de metas y las reglas de negocio acordadas con Dirección y Comercial."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-almacenes-sol-fuentes-y-accesos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-almacenes-sol">🛒 Proyecto 6: Almacenes del Sol, la historia que el ERP no guarda</a> · Avanzado · 40 min</div>
+<h1>Fuentes y accesos - el ERP, las cajas y la planilla de metas</h1><p class="resumen">Cómo conectarte al ERP (PostgreSQL de solo lectura), la API de las cajas (tickets por sucursal y día, paginada), la planilla de metas y las reglas de negocio acordadas con Dirección y Comercial.</p>
+<a class="cta" href="../index.html#/l/proyecto-almacenes-sol-fuentes-y-accesos">▶ Abrir la lección interactiva (2 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Sacar una foto diaria de una base de datos operativa</li><li>Paginar una API por sucursal y día</li><li>Leer una planilla hecha para personas</li><li>Aplicar reglas de negocio de ventas y margen</li></ul>
+<h2>Accesos</h2>
+<pre><code class="language-bash">sol accesos</code></pre>
+<h2>El ERP · PostgreSQL 9.6 · <code>erp-sol.almacenes.example</code></h2>
+<p>Usuario de <strong>solo lectura</strong>. Tablas: <code>sucursales</code>, <code>categorias</code> y <code>productos</code> (<code>id</code>, <code>sku</code>, <code>nombre</code>, <code>categoria</code>, <code>precio</code>, <code>costo</code>, <code>activo</code>, <code>ult_modif</code>).</p>
+<pre><code class="language-bash">PGPASSWORD='…' psql -h erp-sol.almacenes.example -U consulta_bi -d erp -c &quot;SELECT sku, nombre, categoria, precio, costo FROM productos LIMIT 5&quot;</code></pre>
+<ul>
+<li>El <strong>proceso nocturno de precios</strong> corre a las <strong>03:00</strong> y pisa <code>precio</code> y <code>costo</code>. Actualiza <code>ult_modif</code>. Saca la foto <strong>después</strong> de las 03:00 (y antes de que abran las sucursales, a las 08:00) para que sea el catálogo con el que se vendió ese día.</li>
+<li>No hay tabla de historial. Lo que cambió ayer ya no se ve hoy.</li>
+<li>Para llevarte una foto a un archivo: <code>\copy (SELECT …) TO &#39;archivo.csv&#39; WITH CSV HEADER</code>. Ponle la fecha al nombre del archivo.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ ult_modif no es la verdad</div>
+
+<p>Es tentador hacer una carga incremental &quot;lo que cambió desde la última vez&quot; con <code>WHERE ult_modif &gt; …</code>. Funciona mientras <strong>todos</strong> los cambios pasen por el proceso que la actualiza. Un cambio cargado a mano directo en la base no la toca, y tu incremental no lo ve. Comparar la foto completa con la anterior no tiene ese problema.</p>
+</div>
+
+
+<h2>Las cajas · <code>https://api.possol.example/v1</code></h2>
+<p>Cabecera <code>X-Api-Key</code>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Ruta</th>
+<th>Qué devuelve</th>
+</tr>
+</thead><tbody><tr>
+<td><code>GET /v1/sucursales</code></td>
+<td>Las 8 sucursales</td>
+</tr>
+<tr>
+<td><code>GET /v1/tickets?sucursal=S01&amp;fecha=AAAA-MM-DD&amp;pagina=1</code></td>
+<td>Los tickets de una sucursal y un día, de a <strong>200</strong> por página. La respuesta trae <code>paginas</code></td>
+</tr>
+</tbody></table></div>
+<ul>
+<li>Cada sucursal sincroniza el cierre de caja a las <strong>02:00 del día siguiente</strong>. Antes, la API responde <strong>404</strong>.</li>
+<li><code>fecha_hora</code> es la hora <strong>local</strong> de la sucursal, sin zona.</li>
+<li>Cada ticket trae <code>medio_pago</code>, <code>anulado</code> y sus <code>lineas</code> (<code>sku</code>, <code>cantidad</code>, <code>precio_unitario</code>, <code>descuento</code>).</li>
+</ul>
+<h2>La planilla de metas</h2>
+<pre><code class="language-bash">sol metas descargar</code></pre>
+<p>La mantiene Planeamiento a mano: una meta de ventas por sucursal y semana (de lunes a domingo). Es una planilla pensada para leerla una persona: títulos, separador <code>;</code>, montos con <code>$</code> y puntos de miles, una fila de totales. Puede cambiar de forma sin aviso.</p>
+<h2>Las reglas (acordadas con Dirección y Comercial)</h2>
+<ul>
+<li><strong>Venta neta</strong> de una línea = <code>cantidad × precio_unitario − descuento</code>.</li>
+<li>Los tickets <strong>anulados</strong> no cuentan (ni en ventas ni en cantidad de tickets).</li>
+<li><strong>Margen bruto</strong> = ventas netas − <code>cantidad × costo</code>, con el costo <strong>vigente el día de la venta</strong>.</li>
+<li>Un día es el día local de la sucursal. Una semana va de lunes a domingo; <code>semana_desde</code> es el lunes.</li>
+<li><strong>Cumplimiento</strong> = ventas de la semana / meta × 100, con un decimal.</li>
+</ul>
+<pre data-norun><code class="language-sql">-- unir cada venta con la versión del producto vigente en ese momento
+SELECT v.*, d.costo
+FROM ventas v
+JOIN sol.silver.dim_producto d
+  ON d.sku = v.sku
+ AND v.fecha &gt;= d.valido_desde
+ AND (d.valido_hasta IS NULL OR v.fecha &lt; d.valido_hasta);</code></pre>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>ERP: foto diaria completa con <code>\copy</code>, no un incremental por <code>ult_modif</code>.</li>
+<li>Cajas: por sucursal y día, paginado, disponible desde las 02:00 del día siguiente.</li>
+<li>Planilla: hecha para personas, puede cambiar de forma.</li>
+<li>Venta neta, sin anulados, margen con el costo del día.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-almacenes-sol-fuentes-y-accesos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-almacenes-sol-el-pedido.html">← El pedido - una cadena de supermercados que no sabe cuánto gana</a><a href="proyecto-almacenes-sol-la-entrega.html">La entrega - la dimensión SCD2, las ventas diarias y la revisión →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

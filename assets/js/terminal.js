@@ -1482,7 +1482,7 @@ models:
   def('curl', 'peticiones HTTP (simuladas, sin red)', (a) => {
     const url = a.find((x) => /^https?:/.test(x)) || '';
     // la API de práctica (api-practica.js) responde de verdad: códigos, cabeceras, tokens, paginación y 429
-    const apiLocal = [window.PagoYa, window.RutaSurApi, window.CuentasClarasApi, window.ApiPedalia, window.ApiTienda].find((x) => x && x.esDeLaApi(url));
+    const apiLocal = [window.PagoYa, window.RutaSurApi, window.CuentasClarasApi, window.AlmacenesSolApi, window.ApiPedalia, window.ApiTienda].find((x) => x && x.esDeLaApi(url));
     if (apiLocal) {
       let metodo = 'GET', datos = null, incluir = false, soloCab = false, falla = false, salida = null;
       const hs = {};
@@ -1533,7 +1533,7 @@ models:
   // ------------------------------------------------------------- python real
   function homeFiles() {
     const files = {};
-    for (const [k, v] of Object.entries(Machine.fs)) if (v.t === 'f' && (k.startsWith(HOME + '/') || k.startsWith('/home/runner/')) && v.c.length < 2e6) files[k] = v.c;
+    for (const [k, v] of Object.entries(Machine.fs)) if ((k.startsWith(HOME + '/') || k.startsWith('/home/runner/'))) { if (v.t === 'f' && v.c.length < 2e6) files[k] = v.c; else if (v.t === 'd') files[k] = null; }
     return files;
   }
   async function runPython(code, argv, mode = 'python') {
