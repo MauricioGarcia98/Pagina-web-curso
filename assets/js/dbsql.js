@@ -695,6 +695,7 @@
   let archivosAislados = null; // los ejercicios corren con sus propios archivos
   function archivos() { return archivosAislados || (window.CloudSim ? window.CloudSim.dbx().files : {}); }
   let excluirArchivos = null, archivosLeidos = null;
+  let kafkaCheckpoint = null, kafkaLeidos = null; // tablas de streaming sobre read_kafka: offsets ya procesados
   function leerArchivos(args) {
     const ruta = args[0] && args[0].find((x) => x.t === 's');
     if (!ruta) err('INVALID_PARAMETER_VALUE', "read_files necesita la ruta entre comillas: read_files('/Volumes/main/default/raw/archivo.csv', format => 'csv', header => true)");
@@ -765,8 +766,8 @@
       const resto = a.slice(k + 2).filter((tk) => tk.t !== 'ws');
       op[nombre] = resto.length === 1 && resto[0].t === 's' ? resto[0].v : unirOriginal(resto).trim();
     }
-    if (!window.MercadoVecinoKafka) err('KAFKA_NOT_AVAILABLE', 'No hay ningún clúster Kafka de práctica disponible.');
-    let r; try { r = window.MercadoVecinoKafka.leerParaSql(op); } catch (e) { err(e.codigo || 'KAFKA_ERROR', e.message); }
+    const K = window.KafkaPractica; if (!K) err('KAFKA_NOT_AVAILABLE', 'No hay ningún clúster Kafka de práctica disponible.');
+    let r; try { r = K.leerParaSql(op, { checkpoint: kafkaCheckpoint, leidos: kafkaLeidos }); } catch (e) { err(e.codigo || 'KAFKA_ERROR', e.message); }
     return tablaTemporal('rk' + (sesion.n++), r.cols, r.filas);
   }
   function parseCsv(txt, sep = ',') {
@@ -1358,7 +1359,7 @@
   }
   // CREATE [OR REFRESH] STREAMING TABLE t AS SELECT … FROM STREAM read_files(…) | STREAM(tabla)
   // Guarda qué archivos (o cuántas filas de la tabla fuente) ya procesó: REFRESH solo agrega lo nuevo.
-  const sinStream = (sql) => sql.replace(/\bSTREAM\s*\(\s*([\w.`]+)\s*\)/gi, '$1').replace(/\bSTREAM\s+(read_files)/gi, '$1').replace(/\bSTREAM\s+([\w.`]+)/gi, '$1');
+  const sinStream = (sql) => sql.replace(/\bSTREAM\s*\(\s*([\w.`]+)\s*\)/gi, '$1').replace(/\bSTREAM\s+(read_files|read_kafka)/gi, '$1').replace(/\bSTREAM\s+([\w.`]+)/gi, '$1');
   function crearStreaming(st) {
     const T = st.T;
     let i = T.findIndex((tk) => W(tk, 'TABLE')); i = sig(T, i + 1);
@@ -1375,15 +1376,15 @@
       err('TABLE_OR_VIEW_ALREADY_EXISTS', `Cannot create table or view ${fq(ref.c, ref.s, ref.t)} because it already exists. Usa CREATE OR REFRESH STREAMING TABLE para actualizarla.`);
     }
     const consulta = sinStream(cuerpo);
-    archivosLeidos = [];
-    let leidos;
-    try { ejecutarUna(sentencias(`CREATE TABLE ${fq(ref.c, ref.s, ref.t)} AS ${consulta}`)[0], {}); leidos = archivosLeidos; } finally { archivosLeidos = null; }
+    archivosLeidos = []; kafkaLeidos = {};
+    let leidos, kleidos;
+    try { ejecutarUna(sentencias(`CREATE TABLE ${fq(ref.c, ref.s, ref.t)} AS ${consulta}`)[0], {}); leidos = archivosLeidos; kleidos = kafkaLeidos; } finally { archivosLeidos = null; kafkaLeidos = null; }
     const M = uc().catalogs[ref.c].schemas[ref.s].tables[ref.t];
     const n = db.exec(`SELECT COUNT(*) FROM ${q(ref.sql)}`)[0].values[0][0];
     M.tipo = 'STREAMING_TABLE';
-    M.st = { consulta, deArchivos: /\bread_files\b/i.test(consulta), archivos: [...new Set(leidos)], filasFuente: n, refrescos: [{ t: ahora(), filas: n, modo: 'inicial' }] };
+    M.st = { consulta, deArchivos: /\bread_files\b/i.test(consulta), deKafka: /\bread_kafka\b/i.test(consulta), kafka: kleidos || {}, archivos: [...new Set(leidos)], filasFuente: n, refrescos: [{ t: ahora(), filas: n, modo: 'inicial' }] };
     guardar();
-    return { cols: ['num_inserted_rows'], filas: [[n]], msg: `Tabla de streaming creada: procesó ${n} fila(s)${M.st.deArchivos ? ` de ${M.st.archivos.length} archivo(s)` : ''}. Cuando lleguen datos nuevos, ejecuta REFRESH STREAMING TABLE ${ref.c}.${ref.s}.${ref.t}.` };
+    return { cols: ['num_inserted_rows'], filas: [[n]], msg: `Tabla de streaming creada: procesó ${n} fila(s)${M.st.deArchivos ? ` de ${M.st.archivos.length} archivo(s)` : M.st.deKafka ? ` de Kafka (checkpoint: ${Object.entries(M.st.kafka).map(([k, v]) => k + '→' + v).join(', ')})` : ''}. Cuando lleguen datos nuevos, ejecuta REFRESH STREAMING TABLE ${ref.c}.${ref.s}.${ref.t}.` };
   }
   function refrescarStreaming(ref, completo) {
     const M = ref.meta;
@@ -1392,13 +1393,22 @@
     if (!M.st) err('EXPECT_STREAMING_TABLE', `${fq(ref.c, ref.s, ref.t)} no guarda su consulta de origen.`);
     const S = M.st; const nombre = fq(ref.c, ref.s, ref.t);
     if (completo) {
-      archivosLeidos = []; let leidos;
-      try { transaccion(() => { db.run(`DELETE FROM ${q(ref.sql)}`); ejecutarUna(sentencias(`INSERT INTO ${nombre} ${S.consulta}`)[0], {}); }); leidos = archivosLeidos; } finally { archivosLeidos = null; }
+      archivosLeidos = []; kafkaLeidos = {}; let leidos;
+      try { transaccion(() => { db.run(`DELETE FROM ${q(ref.sql)}`); ejecutarUna(sentencias(`INSERT INTO ${nombre} ${S.consulta}`)[0], {}); }); leidos = archivosLeidos; if (S.deKafka) S.kafka = kafkaLeidos; } finally { archivosLeidos = null; kafkaLeidos = null; }
       const n = db.exec(`SELECT COUNT(*) FROM ${q(ref.sql)}`)[0].values[0][0];
       S.archivos = [...new Set(leidos)]; S.filasFuente = n; S.refrescos.push({ t: ahora(), filas: n, modo: 'completo' }); guardar();
       return { cols: ['num_inserted_rows'], filas: [[n]], msg: `Actualización completa (FULL): se borró todo y se volvió a procesar desde el principio (${n} filas).` };
     }
     let nuevas = 0;
+    if (S.deKafka) {
+      // read_kafka: arranca desde el checkpoint (los offsets ya procesados) y solo agrega lo nuevo
+      const antes = db.exec(`SELECT COUNT(*) FROM ${q(ref.sql)}`)[0].values[0][0];
+      kafkaCheckpoint = { ...(S.kafka || {}) }; kafkaLeidos = {};
+      try { ejecutarUna(sentencias(`INSERT INTO ${nombre} ${S.consulta}`)[0], {}); S.kafka = { ...(S.kafka || {}), ...kafkaLeidos }; } finally { kafkaCheckpoint = null; kafkaLeidos = null; }
+      nuevas = db.exec(`SELECT COUNT(*) FROM ${q(ref.sql)}`)[0].values[0][0] - antes;
+      S.refrescos.push({ t: ahora(), filas: nuevas, modo: 'incremental' }); guardar();
+      return { cols: ['num_inserted_rows'], filas: [[nuevas]], msg: nuevas ? `Se leyeron los mensajes nuevos desde el checkpoint: ${nuevas} fila(s) agregadas (checkpoint: ${Object.entries(S.kafka).map(([k, v]) => k + '→' + v).join(', ')}).` : 'No hay mensajes nuevos desde el checkpoint: no se agregó nada.' };
+    }
     if (S.deArchivos) {
       const antes = db.exec(`SELECT COUNT(*) FROM ${q(ref.sql)}`)[0].values[0][0];
       excluirArchivos = new Set(S.archivos); archivosLeidos = []; let leidos;

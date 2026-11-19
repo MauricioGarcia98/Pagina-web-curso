@@ -311,7 +311,7 @@
     const x = (V.secrets || {})[s.nombre]; if (x === undefined) throw new Error(`Failed to get the secret from Azure Key Vault, secretName: ${s.nombre}. (SecretNotFound)`);
     return typeof x === 'string' ? x : x.value;
   }
-  function apiDe(url) { return [window.ApiPedalia, window.PagoYa].find((A) => A && A.esDeLaApi(url)) || null; }
+  function apiDe(url) { return [window.ApiPedalia, window.PagoYa, window.RutaSurApi].find((A) => A && A.esDeLaApi(url)) || null; }
   // cabeceras de autenticación: OAuth (token) o una cabecera fija (Anonymous + authHeaders, como una API con clave)
   function cabecerasRest(L) { if (L.auth === 'Anonymous') return { [L.cabecera || 'Authorization']: secretoRest(L) }; return { Authorization: 'Bearer ' + tokenRest(L) }; }
   function tokenRest(L) {

@@ -242,7 +242,7 @@ Siguiente paso: subirlos al contenedor landing del lago, por ejemplo:
   async function filasDbx(sql) {
     if (!(await cargar('databricks', () => window.DBSQL))) throw new Error('No se pudo cargar Databricks');
     const S = almacen(); await window.DBSQL.init({ Store: S });
-    const r = await window.DBSQL.ejecutar(sql);
+    const r = await window.DBSQL.ejecutar(sql, { limite: 1e7 });
     const u = Array.isArray(r) ? r[r.length - 1] : r;
     if (!u || u.error) throw new Error(u && u.error ? String(u.error.message || u.error) : 'sin resultado');
     return u.filas || u.values || [];
