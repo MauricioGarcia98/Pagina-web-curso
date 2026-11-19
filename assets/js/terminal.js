@@ -1482,7 +1482,8 @@ models:
   def('curl', 'peticiones HTTP (simuladas, sin red)', (a) => {
     const url = a.find((x) => /^https?:/.test(x)) || '';
     // la API de práctica (api-practica.js) responde de verdad: códigos, cabeceras, tokens, paginación y 429
-    if (window.ApiTienda && window.ApiTienda.esDeLaApi(url)) {
+    const apiLocal = [window.ApiPedalia, window.ApiTienda].find((x) => x && x.esDeLaApi(url));
+    if (apiLocal) {
       let metodo = 'GET', datos = null, incluir = false, soloCab = false, falla = false, salida = null;
       const hs = {};
       for (let i = 0; i < a.length; i++) {
@@ -1494,10 +1495,13 @@ models:
         else if (x === '-I' || x === '--head') { soloCab = true; incluir = true; }
         else if (x === '-f' || x === '--fail') falla = true;
         else if (x === '-o' || x === '--output') salida = a[++i];
+        else if (x === '-u' || x === '--user') hs.Authorization = 'Basic ' + btoa(String(a[++i] || ''));
+        else if (x === '--data-urlencode') { const v = String(a[++i] || ''); const k = v.indexOf('='); const par = k > 0 ? encodeURIComponent(v.slice(0, k)) + '=' + encodeURIComponent(v.slice(k + 1)) : encodeURIComponent(v); datos = datos ? datos + '&' + par : par; if (metodo === 'GET') metodo = 'POST'; hs['Content-Type'] = hs['Content-Type'] || 'application/x-www-form-urlencoded'; }
         else if (/^-[a-zA-Z]{2,}$/.test(x)) { if (x.includes('i')) incluir = true; if (x.includes('f')) falla = true; }
       }
-      const r = window.ApiTienda.request(metodo, url, hs, datos);
-      const RAZON = { 200: 'OK', 400: 'Bad Request', 401: 'Unauthorized', 404: 'Not Found', 405: 'Method Not Allowed', 429: 'Too Many Requests', 503: 'Service Unavailable' };
+      if (datos && !Object.keys(hs).some((k) => k.toLowerCase() === 'content-type')) hs['Content-Type'] = 'application/x-www-form-urlencoded';   // como curl -d
+      const r = apiLocal.request(metodo, url, hs, datos);
+      const RAZON = { 200: 'OK', 304: 'Not Modified', 400: 'Bad Request', 401: 'Unauthorized', 403: 'Forbidden', 404: 'Not Found', 405: 'Method Not Allowed', 410: 'Gone', 429: 'Too Many Requests', 500: 'Internal Server Error', 502: 'Bad Gateway', 503: 'Service Unavailable' };
       const cab = `HTTP/2 ${r.status} ${RAZON[r.status] || ''}\n` + Object.entries(r.headers).map(([k, v]) => `${k}: ${v}`).join('\n') + '\n';
       if (falla && r.status >= 400) return fail(`curl: (22) The requested URL returned error: ${r.status}`, 22);
       const cuerpo = soloCab ? '' : r.body;

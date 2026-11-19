@@ -1,7 +1,8 @@
 """requests (versión del curso).
 
 Imita la librería requests, pero sin salir a internet: los pedidos a https://api.tiendaandina.dev
-los responde la API de práctica que corre dentro del navegador (assets/js/api-practica.js). Así se
+y a https://api.pedalia.example (la API de Pedalia, assets/js/api-pedalia.js) los responden APIs que
+corren dentro del navegador (assets/js/api-practica.js). Así se
 practica todo lo de una API real (códigos de estado, JSON, tokens, paginación, 429 y reintentos).
 Cualquier otra URL da ConnectionError, como en una computadora sin red.
 """
@@ -12,6 +13,10 @@ try:
     from js import ApiTienda as _api
 except Exception:  # fuera del navegador
     _api = None
+try:
+    from js import ApiPedalia as _pedalia
+except Exception:
+    _pedalia = None
 
 __version__ = "2.32.3-curso"
 
@@ -25,6 +30,8 @@ if _api is not None and not getattr(_time.sleep, "_curso", False):
 
     def _sleep(segundos):
         _api.avanzar(segundos)
+        if _pedalia is not None:
+            _pedalia.avanzar(segundos)
         _sleep_real(min(float(segundos), 0.01))
 
     _sleep._curso = True
@@ -81,9 +88,9 @@ class CaseInsensitiveDict(dict):
         return super().__contains__(str(k).lower())
 
 
-_REASONS = {200: "OK", 201: "Created", 204: "No Content", 400: "Bad Request", 401: "Unauthorized",
-            403: "Forbidden", 404: "Not Found", 405: "Method Not Allowed", 429: "Too Many Requests",
-            500: "Internal Server Error", 503: "Service Unavailable"}
+_REASONS = {200: "OK", 201: "Created", 204: "No Content", 304: "Not Modified", 400: "Bad Request", 401: "Unauthorized",
+            403: "Forbidden", 404: "Not Found", 405: "Method Not Allowed", 410: "Gone", 429: "Too Many Requests",
+            500: "Internal Server Error", 502: "Bad Gateway", 503: "Service Unavailable"}
 
 
 class Response:
@@ -124,20 +131,33 @@ def _armar_url(url, params):
     return url + sep + urlencode(params, doseq=True)
 
 
-def request(method, url, params=None, headers=None, json=None, data=None, timeout=None, **kw):
+def request(method, url, params=None, headers=None, json=None, data=None, timeout=None, auth=None, **kw):
     url = _armar_url(str(url), params)
-    if _api is None or not _api.esDeLaApi(url):
+    destino = None
+    if _pedalia is not None and _pedalia.esDeLaApi(url):
+        destino = _pedalia
+    elif _api is not None and _api.esDeLaApi(url):
+        destino = _api
+    if destino is None:
         raise ConnectionError(
             f"No se pudo conectar a {url}: los ejercicios del curso corren sin internet. "
-            "Usa la API de práctica: https://api.tiendaandina.dev/v1")
+            "Usa la API de práctica (https://api.tiendaandina.dev/v1) o la de Pedalia (https://api.pedalia.example).")
     body = None
     hs = dict(headers or {})
+    if auth is not None:
+        import base64 as _b64
+        usuario, clave = auth
+        hs["Authorization"] = "Basic " + _b64.b64encode(f"{usuario}:{clave}".encode()).decode()
     if json is not None:
         body = _json.dumps(json)
         hs.setdefault("Content-Type", "application/json")
     elif data is not None:
-        body = data if isinstance(data, str) else "&".join(f"{k}={v}" for k, v in dict(data).items())
-    r = _api.request(method.upper(), url, hs, body)
+        from urllib.parse import urlencode as _urlencode
+        body = data if isinstance(data, str) else _urlencode(dict(data))
+        hs.setdefault("Content-Type", "application/x-www-form-urlencoded")
+    r = destino.request(method.upper(), url, hs, body)
+    if r is None:
+        raise ConnectionError(f"No se pudo conectar a {url}")
     r = r.to_py() if hasattr(r, "to_py") else r
     return Response(r["status"], dict(r["headers"]), r["body"], url, method.upper())
 
