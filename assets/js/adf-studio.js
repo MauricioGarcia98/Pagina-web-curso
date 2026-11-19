@@ -72,6 +72,7 @@
   function linkedJson(n, L) {
     if (L.type === 'RestService') {
       const sec = L.secreto && L.secreto.tipo === 'kv' ? { type: 'AzureKeyVaultSecret', store: ref(L.secreto.ls || '', 'LinkedServiceReference'), secretName: L.secreto.nombre || '' } : { type: 'SecureString', value: '**********' };
+      if (L.auth === 'Anonymous') return { name: n, properties: { annotations: [], type: 'RestService', typeProperties: { url: L.url || '', enableServerCertificateValidation: true, authenticationType: 'Anonymous', authHeaders: { [L.cabecera || 'Authorization']: sec } } } };
       return { name: n, properties: { annotations: [], type: 'RestService', typeProperties: { url: L.url || '', enableServerCertificateValidation: true, authenticationType: 'OAuth2ClientCredential', clientId: L.clientId || '', clientSecret: sec, tokenEndpoint: L.tokenEndpoint || '', ...(L.scope ? { scope: L.scope } : {}) } } };
     }
     const tp = L.type === 'AzureBlobFS' ? { url: `https://${L.account}.dfs.core.windows.net/` } : L.type === 'AzureBlobStorage' ? { serviceEndpoint: `https://${L.account}.blob.core.windows.net/`, accountKind: 'StorageV2' } : L.type === 'AzureDatabricks' ? { domain: `https://${(az().dbw[L.workspace] || {}).url || 'adb-0000.0.azuredatabricks.net'}`, authentication: 'MSI', workspaceResourceId: `/subscriptions/${az().sub}/resourceGroups/${(az().dbw[L.workspace] || {}).rg}/providers/Microsoft.Databricks/workspaces/${L.workspace}`, newClusterNodeType: undefined, existingClusterId: L.cluster || undefined } : { baseUrl: `https://${L.vault}.vault.azure.net/` };
@@ -119,7 +120,7 @@
       const L = { type: props.type };
       if (props.type === 'AzureBlobFS' || props.type === 'AzureBlobStorage') { const u = String(tp.url || tp.serviceEndpoint || ''); L.account = (/https:\/\/([^.]+)\./.exec(u) || [])[1] || ''; L.auth = 'msi'; }
       else if (props.type === 'AzureDatabricks') L.workspace = String(tp.workspaceResourceId || '').split('/').pop() || '';
-      else if (props.type === 'RestService') { Object.assign(L, { url: tp.url || '', tokenEndpoint: tp.tokenEndpoint || '', clientId: tp.clientId || '', scope: tp.scope || '' }); const cs = tp.clientSecret || {}; L.secreto = cs.type === 'AzureKeyVaultSecret' ? { tipo: 'kv', ls: (cs.store || {}).referenceName || '', nombre: valorDe(cs.secretName) || '' } : { tipo: 'plain', valor: cs.value && cs.value !== '**********' ? cs.value : '' }; }
+      else if (props.type === 'RestService') { Object.assign(L, { url: tp.url || '', tokenEndpoint: tp.tokenEndpoint || '', clientId: tp.clientId || '', scope: tp.scope || '' }); const ah = tp.authHeaders && typeof tp.authHeaders === 'object' ? Object.entries(tp.authHeaders)[0] : null; if (tp.authenticationType === 'Anonymous') { L.auth = 'Anonymous'; L.cabecera = ah ? ah[0] : 'Authorization'; } const cs = (tp.authenticationType === 'Anonymous' ? (ah && (typeof ah[1] === 'string' ? { type: 'SecureString', value: ah[1] } : ah[1])) : tp.clientSecret) || {}; L.secreto = cs.type === 'AzureKeyVaultSecret' ? { tipo: 'kv', ls: (cs.store || {}).referenceName || '', nombre: valorDe(cs.secretName) || '' } : { tipo: 'plain', valor: cs.value && cs.value !== '**********' ? cs.value : '' }; }
       else if (props.type === 'AzureKeyVault') L.vault = (/https:\/\/([^.]+)\./.exec(String(tp.baseUrl || '')) || [])[1] || '';
       else throw new Error(`El tipo de linked service '${props.type}' no está simulado en esta práctica.`);
       S.linked[nombre] = L;
@@ -301,7 +302,7 @@
   // secreto del linked service REST: escrito en el linked service o, mejor, leído de Key Vault con la identidad del factory
   function secretoRest(L) {
     const s = L.secreto || {};
-    if (s.tipo !== 'kv') { if (!s.valor) throw new Error('Client secret vacío: escríbelo en el linked service o, mejor, guárdalo en Key Vault y referéncialo.'); return s.valor; }
+    if (s.tipo !== 'kv') { if (!s.valor) throw new Error(`${L.auth === 'Anonymous' ? 'El valor de la cabecera' : 'Client secret'} está vacío: escríbelo en el linked service o, mejor, guárdalo en Key Vault y referéncialo.`); return s.valor; }
     const K = st().linked[s.ls]; if (!K || K.type !== 'AzureKeyVault') throw new Error(`El secreto apunta al linked service "${s.ls}", que no existe o no es de Key Vault.`);
     const V = (az().kv || {})[K.vault]; if (!V) throw new Error(`The vault '${K.vault}' was not found.`);
     const id = `/subscriptions/${az().sub}/resourceGroups/${V.rg}/providers/Microsoft.KeyVault/vaults/${K.vault}`;
@@ -310,7 +311,9 @@
     const x = (V.secrets || {})[s.nombre]; if (x === undefined) throw new Error(`Failed to get the secret from Azure Key Vault, secretName: ${s.nombre}. (SecretNotFound)`);
     return typeof x === 'string' ? x : x.value;
   }
-  function apiDe(url) { const A = window.ApiPedalia; return A && A.esDeLaApi(url) ? A : null; }
+  function apiDe(url) { return [window.ApiPedalia, window.PagoYa].find((A) => A && A.esDeLaApi(url)) || null; }
+  // cabeceras de autenticación: OAuth (token) o una cabecera fija (Anonymous + authHeaders, como una API con clave)
+  function cabecerasRest(L) { if (L.auth === 'Anonymous') return { [L.cabecera || 'Authorization']: secretoRest(L) }; return { Authorization: 'Bearer ' + tokenRest(L) }; }
   function tokenRest(L) {
     const api = apiDe(L.tokenEndpoint || ''); if (!api) throw new Error(`No se pudo conectar a ${L.tokenEndpoint || '(token endpoint vacío)'}: en esta práctica el linked service REST se conecta a la API de Pedalia (https://api.pedalia.example).`);
     const sec = secretoRest(L);
@@ -320,7 +323,13 @@
     return b.access_token;
   }
   function probarLinked(L) {
-    if (L.type === 'RestService') { try { tokenRest(L); return null; } catch (e) { return e.message; } }
+    if (L.type === 'RestService') {
+      try {
+        if (L.auth !== 'Anonymous') { tokenRest(L); return null; }
+        const api = apiDe(L.url || ''); if (!api) return `No se pudo conectar a ${L.url || '(Base URL vacía)'}: en esta práctica el linked service REST se conecta a la API de Pedalia o a la de PagoYa.`;
+        const r = api.request('GET', (L.url || '').replace(/\/$/, ''), cabecerasRest(L), null); return r.status < 400 ? null : `The HttpStatusCode ${r.status} indicates failure. ${r.body}`;
+      } catch (e) { return e.message; }
+    }
     if (L.type === 'AzureBlobFS' || L.type === 'AzureBlobStorage') {
       if (!cuenta(L.account)) return `ErrorCode=AdlsGen2OperationFailed: The remote name could not be resolved: '${L.account}.dfs.core.windows.net'. La cuenta no existe en la suscripción.`;
       if (!rolAlmacenamiento(L.account)) return `ADLS Gen2 operation failed for: Operation returned an invalid status code 'Forbidden'. Account: '${L.account}'. ErrorCode: 'AuthorizationPermissionMismatch'. Message: 'This request is not authorized to perform this operation using this permission.'\n\nLa identidad administrada del factory (${fabrica}) necesita el rol "Storage Blob Data Contributor" (o Reader para solo leer) en la cuenta: portal → cuenta ${L.account} → Access control (IAM) → Add role assignment.`;
@@ -346,19 +355,19 @@
     if (!puedeEscribir(d.L.account)) throw new Error(`ErrorCode=AdlsGen2OperationFailed: 'Forbidden'. AuthorizationPermissionMismatch al escribir en ${d.L.account}.`);
     let rel = src.relativeUrl || '';
     rel = rel.replace(/@\{?dataset\(\)\.(\w+)\}?/g, (m, k) => String(dinamico((a.srcParams || {})[k] ?? '', E)));
-    if (rel.startsWith('@')) rel = String(dinamico(rel, E));
+    if (rel.startsWith('@')) rel = String(dinamico(rel.replace(/dataset\(\)\.(\w+)/g, (m, k) => `'${String(dinamico((a.srcParams || {})[k] ?? '', E)).replace(/'/g, "''")}'`), E));
     const base = (L.url || '').replace(/\/$/, '');
     let url = /^https?:/.test(rel) ? rel : base + '/' + rel.replace(/^\//, '');
-    const api = apiDe(url); if (!api) throw new Error(`ErrorCode=RestSourceCallFailed: No se pudo conectar a ${url}. En esta práctica, el origen REST es la API de Pedalia.`);
-    let token = tokenRest(L);
+    const api = apiDe(url); if (!api) throw new Error(`ErrorCode=RestSourceCallFailed: No se pudo conectar a ${url}. En esta práctica, el origen REST es la API de Pedalia o la de PagoYa.`);
+    let auth = cabecerasRest(L);
     const camino = (obj, ruta) => { if (!ruta) return obj; return String(ruta).replace(/^\$\.?/, '').replace(/\['([^']+)'\]/g, '.$1').split('.').filter(Boolean).reduce((o, k) => (o == null ? undefined : o[k]), obj); };
     const reglas = a.paginacion || {};
     const registros = []; let paginas = 0, llamadas = 0, reintentos = 0, renovaciones = 0;
     while (url && paginas < 2000) {
       llamadas++;
-      const r = api.request('GET', url, { Authorization: 'Bearer ' + token, Accept: 'application/json', 'User-Agent': 'AzureDataFactory' }, null);
+      const r = api.request('GET', url, { ...auth, Accept: 'application/json', 'User-Agent': 'AzureDataFactory' }, null);
       let b = null; try { b = r.body ? JSON.parse(r.body) : null; } catch (e) { b = null; }
-      if (r.status === 401 && renovaciones < 3) { token = tokenRest(L); renovaciones++; continue; }
+      if (r.status === 401 && L.auth !== 'Anonymous' && renovaciones < 3) { auth = cabecerasRest(L); renovaciones++; continue; }
       if ((r.status === 429 || r.status >= 500) && reintentos < 6) {
         reintentos++;
         const espera = Math.min(65, Number(r.headers['retry-after']) || 2 ** reintentos);
@@ -928,7 +937,8 @@
           d.querySelector('#lN').value = { AzureBlobFS: 'ls_adls', AzureBlobStorage: 'ls_blob', AzureDatabricks: 'ls_databricks', AzureKeyVault: 'ls_keyvault', RestService: 'ls_api_pedalia' }[t];
           if (t === 'RestService') {
             const kvs = Object.entries(S.linked).filter(([, x]) => x.type === 'AzureKeyVault').map(([k]) => k);
-            d.querySelector('#lC').innerHTML = `<label class="adf-campo"><span>Base URL *</span><input id="lU" value="https://api.pedalia.example"></label><label class="adf-campo"><span>Authentication type</span><select disabled><option>OAuth 2.0 Client Credential</option></select></label><label class="adf-campo"><span>Token endpoint *</span><input id="lTk" value="https://api.pedalia.example/oauth/token"></label><label class="adf-campo"><span>Client ID *</span><input id="lCi" placeholder="pdl_…"></label><div class="adf-campo"><span>Client secret *</span><div><label><input type="radio" name="lSt" value="kv" ${kvs.length ? 'checked' : 'disabled'}> Azure Key Vault</label> <label><input type="radio" name="lSt" value="plain" ${kvs.length ? '' : 'checked'}> Password</label><div id="lSk" ${kvs.length ? '' : 'hidden'}><select id="lKv">${kvs.map((k) => `<option>${esc(k)}</option>`).join('')}</select> Secret name <input id="lSn" placeholder="pedalia-client-secret"></div><div id="lSp" ${kvs.length ? 'hidden' : ''}><input id="lSv" type="password" placeholder="sk_live_…"></div>${kvs.length ? '' : '<p class="adf-dim">Sin linked service de Key Vault: el secreto queda guardado en el factory. En producción, guárdalo en Key Vault.</p>'}</div></div><label class="adf-campo"><span>Scope</span><input id="lSc" placeholder="(opcional)"></label>`;
+            d.querySelector('#lC').innerHTML = `<label class="adf-campo"><span>Base URL *</span><input id="lU" value="https://api.pedalia.example"></label><label class="adf-campo"><span>Authentication type</span><select id="lAt"><option value="OAuth2ClientCredential">OAuth 2.0 Client Credential</option><option value="Anonymous">Anonymous</option></select></label><div id="lOa"><label class="adf-campo"><span>Token endpoint *</span><input id="lTk" value="https://api.pedalia.example/oauth/token"></label><label class="adf-campo"><span>Client ID *</span><input id="lCi" placeholder="pdl_…"></label></div><div id="lAn" hidden><label class="adf-campo"><span>Auth headers: nombre</span><input id="lHn" value="Authorization"></label><p class="adf-dim">El valor de la cabecera va completo, por ejemplo <code>Bearer sk_test_…</code>: guárdalo así en Key Vault.</p></div><div class="adf-campo"><span id="lSl">Client secret *</span><div><label><input type="radio" name="lSt" value="kv" ${kvs.length ? 'checked' : 'disabled'}> Azure Key Vault</label> <label><input type="radio" name="lSt" value="plain" ${kvs.length ? '' : 'checked'}> Password</label><div id="lSk" ${kvs.length ? '' : 'hidden'}><select id="lKv">${kvs.map((k) => `<option>${esc(k)}</option>`).join('')}</select> Secret name <input id="lSn" placeholder="pedalia-client-secret"></div><div id="lSp" ${kvs.length ? 'hidden' : ''}><input id="lSv" type="password" placeholder="sk_live_…"></div>${kvs.length ? '' : '<p class="adf-dim">Sin linked service de Key Vault: el secreto queda guardado en el factory. En producción, guárdalo en Key Vault.</p>'}</div></div><label class="adf-campo"><span>Scope</span><input id="lSc" placeholder="(opcional)"></label>`;
+            d.querySelector('#lAt').onchange = (e) => { const an = e.target.value === 'Anonymous'; d.querySelector('#lOa').hidden = an; d.querySelector('#lAn').hidden = !an; d.querySelector('#lSl').textContent = an ? 'Valor de la cabecera *' : 'Client secret *'; };
             d.querySelectorAll('[name=lSt]').forEach((x) => { x.onchange = () => { const kv = d.querySelector('[name=lSt]:checked').value === 'kv'; d.querySelector('#lSk').hidden = !kv; d.querySelector('#lSp').hidden = kv; }; });
             return;
           }
@@ -942,10 +952,10 @@
       },
       alOk: (d) => {
         const n = d.querySelector('#lN').value.trim(); if (!/^[A-Za-z][A-Za-z0-9_-]*$/.test(n)) throw new Error('Nombre inválido.'); if (S.linked[n]) throw new Error('Ya existe un linked service con ese nombre.');
-        const L = leer(d); if (L.type === 'RestService' && (!L.url || !L.tokenEndpoint || !L.clientId || !(L.secreto.tipo === 'kv' ? L.secreto.nombre : L.secreto.valor))) throw new Error('Completa Base URL, Token endpoint, Client ID y el secreto.'); if ((L.type === 'AzureBlobFS' || L.type === 'AzureBlobStorage') && !L.account) throw new Error('Elige la cuenta de almacenamiento.'); if (L.type === 'AzureDatabricks' && !L.workspace) throw new Error('Elige el workspace.'); if (L.type === 'AzureKeyVault' && !L.vault) throw new Error('Elige el key vault.');
+        const L = leer(d); if (L.type === 'RestService' && (!L.url || (L.auth !== 'Anonymous' && (!L.tokenEndpoint || !L.clientId)) || !(L.secreto.tipo === 'kv' ? L.secreto.nombre : L.secreto.valor))) throw new Error(L.auth === 'Anonymous' ? 'Completa Base URL y el valor de la cabecera.' : 'Completa Base URL, Token endpoint, Client ID y el secreto.'); if ((L.type === 'AzureBlobFS' || L.type === 'AzureBlobStorage') && !L.account) throw new Error('Elige la cuenta de almacenamiento.'); if (L.type === 'AzureDatabricks' && !L.workspace) throw new Error('Elige el workspace.'); if (L.type === 'AzureKeyVault' && !L.vault) throw new Error('Elige el key vault.');
         S.linked[n] = L; guardar(); render();
       } });
-    function leer(d) { const t = d.querySelector('#lT').value; const v = (s) => ((d.querySelector(s) || {}).value || '').trim(); if (t === 'RestService') { const kv = (d.querySelector('[name=lSt]:checked') || {}).value === 'kv'; return { type: t, url: v('#lU'), tokenEndpoint: v('#lTk'), clientId: v('#lCi'), scope: v('#lSc'), secreto: kv ? { tipo: 'kv', ls: v('#lKv'), nombre: v('#lSn') } : { tipo: 'plain', valor: v('#lSv') } }; } return t === 'AzureDatabricks' ? { type: t, workspace: (d.querySelector('#lW') || {}).value } : t === 'AzureKeyVault' ? { type: t, vault: (d.querySelector('#lV') || {}).value } : { type: t, account: (d.querySelector('#lA') || {}).value, auth: (d.querySelector('#lAu') || {}).value }; }
+    function leer(d) { const t = d.querySelector('#lT').value; const v = (s) => ((d.querySelector(s) || {}).value || '').trim(); if (t === 'RestService') { const kv = (d.querySelector('[name=lSt]:checked') || {}).value === 'kv'; return { type: t, url: v('#lU'), auth: v('#lAt') === 'Anonymous' ? 'Anonymous' : undefined, cabecera: v('#lHn') || 'Authorization', tokenEndpoint: v('#lTk'), clientId: v('#lCi'), scope: v('#lSc'), secreto: kv ? { tipo: 'kv', ls: v('#lKv'), nombre: v('#lSn') } : { tipo: 'plain', valor: v('#lSv') } }; } return t === 'AzureDatabricks' ? { type: t, workspace: (d.querySelector('#lW') || {}).value } : t === 'AzureKeyVault' ? { type: t, vault: (d.querySelector('#lV') || {}).value } : { type: t, account: (d.querySelector('#lA') || {}).value, auth: (d.querySelector('#lAu') || {}).value }; }
   }
 
   function vistaPublica(m, c, sub) {

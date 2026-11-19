@@ -1189,4 +1189,12 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .mv-panel .tabla-mini td { padding: 4px 8px 4px 0; vertical-align: top; }
 .mv-panel .tabla-mini code { word-break: break-all; }
 .mv-grilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.mv-ticket { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin: 8px 0; }
+.mv-ticket summary { cursor: pointer; }
+.mv-ticket.hecho { opacity: .75; }
+.mv-ticket .mv-ok { font-size: 12px; margin-left: 6px; }
+.mv-hilo { border-left: 3px solid var(--line); padding-left: 10px; margin: 6px 0 10px; }
+.mv-resp { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.mv-resp .input { flex: 1 1 200px; min-width: 0; padding: 6px 8px; }
+.mv-res { margin-top: 6px; color: var(--danger, #b91c1c); }
 .mv-grilla > div { border: 1px solid var(--line); border-radius: 10px; padding: 10px; }

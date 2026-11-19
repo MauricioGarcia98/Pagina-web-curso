@@ -908,6 +908,7 @@ print("\u0000AFJSON" + _json.dumps({"state": _run.state, "states": _run.states, 
     await enlazarReplicas(datos, null);
     // si una tarea enlazada falló, la corrida también (el estado lo había calculado Python antes del enlace)
     if (Object.values(datos.states).some((s) => s === 'failed' || s === 'upstream_failed')) datos.state = 'failed';
+    if (datos.state === 'success') { const s = st(); (s.pruebasOk = s.pruebasOk || {})[id] = Date.now(); guardar(); }
     return datos;
   }
 
