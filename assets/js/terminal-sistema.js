@@ -144,6 +144,11 @@ ${col.dim('(En una terminal real, top se actualiza cada 3 segundos: sales con q.
     if (desc) return fail(`iconv: no se admite la conversión desde "${de}" hacia "${a2}"`);
     const e = entrada(pos, ctx, 'iconv'); if (e.error) return e.error;
     let t = e.texto;
+    // bytes Latin-1 que no son UTF-8 válido (guardados como \uDC80–\uDCFF): se decodifican con -f LATIN1
+    if (/[\uDC80-\uDCFF]/.test(t)) {
+      if (/^UTF-8/i.test(de)) { const i = t.search(/[\uDC80-\uDCFF]/); return fail(`iconv: illegal input sequence at position ${i}`); }
+      if (/^(ISO-8859-1|LATIN1|WINDOWS-1252|CP1252)$/i.test(de)) t = t.replace(/[\uDC80-\uDCFF]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xDC00));
+    }
     // texto "mojibake" (UTF-8 leído como Latin-1: "JosÃ©"): se repara reinterpretando los bytes
     if (/^(ISO-8859-1|LATIN1|WINDOWS-1252|CP1252)$/i.test(de) && /^UTF-8/i.test(a2) && /[ÃÂ][\u0080-ÿ]/.test(t)) {
       try { t = new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from([...t].map((c) => c.charCodeAt(0) & 255))); } catch (err) { /* ya estaba bien */ }
