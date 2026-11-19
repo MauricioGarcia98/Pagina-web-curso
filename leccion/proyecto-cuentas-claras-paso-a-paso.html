@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paso a paso - una solución completa, explicada · Academia de Datos</title><meta name="description" content="Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - el MRR reconstruido desde el log de eventos, la unión con el CRM por id y por dominio, el health score y el reverse ETL que respeta el límite de pedidos. Léela después de intentarlo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-cuentas-claras-paso-a-paso.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Paso a paso - una solución completa, explicada · Academia de Datos"><meta property="og:description" content="Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - el MRR reconstruido desde el log de eventos, la unión con el CRM por id y por dominio, el health score y el reverse ETL que respeta el límite de pedidos. Léela después de intentarlo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-cuentas-claras-paso-a-paso.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-cuentas-claras">📈 Proyecto 5: Cuentas Claras, MRR, cliente 360 y reverse ETL</a> · Avanzado · 60 min</div>
+<h1>Paso a paso - una solución completa, explicada</h1><p class="resumen">Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - el MRR reconstruido desde el log de eventos, la unión con el CRM por id y por dominio, el health score y el reverse ETL que respeta el límite de pedidos. Léela después de intentarlo.</p>
+<a class="cta" href="../index.html#/l/proyecto-cuentas-claras-paso-a-paso">▶ Abrir la lección interactiva (2 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Ver cómo se reconstruye el estado de cada mes desde un log de eventos</li><li>Unir entidades entre sistemas con un respaldo por dominio</li><li>Escribir de vuelta en una herramienta operativa sin pasarse del límite</li></ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Intentalo primero</div>
+
+<p>Esta es <strong>una</strong> solución. Si ya resolviste el proyecto, compara: ¿tu reverse ETL sigue funcionando después de que Ventas fusiona los duplicados?</p>
+</div>
+
+
+<h2>El plan</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Paso</th>
+<th>Qué</th>
+<th>Dónde</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Explorar las tres APIs</td>
+<td>Terminal (<code>curl</code>)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>El CRM: empresas activas y archivadas</td>
+<td>Python</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Cobrable: el MRR de cada mes desde el log de eventos</td>
+<td>Python</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Medidor: uso de 30 días</td>
+<td>Python</td>
+</tr>
+<tr>
+<td>5</td>
+<td>La vista 360 y el health score</td>
+<td>Python</td>
+</tr>
+<tr>
+<td>6</td>
+<td>El reverse ETL</td>
+<td>Python</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Las tablas en Databricks y el Key Vault</td>
+<td>Azure + Databricks</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 1 · Explorar</h2>
+<pre><code class="language-bash">cuentas accesos
+curl -s &quot;https://api.contactocrm.example/crm/v3/objects/companies?limit=2&quot; -H &quot;Authorization: Bearer pat-…&quot;
+curl -s &quot;https://api.cobrable.example/v1/events?limit=2&quot; -H &quot;Authorization: Bearer ck_live_…&quot;
+curl -s -u mx_…: &quot;https://api.medidor.example/api/2.0/users&quot; | head -c 300</code></pre>
+<p>Mira un evento de Cobrable completo: trae la suscripción <strong>como quedó</strong> después del cambio. Esa es la clave del MRR histórico.</p>
+<h2>Paso 2 · El CRM</h2>
+<p>Un <code>get</code> con reintento para el 429 (100 pedidos cada 10 segundos) y la paginación con <code>after</code>. Se piden también las <strong>archivadas</strong>: después de la fusión, los duplicados quedan archivados con <code>mergedInto</code>.</p>
+<pre data-norun><code class="language-python">import requests, json, os, time, base64
+from datetime import date, datetime, timedelta, timezone
+CRM, COB, MED = os.environ[&quot;CRM&quot;], os.environ[&quot;COB&quot;], os.environ[&quot;MED&quot;]
+HOY = date.fromisoformat(os.environ[&quot;HOY&quot;]); TZ = timezone(timedelta(hours=-3))
+
+def get(url, headers, params=None):
+    while True:
+        r = requests.get(url, headers=headers, params=params)
+        if r.status_code == 429:
+            time.sleep(int(r.headers.get(&quot;retry-after&quot;, &quot;10&quot;))); continue
+        r.raise_for_status(); return r
+
+hc = {&quot;Authorization&quot;: &quot;Bearer &quot; + CRM}
+empresas = []
+for arch in (&quot;false&quot;, &quot;true&quot;):
+    after = None
+    while True:
+        p = {&quot;limit&quot;: 100, &quot;archived&quot;: arch, &quot;properties&quot;: &quot;name,domain,hubspot_owner_id,lifecyclestage,createdate&quot;}
+        if after: p[&quot;after&quot;] = after
+        d = get(&quot;https://api.contactocrm.example/crm/v3/objects/companies&quot;, hc, p).json()
+        empresas += d[&quot;results&quot;]
+        if &quot;paging&quot; not in d: break
+        after = d[&quot;paging&quot;][&quot;next&quot;][&quot;after&quot;]
+
+norm = lambda dom: (dom or &quot;&quot;).lower().replace(&quot;www.&quot;, &quot;&quot;)
+principal = {}   # dominio → la empresa principal (la que es customer y no está archivada)
+for e in empresas:
+    if e[&quot;archived&quot;] or e[&quot;properties&quot;][&quot;lifecyclestage&quot;] != &quot;customer&quot;: continue
+    principal[norm(e[&quot;properties&quot;][&quot;domain&quot;])] = e
+porId = {e[&quot;id&quot;]: e for e in empresas}</code></pre>
+<h2>Paso 3 · El MRR desde el log de eventos</h2>
+<p><code>/v1/subscriptions</code> es solo el presente. Para el cierre de cada mes se recorre el log de eventos <strong>en orden</strong> y se guarda, por cliente, el último estado visto hasta esa fecha.</p>
+<pre data-norun><code class="language-python">hb = {&quot;Authorization&quot;: &quot;Bearer &quot; + COB}
+def todo(ruta):   # Cobrable lista del más nuevo al más viejo, con starting_after
+    out, sa = [], None
+    while True:
+        p = {&quot;limit&quot;: 100}
+        if sa: p[&quot;starting_after&quot;] = sa
+        d = get(&quot;https://api.cobrable.example&quot; + ruta, hb, p).json()
+        out += d[&quot;data&quot;]
+        if not d[&quot;has_more&quot;]: return out
+        sa = d[&quot;data&quot;][-1][&quot;id&quot;]
+
+clientes = todo(&quot;/v1/customers&quot;)
+eventos = sorted(todo(&quot;/v1/events&quot;), key=lambda e: e[&quot;created&quot;])
+
+def mrr(o):
+    if o[&quot;status&quot;] not in (&quot;active&quot;, &quot;past_due&quot;): return 0.0      # pruebas y bajas no suman
+    precio = o[&quot;plan&quot;][&quot;amount&quot;] / 100                             # viene en centavos
+    mensual = precio / 12 if o[&quot;plan&quot;][&quot;interval&quot;] == &quot;year&quot; else precio
+    pct = (o.get(&quot;discount&quot;) or {}).get(&quot;coupon&quot;, {}).get(&quot;percent_off&quot;, 0) or 0
+    return round(mensual * o[&quot;quantity&quot;] * (1 - pct / 100), 2)
+
+def cierre(mes):   # el último instante del mes, en hora de Ciudad del Río
+    y, m = map(int, mes.split(&quot;-&quot;)); y2, m2 = (y + (m // 12), m % 12 + 1)
+    return datetime(y2, m2, 1, tzinfo=TZ).timestamp() - 0.001
+
+def meses_atras(n):
+    out = []
+    for k in range(n, 0, -1):
+        mm, yy = HOY.month - k, HOY.year
+        while mm &lt;= 0: mm += 12; yy -= 1
+        out.append(f&quot;{yy}-{mm:02d}&quot;)
+    return out
+
+todos = meses_atras(24)        # 24 meses para saber si una &quot;alta&quot; es nueva o reactivación
+estado, i, hist = {}, 0, {}
+for mes in todos:
+    c = cierre(mes)
+    while i &lt; len(eventos) and eventos[i][&quot;created&quot;] &lt;= c:
+        e = eventos[i]; estado[e[&quot;data&quot;][&quot;object&quot;][&quot;customer&quot;]] = e[&quot;data&quot;][&quot;object&quot;]; i += 1
+    hist[mes] = {k: mrr(v) for k, v in estado.items()}</code></pre>
+<p>Los movimientos comparan cada mes con el anterior. <code>tuvo</code> recuerda quién tuvo MRR alguna vez, para separar <code>nuevo</code> de <code>reactivacion</code>:</p>
+<pre data-norun><code class="language-python">filas, tuvo = [], {}
+for k, mes in enumerate(todos):
+    prev, act = (hist[todos[k - 1]] if k else {}), hist[mes]
+    for c in set(prev) | set(act):
+        a, b = prev.get(c, 0), act.get(c, 0)
+        if a == 0 and b &gt; 0: mov = &quot;reactivacion&quot; if tuvo.get(c) else &quot;nuevo&quot;
+        elif a &gt; 0 and b == 0: mov = &quot;churn&quot;
+        elif b &gt; a: mov = &quot;expansion&quot;
+        elif b &lt; a: mov = &quot;contraccion&quot;
+        else: mov = &quot;sin_cambio&quot; if b &gt; 0 else None
+        if mov and k &gt;= len(todos) - 6: filas.append((c, mes, b, mov))   # solo los últimos 6 cerrados
+        if b &gt; 0: tuvo[c] = True
+
+with open(&quot;mrr_mensual.csv&quot;, &quot;w&quot;) as f:
+    f.write(&quot;cliente_id,mes,mrr,movimiento\n&quot;)
+    for r in filas: f.write(f&quot;{r[0]},{r[1]},{r[2]:.2f},{r[3]}\n&quot;)</code></pre>
+<h2>Paso 4 · El uso de 30 días</h2>
+<p>El export de Medidor acepta <strong>7 días por pedido</strong>: se recorre la ventana en tramos. Los eventos de antes del login tienen un id anónimo que no está en <code>/users</code>: no cuentan. Y desde que la app renombró <code>factura_emitida</code> a <code>invoice_created</code>, hay que contar los dos.</p>
+<pre data-norun><code class="language-python">basic = {&quot;Authorization&quot;: &quot;Basic &quot; + base64.b64encode((MED + &quot;:&quot;).encode()).decode()}
+usuarios = get(&quot;https://api.medidor.example/api/2.0/users&quot;, basic).json()[&quot;results&quot;]
+cuentaDe = {u[&quot;user_id&quot;]: u[&quot;billing_customer_id&quot;] for u in usuarios}
+totalU = {}
+for u in usuarios: totalU[u[&quot;billing_customer_id&quot;]] = totalU.get(u[&quot;billing_customer_id&quot;], 0) + 1
+
+activos, facturas = {}, {}
+fin = HOY - timedelta(days=1); ini = fin - timedelta(days=29); d = ini
+while d &lt;= fin:
+    h = min(d + timedelta(days=6), fin)
+    txt = get(&quot;https://api.medidor.example/api/2.0/export&quot;, basic, {&quot;from_date&quot;: d.isoformat(), &quot;to_date&quot;: h.isoformat()}).text
+    for linea in txt.splitlines():
+        e = json.loads(linea); c = cuentaDe.get(e[&quot;distinct_id&quot;])
+        if not c: continue
+        if e[&quot;event&quot;] == &quot;login&quot;: activos.setdefault(c, set()).add(e[&quot;distinct_id&quot;])
+        if e[&quot;event&quot;] in (&quot;factura_emitida&quot;, &quot;invoice_created&quot;): facturas[c] = facturas.get(c, 0) + 1
+    d = h + timedelta(days=1)</code></pre>
+<h2>Paso 5 · La vista 360</h2>
+<p>Para cada cliente que hoy paga: primero el id que cargó Ventas en <code>metadata</code> (si la empresa no está archivada); si no, el <strong>dominio</strong> del email normalizado contra la empresa principal.</p>
+<pre data-norun><code class="language-python">actual = {e[&quot;data&quot;][&quot;object&quot;][&quot;customer&quot;]: e[&quot;data&quot;][&quot;object&quot;] for e in eventos}
+cli = {c[&quot;id&quot;]: c for c in clientes}
+filas360 = []
+for c, o in actual.items():
+    m = mrr(o)
+    if m &lt;= 0: continue
+    meta = cli[c].get(&quot;metadata&quot;, {}).get(&quot;crm_company_id&quot;)
+    crm = meta if meta and meta in porId and not porId[meta][&quot;archived&quot;] else None
+    if not crm:
+        e = principal.get(norm(cli[c][&quot;email&quot;].split(&quot;@&quot;)[1])); crm = e[&quot;id&quot;] if e else &quot;&quot;
+    a, fc, u = len(activos.get(c, set())), facturas.get(c, 0), totalU.get(c, 1)
+    health = round(50 * a / u + 50 * min(1, fc / 60))
+    filas360.append((c, crm, o[&quot;plan&quot;][&quot;id&quot;].split(&quot;_&quot;)[0], m, a, fc, health))
+
+with open(&quot;cliente_360.csv&quot;, &quot;w&quot;) as f:
+    f.write(&quot;billing_customer_id,crm_company_id,plan,mrr_actual,usuarios_activos_30d,facturas_30d,health_score\n&quot;)
+    for r in filas360: f.write(&quot;,&quot;.join(str(x) for x in r) + &quot;\n&quot;)</code></pre>
+<h2>Paso 6 · El reverse ETL</h2>
+<p>Un <code>PATCH</code> por empresa con las tres propiedades. Si llega un 429, se espera lo que dice <code>Retry-After</code> y se reintenta <strong>ese</strong> pedido.</p>
+<pre data-norun><code class="language-python">for c, crm, plan, m, a, fc, health in filas360:
+    if not crm: continue
+    while True:
+        r = requests.patch(f&quot;https://api.contactocrm.example/crm/v3/objects/companies/{crm}&quot;, headers=hc,
+                           json={&quot;properties&quot;: {&quot;health_score&quot;: str(health), &quot;mrr_actual&quot;: f&quot;{m:.2f}&quot;, &quot;plan_actual&quot;: plan}})
+        if r.status_code == 429: time.sleep(int(r.headers.get(&quot;retry-after&quot;, &quot;10&quot;))); continue
+        r.raise_for_status(); break</code></pre>
+<pre><code class="language-bash">CRM=pat-… COB=ck_live_… MED=mx_… HOY=$(date +%F) python ~/cc.py</code></pre>
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Por qué el reverse ETL no se rompe con la fusión</div>
+
+<p>Cuando Ventas fusiona los duplicados, la empresa vieja queda archivada y la API rechaza escribirle. Esta solución nunca elige una archivada: si el id de <code>metadata</code> está archivado, cae al dominio, que apunta a la principal. Si tu versión guardaba los ids del CRM &quot;para siempre&quot;, ahí está el error.</p>
+</div>
+
+
+<h2>Paso 7 · Databricks y Key Vault</h2>
+<pre><code class="language-bash">az storage blob upload --account-name stcc -c landing -n gold/mrr_mensual.csv -f ~/mrr_mensual.csv --overwrite
+az storage blob upload --account-name stcc -c landing -n gold/cliente_360.csv -f ~/cliente_360.csv --overwrite
+az keyvault secret set --vault-name kv-cc -n crm-token --value 'pat-…' -o none
+az keyvault secret set --vault-name kv-cc -n cobrable-key --value 'ck_live_…' -o none
+az keyvault secret set --vault-name kv-cc -n medidor-secreto --value 'mx_…' -o none</code></pre>
+<p>(El grupo de recursos, la cuenta de almacenamiento con <code>--hns true</code>, el contenedor <code>landing</code>, el permiso para el conector de Unity Catalog y el Key Vault se crean igual que en los otros proyectos.)</p>
+<pre data-norun><code class="language-sql">CREATE CATALOG IF NOT EXISTS cc; CREATE SCHEMA IF NOT EXISTS cc.gold;
+
+CREATE OR REPLACE TABLE cc.gold.mrr_mensual AS
+SELECT cliente_id, mes, CAST(mrr AS DOUBLE) AS mrr, movimiento
+FROM read_files('abfss://landing@stcc.dfs.core.windows.net/gold/mrr_mensual.csv', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false);
+
+CREATE OR REPLACE TABLE cc.gold.cliente_360 AS
+SELECT billing_customer_id, crm_company_id, plan, CAST(mrr_actual AS DOUBLE) AS mrr_actual,
+       CAST(usuarios_activos_30d AS INT) AS usuarios_activos_30d, CAST(facturas_30d AS INT) AS facturas_30d,
+       CAST(health_score AS INT) AS health_score
+FROM read_files('abfss://landing@stcc.dfs.core.windows.net/gold/cliente_360.csv', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false);</code></pre>
+<p>Las preguntas del tablero salen de estas tablas. Por ejemplo, el MRR de un mes y el churn de MRR:</p>
+<pre data-norun><code class="language-sql">SELECT round(sum(mrr), 2) FROM cc.gold.mrr_mensual WHERE mes = '2026-10' AND movimiento &lt;&gt; 'churn';
+
+-- MRR perdido en octubre (el que tenían en septiembre los que hicieron churn) / MRR de septiembre
+SELECT round(100 * sum(a.mrr) / (SELECT sum(mrr) FROM cc.gold.mrr_mensual WHERE mes = '2026-09' AND movimiento &lt;&gt; 'churn'), 1)
+FROM cc.gold.mrr_mensual a JOIN cc.gold.mrr_mensual b ON a.cliente_id = b.cliente_id
+WHERE b.mes = '2026-10' AND b.movimiento = 'churn' AND a.mes = '2026-09';</code></pre>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>El historial sale del log de eventos; el presente, de la API de estado.</li>
+<li>Unir por id externo y, si falla, por dominio normalizado contra la entidad principal.</li>
+<li>El reverse ETL respeta el límite de pedidos y nunca escribe en un registro archivado.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-cuentas-claras-paso-a-paso">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-cuentas-claras-el-dia-a-dia.html">← El día a día - precios nuevos, un CRM que se limpia, eventos que cambian de nombre y preguntas del directorio</a><a href="proyecto-almacenes-sol-el-pedido.html">El pedido - una cadena de supermercados que no sabe cuánto gana →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

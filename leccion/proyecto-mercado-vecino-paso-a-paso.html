@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paso a paso - una solución completa, explicada · Academia de Datos</title><meta name="description" content="Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - snapshot más CDC con MERGE ordenado por LSN, los eventos de PagoYa por API y por webhook con la firma verificada, y la conciliación. Léela después de intentarlo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-mercado-vecino-paso-a-paso.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Paso a paso - una solución completa, explicada · Academia de Datos"><meta property="og:description" content="Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - snapshot más CDC con MERGE ordenado por LSN, los eventos de PagoYa por API y por webhook con la firma verificada, y la conciliación. Léela después de intentarlo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-mercado-vecino-paso-a-paso.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-mercado-vecino">🛒 Proyecto 2: Mercado Vecino, conciliar la app con la pasarela de pagos</a> · Avanzado · 75 min</div>
+<h1>Paso a paso - una solución completa, explicada</h1><p class="resumen">Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - snapshot más CDC con MERGE ordenado por LSN, los eventos de PagoYa por API y por webhook con la firma verificada, y la conciliación. Léela después de intentarlo.</p>
+<a class="cta" href="../index.html#/l/proyecto-mercado-vecino-paso-a-paso">▶ Abrir la lección interactiva (2 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Ver cómo se combinan un snapshot y un flujo de CDC sin perder ni duplicar cambios</li><li>Verificar firmas HMAC de webhooks y descartar repeticiones</li><li>Conciliar pagos, pedidos y liquidaciones</li></ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Intentalo primero</div>
+
+<p>Esta es <strong>una</strong> solución. Si ya resolviste el proyecto, compara: ¿qué hace tu versión si el mismo cambio de CDC llega dos veces, o llega uno viejo después de uno nuevo?</p>
+</div>
+
+
+<h2>El plan</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Paso</th>
+<th>Qué</th>
+<th>Dónde</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Lago, Key Vault y webhook</td>
+<td>Terminal (<code>az</code>, <code>pagoya</code>)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Snapshot de la base y mirar el CDC</td>
+<td>Terminal (<code>psql</code>, <code>kcat</code>)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Silver: snapshot + MERGE del CDC</td>
+<td>Databricks</td>
+</tr>
+<tr>
+<td>4</td>
+<td>PagoYa: API + webhooks verificados + liquidaciones</td>
+<td>Terminal (<code>python</code>)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>La conciliación</td>
+<td>Databricks</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Automatizar</td>
+<td>Data Factory / Airflow</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 1 · El lago, el Key Vault y el webhook</h2>
+<pre><code class="language-bash">mercado accesos
+az login
+az group create -n rg-mercado -l eastus2
+az storage account create -n stmercado -g rg-mercado -l eastus2 --sku Standard_LRS --hns true
+az storage container create --account-name stmercado -n landing
+ID=$(az storage account show -n stmercado -g rg-mercado --query id -o tsv)
+az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID
+az keyvault create -n kv-mercado -g rg-mercado -l eastus2
+az keyvault secret set --vault-name kv-mercado -n pg-clave --value '…'
+az keyvault secret set --vault-name kv-mercado -n pagoya-clave --value 'sk_…'
+az keyvault secret set --vault-name kv-mercado -n pagoya-webhook --value 'whsec_…'
+pagoya webhooks configurar --cuenta stmercado</code></pre>
+<p>El webhook se configura <strong>el primer día</strong>: PagoYa solo manda lo que pasa desde ese momento. Lo de antes se recupera por la API (paso 4).</p>
+<h2>Paso 2 · El snapshot y el CDC</h2>
+<p>La réplica de lectura es un PostgreSQL de verdad, con un usuario que no puede escribir:</p>
+<pre><code class="language-bash">export PGPASSWORD='…'
+psql &quot;postgresql://lector_datos@mv-prod-replica.postgres.database.azure.com:5432/mercado?sslmode=require&quot; -c &quot;SELECT estado, count(*) FROM pedidos GROUP BY 1 ORDER BY 1&quot;
+psql -h mv-prod-replica.postgres.database.azure.com -U lector_datos -d mercado -c &quot;\d pedidos&quot;
+
+mkdir -p ~/mv/snap
+psql -h mv-prod-replica.postgres.database.azure.com -U lector_datos -d mercado -c &quot;\copy (SELECT * FROM pedidos) TO 'mv/snap/pedidos.csv' WITH (FORMAT csv, HEADER)&quot;
+psql -h mv-prod-replica.postgres.database.azure.com -U lector_datos -d mercado -c &quot;\copy clientes TO 'mv/snap/clientes.csv' CSV HEADER&quot;
+az storage blob upload-batch --account-name stmercado -d landing/snap -s ~/mv/snap</code></pre>
+<p>Y el CDC en Kafka: una configuración en <code>~/.config/kcat.conf</code> evita repetir las credenciales en cada comando.</p>
+<pre><code class="language-bash">mkdir -p ~/.config &amp;&amp; printf 'bootstrap.servers=mv-eventos.servicebus.windows.net:9093\nsecurity.protocol=SASL_SSL\nsasl.mechanisms=PLAIN\nsasl.username=$ConnectionString\nsasl.password=Endpoint=sb://…\n' &gt; ~/.config/kcat.conf
+kcat -L | head -5
+kcat -C -t mv_prod.public.pedidos -o beginning -e -c 1</code></pre>
+<p>Cada mensaje trae <code>op</code> (<code>c</code> alta, <code>u</code> cambio, <code>d</code> baja, <code>r</code> lectura inicial), <code>before</code>, <code>after</code> y <code>source.lsn</code>: la posición del cambio en el log de la base. Ese número es el que ordena todo.</p>
+<h2>Paso 3 · Silver: snapshot + MERGE</h2>
+<p>Primero el snapshot, con <code>_lsn = 0</code>:</p>
+<pre data-norun><code class="language-sql">CREATE EXTERNAL LOCATION lago_mercado URL 'abfss://landing@stmercado.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
+CREATE CATALOG IF NOT EXISTS mercado;
+CREATE SCHEMA IF NOT EXISTS mercado.bronze; CREATE SCHEMA IF NOT EXISTS mercado.silver; CREATE SCHEMA IF NOT EXISTS mercado.gold;
+
+CREATE OR REPLACE TABLE mercado.silver.pedidos AS
+SELECT CAST(id AS BIGINT) AS pedido_id, CAST(cliente_id AS BIGINT) AS cliente_id, estado,
+       CAST(total AS DECIMAL(12,2)) AS total, CAST(descuento AS DECIMAL(12,2)) AS descuento, cupon,
+       CAST(creado_en AS TIMESTAMP) AS creado_en, CAST(actualizado_en AS TIMESTAMP) AS actualizado_en,
+       CAST(0 AS BIGINT) AS _lsn
+FROM read_files('abfss://landing@stmercado.dfs.core.windows.net/snap/pedidos.csv', format =&gt; 'csv', header =&gt; true);</code></pre>
+<p>El CDC a bronze, tal cual llega:</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE mercado.bronze.cdc_pedidos AS
+SELECT CAST(value AS STRING) AS v, offset
+FROM read_kafka(bootstrapServers =&gt; 'mv-eventos.servicebus.windows.net:9093', subscribe =&gt; 'mv_prod.public.pedidos',
+  startingOffsets =&gt; 'earliest', `kafka.security.protocol` =&gt; 'SASL_SSL', `kafka.sasl.mechanism` =&gt; 'PLAIN',
+  `kafka.sasl.jaas.config` =&gt; 'kafkashaded.org.apache.kafka.common.security.plain.PlainLoginModule required username=&quot;$ConnectionString&quot; password=&quot;Endpoint=sb://…&quot;;');</code></pre>
+<p>Y el MERGE. Tres ideas:</p>
+<ol>
+<li>Por pedido, solo el <strong>último</strong> cambio (<code>ROW_NUMBER</code> por LSN descendente): aplicar todos en orden daría lo mismo, pero más lento.</li>
+<li>Se actualiza solo si el cambio es <strong>más nuevo</strong> que lo que ya hay (<code>s.lsn &gt; t._lsn</code>). Así, reprocesar el tópico entero no rompe nada, y un cambio viejo nunca pisa a uno nuevo.</li>
+<li>Las bajas (<code>op = &#39;d&#39;</code>) borran.</li>
+</ol>
+<pre data-norun><code class="language-sql">MERGE INTO mercado.silver.pedidos t USING (
+  SELECT * FROM (
+    SELECT CAST(coalesce(v:after.id, v:before.id) AS BIGINT) AS id, v:op AS op, CAST(v:source.lsn AS BIGINT) AS lsn,
+           CAST(v:after.cliente_id AS BIGINT) AS cliente_id, v:after.estado AS estado,
+           CAST(v:after.total AS DECIMAL(12,2)) AS total, CAST(coalesce(v:after.descuento, '0') AS DECIMAL(12,2)) AS descuento,
+           v:after.cupon AS cupon,
+           timestamp_micros(v:after.creado_en) AS creado_en, timestamp_micros(v:after.actualizado_en) AS actualizado_en,
+           ROW_NUMBER() OVER (PARTITION BY coalesce(v:after.id, v:before.id) ORDER BY CAST(v:source.lsn AS BIGINT) DESC) AS rn
+    FROM mercado.bronze.cdc_pedidos) x
+  WHERE rn = 1
+) s ON t.pedido_id = s.id
+WHEN MATCHED AND s.op = 'd' THEN DELETE
+WHEN MATCHED AND s.lsn &gt; t._lsn THEN UPDATE SET
+  cliente_id = s.cliente_id, estado = s.estado, total = s.total, descuento = s.descuento, cupon = s.cupon,
+  creado_en = s.creado_en, actualizado_en = s.actualizado_en, _lsn = s.lsn
+WHEN NOT MATCHED AND s.op &lt;&gt; 'd' THEN INSERT (pedido_id, cliente_id, estado, total, descuento, cupon, creado_en, actualizado_en, _lsn)
+  VALUES (s.id, s.cliente_id, s.estado, s.total, s.descuento, s.cupon, s.creado_en, s.actualizado_en, s.lsn);</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 coalesce(after.id, before.id)</div>
+
+<p>En una baja, <code>after</code> es nulo: el id está en <code>before</code>. Y <code>descuento</code> y <code>cupon</code> aparecen recién después del cambio de esquema de la base; <code>coalesce(…, &#39;0&#39;)</code> cubre los mensajes viejos que no los traen.</p>
+</div>
+
+
+<p><code>mercado.silver.clientes</code> se arma igual (snapshot + MERGE sobre <code>cdc_clientes</code>). Cuando un cliente pide el borrado, la base pone su email en NULL y ese cambio viaja por el CDC.</p>
+<h2>Paso 4 · PagoYa en Python</h2>
+<p>La API recupera <strong>todo</strong> lo que pasó (también antes del webhook). Los webhooks se verifican: la firma es un HMAC-SHA256 de <code>t.cuerpo</code> con el secreto. Durante la rotación del secreto llegan dos firmas <code>v1</code>, así que se aceptan los dos secretos. Y una entrega cuya marca <code>t</code> está a más de 5 minutos de cuando llegó es una repetición vieja (o un ataque): se descarta.</p>
+<pre><code class="language-bash">az storage blob download-batch --account-name stmercado -d ~/mv/webhooks -s landing --pattern &quot;pagoya/webhooks/*&quot;</code></pre>
+<p>Guárdalo como <code>~/mv/pagoya.py</code>:</p>
+<pre data-norun><code class="language-python">import requests, json, hmac, hashlib, os, glob, time
+from datetime import datetime
+SK = os.environ[&quot;PAGOYA_SK&quot;]; SECRETOS = [x for x in os.environ[&quot;PAGOYA_WH&quot;].split(&quot;,&quot;) if x]
+H = {&quot;Authorization&quot;: &quot;Bearer &quot; + SK}
+
+def get(url, **kw):
+    while True:
+        r = requests.get(url, headers=H, **kw)
+        if r.status_code in (429, 503):
+            time.sleep(int(r.headers.get(&quot;retry-after&quot;, 1))); continue
+        r.raise_for_status(); return r
+
+# 1) la API: todos los eventos, con cursor
+eventos, despues = {}, None
+while True:
+    params = {&quot;limite&quot;: 100, &quot;tipo&quot;: &quot;pago.aprobado,reembolso.creado,disputa.abierta,disputa.cerrada&quot;}
+    if despues: params[&quot;despues_de&quot;] = despues
+    d = get(&quot;https://api.pagoya.example/v1/eventos&quot;, params=params).json()
+    for e in d[&quot;datos&quot;]: eventos[e[&quot;id&quot;]] = e
+    if not d[&quot;hay_mas&quot;]: break
+    despues = d[&quot;datos&quot;][-1][&quot;id&quot;]
+
+# 2) los webhooks: firma válida y no repetidos viejos; el id del evento deduplica contra la API
+for f in glob.glob(&quot;mv/webhooks/**/*.json&quot;, recursive=True):
+    w = json.loads(open(f).read())
+    pares = [x.split(&quot;=&quot;, 1) for x in w[&quot;headers&quot;][&quot;pagoya-signature&quot;].split(&quot;,&quot;)]
+    t = int(dict(pares)[&quot;t&quot;]); firmas = [v for k, v in pares if k == &quot;v1&quot;]
+    esperadas = [hmac.new(s.encode(), f&quot;{t}.{w['body']}&quot;.encode(), hashlib.sha256).hexdigest() for s in SECRETOS]
+    if not any(hmac.compare_digest(e, x) for e in esperadas for x in firmas): continue      # falsificado
+    if abs(datetime.fromisoformat(w[&quot;recibido_en&quot;].replace(&quot;Z&quot;, &quot;+00:00&quot;)).timestamp() - t) &gt; 300: continue   # repetición vieja
+    e = json.loads(w[&quot;body&quot;]); eventos[e[&quot;id&quot;]] = e
+
+with open(&quot;mv/eventos.jsonl&quot;, &quot;w&quot;) as out:
+    for e in eventos.values():
+        o = e[&quot;datos&quot;][&quot;objeto&quot;]; pago = o[&quot;id&quot;] if o[&quot;objeto&quot;] == &quot;pago&quot; else o[&quot;pago&quot;]
+        out.write(json.dumps({&quot;evento_id&quot;: e[&quot;id&quot;], &quot;tipo&quot;: e[&quot;tipo&quot;], &quot;creado&quot;: e[&quot;creado&quot;], &quot;pago_id&quot;: pago,
+                              &quot;pedido_id&quot;: o.get(&quot;metadatos&quot;, {}).get(&quot;pedido_id&quot;), &quot;monto&quot;: o[&quot;monto&quot;] / 100, &quot;estado&quot;: o.get(&quot;estado&quot;)}) + &quot;\n&quot;)
+
+# 3) las liquidaciones: el índice y el reporte de cada una
+filas = []
+for l in get(&quot;https://api.pagoya.example/v1/liquidaciones&quot;).json()[&quot;datos&quot;]:
+    filas += get(&quot;https://api.pagoya.example&quot; + l[&quot;reporte&quot;]).text.strip().split(&quot;\n&quot;)[1:]
+open(&quot;mv/liquidaciones.csv&quot;, &quot;w&quot;).write(&quot;fecha_liquidacion,tipo,pago_id,pedido_id,bruto,comision,neto,moneda\n&quot; + &quot;\n&quot;.join(filas) + &quot;\n&quot;)</code></pre>
+<pre><code class="language-bash">PAGOYA_SK=sk_… PAGOYA_WH=whsec_nuevo,whsec_viejo python ~/mv/pagoya.py
+az storage blob upload --account-name stmercado -c landing -n pagoya/eventos/eventos.jsonl -f ~/mv/eventos.jsonl --overwrite
+az storage blob upload --account-name stmercado -c landing -n pagoya/liquidaciones/liquidaciones.csv -f ~/mv/liquidaciones.csv --overwrite</code></pre>
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 hmac.compare_digest, no ==</div>
+
+<p>Comparar firmas con <code>==</code> corta en el primer carácter distinto, y el tiempo que tarda le da pistas a un atacante. <code>compare_digest</code> tarda siempre lo mismo. Es una línea y es la forma correcta.</p>
+</div>
+
+
+<h2>Paso 5 · La conciliación</h2>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE mercado.silver.pagoya_eventos AS
+SELECT evento_id, tipo, CAST(creado AS BIGINT) AS creado, pago_id, CAST(pedido_id AS BIGINT) AS pedido_id,
+       CAST(monto AS DECIMAL(12,2)) AS monto, estado
+FROM read_files('abfss://landing@stmercado.dfs.core.windows.net/pagoya/eventos/eventos.jsonl', format =&gt; 'json');
+
+CREATE OR REPLACE TABLE mercado.silver.liquidaciones AS
+SELECT * FROM read_files('abfss://landing@stmercado.dfs.core.windows.net/pagoya/liquidaciones/liquidaciones.csv', format =&gt; 'csv', header =&gt; true);</code></pre>
+<p>Un pago aprobado por fila, con una categoría que sigue un orden de prioridad (un contracargo pesa más que un reembolso, y así). Solo días cerrados (hora de la tienda): el día de hoy todavía puede cambiar.</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE mercado.gold.conciliacion AS
+WITH ap AS (SELECT pago_id, pedido_id, monto, to_date(from_unixtime(creado - 10800)) AS fecha FROM mercado.silver.pagoya_eventos WHERE tipo = 'pago.aprobado'),
+hoy AS (SELECT to_date(from_unixtime(unix_timestamp() - 10800)) AS d),
+re AS (SELECT DISTINCT pago_id FROM mercado.silver.pagoya_eventos WHERE tipo = 'reembolso.creado'),
+da AS (SELECT DISTINCT pago_id FROM mercado.silver.pagoya_eventos WHERE tipo = 'disputa.abierta'),
+dc AS (SELECT pago_id, max(estado) AS estado FROM mercado.silver.pagoya_eventos WHERE tipo = 'disputa.cerrada' GROUP BY pago_id),
+li AS (SELECT pago_id, min(fecha_liquidacion) AS f FROM mercado.silver.liquidaciones WHERE tipo = 'cobro' GROUP BY pago_id)
+SELECT ap.pago_id, ap.pedido_id, ap.fecha, ap.monto,
+       CASE WHEN dc.estado = 'perdida' THEN 'contracargo'
+            WHEN da.pago_id IS NOT NULL AND dc.pago_id IS NULL THEN 'en_disputa'
+            WHEN re.pago_id IS NOT NULL THEN 'reembolsado'
+            WHEN p.pedido_id IS NULL THEN 'pago_sin_pedido'
+            WHEN p.estado = 'cancelado' THEN 'cobrado_y_cancelado'
+            ELSE 'ok' END AS categoria,
+       CAST(li.f AS DATE) AS liquidado_el
+FROM ap CROSS JOIN hoy
+LEFT JOIN re ON re.pago_id = ap.pago_id
+LEFT JOIN da ON da.pago_id = ap.pago_id
+LEFT JOIN dc ON dc.pago_id = ap.pago_id
+LEFT JOIN li ON li.pago_id = ap.pago_id
+LEFT JOIN mercado.silver.pedidos p ON p.pedido_id = ap.pedido_id
+WHERE ap.fecha &lt; hoy.d;
+
+CREATE OR REPLACE TABLE mercado.gold.conciliacion_diaria AS
+SELECT CAST(fecha_liquidacion AS DATE) AS fecha_liquidacion,
+       SUM(CASE WHEN tipo = 'cobro' THEN CAST(bruto AS DECIMAL(14,2)) ELSE 0 END) AS cobros,
+       SUM(CASE WHEN tipo = 'reembolso' THEN CAST(bruto AS DECIMAL(14,2)) ELSE 0 END) AS reembolsos,
+       SUM(CASE WHEN tipo = 'contracargo' THEN CAST(bruto AS DECIMAL(14,2)) ELSE 0 END) AS contracargos,
+       SUM(CAST(comision AS DECIMAL(14,2))) AS comisiones, SUM(CAST(neto AS DECIMAL(14,2))) AS neto
+FROM mercado.silver.liquidaciones GROUP BY fecha_liquidacion;</code></pre>
+<p>Para que Finanzas lo lea desde Snowflake, se exporta al lago:</p>
+<pre data-norun><code class="language-sql">INSERT OVERWRITE DIRECTORY 'abfss://landing@stmercado.dfs.core.windows.net/gold/conciliacion_diaria'
+USING CSV OPTIONS ('header' = 'true')
+SELECT * FROM mercado.gold.conciliacion_diaria;</code></pre>
+<h2>Paso 6 · Automatizar</h2>
+<p>Un job de Databricks con el MERGE y la conciliación, disparado cada hora por un DAG:</p>
+<pre data-norun><code class="language-python">from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
+
+with DAG(&quot;mercado_horario&quot;, start_date=datetime(2026, 11, 1), schedule=&quot;@hourly&quot;, catchup=False, tags=[&quot;mercado&quot;]):
+    DatabricksRunNowOperator(task_id=&quot;cdc_y_gold&quot;, job_name=&quot;mercado_cdc&quot;)</code></pre>
+<p>Las líneas de cada liquidación también se pueden traer con Data Factory: un servicio vinculado REST con la cabecera <code>Authorization</code> sacada del Key Vault (<code>pagoya-auth</code>) y un Copy con la fecha como parámetro.</p>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Snapshot con <code>_lsn = 0</code> y un MERGE que solo aplica cambios más nuevos: idempotente y en orden.</li>
+<li>La API completa la historia; los webhooks la mantienen al día, siempre verificados.</li>
+<li>La conciliación cruza pagos, pedidos y liquidaciones con una prioridad clara y solo sobre días cerrados.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-mercado-vecino-paso-a-paso">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-mercado-vecino-el-dia-a-dia.html">← El día a día - tickets, incidentes y preguntas de negocio</a><a href="proyecto-red-analitica-el-pedido.html">El pedido - cinco laboratorios, cinco formatos y datos de salud →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

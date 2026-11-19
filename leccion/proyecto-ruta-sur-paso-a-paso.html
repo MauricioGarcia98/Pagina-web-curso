@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paso a paso - una solución completa, explicada · Academia de Datos</title><meta name="description" content="Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - la streaming table desde Kafka con su checkpoint, silver que entiende los dos firmwares, el plan del TMS y el SLA de cada entrega. Léela después de intentarlo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-ruta-sur-paso-a-paso.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Paso a paso - una solución completa, explicada · Academia de Datos"><meta property="og:description" content="Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - la streaming table desde Kafka con su checkpoint, silver que entiende los dos firmwares, el plan del TMS y el SLA de cada entrega. Léela después de intentarlo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-ruta-sur-paso-a-paso.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-ruta-sur">🚚 Proyecto 4: Ruta Sur, telemetría en tiempo real y el SLA de cada entrega</a> · Avanzado · 60 min</div>
+<h1>Paso a paso - una solución completa, explicada</h1><p class="resumen">Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - la streaming table desde Kafka con su checkpoint, silver que entiende los dos firmwares, el plan del TMS y el SLA de cada entrega. Léela después de intentarlo.</p>
+<a class="cta" href="../index.html#/l/proyecto-ruta-sur-paso-a-paso">▶ Abrir la lección interactiva (2 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Ver una ingesta de streaming con checkpoint de punta a punta</li><li>Normalizar eventos de dos versiones de firmware</li><li>Unir el plan con los eventos para medir un SLA</li></ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Intentalo primero</div>
+
+<p>Esta es <strong>una</strong> solución. Si ya resolviste el proyecto, compara: ¿qué hace tu versión con los eventos que llegan un día tarde?</p>
+</div>
+
+
+<h2>El plan</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Paso</th>
+<th>Qué</th>
+<th>Dónde</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Lago, Key Vault y mirar el tópico</td>
+<td>Terminal (<code>az</code>, <code>kcat</code>)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>El plan del TMS</td>
+<td>Terminal (<code>python</code>)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Bronze: streaming table desde Kafka</td>
+<td>Databricks</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Silver: un evento por fila, en un solo formato</td>
+<td>Databricks</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Gold: cada pedido del plan con su entrega</td>
+<td>Databricks</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Refrescar todos los días</td>
+<td>Databricks / Airflow</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 1 · El lago, el Key Vault y el tópico</h2>
+<pre><code class="language-bash">ruta accesos
+az login
+az group create -n rg-ruta -l eastus2
+az storage account create -n strutasur -g rg-ruta -l eastus2 --sku Standard_LRS --hns true
+az storage container create --account-name strutasur -n landing
+ID=$(az storage account show -n strutasur -g rg-ruta --query id -o tsv)
+az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID
+az keyvault create -n kv-ruta -g rg-ruta -l eastus2
+az keyvault secret set --vault-name kv-ruta -n eh --value 'Endpoint=sb://…' -o none
+az keyvault secret set --vault-name kv-ruta -n tms --value '…' -o none</code></pre>
+<p>Antes de escribir una línea de SQL, mira el tópico con <code>kcat</code>: particiones, offsets y cómo es un mensaje.</p>
+<pre><code class="language-bash">kcat -b rutasur-telemetria.servicebus.windows.net:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=PLAIN \
+  -X 'sasl.username=$ConnectionString' -X 'sasl.password=Endpoint=sb://…' -L
+kcat -b rutasur-telemetria.servicebus.windows.net:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=PLAIN \
+  -X 'sasl.username=$ConnectionString' -X 'sasl.password=Endpoint=sb://…' \
+  -C -t rutasur.telemetria -p 1 -o -2 -e -f '%p %o %T %k %s\n'</code></pre>
+<p>(El broker y la cadena exactos te los da <code>ruta accesos</code>.) Vas a ver que la clave del mensaje es el vehículo, que hay eventos repetidos (el mismo <code>event_id</code>) y, desde el cambio de firmware, mensajes con <code>fw: &quot;2.0&quot;</code>, <code>speed_mps</code> y <code>ts</code> en milisegundos.</p>
+<h2>Paso 2 · El plan del TMS</h2>
+<p>El plan de cada día se publica la tarde anterior y puede sumar pedidos urgentes. Se baja una ventana de días hacia atrás. Guárdalo como <code>~/plan.py</code>:</p>
+<pre data-norun><code class="language-python">import requests, json, os
+from datetime import date, timedelta
+H = {&quot;X-Api-Key&quot;: os.environ[&quot;RS_KEY&quot;]}
+hoy = date.fromisoformat(os.environ[&quot;HOY&quot;])
+n = 0
+with open(&quot;plan.jsonl&quot;, &quot;w&quot;) as out:
+    for k in range(1, 9):
+        f = (hoy - timedelta(days=k)).isoformat()
+        r = requests.get(&quot;https://api.rutasur.example/v1/rutas&quot;, params={&quot;fecha&quot;: f}, headers=H)
+        if r.status_code != 200:
+            print(f, r.status_code); continue
+        for ruta in r.json()[&quot;rutas&quot;]:
+            for p in ruta[&quot;pedidos&quot;]:
+                out.write(json.dumps({&quot;fecha&quot;: f, &quot;vehiculo&quot;: ruta[&quot;vehiculo&quot;], **p}) + &quot;\n&quot;); n += 1
+print(n, &quot;pedidos&quot;)</code></pre>
+<pre><code class="language-bash">RS_KEY=… HOY=$(date +%F) python ~/plan.py
+az storage blob upload --account-name strutasur -c landing -n tms/plan.jsonl -f ~/plan.jsonl --overwrite</code></pre>
+<h2>Paso 3 · Bronze: la streaming table</h2>
+<p>Una <strong>streaming table</strong> lee Kafka y guarda en el checkpoint hasta qué offset leyó en cada partición. Cada <code>REFRESH</code> trae solo lo nuevo. La primera vez se crea con <code>startingOffsets =&gt; &#39;earliest&#39;</code>: el tópico guarda 3 días, así que hay que crearla <strong>el primer día</strong> (lo que se va del tópico no vuelve).</p>
+<pre data-norun><code class="language-sql">CREATE EXTERNAL LOCATION lago_ruta URL 'abfss://landing@strutasur.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
+CREATE CATALOG IF NOT EXISTS ruta;
+CREATE SCHEMA IF NOT EXISTS ruta.bronze; CREATE SCHEMA IF NOT EXISTS ruta.silver; CREATE SCHEMA IF NOT EXISTS ruta.gold;
+
+CREATE OR REFRESH STREAMING TABLE ruta.bronze.telemetria AS
+SELECT CAST(value AS STRING) AS valor, partition, offset, timestamp AS ts_ingesta
+FROM STREAM read_kafka(
+  bootstrapServers =&gt; 'rutasur-telemetria.servicebus.windows.net:9093',
+  subscribe =&gt; 'rutasur.telemetria',
+  startingOffsets =&gt; 'earliest',
+  `kafka.security.protocol` =&gt; 'SASL_SSL',
+  `kafka.sasl.mechanism` =&gt; 'PLAIN',
+  `kafka.sasl.jaas.config` =&gt; 'kafkashaded.org.apache.kafka.common.security.plain.PlainLoginModule required username=&quot;$ConnectionString&quot; password=&quot;Endpoint=sb://…&quot;;');
+
+-- cada día (o cada hora):
+REFRESH STREAMING TABLE ruta.bronze.telemetria;</code></pre>
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Bronze guarda el mensaje tal cual</div>
+
+<p>En bronze no se interpreta nada: el JSON como texto, la partición, el offset y cuándo llegó. Si mañana descubres un error en silver, lo recalculas desde bronze. Si hubieras interpretado al leer, tendrías que volver a Kafka, y Kafka ya lo borró.</p>
+</div>
+
+
+<h2>Paso 4 · Silver: un formato, un evento por fila</h2>
+<p>Dos firmwares conviven: se elige el campo según <code>fw</code>. Y como hay reintentos, se deduplica por <code>event_id</code> quedándose con la primera llegada.</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE ruta.silver.telemetria AS
+SELECT event_id, vehiculo, tipo, ts_evento, ts_ingesta, lat, lon, velocidad_kmh, pedido_id FROM (
+  SELECT valor:event_id AS event_id,
+         coalesce(valor:vehiculo, valor:vehicle) AS vehiculo,
+         coalesce(valor:evento, valor:type) AS tipo,
+         CASE WHEN valor:fw = '2.0' THEN timestamp_millis(CAST(valor:ts AS BIGINT))
+              ELSE CAST(valor:ts_dispositivo AS TIMESTAMP) END AS ts_evento,
+         ts_ingesta,
+         CAST(valor:lat AS DOUBLE) AS lat, CAST(valor:lon AS DOUBLE) AS lon,
+         CASE WHEN valor:fw = '2.0' THEN round(CAST(valor:speed_mps AS DOUBLE) * 3.6, 0)
+              ELSE CAST(valor:velocidad_kmh AS DOUBLE) END AS velocidad_kmh,
+         coalesce(valor:pedido_id, valor:order_id) AS pedido_id,
+         ROW_NUMBER() OVER (PARTITION BY valor:event_id ORDER BY ts_ingesta) AS rn
+  FROM ruta.bronze.telemetria) x
+WHERE rn = 1;</code></pre>
+<h2>Paso 5 · Gold: cada pedido del plan</h2>
+<p>El reloj de V13 se adelantó 2 horas (es la pregunta del ticket &quot;V13 entrega en el futuro&quot;). Un evento no puede ocurrir <strong>después</strong> de haber llegado: si <code>ts_evento</code> supera a <code>ts_ingesta</code> por más de unos minutos, ese reloj está mal. Se corrige al usar el evento.</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TEMP VIEW plan AS
+SELECT * FROM read_files('abfss://landing@strutasur.dfs.core.windows.net/tms/plan.jsonl', format =&gt; 'json');
+
+CREATE OR REPLACE TEMP VIEW ent AS
+SELECT pedido_id, tipo,
+       CASE WHEN vehiculo = 'V13' AND unix_timestamp(ts_evento) &gt; unix_timestamp(ts_ingesta) + 600
+            THEN unix_timestamp(ts_evento) - 7200 ELSE unix_timestamp(ts_evento) END AS t
+FROM ruta.silver.telemetria
+WHERE tipo IN ('entrega_completada', 'entrega_fallida');</code></pre>
+<p>El plan va a la <strong>izquierda</strong>: un pedido sin ningún evento también es un resultado (<code>sin_evento</code>), y es justo el que más le importa a Dirección.</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE ruta.gold.entregas AS
+SELECT p.pedido_id, p.vehiculo, p.fecha, p.zona, p.ventana_inicio, p.ventana_fin,
+       CASE WHEN e.tipo = 'entrega_completada' THEN 'completada'
+            WHEN e.tipo = 'entrega_fallida' THEN 'fallida' ELSE 'sin_evento' END AS estado,
+       from_unixtime(e.t) AS ts_entrega,
+       CASE WHEN e.tipo = 'entrega_completada'
+             AND e.t BETWEEN unix_timestamp(p.ventana_inicio) AND unix_timestamp(p.ventana_fin) THEN true ELSE false END AS a_tiempo
+FROM plan p LEFT JOIN ent e ON e.pedido_id = p.pedido_id;
+
+CREATE OR REPLACE TABLE ruta.gold.sla_diario AS
+SELECT fecha, zona, count(*) AS pedidos,
+       sum(CASE WHEN a_tiempo THEN 1 ELSE 0 END) AS a_tiempo,
+       sum(CASE WHEN estado = 'fallida' THEN 1 ELSE 0 END) AS fallidas
+FROM ruta.gold.entregas GROUP BY fecha, zona;</code></pre>
+<p>Las preguntas del tablero salen de estas tablas:</p>
+<pre data-norun><code class="language-sql">-- % a tiempo de un día
+SELECT round(100.0 * sum(CASE WHEN a_tiempo THEN 1 ELSE 0 END) / count(*), 1)
+FROM ruta.gold.entregas WHERE fecha = '2026-11-18';
+
+-- cuántos eventos de un día llegaron con más de 15 minutos de demora
+SELECT count(*) FROM ruta.silver.telemetria
+WHERE substr(CAST(from_unixtime(unix_timestamp(ts_evento) - 10800) AS STRING), 1, 10) = '2026-11-18'
+  AND unix_timestamp(ts_ingesta) - unix_timestamp(ts_evento) &gt; 900;</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 Los km de una camioneta</div>
+
+<p>Para la pregunta de mantenimiento: los pings de ese vehículo en ese día, ordenados por <code>ts_evento</code>, y la suma de la distancia entre cada punto y el siguiente (fórmula de haversine en Python o en SQL). La hora del día es la <strong>local</strong> (UTC−3).</p>
+</div>
+
+
+<h2>Paso 6 · Todos los días</h2>
+<p><code>REFRESH STREAMING TABLE</code> (lee solo lo nuevo desde el checkpoint), recrear silver y gold, y volver a bajar el plan. Los eventos de la camioneta que estuvo sin señal llegan al día siguiente: por eso el SLA de ayer puede cambiar esta mañana, y por eso gold se recalcula sobre varios días, no solo sobre ayer.</p>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Bronze guarda el mensaje crudo; el checkpoint recuerda hasta dónde se leyó.</li>
+<li>Silver resuelve formatos y repetidos; un reloj que adelanta se detecta comparando con la llegada.</li>
+<li>Gold parte del plan: un pedido sin evento también es un resultado.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-ruta-sur-paso-a-paso">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-ruta-sur-el-dia-a-dia.html">← El día a día - firmware nuevo, relojes, apagones y preguntas del negocio</a><a href="proyecto-cuentas-claras-el-pedido.html">El pedido - tres sistemas, un cliente y nadie sabe cuánto facturamos de verdad →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
