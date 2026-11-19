@@ -356,13 +356,70 @@ Siguiente paso: subirlos al contenedor landing del lago, por ejemplo:
       const S = almacen(); if (S) { S.data.pedalia = S.data.pedalia || {}; S.data.pedalia.revision = { bien, total: CHEQUEOS.length, cuando: Date.now() }; try { S.save(); } catch (e) { /* nada */ } }
     });
   }
+  // ---------------------------------------------------------------- el día a día: tickets que llegan con la API viva
+  const API = () => window.ApiPedalia; const HORA = 3600000, DIA_MS = 86400000;
+  const normTxt = (x) => String(x ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+  const diaLoc = (ms) => API().diaLocal(ms);
+  const viajes = (fecha, t) => API().viajesDelDia(fecha, t);
+  const nombreEst = (id) => (API().estaciones().find((e) => e.id === Number(id)) || {}).name || `estación ${id}`;
+  const momentos = () => [0, 1, 2, 3, 4, 5, 6].map((h) => API().ahora() - h * HORA);
+  function contarPor(lista, f) { const m = {}; for (const v of lista) { const k = f(v); if (k == null) continue; m[k] = (m[k] || 0) + 1; } return m; }
+  const ganadores = (m) => { const max = Math.max(...Object.values(m)); return Object.keys(m).filter((k) => m[k] === max); };
+  const logApi = () => ((window.ApiPedaliaHost && window.ApiPedaliaHost.datos()) || {}).log || [];
+  const TICKETS_PD = [
+    { id: 'PD-201', tipo: 'pregunta', de: 'Rocío · Operaciones', cuando: (I) => I + 9 * HORA, titulo: '¿Qué estación tuvo más salidas ayer?',
+      texto: (T) => `Mañana reubicamos bicis. ¿Qué estación tuvo más salidas el ${diaLoc(T - DIA_MS)}?`,
+      comentarios: ['Rocío: salidas = viajes que empezaron en esa estación ese día, en hora de Ciudad del Río. Los reembolsados también cuentan: la bici salió igual.'],
+      respuesta: { tipo: 'texto', ayuda: 'El id o el nombre de la estación', verificar: (v, T) => { const f = diaLoc(T - DIA_MS); const g = ganadores(contarPor(viajes(f), (x) => x.origin_station_id)); if (g.some((id) => normTxt(v) === String(id) || normTxt(v) === normTxt(nombreEst(id)))) return true; return 'No es la que más salidas tuvo. ¿Contaste el día en hora de Ciudad del Río (la v2 da started_at en UTC)?'; } } },
+    { id: 'PD-202', tipo: 'pregunta', de: 'Lucía · Finanzas', cuando: (I) => I + 11 * HORA, titulo: '¿Cuánto cobramos ayer?',
+      texto: (T) => `Para el cierre: ¿cuánto se cobró, en pesos, por los viajes del ${diaLoc(T - DIA_MS)}?`,
+      comentarios: ['Lucía: lo cobrado de verdad. Un viaje reembolsado ya no suma.', 'Plataforma: en la v2 los montos vienen en centavos (amount_cents) y un reembolsado tiene amount_cents = 0.'],
+      respuesta: { tipo: 'numero', unidad: '$', verificar: (v, T) => { const f = diaLoc(T - DIA_MS); const tot = (t) => viajes(f, t).reduce((a, x) => a + (x.amount_cents || 0), 0) / 100; const ok = momentos().some((t) => Math.abs(v - tot(t)) < 0.01); if (ok) return true; if (momentos().some((t) => Math.abs(v - tot(t) * 100) < 1)) return 'Está en centavos: divide amount_cents por 100.'; return 'No coincide. Viajes que empezaron ese día (hora local), sumando amount_cents de la v2 (los reembolsados valen 0).'; } } },
+    { id: 'PD-203', tipo: 'requerimiento', de: 'Plataforma', cuando: (I) => I + DIA_MS + 10 * HORA, titulo: 'Migrar la extracción a la v2',
+      texto: (T, H) => `La v1 está deprecada y se apaga el ${diaLoc(H.bajaV1)} (410 Gone). Migren la extracción a /v2/trips, con paginación por cursor.`,
+      criterios: ['Una extracción de /v2/trips que recorra páginas con cursor (respuestas 200)', 'Ningún pedido a /v1 desde que llegó este ticket'],
+      check: () => { const L = logApi(); const T = TICKETS_PD.find((k) => k.id === 'PD-203').cuando(API().hitos().deprecacionV1, API().hitos()); const v2 = L.some((x) => /^\/v2\/trips\?.*cursor=/.test(x.ruta) && x.status === 200); const v1 = L.filter((x) => x.ruta.startsWith('/v1') && x.t > T); return (v2 && !v1.length) || `${v2 ? '' : 'No veo en el registro de la API una extracción de /v2/trips con cursor (mira el portal: #/pedalia-dev/registro). '}${v1.length ? `Hubo ${v1.length} pedidos a /v1 después del aviso.` : ''}`; } },
+    { id: 'PD-204', tipo: 'incidente', de: 'Rocío · Operaciones', cuando: (I, H) => H.capacidad7 + 9 * HORA, titulo: 'La estación 7 aparece al 140 % de ocupación',
+      texto: 'El tablero de ocupación dice que en Hospital Viejo hay más bicis que anclajes. ¿Está mal el tablero o la estación?',
+      comentarios: ['Plataforma: /v2/stations tiene ETag. Si lo guardaron una vez y nunca lo refrescaron, tienen el maestro viejo. Miren el changelog.'],
+      respuesta: { tipo: 'numero', unidad: 'anclajes', ayuda: '¿Cuántos anclajes tiene hoy la estación 7?', verificar: (v) => (v === (API().estaciones().find((e) => e.id === 7) || {}).capacity) || 'No. Consulta /v2/stations hoy (sin caché vieja) y mira capacity de la estación 7.' } },
+    { id: 'PD-205', tipo: 'pregunta', de: 'Lucía · Finanzas', cuando: (I, H) => H.campos + DIA_MS + 9 * HORA, titulo: '¿Cuántos viajes corporativos hubo?',
+      texto: (T, H) => `Tenemos que facturar a las empresas. ¿Cuántos viajes corporativos hubo el ${diaLoc(H.campos + HORA)}?`,
+      comentarios: ['Lucía: los corporativos se facturan por mes a la empresa, por eso vienen con amount_cents = 0.', 'Plataforma: user_type = "corporate" existe desde la v2.4.0 (está en el changelog).'],
+      respuesta: { tipo: 'numero', unidad: 'viajes', verificar: (v, T, H) => { const n = viajes(diaLoc(H.campos + HORA)).filter((x) => x.user_type === 'corporate').length; return v === n || (v === 0 ? '¿Tu validación de user_type los descartó? Desde la v2.4.0 puede valer "corporate".' : 'No coincide. Cuenta user_type = "corporate" en los viajes que empezaron ese día (hora local).'); } } },
+    { id: 'PD-206', tipo: 'incidente', de: 'Rocío · Operaciones', cuando: (I, H) => H.estacion25 + DIA_MS + 8 * HORA, titulo: 'Faltan viajes en el tablero de ayer',
+      texto: 'El total de viajes de ayer en el tablero es menor que el que muestra la app. No es mucho, pero no cuadra.',
+      comentarios: ['Martín (app): ayer abrimos la estación 25, Muelle Norte. ¿La tienen en el maestro?', 'Tú: si silver hace INNER JOIN con estaciones y el maestro no tiene la 25, esos viajes se caen sin error.'],
+      respuesta: { tipo: 'numero', unidad: 'viajes', ayuda: '¿Cuántos viajes salieron de la estación 25 ese día?', verificar: (v, T, H) => { const n = viajes(diaLoc(H.estacion25 + HORA)).filter((x) => x.origin_station_id === 25).length; return v === n || 'No coincide. Viajes con origin_station_id = 25 que empezaron el día de la apertura (hora local).'; } } },
+    { id: 'PD-207', tipo: 'pregunta', de: 'Tomás · Marketing', cuando: (I) => I + 2 * DIA_MS + 9 * HORA, titulo: '¿Qué barrio usa más el pase diario?',
+      texto: (T) => `Vamos a hacer una campaña. ¿Qué barrio tuvo más viajes con pase diario entre el ${diaLoc(T - 3 * DIA_MS)} y el ${diaLoc(T - DIA_MS)}?`,
+      comentarios: ['Tomás: el barrio de la estación de salida. Cantidad de viajes con day_pass, no porcentaje.'],
+      respuesta: { tipo: 'texto', ayuda: 'El barrio', verificar: (v, T) => { const est = new Map(API().estaciones().map((e) => [e.id, e.neighborhood])); const L = [3, 2, 1].flatMap((k) => viajes(diaLoc(T - k * DIA_MS))).filter((x) => x.user_type === 'day_pass'); const g = ganadores(contarPor(L, (x) => est.get(x.origin_station_id))); return g.some((b) => normTxt(b) === normTxt(v)) || 'No es el que más viajes con pase diario tuvo. Barrio de la estación de origen, tres días completos en hora local.'; } } },
+    { id: 'PD-208', tipo: 'requerimiento', de: 'Plataforma', cuando: (I, H) => H.avisoBajaV1, titulo: 'La v1 se apaga en 3 días: que nadie la use',
+      texto: (T, H) => `Desde el ${diaLoc(H.bajaV1)} todas las rutas /v1 responden 410. Revisen el registro de la API en el portal: cualquier pedido a /v1 es un proceso que se va a romper.`,
+      criterios: ['Ningún pedido a /v1 desde este aviso', 'Al menos una extracción de /v2/trips después del aviso'],
+      check: () => { const T = API().hitos().avisoBajaV1; const L = logApi().filter((x) => x.t > T); const v1 = L.filter((x) => x.ruta.startsWith('/v1')).length; const v2 = L.some((x) => x.ruta.startsWith('/v2/trips') && x.status === 200); return (!v1 && v2) || `${v1 ? `Hubo ${v1} pedidos a /v1 después del aviso. ` : ''}${v2 ? '' : 'Todavía no hay una extracción de /v2/trips después del aviso.'}`; } },
+  ];
+  function panelTablero(el) {
+    const listo = () => window.ApiPedalia && window.ApiPedaliaHost && window.TableroTickets;
+    if (!listo()) { el.textContent = 'Cargando…'; setTimeout(() => panelTablero(el), 400); return; }
+    window.ApiPedaliaHost.sincronizar();
+    window.TableroTickets.panel(el, {
+      titulo: 'Tablero del equipo de datos de Pedalia', tickets: TICKETS_PD,
+      contexto: () => { window.ApiPedaliaHost.sincronizar(); const H = API().hitos(); return { I: H.deprecacionV1, H, t: API().ahora() }; },
+      datos: () => { const S = almacen(); if (!S) return null; S.data.pedalia = S.data.pedalia || {}; return S.data.pedalia; }, guardar: () => { try { almacen().save(); } catch (e) { /* lleno */ } },
+      hora: (T) => new Date(T - 3 * HORA).toISOString().replace('T', ' ').slice(0, 16),
+    });
+  }
+
   function montar(root) {
     (root || document).querySelectorAll('[data-pedalia]').forEach((el) => {
       if (el.dataset.montado) return; el.dataset.montado = '1';
       if (el.dataset.pedalia === 'entrega') panelEntrega(el);
       else if (el.dataset.pedalia === 'revisar') panelRevisar(el);
+      else if (el.dataset.pedalia === 'tablero') panelTablero(el);
     });
   }
 
-  window.Pedalia = { DIAS, BARRIOS, semilla, estaciones, generar, verdad, montar, CHEQUEOS };
+  window.Pedalia = { DIAS, BARRIOS, semilla, estaciones, generar, verdad, montar, CHEQUEOS, TICKETS: TICKETS_PD };
 })();

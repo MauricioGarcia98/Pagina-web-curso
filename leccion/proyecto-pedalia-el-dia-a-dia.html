@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El día a día - la API cambia, las áreas preguntan y hay que responder · Academia de Datos</title><meta name="description" content="El proyecto ya está en producción y ahora empieza el trabajo de todos los días. La API de Pedalia es un proveedor vivo con su propio calendario - deprecación de la v1, campos nuevos, una estación que abre, un maestro que cambia - y las áreas te escriben con preguntas y problemas. Esta página es tu tablero - sin paso a paso - con revisión automática contra los datos reales de la API."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-el-dia-a-dia.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El día a día - la API cambia, las áreas preguntan y hay que responder · Academia de Datos"><meta property="og:description" content="El proyecto ya está en producción y ahora empieza el trabajo de todos los días. La API de Pedalia es un proveedor vivo con su propio calendario - deprecación de la v1, campos nuevos, una estación que abre, un maestro que cambia - y las áreas te escriben con preguntas y problemas. Esta página es tu tablero - sin paso a paso - con revisión automática contra los datos reales de la API."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-el-dia-a-dia.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-pedalia">🚲 Proyecto integrador: Pedalia, de cero a producción</a> · Intermedio · 35 min</div>
+<h1>El día a día - la API cambia, las áreas preguntan y hay que responder</h1><p class="resumen">El proyecto ya está en producción y ahora empieza el trabajo de todos los días. La API de Pedalia es un proveedor vivo con su propio calendario - deprecación de la v1, campos nuevos, una estación que abre, un maestro que cambia - y las áreas te escriben con preguntas y problemas. Esta página es tu tablero - sin paso a paso - con revisión automática contra los datos reales de la API.</p>
+<a class="cta" href="../index.html#/l/proyecto-pedalia-el-dia-a-dia">▶ Abrir la lección interactiva (2 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Atender preguntas de negocio con definiciones claras y números verificables</li><li>Seguir el changelog de un proveedor y migrar antes de una baja</li><li>Diagnosticar un número que no cuadra hasta la causa (caché, enum, join)</li><li>Usar el registro de la API como evidencia</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Una semana después</div>
+
+<p>El tablero de Pedalia ya se usa en la reunión de los viernes. Rocío, Lucía y Tomás confían en los números… y por eso preguntan más. Plataforma te recuerda que la API v1 tiene fecha de baja. Abres el tablero del equipo.</p>
+</div>
+
+
+<h2>El tablero</h2>
+<div></div>
+
+<p>Los tickets llegan con los días, según el calendario de <strong>tu</strong> API (el mismo que ves en el changelog del <a href="#/pedalia-dev/changelog">portal de desarrolladores</a>). Para responder puedes usar lo que quieras: <code>curl</code> o Python contra la API, Databricks, Excel o Jupyter.</p>
+<h2>Lo que conviene tener a mano</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Para</th>
+<th>Dónde</th>
+</tr>
+</thead><tbody><tr>
+<td>Ver qué cambió en la API y cuándo</td>
+<td>Portal → <strong>Changelog</strong></td>
+</tr>
+<tr>
+<td>Saber si algún proceso sigue usando la v1</td>
+<td>Portal → <strong>Registro</strong> (cada pedido, con su ruta y su código)</td>
+</tr>
+<tr>
+<td>Estado e incidentes de la API</td>
+<td>Portal → <strong>Estado</strong></td>
+</tr>
+<tr>
+<td>Los viajes de un día</td>
+<td><code>GET /v2/trips</code> con <code>updated_since</code> y paginación por cursor</td>
+</tr>
+<tr>
+<td>El maestro de estaciones</td>
+<td><code>GET /v2/stations</code> (con <code>ETag</code>: si cambia, el maestro cambió)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Antes de responder un número</div>
+
+<p>Escribe la definición en una línea: qué cuentas, de qué día (en qué zona horaria) y de qué fuente. &quot;Viajes que empezaron el 18 en hora de Ciudad del Río, según /v2/trips, incluidos los reembolsados&quot;. Si el ticket no lo aclara, el hilo de comentarios casi siempre lo hace. Y si tampoco, se pregunta: nadie se enoja por una pregunta, sí por un número equivocado en una reunión.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Contar el día en UTC</strong>: la v2 da <code>started_at</code> en UTC. Un viaje de las 22:00 en Ciudad del Río ya es del día siguiente en UTC.</li>
+<li><strong>Validar enums de forma estricta sin mirar el changelog</strong>: un valor nuevo (<code>corporate</code>) se descarta en silencio o rompe el pipeline.</li>
+<li><strong>Cachear el maestro para siempre</strong>: cuando cambia una capacidad o aparece una estación, los cálculos quedan mal sin que nada falle.</li>
+<li><strong>INNER JOIN contra un maestro incompleto</strong>: las filas sin pareja desaparecen. Un LEFT JOIN y un control de &quot;huérfanos&quot; lo hacen visible.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>El proyecto en producción genera trabajo nuevo: <strong>preguntas</strong>, <strong>cambios del proveedor</strong> e <strong>incidentes</strong>.</li>
+<li>El <strong>changelog</strong> y el <strong>registro</strong> del proveedor son tus fuentes de evidencia.</li>
+<li>Cada número va con su <strong>definición</strong> (qué, qué día, en qué zona horaria, de qué fuente).</li>
+<li>Los errores silenciosos más comunes: zona horaria, enum estricto, caché eterna, INNER JOIN contra un maestro incompleto.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-pedalia-el-dia-a-dia">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-pedalia-dia-3-el-incidente.html">← Día 3 - el formato cambia sin aviso y te toca la guardia</a><a href="proyecto-mercado-vecino-el-pedido.html">El pedido - finanzas no confía en los números de ventas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
