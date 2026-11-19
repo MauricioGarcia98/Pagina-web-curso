@@ -465,6 +465,8 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
       if (msg.ccCfg && self.CuentasClarasApi) self.CuentasClarasApi.configurar(msg.ccCfg);
       if (msg.solSrc && !self.AlmacenesSolApi) { try { new Function('g', 'return (' + msg.solSrc + ')(g)')(self); } catch (e) { /* sin Almacenes del Sol */ } }
       if (msg.solCfg && self.AlmacenesSolApi) self.AlmacenesSolApi.configurar(msg.solCfg);
+      if (msg.cnSrc && !self.ConectaApi) { try { new Function('g', 'return (' + msg.cnSrc + ')(g)')(self); } catch (e) { /* sin Conecta */ } }
+      if (msg.cnCfg && self.ConectaApi) self.ConectaApi.configurar(msg.cnCfg);
       const need = [];
       // desde Pyodide 314, sqlite3 viene incluido en la biblioteca estándar (no se instala aparte)
       if ((mode === 'dbt' || mode === 'airflow') && !loaded.has('jinja2')) need.push('jinja2');
@@ -474,7 +476,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
         loaded.add('tables');
       }
     }
-    const enviar = (o) => { const x = self.ApiPedalia ? { ...o, apiPedalia: { log: self.ApiPedalia.tomarLog(), cuota: self.ApiPedalia.config().cuota } } : { ...o }; if (self.CuentasClarasApi) x.ccCambios = self.CuentasClarasApi.tomarCambios(); self.postMessage(x); };
+    const enviar = (o) => { const x = self.ApiPedalia ? { ...o, apiPedalia: { log: self.ApiPedalia.tomarLog(), cuota: self.ApiPedalia.config().cuota } } : { ...o }; if (self.CuentasClarasApi) x.ccCambios = self.CuentasClarasApi.tomarCambios(); if (self.ConectaApi) x.cnCambios = self.ConectaApi.tomarCambios(); self.postMessage(x); };
     self.onmessage = async (e) => {
       const msg = e.data;
       try {
@@ -530,6 +532,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
       this.worker.onmessage = (e) => {
         if (e.data && e.data.apiPedalia && window.ApiPedaliaHost) window.ApiPedaliaHost.incorporar(e.data.apiPedalia.log, e.data.apiPedalia.cuota);
         if (e.data && e.data.ccCambios && e.data.ccCambios.length && window.CuentasClarasHost) window.CuentasClarasHost.incorporar(e.data.ccCambios);
+        if (e.data && e.data.cnCambios && e.data.cnCambios.length && window.ConectaHost) window.ConectaHost.incorporar(e.data.cnCambios);
         const p = this.pending.get(e.data.id);
         if (p) { clearTimeout(p.timer); this.pending.delete(e.data.id); this._setStatus('ready'); p.resolve(e.data); }
       };
@@ -561,7 +564,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
       const id = ++this.seq;
       const first = this.status !== 'ready';
       if (first) this._setStatus('loading');
-      const full = { ...msg, id, pyodideUrl: PYODIDE_URL, sources: window.PY_SOURCES, apiSrc: window.API_TIENDA_SRC, apiPedaliaSrc: window.API_PEDALIA_SRC, apiPedaliaCfg: window.ApiPedaliaHost ? window.ApiPedaliaHost.configParaWorker() : null, mercadoSrc: window.MERCADO_VECINO_SRC, mercadoCfg: window.MercadoVecinoHost ? window.MercadoVecinoHost.configParaWorker() : null, rutaSrc: window.RUTA_SUR_SRC, rutaCfg: window.RutaSurHost ? window.RutaSurHost.configParaWorker() : null, ccSrc: window.CUENTAS_CLARAS_SRC, ccCfg: window.CuentasClarasHost ? window.CuentasClarasHost.configParaWorker() : null, solSrc: window.ALMACENES_SOL_SRC, solCfg: window.AlmacenesSolHost ? window.AlmacenesSolHost.configParaWorker() : null };
+      const full = { ...msg, id, pyodideUrl: PYODIDE_URL, sources: window.PY_SOURCES, apiSrc: window.API_TIENDA_SRC, apiPedaliaSrc: window.API_PEDALIA_SRC, apiPedaliaCfg: window.ApiPedaliaHost ? window.ApiPedaliaHost.configParaWorker() : null, mercadoSrc: window.MERCADO_VECINO_SRC, mercadoCfg: window.MercadoVecinoHost ? window.MercadoVecinoHost.configParaWorker() : null, rutaSrc: window.RUTA_SUR_SRC, rutaCfg: window.RutaSurHost ? window.RutaSurHost.configParaWorker() : null, ccSrc: window.CUENTAS_CLARAS_SRC, ccCfg: window.CuentasClarasHost ? window.CuentasClarasHost.configParaWorker() : null, solSrc: window.ALMACENES_SOL_SRC, solCfg: window.AlmacenesSolHost ? window.AlmacenesSolHost.configParaWorker() : null, cnSrc: window.CONECTA_SRC, cnCfg: window.ConectaHost ? window.ConectaHost.configParaWorker() : null };
       if (msg.mode === 'pyspark' && !this._sentTables) { full.tables = this._tables(); this._sentTables = true; }
       return new Promise((resolve) => {
         const ms = first ? Math.max(timeoutMs, 180000) : timeoutMs;

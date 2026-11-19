@@ -627,6 +627,21 @@
     ]
   },
   {
+    "id": "proyecto-conecta",
+    "titulo": "Proyecto 7: Conecta, IA aplicada a la atención al cliente",
+    "icono": "🤖",
+    "color": "#7c3aed",
+    "descripcion": "Un proveedor de internet con una mesa de ayuda (API), dos buzones de correo (archivos .eml con codificaciones, citas y repetidos) y contratos de empresas en PDF. Usas un modelo de lenguaje (Lumen IA, simulado: cobra por token, tiene límites, se equivoca y obedece lo que no debe) para clasificar cada mensaje, extraes los plazos de los contratos para medir el SLA y armas un asistente con búsqueda por embeddings (reales, calculados en el navegador) que evalúas con preguntas de verdad. En los días siguientes retiran el modelo, el servicio se cae y un correo intenta darle órdenes al modelo.",
+    "objetivos": [
+      "Usar un modelo de lenguaje como una pieza de un pipeline: prompts, validación de la salida y reintentos",
+      "Medir la calidad de una clasificación con IA y mantenerla cuando cambia el modelo",
+      "Proteger los datos personales y controlar el costo por token",
+      "Defenderse de la inyección de instrucciones",
+      "Construir y evaluar un RAG (recall@3 y respuestas sin inventar)",
+      "Leer correos .eml y PDFs como fuentes de datos"
+    ]
+  },
+  {
     "id": "proyecto",
     "titulo": "Proyecto final y entrevistas",
     "icono": "🏆",

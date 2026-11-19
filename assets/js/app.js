@@ -2397,6 +2397,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (window.RutaSurProyecto) window.RutaSurProyecto.montar(body);
     if (window.CuentasClarasProyecto) window.CuentasClarasProyecto.montar(body);
     if (window.AlmacenesSolProyecto) window.AlmacenesSolProyecto.montar(body);
+    if (window.ConectaProyecto) window.ConectaProyecto.montar(body);
     // cada lección con ejercicios de terminal empieza como una terminal recién abierta: en ~ y sin entorno
     // virtual (los archivos y el historial se conservan). Así un ejercicio de Azure no hereda la carpeta
     // ni el .venv de la lección de dbt.

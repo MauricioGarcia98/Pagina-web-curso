@@ -298,6 +298,8 @@
       const c = readFile(p);
       if (c === null) { out.push(`${f}: cannot open \`${f}' (No such file or directory)`); continue; }
       if (!c.length) { out.push(`${f}: empty`); continue; }
+      if (c.startsWith('%PDF-')) { out.push(`${f}: PDF document, version ${c.slice(5, 8)}, ${(c.match(/\/Type \/Page\b/g) || []).length} page(s)`); continue; }
+      if (/^(Return-Path|Received|From|Date|Message-ID):/m.test(c.slice(0, 400)) && /\n\n/.test(c)) { out.push(`${f}: RFC 822 mail, ${/charset="?iso-8859-1/i.test(c) ? 'ISO-8859' : 'ASCII'} text`); continue; }
       const partes = [];
       const ext = (f.match(/\.(\w+)$/) || [])[1] || '';
       const tipo = ext === 'csv' ? 'CSV text' : ext === 'json' ? 'JSON text data' : ext === 'py' ? 'Python script text' : ext === 'gz' ? 'gzip compressed data' : null;
