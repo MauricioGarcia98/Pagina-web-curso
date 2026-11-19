@@ -8,10 +8,10 @@ prerrequisitos: cero-leer-errores
 autoevaluacion: ¿Tienes un horario fijo de estudio, aunque sea corto? | ¿Sabes qué hacer en los primeros 15 minutos de estar trabado? | ¿Tu última pregunta incluía qué intentaste y el error exacto? | ¿Le pides a la IA que te explique, en vez de que te lo resuelva? | ¿Repasas lo de la semana anterior?
 ---
 
-:::escenario "No soy bueno para esto"
-Esto le pasa a casi todo el que empieza, también a quienes después consiguen trabajo en datos. Tres semanas después de arrancar, Lucía le escribe a una amiga que ya trabaja en el tema: *"Creo que no soy bueno para esto. Me trabo en todo y me olvido de lo que vi la semana pasada."*
+:::escenario La tercera semana
+Llevas tres semanas estudiando y anoche te trabaste dos horas con un ejercicio que la semana pasada te había salido. Le escribes a una amiga que ya trabaja en datos: *"Creo que no soy bueno para esto. Me olvido de todo."*
 
-La amiga le responde: *"A mí me pasó lo mismo. No es falta de talento: estás estudiando sin método. Nadie aprende a programar leyendo; se aprende practicando un poquito todos los días, equivocándose y repasando."* Es exactamente el método que acabas de ver.
+Te responde: *"A mí me pasó igual. No es falta de talento, es el método: poquito todos los días, practicando y repasando, no leyendo de corrido."* Hoy pruebas así: 30 minutos, tres ejercicios cortos y repasar las tarjetas de lo de la semana pasada. Te sale el ejercicio de anoche en cinco minutos.
 :::
 
 :::analogia En palabras simples

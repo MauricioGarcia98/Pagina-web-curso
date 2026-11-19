@@ -8,10 +8,10 @@ prerrequisitos: cero-leer-errores
 autoevaluacion: ¿Sabes qué significa `not found`? ¿Y `denied`? | ¿Sabes qué hace un comando que empieza con `list`? ¿Y con `describe`? | ¿Sabes qué es algo `deprecated`? | ¿Sabes qué significa `expected` en un error? | ¿Sabes cómo traducir un error sin que el traductor cambie los nombres de las variables?
 ---
 
-:::escenario Todo está en inglés
-Ahora que conoces las palabras que más se repiten, imagina esta situación de trabajo: Martín, tu líder, te pasa el enlace a la documentación de dbt y te dice: *"Lee la parte de `incremental models`"*. La página está toda en inglés, igual que los errores, los comandos y los nombres de las funciones.
+:::escenario Una página entera en inglés
+Martín te pasa un enlace: *"Lee la parte de `incremental models` en la documentación de dbt, mañana lo usamos"*. Abres la página: todo en inglés, igual que los errores, los comandos y los nombres de las funciones.
 
-No hace falta hablar inglés para entenderla: con el vocabulario de esta lección y un traductor al lado, alcanza para la mayoría de los casos. El resto se aprende de a poco, usándolo.
+En vez de cerrarla, la lees como practicaste. *Incremental* ya sabes que es "de a poco", *models* son los modelos, *run* es ejecutar, *table* es tabla. Lo que no conoces lo pasas por el traductor, de a una frase. En veinte minutos entendiste la idea principal sin haber estudiado inglés para eso.
 :::
 
 :::analogia En palabras simples

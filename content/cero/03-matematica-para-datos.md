@@ -9,9 +9,9 @@ autoevaluacion: ¿Sabes calcular cuánto creció algo en porcentaje? | ¿Sabes l
 ---
 
 :::escenario "¿Crecimos o no?"
-Ahora que sabes calcular una variación porcentual, mira por qué importa. En una reunión de una empresa, la gerente comercial pregunta: *"En marzo vendimos 120.000 y en abril 150.000. Marketing dice que crecimos 30 %, finanzas dice 25 %. ¿Quién tiene razón?"*
+Es tu primera reunión con el área comercial y solo vas a escuchar. A los diez minutos la gerente pregunta: *"En marzo vendimos 120.000 y en abril 150.000. Marketing dice que crecimos 30 %, finanzas dice 25 %. ¿Quién tiene razón?"*. Y todos miran al equipo de datos, o sea, a ti.
 
-Todo el mundo mira al equipo de datos. Con la cuenta de esta lección lo respondes en un minuto: (150.000 − 120.000) / 120.000 = 25 %. Finanzas tiene razón; marketing dividió por el mes equivocado. Preguntas como esta (y sus primas: tasas, promedios, medianas) aparecen **todas las semanas**.
+Haces la cuenta en un papel: (150.000 − 120.000) / 120.000 = 0,25. **25 %**. Finanzas tiene razón; marketing dividió por abril en vez de por marzo. Lo explicas en una frase y la reunión sigue. Preguntas así (tasas, promedios, la mitad de algo) te van a hacer todas las semanas.
 :::
 
 ## 1. Porcentaje: una parte sobre el total

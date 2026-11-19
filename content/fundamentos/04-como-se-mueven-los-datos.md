@@ -8,10 +8,10 @@ prerrequisitos: fundamentos-donde-viven-los-datos
 autoevaluacion: ¿Sabes qué es una extracción incremental y qué es una marca de agua? | ¿Sabes dar un ejemplo donde streaming vale lo que cuesta? | ¿Sabes por qué ELT reemplazó a ETL? | ¿Sabes qué es un DAG? | ¿Sabes qué pasa si el paso 2 de un pipeline falla?
 ---
 
-:::escenario Dos pedidos, dos pipelines
-Ahora que conoces batch y streaming, mira cómo aparecen en el trabajo diario. Dos pedidos llegan el mismo día al equipo de datos. Finanzas quiere *"las ventas de ayer, todos los días a las 8:00"*. Prevención de fraude quiere *"saber si un pago es sospechoso **antes** de aprobarlo"*.
+:::escenario Dos pedidos el mismo día
+El lunes te llegan dos pedidos. Finanzas quiere *"las ventas de ayer, todos los días a las 8:00"*. Prevención de fraude quiere *"saber si un pago es sospechoso **antes** de aprobarlo"*.
 
-Usan los mismos datos de pagos, pero necesitan pipelines distintos: el primero es un proceso **batch** que corre una vez por día; el segundo necesita **streaming**, porque la respuesta sirve solo si llega en segundos.
+Al principio te parecen lo mismo: los dos usan los pagos. Pero el primero se resuelve con un proceso **batch** que corre una vez por día a la madrugada, y al segundo no le sirve una respuesta de mañana: necesita **streaming**, una respuesta en segundos, mientras el cliente espera en la caja.
 :::
 
 ## La idea en una frase

@@ -8,10 +8,10 @@ prerrequisitos: cero-tu-computadora | cero-ingles-tecnico
 autoevaluacion: ¿Puedes explicar qué hace un servidor? | ¿Sabes qué es el `?` en una URL? | ¿Sabes qué significan los códigos 200, 404, 429 y 500? | ¿Sabes qué es una API y por qué un ingeniero de datos la usa todos los días? | ¿Puedes leer un JSON y sacar un dato de adentro?
 ---
 
-:::escenario Los datos que no están en ninguna base
-Ahora que sabes qué es una API y cómo se lee un JSON, mira para qué se usa en un trabajo. Imagina que Martín, tu líder, te pide: *"Necesitamos el tipo de cambio de cada día y los productos del proveedor. El proveedor no nos da acceso a su base de datos, pero tiene una **API**. Trae los datos de ahí."*
+:::escenario Datos que no están en la base
+Martín te pide algo nuevo: *"Necesitamos el tipo de cambio de cada día y la lista de productos del proveedor. El proveedor no nos da acceso a su base, pero tiene una **API**."*
 
-Muchos de los datos que necesita una empresa no están en sus propias bases: están en sistemas de otros (pagos, clima, redes sociales, proveedores) y se consiguen **pidiéndolos por internet**, exactamente como practicaste en esta lección.
+Abres la documentación del proveedor, copias la dirección de ejemplo y la pegas en el navegador. Te devuelve un texto con llaves, comillas y corchetes: un **JSON**. Ya sabes leerlo: cada producto va entre llaves, `precio` es un número y `etiquetas` es una lista. Esos datos nunca estuvieron en una base de tu empresa: los pediste por internet.
 :::
 
 ## Cliente y servidor
