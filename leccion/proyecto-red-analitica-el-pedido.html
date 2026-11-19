@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El pedido - cinco laboratorios, cinco formatos y datos de salud · Academia de Datos</title><meta name="description" content="Red Analítica junta cinco laboratorios clínicos que nunca compartieron datos. Cada uno deja sus resultados en un servidor SFTP, a su manera. Dirección médica quiere ver a cada paciente completo; protección de datos exige que nadie del equipo vea nombres ni documentos. Esta página es el pedido, sin paso a paso."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-red-analitica-el-pedido.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El pedido - cinco laboratorios, cinco formatos y datos de salud · Academia de Datos"><meta property="og:description" content="Red Analítica junta cinco laboratorios clínicos que nunca compartieron datos. Cada uno deja sus resultados en un servidor SFTP, a su manera. Dirección médica quiere ver a cada paciente completo; protección de datos exige que nadie del equipo vea nombres ni documentos. Esta página es el pedido, sin paso a paso."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-red-analitica-el-pedido.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-red-analitica">🧪 Proyecto 3: Red Analítica, cinco laboratorios por SFTP y datos de salud</a> · Avanzado · 25 min</div>
+<h1>El pedido - cinco laboratorios, cinco formatos y datos de salud</h1><p class="resumen">Red Analítica junta cinco laboratorios clínicos que nunca compartieron datos. Cada uno deja sus resultados en un servidor SFTP, a su manera. Dirección médica quiere ver a cada paciente completo; protección de datos exige que nadie del equipo vea nombres ni documentos. Esta página es el pedido, sin paso a paso.</p>
+<a class="cta" href="../index.html#/l/proyecto-red-analitica-el-pedido">▶ Abrir la lección interactiva (2 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Entender un pedido con requisitos de negocio y de privacidad a la vez</li><li>Identificar los riesgos de integrar fuentes heterogéneas</li><li>Planificar una ingesta por archivos con llegadas irregulares</li><li>Distinguir anonimizar de seudonimizar</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Lunes, 8:30 · Red Analítica</div>
+
+<p>La red se formó hace un mes uniendo cinco laboratorios de la ciudad: Norte, Centro, Sur, Costa y Cerro. Cada uno tiene su sistema, su gente y sus costumbres. Lo único en común es un servidor SFTP donde cada laboratorio deja un archivo por día con los resultados del día anterior. Eres la primera persona de datos de la red.</p>
+</div>
+
+
+<h2>Los dos correos</h2>
+<blockquote>
+<p><strong>De:</strong> Dra. Silvia Prado (Dirección médica)</p>
+<p>Hoy un paciente que se atiende en Norte y en Cerro tiene sus análisis en dos lugares que no se hablan. Necesito un solo lugar con todos los resultados, comparables entre sí: la glucosa de un laboratorio tiene que significar lo mismo que la del otro. Y quiero indicadores por día y por laboratorio.</p>
+</blockquote>
+<blockquote>
+<p><strong>De:</strong> Delegado de protección de datos</p>
+<p>Recordatorio: son datos de salud, la categoría más sensible. El equipo de datos <strong>no</strong> trabaja con nombres ni documentos: cada paciente se identifica con un seudónimo estable. Y si una persona pide que borremos sus datos, se borran de todas las copias que controlamos, en 72 horas.</p>
+</blockquote>
+<h2>Lo que tienes</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Sistema</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Servidor SFTP</strong> <code>sftp.redanalitica.example</code></td>
+<td>Una carpeta por laboratorio en <code>/entrantes/</code>. Cada laboratorio sube un archivo por día, cuando puede. Los archivos se borran a los 7 días</td>
+</tr>
+<tr>
+<td><strong>Documentación de cada laboratorio</strong></td>
+<td>Formato, codificación, códigos de estudio y unidades (página siguiente)</td>
+</tr>
+<tr>
+<td><strong>Herramientas</strong></td>
+<td>Terminal (<code>sftp</code>, <code>scp</code>, <code>iconv</code>, <code>file</code>), portal de Azure (lago y Key Vault), Databricks, Airflow y Power BI de práctica</td>
+</tr>
+</tbody></table></div>
+<p>Las fuentes están <strong>vivas</strong>: los archivos llegan cada día con los resultados del día anterior, y los laboratorios cambian cosas sin avisar.</p>
+<h2>Lo que hay que entregar</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tabla</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><code>red.silver.resultados</code></td>
+<td>Un registro por <strong>resultado</strong> de los 5 laboratorios: laboratorio, muestra, estudio en <strong>código canónico</strong>, resultado en <strong>unidad canónica</strong>, fecha de toma (hora de la ciudad) y <strong>paciente_id</strong> (seudónimo). Sin nombres, documentos ni fechas de nacimiento</td>
+</tr>
+<tr>
+<td><code>red.gold.resultados_diarios</code></td>
+<td>Por día, laboratorio y estudio: cantidad de resultados y cuántos fuera del rango de referencia</td>
+</tr>
+</tbody></table></div>
+<p>El detalle está en <a href="#/l/proyecto-red-analitica-la-entrega">La entrega</a> y el tablero con lo que va llegando, en <a href="#/l/proyecto-red-analitica-el-dia-a-dia">El día a día</a>.</p>
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Seudonimizar no es anonimizar</div>
+
+<p>Un <strong>seudónimo</strong> reemplaza el documento por un identificador que no lo revela, pero que es el mismo cada vez (por ejemplo, un hash del documento con una <strong>sal</strong> secreta). Con la sal se puede volver a calcular, y por eso la sal se guarda en un Key Vault y no la tiene cualquiera. <strong>Anonimizar</strong> es que ya no se pueda volver a la persona de ninguna forma. Para unir los análisis de un paciente entre laboratorios necesitas un seudónimo, no anonimizar.</p>
+</div>
+
+
+<h2>Antes de empezar</h2>
+<p>Escribe en tus notas:</p>
+<ul>
+<li>Cómo vas a reconocer al mismo paciente si cada laboratorio escribe el documento distinto.</li>
+<li>Qué haces si un archivo no llega, llega dos veces o llega corregido.</li>
+<li>Dónde guardas la clave SSH y la sal.</li>
+<li>Cómo vas a enterarte si un laboratorio cambia el formato sin avisar.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Cinco fuentes de archivos, un SFTP, llegadas irregulares y cambios sin aviso.</li>
+<li>Dos exigencias que conviven: <strong>integrar</strong> (comparables entre laboratorios) y <strong>proteger</strong> (seudónimos, derecho al olvido).</li>
+<li>Dos tablas de entrega con revisión automática, y un tablero que sigue llenándose con los días.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-red-analitica-el-pedido">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-mercado-vecino-el-dia-a-dia.html">← El día a día - tickets, incidentes y preguntas de negocio</a><a href="proyecto-red-analitica-fuentes-y-accesos.html">Fuentes y accesos - el SFTP y el formato de cada laboratorio →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

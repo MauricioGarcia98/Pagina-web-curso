@@ -567,6 +567,21 @@
     ]
   },
   {
+    "id": "proyecto-red-analitica",
+    "titulo": "Proyecto 3: Red Analítica, cinco laboratorios por SFTP y datos de salud",
+    "icono": "🧪",
+    "color": "#0e7490",
+    "descripcion": "Cinco laboratorios clínicos dejan sus resultados todos los días en un servidor SFTP, cada uno con su formato: CSV limpio, Latin-1 con punto y coma, JSON con unidades internacionales, una exportación de Excel y un TSV en UTC. Te conectas con clave SSH, unificas códigos, unidades y fechas, seudonimizas a los pacientes y atiendes lo que pasa en los días siguientes: un laboratorio migra de sistema sin avisar, otro corrige un archivo, otro no entrega, una persona pide que borren sus datos y dirección médica te hace preguntas.",
+    "objetivos": [
+      "Conectarte a un SFTP con clave pública y automatizar descargas",
+      "Leer archivos difíciles: codificación, separadores, exportaciones de Excel, zonas horarias",
+      "Unificar fuentes heterogéneas en un esquema canónico con unidades comparables",
+      "Seudonimizar de forma consistente y aplicar el derecho al olvido",
+      "Detectar cambios de formato y reenvíos de fuentes externas",
+      "Responder preguntas médicas y operativas con definiciones claras"
+    ]
+  },
+  {
     "id": "proyecto",
     "titulo": "Proyecto final y entrevistas",
     "icono": "🏆",

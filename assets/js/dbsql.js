@@ -310,7 +310,9 @@
     out.push(cur);
     // sin los espacios y comentarios de los bordes: así cada sentencia empieza en su primera palabra
     const recortar = (x) => { let a = 0, b = x.length; while (a < b && x[a].t === 'ws') a++; while (b > a && x[b - 1].t === 'ws') b--; return x.slice(a, b); };
-    return out.map(recortar).filter((x) => x.length).map((x) => ({ T: x, texto: unirOriginal(x).trim() }));
+    // _metadata.file_name (y file_path, file_size…) de read_files: columna oculta con los datos del archivo de cada fila
+    const conMeta = (x) => { const y = []; for (let i = 0; i < x.length; i++) { if (x[i].t === 'w' && /^_metadata$/i.test(x[i].v) && x[i + 1] && x[i + 1].v === '.' && x[i + 2] && x[i + 2].t === 'w') { y.push({ t: 'w', v: `get_json_object(_metadata, '$.${x[i + 2].v}')` }); i += 2; } else y.push(x[i]); } return y; };
+    return out.map(recortar).filter((x) => x.length).map((x) => ({ T: conMeta(x), texto: unirOriginal(x).trim(), meta: x.some((tk) => tk.t === 'w' && /^_metadata$/i.test(tk.v)) }));
   }
   function unirOriginal(T) { return T.map((tk) => (tk.t === 's' ? `'${tk.v.replace(/'/g, "\\'")}'` : tk.t === 'b' ? '`' + tk.v + '`' : tk.v)).join(''); }
 
@@ -713,30 +715,44 @@
     }
     const formato = (op.format || lista[0].split('.').pop() || 'csv').toLowerCase();
     let cols = null; const filas0 = [];
+    const latin = /^(iso-8859-1|latin1|windows-1252|cp1252)$/i.test(String(op.encoding || op.charset || ''));
+    const saltar = Math.max(0, Number(op.skiprows || 0) || 0);
+    const utf8bytes = (ch) => unescape(encodeURIComponent(ch));
+    const header = String(op.header || 'false').toLowerCase() === 'true';
+    const union = []; const ver = (c) => { if (!union.includes(c)) union.push(c); };
+    const registros = []; // { valores: {col: v}, archivo }
     for (const k of lista) {
-      const txt = F[k];
-      const filas = excluirArchivos && excluirArchivos.has(k) ? [] : filas0;
+      let txt = F[k] || '';
+      // codificación: los bytes Latin-1 (\uDC80–\uDCFF) se ven como "�" salvo que se pida encoding => 'ISO-8859-1';
+      // y un archivo UTF-8 leído como Latin-1 sale con mojibake ("Ã©"), como en la realidad
+      txt = txt.replace(/^\ufeff/, '');
+      if (latin) txt = txt.replace(/[\u0080-\uffff]/g, (c) => (c >= '\uDC80' && c <= '\uDCFF' ? String.fromCharCode(c.charCodeAt(0) - 0xDC00) : utf8bytes(c)));
+      else txt = txt.replace(/[\uDC80-\uDCFF]/g, '\uFFFD');
+      if (saltar) txt = txt.split('\n').slice(saltar).join('\n');
+      if (excluirArchivos && excluirArchivos.has(k)) continue;
       if (archivosLeidos) archivosLeidos.push(k);
       if (formato === 'json') {
         const objs = txt.trim().startsWith('[') ? JSON.parse(txt) : txt.split('\n').filter((l) => l.trim()).map((l) => { try { return JSON.parse(l); } catch (e) { return { _corrupt_record: l }; } });
-        cols = cols || [...new Set(objs.flatMap((o) => Object.keys(o)))];
-        for (const o of objs) filas.push(cols.map((c) => (o[c] === undefined ? null : typeof o[c] === 'object' && o[c] !== null ? JSON.stringify(o[c]) : typeof o[c] === 'boolean' ? (o[c] ? 1 : 0) : o[c])));
+        for (const o of objs) { Object.keys(o).forEach(ver); registros.push({ valores: o, archivo: k }); }
       } else if (formato === 'csv' || formato === 'text' || formato === 'txt') {
         const sep = op.sep || op.delimiter || ',';
         const lineas = formato === 'csv' ? parseCsv(txt, sep) : txt.split('\n').filter((l) => l !== '').map((l) => [l]);
         if (!lineas.length) continue;
-        const header = formato === 'csv' && String(op.header || 'false').toLowerCase() === 'true';
-        const enc = header ? lineas.shift() : lineas[0].map((_, i) => (formato === 'text' ? 'value' : `_c${i}`));
-        cols = cols || enc;
-        for (const l of lineas) filas.push(cols.map((_, i) => (l[i] === undefined || l[i] === '' ? null : l[i])));
+        // con header, cada archivo se une por nombre de columna (como read_files real); sin header, por posición
+        const enc = formato === 'csv' && header ? lineas.shift().map((c) => c.trim()) : lineas[0].map((_, i) => (formato === 'text' ? 'value' : `_c${i}`));
+        enc.forEach(ver);
+        for (const l of lineas) { const o = {}; enc.forEach((c, i) => { o[c] = l[i] === undefined || l[i] === '' ? null : l[i]; }); registros.push({ valores: o, archivo: k }); }
       } else err('UNSUPPORTED_FILE_FORMAT', `En esta práctica read_files lee csv, json y text (pediste ${formato}).`);
     }
+    cols = union.length ? union : ['value'];
+    const conMeta = !!sesion.quiereMeta;
+    for (const r of registros) { const o = r.valores; const fila = cols.map((c) => (o[c] === undefined ? null : typeof o[c] === 'object' && o[c] !== null ? JSON.stringify(o[c]) : typeof o[c] === 'boolean' ? (o[c] ? 1 : 0) : o[c])); if (conMeta) fila.meta = JSON.stringify({ file_path: r.archivo, file_name: String(r.archivo).split('/').pop(), file_size: (F[r.archivo] || '').length, file_modification_time: null }); filas0.push(fila); }
     const filas = filas0;
     // inferencia de tipos (como inferSchema), salvo que se pida todo como texto
     const conTipos = String(op.inferschema || op.inferColumnTypes || 'true').toLowerCase() !== 'false';
     if (conTipos && formato === 'csv') for (let c = 0; c < cols.length; c++) { const vs = filas.map((f) => f[c]).filter((x) => x != null); if (vs.length && vs.every((x) => /^-?\d+(\.\d+)?$/.test(x))) for (const f of filas) if (f[c] != null) f[c] = Number(f[c]); }
-    const c2 = formato === 'text' ? cols : [...cols, '_rescued_data'];
-    const nom = tablaTemporal('rf' + (sesion.n++), c2, filas.map((f) => (formato === 'text' ? f : [...f, null])));
+    const c2 = [...cols, ...(formato === 'text' ? [] : ['_rescued_data']), ...(conMeta ? ['_metadata'] : [])];
+    const nom = tablaTemporal('rf' + (sesion.n++), c2, filas.map((f) => [...f, ...(formato === 'text' ? [] : [null]), ...(conMeta ? [f.meta] : [])]));
     return nom;
   }
   // read_kafka(bootstrapServers => '…', subscribe => 'tópico', startingOffsets => 'earliest' | '{"tópico":{"0":123}}', …)
@@ -1763,7 +1779,7 @@
       const t0 = performance.now();
       const reg = { id: hashHex(st.texto + Date.now() + Math.random(), 8) + '-' + hashHex(String(Math.random()), 4), texto: st.texto.slice(0, 2000), inicio: ahora(), origen: opts.origen || 'Databricks SQL Editor', compute: opts.compute || 'WAREHOUSE' };
       try {
-        pendiente = null;
+        pendiente = null; sesion.quiereMeta = !!st.meta;
         const r = ejecutarUna(st, opts);
         r.ok = true; r.ms = Math.round(performance.now() - t0); r.texto = st.texto;
         if (!r.tipos && r.cols && r.cols.length) r.tipos = tiposDe(r.cols, r.filas || []);

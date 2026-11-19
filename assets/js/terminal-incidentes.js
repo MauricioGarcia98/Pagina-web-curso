@@ -303,7 +303,7 @@
       const tipo = ext === 'csv' ? 'CSV text' : ext === 'json' ? 'JSON text data' : ext === 'py' ? 'Python script text' : ext === 'gz' ? 'gzip compressed data' : null;
       const bom = c.charCodeAt(0) === 0xfeff;
       const ascii = /^[\x00-\x7f]*$/.test(c.replace(/^\ufeff/, ''));
-      partes.push((tipo ? tipo + ', ' : '') + (ascii && !bom ? 'ASCII text' : bom ? 'Unicode text, UTF-8 (with BOM) text' : 'Unicode text, UTF-8 text'));
+      partes.push((tipo ? tipo + ', ' : '') + (/[\uDC80-\uDCFF]/.test(c) ? 'ISO-8859 text' : ascii && !bom ? 'ASCII text' : bom ? 'Unicode text, UTF-8 (with BOM) text' : 'Unicode text, UTF-8 text'));
       if (/\r\n/.test(c)) partes.push('with CRLF line terminators');
       if (c.split('\n').some((l) => l.length > 300)) partes.push('with very long lines');
       let linea = out.length;

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Las notas del equipo - lo que se sabía de cada laboratorio · Academia de Datos</title><meta name="description" content="Antes de que llegaras, una consultora armó una prueba de concepto con los archivos de una semana. Dejó un documento con conclusiones. Algunas son ciertas, otras eran ciertas esa semana y otras nunca lo fueron. Léelo como lo leería alguien con experiencia."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-red-analitica-las-notas-del-equipo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Las notas del equipo - lo que se sabía de cada laboratorio · Academia de Datos"><meta property="og:description" content="Antes de que llegaras, una consultora armó una prueba de concepto con los archivos de una semana. Dejó un documento con conclusiones. Algunas son ciertas, otras eran ciertas esa semana y otras nunca lo fueron. Léelo como lo leería alguien con experiencia."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-red-analitica-las-notas-del-equipo.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-red-analitica">🧪 Proyecto 3: Red Analítica, cinco laboratorios por SFTP y datos de salud</a> · Avanzado · 15 min</div>
+<h1>Las notas del equipo - lo que se sabía de cada laboratorio</h1><p class="resumen">Antes de que llegaras, una consultora armó una prueba de concepto con los archivos de una semana. Dejó un documento con conclusiones. Algunas son ciertas, otras eran ciertas esa semana y otras nunca lo fueron. Léelo como lo leería alguien con experiencia.</p>
+<a class="cta" href="../index.html#/l/proyecto-red-analitica-las-notas-del-equipo">▶ Abrir la lección interactiva (2 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Detectar suposiciones frágiles en documentación heredada</li><li>Convertir conocimiento informal en validaciones automáticas</li><li>Anticipar cambios de formato de fuentes externas</li></ul>
+<h2>El documento de la consultora</h2>
+<blockquote>
+<p><strong>Prueba de concepto: integración de resultados (semana 1)</strong></p>
+<ul>
+<li>Los cinco archivos tienen siempre las mismas columnas en el mismo orden: leemos por posición, es más rápido.</li>
+<li>Centro usa Latin-1. Ya lo resolvimos fijando la codificación en el lector.</li>
+<li>Todos los archivos llegan antes de las 07:00, así que la carga corre a las 07:00.</li>
+<li>El documento es un número: lo usamos directo como identificador del paciente.</li>
+<li>Sur manda todo en las mismas unidades que los demás (lo vimos en dos archivos).</li>
+<li>Si un archivo llega dos veces, lo cargamos de nuevo: total, son los mismos datos.</li>
+<li>Costa: borramos a mano las primeras líneas antes de cargar.</li>
+</ul>
+</blockquote>
+<h2>El hilo con los laboratorios</h2>
+<blockquote>
+<p><strong>Cerro (sistemas):</strong> nuestro servidor está en UTC, como todos los servidores, ¿no?</p>
+<p><strong>Costa (administración):</strong> el reporte lo saca una persona cuando llega. Si llega tarde, el reporte sale tarde.</p>
+<p><strong>Sur (calidad):</strong> cuando corregimos, subimos el archivo completo con _v2. El viejo no lo borramos: no tenemos permiso de borrar en el servidor.</p>
+<p><strong>Centro (sistemas):</strong> estamos evaluando migrar a un sistema nuevo este mes. Les avisamos.</p>
+</blockquote>
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Cada suposición es una validación que falta</div>
+
+<p>&quot;Siempre las mismas columnas&quot; se convierte en: <em>comparar el encabezado con el esperado y fallar si cambió</em>. &quot;Todos llegan antes de las 07:00&quot; se convierte en: <em>antes de cargar, verificar que llegaron los 5 archivos del día; si no, cargar los que hay y avisar</em>. Cuando un tercero promete &quot;les avisamos&quot;, diseña como si no fuera a avisar.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>La documentación heredada tiene <strong>suposiciones</strong>: verifícalas contra los archivos.</li>
+<li>Lo que &quot;siempre fue así&quot; en una fuente externa <strong>va a cambiar</strong>: valida encabezado, codificación, llegada y versión.</li>
+<li>Un reenvío <strong>reemplaza</strong>; nunca se suma.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-red-analitica-las-notas-del-equipo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-red-analitica-fuentes-y-accesos.html">← Fuentes y accesos - el SFTP y el formato de cada laboratorio</a><a href="proyecto-red-analitica-la-entrega.html">La entrega - el esquema canónico y la revisión automática →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

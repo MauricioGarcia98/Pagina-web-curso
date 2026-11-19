@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fuentes y accesos - el SFTP y el formato de cada laboratorio · Academia de Datos</title><meta name="description" content="La referencia técnica - cómo conectarte al SFTP con clave pública y verificar la huella del servidor, y la documentación de cada laboratorio tal como la mandaron, con sus formatos, codificaciones, códigos de estudio y unidades. Más la tabla de equivalencias y los rangos canónicos que fijó dirección médica."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-red-analitica-fuentes-y-accesos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Fuentes y accesos - el SFTP y el formato de cada laboratorio · Academia de Datos"><meta property="og:description" content="La referencia técnica - cómo conectarte al SFTP con clave pública y verificar la huella del servidor, y la documentación de cada laboratorio tal como la mandaron, con sus formatos, codificaciones, códigos de estudio y unidades. Más la tabla de equivalencias y los rangos canónicos que fijó dirección médica."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-red-analitica-fuentes-y-accesos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-red-analitica">🧪 Proyecto 3: Red Analítica, cinco laboratorios por SFTP y datos de salud</a> · Avanzado · 40 min</div>
+<h1>Fuentes y accesos - el SFTP y el formato de cada laboratorio</h1><p class="resumen">La referencia técnica - cómo conectarte al SFTP con clave pública y verificar la huella del servidor, y la documentación de cada laboratorio tal como la mandaron, con sus formatos, codificaciones, códigos de estudio y unidades. Más la tabla de equivalencias y los rangos canónicos que fijó dirección médica.</p>
+<a class="cta" href="../index.html#/l/proyecto-red-analitica-fuentes-y-accesos">▶ Abrir la lección interactiva (2 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Conectarte a un SFTP con clave pública verificando la huella del servidor</li><li>Automatizar descargas con sftp en modo lote</li><li>Reconocer y corregir problemas de codificación</li><li>Leer cinco formatos distintos hacia un esquema común</li></ul>
+<div></div>
+
+<h2>1. El acceso al SFTP</h2>
+<pre><code class="language-bash">red accesos                                   # el correo de IT: host, puerto, usuario y huella
+ssh-keygen -t ed25519 -f ~/.ssh/red_analitica -C &quot;equipo-datos&quot;
+red alta-clave ~/.ssh/red_analitica.pub       # IT la autoriza en unos minutos
+red estado</code></pre>
+<p>La primera vez, el cliente no conoce al servidor. <strong>Verifica la huella</strong> contra la del correo antes de aceptarla:</p>
+<pre><code class="language-bash">ssh-keyscan -p 2222 sftp.redanalitica.example &gt;&gt; ~/.ssh/known_hosts
+# o, después de comparar la huella que muestra el error:
+sftp -o StrictHostKeyChecking=accept-new -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example</code></pre>
+<p>Comandos de la consola de <code>sftp</code>: <code>ls -l</code>, <code>cd</code>, <code>pwd</code>, <code>get archivo [destino]</code>, <code>mget patrón</code>, <code>lcd</code>, <code>lpwd</code>, <code>bye</code>. La cuenta es de <strong>solo lectura</strong>. Para un script se usa el modo lote:</p>
+<pre><code class="language-bash">cat &gt; lote.txt &lt;&lt;'EOF2'
+cd /entrantes/norte
+mget *.csv
+EOF2
+sftp -b lote.txt -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example
+scp -i ~/.ssh/red_analitica -P 2222 'equipo_datos@sftp.redanalitica.example:/entrantes/sur/*.jsonl' sur/</code></pre>
+<p><code>ls -l</code> muestra la hora en que cada archivo apareció en el servidor, en hora de Ciudad del Río.</p>
+<h2>2. Lo que manda cada laboratorio</h2>
+<p>Esta documentación la escribió cada laboratorio. Está como la mandaron.</p>
+<h3>Laboratorio Norte · <code>/entrantes/norte/resultados_AAAAMMDD.csv</code></h3>
+<p>CSV UTF-8, separador coma, con encabezado. Llega a eso de la 01:10.</p>
+<p><code>muestra_id, fecha_toma (AAAA-MM-DD hh:mm, hora local), documento (con puntos: 41.234.567), paciente, fecha_nacimiento, sexo, codigo (GLU, HB, COL, CRE, TSH), estudio, resultado, unidad</code></p>
+<h3>Laboratorio Centro · <code>/entrantes/centro/CENTRO_DD-MM-AAAA.csv</code></h3>
+<blockquote>
+<p>&quot;Exportamos desde el sistema del laboratorio. Separador punto y coma.&quot;</p>
+</blockquote>
+<p><code>Nro Muestra; Fecha (dd/mm/aaaa hh:mm); Documento; Apellido y Nombre; F. Nac.; Sexo; Cod. Prestacion; Prestacion; Resultado; Unidad</code></p>
+<p>Códigos: 1001 glucosa, 1002 hemoglobina, 1003 colesterol, 1004 creatinina, 1005 TSH. Unidades: mg/dl, g/dl, µUI/ml.</p>
+<h3>Laboratorio Sur · <code>/entrantes/sur/sur_resultados_AAAA-MM-DD.jsonl</code></h3>
+<p>JSON por líneas. Un resultado por línea:</p>
+<pre><code class="language-json">{&quot;sample&quot;: &quot;S-100892&quot;, &quot;taken_at&quot;: &quot;2026-11-17T09:12:00-03:00&quot;, &quot;patient&quot;: {&quot;doc&quot;: 46720691, &quot;name&quot;: &quot;…&quot;, &quot;birth&quot;: &quot;…&quot;, &quot;sex&quot;: &quot;M&quot;}, &quot;test&quot;: &quot;glucose&quot;, &quot;value&quot;: 4.33, &quot;unit&quot;: &quot;mmol/L&quot;}</code></pre>
+<p>Tests: <code>glucose</code> (mmol/L), <code>hemoglobin</code> (g/L), <code>cholesterol</code> (mmol/L), <code>creatinine</code> (µmol/L), <code>tsh</code> (mIU/L). Si encontramos un error, reenviamos el archivo completo del día con sufijo <code>_v2</code>, <code>_v3</code>… que <strong>reemplaza</strong> al anterior.</p>
+<h3>Laboratorio Costa · <code>/entrantes/costa/Reporte Costa DDMMAAAA.csv</code></h3>
+<blockquote>
+<p>&quot;Lo exportamos desde Excel todas las mañanas.&quot;</p>
+</blockquote>
+<p>(El archivo trae lo que Excel agrega al exportar. Mírenlo antes de leerlo.) Columnas: <code>Muestra, Fecha toma, CI, Nombre, Nacimiento, Sexo, Estudio, Valor, Unidad</code>. El estudio viene por nombre: Glucosa en ayunas, Hemoglobina, Colesterol total, Creatinina, TSH.</p>
+<h3>Laboratorio Cerro · <code>/entrantes/cerro/cerro_AAAAMMDD.tsv</code></h3>
+<p>Separado por tabulaciones, desde un servidor Windows. <code>ID, FECHA_UTC, DOC, NOMBRE, NAC, SEXO, COD (GLUC, HGB, CHOL, CREA, TSH), VALOR, UNID</code>. Incluye la guardia nocturna (urgencias hasta las 23:59).</p>
+<h2>3. Lo que fijó dirección médica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Código canónico</th>
+<th>Estudio</th>
+<th>Unidad canónica</th>
+<th>Rango de referencia</th>
+</tr>
+</thead><tbody><tr>
+<td><code>GLU</code></td>
+<td>Glucosa en ayunas</td>
+<td>mg/dL</td>
+<td>70 – 100</td>
+</tr>
+<tr>
+<td><code>HB</code></td>
+<td>Hemoglobina</td>
+<td>g/dL</td>
+<td>12 – 17,5</td>
+</tr>
+<tr>
+<td><code>COL</code></td>
+<td>Colesterol total</td>
+<td>mg/dL</td>
+<td>hasta 200</td>
+</tr>
+<tr>
+<td><code>CRE</code></td>
+<td>Creatinina</td>
+<td>mg/dL</td>
+<td>0,6 – 1,3</td>
+</tr>
+<tr>
+<td><code>TSH</code></td>
+<td>Tirotropina</td>
+<td>mUI/L</td>
+<td>0,4 – 4,0</td>
+</tr>
+</tbody></table></div>
+<p>Conversiones: glucosa mmol/L × 18,016 = mg/dL · colesterol mmol/L × 38,67 = mg/dL · creatinina µmol/L ÷ 88,4 = mg/dL · hemoglobina g/L ÷ 10 = g/dL · µUI/mL = mUI/L. El <strong>día</strong> de un resultado es el día de la toma en hora de Ciudad del Río (UTC-3).</p>
+<h2>4. Herramientas que te van a servir</h2>
+<pre><code class="language-bash">file CENTRO_17-11-2026.csv                        # codificación, BOM y fin de línea
+iconv -f LATIN1 -t UTF-8 entrada.csv -o salida.csv</code></pre>
+<pre data-norun><code class="language-sql">-- Databricks: opciones de read_files para archivos difíciles
+SELECT * FROM read_files('abfss://…/centro/', format =&gt; 'csv', sep =&gt; ';', header =&gt; true, encoding =&gt; 'ISO-8859-1');
+SELECT * FROM read_files('abfss://…/costa/', format =&gt; 'csv', header =&gt; true, skipRows =&gt; 3);
+SELECT patient:doc, value, unit FROM read_files('abfss://…/sur/', format =&gt; 'json');
+SELECT date_add('1899-12-30', CAST(46343.4375 AS INT));   -- serie de Excel → fecha</code></pre>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>SFTP con <strong>clave pública</strong> y huella verificada; <code>sftp -b</code> para scripts.</li>
+<li>Cinco formatos: CSV UTF-8, <strong>Latin-1 con ;</strong> y coma decimal, <strong>JSON con unidades internacionales</strong>, <strong>exportación de Excel</strong> y <strong>TSV en UTC</strong>.</li>
+<li>Un esquema canónico (códigos, unidades, rangos y día local) que fijó dirección médica.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-red-analitica-fuentes-y-accesos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-red-analitica-el-pedido.html">← El pedido - cinco laboratorios, cinco formatos y datos de salud</a><a href="proyecto-red-analitica-las-notas-del-equipo.html">Las notas del equipo - lo que se sabía de cada laboratorio →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
