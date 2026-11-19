@@ -1183,3 +1183,10 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .pedalia-chequeos { margin: 12px 0 0; padding-left: 22px; }
 .pedalia-chequeos li { margin: 6px 0; }
 .pedalia-chequeos li.falta .small { margin-top: 2px; }
+.mv-panel { margin: 18px 0; }
+.mv-panel .tabla-mini { width: 100%; border-collapse: collapse; font-size: 13px; }
+.mv-panel .tabla-mini th { text-align: left; padding: 10px 0 4px; border-bottom: 1px solid var(--line); }
+.mv-panel .tabla-mini td { padding: 4px 8px 4px 0; vertical-align: top; }
+.mv-panel .tabla-mini code { word-break: break-all; }
+.mv-grilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.mv-grilla > div { border: 1px solid var(--line); border-radius: 10px; padding: 10px; }

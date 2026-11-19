@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fuentes y accesos - la documentación de cada sistema · Academia de Datos</title><meta name="description" content="La referencia de las tres fuentes de Mercado Vecino, como la documentación interna de una empresa - tus credenciales, el esquema de la base y cómo conectarte a la réplica, la configuración del conector Debezium y el formato de cada mensaje del CDC, la API de PagoYa, el formato y la firma de los webhooks, y las reglas de la liquidación. Es para consultar mientras trabajas, no para leer de corrido."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-mercado-vecino-fuentes-y-accesos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Fuentes y accesos - la documentación de cada sistema · Academia de Datos"><meta property="og:description" content="La referencia de las tres fuentes de Mercado Vecino, como la documentación interna de una empresa - tus credenciales, el esquema de la base y cómo conectarte a la réplica, la configuración del conector Debezium y el formato de cada mensaje del CDC, la API de PagoYa, el formato y la firma de los webhooks, y las reglas de la liquidación. Es para consultar mientras trabajas, no para leer de corrido."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-mercado-vecino-fuentes-y-accesos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-mercado-vecino">🛒 Proyecto 2: Mercado Vecino, conciliar la app con la pasarela de pagos</a> · Avanzado · 40 min</div>
+<h1>Fuentes y accesos - la documentación de cada sistema</h1><p class="resumen">La referencia de las tres fuentes de Mercado Vecino, como la documentación interna de una empresa - tus credenciales, el esquema de la base y cómo conectarte a la réplica, la configuración del conector Debezium y el formato de cada mensaje del CDC, la API de PagoYa, el formato y la firma de los webhooks, y las reglas de la liquidación. Es para consultar mientras trabajas, no para leer de corrido.</p>
+<a class="cta" href="../index.html#/l/proyecto-mercado-vecino-fuentes-y-accesos">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Conectarte a una réplica de PostgreSQL de solo lectura con credenciales seguras</li><li>Leer un mensaje Debezium (before, after, op, source.lsn) e interpretar sus tipos</li><li>Consumir un tópico Kafka con offsets y grupos</li><li>Usar una API paginada de más nuevo a más viejo</li><li>Verificar la firma HMAC de un webhook</li><li>Entender cuándo se liquida cada movimiento</li></ul>
+<h2>Tus credenciales</h2>
+<div></div>
+
+<div></div>
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Credenciales de prueba, pero trátalas como reales</div>
+
+<p>Son inventadas y solo funcionan en las herramientas de práctica, pero el hábito es el mismo que en un trabajo: van al <strong>Key Vault</strong> (la revisión lo verifica), no a un script, no a un repositorio y, si puedes evitarlo, tampoco al historial de la terminal. Si alguna vez compartes una captura, tápalas.</p>
+</div>
+
+
+<h2>1. La base operacional (PostgreSQL 16)</h2>
+<p>Réplica de lectura en Azure Database for PostgreSQL. Va <strong>unos segundos atrás</strong> de la base principal (replicación asincrónica) y no acepta escrituras: ni INSERT, ni tablas temporales.</p>
+<pre><code class="language-bash"># la clave se puede pasar por variable de entorno (no queda en la URI)...
+export PGPASSWORD='&lt;la clave del correo&gt;'
+psql &quot;postgresql://lector_datos@mv-prod-replica.postgres.database.azure.com:5432/mercado?sslmode=require&quot;
+
+# ...o en ~/.pgpass (host:puerto:base:usuario:clave), con permisos 600
+psql -h mv-prod-replica.postgres.database.azure.com -U lector_datos -d mercado -c '\dt'
+
+# exportar a CSV desde el cliente (se escribe en tu máquina, no en el servidor)
+psql &quot;…&quot; -c &quot;\copy (SELECT * FROM clientes) TO 'clientes.csv' WITH (FORMAT csv, HEADER)&quot;</code></pre>
+<h3>Esquema</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Tabla</th>
+<th>Columnas</th>
+<th>Notas</th>
+</tr>
+</thead><tbody><tr>
+<td><code>vendedores</code></td>
+<td>id, nombre, rubro, barrio, comision_pct, creado_en</td>
+<td>12 comercios. Casi no cambia</td>
+</tr>
+<tr>
+<td><code>productos</code></td>
+<td>id, vendedor_id, nombre, precio, activo, actualizado_en</td>
+<td>Los precios se actualizan cada mañana a las 09:00</td>
+</tr>
+<tr>
+<td><code>clientes</code></td>
+<td>id, nombre, email, telefono, barrio, creado_en, actualizado_en</td>
+<td>Datos personales (PII)</td>
+</tr>
+<tr>
+<td><code>pedidos</code></td>
+<td>id, cliente_id, estado, subtotal, envio, total, proveedor_pago, pago_ref, creado_en, actualizado_en</td>
+<td><code>estado</code>: creado, pagado, enviado, entregado, cancelado. <code>pago_ref</code> = id del pago en PagoYa</td>
+</tr>
+<tr>
+<td><code>items_pedido</code></td>
+<td>id, pedido_id, producto_id, cantidad, precio_unitario</td>
+<td></td>
+</tr>
+</tbody></table></div>
+<ul>
+<li>Montos en <strong>pesos</strong> (<code>numeric(12,2)</code>). Tiempos en <code>timestamp</code> <strong>sin zona, en UTC</strong>.</li>
+<li><code>proveedor_pago</code> = <code>cobrosur</code> para los pedidos de antes del cambio de pasarela, <code>pagoya</code> desde entonces.</li>
+<li>Para ver todo de una tabla (comentarios, índices, identidad de réplica): <code>\d pedidos</code>.</li>
+</ul>
+<h2>2. El CDC: Debezium → Event Hubs (Kafka)</h2>
+<p>Debezium lee el WAL de la base principal y publica <strong>un mensaje por fila cambiada</strong> en un tópico por tabla. Event Hubs habla el protocolo Kafka.</p>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;mv-prod-cdc&quot;,
+  &quot;config&quot;: {
+    &quot;connector.class&quot;: &quot;io.debezium.connector.postgresql.PostgresConnector&quot;,
+    &quot;database.dbname&quot;: &quot;mercado&quot;,
+    &quot;topic.prefix&quot;: &quot;mv_prod&quot;,
+    &quot;plugin.name&quot;: &quot;pgoutput&quot;,
+    &quot;publication.name&quot;: &quot;dbz_publication&quot;,
+    &quot;table.include.list&quot;: &quot;public.clientes,public.productos,public.pedidos,public.items_pedido,public.vendedores&quot;,
+    &quot;snapshot.mode&quot;: &quot;initial&quot;,
+    &quot;decimal.handling.mode&quot;: &quot;string&quot;,
+    &quot;time.precision.mode&quot;: &quot;adaptive&quot;,
+    &quot;tombstones.on.delete&quot;: &quot;false&quot;,
+    &quot;key.converter.schemas.enable&quot;: &quot;false&quot;,
+    &quot;value.converter.schemas.enable&quot;: &quot;false&quot;
+  }
+}</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Dato</th>
+<th>Valor</th>
+</tr>
+</thead><tbody><tr>
+<td>Broker</td>
+<td><code>mv-eventos.servicebus.windows.net:9093</code></td>
+</tr>
+<tr>
+<td>Seguridad</td>
+<td><code>SASL_SSL</code>, mecanismo <code>PLAIN</code>, usuario <strong>literal</strong> <code>$ConnectionString</code>, clave = la cadena de conexión completa</td>
+</tr>
+<tr>
+<td>Tópicos</td>
+<td><code>mv_prod.public.&lt;tabla&gt;</code>, <strong>1 partición</strong> cada uno</td>
+</tr>
+<tr>
+<td>Retención</td>
+<td><strong>24 horas</strong> (lo más viejo se borra)</td>
+</tr>
+<tr>
+<td>Clave del mensaje</td>
+<td><code>{&quot;id&quot;: 123}</code></td>
+</tr>
+<tr>
+<td>Snapshot inicial</td>
+<td>Se hizo cuando se creó el conector, hace días: esos mensajes (<code>op: &quot;r&quot;</code>) ya vencieron</td>
+</tr>
+</tbody></table></div>
+<h3>Un mensaje</h3>
+<pre><code class="language-json">{
+  &quot;before&quot;: { &quot;id&quot;: 1474, &quot;estado&quot;: &quot;creado&quot;, &quot;total&quot;: &quot;1760.00&quot;, &quot;actualizado_en&quot;: 1794969312825000, &quot;…&quot;: &quot;…&quot; },
+  &quot;after&quot;:  { &quot;id&quot;: 1474, &quot;estado&quot;: &quot;pagado&quot;, &quot;total&quot;: &quot;1760.00&quot;, &quot;pago_ref&quot;: &quot;py_0piz7m4007m&quot;, &quot;actualizado_en&quot;: 1794969330112000, &quot;…&quot;: &quot;…&quot; },
+  &quot;source&quot;: { &quot;connector&quot;: &quot;postgresql&quot;, &quot;name&quot;: &quot;mv_prod&quot;, &quot;db&quot;: &quot;mercado&quot;, &quot;schema&quot;: &quot;public&quot;, &quot;table&quot;: &quot;pedidos&quot;, &quot;txId&quot;: 9123, &quot;lsn&quot;: 1509981234, &quot;ts_ms&quot;: 1794969330112 },
+  &quot;op&quot;: &quot;u&quot;,
+  &quot;ts_ms&quot;: 1794969330591
+}</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Campo</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><code>op</code></td>
+<td><code>c</code> alta, <code>u</code> modificación, <code>d</code> borrado</td>
+</tr>
+<tr>
+<td><code>before</code> / <code>after</code></td>
+<td>La fila antes y después. En un alta <code>before</code> es null; en un borrado <code>after</code> es null</td>
+</tr>
+<tr>
+<td><code>source.lsn</code></td>
+<td>Posición en el WAL: <strong>crece con cada cambio</strong>. Sirve para ordenar y para saber hasta dónde llegaste</td>
+</tr>
+<tr>
+<td><code>source.ts_ms</code></td>
+<td>Cuándo se confirmó el cambio en la base</td>
+</tr>
+<tr>
+<td>Montos</td>
+<td>Texto (<code>&quot;1760.00&quot;</code>), por <code>decimal.handling.mode = string</code></td>
+</tr>
+<tr>
+<td>Tiempos (<code>creado_en</code>, <code>actualizado_en</code>)</td>
+<td><strong>Microsegundos</strong> desde 1970 (UTC)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-nota"><div class="callout-title">📝 REPLICA IDENTITY</div>
+
+<p><code>clientes</code> y <code>pedidos</code> tienen <code>REPLICA IDENTITY FULL</code>: el <code>before</code> viene completo. <code>productos</code> e <code>items_pedido</code> tienen la identidad por defecto: en un UPDATE el <code>before</code> es null, y en un DELETE el <code>before</code> trae <strong>solo el id</strong>.</p>
+</div>
+
+
+<h3>Consumir desde la terminal (kcat)</h3>
+<pre><code class="language-bash"># propiedades en un archivo (así la clave no queda en el historial)
+mkdir -p ~/.config &amp;&amp; cat &gt; ~/.config/kcat.conf &lt;&lt;'CONF'
+bootstrap.servers=mv-eventos.servicebus.windows.net:9093
+security.protocol=SASL_SSL
+sasl.mechanisms=PLAIN
+sasl.username=$ConnectionString
+sasl.password=&lt;la cadena de conexión&gt;
+CONF
+
+kcat -L                                                   # tópicos
+kcat -C -t mv_prod.public.pedidos -o beginning -e -c 3    # los 3 más viejos que quedan
+kcat -C -t mv_prod.public.pedidos -o beginning -e &gt; pedidos.jsonl
+kcat -G mi-grupo mv_prod.public.pedidos -o beginning -e   # con grupo: la próxima vez sigue desde donde quedó</code></pre>
+<p>Con <code>-G</code>, el offset se guarda al terminar. Un grupo nuevo sin <code>-o</code> empieza <strong>por el final</strong> (no ve nada viejo). Si el offset guardado ya venció por la retención, Kafka salta al más viejo disponible y avisa con <code>Offset out of range</code>: <strong>los mensajes del medio se perdieron</strong>.</p>
+<h3>Consumir desde Databricks (read_kafka)</h3>
+<pre data-norun><code class="language-sql">SELECT CAST(value AS STRING) AS valor, offset, timestamp
+FROM read_kafka(
+  bootstrapServers =&gt; 'mv-eventos.servicebus.windows.net:9093',
+  subscribe =&gt; 'mv_prod.public.pedidos',
+  startingOffsets =&gt; 'earliest',
+  `kafka.security.protocol` =&gt; 'SASL_SSL',
+  `kafka.sasl.mechanism` =&gt; 'PLAIN',
+  `kafka.sasl.jaas.config` =&gt; 'kafkashaded.org.apache.kafka.common.security.plain.PlainLoginModule required username=&quot;$ConnectionString&quot; password=&quot;&lt;cadena de conexión&gt;&quot;;'
+);</code></pre>
+<ul>
+<li><code>startingOffsets</code> acepta <code>earliest</code>, <code>latest</code> o un JSON por partición: <code>&#39;{&quot;mv_prod.public.pedidos&quot;:{&quot;0&quot;:2150}}&#39;</code> (para seguir desde donde quedaste).</li>
+<li>Para leer campos del JSON: <code>valor:after.estado</code>, <code>valor:source.lsn</code>, <code>timestamp_micros(valor:after.creado_en)</code>.</li>
+<li>Si pides un offset que ya venció, falla con <code>failOnDataLoss</code> (y está bien que falle).</li>
+</ul>
+<h2>3. PagoYa: la API</h2>
+<p><code>https://api.pagoya.example/v1</code> · Autenticación: <code>Authorization: Bearer sk_test_…</code> (o <code>curl -u sk_test_…:</code>). La clave del equipo de datos es <strong>de solo lectura</strong>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Ruta</th>
+<th>Qué devuelve</th>
+</tr>
+</thead><tbody><tr>
+<td><code>GET /v1/eventos</code></td>
+<td>Eventos de los últimos 30 días, <strong>del más nuevo al más viejo</strong>. Parámetros: <code>limite</code> (1–100, por defecto 10), <code>despues_de=&lt;evt_id&gt;</code> (la página siguiente: más viejos que ese), <code>tipo</code> (<code>pago.aprobado</code>, <code>disputa.*</code>, varios separados por coma), <code>creado_desde</code> / <code>creado_hasta</code> (segundos Unix)</td>
+</tr>
+<tr>
+<td><code>GET /v1/eventos/{id}</code></td>
+<td>Un evento</td>
+</tr>
+<tr>
+<td><code>GET /v1/pagos?pedido_id=…</code> · <code>GET /v1/pagos/{id}</code></td>
+<td>Pagos (con su estado actual)</td>
+</tr>
+<tr>
+<td><code>GET /v1/disputas?estado=abierta</code></td>
+<td>Disputas</td>
+</tr>
+<tr>
+<td><code>GET /v1/liquidaciones</code> · <code>GET /v1/liquidaciones/{fecha}</code></td>
+<td>Liquidaciones publicadas</td>
+</tr>
+<tr>
+<td><code>GET /v1/liquidaciones/{fecha}/reporte.csv</code></td>
+<td>El detalle de una liquidación (CSV)</td>
+</tr>
+</tbody></table></div>
+<p>Respuesta de lista: <code>{&quot;objeto&quot;: &quot;lista&quot;, &quot;hay_mas&quot;: true, &quot;datos&quot;: [...]}</code>. Para recorrer todo: pide la primera página, toma el <code>id</code> del <strong>último</strong> elemento y pide <code>despues_de=&lt;ese id&gt;</code> hasta que <code>hay_mas</code> sea <code>false</code>.</p>
+<p>Un evento:</p>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;evt_0xa3j5200ld&quot;,
+  &quot;objeto&quot;: &quot;evento&quot;,
+  &quot;tipo&quot;: &quot;pago.aprobado&quot;,
+  &quot;creado&quot;: 1795054367,
+  &quot;version_api&quot;: &quot;2026-07-01&quot;,
+  &quot;datos&quot;: { &quot;objeto&quot;: { &quot;id&quot;: &quot;py_0h9s00u00a7&quot;, &quot;objeto&quot;: &quot;pago&quot;, &quot;monto&quot;: 47500, &quot;moneda&quot;: &quot;CRP&quot;, &quot;estado&quot;: &quot;aprobado&quot;,
+                         &quot;creado&quot;: 1795054363, &quot;aprobado_en&quot;: 1795054367, &quot;metadatos&quot;: { &quot;pedido_id&quot;: &quot;1563&quot; } } }
+}</code></pre>
+<ul>
+<li><strong>Montos en centavos</strong> (<code>47500</code> = $475,00). Tiempos en <strong>segundos Unix</strong>.</li>
+<li><code>metadatos.pedido_id</code> es <strong>texto</strong>.</li>
+<li>Tipos: <code>pago.creado</code>, <code>pago.aprobado</code>, <code>pago.rechazado</code>, <code>reembolso.creado</code> (objeto reembolso, con <code>pago</code>), <code>disputa.abierta</code> y <code>disputa.cerrada</code> (objeto disputa, con <code>pago</code>; al cerrar, <code>estado</code> = <code>ganada</code> o <code>perdida</code>).</li>
+<li>Límite: <strong>100 pedidos por minuto</strong> (429 + <code>Retry-After</code>). Cerca del 1 % de los pedidos responde <strong>503</strong>: reintenta con espera.</li>
+</ul>
+<h2>4. PagoYa: los webhooks</h2>
+<p>PagoYa avisa cada evento con un <code>POST</code> a los endpoints registrados. El del equipo de datos lo das de alta tú:</p>
+<pre><code class="language-bash">pagoya webhooks configurar --cuenta &lt;tu cuenta del lago&gt; --contenedor landing --prefijo pagoya/webhooks
+pagoya webhooks estado</code></pre>
+<p>Del otro lado está la función <strong>mv-webhooks</strong> (la escribió el ingeniero anterior): responde 200 y guarda <strong>cada entrega tal como llegó</strong>, sin verificar nada, en:</p>
+<pre><code class="language-text">abfss://landing@&lt;cuenta&gt;.dfs.core.windows.net/pagoya/webhooks/fecha=AAAA-MM-DD/hora=HH/&lt;entrega_id&gt;.json</code></pre>
+<pre><code class="language-json">{&quot;entrega_id&quot;: &quot;whd_5ed0f802465a4d37&quot;, &quot;recibido_en&quot;: &quot;2026-11-19T13:01:02.123Z&quot;, &quot;endpoint&quot;: &quot;we_75fcbebf33ebac&quot;,
+ &quot;headers&quot;: {&quot;content-type&quot;: &quot;application/json; charset=utf-8&quot;, &quot;pagoya-signature&quot;: &quot;t=1795034813,v1=31bb2c7c…&quot;, &quot;user-agent&quot;: &quot;PagoYa/1.0&quot;},
+ &quot;body&quot;: &quot;{\&quot;id\&quot;:\&quot;evt_1f1ts8t00j3\&quot;,\&quot;objeto\&quot;:\&quot;evento\&quot;,\&quot;tipo\&quot;:\&quot;pago.aprobado\&quot;,…}&quot;}</code></pre>
+<ul>
+<li><code>fecha</code> y <code>hora</code> de la carpeta son de <code>recibido_en</code> (UTC).</li>
+<li>Un endpoint nuevo recibe solo eventos <strong>desde que se crea</strong>.</li>
+<li>La entrega es <strong>al menos una vez</strong>: si la función tarda en responder, PagoYa reintenta (mismo evento, otra entrega). Si la función está caída, reintenta más tarde (1 min, 5 min, 30 min, 2 h…): llegan <strong>tarde y desordenadas</strong>.</li>
+<li>El contenedor tiene una regla de ciclo de vida: borra las entregas de <strong>más de 3 días</strong>.</li>
+</ul>
+<h3>Verificar la firma</h3>
+<p>La cabecera <code>PagoYa-Signature</code> tiene la forma <code>t=&lt;segundos Unix&gt;,v1=&lt;firma&gt;</code>. Para verificar una entrega:</p>
+<ol>
+<li>Arma el texto firmado: <code>&lt;t&gt;</code> + <code>.</code> + el <strong>body exacto como llegó</strong> (el texto, sin volver a serializar el JSON).</li>
+<li>Calcula HMAC-SHA256 de ese texto con el <strong>secreto de firma completo</strong> (<code>whsec_…</code>, incluido el prefijo) como clave, en hexadecimal.</li>
+<li>Compáralo con <code>v1</code> con una comparación de tiempo constante (<code>hmac.compare_digest</code> en Python).</li>
+<li>Rechaza la entrega si <code>t</code> está a más de <strong>5 minutos</strong> de <code>recibido_en</code>: protege contra repeticiones de entregas viejas.</li>
+</ol>
+<pre data-norun><code class="language-python">import hmac, hashlib
+firmado = f&quot;{t}.{body}&quot;.encode()
+esperada = hmac.new(secreto.encode(), firmado, hashlib.sha256).hexdigest()
+valida = hmac.compare_digest(esperada, v1)</code></pre>
+<h2>5. PagoYa: la liquidación</h2>
+<p>PagoYa transfiere al banco <strong>una vez por día</strong> el neto de lo que se liquida ese día, y publica el detalle a las <strong>06:00</strong> (hora de la tienda) del día de pago.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Movimiento</th>
+<th>Se liquida</th>
+<th>Bruto</th>
+<th>Comisión</th>
+</tr>
+</thead><tbody><tr>
+<td>Cobro (pago aprobado)</td>
+<td>El día siguiente a la aprobación. Si se aprobó <strong>a las 23:00 o después</strong>, a los dos días (corte diario)</td>
+<td>+ monto</td>
+<td>3,9 % + $5</td>
+</tr>
+<tr>
+<td>Reembolso</td>
+<td>El día siguiente al reembolso</td>
+<td>− monto</td>
+<td>0 (la comisión del cobro no se devuelve)</td>
+</tr>
+<tr>
+<td>Contracargo</td>
+<td>El día siguiente a que se <strong>pierde</strong> la disputa</td>
+<td>− monto</td>
+<td>$150 de cargo</td>
+</tr>
+</tbody></table></div>
+<p><code>reporte.csv</code>: <code>fecha_liquidacion,tipo,pago_id,pedido_id,bruto,comision,neto,moneda</code>, montos en <strong>pesos</strong>.</p>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li><strong>Base</strong>: réplica de solo lectura, montos en pesos, tiempos UTC sin zona. Credenciales por <code>PGPASSWORD</code> o <code>~/.pgpass</code>.</li>
+<li><strong>CDC</strong>: un mensaje por fila cambiada, ordenado por <code>source.lsn</code>, montos como texto, tiempos en microsegundos, <strong>retención de 24 h</strong>.</li>
+<li><strong>PagoYa API</strong>: centavos y segundos Unix, del más nuevo al más viejo, paginación con <code>despues_de</code>, 429 y 503.</li>
+<li><strong>Webhooks</strong>: al menos una vez, tarde y desordenados, firmados con HMAC-SHA256 sobre <code>t.body</code>; la función guarda todo sin verificar.</li>
+<li><strong>Liquidación</strong>: día siguiente (o dos días después del corte de las 23:00), con comisiones, reembolsos y contracargos.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-mercado-vecino-fuentes-y-accesos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-mercado-vecino-el-pedido.html">← El pedido - finanzas no confía en los números de ventas</a><a href="proyecto-mercado-vecino-las-notas-del-equipo.html">Las notas del equipo - lo que dejó el ingeniero anterior →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

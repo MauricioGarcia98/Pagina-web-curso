@@ -551,6 +551,21 @@
     ]
   },
   {
+    "id": "proyecto-mercado-vecino",
+    "titulo": "Proyecto 2: Mercado Vecino, conciliar la app con la pasarela de pagos",
+    "icono": "🛒",
+    "color": "#b45309",
+    "descripcion": "Un pedido real, sin paso a paso: finanzas no confía en los números. Trabajas sobre fuentes vivas que cambian mientras trabajas: una base PostgreSQL de producción (réplica de solo lectura), su CDC con Debezium y Kafka (con retención de 24 horas), y PagoYa, una pasarela con API, webhooks firmados que llegan repetidos y desordenados, y liquidaciones que no coinciden día a día. Entregas cuatro tablas y una revisión automática las compara con lo que pasó de verdad en la tienda.",
+    "objetivos": [
+      "Mantener una copia exacta de una base de producción con snapshot inicial + CDC, incluidos los borrados",
+      "Detectar por qué una carga incremental por fecha de modificación pierde cambios",
+      "Consumir Kafka con grupos y offsets, y entender qué se pierde con la retención",
+      "Verificar webhooks firmados con HMAC y deduplicar entregas al menos una vez",
+      "Conciliar la app con la pasarela y con la liquidación, con categorías acordadas con finanzas",
+      "Aplicar el derecho al olvido en las copias analíticas y guardar credenciales en un Key Vault"
+    ]
+  },
+  {
     "id": "proyecto",
     "titulo": "Proyecto final y entrevistas",
     "icono": "🏆",
