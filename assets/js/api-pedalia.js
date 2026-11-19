@@ -357,6 +357,8 @@
       verLog: () => st.log.slice(),
       // para el portal
       hitos, changelog, estaciones, incidenteDe, incidentesRecientes, mantenimiento, ahora, fmtUtc, diaLocal, t0,
+      // los viajes que empezaron un día (hora de Ciudad del Río), como los devuelve la v2 en el instante t
+      viajesDelDia(fecha, t = ahora()) { const ini = Date.UTC(+fecha.slice(0, 4), +fecha.slice(5, 7) - 1, +fecha.slice(8, 10)) - ZONA_H * HORA; return viajesEntre(ini, Math.min(ini + DIA - 1, t), t).filter((v) => v.start >= ini && v.start < ini + DIA && v.start <= t).map((v) => aV2(v, estado(v, t), t)); },
       viajesDeHoy() { const t = ahora(); const ini = inicioDiaLocal(t); return viajesEntre(ini, t, t).filter((v) => v.start >= ini && v.start <= t).map((v) => aV2(v, estado(v, t), t)); },
     };
     g.ApiPedalia = API;

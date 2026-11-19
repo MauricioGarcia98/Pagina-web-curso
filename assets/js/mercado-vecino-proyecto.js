@@ -321,30 +321,14 @@
         return (!mal.length && !faltan.length) || `${mal.length ? 'No cuadra: ' + lista(mal, 3) + '. ¿Cargaste dos veces el mismo archivo con FORCE? ' : ''}${faltan.length ? 'Faltan: ' + lista(faltan, 3) : ''}`;
       } },
   ];
-  const ICON = { requerimiento: '📋', incidente: '🔥', pregunta: '❓' };
   function panelTablero(el) {
-    const pintar = () => {
-      Host.sincronizar(); const D = Host.datos(); if (!D) { el.textContent = 'El almacenamiento del navegador no está disponible.'; return; }
-      D.tickets = D.tickets || {}; const I = MV.inicioDiaLocal(MV.cfg.inicio); const H = MV.hitos(); const t = MV.ahora();
-      const visibles = TICKETS.map((k) => ({ ...k, T: k.cuando(I, H) })).filter((k) => k.T <= t).sort((a, b) => a.T - b.T);
-      const futuros = TICKETS.length - visibles.length; const hechos = visibles.filter((k) => D.tickets[k.id] && D.tickets[k.id].hecho).length;
-      const txt = (k) => (typeof k.texto === 'function' ? k.texto(k.T, H) : k.texto);
-      el.innerHTML = `<div class="card mv-panel"><h4 style="margin-top:0">🗂️ Tablero del equipo de datos</h4>
-        <p class="small muted">${visibles.length} tickets abiertos para ti · ${hechos} resueltos${futuros ? ` · <b>${futuros}</b> más van a llegar en los próximos días (como en un trabajo: no sabes cuáles ni cuándo)` : ''}.</p>
-        ${visibles.slice().reverse().map((k) => { const e = D.tickets[k.id] || {}; return `<details class="mv-ticket ${e.hecho ? 'hecho' : ''}" ${e.hecho ? '' : 'open'}><summary>${ICON[k.tipo]} <b>${esc(k.id)}</b> · ${esc(k.titulo)} <span class="small muted">· ${esc(k.de)} · ${esc(MV.tsSql(k.T - 3 * 3600000).slice(0, 16))}</span> ${e.hecho ? '<span class="mv-ok">✅ resuelto</span>' : ''}</summary>
-          <p>${esc(txt(k))}</p>
-          ${(k.comentarios || []).length ? `<div class="mv-hilo">${k.comentarios.map((c) => `<div class="small">💬 ${esc(c)}</div>`).join('')}</div>` : ''}
-          ${k.criterios ? `<p class="small" style="margin-bottom:4px"><b>Criterios de aceptación</b></p><ul class="small">${k.criterios.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}
-          ${k.respuesta ? `<div class="mv-resp"><input class="input" data-r="${k.id}" placeholder="${esc(k.respuesta.ayuda || (k.respuesta.unidad ? 'Respuesta (' + k.respuesta.unidad + ')' : 'Respuesta'))}" value="${esc(e.respuesta || '')}"> <button class="btn btn-primary btn-sm" data-responder="${k.id}">Responder</button></div>` : `<button class="btn btn-sm" data-cerrar="${k.id}">Revisar y cerrar</button>`}
-          <div class="small mv-res" data-res="${k.id}">${e.nota ? esc(e.nota) : ''}</div></details>`; }).join('')}
-      </div>`;
-      const marcar = (id, r, valor) => { const e = (D.tickets[id] = D.tickets[id] || {}); e.intentos = (e.intentos || 0) + 1; if (valor !== undefined) e.respuesta = valor; if (r === true) { e.hecho = Date.now(); e.nota = ''; } else e.nota = r; Host.guardar(); pintar(); };
-      el.querySelectorAll('[data-cerrar]').forEach((b) => b.addEventListener('click', async () => { const k = TICKETS.find((x) => x.id === b.dataset.cerrar); b.disabled = true; b.textContent = 'Revisando…'; let r; try { r = await k.check(); } catch (e) { r = String(e.message || e); } marcar(k.id, r); }));
-      el.querySelectorAll('[data-responder]').forEach((b) => b.addEventListener('click', () => { const k = TICKETS.find((x) => x.id === b.dataset.responder); const v = el.querySelector(`[data-r="${k.id}"]`).value.trim(); if (!v) return; const val = k.respuesta.tipo === 'numero' ? Number(v.replace(/[%$\s]/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.')) : v; const T = k.cuando(MV.inicioDiaLocal(MV.cfg.inicio), MV.hitos()); let r; try { r = k.respuesta.tipo === 'numero' && !Number.isFinite(val) ? 'Escribe un número.' : k.respuesta.verificar(val, T, MV.hitos()); } catch (e) { r = String(e.message || e); } marcar(k.id, r, v); }));
-    };
-    pintar();
-    const iv = setInterval(() => { if (!document.body.contains(el)) return clearInterval(iv); if (!el.querySelector('input:focus')) pintar(); }, 60000);
+    window.TableroTickets.panel(el, {
+      titulo: 'Tablero del equipo de datos', tickets: TICKETS,
+      contexto: () => { Host.sincronizar(); return { I: MV.inicioDiaLocal(MV.cfg.inicio), H: MV.hitos(), t: MV.ahora() }; },
+      datos: () => Host.datos(), guardar: () => Host.guardar(), hora: (T) => MV.tsSql(T - 3 * 3600000).slice(0, 16),
+    });
   }
+
 
   function montar(root) {
     (root || document).querySelectorAll('[data-mercado]').forEach((el) => {
