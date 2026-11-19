@@ -22,6 +22,10 @@ try:
     from js import PagoYa as _pagoya
 except Exception:
     _pagoya = None
+try:
+    from js import RutaSurApi as _rutasur
+except Exception:
+    _rutasur = None
 
 __version__ = "2.32.3-curso"
 
@@ -143,6 +147,8 @@ def request(method, url, params=None, headers=None, json=None, data=None, timeou
     destino = None
     if _pagoya is not None and _pagoya.esDeLaApi(url):
         destino = _pagoya
+    elif _rutasur is not None and _rutasur.esDeLaApi(url):
+        destino = _rutasur
     elif _pedalia is not None and _pedalia.esDeLaApi(url):
         destino = _pedalia
     elif _api is not None and _api.esDeLaApi(url):

@@ -31,7 +31,7 @@
   async function tabla(nombre) {
     try {
       if (!(await cargar('databricks', () => window.DBSQL))) throw new Error('No se pudo cargar Databricks');
-      await window.DBSQL.init({ Store: almacen() }); const r = await window.DBSQL.ejecutar(`SELECT * FROM ${nombre}`); const u = Array.isArray(r) ? r[r.length - 1] : r;
+      await window.DBSQL.init({ Store: almacen() }); const r = await window.DBSQL.ejecutar(`SELECT * FROM ${nombre}`, { limite: 1e7 }); const u = Array.isArray(r) ? r[r.length - 1] : r;
       if (!u || u.error) throw new Error(u && u.error ? String(u.error.message || u.error) : 'sin resultado');
       return { cols: (u.cols || []).map((c) => String(c).toLowerCase()), filas: u.filas || [] };
     } catch (e) { return { error: e.message.split('\n')[0] }; }

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El pedido - saber en tiempo real si cumplimos lo que prometemos · Academia de Datos</title><meta name="description" content="Ruta Sur reparte paquetes con 20 camionetas que mandan su posición y cada entrega a un stream en tiempo real. Dirección comercial quiere saber, pedido por pedido, si se cumplió la ventana prometida, y operaciones lo quiere ver durante el día. El pedido tal como llega, sin paso a paso."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-ruta-sur-el-pedido.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El pedido - saber en tiempo real si cumplimos lo que prometemos · Academia de Datos"><meta property="og:description" content="Ruta Sur reparte paquetes con 20 camionetas que mandan su posición y cada entrega a un stream en tiempo real. Dirección comercial quiere saber, pedido por pedido, si se cumplió la ventana prometida, y operaciones lo quiere ver durante el día. El pedido tal como llega, sin paso a paso."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-ruta-sur-el-pedido.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-ruta-sur">🚚 Proyecto 4: Ruta Sur, telemetría en tiempo real y el SLA de cada entrega</a> · Avanzado · 25 min</div>
+<h1>El pedido - saber en tiempo real si cumplimos lo que prometemos</h1><p class="resumen">Ruta Sur reparte paquetes con 20 camionetas que mandan su posición y cada entrega a un stream en tiempo real. Dirección comercial quiere saber, pedido por pedido, si se cumplió la ventana prometida, y operaciones lo quiere ver durante el día. El pedido tal como llega, sin paso a paso.</p>
+<a class="cta" href="../index.html#/l/proyecto-ruta-sur-el-pedido">▶ Abrir la lección interactiva (2 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Entender un pedido sobre datos en movimiento</li><li>Distinguir la hora del evento de la hora de llegada</li><li>Planificar con eventos tardíos, desordenados y repetidos</li><li>Combinar un stream con un sistema transaccional (el plan del día)</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Lunes, 7:45 · depósito de Ruta Sur</div>
+
+<p>Las camionetas salen a las 8:00. Cada una lleva un equipo GPS que manda su posición cada 3 minutos y un evento cada vez que llega a una parada y entrega (o no puede entregar). Todo va a un Event Hubs con protocolo Kafka. El plan del día (qué pedidos lleva cada camioneta y en qué ventana se le prometió al cliente) está en el sistema de despachos, el TMS.</p>
+</div>
+
+
+<h2>El pedido</h2>
+<blockquote>
+<p><strong>De:</strong> Lucía Paz (Dirección comercial)</p>
+<p>Le prometemos al cliente una ventana de 3 horas. El cliente más grande dice que llegamos tarde &quot;siempre&quot;. Yo creo que no, pero no tengo cómo demostrarlo. Necesito, pedido por pedido, si llegamos dentro de la ventana. Y que operaciones lo pueda ver durante el día, no al día siguiente.</p>
+</blockquote>
+<blockquote>
+<p><strong>De:</strong> Operaciones</p>
+<p>Además queremos guardar la telemetría: hoy solo la vemos en vivo en el mapa del proveedor y después se pierde.</p>
+</blockquote>
+<h2>Lo que tienes</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Sistema</th>
+<th>Qué es</th>
+<th>Cómo llegas</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Telemetría</strong></td>
+<td>Event Hubs (Kafka), tópico <code>rutasur.telemetria</code>, 4 particiones, retención 3 días</td>
+<td><code>kcat</code> o <code>read_kafka</code> en Databricks</td>
+</tr>
+<tr>
+<td><strong>TMS</strong></td>
+<td>API REST con el plan de rutas de cada día</td>
+<td><code>curl</code>, Python o Data Factory</td>
+</tr>
+<tr>
+<td><strong>Herramientas</strong></td>
+<td>Portal de Azure, Databricks (con tablas de streaming), Airflow, Power BI</td>
+<td>Las de práctica</td>
+</tr>
+</tbody></table></div>
+<h2>Lo que hay que entregar</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tabla</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><code>ruta.silver.telemetria</code></td>
+<td>Un registro por evento (sin repetidos), con un esquema único</td>
+</tr>
+<tr>
+<td><code>ruta.gold.entregas</code></td>
+<td>Un registro por pedido del plan: estado (completada, fallida o sin evento) y si llegó <strong>a tiempo</strong></td>
+</tr>
+</tbody></table></div>
+<p>Después, en <a href="#/l/proyecto-ruta-sur-el-dia-a-dia">El día a día</a>, llegan más pedidos, incidentes y preguntas.</p>
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Dos relojes</div>
+
+<p>Cada evento tiene <strong>dos horas</strong>: cuándo pasó (la que reporta el dispositivo) y cuándo llegó al stream (la que pone Event Hubs). Casi siempre se diferencian en segundos. Pero una camioneta en una zona sin señal guarda los eventos y los manda juntos cuando vuelve la señal: llegan tarde y mezclados. Para el negocio importa <strong>cuándo pasó</strong>; para saber si ya tienes todo, importa <strong>cuándo llegó</strong>.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Un stream de telemetría con <strong>dos relojes</strong> y un sistema transaccional con el <strong>plan</strong>.</li>
+<li>Entrega: telemetría limpia y entregas con estado y a tiempo, por pedido.</li>
+<li>Lo difícil: eventos <strong>tardíos, desordenados y repetidos</strong>.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-ruta-sur-el-pedido">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-red-analitica-el-dia-a-dia.html">← El día a día - migraciones, correcciones, archivos que no llegan y preguntas médicas</a><a href="proyecto-ruta-sur-fuentes-y-accesos.html">Fuentes y accesos - el stream de telemetría y la API del TMS →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
