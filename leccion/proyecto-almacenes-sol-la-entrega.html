@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La entrega - la dimensión SCD2, las ventas diarias y la revisión · Academia de Datos</title><meta name="description" content="Las columnas exactas de sol.silver.dim_producto, sol.gold.ventas_diarias y sol.gold.cumplimiento_semanal, y la revisión automática contra el ERP, las cajas y la planilla."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-almacenes-sol-la-entrega.html">
+<meta property="og:type" content="article"><meta property="og:title" content="La entrega - la dimensión SCD2, las ventas diarias y la revisión · Academia de Datos"><meta property="og:description" content="Las columnas exactas de sol.silver.dim_producto, sol.gold.ventas_diarias y sol.gold.cumplimiento_semanal, y la revisión automática contra el ERP, las cajas y la planilla."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-almacenes-sol-la-entrega.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-almacenes-sol">🛒 Proyecto 6: Almacenes del Sol, la historia que el ERP no guarda</a> · Avanzado · 20 min</div>
+<h1>La entrega - la dimensión SCD2, las ventas diarias y la revisión</h1><p class="resumen">Las columnas exactas de sol.silver.dim_producto, sol.gold.ventas_diarias y sol.gold.cumplimiento_semanal, y la revisión automática contra el ERP, las cajas y la planilla.</p>
+<a class="cta" href="../index.html#/l/proyecto-almacenes-sol-la-entrega">▶ Abrir la lección interactiva</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Construir una dimensión SCD tipo 2 desde fotos diarias</li><li>Calcular margen con el costo histórico</li><li>Deduplicar ventas que llegan repetidas</li></ul>
+<h2>sol.silver.dim_producto</h2>
+<p><code>sku</code>, <code>nombre</code>, <code>categoria</code>, <code>precio</code>, <code>costo</code>, <code>valido_desde</code>, <code>valido_hasta</code>, <code>vigente</code>.</p>
+<ul>
+<li>Una fila por <strong>versión</strong>. Cuando en la foto de un día cambia el precio, el costo o la categoría de un producto respecto de la foto anterior, se cierra la versión anterior y empieza una nueva.</li>
+<li><code>valido_desde</code> de una versión nueva = el día del cambio (el día de la foto que lo vio por primera vez).</li>
+<li>La primera foto que saques es la versión inicial de cada producto.</li>
+<li>Exactamente <strong>una</strong> versión <code>vigente</code> por producto, igual al ERP de hoy.</li>
+</ul>
+<h2>sol.gold.ventas_diarias</h2>
+<p><code>fecha</code>, <code>sucursal</code> (código), <code>tickets</code>, <code>ventas_netas</code>, <code>margen_bruto</code>. Desde el día de tu primera foto del ERP (antes no tienes los costos).</p>
+<h2>sol.gold.cumplimiento_semanal</h2>
+<p><code>semana_desde</code> (lunes), <code>sucursal</code>, <code>ventas</code>, <code>meta</code>, <code>cumplimiento_pct</code>. Al menos la última semana cerrada.</p>
+<h2>La revisión</h2>
+<div></div>
+
+<div class="callout callout-tip"><div class="callout-title">💡 Consejo</div>
+
+<p>La revisión compara contra la historia que <strong>tus</strong> fotos podían ver. Si un día no sacaste la foto, no se te pide lo que pasó ese día (pero en el tablero alguien va a preguntar por qué falta).</p>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>SCD tipo 2 desde fotos diarias: comparar cada foto con la anterior.</li>
+<li>Ventas sin anulados ni repetidos; margen con el costo vigente ese día.</li>
+<li>Cumplimiento por semana de lunes a domingo.</li>
+</ul>
+
+
+<nav class="nav"><a href="proyecto-almacenes-sol-fuentes-y-accesos.html">← Fuentes y accesos - el ERP, las cajas y la planilla de metas</a><a href="proyecto-almacenes-sol-el-dia-a-dia.html">El día a día - categorías nuevas, una sucursal sin internet, una planilla que cambia y preguntas de Dirección →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
