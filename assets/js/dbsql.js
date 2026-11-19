@@ -208,8 +208,8 @@
     f('least', (...xs) => { const v = xs.filter((x) => x != null); return v.length ? v.reduce((a, b) => (a < b ? a : b)) : null; });
     f('uuid', () => crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, () => (Math.random() * 16 | 0).toString(16)));
     f('rand', () => Math.random());
-    f('md5', (x) => (x == null ? null : hashHex(String(x), 32)));
-    f('sha2', (x, n) => (x == null ? null : hashHex(String(x), (n || 256) / 4)));
+    f('md5', (x) => (x == null ? null : hexDe(md5(utf8(String(x))))));
+    f('sha2', (x, n) => (x == null ? null : (!n || n === 256 || n === 0) ? hexDe(sha256(utf8(String(x)))) : hashHex(String(x), n / 4)));
     f('hash', (x) => (x == null ? null : hash32(String(x))));
     f('try_divide', (a, b) => (a == null || b == null || Number(b) === 0 ? null : a / b));
     f('div0', (a, b) => (a == null || b == null || Number(b) === 0 ? 0 : a / b));
@@ -253,6 +253,42 @@
     ag('approx_count_distinct', () => new Set(), (st, x) => { if (x != null) st.add(x); return st; }, (st) => (st ? st.size : 0));
   }
   function hash32(s) { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); } return h | 0; }
+  const K256 = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];
+  function utf8(s) { const out = []; for (const ch of String(s)) { let c = ch.codePointAt(0); if (c < 0x80) out.push(c); else if (c < 0x800) out.push(0xc0 | (c >> 6), 0x80 | (c & 63)); else if (c < 0x10000) out.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63)); else out.push(0xf0 | (c >> 18), 0x80 | ((c >> 12) & 63), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63)); } return out; }
+  function sha256(bytes) {
+    const l = bytes.length, m = bytes.slice(); m.push(0x80); while (m.length % 64 !== 56) m.push(0);
+    const bits = l * 8; for (let i = 7; i >= 0; i--) m.push(i >= 4 ? 0 : (bits >>> (i * 8)) & 255);
+    let [a0, b0, c0, d0, e0, f0, g0, h0] = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
+    const w = new Array(64); const rr = (x, n) => (x >>> n) | (x << (32 - n));
+    for (let i = 0; i < m.length; i += 64) {
+      for (let j = 0; j < 16; j++) w[j] = (m[i + j * 4] << 24) | (m[i + j * 4 + 1] << 16) | (m[i + j * 4 + 2] << 8) | m[i + j * 4 + 3];
+      for (let j = 16; j < 64; j++) { const s0 = rr(w[j - 15], 7) ^ rr(w[j - 15], 18) ^ (w[j - 15] >>> 3), s1 = rr(w[j - 2], 17) ^ rr(w[j - 2], 19) ^ (w[j - 2] >>> 10); w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0; }
+      let a = a0, b = b0, c = c0, d = d0, e = e0, f = f0, gg = g0, h = h0;
+      for (let j = 0; j < 64; j++) { const S1 = rr(e, 6) ^ rr(e, 11) ^ rr(e, 25), ch = (e & f) ^ (~e & gg), t1 = (h + S1 + ch + K256[j] + w[j]) | 0, S0 = rr(a, 2) ^ rr(a, 13) ^ rr(a, 22), mj = (a & b) ^ (a & c) ^ (b & c), t2 = (S0 + mj) | 0; h = gg; gg = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0; }
+      a0 = (a0 + a) | 0; b0 = (b0 + b) | 0; c0 = (c0 + c) | 0; d0 = (d0 + d) | 0; e0 = (e0 + e) | 0; f0 = (f0 + f) | 0; g0 = (g0 + gg) | 0; h0 = (h0 + h) | 0;
+    }
+    const out = []; for (const x of [a0, b0, c0, d0, e0, f0, g0, h0]) out.push((x >>> 24) & 255, (x >>> 16) & 255, (x >>> 8) & 255, x & 255);
+    return out;
+  }
+  function md5(bytes) {
+    const K = [], S = [7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21];
+    for (let i = 0; i < 64; i++) K[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 4294967296) | 0;
+    const l = bytes.length, m = bytes.slice(); m.push(0x80); while (m.length % 64 !== 56) m.push(0);
+    const bits = l * 8; for (let i = 0; i < 8; i++) m.push(i < 4 ? (bits >>> (i * 8)) & 255 : 0);
+    let a0 = 0x67452301, b0 = 0xefcdab89 | 0, c0 = 0x98badcfe | 0, d0 = 0x10325476;
+    for (let o = 0; o < m.length; o += 64) {
+      const M = []; for (let j = 0; j < 16; j++) M[j] = m[o + j * 4] | (m[o + j * 4 + 1] << 8) | (m[o + j * 4 + 2] << 16) | (m[o + j * 4 + 3] << 24);
+      let A = a0, B = b0, C = c0, D = d0;
+      for (let i = 0; i < 64; i++) {
+        let F, g; if (i < 16) { F = (B & C) | (~B & D); g = i; } else if (i < 32) { F = (D & B) | (~D & C); g = (5 * i + 1) % 16; } else if (i < 48) { F = B ^ C ^ D; g = (3 * i + 5) % 16; } else { F = C ^ (B | ~D); g = (7 * i) % 16; }
+        F = (F + A + K[i] + M[g]) | 0; A = D; D = C; C = B; B = (B + ((F << S[i]) | (F >>> (32 - S[i])))) | 0;
+      }
+      a0 = (a0 + A) | 0; b0 = (b0 + B) | 0; c0 = (c0 + C) | 0; d0 = (d0 + D) | 0;
+    }
+    const out = []; for (const x of [a0, b0, c0, d0]) for (let i = 0; i < 4; i++) out.push((x >>> (i * 8)) & 255);
+    return out;
+  }
+  const hexDe = (b) => b.map((x) => x.toString(16).padStart(2, '0')).join('');
   function hashHex(s, n) { let out = ''; let k = 0; while (out.length < n) { out += (hash32(s + ':' + k++) >>> 0).toString(16).padStart(8, '0'); } return out.slice(0, n); }
   function castear(x, t, suave) {
     if (x == null) return null;
@@ -607,6 +643,9 @@
         const { fin, args } = argsFuncion(T, sig(T, i + 1)); const llenos = args.filter((a) => a.some((x) => x.t !== 'ws'));
         if (llenos.length < aridad) { out.push({ t: 'w', v: `${tk.v}(${[...llenos.map((a) => unir(traducirExpr(a))), ...Array(aridad - llenos.length).fill('NULL')].join(', ')})` }); i = fin; continue; }
       }
+      // current_date() / current_timestamp() (en SQLite son palabras clave sin paréntesis) y los literales DATE '…' / TIMESTAMP '…'
+      if (W(tk, 'CURRENT_DATE', 'CURRENT_TIMESTAMP') && T[sig(T, i + 1)] && T[sig(T, i + 1)].v === '(' && T[sig(T, sig(T, i + 1) + 1)] && T[sig(T, sig(T, i + 1) + 1)].v === ')') { out.push({ t: 'w', v: tk.v.toUpperCase() }); i = sig(T, sig(T, i + 1) + 1); continue; }
+      if (W(tk, 'DATE', 'TIMESTAMP') && T[sig(T, i + 1)] && T[sig(T, i + 1)].t === 's' && !(out.length && W(out[out.length - 1], 'AS', 'TIMESTAMP', 'VERSION'))) { const lit = T[sig(T, i + 1)]; out.push({ t: 'w', v: `__cast('${lit.v.replace(/'/g, "''")}', '${normTipo(tk.v)}')` }); i = sig(T, i + 1); continue; }
       if (W(tk, 'IF') && T[sig(T, i + 1)] && T[sig(T, i + 1)].v === '(') { out.push({ t: 'w', v: 'iif' }); continue; }
       if (W(tk, 'TYPEOF') && T[sig(T, i + 1)] && T[sig(T, i + 1)].v === '(') { out.push({ t: 'w', v: '__spark_typeof' }); continue; }
       if (W(tk, 'ILIKE')) { out.push({ t: 'w', v: 'LIKE' }); continue; }

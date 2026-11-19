@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paso a paso - una solución completa, explicada · Academia de Datos</title><meta name="description" content="Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión: la foto diaria del ERP, la SCD tipo 2 con LAG, las ventas con el costo del día y las metas con la planilla nueva. Léela después de intentarlo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-almacenes-sol-paso-a-paso.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Paso a paso - una solución completa, explicada · Academia de Datos"><meta property="og:description" content="Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión: la foto diaria del ERP, la SCD tipo 2 con LAG, las ventas con el costo del día y las metas con la planilla nueva. Léela después de intentarlo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-almacenes-sol-paso-a-paso.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-almacenes-sol">🛒 Proyecto 6: Almacenes del Sol, la historia que el ERP no guarda</a> · Avanzado · 60 min</div>
+<h1>Paso a paso - una solución completa, explicada</h1><p class="resumen">Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión: la foto diaria del ERP, la SCD tipo 2 con LAG, las ventas con el costo del día y las metas con la planilla nueva. Léela después de intentarlo.</p>
+<a class="cta" href="../index.html#/l/proyecto-almacenes-sol-paso-a-paso">▶ Abrir la lección interactiva (2 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Ver una SCD tipo 2 construida desde fotos diarias</li><li>Unir ventas con la versión del producto vigente ese día</li><li>Automatizar la foto con un DAG</li></ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Intentalo primero</div>
+
+<p>Esta es <strong>una</strong> solución, no la única. Si ya resolviste el proyecto, compárala con la tuya: ¿qué pasa en cada una si un día no se saca la foto?</p>
+</div>
+
+
+<h2>El plan</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Paso</th>
+<th>Qué</th>
+<th>Dónde</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Mirar el ERP y sacar la foto del día</td>
+<td>Terminal (<code>psql</code>)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Bajar los tickets de las cajas</td>
+<td>Terminal (<code>python</code>)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Bajar la planilla de metas</td>
+<td>Terminal</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Subir todo al lago</td>
+<td>Azure</td>
+</tr>
+<tr>
+<td>5</td>
+<td>La dimensión SCD2, las ventas y las metas</td>
+<td>Databricks</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Key Vault y el DAG diario</td>
+<td>Azure + Airflow</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 1 · El ERP y la foto diaria</h2>
+<pre><code class="language-bash">sol accesos
+mkdir -p ~/sol/erp ~/sol/pos ~/sol/metas
+psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot; -c &quot;\dt&quot;
+psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot; -c &quot;SELECT sku, nombre, categoria, precio, costo, ult_modif FROM productos ORDER BY sku LIMIT 5&quot;</code></pre>
+<p>El ERP solo muestra el presente. La foto es la tabla completa, con la <strong>fecha en el nombre del archivo</strong> (de ahí sale <code>valido_desde</code>):</p>
+<pre><code class="language-bash">HOY=$(date +%F)
+psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot; \
+  -c &quot;\copy (SELECT sku, nombre, categoria, precio, costo FROM productos ORDER BY sku) TO '~/sol/erp/productos_$HOY.csv' WITH CSV HEADER&quot;</code></pre>
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Foto completa, no incremental</div>
+
+<p><code>ult_modif</code> parece un atajo (&quot;traer solo lo que cambió&quot;), pero la reorganización de categorías la cargaron a mano y no la tocó. Una foto completa por día pesa poco (44 filas) y no depende de que todos los procesos actualicen bien esa columna. Y se saca <strong>después de las 03:00</strong>, cuando ya corrió el proceso de precios.</p>
+</div>
+
+
+<h2>Paso 2 · Los tickets de las cajas</h2>
+<p>Un archivo por día (los archivos de la terminal tienen un límite de tamaño, y además así queda particionado como en un lago de verdad). La API pagina de a 200 y responde 404 si el cierre de caja todavía no llegó: eso se anota, no se corta todo.
+Guárdalo como <code>~/sol.py</code>.</p>
+<pre data-norun><code class="language-python">import requests, os, csv
+from datetime import date, timedelta
+KEY = os.environ[&quot;POS&quot;]; DESDE = date.fromisoformat(os.environ[&quot;DESDE&quot;]); HOY = date.fromisoformat(os.environ[&quot;HOY&quot;])
+h = {&quot;X-Api-Key&quot;: KEY}
+sucs = [s[&quot;codigo&quot;] for s in requests.get(&quot;https://api.possol.example/v1/sucursales&quot;, headers=h).json()[&quot;sucursales&quot;]]
+faltan = []
+d = DESDE
+while d &lt; HOY:
+    with open(os.path.expanduser(f&quot;~/sol/pos/lineas_{d}.csv&quot;), &quot;w&quot;, newline=&quot;&quot;) as f:
+        w = csv.writer(f)
+        w.writerow([&quot;ticket_id&quot;, &quot;sucursal&quot;, &quot;fecha&quot;, &quot;fecha_hora&quot;, &quot;medio_pago&quot;, &quot;anulado&quot;, &quot;sku&quot;, &quot;cantidad&quot;, &quot;precio_unitario&quot;, &quot;descuento&quot;])
+        for s in sucs:
+            pag = 1
+            while True:
+                r = requests.get(&quot;https://api.possol.example/v1/tickets&quot;, headers=h, params={&quot;sucursal&quot;: s, &quot;fecha&quot;: d.isoformat(), &quot;pagina&quot;: pag})
+                if r.status_code == 404: faltan.append(f&quot;{s} {d}&quot;); break     # todavía no sincronizó
+                r.raise_for_status(); j = r.json()
+                for t in j[&quot;tickets&quot;]:
+                    for l in t[&quot;lineas&quot;]:
+                        w.writerow([t[&quot;ticket_id&quot;], s, d.isoformat(), t[&quot;fecha_hora&quot;], t[&quot;medio_pago&quot;], t[&quot;anulado&quot;], l[&quot;sku&quot;], l[&quot;cantidad&quot;], l[&quot;precio_unitario&quot;], l[&quot;descuento&quot;]])
+                if pag &gt;= j[&quot;paginas&quot;]: break
+                pag += 1
+    d += timedelta(days=1)
+print(&quot;sin cierre todavía:&quot;, faltan)</code></pre>
+<pre><code class="language-bash">POS=pos_… DESDE=2026-11-09 HOY=$(date +%F) python ~/sol.py</code></pre>
+<p><code>DESDE</code> arranca el lunes de la semana pasada: hace falta la semana completa para el cumplimiento de metas.</p>
+<h2>Paso 3 · La planilla</h2>
+<pre><code class="language-bash">sol metas descargar -o ~/sol/metas/metas.csv
+head -5 ~/sol/metas/metas.csv</code></pre>
+<p>Antes de la reorganización, la planilla tenía títulos, <code>;</code> y montos con <code>$</code> y puntos: había que saltear filas y limpiar. Después quedó en formato largo (una fila por sucursal y semana) con <code>codigo_sucursal</code>. Se une <strong>por código</strong>, nunca por nombre: el nombre de Centro cambió.</p>
+<h2>Paso 4 · Al lago</h2>
+<pre><code class="language-bash">az login
+az group create -n rg-sol -l eastus2
+az storage account create -n stsol -g rg-sol -l eastus2 --sku Standard_LRS --hns true
+az storage container create --account-name stsol -n landing
+ID=$(az storage account show -n stsol -g rg-sol --query id -o tsv)
+az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID
+az storage blob upload-batch --account-name stsol -d landing/sol -s ~/sol</code></pre>
+<h2>Paso 5 · Databricks</h2>
+<p>Las fotos, con la fecha sacada del nombre del archivo (<code>productos_2026-11-16.csv</code> → posición 11, 10 caracteres):</p>
+<pre data-norun><code class="language-sql">CREATE EXTERNAL LOCATION lago_sol URL 'abfss://landing@stsol.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
+CREATE CATALOG IF NOT EXISTS sol; CREATE SCHEMA IF NOT EXISTS sol.silver; CREATE SCHEMA IF NOT EXISTS sol.gold;
+
+CREATE OR REPLACE TEMP VIEW fotos AS
+SELECT sku, nombre, categoria, CAST(precio AS DOUBLE) AS precio, CAST(costo AS DOUBLE) AS costo,
+       substr(_metadata.file_name, 11, 10) AS fecha
+FROM read_files('abfss://landing@stsol.dfs.core.windows.net/sol/erp/', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false);</code></pre>
+<p>La SCD2: con <code>LAG</code> se compara cada foto con la anterior del mismo producto. Una versión nueva empieza cuando cambia precio, costo <strong>o categoría</strong>. Después, <code>LEAD</code> cierra cada versión con el inicio de la siguiente.</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TEMP VIEW versiones AS
+SELECT * FROM (
+  SELECT *, concat_ws('|', categoria, CAST(precio AS STRING), CAST(costo AS STRING)) AS v,
+         LAG(concat_ws('|', categoria, CAST(precio AS STRING), CAST(costo AS STRING))) OVER (PARTITION BY sku ORDER BY fecha) AS ant
+  FROM fotos) x
+WHERE ant IS NULL OR ant &lt;&gt; v;
+
+CREATE OR REPLACE TABLE sol.silver.dim_producto AS
+SELECT sku, nombre, categoria, precio, costo,
+       CAST(fecha AS DATE) AS valido_desde,
+       CAST(LEAD(fecha) OVER (PARTITION BY sku ORDER BY fecha) AS DATE) AS valido_hasta,
+       LEAD(fecha) OVER (PARTITION BY sku ORDER BY fecha) IS NULL AS vigente
+FROM versiones;</code></pre>
+<p>Los tickets: <code>SELECT DISTINCT</code> elimina las líneas repetidas que Villa Sol reenvió al reconectarse (son copias exactas), y los anulados se filtran.</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TEMP VIEW lineas AS
+SELECT DISTINCT * FROM read_files('abfss://landing@stsol.dfs.core.windows.net/sol/pos/', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false);
+
+CREATE OR REPLACE TEMP VIEW lineas_ok AS
+SELECT ticket_id, sucursal, fecha, medio_pago, sku,
+       CAST(cantidad AS INT) * CAST(precio_unitario AS DOUBLE) - CAST(descuento AS DOUBLE) AS neta,
+       CAST(cantidad AS INT) AS cantidad
+FROM lineas WHERE anulado = 'False';</code></pre>
+<p>Las ventas diarias: el margen usa el costo de la versión <strong>vigente el día de la venta</strong> (unión por rango), y solo desde el día de la primera foto (antes no hay costos).</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE sol.gold.ventas_diarias AS
+SELECT CAST(l.fecha AS DATE) AS fecha, l.sucursal,
+       count(DISTINCT l.ticket_id) AS tickets,
+       round(sum(l.neta), 2) AS ventas_netas,
+       round(sum(l.neta - l.cantidad * d.costo), 2) AS margen_bruto
+FROM lineas_ok l
+JOIN sol.silver.dim_producto d
+  ON d.sku = l.sku AND CAST(l.fecha AS DATE) &gt;= d.valido_desde
+ AND (d.valido_hasta IS NULL OR CAST(l.fecha AS DATE) &lt; d.valido_hasta)
+WHERE l.fecha &gt;= '2026-11-16'   -- el día de tu primera foto
+GROUP BY l.fecha, l.sucursal;</code></pre>
+<p>Las metas, con la planilla en formato largo:</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TEMP VIEW metas AS
+SELECT codigo_sucursal AS sucursal, semana_desde, CAST(meta_ventas AS DOUBLE) AS meta
+FROM read_files('abfss://landing@stsol.dfs.core.windows.net/sol/metas/metas.csv', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false);
+
+CREATE OR REPLACE TABLE sol.gold.cumplimiento_semanal AS
+SELECT m.semana_desde, m.sucursal, round(sum(l.neta), 2) AS ventas, m.meta,
+       round(sum(l.neta) / m.meta * 100, 1) AS cumplimiento_pct
+FROM lineas_ok l
+JOIN metas m ON m.sucursal = l.sucursal AND l.fecha &gt;= m.semana_desde
+            AND l.fecha &lt; CAST(date_add(CAST(m.semana_desde AS DATE), 7) AS STRING)
+GROUP BY m.semana_desde, m.sucursal, m.meta;</code></pre>
+<p>Y las preguntas del tablero, por ejemplo el margen de Bebidas de un día (con el costo de ese día):</p>
+<pre data-norun><code class="language-sql">SELECT round(sum(l.neta - l.cantidad * d.costo) / sum(l.neta) * 100, 1)
+FROM lineas_ok l
+JOIN sol.silver.dim_producto d ON d.sku = l.sku AND CAST(l.fecha AS DATE) &gt;= d.valido_desde
+ AND (d.valido_hasta IS NULL OR CAST(l.fecha AS DATE) &lt; d.valido_hasta)
+WHERE l.fecha = '2026-11-18' AND d.categoria = 'BEB';</code></pre>
+<h2>Paso 6 · Key Vault y el DAG</h2>
+<pre><code class="language-bash">az keyvault create -n kv-sol -g rg-sol -l eastus2
+az keyvault secret set --vault-name kv-sol -n erp-clave --value 'Sol…' -o none
+az keyvault secret set --vault-name kv-sol -n pos-key --value 'pos_…' -o none</code></pre>
+<pre data-norun><code class="language-python">from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
+
+with DAG(&quot;sol_diario&quot;, start_date=datetime(2026, 11, 1), schedule=&quot;30 5 * * *&quot;, catchup=False, tags=[&quot;sol&quot;]):
+    DatabricksRunNowOperator(task_id=&quot;foto_y_gold&quot;, job_name=&quot;sol_diario&quot;)</code></pre>
+<p>A las 05:30: después del proceso de precios (03:00) y del cierre de cajas (02:00), y antes de que abran las sucursales (08:00).</p>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Si la fuente no guarda historia, la foto diaria completa es la historia.</li>
+<li><code>LAG</code> detecta los cambios y <code>LEAD</code> cierra las versiones.</li>
+<li>El margen se calcula con el costo vigente ese día, por rango de fechas.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-almacenes-sol-paso-a-paso">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-almacenes-sol-el-dia-a-dia.html">← El día a día - categorías nuevas, una sucursal sin internet, una planilla que cambia y preguntas de Dirección</a><a href="proyecto-conecta-el-pedido.html">El pedido - mil mensajes por semana y un modelo de lenguaje que hay que vigilar →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
