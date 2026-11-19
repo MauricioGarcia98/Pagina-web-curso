@@ -10,11 +10,11 @@ autoevaluacion: ¿Puedes crear un repositorio, hacer dos commits y ver el histor
 
 <!-- estandar:escenario -->
 :::escenario Tu primer pull request
-Ahora que conoces ramas, commits y pull requests, así suele ser la primera tarea de código en un equipo de datos. Martín, el líder, te escribe:
+Martín te asigna tu primera tarea de código:
 
 > "Agrega la consulta de ventas por canal al repositorio del equipo. Hazlo en una rama, abre un pull request y yo lo reviso. Ojo: nada de contraseñas en el código, que el repo lo ve toda la empresa."
 
-Es el flujo que acabas de practicar: rama nueva, commit, push y pull request. En un equipo nadie edita el código de producción directamente.
+Creas la rama, escribes la consulta, haces commit y push, y abres el pull request. A la hora tienes un comentario de Martín: *"Bien. Renombra la columna `tot` a `total` y lo apruebo."* Lo corriges en la misma rama y queda fusionado. Nadie tocó el código de producción directamente: así se trabaja en equipo.
 :::
 ## ¿Para qué sirve Git?
 

@@ -164,10 +164,10 @@ producto = r.json()         # convierte el JSON en un diccionario de Python
 print(producto[&quot;nombre&quot;])</code></pre>
 <h2>Caso real: así te lo piden en un trabajo</h2>
 <p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
-<div class="callout callout-escenario"><div class="callout-title">🏢 Los datos que no están en ninguna base</div>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Datos que no están en la base</div>
 
-<p>Ahora que sabes qué es una API y cómo se lee un JSON, mira para qué se usa en un trabajo. Imagina que Martín, tu líder, te pide: <em>&quot;Necesitamos el tipo de cambio de cada día y los productos del proveedor. El proveedor no nos da acceso a su base de datos, pero tiene una <strong>API</strong>. Trae los datos de ahí.&quot;</em></p>
-<p>Muchos de los datos que necesita una empresa no están en sus propias bases: están en sistemas de otros (pagos, clima, redes sociales, proveedores) y se consiguen <strong>pidiéndolos por internet</strong>, exactamente como practicaste en esta lección.</p>
+<p>Martín te pide algo nuevo: <em>&quot;Necesitamos el tipo de cambio de cada día y la lista de productos del proveedor. El proveedor no nos da acceso a su base, pero tiene una <strong>API</strong>.&quot;</em></p>
+<p>Abres la documentación del proveedor, copias la dirección de ejemplo y la pegas en el navegador. Te devuelve un texto con llaves, comillas y corchetes: un <strong>JSON</strong>. Ya sabes leerlo: cada producto va entre llaves, <code>precio</code> es un número y <code>etiquetas</code> es una lista. Esos datos nunca estuvieron en una base de tu empresa: los pediste por internet.</p>
 </div>
 
 

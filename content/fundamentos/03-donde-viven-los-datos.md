@@ -8,10 +8,10 @@ prerrequisitos: fundamentos-el-viaje-de-una-compra
 autoevaluacion: ¿Sabes dar un ejemplo de consulta OLTP y uno de OLAP? | ¿Sabes por qué Parquet es más rápido que CSV para sumar una columna? | ¿Sabes en qué se diferencian un lago y un warehouse? | ¿Sabes qué agrega un lakehouse (Delta, Iceberg)? | ¿Sabes qué significa "particionar por fecha"?
 ---
 
-:::escenario ¿Base de la tienda o warehouse?
-Ahora que conoces la diferencia entre una base operativa y un warehouse, mira esta discusión, muy común en un equipo de datos. La gerente pregunta: *"¿Cuánto vendimos por país en 2024?"*. Un compañero propone correr la consulta directamente en la base de la tienda: *"total, ahí están todos los pedidos"*. La líder dice que no, que esa consulta va al warehouse.
+:::escenario ¿Lo corro en la base de la tienda?
+La gerente pregunta cuánto vendieron por país en 2024. Tienes acceso a la base de la tienda y ahí están todos los pedidos: escribes la consulta y estás por correrla.
 
-Ya sabes por qué: una consulta pesada sobre la base operativa puede hacer más lenta la tienda para los clientes, y el warehouse está preparado justamente para esas preguntas.
+Tu compañera te frena: *"Ahí no. Esa base atiende a los clientes en este momento; una consulta que recorre un año entero la pone lenta para todos. Para eso está el warehouse."* La corres en el warehouse, tarda un par de segundos y la tienda ni se entera.
 :::
 
 ## La idea en una frase

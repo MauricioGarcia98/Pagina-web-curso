@@ -198,8 +198,8 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
 <div class="callout callout-escenario"><div class="callout-title">🏢 Dos números que no coinciden</div>
 
-<p>Ahora que sabes por qué importan la calidad y el linaje, mira un caso que se repite en todas las empresas. Marketing reporta que el tablero dice <strong>243 clientes nuevos</strong> en el último trimestre, pero el CRM dice 230, y nadie confía en ninguno de los dos números.</p>
-<p>La tarea de un ingeniero de datos no es elegir uno al azar: es seguir el <strong>linaje</strong> de cada número hasta encontrar dónde se separan (una definición distinta de &quot;cliente nuevo&quot;, duplicados, una zona horaria). Es la forma de trabajar que viste en esta lección.</p>
+<p>Marketing te escribe enojado: el tablero dice <strong>243 clientes nuevos</strong> este trimestre y el CRM dice <strong>230</strong>. <em>&quot;¿Cuál está bien? Ya nadie confía en ninguno.&quot;</em></p>
+<p>No eliges uno al azar. Sigues el <strong>linaje</strong> de cada número hacia atrás, paso por paso, hasta encontrar dónde se separan: gold cuenta <code>cliente_id</code> distintos, pero en silver la misma persona aparece con dos o tres ids, uno por cada canal por el que la cargó el CRM. Contando por email normalizado, los 243 bajan. El arreglo no es elegir un número: es deduplicar y acordar qué es un &quot;cliente&quot;.</p>
 </div>
 
 

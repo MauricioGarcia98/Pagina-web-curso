@@ -8,10 +8,10 @@ prerrequisitos: cero-tu-computadora
 autoevaluacion: ¿Sabes por qué un error de Python se lee desde la última línea? | ¿Sabes qué significa `NameError`? | ¿Sabes qué significa `no such column` en SQL? | ¿Sabes qué hacer cuando la terminal dice `command not found`? | ¿Tienes un método de 5 pasos para cuando algo falla?
 ---
 
-:::escenario El primer error rojo
-Ahora que sabes leer un error de arriba abajo, imagina este momento, que le pasa a todo el mundo en sus primeras semanas trabajando con datos: escribes tu programa, presionas **Ejecutar** y aparece un texto rojo lleno de palabras en inglés.
+:::escenario Tu primer error rojo
+Escribes tus primeras cinco líneas de Python, presionas **Ejecutar** y la pantalla se llena de texto rojo en inglés. Lo primero que sientes es que rompiste algo.
 
-Martín, tu líder, que programa hace 15 años, te dice: *"Yo veo errores rojos cien veces por día. La diferencia es que ya no me asustan: los leo. El error casi siempre te dice qué pasó y en qué línea."* Con lo que practicaste en esta lección, ya puedes hacer lo mismo.
+Respiras y haces lo que practicaste: vas a la **última línea**. Dice `NameError: name 'totl' is not defined`. Subes un poco: `line 4`. Miras la línea 4 y ahí está, escribiste `totl` en vez de `total`. Lo corriges, vuelves a ejecutar y funciona. Cuando se lo cuentas a Martín, se ríe: *"Yo veo errores rojos cien veces por día. La diferencia es que ya no me asustan."*
 :::
 
 ## Un error es un mensaje, no un castigo

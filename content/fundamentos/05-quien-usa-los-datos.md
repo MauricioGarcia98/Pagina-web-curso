@@ -9,9 +9,9 @@ autoevaluacion: ¿Sabes qué necesita un analista y qué necesita un modelo de m
 ---
 
 :::escenario Dos números que no coinciden
-Ahora que sabes por qué importan la calidad y el linaje, mira un caso que se repite en todas las empresas. Marketing reporta que el tablero dice **243 clientes nuevos** en el último trimestre, pero el CRM dice 230, y nadie confía en ninguno de los dos números.
+Marketing te escribe enojado: el tablero dice **243 clientes nuevos** este trimestre y el CRM dice **230**. *"¿Cuál está bien? Ya nadie confía en ninguno."*
 
-La tarea de un ingeniero de datos no es elegir uno al azar: es seguir el **linaje** de cada número hasta encontrar dónde se separan (una definición distinta de "cliente nuevo", duplicados, una zona horaria). Es la forma de trabajar que viste en esta lección.
+No eliges uno al azar. Sigues el **linaje** de cada número hacia atrás, paso por paso, hasta encontrar dónde se separan: gold cuenta `cliente_id` distintos, pero en silver la misma persona aparece con dos o tres ids, uno por cada canal por el que la cargó el CRM. Contando por email normalizado, los 243 bajan. El arreglo no es elegir un número: es deduplicar y acordar qué es un "cliente".
 :::
 
 ## La idea en una frase

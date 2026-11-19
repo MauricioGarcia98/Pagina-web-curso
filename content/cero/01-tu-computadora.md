@@ -7,12 +7,12 @@ objetivos: Explicar qué es un archivo y qué es una carpeta | Reconocer la exte
 autoevaluacion: ¿Puedes explicar con tus palabras qué es una carpeta? | ¿Sabes qué te dice la extensión `.csv` de un archivo? | Dada la ruta `/home/ana/datos/ventas.csv`, ¿sabes en qué carpeta está el archivo? | ¿Sabes la diferencia entre una ruta absoluta y una relativa? | ¿Sabes por qué algunos archivos empiezan con un punto? | ¿Usas Ctrl+C, Ctrl+V, Ctrl+Z y Ctrl+F sin pensarlo?
 ---
 
-:::escenario Una carpeta compartida
-Ahora que sabes qué son una carpeta, una ruta, un archivo y una extensión, mira cómo aparecen juntos en un mensaje de trabajo. Imagina que ya trabajas en datos y Martín, tu líder, te escribe:
+:::escenario Tu primer pedido
+Es tu segunda semana en el equipo de datos. Abres el chat y tienes un mensaje de Martín, tu líder:
 
 > "Te dejé el archivo de ventas en la carpeta compartida, en `datos/2024/diciembre/ventas.csv`. Ábrelo y dime cuántas filas tiene."
 
-Con lo que viste puedes leerlo entero: `datos`, `2024` y `diciembre` son carpetas, una dentro de otra; `ventas.csv` es el archivo, y su extensión `.csv` te dice que es una tabla de texto separada por comas.
+Hace un mes esa línea te habría parecido un código secreto. Hoy la lees de izquierda a derecha: entras a `datos`, después a `2024`, después a `diciembre`, y ahí está `ventas.csv`. Por la extensión ya sabes qué vas a encontrar antes de abrirlo: una tabla de texto con las columnas separadas por comas.
 :::
 
 ## Qué es un archivo

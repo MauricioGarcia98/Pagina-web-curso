@@ -145,8 +145,8 @@ git switch main &amp;&amp; git pull</code></pre>
 <p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
 <div class="callout callout-escenario"><div class="callout-title">🏢 Tu primer push rechazado</div>
 
-<p>Ahora que sabes traer los cambios de otros y resolver un conflicto, mira por qué es tan común. Martín le pide a alguien del equipo: <em>&quot;Marketing quiere que el ETL incluya Colombia. Es un cambio de una línea en <code>pipelines/etl.py</code>.&quot;</em> La persona clona el repositorio, cambia la línea, hace commit y <code>git push</code>. Y Git responde con un <code>! [rejected]</code> en rojo.</p>
-<p>No rompió nada: mientras trabajaba, <strong>Camila subió un cambio a la misma línea</strong> (agregó México). Esto pasa varias veces por semana en cualquier equipo, y se resuelve exactamente como practicaste: <code>git pull</code>, resolver el conflicto y volver a subir.</p>
+<p>Te piden un cambio chico: <em>&quot;Marketing quiere que el ETL incluya Colombia. Es una línea en <code>pipelines/etl.py</code>.&quot;</em> Clonas, cambias la línea, haces commit y <code>git push</code>. Git responde con un <code>! [rejected]</code> en rojo.</p>
+<p>No rompiste nada. Mientras trabajabas, <strong>Camila subió un cambio a la misma línea</strong>: agregó México. Haces <code>git pull</code>, Git te marca el conflicto, dejas los dos países en la lista, haces commit y vuelves a subir. Esto te va a pasar varias veces por semana.</p>
 </div>
 
 
