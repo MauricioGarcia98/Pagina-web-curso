@@ -177,6 +177,9 @@
       });
     });
     f('make_date', (y, m, dd) => (y == null || m == null || dd == null ? null : `${String(y).padStart(4, '0')}-${String(m).padStart(2, '0')}-${String(dd).padStart(2, '0')}`));
+    f('timestamp_micros', (n) => (n == null ? null : isoTs(new Date(Math.floor(Number(n) / 1000)))));
+    f('timestamp_millis', (n) => (n == null ? null : isoTs(new Date(Number(n)))));
+    f('timestamp_seconds', (n) => (n == null ? null : isoTs(new Date(Number(n) * 1000))));
     f('unix_timestamp', (x) => { const d0 = x == null ? new Date() : fecha(x); return d0 ? Math.floor(d0.getTime() / 1000) : null; });
     f('from_unixtime', (n) => (n == null ? null : isoTs(new Date(Number(n) * 1000))));
     // texto
@@ -495,6 +498,7 @@
         if (esId(tk) && T[sig(T, i + 1)] && T[sig(T, i + 1)].v === '(') {
           const nombreF = tk.v.toLowerCase();
           if (nombreF === 'read_files') { const { fin, args } = argsFuncion(T, sig(T, i + 1)); out.push({ t: 'w', v: q(leerArchivos(args)) }); i = fin; continue; }
+          if (nombreF === 'read_kafka') { const { fin, args } = argsFuncion(T, sig(T, i + 1)); out.push({ t: 'w', v: q(leerKafka(args)) }); i = fin; continue; }
           if (nombreF === 'range') { const { fin, args } = argsFuncion(T, sig(T, i + 1)); const nums = args.map((a) => Number(unir(a).trim())); const [a0, b0, p0] = nums.length === 1 ? [0, nums[0], 1] : [nums[0], nums[1], nums[2] || 1]; const filas = []; for (let x = a0; x < b0 && filas.length < 100000; x += p0) filas.push([x]); out.push({ t: 'w', v: q(tablaTemporal('range' + (sesion.n++), ['id'], filas)) }); i = fin; continue; }
           out.push(tk); continue;
         }
@@ -569,6 +573,19 @@
           i = cierra; continue;
         }
       }
+      // columna:campo.subcampo (ruta JSON sobre un texto, como en Databricks): after:estado, value:source.lsn
+      if (tk.t === 'p' && tk.v === ':' && T[i + 1] && (T[i + 1].t === 'w' || T[i + 1].t === 'b') && out.length && (esId(out[out.length - 1]) || out[out.length - 1].v === ')')) {
+        let k = out.length - 1; let ini = k;
+        if (out[k].v === ')') { let d = 0; for (ini = k; ini >= 0; ini--) { if (out[ini].v === ')') d++; else if (out[ini].v === '(') { d--; if (d === 0) break; } } if (ini > 0 && out[ini - 1].t === 'w') ini--; }
+        else while (ini > 1 && out[ini - 1].v === '.' && (out[ini - 2].t === 'w' || out[ini - 2].t === 'b')) ini -= 2;
+        const expr = out.splice(ini, k - ini + 1);
+        let ruta = '$.' + T[i + 1].v; let j = i + 1;
+        while (T[j + 1] && ((T[j + 1].v === '.' && T[j + 2] && (T[j + 2].t === 'w' || T[j + 2].t === 'b')) || (T[j + 1].v === '[' && T[j + 2] && T[j + 2].t === 'n' && T[j + 3] && T[j + 3].v === ']'))) {
+          if (T[j + 1].v === '.') { ruta += '.' + T[j + 2].v; j += 2; } else { ruta += '.' + T[j + 2].v; j += 3; }
+        }
+        out.push({ t: 'w', v: `get_json_object(${unir(expr)}, '${ruta}')` });
+        i = j; continue;
+      }
       // x::tipo
       if (tk.t === 'p' && tk.v === '::') {
         const j = sig(T, i + 1); let tipoTxt = T[j].v; let fin = j;
@@ -581,6 +598,12 @@
         const expr = out.splice(ini, k - ini + 1);
         out.push({ t: 'w', v: `__cast(${unir(expr)}, '${normTipo(tipoTxt)}')` });
         i = fin; continue;
+      }
+      // funciones con argumentos opcionales (sql.js las registra con un número fijo): se completan con NULL
+      if (W(tk, 'TO_DATE', 'TO_TIMESTAMP', 'TRY_TO_TIMESTAMP', 'UNIX_TIMESTAMP') && T[sig(T, i + 1)] && T[sig(T, i + 1)].v === '(') {
+        const aridad = W(tk, 'UNIX_TIMESTAMP') ? 1 : 2;
+        const { fin, args } = argsFuncion(T, sig(T, i + 1)); const llenos = args.filter((a) => a.some((x) => x.t !== 'ws'));
+        if (llenos.length < aridad) { out.push({ t: 'w', v: `${tk.v}(${[...llenos.map((a) => unir(traducirExpr(a))), ...Array(aridad - llenos.length).fill('NULL')].join(', ')})` }); i = fin; continue; }
       }
       if (W(tk, 'IF') && T[sig(T, i + 1)] && T[sig(T, i + 1)].v === '(') { out.push({ t: 'w', v: 'iif' }); continue; }
       if (W(tk, 'TYPEOF') && T[sig(T, i + 1)] && T[sig(T, i + 1)].v === '(') { out.push({ t: 'w', v: '__spark_typeof' }); continue; }
@@ -715,6 +738,20 @@
     const c2 = formato === 'text' ? cols : [...cols, '_rescued_data'];
     const nom = tablaTemporal('rf' + (sesion.n++), c2, filas.map((f) => (formato === 'text' ? f : [...f, null])));
     return nom;
+  }
+  // read_kafka(bootstrapServers => '…', subscribe => 'tópico', startingOffsets => 'earliest' | '{"tópico":{"0":123}}', …)
+  // Lee de un tópico Kafka (el Event Hubs de Mercado Vecino). value y key llegan como BINARY: CAST(value AS STRING).
+  function leerKafka(args) {
+    const op = {};
+    for (const a of args) {
+      const k = a.findIndex((tk, x) => tk.v === '=' && a[x + 1] && a[x + 1].v === '>'); if (k < 0) continue;
+      const nombre = unirOriginal(a.slice(0, k)).trim().replace(/^`|`$/g, '');
+      const resto = a.slice(k + 2).filter((tk) => tk.t !== 'ws');
+      op[nombre] = resto.length === 1 && resto[0].t === 's' ? resto[0].v : unirOriginal(resto).trim();
+    }
+    if (!window.MercadoVecinoKafka) err('KAFKA_NOT_AVAILABLE', 'No hay ningún clúster Kafka de práctica disponible.');
+    let r; try { r = window.MercadoVecinoKafka.leerParaSql(op); } catch (e) { err(e.codigo || 'KAFKA_ERROR', e.message); }
+    return tablaTemporal('rk' + (sesion.n++), r.cols, r.filas);
   }
   function parseCsv(txt, sep = ',') {
     const filas = []; let f = [], v = '', enQ = false;

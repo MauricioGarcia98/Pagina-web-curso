@@ -450,6 +450,9 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
       // la API de Pedalia (api-pedalia.js) también: con la configuración del alumno (apps, cuota, incidentes)
       if (msg.apiPedaliaSrc && !self.ApiPedalia) { try { new Function('g', 'return (' + msg.apiPedaliaSrc + ')(g)')(self); } catch (e) { /* sin API */ } }
       if (msg.apiPedaliaCfg && self.ApiPedalia) self.ApiPedalia.configurar(msg.apiPedaliaCfg);
+      // PagoYa (la pasarela de Mercado Vecino, mercado-vecino.js): la misma semilla y el mismo reloj que en la página
+      if (msg.mercadoSrc && !self.PagoYa) { try { new Function('g', 'return (' + msg.mercadoSrc + ')(g)')(self); } catch (e) { /* sin PagoYa */ } }
+      if (msg.mercadoCfg && self.PagoYa) self.PagoYa.configurar(msg.mercadoCfg);
       const need = [];
       // desde Pyodide 314, sqlite3 viene incluido en la biblioteca estándar (no se instala aparte)
       if ((mode === 'dbt' || mode === 'airflow') && !loaded.has('jinja2')) need.push('jinja2');
@@ -545,7 +548,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
       const id = ++this.seq;
       const first = this.status !== 'ready';
       if (first) this._setStatus('loading');
-      const full = { ...msg, id, pyodideUrl: PYODIDE_URL, sources: window.PY_SOURCES, apiSrc: window.API_TIENDA_SRC, apiPedaliaSrc: window.API_PEDALIA_SRC, apiPedaliaCfg: window.ApiPedaliaHost ? window.ApiPedaliaHost.configParaWorker() : null };
+      const full = { ...msg, id, pyodideUrl: PYODIDE_URL, sources: window.PY_SOURCES, apiSrc: window.API_TIENDA_SRC, apiPedaliaSrc: window.API_PEDALIA_SRC, apiPedaliaCfg: window.ApiPedaliaHost ? window.ApiPedaliaHost.configParaWorker() : null, mercadoSrc: window.MERCADO_VECINO_SRC, mercadoCfg: window.MercadoVecinoHost ? window.MercadoVecinoHost.configParaWorker() : null };
       if (msg.mode === 'pyspark' && !this._sentTables) { full.tables = this._tables(); this._sentTables = true; }
       return new Promise((resolve) => {
         const ms = first ? Math.max(timeoutMs, 180000) : timeoutMs;

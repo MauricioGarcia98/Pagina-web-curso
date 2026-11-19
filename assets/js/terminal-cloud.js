@@ -309,6 +309,17 @@
           const pre = A.get('--prefix') || '';
           return output(Object.entries(c.blobs).filter(([n]) => n.startsWith(pre === true ? '' : pre)).map(([n, v]) => ({ name: n, properties: { contentLength: v.length, lastModified: now(), blobTier: 'Hot' } })), A, 'json');
         }
+        if (p[2] === 'download-batch') {
+          const cName = A.get('--source', '-s'); const c = r.x.containers[cName];
+          if (!cName || cName === true) return fail('the following arguments are required: --source/-s', 2);
+          if (!c) return fail('The specified container does not exist.\nErrorCode:ContainerNotFound');
+          const dest = Sh.norm(A.get('--destination', '-d') || '.'); const pat = A.get('--pattern');
+          const re = pat && pat !== true ? new RegExp('^' + String(pat).replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.') + '$') : null;
+          const nombres = Object.keys(c.blobs).filter((n) => !n.endsWith('/') && (!re || re.test(n))).sort();
+          for (const n of nombres) Sh.writeFile(dest + '/' + n, c.blobs[n]);
+          save(); Machine.save();
+          return output(nombres, A);
+        }
         if (p[2] === 'download') {
           const c = r.x.containers[cn]; const name = A.get('--name', '-n'); const file = A.get('--file', '-f');
           if (!c || c.blobs[name] === undefined) return fail('The specified blob does not exist.\nErrorCode:BlobNotFound');

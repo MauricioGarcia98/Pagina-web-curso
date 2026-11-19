@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El pedido - finanzas no confía en los números de ventas · Academia de Datos</title><meta name="description" content="Empiezas en Mercado Vecino, un marketplace de comercios de barrio. Finanzas tiene un problema concreto - lo que dice la base de pedidos, lo que cobró la pasarela y lo que llegó al banco no coinciden - y te pide resolverlo. Esta página es el pedido tal como llega en un trabajo - el contexto, lo que hay que entregar, los criterios de aceptación y los plazos. No hay paso a paso."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-mercado-vecino-el-pedido.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El pedido - finanzas no confía en los números de ventas · Academia de Datos"><meta property="og:description" content="Empiezas en Mercado Vecino, un marketplace de comercios de barrio. Finanzas tiene un problema concreto - lo que dice la base de pedidos, lo que cobró la pasarela y lo que llegó al banco no coinciden - y te pide resolverlo. Esta página es el pedido tal como llega en un trabajo - el contexto, lo que hay que entregar, los criterios de aceptación y los plazos. No hay paso a paso."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-mercado-vecino-el-pedido.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-mercado-vecino">🛒 Proyecto 2: Mercado Vecino, conciliar la app con la pasarela de pagos</a> · Avanzado · 30 min</div>
+<h1>El pedido - finanzas no confía en los números de ventas</h1><p class="resumen">Empiezas en Mercado Vecino, un marketplace de comercios de barrio. Finanzas tiene un problema concreto - lo que dice la base de pedidos, lo que cobró la pasarela y lo que llegó al banco no coinciden - y te pide resolverlo. Esta página es el pedido tal como llega en un trabajo - el contexto, lo que hay que entregar, los criterios de aceptación y los plazos. No hay paso a paso.</p>
+<a class="cta" href="../index.html#/l/proyecto-mercado-vecino-el-pedido">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer un pedido de negocio y separar lo que se pide de lo que se supone</li><li>Identificar qué fuente tiene la verdad para cada dato</li><li>Entender los criterios de aceptación antes de empezar a construir</li><li>Planificar el trabajo sobre fuentes que cambian mientras trabajas</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Martes, 10:00 · tu primer día en Mercado Vecino</div>
+
+<p>Mercado Vecino conecta a 12 comercios de barrio (almacén, verdulería, carnicería, ferretería…) con vecinos que compran desde la app. Hace tres días la empresa cambió de pasarela de pagos: dejó <strong>CobroSur</strong> y pasó a <strong>PagoYa</strong>. Desde entonces finanzas cierra el día con una planilla y nunca le da. El ingeniero que armaba los reportes se fue a otra empresa la semana pasada y dejó unas notas. Te sientas, abres el correo y está esto.</p>
+</div>
+
+
+<h2>El correo</h2>
+<blockquote>
+<p><strong>De:</strong> Valentina Ruiz (Finanzas)
+<strong>Para:</strong> equipo de datos
+<strong>Asunto:</strong> Conciliación con PagoYa — urgente</p>
+<p>Hola. Necesitamos dejar de cerrar el día a mano.</p>
+<p>Cada mañana comparamos tres cosas: los pedidos pagados que muestra el panel de la app, lo que PagoYa dice que cobró, y la plata que efectivamente llega al banco (la <strong>liquidación</strong>). Nunca coinciden y no sabemos por qué. Algunas cosas que ya vimos:</p>
+<ul>
+<li>Hay clientes que pagaron un pedido que la app muestra como <strong>cancelado</strong>. ¿Les devolvimos la plata?</li>
+<li>PagoYa nos descontó <strong>contracargos</strong> de pedidos que en el panel no aparecen. Como si no existieran.</li>
+<li>Los días no cierran: lo que se cobra un día no llega al banco el día siguiente, a veces llega dos días después.</li>
+<li>El panel de la app a veces dice &quot;pagado&quot; y a veces no, para el mismo pedido, según cuándo lo miremos.</li>
+</ul>
+<p>Lo que necesitamos: <strong>una tabla con cada pago aprobado de PagoYa, a qué pedido corresponde, en qué estado está el pedido, si ya se liquidó, y una categoría que nos diga qué hacer</strong> (nada, devolver la plata, reclamar, investigar). La queremos todos los días, sin tocar nada.</p>
+<p>Ah, y legales nos recordó que cuando un cliente pide que borremos sus datos, eso tiene que llegar a todas las copias. Incluidas las de ustedes.</p>
+<p>Gracias, Valentina.</p>
+</blockquote>
+<h2>Lo que tienes a disposición</h2>
+<p>El equipo de plataforma ya te dio acceso a tres sistemas. Los tres son <strong>fuentes vivas</strong>: la tienda vende mientras trabajas, el CDC publica cambios cada pocos segundos y PagoYa manda webhooks a medida que pasan cosas. Lo que consultes ahora va a ser distinto en diez minutos.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Sistema</th>
+<th>Qué es</th>
+<th>Cómo llegas</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Base operacional</strong> (PostgreSQL)</td>
+<td>Clientes, comercios, productos, pedidos e ítems. Es la base de la app</td>
+<td>Réplica de <strong>solo lectura</strong>, con <code>psql</code></td>
+</tr>
+<tr>
+<td><strong>CDC</strong> (Debezium → Event Hubs)</td>
+<td>Cada INSERT, UPDATE y DELETE de la base, en orden, como mensajes Kafka</td>
+<td><code>kcat</code> en la terminal, o <code>read_kafka</code> en Databricks</td>
+</tr>
+<tr>
+<td><strong>PagoYa</strong></td>
+<td>La pasarela: pagos, reembolsos, disputas y liquidaciones</td>
+<td>API REST, webhooks firmados que llegan al lago, y un reporte de liquidación por día</td>
+</tr>
+</tbody></table></div>
+<p>Además tienes el portal de Azure, el Databricks y la terminal de práctica, como en el proyecto de Pedalia. La documentación de cada fuente y tus credenciales están en la página siguiente: <a href="#/l/proyecto-mercado-vecino-fuentes-y-accesos">Fuentes y accesos</a>.</p>
+<h2>Lo que hay que entregar</h2>
+<p>Cuatro tablas en el catálogo <code>mercado</code> del Databricks de práctica. El detalle de columnas está en <a href="#/l/proyecto-mercado-vecino-la-entrega">La entrega</a>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tabla</th>
+<th>Qué tiene que tener</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>mercado.silver.pedidos</code></td>
+<td><strong>Todos</strong> los pedidos de la base, con su estado actual, construida con un snapshot inicial + el CDC aplicado encima</td>
+<td>Es la verdad de la app, pero sin consultar producción cada vez</td>
+</tr>
+<tr>
+<td><code>mercado.silver.clientes</code></td>
+<td>Todos los clientes, con el <strong>derecho al olvido</strong> aplicado</td>
+<td>Legales</td>
+</tr>
+<tr>
+<td><code>mercado.silver.pagoya_eventos</code></td>
+<td>Los eventos de PagoYa (pagos aprobados, reembolsos, disputas), <strong>uno por evento</strong>, sin los falsos</td>
+<td>Los webhooks llegan repetidos, desordenados y alguno no es de PagoYa</td>
+</tr>
+<tr>
+<td><code>mercado.gold.conciliacion</code></td>
+<td>Un registro por <strong>pago aprobado</strong> en un día ya cerrado, con su pedido, su categoría y la fecha en que se liquidó</td>
+<td>Lo que pidió Valentina</td>
+</tr>
+</tbody></table></div>
+<h3>Las categorías (acordadas con finanzas)</h3>
+<p>Cada pago aprobado lleva <strong>una sola</strong> categoría. Si aplican varias, gana la primera de esta lista:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Categoría</th>
+<th>Cuándo</th>
+<th>Qué hace finanzas</th>
+</tr>
+</thead><tbody><tr>
+<td><code>contracargo</code></td>
+<td>El cliente desconoció el pago con su banco y PagoYa <strong>perdió</strong> la disputa</td>
+<td>Lo registra como pérdida</td>
+</tr>
+<tr>
+<td><code>en_disputa</code></td>
+<td>Hay una disputa abierta (todavía sin resolver)</td>
+<td>Junta pruebas de entrega</td>
+</tr>
+<tr>
+<td><code>reembolsado</code></td>
+<td>PagoYa hizo un reembolso de ese pago</td>
+<td>Nada: la plata ya volvió</td>
+</tr>
+<tr>
+<td><code>pago_sin_pedido</code></td>
+<td>El pedido <strong>ya no existe</strong> en la base</td>
+<td>Investiga (suele ser fraude)</td>
+</tr>
+<tr>
+<td><code>cobrado_y_cancelado</code></td>
+<td>El pedido está cancelado en la base y nadie devolvió la plata</td>
+<td><strong>Devuelve la plata</strong></td>
+</tr>
+<tr>
+<td><code>ok</code></td>
+<td>Ninguna de las anteriores</td>
+<td>Nada</td>
+</tr>
+</tbody></table></div>
+<h3>Criterios de aceptación</h3>
+<ol>
+<li>Los números tienen que ser los <strong>de la tienda</strong>, no los de la planilla: la revisión automática compara tus tablas con lo que pasó de verdad.</li>
+<li><code>silver.pedidos</code> tiene que coincidir con la base <strong>en el último cambio que aplicaste</strong>. No hace falta estar al segundo, pero lo que tienes tiene que ser exacto hasta ese punto.</li>
+<li>Un pago &quot;del día&quot; es el día de <strong>aprobación en hora de la tienda</strong> (Ciudad del Río, UTC-3). La base guarda las fechas en UTC.</li>
+<li>Los montos de la conciliación van <strong>en pesos</strong>, como en la base.</li>
+<li>Ninguna credencial en el código ni en archivos sueltos: van a un <strong>Key Vault</strong>.</li>
+<li>Si un cliente pidió que se borren sus datos, en tus tablas no puede quedar su email.</li>
+</ol>
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Cómo se trabaja este proyecto</div>
+
+<p>No hay paso a paso: es un pedido, como en un trabajo. Tienes la documentación de las fuentes, las notas del ingeniero anterior (con lo que sabía y con lo que creía saber) y una revisión automática que te dice qué está bien y qué no, con pistas. Las herramientas las eliges tú. La guía paso a paso del proyecto llega más adelante; si te trabas, la revisión y las notas son tu punto de apoyo, igual que en una empresa.</p>
+</div>
+
+
+<h2>Antes de tocar nada</h2>
+<p>Escribe tu plan en una nota (en <a href="#/notas">Mis notas</a> o en un papel). Como mínimo:</p>
+<ul>
+<li>De qué fuente sale cada columna de la conciliación.</li>
+<li>Cómo vas a tener todos los pedidos si el CDC solo guarda 24 horas.</li>
+<li>Cómo vas a saber que un webhook es de PagoYa y no de cualquiera.</li>
+<li>Qué vas a hacer con los eventos de PagoYa de antes de que configuraras el webhook.</li>
+<li>Dónde van las credenciales.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las fuentes no te esperan</div>
+
+<p>El tópico del CDC retiene los mensajes <strong>24 horas</strong>. Si cargas el snapshot hoy y vuelves en dos días a consumir el CDC, te faltan cambios y tu tabla va a estar mal sin que nada falle. Organízate para hacer el snapshot y el primer consumo en la misma sesión.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>El pedido real: una <strong>conciliación diaria</strong> entre la app, la pasarela y la liquidación, más el <strong>derecho al olvido</strong>.</li>
+<li>Tres fuentes vivas: la base (réplica de lectura), el <strong>CDC</strong> con retención de 24 h y <strong>PagoYa</strong> (API, webhooks firmados, liquidación).</li>
+<li>Cuatro tablas de entrega, con categorías definidas y criterios de aceptación que se revisan solos.</li>
+<li>Antes de construir: el plan, sobre todo <strong>cómo no perder cambios</strong>.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-mercado-vecino-el-pedido">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-pedalia-dia-3-el-incidente.html">← Día 3 - el formato cambia sin aviso y te toca la guardia</a><a href="proyecto-mercado-vecino-fuentes-y-accesos.html">Fuentes y accesos - la documentación de cada sistema →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
