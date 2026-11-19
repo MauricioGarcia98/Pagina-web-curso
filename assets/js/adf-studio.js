@@ -42,12 +42,16 @@
     ForEach: { nombre: 'ForEach', grupo: 'Iteration & conditionals', ico: 'sync', color: '#038387' },
     IfCondition: { nombre: 'If Condition', grupo: 'Iteration & conditionals', ico: 'git-compare', color: '#038387' },
   };
-  const LS_TIPOS = { AzureBlobFS: 'Azure Data Lake Storage Gen2', AzureBlobStorage: 'Azure Blob Storage', AzureDatabricks: 'Azure Databricks', AzureKeyVault: 'Azure Key Vault' };
+  const LS_TIPOS = { AzureBlobFS: 'Azure Data Lake Storage Gen2', AzureBlobStorage: 'Azure Blob Storage', AzureDatabricks: 'Azure Databricks', AzureKeyVault: 'Azure Key Vault', RestService: 'REST' };
 
   // ------------------------------------------------------------------ JSON como el de ADF
   const ref = (n, t) => ({ referenceName: n, type: t });
   function actividadJson(a) {
     const base = { name: a.name, type: a.type, dependsOn: (a.dependsOn || []).map((d) => ({ activity: d.activity, dependencyConditions: d.conditions })), policy: { timeout: '0.12:00:00', retry: a.retry || 0, retryIntervalInSeconds: 30, secureOutput: false, secureInput: false }, userProperties: [] };
+    if (a.type === 'Copy' && (st().datasets[a.source] || {}).type === 'RestResource') {
+      const fmtS = (st().datasets[a.sink] || {}).type === 'Json' ? 'Json' : 'DelimitedText';
+      return { ...base, typeProperties: { source: { type: 'RestSource', httpRequestTimeout: '00:01:40', requestInterval: '00.00:00:00.010', requestMethod: 'GET', ...(a.paginacion && Object.keys(a.paginacion).length ? { paginationRules: a.paginacion } : {}) }, sink: { type: fmtS + 'Sink', storeSettings: { type: 'AzureBlobFSWriteSettings' }, ...(fmtS === 'Json' ? { formatSettings: { type: 'JsonWriteSettings', filePattern: 'setOfObjects' } } : { formatSettings: { type: 'DelimitedTextWriteSettings', quoteAllText: true, fileExtension: '.csv' } }) }, enableStaging: false, ...(a.coleccion ? { translator: { type: 'TabularTranslator', collectionReference: a.coleccion } } : {}) }, inputs: a.source ? [{ ...ref(a.source, 'DatasetReference'), ...(a.srcParams && Object.keys(a.srcParams).length ? { parameters: Object.fromEntries(Object.entries(a.srcParams).map(([k, v]) => [k, String(v).startsWith('@') ? { value: v, type: 'Expression' } : v])) } : {}) }] : [], outputs: a.sink ? [{ ...ref(a.sink, 'DatasetReference'), ...(a.sinkFile ? { parameters: {} } : {}) }] : [] };
+    }
     if (a.type === 'Copy') {
       const ds = (n) => (st().datasets[n] || {});
       const fmt = (n) => (ds(n).type === 'Json' ? 'Json' : 'DelimitedText');
@@ -66,10 +70,15 @@
   }
   const pipelineJson = (n, P) => ({ name: n, properties: { activities: P.activities.map(actividadJson), ...(Object.keys(P.parameters || {}).length ? { parameters: Object.fromEntries(Object.entries(P.parameters).map(([k, v]) => [k, { type: 'string', defaultValue: v }])) } : {}), ...(Object.keys(P.variables || {}).length ? { variables: Object.fromEntries(Object.entries(P.variables).map(([k, v]) => [k, { type: v.type, ...(v.defaultValue !== undefined && v.defaultValue !== '' ? { defaultValue: v.defaultValue } : {}) }])) } : {}), annotations: [] } });
   function linkedJson(n, L) {
+    if (L.type === 'RestService') {
+      const sec = L.secreto && L.secreto.tipo === 'kv' ? { type: 'AzureKeyVaultSecret', store: ref(L.secreto.ls || '', 'LinkedServiceReference'), secretName: L.secreto.nombre || '' } : { type: 'SecureString', value: '**********' };
+      return { name: n, properties: { annotations: [], type: 'RestService', typeProperties: { url: L.url || '', enableServerCertificateValidation: true, authenticationType: 'OAuth2ClientCredential', clientId: L.clientId || '', clientSecret: sec, tokenEndpoint: L.tokenEndpoint || '', ...(L.scope ? { scope: L.scope } : {}) } } };
+    }
     const tp = L.type === 'AzureBlobFS' ? { url: `https://${L.account}.dfs.core.windows.net/` } : L.type === 'AzureBlobStorage' ? { serviceEndpoint: `https://${L.account}.blob.core.windows.net/`, accountKind: 'StorageV2' } : L.type === 'AzureDatabricks' ? { domain: `https://${(az().dbw[L.workspace] || {}).url || 'adb-0000.0.azuredatabricks.net'}`, authentication: 'MSI', workspaceResourceId: `/subscriptions/${az().sub}/resourceGroups/${(az().dbw[L.workspace] || {}).rg}/providers/Microsoft.Databricks/workspaces/${L.workspace}`, newClusterNodeType: undefined, existingClusterId: L.cluster || undefined } : { baseUrl: `https://${L.vault}.vault.azure.net/` };
     return { name: n, properties: { annotations: [], type: L.type, typeProperties: tp } };
   }
   function datasetJson(n, D) {
+    if (D.type === 'RestResource') return { name: n, properties: { linkedServiceName: ref(D.linked, 'LinkedServiceReference'), annotations: [], type: 'RestResource', ...(D.parametros && D.parametros.length ? { parameters: Object.fromEntries(D.parametros.map((x) => [x, { type: 'string' }])) } : {}), typeProperties: { relativeUrl: D.relativeUrl && D.relativeUrl.startsWith('@') ? { value: D.relativeUrl, type: 'Expression' } : (D.relativeUrl || '') }, schema: [] } };
     const loc = { type: 'AzureBlobFSLocation', fileSystem: D.container, ...(D.folder ? { folderPath: D.folder } : {}), ...(D.file ? { fileName: D.file } : {}) };
     return { name: n, properties: { linkedServiceName: ref(D.linked, 'LinkedServiceReference'), annotations: [], type: D.type, typeProperties: D.type === 'Json' ? { location: loc } : { location: loc, columnDelimiter: D.sep || ',', escapeChar: '\\', firstRowAsHeader: D.header !== false, quoteChar: '"' }, schema: [] } };
   }
@@ -89,7 +98,7 @@
   function actividadDesdeJson(j) {
     const tp = j.typeProperties || {}, a = { name: j.name, type: j.type, dependsOn: (j.dependsOn || []).map((d) => ({ activity: d.activity, conditions: d.dependencyConditions || ['Succeeded'] })) };
     if (j.policy && j.policy.retry) a.retry = j.policy.retry;
-    if (j.type === 'Copy') { a.source = ((j.inputs || [])[0] || {}).referenceName || ''; a.sink = ((j.outputs || [])[0] || {}).referenceName || ''; const ss = (tp.source || {}).storeSettings || {}; if (ss.wildcardFileName) a.wildcard = valorDe(ss.wildcardFileName); if (((tp.sink || {}).storeSettings || {}).copyBehavior === 'MergeFiles') a.merge = true; }
+    if (j.type === 'Copy') { const ss0 = tp.source || {}; if (ss0.paginationRules) a.paginacion = Object.fromEntries(Object.entries(ss0.paginationRules).map(([k, v]) => [k, valorDe(v)])); if ((tp.translator || {}).collectionReference) a.coleccion = valorDe(tp.translator.collectionReference); const ip = ((j.inputs || [])[0] || {}).parameters; if (ip) a.srcParams = Object.fromEntries(Object.entries(ip).map(([k, v]) => [k, valorDe(v)])); a.source = ((j.inputs || [])[0] || {}).referenceName || ''; a.sink = ((j.outputs || [])[0] || {}).referenceName || ''; const ss = (tp.source || {}).storeSettings || {}; if (ss.wildcardFileName) a.wildcard = valorDe(ss.wildcardFileName); if (((tp.sink || {}).storeSettings || {}).copyBehavior === 'MergeFiles') a.merge = true; }
     else if (j.type === 'DatabricksNotebook') { a.notebookPath = tp.notebookPath || ''; a.baseParameters = Object.fromEntries(Object.entries(tp.baseParameters || {}).map(([k, v]) => [k, valorDe(v)])); a.linked = (j.linkedServiceName || {}).referenceName || ''; }
     else if (j.type === 'Wait') a.segundos = tp.waitTimeInSeconds ?? 1;
     else if (j.type === 'GetMetadata') { a.dataset = (tp.dataset || {}).referenceName || ''; a.campos = tp.fieldList || ['childItems']; }
@@ -110,9 +119,12 @@
       const L = { type: props.type };
       if (props.type === 'AzureBlobFS' || props.type === 'AzureBlobStorage') { const u = String(tp.url || tp.serviceEndpoint || ''); L.account = (/https:\/\/([^.]+)\./.exec(u) || [])[1] || ''; L.auth = 'msi'; }
       else if (props.type === 'AzureDatabricks') L.workspace = String(tp.workspaceResourceId || '').split('/').pop() || '';
+      else if (props.type === 'RestService') { Object.assign(L, { url: tp.url || '', tokenEndpoint: tp.tokenEndpoint || '', clientId: tp.clientId || '', scope: tp.scope || '' }); const cs = tp.clientSecret || {}; L.secreto = cs.type === 'AzureKeyVaultSecret' ? { tipo: 'kv', ls: (cs.store || {}).referenceName || '', nombre: valorDe(cs.secretName) || '' } : { tipo: 'plain', valor: cs.value && cs.value !== '**********' ? cs.value : '' }; }
       else if (props.type === 'AzureKeyVault') L.vault = (/https:\/\/([^.]+)\./.exec(String(tp.baseUrl || '')) || [])[1] || '';
       else throw new Error(`El tipo de linked service '${props.type}' no está simulado en esta práctica.`);
       S.linked[nombre] = L;
+    } else if (tipo === 'datasets' && props.type === 'RestResource') {
+      S.datasets[nombre] = { type: 'RestResource', linked: (props.linkedServiceName || {}).referenceName || '', relativeUrl: valorDe(tp.relativeUrl) || '', parametros: Object.keys(props.parameters || {}) };
     } else if (tipo === 'datasets') {
       const loc = tp.location || {};
       S.datasets[nombre] = { type: props.type === 'Json' ? 'Json' : 'DelimitedText', linked: (props.linkedServiceName || {}).referenceName || '', container: loc.fileSystem || loc.container || '', folder: loc.folderPath || '', file: loc.fileName || '', header: tp.firstRowAsHeader !== false, ...(tp.columnDelimiter && tp.columnDelimiter !== ',' ? { sep: tp.columnDelimiter } : {}) };
@@ -286,7 +298,29 @@
     const id = `/subscriptions/${az().sub}/resourceGroups/${R.rg}/providers/Microsoft.Storage/storageAccounts/${acc}`;
     return (az().roles || []).some((a) => a.principalName === fabrica && /^Storage Blob Data (Contributor|Owner)$/.test(a.roleDefinitionName) && (a.scope === id || id.startsWith(a.scope + '/')));
   }
+  // secreto del linked service REST: escrito en el linked service o, mejor, leído de Key Vault con la identidad del factory
+  function secretoRest(L) {
+    const s = L.secreto || {};
+    if (s.tipo !== 'kv') { if (!s.valor) throw new Error('Client secret vacío: escríbelo en el linked service o, mejor, guárdalo en Key Vault y referéncialo.'); return s.valor; }
+    const K = st().linked[s.ls]; if (!K || K.type !== 'AzureKeyVault') throw new Error(`El secreto apunta al linked service "${s.ls}", que no existe o no es de Key Vault.`);
+    const V = (az().kv || {})[K.vault]; if (!V) throw new Error(`The vault '${K.vault}' was not found.`);
+    const id = `/subscriptions/${az().sub}/resourceGroups/${V.rg}/providers/Microsoft.KeyVault/vaults/${K.vault}`;
+    const rbac = !(V.props && V.props.rbac === false);
+    if (rbac && !(az().roles || []).some((a) => a.principalName === fabrica && /^Key Vault (Secrets User|Secrets Officer|Administrator)$/.test(a.roleDefinitionName) && (a.scope === id || id.startsWith(a.scope + '/')))) throw new Error(`Failed to get the secret from Azure Key Vault, secretName: ${s.nombre}. Caller is not authorized to perform action on resource. (Forbidden)\nDale a la identidad del factory (${fabrica}) el rol "Key Vault Secrets User" en el key vault ${K.vault} (portal → key vault → Access control (IAM)).`);
+    const x = (V.secrets || {})[s.nombre]; if (x === undefined) throw new Error(`Failed to get the secret from Azure Key Vault, secretName: ${s.nombre}. (SecretNotFound)`);
+    return typeof x === 'string' ? x : x.value;
+  }
+  function apiDe(url) { const A = window.ApiPedalia; return A && A.esDeLaApi(url) ? A : null; }
+  function tokenRest(L) {
+    const api = apiDe(L.tokenEndpoint || ''); if (!api) throw new Error(`No se pudo conectar a ${L.tokenEndpoint || '(token endpoint vacío)'}: en esta práctica el linked service REST se conecta a la API de Pedalia (https://api.pedalia.example).`);
+    const sec = secretoRest(L);
+    const r = api.request('POST', L.tokenEndpoint, { 'Content-Type': 'application/x-www-form-urlencoded' }, `grant_type=client_credentials&client_id=${encodeURIComponent(L.clientId || '')}&client_secret=${encodeURIComponent(sec)}${L.scope ? '&scope=' + encodeURIComponent(L.scope) : ''}`);
+    let b = {}; try { b = JSON.parse(r.body); } catch (e) { /* sin cuerpo */ }
+    if (r.status !== 200) throw new Error(`Failed to get access token by using service principal. Error: ${b.error || r.status}, Error Message: ${b.error_description || ''}`);
+    return b.access_token;
+  }
   function probarLinked(L) {
+    if (L.type === 'RestService') { try { tokenRest(L); return null; } catch (e) { return e.message; } }
     if (L.type === 'AzureBlobFS' || L.type === 'AzureBlobStorage') {
       if (!cuenta(L.account)) return `ErrorCode=AdlsGen2OperationFailed: The remote name could not be resolved: '${L.account}.dfs.core.windows.net'. La cuenta no existe en la suscripción.`;
       if (!rolAlmacenamiento(L.account)) return `ADLS Gen2 operation failed for: Operation returned an invalid status code 'Forbidden'. Account: '${L.account}'. ErrorCode: 'AuthorizationPermissionMismatch'. Message: 'This request is not authorized to perform this operation using this permission.'\n\nLa identidad administrada del factory (${fabrica}) necesita el rol "Storage Blob Data Contributor" (o Reader para solo leer) en la cuenta: portal → cuenta ${L.account} → Access control (IAM) → Add role assignment.`;
@@ -304,8 +338,57 @@
     return { L, R, C };
   }
   const comodin = (p) => new RegExp('^' + p.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.') + '$');
+  // Copy con origen REST: token OAuth (se renueva solo si vence), reglas de paginación, reintentos ante 429/5xx
+  // respetando Retry-After, y los registros de collectionReference escritos en el sink (JSON por líneas o CSV)
+  async function copiarDesdeRest(a, E, src, dst) {
+    const S = st(); const L = S.linked[src.linked]; if (!L || L.type !== 'RestService') throw new Error(`Linked service "${src.linked}" no es REST.`);
+    const d = archivosDe(dst);
+    if (!puedeEscribir(d.L.account)) throw new Error(`ErrorCode=AdlsGen2OperationFailed: 'Forbidden'. AuthorizationPermissionMismatch al escribir en ${d.L.account}.`);
+    let rel = src.relativeUrl || '';
+    rel = rel.replace(/@\{?dataset\(\)\.(\w+)\}?/g, (m, k) => String(dinamico((a.srcParams || {})[k] ?? '', E)));
+    if (rel.startsWith('@')) rel = String(dinamico(rel, E));
+    const base = (L.url || '').replace(/\/$/, '');
+    let url = /^https?:/.test(rel) ? rel : base + '/' + rel.replace(/^\//, '');
+    const api = apiDe(url); if (!api) throw new Error(`ErrorCode=RestSourceCallFailed: No se pudo conectar a ${url}. En esta práctica, el origen REST es la API de Pedalia.`);
+    let token = tokenRest(L);
+    const camino = (obj, ruta) => { if (!ruta) return obj; return String(ruta).replace(/^\$\.?/, '').replace(/\['([^']+)'\]/g, '.$1').split('.').filter(Boolean).reduce((o, k) => (o == null ? undefined : o[k]), obj); };
+    const reglas = a.paginacion || {};
+    const registros = []; let paginas = 0, llamadas = 0, reintentos = 0, renovaciones = 0;
+    while (url && paginas < 2000) {
+      llamadas++;
+      const r = api.request('GET', url, { Authorization: 'Bearer ' + token, Accept: 'application/json', 'User-Agent': 'AzureDataFactory' }, null);
+      let b = null; try { b = r.body ? JSON.parse(r.body) : null; } catch (e) { b = null; }
+      if (r.status === 401 && renovaciones < 3) { token = tokenRest(L); renovaciones++; continue; }
+      if ((r.status === 429 || r.status >= 500) && reintentos < 6) {
+        reintentos++;
+        const espera = Math.min(65, Number(r.headers['retry-after']) || 2 ** reintentos);
+        E.run && (E.run.nota = `Esperando ${espera} s (HTTP ${r.status}, reintento ${reintentos})`);
+        await espera_(espera * 1000); continue;
+      }
+      if (r.status !== 200) throw new Error(`ErrorCode=RestSourceCallFailed,'The HttpStatusCode ${r.status} indicates failure. Request URL: ${url} Response payload:${r.body}'`);
+      paginas++;
+      const col = a.coleccion ? camino(b, a.coleccion) : b;
+      if (Array.isArray(col)) registros.push(...col); else if (col != null) registros.push(col);
+      let sig = null;
+      for (const [k, v] of Object.entries(reglas)) {
+        const val = camino(b, v);
+        if (k === 'AbsoluteUrl') sig = val || null;
+        else if (/^QueryParameters\./.test(k)) { if (val == null || val === '') { sig = null; break; } const u = new URL(url); u.searchParams.set(k.slice(16), val); for (const p of ['updated_since']) if (k.slice(16) === 'cursor') u.searchParams.delete(p); sig = u.toString(); }
+      }
+      url = Object.keys(reglas).length ? sig : null;
+    }
+    const nombre = dinamico(a.sinkFile, E) || dst.file || (dst.type === 'Json' ? 'datos.json' : 'datos.csv');
+    const carpeta = (dst.folder || '').replace(/^\/|\/$/g, '');
+    let out;
+    if (dst.type === 'Json') out = registros.map((x) => JSON.stringify(x)).join('\n') + (registros.length ? '\n' : '');
+    else { const cols = [...new Set(registros.flatMap((x) => Object.keys(x || {})))]; const c = (v) => (v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v)); const q = (s) => (/[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s); out = [cols.map(q).join(','), ...registros.map((x) => cols.map((k) => q(c(x[k]))).join(','))].join('\n') + '\n'; }
+    d.C.blobs[(carpeta ? carpeta + '/' : '') + nombre] = out;
+    return { dataRead: registros.reduce((s, x) => s + JSON.stringify(x).length, 0), dataWritten: out.length, rowsRead: registros.length, rowsCopied: registros.length, sourcePeakConnections: 1, sinkPeakConnections: 1, filesWritten: 1, copyDuration: 2 + llamadas, throughput: 1.2, pagesRead: paginas, httpRequests: llamadas, retries: reintentos, tokenRefreshes: renovaciones, effectiveIntegrationRuntime: 'AutoResolveIntegrationRuntime (East US 2)', usedDataIntegrationUnits: 4 };
+  }
+  const espera_ = (ms) => new Promise((ok) => setTimeout(ok, ms));
   async function correrCopy(a, E) {
     const S = st(); const src = S.datasets[a.source], dst = S.datasets[a.sink];
+    if (src && src.type === 'RestResource') return copiarDesdeRest(a, E, src, dst);
     const o = archivosDe(src), d = archivosDe(dst);
     if (!puedeEscribir(d.L.account)) throw new Error(`ErrorCode=AdlsGen2OperationFailed: 'Forbidden'. AuthorizationPermissionMismatch al escribir en ${d.L.account}: el factory tiene permiso de lectura, no de escritura (necesita Storage Blob Data Contributor).`);
     const carpeta = (src.folder || '').replace(/^\/|\/$/g, '');
@@ -574,12 +657,14 @@
   function opcionesLs(tipos, v) { return Object.entries(st().linked).filter(([, L]) => tipos.includes(L.type)).map(([n]) => `<option ${n === v ? 'selected' : ''}>${esc(n)}</option>`).join(''); }
   function nuevoDataset(alCrear) {
     const S = st();
-    if (!Object.values(S.linked).some((L) => L.type === 'AzureBlobFS' || L.type === 'AzureBlobStorage')) { dialogo({ titulo: 'New dataset', ok: null, cuerpo: '<p>Primero crea un <b>linked service</b> a una cuenta de almacenamiento (Manage → Linked services → New).</p>' }); return; }
-    dialogo({ titulo: 'New dataset', ancho: 560, cuerpo: `<label class="adf-campo"><span>Data store</span><select id="dS"><option value="AzureBlobFS">Azure Data Lake Storage Gen2</option></select></label><label class="adf-campo"><span>Format</span><select id="dF"><option value="DelimitedText">DelimitedText (CSV)</option><option value="Json">JSON</option></select></label><label class="adf-campo"><span>Name</span><input id="dN" value="${esc(nombreLibre(S.datasets, 'DelimitedText'))}"></label><label class="adf-campo"><span>Linked service</span><select id="dL">${opcionesLs(['AzureBlobFS', 'AzureBlobStorage'])}</select></label><label class="adf-campo"><span>File path</span><span class="adf-ruta"><input id="dC" placeholder="contenedor"> / <input id="dD" placeholder="carpeta"> / <input id="dA" placeholder="archivo (vacío = todos)"></span></label><label class="adf-check"><input type="checkbox" id="dH" checked> First row as header</label>`,
-      alAbrir: (d) => { d.querySelector('#dF').onchange = (e) => { d.querySelector('#dN').value = nombreLibre(S.datasets, e.target.value === 'Json' ? 'Json' : 'DelimitedText'); }; },
+    const hayRest = Object.values(S.linked).some((L) => L.type === 'RestService');
+    if (!hayRest && !Object.values(S.linked).some((L) => L.type === 'AzureBlobFS' || L.type === 'AzureBlobStorage')) { dialogo({ titulo: 'New dataset', ok: null, cuerpo: '<p>Primero crea un <b>linked service</b> a una cuenta de almacenamiento o a una API REST (Manage → Linked services → New).</p>' }); return; }
+    dialogo({ titulo: 'New dataset', ancho: 560, cuerpo: `<label class="adf-campo"><span>Data store</span><select id="dS"><option value="AzureBlobFS">Azure Data Lake Storage Gen2</option>${hayRest ? '<option value="RestService">REST</option>' : ''}</select></label><div id="dRest" hidden><label class="adf-campo"><span>Linked service (REST)</span><select id="dRl">${opcionesLs(['RestService'])}</select></label><label class="adf-campo"><span>Relative URL</span><input id="dRu" value="@dataset().relativeUrl"></label><p class="adf-dim">Con <code>@dataset().relativeUrl</code> la ruta la decide cada actividad (por ejemplo, con la fecha). También puedes escribir una fija: <code>v2/stations</code>.</p></div><label class="adf-campo"><span>Format</span><select id="dF"><option value="DelimitedText">DelimitedText (CSV)</option><option value="Json">JSON</option></select></label><label class="adf-campo"><span>Name</span><input id="dN" value="${esc(nombreLibre(S.datasets, 'DelimitedText'))}"></label><label class="adf-campo"><span>Linked service</span><select id="dL">${opcionesLs(['AzureBlobFS', 'AzureBlobStorage'])}</select></label><label class="adf-campo"><span>File path</span><span class="adf-ruta"><input id="dC" placeholder="contenedor"> / <input id="dD" placeholder="carpeta"> / <input id="dA" placeholder="archivo (vacío = todos)"></span></label><label class="adf-check"><input type="checkbox" id="dH" checked> First row as header</label>`,
+      alAbrir: (d) => { d.querySelector('#dF').onchange = (e) => { d.querySelector('#dN').value = nombreLibre(S.datasets, e.target.value === 'Json' ? 'Json' : 'DelimitedText'); }; d.querySelector('#dS').onchange = (e) => { const r = e.target.value === 'RestService'; d.querySelector('#dRest').hidden = !r; d.querySelectorAll('#dF, #dL, #dC, #dD, #dA, #dH').forEach((x) => { (x.closest('.adf-campo, .adf-check') || x).hidden = r; }); d.querySelector('#dN').value = nombreLibre(S.datasets, r ? 'RestResource' : 'DelimitedText'); }; },
       alOk: (d) => {
         const n = d.querySelector('#dN').value.trim(); if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(n)) throw new Error('The name can contain only letters, numbers and underscores, and must start with a letter.');
         if (S.datasets[n]) throw new Error(`A dataset named "${n}" already exists.`);
+        if (d.querySelector('#dS').value === 'RestService') { const ru = d.querySelector('#dRu').value.trim(); S.datasets[n] = { type: 'RestResource', linked: d.querySelector('#dRl').value, relativeUrl: ru, parametros: [...new Set([...ru.matchAll(/@\{?dataset\(\)\.(\w+)/g)].map((m) => m[1]))] }; guardar(); if (alCrear) alCrear(n); else ir('author/dataset:' + encodeURIComponent(n)); return; }
         const c = d.querySelector('#dC').value.trim(); if (!c) throw new Error('File path: el contenedor (file system) es obligatorio.');
         S.datasets[n] = { type: d.querySelector('#dF').value, linked: d.querySelector('#dL').value, container: c, folder: d.querySelector('#dD').value.trim(), file: d.querySelector('#dA').value.trim(), header: d.querySelector('#dH').checked };
         guardar(); if (alCrear) alCrear(n); else ir('author/dataset:' + encodeURIComponent(n));
@@ -587,6 +672,14 @@
   }
   function editorDataset(E, n) {
     const S = st(), D = S.datasets[n];
+    if (D.type === 'RestResource') {
+      E.innerHTML = `<div class="adf-tabs"><span class="on">${ic('globe')} ${esc(n)}</span></div><div class="adf-tb"><button data-a="json">${ic('json')} Code</button><button data-a="del">${ic('trash')} Delete</button></div>
+        <div class="adf-form"><label class="adf-campo"><span>Linked service</span><select data-k="linked">${opcionesLs(['RestService'], D.linked)}</select></label><label class="adf-campo"><span>Relative URL</span><input data-k="relativeUrl" value="${esc(D.relativeUrl)}"></label><p class="adf-dim">Parámetros del dataset: ${(D.parametros || []).map((x) => `<code>${esc(x)}</code>`).join(', ') || 'ninguno'}. Se completan en la actividad Copy (pestaña Source).</p></div>`;
+      E.querySelectorAll('[data-k]').forEach((x) => { x.onchange = () => { D[x.dataset.k] = x.value.trim(); if (x.dataset.k === 'relativeUrl') D.parametros = [...new Set([...D.relativeUrl.matchAll(/@\{?dataset\(\)\.(\w+)/g)].map((m) => m[1]))]; guardar(); render(); }; });
+      E.querySelector('[data-a=json]').onclick = () => dialogo({ titulo: n, ok: null, ancho: 640, cuerpo: `<pre class="adf-json">${esc(JSON.stringify(datasetJson(n, D), null, 4))}</pre>` });
+      E.querySelector('[data-a=del]').onclick = () => { delete S.datasets[n]; guardar(); ir('author'); };
+      return;
+    }
     E.innerHTML = `<div class="adf-tabs"><span class="on">${ic('table')} ${esc(n)}</span></div><div class="adf-tb"><button data-a="json">${ic('json')} Code</button><button data-a="prev">${ic('eye')} Preview data</button><button data-a="del">${ic('trash')} Delete</button></div>
       <div class="adf-form"><label class="adf-campo"><span>Linked service</span><select data-k="linked">${opcionesLs(['AzureBlobFS', 'AzureBlobStorage'], D.linked)}</select></label>
       <label class="adf-campo"><span>File path</span><span class="adf-ruta"><input data-k="container" value="${esc(D.container)}"> / <input data-k="folder" value="${esc(D.folder)}"> / <input data-k="file" value="${esc(D.file)}" placeholder="(todos los archivos)"></span></label>
@@ -706,7 +799,7 @@
       let cuerpo = '';
       if (pestAct === 'general') cuerpo = `<label class="adf-campo"><span>Name *</span><input data-f="name" value="${esc(a.name)}"></label><label class="adf-campo"><span>Retry</span><input type="number" min="0" max="5" data-f="retry" value="${a.retry || 0}"></label>
         <div class="adf-campo"><span>Depends on</span><div>${otras.length ? otras.map((o) => `<div class="adf-dep"><label><input type="checkbox" data-dep="${esc(o.name)}" ${dep(o.name) ? 'checked' : ''}> ${esc(o.name)}</label><select data-depc="${esc(o.name)}" ${dep(o.name) ? '' : 'disabled'}>${['Succeeded', 'Failed', 'Completed', 'Skipped'].map((c) => `<option value="${c}" ${dep(o.name) && dep(o.name).conditions[0] === c ? 'selected' : ''}>${{ Succeeded: 'Upon Success', Failed: 'Upon Failure', Completed: 'Upon Completion', Skipped: 'Upon Skip' }[c]}</option>`).join('')}</select></div>`).join('') : '<span class="adf-dim">Es la única actividad.</span>'}<p class="adf-dim">Upon Success (verde) corre si la anterior terminó bien; Upon Failure (rojo) solo si falló, para avisar o compensar; Upon Completion (azul) en ambos casos.</p></div></div>`;
-      else if (pestAct === 'source' || pestAct === 'sink') { const k = pestAct; cuerpo = `<label class="adf-campo"><span>${k === 'source' ? 'Source' : 'Sink'} dataset *</span><select data-f="${k}"><option value="">Select…</option>${Object.keys(S.datasets).map((d) => `<option ${a[k] === d ? 'selected' : ''}>${esc(d)}</option>`).join('')}</select> <button class="adf-btn" data-nds>${ic('add')} New</button></label>${k === 'source' ? `<label class="adf-campo"><span>Wildcard file name</span><input data-f="wildcard" value="${esc(a.wildcard || '')}" placeholder="*.csv (vacío = lo que diga el dataset)"></label>` : `<label class="adf-check"><input type="checkbox" data-f="merge" ${a.merge ? 'checked' : ''}> Copy behavior: Merge files (un solo archivo de salida)</label><label class="adf-campo"><span>File name (opcional)</span><input data-f="sinkFile" value="${esc(a.sinkFile || '')}" placeholder="@{item().name} o ventas_@{utcNow('yyyyMMdd')}.csv"></label>`}${ayudaDin}${a[k] && S.datasets[a[k]] ? `<p class="adf-dim">${esc(S.datasets[a[k]].type)} · ${esc(S.datasets[a[k]].linked)} · <code>${esc([S.datasets[a[k]].container, S.datasets[a[k]].folder, S.datasets[a[k]].file].filter(Boolean).join('/'))}</code></p>` : ''}`; }
+      else if (pestAct === 'source' || pestAct === 'sink') { const k = pestAct; cuerpo = `<label class="adf-campo"><span>${k === 'source' ? 'Source' : 'Sink'} dataset *</span><select data-f="${k}"><option value="">Select…</option>${Object.keys(S.datasets).map((d) => `<option ${a[k] === d ? 'selected' : ''}>${esc(d)}</option>`).join('')}</select> <button class="adf-btn" data-nds>${ic('add')} New</button></label>${k === 'source' && (S.datasets[a.source] || {}).type === 'RestResource' ? `${((S.datasets[a.source] || {}).parametros || []).map((x) => `<label class="adf-campo"><span>Dataset property: ${esc(x)}</span><input data-rp="${esc(x)}" value="${esc((a.srcParams || {})[x] || '')}" placeholder="@concat('v2/trips?updated_since=', …)"></label>`).join('')}<label class="adf-campo"><span>Collection reference</span><input data-f="coleccion" value="${esc(a.coleccion || '')}" placeholder="$['data']"></label><div class="adf-campo"><span>Pagination rules</span><div>${Object.entries(a.paginacion || { 'QueryParameters.cursor': '' }).map(([pk, pv]) => `<div class="adf-dep"><input data-pk value="${esc(pk)}" style="width:190px"> <input data-pv value="${esc(pv)}" placeholder="$.next_cursor" style="width:170px"></div>`).join('')}<p class="adf-dim">Cada página toma el valor de la respuesta anterior (<code>$.next_cursor</code>) y lo pone en el parámetro de la URL. Cuando el valor viene vacío, termina.</p></div></div>` : k === 'source' ? `<label class="adf-campo"><span>Wildcard file name</span><input data-f="wildcard" value="${esc(a.wildcard || '')}" placeholder="*.csv (vacío = lo que diga el dataset)"></label>` : `<label class="adf-check"><input type="checkbox" data-f="merge" ${a.merge ? 'checked' : ''}> Copy behavior: Merge files (un solo archivo de salida)</label><label class="adf-campo"><span>File name (opcional)</span><input data-f="sinkFile" value="${esc(a.sinkFile || '')}" placeholder="@{item().name} o ventas_@{utcNow('yyyyMMdd')}.csv"></label>`}${ayudaDin}${a[k] && S.datasets[a[k]] ? `<p class="adf-dim">${esc(S.datasets[a[k]].type)} · ${esc(S.datasets[a[k]].linked)} · <code>${esc([S.datasets[a[k]].container, S.datasets[a[k]].folder, S.datasets[a[k]].file].filter(Boolean).join('/'))}</code></p>` : ''}`; }
       else if (pestAct === 'dbw') cuerpo = `<label class="adf-campo"><span>Databricks linked service *</span><select data-f="linked"><option value="">Select…</option>${opcionesLs(['AzureDatabricks'], a.linked)}</select></label>${Object.values(S.linked).some((L) => L.type === 'AzureDatabricks') ? '' : '<p class="adf-dim">Crea uno en Manage → Linked services → New → Azure Databricks.</p>'}`;
       else if (pestAct === 'settings' && a.type === 'DatabricksNotebook') { let nbs = []; try { if (window.DBX && window.DBX.asegurarStore) { window.DBX.asegurarStore(ctx.Store); nbs = Object.entries(window.DBX.ws().items).filter(([, it]) => it.tipo === 'notebook').map(([k]) => k.replace(/^\/Workspace/, '')); } } catch (e) { nbs = []; } cuerpo = `<label class="adf-campo"><span>Notebook path *</span><input data-f="notebookPath" list="nbList" value="${esc(a.notebookPath)}" placeholder="/Users/alumno@academia.dev/mi_notebook"><datalist id="nbList">${nbs.map((x) => `<option value="${esc(x)}">`).join('')}</datalist></label><div class="adf-campo"><span>Base parameters</span><div>${Object.entries(a.baseParameters || {}).map(([k, v]) => `<div class="adf-param"><input value="${esc(k)}" data-bk="${esc(k)}"><input value="${esc(v)}" data-bv="${esc(k)}"><button class="adf-ib" data-bdel="${esc(k)}">${ic('trash')}</button></div>`).join('')}<button class="adf-btn" data-badd>${ic('add')} New</button><p class="adf-dim">Llegan al notebook como widgets (dbutils.widgets.get). Puedes usar <code>@pipeline().parameters.x</code>.</p></div></div>`; }
       else if (pestAct === 'settings' && a.type === 'Wait') cuerpo = `<label class="adf-campo"><span>Wait time in seconds *</span><input type="number" min="1" data-f="segundos" value="${a.segundos ?? 1}"></label>`;
@@ -726,6 +819,9 @@
         if (f === 'name') { if (!v || todasLasActividades(P.activities).some((y) => y !== a && y.name === v)) { x.value = a.name; return; } for (const y of L) for (const d of y.dependsOn || []) if (d.activity === a.name) d.activity = v; actSel = v; }
         a[f] = v; guardar(); if (['name', 'source', 'sink', 'secuencial', 'dataset'].includes(f)) render(); };
       });
+      box.querySelectorAll('[data-rp]').forEach((x) => { x.onchange = () => { a.srcParams = a.srcParams || {}; a.srcParams[x.dataset.rp] = x.value.trim(); guardar(); }; });
+      const leerReglas = () => { const ks = [...box.querySelectorAll('[data-pk]')].map((x) => x.value.trim()); const vs = [...box.querySelectorAll('[data-pv]')].map((x) => x.value.trim()); a.paginacion = Object.fromEntries(ks.map((k, i) => [k, vs[i]]).filter(([k, v]) => k && v)); guardar(); };
+      box.querySelectorAll('[data-pk], [data-pv]').forEach((x) => { x.onchange = leerReglas; });
       box.querySelectorAll('[data-dep]').forEach((x) => { x.onchange = () => { const o = x.dataset.dep; a.dependsOn = (a.dependsOn || []).filter((d) => d.activity !== o); if (x.checked) a.dependsOn.push({ activity: o, conditions: ['Succeeded'] }); guardar(); render(); }; });
       box.querySelectorAll('[data-depc]').forEach((x) => { x.onchange = () => { const d = (a.dependsOn || []).find((y) => y.activity === x.dataset.depc); if (d) d.conditions = [x.value]; guardar(); render(); }; });
       const nds = box.querySelector('[data-nds]'); if (nds) nds.onclick = () => nuevoDataset((nn) => { a[pestAct] = nn; guardar(); ir('author/pipeline:' + encodeURIComponent(n)); });
@@ -829,7 +925,13 @@
       alAbrir: (d) => {
         const pinta = () => {
           const t = d.querySelector('#lT').value;
-          d.querySelector('#lN').value = { AzureBlobFS: 'ls_adls', AzureBlobStorage: 'ls_blob', AzureDatabricks: 'ls_databricks', AzureKeyVault: 'ls_keyvault' }[t];
+          d.querySelector('#lN').value = { AzureBlobFS: 'ls_adls', AzureBlobStorage: 'ls_blob', AzureDatabricks: 'ls_databricks', AzureKeyVault: 'ls_keyvault', RestService: 'ls_api_pedalia' }[t];
+          if (t === 'RestService') {
+            const kvs = Object.entries(S.linked).filter(([, x]) => x.type === 'AzureKeyVault').map(([k]) => k);
+            d.querySelector('#lC').innerHTML = `<label class="adf-campo"><span>Base URL *</span><input id="lU" value="https://api.pedalia.example"></label><label class="adf-campo"><span>Authentication type</span><select disabled><option>OAuth 2.0 Client Credential</option></select></label><label class="adf-campo"><span>Token endpoint *</span><input id="lTk" value="https://api.pedalia.example/oauth/token"></label><label class="adf-campo"><span>Client ID *</span><input id="lCi" placeholder="pdl_…"></label><div class="adf-campo"><span>Client secret *</span><div><label><input type="radio" name="lSt" value="kv" ${kvs.length ? 'checked' : 'disabled'}> Azure Key Vault</label> <label><input type="radio" name="lSt" value="plain" ${kvs.length ? '' : 'checked'}> Password</label><div id="lSk" ${kvs.length ? '' : 'hidden'}><select id="lKv">${kvs.map((k) => `<option>${esc(k)}</option>`).join('')}</select> Secret name <input id="lSn" placeholder="pedalia-client-secret"></div><div id="lSp" ${kvs.length ? 'hidden' : ''}><input id="lSv" type="password" placeholder="sk_live_…"></div>${kvs.length ? '' : '<p class="adf-dim">Sin linked service de Key Vault: el secreto queda guardado en el factory. En producción, guárdalo en Key Vault.</p>'}</div></div><label class="adf-campo"><span>Scope</span><input id="lSc" placeholder="(opcional)"></label>`;
+            d.querySelectorAll('[name=lSt]').forEach((x) => { x.onchange = () => { const kv = d.querySelector('[name=lSt]:checked').value === 'kv'; d.querySelector('#lSk').hidden = !kv; d.querySelector('#lSp').hidden = kv; }; });
+            return;
+          }
           d.querySelector('#lC').innerHTML = t === 'AzureBlobFS' || t === 'AzureBlobStorage'
             ? `<label class="adf-campo"><span>Authentication type</span><select id="lAu"><option value="msi">System-assigned managed identity</option><option value="key">Account key</option></select></label><label class="adf-campo"><span>Storage account name</span><select id="lA">${Object.keys(A.storage).map((n) => `<option>${esc(n)}</option>`).join('') || '<option value="">(no hay cuentas: créalas en el portal)</option>'}</select></label><p class="adf-dim">Managed identity name: <code>${esc(fabrica)}</code>. Asígnale <i>Storage Blob Data Contributor</i> en la cuenta (IAM) para que pueda leer y escribir.</p>`
             : t === 'AzureDatabricks' ? `<label class="adf-campo"><span>Databricks workspace</span><select id="lW">${Object.keys(A.dbw).map((n) => `<option>${esc(n)}</option>`).join('') || '<option value="">(no hay workspaces: créalo en el portal)</option>'}</select></label><label class="adf-campo"><span>Select cluster</span><select id="lCl"><option value="job">New job cluster</option><option value="existing">Existing interactive cluster</option></select></label><label class="adf-campo"><span>Authentication type</span><select><option>Managed service identity</option><option>Access token (desde Key Vault)</option></select></label>`
@@ -840,10 +942,10 @@
       },
       alOk: (d) => {
         const n = d.querySelector('#lN').value.trim(); if (!/^[A-Za-z][A-Za-z0-9_-]*$/.test(n)) throw new Error('Nombre inválido.'); if (S.linked[n]) throw new Error('Ya existe un linked service con ese nombre.');
-        const L = leer(d); if ((L.type === 'AzureBlobFS' || L.type === 'AzureBlobStorage') && !L.account) throw new Error('Elige la cuenta de almacenamiento.'); if (L.type === 'AzureDatabricks' && !L.workspace) throw new Error('Elige el workspace.'); if (L.type === 'AzureKeyVault' && !L.vault) throw new Error('Elige el key vault.');
+        const L = leer(d); if (L.type === 'RestService' && (!L.url || !L.tokenEndpoint || !L.clientId || !(L.secreto.tipo === 'kv' ? L.secreto.nombre : L.secreto.valor))) throw new Error('Completa Base URL, Token endpoint, Client ID y el secreto.'); if ((L.type === 'AzureBlobFS' || L.type === 'AzureBlobStorage') && !L.account) throw new Error('Elige la cuenta de almacenamiento.'); if (L.type === 'AzureDatabricks' && !L.workspace) throw new Error('Elige el workspace.'); if (L.type === 'AzureKeyVault' && !L.vault) throw new Error('Elige el key vault.');
         S.linked[n] = L; guardar(); render();
       } });
-    function leer(d) { const t = d.querySelector('#lT').value; return t === 'AzureDatabricks' ? { type: t, workspace: (d.querySelector('#lW') || {}).value } : t === 'AzureKeyVault' ? { type: t, vault: (d.querySelector('#lV') || {}).value } : { type: t, account: (d.querySelector('#lA') || {}).value, auth: (d.querySelector('#lAu') || {}).value }; }
+    function leer(d) { const t = d.querySelector('#lT').value; const v = (s) => ((d.querySelector(s) || {}).value || '').trim(); if (t === 'RestService') { const kv = (d.querySelector('[name=lSt]:checked') || {}).value === 'kv'; return { type: t, url: v('#lU'), tokenEndpoint: v('#lTk'), clientId: v('#lCi'), scope: v('#lSc'), secreto: kv ? { tipo: 'kv', ls: v('#lKv'), nombre: v('#lSn') } : { tipo: 'plain', valor: v('#lSv') } }; } return t === 'AzureDatabricks' ? { type: t, workspace: (d.querySelector('#lW') || {}).value } : t === 'AzureKeyVault' ? { type: t, vault: (d.querySelector('#lV') || {}).value } : { type: t, account: (d.querySelector('#lA') || {}).value, auth: (d.querySelector('#lAu') || {}).value }; }
   }
 
   function vistaPublica(m, c, sub) {

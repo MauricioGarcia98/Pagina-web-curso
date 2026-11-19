@@ -447,6 +447,9 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
       }
       // la API de práctica (api-practica.js) también vive en el worker, para que requests la use
       if (msg.apiSrc && !self.ApiTienda) { try { new Function('g', 'return (' + msg.apiSrc + ')(g)')(self); } catch (e) { /* sin API */ } }
+      // la API de Pedalia (api-pedalia.js) también: con la configuración del alumno (apps, cuota, incidentes)
+      if (msg.apiPedaliaSrc && !self.ApiPedalia) { try { new Function('g', 'return (' + msg.apiPedaliaSrc + ')(g)')(self); } catch (e) { /* sin API */ } }
+      if (msg.apiPedaliaCfg && self.ApiPedalia) self.ApiPedalia.configurar(msg.apiPedaliaCfg);
       const need = [];
       // desde Pyodide 314, sqlite3 viene incluido en la biblioteca estándar (no se instala aparte)
       if ((mode === 'dbt' || mode === 'airflow') && !loaded.has('jinja2')) need.push('jinja2');
@@ -456,11 +459,12 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
         loaded.add('tables');
       }
     }
+    const enviar = (o) => self.postMessage(self.ApiPedalia ? { ...o, apiPedalia: { log: self.ApiPedalia.tomarLog(), cuota: self.ApiPedalia.config().cuota } } : o);
     self.onmessage = async (e) => {
       const msg = e.data;
       try {
         await ensure(msg.mode, msg);
-        if (msg.kind === 'warmup') { self.postMessage({ id: msg.id, ok: true }); return; }
+        if (msg.kind === 'warmup') { enviar({ id: msg.id, ok: true }); return; }
         // pandas, numpy y otras librerías de Pyodide se cargan solas si el código las importa
         const codigo = [msg.code, msg.solution, msg.tests].filter(Boolean).join('\n');
         if (/^\s*(import|from)\s+(pandas|numpy)\b/m.test(codigo) && !loaded.has('pandas')) { await py.loadPackage(['pandas']); loaded.add('pandas'); }
@@ -471,7 +475,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
           const f = py.globals.get('_dbt_render');
           const sql = f(msg.template, msg.macros || '', !!msg.incremental, JSON.stringify(msg.vars || {}), msg.thisName || 'this');
           f.destroy();
-          self.postMessage({ id: msg.id, ok: true, sql });
+          enviar({ id: msg.id, ok: true, sql });
           return;
         }
         if (msg.kind === 'shell') {
@@ -479,7 +483,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
           const r = f(msg.mode, msg.code, JSON.stringify(msg.argv || []), JSON.stringify(msg.files || {}), msg.cwd || '/home/alumno', JSON.stringify(msg.env || {}));
           const out = r.toJs({ dict_converter: Object.fromEntries });
           r.destroy(); f.destroy();
-          self.postMessage({ id: msg.id, ...out });
+          enviar({ id: msg.id, ...out });
           return;
         }
         if (msg.kind === 'repl') {
@@ -487,7 +491,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
           const r = f(msg.code);
           const out = r.toJs({ dict_converter: Object.fromEntries });
           r.destroy(); f.destroy();
-          self.postMessage({ id: msg.id, ...out });
+          enviar({ id: msg.id, ...out });
           return;
         }
         const g = py.globals.get('_grade');
@@ -495,9 +499,9 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
         const out = res.toJs({ dict_converter: Object.fromEntries });
         res.destroy(); g.destroy();
         out.pass = out.pass_;
-        self.postMessage({ id: msg.id, ...out });
+        enviar({ id: msg.id, ...out });
       } catch (err) {
-        self.postMessage({ id: msg.id, ok: false, error: String(err && err.message || err) });
+        enviar({ id: msg.id, ok: false, error: String(err && err.message || err) });
       }
     };
   }
@@ -509,6 +513,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
       this.worker = new Worker(URL.createObjectURL(blob), { type: 'module' });
       this._sentTables = false;
       this.worker.onmessage = (e) => {
+        if (e.data && e.data.apiPedalia && window.ApiPedaliaHost) window.ApiPedaliaHost.incorporar(e.data.apiPedalia.log, e.data.apiPedalia.cuota);
         const p = this.pending.get(e.data.id);
         if (p) { clearTimeout(p.timer); this.pending.delete(e.data.id); this._setStatus('ready'); p.resolve(e.data); }
       };
@@ -540,7 +545,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
       const id = ++this.seq;
       const first = this.status !== 'ready';
       if (first) this._setStatus('loading');
-      const full = { ...msg, id, pyodideUrl: PYODIDE_URL, sources: window.PY_SOURCES, apiSrc: window.API_TIENDA_SRC };
+      const full = { ...msg, id, pyodideUrl: PYODIDE_URL, sources: window.PY_SOURCES, apiSrc: window.API_TIENDA_SRC, apiPedaliaSrc: window.API_PEDALIA_SRC, apiPedaliaCfg: window.ApiPedaliaHost ? window.ApiPedaliaHost.configParaWorker() : null };
       if (msg.mode === 'pyspark' && !this._sentTables) { full.tables = this._tables(); this._sentTables = true; }
       return new Promise((resolve) => {
         const ms = first ? Math.max(timeoutMs, 180000) : timeoutMs;
