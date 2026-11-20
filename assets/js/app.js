@@ -1781,19 +1781,99 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     { id: 'e2', titulo: 'Etapa 2 · SQL, el idioma de los datos', desc: 'Preguntarle cosas a una base de datos, de lo más simple a lo más avanzado, analizar datos, diseñar tablas y llevar los números a un tablero de Power BI.', mods: ['sql', 'analisis', 'modelado', 'powerbi'] },
     { id: 'e3', titulo: 'Etapa 3 · Programar y procesar mucho', desc: 'Python para automatizar, Spark para cuando los datos no entran en una sola computadora, y el método para resolver cualquier problema nuevo en Python, SQL y PySpark.', mods: ['python', 'spark', 'pyspark', 'logica'] },
     { id: 'e4', titulo: 'Etapa 4 · Transformar y orquestar', desc: 'dbt para organizar las transformaciones en SQL y Airflow para que todo corra solo, en orden y a horario.', mods: ['dbt', 'airflow'] },
-    { id: 'e5', titulo: 'Etapa 5 · La nube y las plataformas', desc: 'Dónde corre todo en las empresas: Azure, AWS, Google Cloud, Databricks y Genie.', mods: ['azure', 'aws', 'gcp', 'databricks', 'genie', 'interfaces'] },
-    { id: 'e6', titulo: 'Etapa 6 · Diseñar, automatizar y tu computadora', desc: 'Cómo se diseña una plataforma de datos, cómo se crea la infraestructura con código y cómo armar tu entorno en tu propia computadora.', mods: ['arquitectura', 'terraform', 'local'] },
+    { id: 'e5', titulo: 'Etapa 5 · Tu nube: elige una y termínala', desc: 'Azure, AWS o Google Cloud: eliges una y la aprendes a fondo. Cuando terminas su módulo se desbloquea la siguiente, para no saltar de nube en nube sin dominar ninguna.', mods: ['azure', 'aws', 'gcp'] },
+    { id: 'e5p', titulo: 'Etapa 6 · Las plataformas de datos', desc: 'Databricks (corre en las tres nubes), Genie y cada herramienta por dentro, pantalla por pantalla.', mods: ['databricks', 'genie', 'interfaces'] },
+    { id: 'e6', titulo: 'Etapa 7 · Diseñar, automatizar y tu computadora', desc: 'Cómo se diseña una plataforma de datos, cómo se crea la infraestructura con código y cómo armar tu entorno en tu propia computadora.', mods: ['arquitectura', 'terraform', 'local'] },
     { id: 'eh', titulo: '🧰 Las herramientas, paso a paso', desc: 'Un curso guiado por cada herramienta de práctica, con capturas de la misma app: desde la primera pantalla hasta usarla como en el trabajo. Puedes hacerlos en cualquier momento, junto con la etapa donde aparece cada herramienta.', mods: ['excel', 'jupyterlab', 'vscode', 'github', 'databricks-paso-a-paso', 'powerbi-paso-a-paso', 'azure-paso-a-paso', 'data-factory-paso-a-paso', 'fabric-paso-a-paso', 'airflow-paso-a-paso', 'snowflake-paso-a-paso', 'bigquery-paso-a-paso'] },
     { id: 'e7', titulo: '💼 Trabajo real · Casos de negocio y operación', desc: 'Aquí dejas de ser estudiante y resuelves pedidos como en una empresa: casos de negocio con SQL (puedes hacerlos apenas termines la etapa 2), pipelines de punta a punta, incidentes de guardia y laboratorios en la nube.', mods: ['casos', 'pipelines', 'incidentes', 'laboratorios'] },
     { id: 'ep', titulo: '💼 Trabajo real · Los 7 proyectos de empresa', desc: 'Siete empresas inventadas con sus sistemas vivos (APIs, bases con CDC, Kafka, SFTP, un ERP, un proveedor de IA), incidentes que aparecen con los días, preguntas de negocio y revisión automática. Empieza por Pedalia, que es guiado; los demás van de menor a mayor dificultad y cada uno tiene una solución explicada al final.', mods: ['proyecto-pedalia', 'proyecto-almacenes-sol', 'proyecto-cuentas-claras', 'proyecto-red-analitica', 'proyecto-mercado-vecino', 'proyecto-ruta-sur', 'proyecto-conecta'] },
     { id: 'e8', titulo: '💼 Trabajo real · Tu portafolio y tu primer empleo', desc: 'Proyectos para mostrar, el proyecto final y cómo prepararte para las entrevistas.', mods: ['portafolio', 'proyecto'] },
-    { id: 'e9', titulo: 'Opcional · Certificaciones', desc: 'Preparación para las certificaciones de Databricks, Azure, AWS y Google Cloud. Mejor después de la etapa 5.', mods: ['cert-databricks', 'cert-azure', 'cert-aws', 'cert-gcp'] },
   ];
+  // ---------------------------------------------------------------- una nube a la vez
+  // El estudiante elige una nube (Azure, AWS o Google Cloud) y la aprende a fondo. Cuando completa las lecciones de su
+  // módulo núcleo, puede elegir la siguiente. Los cursos paso a paso, laboratorios y "por dentro" de cada nube se abren
+  // junto con ella. Las nubes ya elegidas quedan abiertas para siempre.
+  const NUBES = [
+    { id: 'azure', nombre: 'Microsoft Azure', ico: '☁️', nucleo: 'azure', mods: ['azure', 'azure-paso-a-paso', 'data-factory-paso-a-paso', 'fabric-paso-a-paso'], re: /\bAzure\b|Data Factory|\bFabric\b/,
+      desc: 'Portal y CLI, Data Lake Storage Gen2, Key Vault, Data Factory, Azure Databricks y Microsoft Fabric. Muy usada en empresas que ya trabajan con Microsoft 365 y Power BI.' },
+    { id: 'aws', nombre: 'Amazon Web Services', ico: '🟧', nucleo: 'aws', mods: ['aws'], re: /\bAWS\b|Amazon|Bedrock|SageMaker/,
+      desc: 'S3, IAM, Glue, Athena, Redshift, Kinesis y Bedrock. La nube con más servicios y la más extendida en startups y empresas tecnológicas.' },
+    { id: 'gcp', nombre: 'Google Cloud', ico: '🔷', nucleo: 'gcp', mods: ['gcp', 'bigquery-paso-a-paso'], re: /Google Cloud|BigQuery|\bGCP\b|Vertex/,
+      desc: 'BigQuery, Cloud Storage, Pub/Sub, Dataflow, Composer y Vertex AI. Fuerte en analítica: BigQuery es su producto estrella.' },
+  ];
+  const MODS_NUBE_POR_LECCION = ['laboratorios', 'interfaces'];
+  const esModuloCert = (id) => /^cert-/.test(id);
+  function nubeDeModulo(m) { return NUBES.find((n) => n.mods.includes(m.id)) || null; }
+  function nubeDeLeccion(l) {
+    const n = nubeDeModulo(l.modulo); if (n) return n;
+    if (!MODS_NUBE_POR_LECCION.includes(l.modulo.id)) return null;
+    const principal = l.titulo.split(' - ')[0]; // "Proyecto integrador - … Fabric …" no es de una nube
+    return NUBES.find((x) => x.re.test(principal)) || null;
+  }
+  const modNucleo = (n) => C.modulos.find((m) => m.id === n.nucleo);
+  const avanceNube = (n) => { const m = modNucleo(n); return m ? m.lecciones.filter((l) => Store.lessonDone(l)).length : 0; };
+  const nubeTerminada = (n) => { const m = modNucleo(n); return !!m && m.lecciones.length > 0 && m.lecciones.every((l) => Store.lessonDone(l)); };
+  function estadoNubes() {
+    if (!Store.data.nubes) {
+      // quien ya había avanzado en alguna nube antes de este cambio la conserva abierta
+      const con = NUBES.filter((n) => C.modulos.some((m) => n.mods.includes(m.id) && m.lecciones.some((l) => Store.lessonDone(l))));
+      Store.data.nubes = { orden: con.sort((a, b) => Number(nubeTerminada(b)) - Number(nubeTerminada(a))).map((n) => n.id) };
+    }
+    return Store.data.nubes;
+  }
+  const nubeAbierta = (n) => estadoNubes().orden.includes(n.id);
+  function nubeActual() { const o = estadoNubes().orden; for (let i = o.length - 1; i >= 0; i--) { const n = NUBES.find((x) => x.id === o[i]); if (n) return n; } return null; }
+  // se puede elegir otra nube si todavía no elegiste, si terminaste la actual o si aún no hiciste ninguna lección de ella
+  function puedeElegirNube() { const a = nubeActual(); return !a || NUBES.every((n) => !nubeAbierta(n) || nubeTerminada(n)) || avanceNube(a) === 0; }
+  function elegirNube(id) {
+    const n = NUBES.find((x) => x.id === id); if (!n || nubeAbierta(n)) return true;
+    if (!puedeElegirNube()) return false;
+    const E = estadoNubes(), a = nubeActual();
+    if (a && !nubeTerminada(a) && avanceNube(a) === 0) E.orden = E.orden.filter((x) => x !== a.id); // cambio de opinión antes de empezar
+    E.orden.push(n.id); Store.saveSoon(); return true;
+  }
+  const leccionBloqueada = (l) => { const n = nubeDeLeccion(l); return n && !nubeAbierta(n) ? n : null; };
+  const moduloBloqueado = (m) => { const n = nubeDeModulo(m); return n && !nubeAbierta(n) ? n : null; };
+  // tarjetas para elegir nube (en la ruta y en la pantalla de bloqueo)
+  function selectorNubes(destacada) {
+    const a = nubeActual(), puede = puedeElegirNube();
+    return `<div class="nubes-sel">${NUBES.map((n) => {
+      const abierta = nubeAbierta(n), hecha = nubeTerminada(n), m = modNucleo(n);
+      const estado = hecha ? '<span class="badge lvl-basic">✓ Terminada</span>' : abierta ? `<span class="badge">En curso · ${avanceNube(n)}/${m ? m.lecciones.length : 0}</span>` : puede ? '' : '<span class="badge">🔒 Bloqueada</span>';
+      const accion = abierta ? `<a class="btn btn-sm${hecha ? '' : ' btn-primary'}" href="#/m/${n.nucleo}">${hecha ? 'Repasar' : 'Seguir'} →</a>`
+        : puede ? `<button class="btn btn-sm btn-primary" data-elegir-nube="${n.id}">${a && !nubeTerminada(a) ? 'Cambiar a esta nube' : 'Elegir esta nube'}</button>`
+        : `<span class="small muted">Se desbloquea al terminar ${esc(NUBES.filter((x) => nubeAbierta(x) && !nubeTerminada(x)).map((x) => x.nombre).join(' y ') || (a ? a.nombre : ''))}</span>`;
+      return `<div class="nube-card${abierta ? ' abierta' : ''}${destacada === n.id ? ' destacada' : ''}"><div class="nube-cab"><span class="nube-ico">${n.ico}</span><b>${esc(n.nombre)}</b>${estado}</div><p class="small">${esc(n.desc)}</p><div>${accion}</div></div>`;
+    }).join('')}</div>`;
+  }
+  function conectarSelectorNubes(root, alElegir) {
+    root.querySelectorAll('[data-elegir-nube]').forEach((b) => b.addEventListener('click', () => {
+      const n = NUBES.find((x) => x.id === b.dataset.elegirNube);
+      const a = nubeActual();
+      const msg = a && !nubeTerminada(a) ? `¿Cambiar tu nube de ${a.nombre} a ${n.nombre}? Todavía no hiciste lecciones de ${a.nombre}, así que puedes cambiar sin perder nada.` : `¿Elegir ${n.nombre}? La aprenderás completa; cuando termines su módulo podrás elegir la siguiente nube.`;
+      if (!confirm(msg)) return;
+      if (elegirNube(n.id)) { toast(`Elegiste ${n.nombre}. ¡A por ella!`); if (alElegir) alElegir(n); else if (location.hash === `#/m/${n.nucleo}`) route(); else location.hash = `#/m/${n.nucleo}`; }
+      else toast('Primero termina tu nube actual.');
+    }));
+  }
+  function viewNubeBloqueada(n, que) {
+    const a = nubeActual();
+    main.innerHTML = `<div class="container prose">
+      <div class="crumbs"><a href="#/">Inicio</a><span>/</span><a href="#/ruta">Ruta</a><span>/</span><span>${esc(n.nombre)}</span></div>
+      <h1>🔒 ${esc(que)} es de ${esc(n.nombre)}</h1>
+      <p>En el curso trabajas <b>una nube a la vez</b>: la aprendes a fondo antes de pasar a la siguiente. Los conceptos se repiten entre nubes con otros nombres (un <i>bucket</i> de S3 es un contenedor de ADLS o un bucket de Cloud Storage), así que la segunda y la tercera se aprenden mucho más rápido.</p>
+      ${a ? (nubeTerminada(a) ? `<p>Terminaste <b>${esc(a.nombre)}</b>: puedes elegir tu próxima nube.</p>` : avanceNube(a) === 0 ? `<p>Elegiste <b>${esc(a.nombre)}</b> pero todavía no hiciste ninguna lección: aún puedes cambiar de nube.</p>` : `<p>Tu nube actual es <b>${esc(a.nombre)}</b> (llevas ${avanceNube(a)} de ${modNucleo(a).lecciones.length} lecciones de su módulo). Cuando la termines, se desbloquea la siguiente.</p>`) : '<p>Todavía no elegiste tu nube. Elige una para empezar:</p>'}
+      ${selectorNubes(n.id)}
+    </div>`;
+    conectarSelectorNubes(main);
+  }
+
   function etapasConModulos() {
     const usados = new Set();
     const out = ETAPAS.map((e) => ({ ...e, modulos: e.mods.map((id) => C.modulos.find((m) => m.id === id)).filter(Boolean) }));
     out.forEach((e) => e.modulos.forEach((m) => usados.add(m.id)));
-    const resto = C.modulos.filter((m) => !usados.has(m.id));
+    // las certificaciones no son parte de la ruta: tienen su propia sección (Preparación de certificaciones)
+    const resto = C.modulos.filter((m) => !usados.has(m.id) && !esModuloCert(m.id));
     if (resto.length) out.push({ id: 'otros', titulo: 'Más módulos', desc: '', modulos: resto });
     return out.filter((e) => e.modulos.length);
   }
@@ -1801,7 +1881,9 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   // ritmo: lectura (duración de cada lección) + unos 3 minutos por ejercicio, a 1 hora por día
   const MIN_POR_EJERCICIO = 3;
   function horasEtapa(e) {
-    const min = e.modulos.reduce((s, m) => s + m.lecciones.reduce((t, l) => t + l.duracion + l.ejercicios.length * MIN_POR_EJERCICIO, 0), 0);
+    // la etapa de la nube cuenta una sola nube: la elegida (o la de módulo más largo si todavía no eligió)
+    const mods = e.id !== 'e5' ? e.modulos : (() => { const a = nubeActual(); const m = a && e.modulos.find((x) => x.id === a.nucleo); return m ? [m] : [...e.modulos].sort((x, y) => y.lecciones.length - x.lecciones.length).slice(0, 1); })();
+    const min = mods.reduce((s, m) => s + m.lecciones.reduce((t, l) => t + l.duracion + l.ejercicios.length * MIN_POR_EJERCICIO, 0), 0);
     return Math.round(min / 60);
   }
   const semanas = (horas) => Math.max(1, Math.round(horas / 7));
@@ -1882,10 +1964,10 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (vis.length) {
       const ult = LESSON_BY_ID.get(vis[0][0]);
       if (!Store.lessonDone(ult)) return ult;
-      const sig = LESSONS.slice(LESSONS.indexOf(ult) + 1).find((l) => !Store.lessonDone(l));
+      const sig = LESSONS.slice(LESSONS.indexOf(ult) + 1).find((l) => !Store.lessonDone(l) && !leccionBloqueada(l) && !esModuloCert(l.modulo.id));
       if (sig) return sig;
     }
-    return LESSONS.find((l) => !Store.lessonDone(l)) || LESSONS[0];
+    return LESSONS.find((l) => !Store.lessonDone(l) && !leccionBloqueada(l) && !esModuloCert(l.modulo.id)) || LESSONS[0];
   }
   function etapaActual() {
     const empezo = totalProgress().done > 0 || Object.keys(Store.data.ex).length > 0;
@@ -1948,13 +2030,14 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
         const p = moduleProgress(m);
         const open = m.id === cur;
         html += `<div class="side-module ${open ? 'open' : ''}" data-mod="${m.id}">
-          <button class="side-link ${open && route.name === 'module' ? 'active' : ''}" data-toggle="${m.id}"><span class="ico">${m.icono}</span><span>${esc(m.titulo)}</span><span class="meta">${p.done}/${p.total}</span><span class="chev">▶</span></button>
+          <button class="side-link ${open && route.name === 'module' ? 'active' : ''}" data-toggle="${m.id}"><span class="ico">${m.icono}</span><span>${esc(m.titulo)}</span><span class="meta">${moduloBloqueado(m) ? '🔒' : `${p.done}/${p.total}`}</span><span class="chev">▶</span></button>
           <div class="side-lessons">`;
         let lastLevel = null;
         for (const l of m.lecciones) {
           if (l.nivel !== lastLevel) { html += `<div class="side-level">${esc(l.nivel)}</div>`; lastLevel = l.nivel; }
           const d = Store.lessonDone(l);
-          html += `<a href="#/l/${l.id}" data-lesson="${l.id}" class="${route.lesson === l ? 'active' : ''} ${d ? 'done' : ''}"><span class="dot">${d ? '✓' : '○'}</span><span>${esc(l.titulo)}</span></a>`;
+          const lb = leccionBloqueada(l);
+          html += `<a href="#/l/${l.id}" data-lesson="${l.id}" class="${route.lesson === l ? 'active' : ''} ${d ? 'done' : ''}${lb ? ' bloqueada' : ''}"${lb ? ` title="Se abre con ${esc(lb.nombre)}"` : ''}><span class="dot">${d ? '✓' : lb ? '🔒' : '○'}</span><span>${esc(l.titulo)}</span></a>`;
         }
         html += '</div></div>';
       }
@@ -1969,7 +2052,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     html += link('#/glosario', '📖', 'Glosario', route.name === 'glosario');
     html += link('#/repaso', '🃏', 'Tarjetas de repaso', route.name === 'repaso');
     html += link('#/examenes', '📝', 'Exámenes y certificado', route.name === 'examenes' || route.name === 'examen');
-    if ((C.certificaciones || []).length) html += link('#/certificaciones', '🏅', 'Certificaciones', route.name === 'certificaciones' || route.name === 'simulacro' || route.name === 'claves' || route.name === 'plan');
+    if ((C.certificaciones || []).length) html += link('#/certificaciones', '🏅', 'Preparación de certificaciones', route.name === 'certificaciones' || route.name === 'simulacro' || route.name === 'claves' || route.name === 'plan');
     html += link('#/revisar-repo', '🔎', 'Revisar mi proyecto en GitHub', route.name === 'revisar-repo');
     html += link('#/progreso', '📈', 'Mi progreso', route.name === 'progreso');
     html += link('#/mis-datos', '🗂️', 'Mis datos', route.name === 'mis-datos');
@@ -2145,15 +2228,16 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   function viewRuta() {
     main.innerHTML = `<div class="container prose">
       <h1>🧭 Ruta de aprendizaje</h1>
-      ${(() => { const E = etapasConModulos(), hs = (ids) => E.filter((e) => ids.includes(e.id)).reduce((s, e) => s + horasEtapa(e), 0); const h14 = hs(['e1', 'e2', 'e3', 'e4']), h18 = hs(['e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'ep', 'e8']);
-        return `<p>Este es el camino recomendado si empiezas de cero, organizado en etapas. Cada paso se apoya en el anterior. Dedicando <b>1 hora al día</b>, las etapas 1 a 4 llevan unas <b>${semanas(h14)} semanas</b> (unos ${Math.round(semanas(h14) / 4.3)} meses) y las etapas 1 a 8, unas <b>${semanas(h18)} semanas</b>. Las cuentas suman el tiempo de lectura de cada lección y unos ${MIN_POR_EJERCICIO} minutos por ejercicio: tómalas como una guía, no como una meta. No hay prisa: lo importante es <b>practicar</b>.</p>`; })()}
+      ${(() => { const E = etapasConModulos(), hs = (ids) => E.filter((e) => ids.includes(e.id)).reduce((s, e) => s + horasEtapa(e), 0); const h14 = hs(['e1', 'e2', 'e3', 'e4']), h18 = hs(['e1', 'e2', 'e3', 'e4', 'e5', 'e5p', 'e6', 'e7', 'ep', 'e8']);
+        return `<p>Este es el camino recomendado si empiezas de cero, organizado en etapas. Cada paso se apoya en el anterior. Dedicando <b>1 hora al día</b>, las etapas 1 a 4 llevan unas <b>${semanas(h14)} semanas</b> (unos ${Math.round(semanas(h14) / 4.3)} meses) y la ruta completa (etapas 1 a 7 con una nube, más el trabajo real), unas <b>${semanas(h18)} semanas</b>. Las cuentas suman el tiempo de lectura de cada lección y unos ${MIN_POR_EJERCICIO} minutos por ejercicio: tómalas como una guía, no como una meta. No hay prisa: lo importante es <b>practicar</b>.</p>`; })()}
       <div class="callout"><p style="margin-top:0"><b>¿Ya sabes algo de SQL, Python o Spark?</b> ${Store.data.diagnostico ? `Tu diagnóstico recomendó empezar en <b>${esc((ETAPAS.find((e) => e.id === Store.data.diagnostico.etapa) || {}).titulo || '')}</b>.` : 'Haz la prueba de diagnóstico: 13 preguntas, unos 5 minutos, y te dice en qué etapa conviene empezar.'}</p><p class="not-prose"><a class="btn btn-sm" href="#/diagnostico">${Store.data.diagnostico ? 'Repetir el diagnóstico' : 'Hacer el diagnóstico →'}</a></p></div>
       <div class="callout"><p style="margin-top:0"><b>Repaso semanal.</b> Una vez por semana, dedica 10 minutos a las <a href="#/repaso">tarjetas de repaso</a> y vuelve a resolver, sin mirar, dos ejercicios de la semana anterior. Lo que no se repasa se olvida en pocas semanas; con repasos cortos y espaciados queda.</p></div>
-      <div class="path not-prose">${C.modulos.map((m, i) => `${i ? '<span class="arr">→</span>' : ''}<a href="#/m/${m.id}">${m.icono} ${esc(m.titulo)}</a>`).join('')}</div>
-      ${(() => { let i = 0; return etapasConModulos().map((e) => { const hr = horasEtapa(e); return `<h2 class="etapa-title">${esc(e.titulo)}</h2>${e.desc ? `<p><i>${esc(e.desc)}</i></p>` : ''}<p class="muted small">⏱ Unas ${hr} horas de lectura y práctica: <b>${semanas(hr)} ${semanas(hr) === 1 ? 'semana' : 'semanas'}</b> a 1 hora por día.${Store.data.diagnostico && Store.data.diagnostico.etapa === e.id ? ' · 📍 <b>Tu diagnóstico recomienda empezar aquí</b>' : ''}</p>` + e.modulos.map((m) => {
+      <div class="path not-prose">${C.modulos.filter((m) => !esModuloCert(m.id)).map((m, i) => `${i ? '<span class="arr">→</span>' : ''}<a href="#/m/${m.id}">${m.icono} ${esc(m.titulo)}</a>`).join('')}</div>
+      ${(() => { let i = 0; return etapasConModulos().map((e) => { const hr = horasEtapa(e); return `<h2 class="etapa-title">${esc(e.titulo)}</h2>${e.desc ? `<p><i>${esc(e.desc)}</i></p>` : ''}${e.id === 'e5' ? `<div class="not-prose" data-nubes>${selectorNubes()}</div>` : ''}<p class="muted small">⏱ Unas ${hr} horas de lectura y práctica: <b>${semanas(hr)} ${semanas(hr) === 1 ? 'semana' : 'semanas'}</b> a 1 hora por día.${Store.data.diagnostico && Store.data.diagnostico.etapa === e.id ? ' · 📍 <b>Tu diagnóstico recomienda empezar aquí</b>' : ''}</p>` + e.modulos.map((m) => {
         const p = moduleProgress(m); i++;
         const levels = [...new Set(m.lecciones.map((l) => l.nivel))];
-        return `<h3>Paso ${i}: ${m.icono} ${esc(m.titulo)} <span class="badge">${p.done}/${p.total}</span></h3>
+        const bloq = moduloBloqueado(m);
+        return `<h3>Paso ${i}: ${m.icono} ${esc(m.titulo)} <span class="badge">${bloq ? '🔒 ' : ''}${p.done}/${p.total}</span></h3>
         <p>${esc(m.descripcion)}</p>
         ${m.objetivos ? `<p><b>Al terminar podrás:</b></p><ul>${m.objetivos.map((o) => `<li>${esc(o)}</li>`).join('')}</ul>` : ''}
         <p class="muted small">Niveles: ${levels.map(esc).join(' → ')} · ${m.lecciones.reduce((s, l) => s + l.duracion, 0)} min aprox.</p>
@@ -2162,9 +2246,11 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       <h2>Consejos para no abandonar</h2>
       <ul><li>Escribe el código tú mismo, no lo copies: la memoria muscular importa.</li><li>Si un ejercicio te frustra, pide una pista, descansa 5 minutos y vuelve.</li><li>Repasa: vuelve a resolver ejercicios viejos sin mirar la solución.</li><li>Usa los laboratorios para experimentar libremente: no puedes romper nada.</li><li>Cuando termines, arma un proyecto propio y súbelo a GitHub para tu portafolio.</li></ul>
     </div>`;
+    conectarSelectorNubes(main);
   }
 
   function viewModule(m) {
+    const bloq = moduloBloqueado(m); if (bloq) return viewNubeBloqueada(bloq, 'Este módulo');
     const p = moduleProgress(m);
     let lastLevel = null, html = '';
     m.lecciones.forEach((l, i) => {
@@ -2360,6 +2446,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   }
 
   function viewLesson(l) {
+    const bloq = leccionBloqueada(l); if (bloq) return viewNubeBloqueada(bloq, 'Esta lección');
     const m = l.modulo;
     const idx = LESSONS.indexOf(l);
     const prev = LESSONS[idx - 1], next = LESSONS[idx + 1];
@@ -3539,9 +3626,13 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     const N = notas();
     let prov = '';
     main.innerHTML = `<div class="container">
-      <h1 style="margin-bottom:4px">🏅 Certificaciones</h1>
+      <h1 style="margin-bottom:4px">🏅 Preparación de certificaciones</h1>
       <p class="muted" style="margin-top:0">Las certificaciones de datos e IA de Databricks, Azure, AWS y Google Cloud, con su temario completo: cada dominio del examen, cuánto pesa y qué lecciones del curso lo cubren. Para cada una tienes un <b>plan de estudio</b> que se arma con la fecha de tu examen, <b>tarjetas</b> de las situaciones típicas, <b>práctica por dominio</b> y un <b>simulacro</b> con la cantidad de preguntas y el tiempo del examen real.</p>
       <div class="callout callout-cuidado"><div class="callout-title">⚠️ Los temarios cambian seguido</div><p>Los dominios y porcentajes vienen de las guías oficiales vigentes en la fecha que indica cada certificación. Los proveedores los actualizan varias veces al año y cambian nombres de productos: <b>antes de rendir, confirma el temario en la guía oficial</b> (el enlace está en cada tarjeta).</p></div>
+      <h2 class="section-title">📚 Lecciones de preparación por proveedor</h2>
+      <p class="muted">Están fuera de la ruta del curso: son un repaso orientado al examen. Rinde la de una nube cuando ya terminaste esa nube en la ruta (etapa 5).</p>
+      <div class="cert-mods">${C.modulos.filter((m) => esModuloCert(m.id)).map((m) => { const p = moduleProgress(m); return `<a class="card cert-mod" href="#/m/${m.id}"><b>${m.icono} ${esc(m.titulo)}</b><span class="small muted">${m.lecciones.length} lecciones · ${p.done} hechas</span></a>`; }).join('')}</div>
+      <h2 class="section-title">🎯 Las certificaciones, una por una</h2>
       <div class="gloss-filter" id="cprov"><button class="chip active" data-p="">Todas</button>${provs.map((p) => `<button class="chip" data-p="${esc(p)}">${esc(p)} <span class="muted">${CERTS.filter((c) => c.proveedor === p).length}</span></button>`).join('')}</div>
       <div id="clist"></div>
     </div>`;

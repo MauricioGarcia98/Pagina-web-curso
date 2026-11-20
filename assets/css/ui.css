@@ -707,3 +707,15 @@ body.herr-on :is(a, button, [role="button"], [tabindex], summary, select):focus-
 .practica-cmd { text-align: left; font-family: var(--mono, monospace); font-size: 12px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: inherit; cursor: pointer; white-space: pre-wrap; word-break: break-all; }
 .practica-cmd:hover { border-color: var(--brand); }
 .practica-pie { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+
+/* una nube a la vez: tarjetas para elegir */
+.nubes-sel { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 12px 0 18px; }
+.nube-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: var(--surface); display: flex; flex-direction: column; gap: 6px; }
+.nube-card p { margin: 0; flex: 1; }
+.nube-card.abierta { border-color: var(--brand); }
+.nube-card.destacada { box-shadow: 0 0 0 2px var(--brand) inset; }
+.nube-cab { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.nube-ico { font-size: 22px; }
+.side-lessons a.bloqueada { opacity: .6; }
+.cert-mods { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 8px; }
+.cert-mod { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; text-decoration: none; color: inherit; }
