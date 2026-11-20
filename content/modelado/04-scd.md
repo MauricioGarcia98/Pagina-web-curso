@@ -144,6 +144,30 @@ Si a veces quieren "ventas por el segmento de entonces" y otras "por el segmento
 Explica las columnas (clave sustituta, clave natural, atributos, `valido_desde`, `valido_hasta`, `es_actual`); el proceso de carga (comparar la foto nueva con la versión actual; si cambió un atributo tipo 2, cerrar la vigente con la fecha del cambio e insertar una nueva; si cambió uno tipo 1, actualizarlo en todas las versiones); y el JOIN point-in-time con rango semiabierto o guardando la clave sustituta en el hecho. Menciona herramientas: `dbt snapshot`, `MERGE` en Delta.
 :::
 
+:::practica sql Una dimensión SCD tipo 2 desde un registro de cargas
+1. Ejecuta: `clientes_crudo` trae cada carga del cliente con su fecha; `LEAD` busca la siguiente versión.
+2. `valido_desde` / `valido_hasta` arman el historial; la versión actual tiene `valido_hasta` nulo.
+3. Busca un cliente que cambió de ciudad y mira sus versiones. Fíjate en `lima` y `Lima`: la fuente cambió solo las mayúsculas y eso creó una versión que no es un cambio real. Antes de historizar, normaliza (`INITCAP(TRIM(ciudad))`) para no inflar la dimensión.
+
+```sql norun
+WITH versiones AS (
+    SELECT cliente_id, ciudad, fecha_carga AS valido_desde,
+           LEAD(fecha_carga) OVER (PARTITION BY cliente_id ORDER BY fecha_carga) AS valido_hasta
+    FROM clientes_crudo
+)
+SELECT cliente_id, ciudad, valido_desde, valido_hasta,
+       CASE WHEN valido_hasta IS NULL THEN 1 ELSE 0 END AS es_actual
+FROM versiones
+WHERE cliente_id IN (SELECT cliente_id FROM clientes_crudo GROUP BY cliente_id HAVING COUNT(DISTINCT ciudad) > 1)
+ORDER BY cliente_id, valido_desde
+LIMIT 20;
+```
+
+Reto: une una tabla de hechos con la versión vigente **en la fecha del hecho** (point-in-time): `fecha BETWEEN valido_desde AND COALESCE(valido_hasta, '9999-12-31')`.
+
+Documentación oficial: [SCD tipo 2 (Kimball Group)](https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-2/) · [snapshots de dbt](https://docs.getdbt.com/docs/build/snapshots)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

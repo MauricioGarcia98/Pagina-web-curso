@@ -69,6 +69,32 @@ flecha m -> t
 Revisar el resultado todos los días y cortar el experimento “cuando da significativo” infla los falsos positivos. Se fija antes cuántos usuarios hacen falta y se lee al final.
 :::
 
+:::practica python Leer un experimento con una prueba z
+1. Ejecuta: con las conversiones de cada grupo, la prueba z para dos proporciones dice si la diferencia puede ser azar.
+2. Mira el valor p: si es menor a 0,05 (el umbral que fijaste **antes** de mirar), la diferencia es estadísticamente significativa.
+3. Con estos datos el valor p es muy alto: **no hay evidencia** de que el checkout nuevo convierta mejor. Esa también es una respuesta valiosa (y la más común en experimentos reales).
+4. Mira también el tamaño del efecto: aunque algo sea significativo, puede ser demasiado chico para importar.
+
+```python norun
+from math import sqrt, erf
+
+# conversiones reales de experimento_checkout (contadas con SQL, ver el reto)
+n_a, conv_a = 1014, 126   # control
+n_b, conv_b = 986, 123    # nuevo_checkout
+
+p_a, p_b = conv_a / n_a, conv_b / n_b
+p = (conv_a + conv_b) / (n_a + n_b)
+z = (p_b - p_a) / sqrt(p * (1 - p) * (1 / n_a + 1 / n_b))
+valor_p = 2 * (1 - 0.5 * (1 + erf(abs(z) / sqrt(2))))
+print(f"control {p_a:.1%} · nuevo {p_b:.1%} · diferencia {p_b - p_a:+.1%}")
+print(f"z = {z:.2f} · valor p = {valor_p:.4f}")
+```
+
+Reto: verifica los números en el laboratorio SQL (`SELECT grupo, COUNT(*), SUM(convirtio) FROM experimento_checkout GROUP BY grupo`) y calcula cuántos usuarios por grupo harían falta para detectar una mejora de 2 puntos.
+
+Documentación oficial: [módulo math](https://docs.python.org/es/3/library/math.html) · [módulo statistics](https://docs.python.org/es/3/library/statistics.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql dificultad=Básico

@@ -201,6 +201,29 @@ GROUP BY d.segmento;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Una dimensión SCD tipo 2 desde un registro de cargas</div>
+
+<ol>
+<li>Ejecuta: <code>clientes_crudo</code> trae cada carga del cliente con su fecha; <code>LEAD</code> busca la siguiente versión.</li>
+<li><code>valido_desde</code> / <code>valido_hasta</code> arman el historial; la versión actual tiene <code>valido_hasta</code> nulo.</li>
+<li>Busca un cliente que cambió de ciudad y mira sus versiones. Fíjate en <code>lima</code> y <code>Lima</code>: la fuente cambió solo las mayúsculas y eso creó una versión que no es un cambio real. Antes de historizar, normaliza (<code>INITCAP(TRIM(ciudad))</code>) para no inflar la dimensión.</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH versiones AS (
+    SELECT cliente_id, ciudad, fecha_carga AS valido_desde,
+           LEAD(fecha_carga) OVER (PARTITION BY cliente_id ORDER BY fecha_carga) AS valido_hasta
+    FROM clientes_crudo
+)
+SELECT cliente_id, ciudad, valido_desde, valido_hasta,
+       CASE WHEN valido_hasta IS NULL THEN 1 ELSE 0 END AS es_actual
+FROM versiones
+WHERE cliente_id IN (SELECT cliente_id FROM clientes_crudo GROUP BY cliente_id HAVING COUNT(DISTINCT ciudad) &gt; 1)
+ORDER BY cliente_id, valido_desde
+LIMIT 20;</code></pre>
+<p>Reto: une una tabla de hechos con la versión vigente <strong>en la fecha del hecho</strong> (point-in-time): <code>fecha BETWEEN valido_desde AND COALESCE(valido_hasta, &#39;9999-12-31&#39;)</code>.</p>
+<p>Documentación oficial: <a href="https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-2/">SCD tipo 2 (Kimball Group)</a> · <a href="https://docs.getdbt.com/docs/build/snapshots">snapshots de dbt</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

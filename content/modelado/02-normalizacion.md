@@ -157,6 +157,37 @@ La diferencia clave: en analítica, la repetición **no es peligrosa** porque na
 3FN: cada columna depende de la clave, de toda la clave y de nada más que la clave; elimina repeticiones y anomalías de actualización, inserción y borrado, ideal para sistemas transaccionales con muchas escrituras. Un warehouse se desnormaliza a propósito (esquema estrella) porque prioriza consultas rápidas y simples sobre grandes volúmenes; la repetición no es un riesgo porque las tablas las regenera un pipeline desde la fuente normalizada, no se editan a mano.
 :::
 
+:::practica sql De una planilla plana a tablas normalizadas
+1. Ejecuta: `planilla` repite el nombre del cliente y del producto en cada fila (así llegan los Excel).
+2. Las dos consultas siguientes sacan esas repeticiones a sus propias tablas (3FN): cada dato vive en un solo lugar.
+3. Verifica: la cantidad de clientes distintos de la planilla coincide con las filas de `cliente_n`.
+
+```sql norun
+DROP TABLE IF EXISTS planilla;
+CREATE TABLE planilla AS
+SELECT p.pedido_id, p.fecha_pedido, c.cliente_id, c.nombre AS cliente, c.ciudad,
+       pr.producto_id, pr.nombre AS producto, pr.precio, d.cantidad
+FROM pedidos p
+JOIN clientes c         ON c.cliente_id = p.cliente_id
+JOIN detalle_pedidos d  ON d.pedido_id = p.pedido_id
+JOIN productos pr       ON pr.producto_id = d.producto_id
+WHERE p.pedido_id <= 50;
+
+DROP TABLE IF EXISTS cliente_n;
+CREATE TABLE cliente_n  AS SELECT DISTINCT cliente_id, cliente, ciudad FROM planilla;
+DROP TABLE IF EXISTS producto_n;
+CREATE TABLE producto_n AS SELECT DISTINCT producto_id, producto, precio FROM planilla;
+
+SELECT (SELECT COUNT(*) FROM planilla)  AS filas_planilla,
+       (SELECT COUNT(*) FROM cliente_n) AS clientes,
+       (SELECT COUNT(*) FROM producto_n) AS productos;
+```
+
+Reto: crea la tabla `pedido_n` (una fila por pedido) y la tabla `linea_n` (una fila por línea), y reconstruye la planilla con JOINs.
+
+Documentación oficial: [normalización (Microsoft)](https://learn.microsoft.com/es-es/office/troubleshoot/access/database-normalization-description) · [CREATE TABLE AS](https://duckdb.org/docs/current/sql/statements/create_table)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

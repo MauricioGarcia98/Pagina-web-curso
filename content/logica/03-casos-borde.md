@@ -74,6 +74,31 @@ ganadores = [nombre for nombre, v in ventas.items() if v == maximo]
 print(ganadores)  # ['Ana', 'Luis']
 ```
 
+:::practica python Romper tu propia solución
+1. Ejecuta: la función pasa el caso normal.
+2. Descomenta los casos borde uno por uno: lista vacía, un solo elemento, empates, valores `None`.
+3. Arregla la función hasta que todos pasen, decidiendo qué devolver en cada caso raro.
+
+```python norun
+def mas_vendido(ventas):
+    totales = {}
+    for p, c in ventas:
+        totales[p] = totales.get(p, 0) + c
+    return max(totales, key=totales.get)
+
+assert mas_vendido([("a", 2), ("b", 5), ("a", 1)]) == "b"
+# assert mas_vendido([]) is None                          # lista vacía
+# assert mas_vendido([("a", 1)]) == "a"                    # un solo elemento
+# assert mas_vendido([("a", 2), ("b", 2)]) == ["a", "b"]   # empate: devuelve todos
+# assert mas_vendido([("a", None), ("b", 1)]) == "b"       # dato faltante
+print("todas las pruebas pasaron")
+```
+
+Reto: escribe los mismos casos como tests de pytest en un archivo `test_ventas.py` y córrelos en la terminal.
+
+Documentación oficial: [max()](https://docs.python.org/es/3/library/functions.html#max) · [pytest](https://docs.pytest.org/en/stable/getting-started.html)
+:::
+
 :::ejercicio quiz
 Esta función busca el número más grande. ¿Con qué entrada da un resultado **incorrecto**?
 ```python norun

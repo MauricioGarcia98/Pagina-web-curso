@@ -90,6 +90,27 @@ Unir `pedidos` con `detalle_pedidos` da **una fila por línea de detalle**, no p
 
 Regla práctica: **agrega antes de unir** cuando juntas dos tablas que tienen muchas filas por la misma clave.
 
+:::practica sql Construir por capas y contar filas en cada una
+1. Pregunta: "clientes que compraron en los 4 canales". Grano final: una fila por cliente.
+2. Ejecuta: cada CTE es una capa y la consulta final cuenta filas en cada una: si un número no tiene sentido, el error está en esa capa.
+3. Fíjate en la trampa del JOIN: unir pedidos con detalle multiplica filas.
+
+```sql norun
+WITH capa1 AS (SELECT DISTINCT cliente_id, canal FROM pedidos),
+     capa2 AS (SELECT cliente_id, COUNT(*) AS canales FROM capa1 GROUP BY cliente_id),
+     final AS (SELECT cliente_id FROM capa2 WHERE canales = 4)
+SELECT (SELECT COUNT(*) FROM pedidos) AS pedidos,
+       (SELECT COUNT(*) FROM capa1)   AS cliente_canal,
+       (SELECT COUNT(*) FROM capa2)   AS clientes,
+       (SELECT COUNT(*) FROM final)   AS en_4_canales,
+       (SELECT COUNT(*) FROM pedidos p JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id) AS filas_tras_join;
+```
+
+Reto: resuelve lo mismo con un solo `GROUP BY … HAVING COUNT(DISTINCT canal) = 4` y verifica que da igual.
+
+Documentación oficial: [CTEs](https://duckdb.org/docs/current/sql/query_syntax/with) · [HAVING](https://duckdb.org/docs/current/sql/query_syntax/having)
+:::
+
 :::ejercicio quiz
 "Cantidad de pedidos por mes y canal." ¿Cuál es la granularidad del resultado?
 - [ ] Una fila por pedido

@@ -66,6 +66,22 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Desafío de entrevista con reloj: sesiones</div>
+
+<ol>
+<li>Pedido (25 minutos): &quot;dado un registro de eventos (usuario, minuto), agrupa en sesiones: una sesión se corta si pasan más de 30 minutos sin eventos. Devuelve cuántas sesiones tiene cada usuario&quot;.</li>
+<li>Aplica el método completo: ejemplo a mano, plan, código, casos borde.</li>
+<li>Explica la complejidad de tu solución en voz alta, como en una entrevista.</li>
+</ol>
+<pre data-norun><code class="language-python">eventos = [(&quot;ana&quot;, 0), (&quot;ana&quot;, 10), (&quot;ana&quot;, 50), (&quot;luis&quot;, 5), (&quot;ana&quot;, 55), (&quot;luis&quot;, 100)]
+# esperado: ana → 2 sesiones (0-10 y 50-55), luis → 2 sesiones
+# tu solución acá
+print(sorted(eventos))</code></pre>
+<p>Reto: resuélvelo también en SQL con <code>LAG</code> y una suma acumulada de &quot;inicios de sesión&quot;, y compara.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/library/itertools.html#itertools.groupby">itertools.groupby</a> · <a href="https://duckdb.org/docs/current/sql/functions/window_functions">LAG en SQL</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

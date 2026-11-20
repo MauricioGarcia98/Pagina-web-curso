@@ -185,6 +185,32 @@ print(mejor_vendedor([]))</code></pre>
 <li><strong>Cómo lo resuelvo</strong> (&quot;sumo por vendedor y busco el máximo&quot;).</li>
 <li><strong>Qué probé</strong> (&quot;lista vacía, un solo vendedor y un empate&quot;).</li>
 </ol>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El método en un problema nuevo</div>
+
+<ol>
+<li>Problema: &quot;dada una lista de ventas (producto, cantidad), devuelve el <strong>segundo</strong> producto más vendido&quot;.</li>
+<li>Antes de tocar el código: escribe un ejemplo chico y la respuesta esperada a mano.</li>
+<li>Ejecuta: el código sigue los pasos del método (entender, ejemplo, plan, código, verificar).</li>
+</ol>
+<pre data-norun><code class="language-python">ventas = [(&quot;mouse&quot;, 3), (&quot;teclado&quot;, 5), (&quot;mouse&quot;, 4), (&quot;monitor&quot;, 2), (&quot;teclado&quot;, 1)]
+
+# plan: 1) sumar por producto  2) ordenar de mayor a menor  3) tomar el segundo
+totales = {}
+for producto, cantidad in ventas:
+    totales[producto] = totales.get(producto, 0) + cantidad
+
+ranking = sorted(totales.items(), key=lambda x: x[1], reverse=True)
+print(ranking)
+print(&quot;segundo:&quot;, ranking[1][0])
+
+# verificar con el ejemplo hecho a mano
+assert ranking[1][0] == &quot;teclado&quot; or ranking[1][0] == &quot;mouse&quot;</code></pre>
+<p>Reto: ¿qué pasa si hay empate en el segundo puesto o si hay un solo producto? Decide qué devolver y agrégalo.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/howto/sorting.html">ordenar en Python</a> · <a href="https://docs.python.org/es/3/tutorial/datastructures.html#dictionaries">diccionarios</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

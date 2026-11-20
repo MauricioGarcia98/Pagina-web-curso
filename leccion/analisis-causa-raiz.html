@@ -49,6 +49,31 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Descomponer una caída por canal</div>
+
+<ol>
+<li>Ejecuta: ventas de dos meses por canal y la diferencia.</li>
+<li>La columna <code>aporte_pct</code> dice qué parte de la variación total explica cada canal.</li>
+<li>Antes de concluir, revisa la otra mitad de la ecuación: ¿bajaron los pedidos o el ticket?</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH m AS (
+    SELECT p.canal,
+           SUM(CASE WHEN SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 7) = '2024-10' THEN d.cantidad * d.precio_unitario * (1 - d.descuento) ELSE 0 END) AS oct,
+           SUM(CASE WHEN SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 7) = '2024-11' THEN d.cantidad * d.precio_unitario * (1 - d.descuento) ELSE 0 END) AS nov
+    FROM pedidos p
+    JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+    WHERE p.estado = 'entregado'
+    GROUP BY p.canal
+)
+SELECT canal, ROUND(oct, 2) AS oct, ROUND(nov, 2) AS nov, ROUND(nov - oct, 2) AS diferencia,
+       ROUND(100.0 * (nov - oct) / SUM(nov - oct) OVER (), 1) AS aporte_pct
+FROM m
+ORDER BY diferencia;</code></pre>
+<p>Reto: separa la diferencia de cada canal en efecto cantidad de pedidos y efecto ticket promedio.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/window_functions">SUM() OVER ()</a></p>
+</div>
+
+
 <h2>Caso real: así te lo piden en un trabajo</h2>
 <p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
 <div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>

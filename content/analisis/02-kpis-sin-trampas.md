@@ -237,6 +237,28 @@ Antes de celebrar, buscaría un cambio en la definición o en los datos: un join
 | Fan-out | Totales inflados después de un join | Llevar al grano antes de unir; contar filas |
 | Población | La métrica cambia sola con el tiempo | Filtros escritos y ventana de maduración |
 
+:::practica sql El ticket promedio bien calculado
+1. Ejecuta: las dos columnas pretenden ser "el ticket promedio" y dan distinto.
+2. La primera promedia líneas de detalle (un pedido con 5 líneas pesa 5 veces); la segunda divide el total por la cantidad de **pedidos**: esa es la definición correcta.
+3. Escribe la ficha del KPI: numerador, denominador, filtro y grano.
+
+```sql norun
+WITH lineas AS (
+    SELECT d.pedido_id, d.cantidad * d.precio_unitario * (1 - d.descuento) AS importe
+    FROM detalle_pedidos d
+    JOIN pedidos p ON p.pedido_id = d.pedido_id
+    WHERE p.estado = 'entregado'
+)
+SELECT ROUND(AVG(importe), 2)                                    AS promedio_por_linea,     -- trampa
+       ROUND(SUM(importe) / COUNT(DISTINCT pedido_id), 2)         AS ticket_promedio         -- correcto
+FROM lineas;
+```
+
+Reto: calcula el ticket promedio por canal y verifica que el promedio de esos tickets **no** es el ticket general (promedio de promedios).
+
+Documentación oficial: [agregaciones](https://duckdb.org/docs/current/sql/functions/aggregates) · [grano y modelo estrella (Microsoft)](https://learn.microsoft.com/es-es/power-bi/guidance/star-schema)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql dificultad=Básico

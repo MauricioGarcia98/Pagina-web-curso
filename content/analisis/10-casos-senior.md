@@ -90,6 +90,31 @@ líneas  ──GROUP BY pedido_id──▶  pedidos  ──GROUP BY cliente_id�
 (importe)                     (total)                           (pedidos, gasto, ticket)
 ```
 
+:::practica sql Un pedido ambiguo, dos versiones explícitas
+1. Pedido: "¿cuántos clientes activos tenemos?". "Activo" no está definido: la consulta entrega dos versiones con el supuesto escrito.
+2. Ejecuta y compara: la diferencia entre versiones es información para quien pregunta.
+3. Escribe en una línea qué recomendarías y por qué.
+
+```sql norun
+SELECT
+    -- versión A: compró al menos una vez en los últimos 90 días del período
+    COUNT(DISTINCT CASE WHEN fecha_pedido >= '2024-10-02' THEN cliente_id END) AS activos_90d,
+    -- versión B: compró en al menos 2 meses distintos del último año
+    (SELECT COUNT(*) FROM (
+        SELECT cliente_id FROM pedidos
+        WHERE fecha_pedido >= '2024-01-01' AND estado = 'entregado'
+        GROUP BY cliente_id
+        HAVING COUNT(DISTINCT SUBSTR(CAST(fecha_pedido AS VARCHAR), 1, 7)) >= 2
+    ) AS x) AS activos_recurrentes
+FROM pedidos
+WHERE estado = 'entregado';
+```
+
+Reto: agrega una tercera versión (inició sesión en los últimos 30 días, tabla `logins`) y arma la tabla de supuestos para el informe.
+
+Documentación oficial: [HAVING](https://duckdb.org/docs/current/sql/query_syntax/having)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql dificultad=Avanzado

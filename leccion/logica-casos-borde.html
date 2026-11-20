@@ -120,6 +120,31 @@ print(&quot;todas las pruebas pasaron&quot;)</code></pre>
 maximo = max(ventas.values())
 ganadores = [nombre for nombre, v in ventas.items() if v == maximo]
 print(ganadores)  # ['Ana', 'Luis']</code></pre>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Romper tu propia solución</div>
+
+<ol>
+<li>Ejecuta: la función pasa el caso normal.</li>
+<li>Descomenta los casos borde uno por uno: lista vacía, un solo elemento, empates, valores <code>None</code>.</li>
+<li>Arregla la función hasta que todos pasen, decidiendo qué devolver en cada caso raro.</li>
+</ol>
+<pre data-norun><code class="language-python">def mas_vendido(ventas):
+    totales = {}
+    for p, c in ventas:
+        totales[p] = totales.get(p, 0) + c
+    return max(totales, key=totales.get)
+
+assert mas_vendido([(&quot;a&quot;, 2), (&quot;b&quot;, 5), (&quot;a&quot;, 1)]) == &quot;b&quot;
+# assert mas_vendido([]) is None                          # lista vacía
+# assert mas_vendido([(&quot;a&quot;, 1)]) == &quot;a&quot;                    # un solo elemento
+# assert mas_vendido([(&quot;a&quot;, 2), (&quot;b&quot;, 2)]) == [&quot;a&quot;, &quot;b&quot;]   # empate: devuelve todos
+# assert mas_vendido([(&quot;a&quot;, None), (&quot;b&quot;, 1)]) == &quot;b&quot;       # dato faltante
+print(&quot;todas las pruebas pasaron&quot;)</code></pre>
+<p>Reto: escribe los mismos casos como tests de pytest en un archivo <code>test_ventas.py</code> y córrelos en la terminal.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/library/functions.html#max">max()</a> · <a href="https://docs.pytest.org/en/stable/getting-started.html">pytest</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

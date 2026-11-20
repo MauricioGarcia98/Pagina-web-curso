@@ -95,6 +95,31 @@ Ticket promedio = DIVIDE([Ventas], [Pedidos])</code></pre>
 
 
 <h2>Practica</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tus primeras medidas, probadas antes de crearlas</div>
+
+<ol>
+<li>En <strong>Inicio → Obtener datos → Base de datos del curso (SQLite)</strong>, marca <code>clientes</code>, <code>productos</code>, <code>categorias</code>, <code>pedidos</code> y <code>detalle_pedidos</code> y pulsa <strong>Cargar</strong>: Power BI detecta las relaciones solo (revísalas en la vista <strong>Modelo</strong>).</li>
+<li>En <strong>Consultas DAX</strong>, ejecuta la consulta: <code>DEFINE MEASURE</code> prueba las medidas sin agregarlas al modelo.</li>
+<li>Arriba de cada medida aparece <strong>Actualizar modelo: agregar medida nueva</strong>: úsalo para guardarlas en el modelo.</li>
+<li>En la vista <strong>Informe</strong>, arma una tabla con <code>pedidos[canal]</code> y las tres medidas.</li>
+</ol>
+<pre data-norun><code class="language-dax">DEFINE
+    MEASURE detalle_pedidos[Unidades] = SUM(detalle_pedidos[cantidad])
+    MEASURE detalle_pedidos[Pedidos] = DISTINCTCOUNT(detalle_pedidos[pedido_id])
+    MEASURE detalle_pedidos[Unidades por pedido] = DIVIDE([Unidades], [Pedidos])
+EVALUATE
+    SUMMARIZECOLUMNS(
+        pedidos[canal],
+        &quot;Unidades&quot;, [Unidades],
+        &quot;Pedidos&quot;, [Pedidos],
+        &quot;Unidades por pedido&quot;, [Unidades por pedido]
+    )</code></pre>
+<p>Reto: explica por qué <code>Unidades por pedido</code> se calcula con <code>DIVIDE</code> de dos medidas y no como un promedio de una columna.</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/dax/divide-function-dax">DIVIDE</a> · <a href="https://learn.microsoft.com/es-es/power-bi/transform-model/desktop-measures">medidas en Power BI Desktop</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

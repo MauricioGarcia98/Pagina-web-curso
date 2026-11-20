@@ -278,6 +278,41 @@ LIMIT 10;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un esquema estrella en 4 pasos</div>
+
+<ol>
+<li>Proceso: ventas. Grano: <strong>una fila por línea de pedido</strong>. Lo escribes antes de crear nada.</li>
+<li>Ejecuta: se crean dos dimensiones y la tabla de hechos con sus claves y medidas.</li>
+<li>La última consulta responde una pregunta de negocio con el modelo: hechos al centro, dimensiones alrededor.</li>
+</ol>
+<pre data-norun><code class="language-sql">DROP TABLE IF EXISTS dim_producto;
+CREATE TABLE dim_producto AS
+SELECT p.producto_id, p.nombre AS producto, p.marca, c.nombre AS categoria
+FROM productos p JOIN categorias c ON c.categoria_id = p.categoria_id;
+
+DROP TABLE IF EXISTS dim_cliente;
+CREATE TABLE dim_cliente AS
+SELECT cliente_id, ciudad, pais, segmento FROM clientes;
+
+DROP TABLE IF EXISTS fct_ventas;
+CREATE TABLE fct_ventas AS
+SELECT d.detalle_id, p.fecha_pedido, p.cliente_id, d.producto_id, p.canal,
+       d.cantidad, d.cantidad * d.precio_unitario * (1 - d.descuento) AS importe
+FROM detalle_pedidos d JOIN pedidos p ON p.pedido_id = d.pedido_id
+WHERE p.estado = 'entregado';
+
+SELECT dp.categoria, dc.pais, ROUND(SUM(f.importe), 2) AS ventas
+FROM fct_ventas f
+JOIN dim_producto dp ON dp.producto_id = f.producto_id
+JOIN dim_cliente dc  ON dc.cliente_id = f.cliente_id
+GROUP BY dp.categoria, dc.pais
+ORDER BY ventas DESC
+LIMIT 10;</code></pre>
+<p>Reto: agrega una <code>dim_fecha</code> (año, mes, trimestre, día de la semana) y úsala para ventas por trimestre.</p>
+<p>Documentación oficial: <a href="https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/">técnicas de modelado dimensional (Kimball Group)</a> · <a href="https://learn.microsoft.com/es-es/power-bi/guidance/star-schema">esquema estrella</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

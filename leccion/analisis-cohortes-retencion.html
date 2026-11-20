@@ -73,6 +73,38 @@ ORDER BY cohorte, mes_rel;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Una tabla de cohortes mensuales</div>
+
+<ol>
+<li>Ejecuta: la cohorte de cada cliente es el mes de su primera compra.</li>
+<li><code>meses</code> es la distancia entre cada compra y esa primera compra.</li>
+<li>Lee la tabla: de los clientes que empezaron en un mes, cuántos volvieron 1, 2 y 3 meses después.</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH compras AS (
+    SELECT cliente_id,
+           SUBSTR(CAST(fecha_pedido AS VARCHAR), 1, 7) AS ym,
+           CAST(SUBSTR(CAST(fecha_pedido AS VARCHAR), 1, 4) AS INTEGER) * 12
+         + CAST(SUBSTR(CAST(fecha_pedido AS VARCHAR), 6, 2) AS INTEGER) AS mes_n
+    FROM pedidos WHERE estado = 'entregado'
+),
+primera AS (
+    SELECT cliente_id, MIN(mes_n) AS cohorte, MIN(ym) AS cohorte_mes
+    FROM compras GROUP BY cliente_id
+)
+SELECT p.cohorte_mes,
+       COUNT(DISTINCT CASE WHEN c.mes_n - p.cohorte = 0 THEN c.cliente_id END) AS m0,
+       COUNT(DISTINCT CASE WHEN c.mes_n - p.cohorte = 1 THEN c.cliente_id END) AS m1,
+       COUNT(DISTINCT CASE WHEN c.mes_n - p.cohorte = 2 THEN c.cliente_id END) AS m2,
+       COUNT(DISTINCT CASE WHEN c.mes_n - p.cohorte = 3 THEN c.cliente_id END) AS m3
+FROM primera p JOIN compras c ON c.cliente_id = p.cliente_id
+GROUP BY p.cohorte_mes
+ORDER BY p.cohorte_mes
+LIMIT 12;</code></pre>
+<p>Reto: convierte los conteos en porcentaje de retención (m1 / m0, m2 / m0…) y lleva la tabla a Excel con formato condicional.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/expressions/case">CASE</a> · <a href="https://duckdb.org/docs/current/sql/functions/aggregates">COUNT DISTINCT</a></p>
+</div>
+
+
 <h2>Caso real: así te lo piden en un trabajo</h2>
 <p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
 <div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>

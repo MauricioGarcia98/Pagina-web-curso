@@ -97,6 +97,23 @@ En DAX, una columna se escribe **`Tabla[columna]`**: `pedidos[canal]`. Si el nom
 
 Los ejercicios corren sobre el **modelo de la tienda**: las mismas tablas del laboratorio SQL, con sus relaciones. Escribe la consulta y pulsa **Ejecutar**. **Comprobar** la compara con la respuesta esperada.
 
+:::practica powerbi:dax Cargar el modelo y mirarlo con DAX
+1. En **Inicio → Obtener datos → Base de datos del curso (SQLite)**, marca `clientes`, `productos`, `categorias`, `pedidos` y `detalle_pedidos` y pulsa **Cargar**: Power BI detecta las relaciones solo (revísalas en la vista **Modelo**).
+2. Abre la vista **Consultas DAX** (`</>` a la izquierda): la consulta de la lección está en la pestaña *Práctica*. Ejecútala con **F5**.
+3. Cada `EVALUATE` devuelve una tabla: la segunda cuenta productos por categoría siguiendo la relación del modelo.
+
+```dax norun
+EVALUATE TOPN(10, productos, productos[precio], DESC)
+
+EVALUATE
+    SUMMARIZECOLUMNS(categorias[nombre], "Productos", COUNTROWS(productos))
+```
+
+Reto: en la vista **Modelo**, revisa la relación entre `productos` y `categorias`: ¿qué cardinalidad tiene y hacia dónde filtra?
+
+Documentación oficial: [vista de consultas DAX](https://learn.microsoft.com/es-es/power-bi/transform-model/dax-query-view) · [esquema estrella](https://learn.microsoft.com/es-es/power-bi/guidance/star-schema)
+:::
+
 :::ejercicio dax dificultad=Básico titulo="Ver una tabla completa"
 Muestra la tabla `categorias` completa con una consulta DAX.
 ```dax solucion

@@ -51,6 +51,31 @@ LIMIT 7;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Promedio móvil de 7 días</div>
+
+<ol>
+<li>Ejecuta: ventas por día y su promedio móvil de los últimos 7 días.</li>
+<li>Compara las dos columnas: el promedio móvil quita el ruido diario y deja ver la tendencia.</li>
+<li>Busca días que se alejen mucho del promedio: candidatos a anomalía.</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH diario AS (
+    SELECT p.fecha_pedido AS dia,
+           SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS ventas
+    FROM pedidos p
+    JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+    WHERE p.estado = 'entregado'
+    GROUP BY p.fecha_pedido
+)
+SELECT dia, ROUND(ventas, 2) AS ventas,
+       ROUND(AVG(ventas) OVER (ORDER BY dia ROWS BETWEEN 6 PRECEDING AND CURRENT ROW), 2) AS movil_7d
+FROM diario
+ORDER BY dia DESC
+LIMIT 30;</code></pre>
+<p>Reto: compara cada día con el mismo día del año anterior (<code>LAG(ventas, 364)</code> sobre una serie sin huecos) y explica por qué hace falta una tabla calendario.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/window_functions">marcos de ventana (ROWS BETWEEN)</a></p>
+</div>
+
+
 <h2>Caso real: así te lo piden en un trabajo</h2>
 <p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
 <div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>

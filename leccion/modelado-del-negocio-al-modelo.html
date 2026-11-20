@@ -261,6 +261,21 @@ ORDER BY pagos_por_pedido;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Del requerimiento al DDL en el laboratorio de modelado</div>
+
+<ol>
+<li>Elige un requerimiento del laboratorio (o escribe el tuyo con el texto de abajo).</li>
+<li>Marca las entidades (sustantivos), sus atributos y las relaciones con su cardinalidad.</li>
+<li>Valida el modelo: el laboratorio avisa si falta una clave, si una relación N:M no tiene tabla puente o si hay atributos repetidos.</li>
+<li>Genera el DDL y léelo: ese es el modelo físico.</li>
+</ol>
+<pre data-norun><code class="language-text">Requerimiento: &quot;Una academia dicta cursos. Cada curso tiene varias clases y un docente a cargo.
+Los alumnos se inscriben en muchos cursos y por cada inscripción se guarda la fecha y la nota final.&quot;</code></pre>
+<p>Reto: explica por qué la nota final va en la tabla de inscripciones y no en alumnos ni en cursos.</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/power-bi/guidance/star-schema">modelo estrella (Microsoft)</a> · <a href="https://www.postgresql.org/docs/current/ddl-constraints.html">restricciones en PostgreSQL</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

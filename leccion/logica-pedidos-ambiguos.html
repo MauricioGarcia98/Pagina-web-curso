@@ -121,6 +121,26 @@ def es_activo(dias_desde_ultima_compra):
 <li>Resultado: 1,5 millones × 2 × 0,2 = <strong>600.000 litros por día</strong>.</li>
 </ol>
 <p>Dilo en voz alta, anota cada supuesto y termina con un chequeo de sentido común (&quot;¿600.000 litros es razonable? Son unas 30 cisternas de camión: plausible&quot;).</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Dos lecturas de &quot;las ventas del mes&quot;</div>
+
+<ol>
+<li>Pedido ambiguo: &quot;las ventas de noviembre&quot;. ¿Por fecha del pedido o del pago? ¿Con o sin cancelados?</li>
+<li>Ejecuta: la consulta muestra las cuatro combinaciones lado a lado.</li>
+<li>Escribe la pregunta que le harías a quien pidió el dato y el supuesto que usarías si no puede responder.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT
+    SUM(CASE WHEN SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 7) = '2024-11' THEN pg.monto END)                             AS por_pedido_todos,
+    SUM(CASE WHEN SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 7) = '2024-11' AND p.estado &lt;&gt; 'cancelado' THEN pg.monto END) AS por_pedido_sin_cancelados,
+    SUM(CASE WHEN SUBSTR(CAST(pg.fecha_pago AS VARCHAR), 1, 7) = '2024-11' THEN pg.monto END)                              AS por_pago_todos,
+    SUM(CASE WHEN SUBSTR(CAST(pg.fecha_pago AS VARCHAR), 1, 7) = '2024-11' AND pg.estado = 'aprobado' THEN pg.monto END)   AS por_pago_aprobados
+FROM pagos pg
+JOIN pedidos p ON p.pedido_id = pg.pedido_id;</code></pre>
+<p>Reto: ¿cuál es la diferencia en porcentaje entre la versión más alta y la más baja? Escríbelo en una línea como lo pondrías en un correo.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/expressions/case">CASE</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

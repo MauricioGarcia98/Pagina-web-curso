@@ -193,6 +193,22 @@ Empieza por las entidades (libro, autor, ejemplar, socio, préstamo) y pregunta 
 En el [Laboratorio de modelado](#/modelado) escribes el modelo de ocho negocios (biblioteca, cursos online, restaurante, gimnasio, red social, alquiler de autos, organigrama y una estrella de ventas), ves el diagrama mientras escribes, el sitio revisa claves, formas normales y lo que pide el requerimiento, y genera el SQL de creación para SQLite, PostgreSQL, MySQL o SQL Server. También puedes ver cómo están modeladas las [13 bases del curso](#/datos) y por qué.
 :::
 
+:::practica modelado Del requerimiento al DDL en el laboratorio de modelado
+1. Elige un requerimiento del laboratorio (o escribe el tuyo con el texto de abajo).
+2. Marca las entidades (sustantivos), sus atributos y las relaciones con su cardinalidad.
+3. Valida el modelo: el laboratorio avisa si falta una clave, si una relación N:M no tiene tabla puente o si hay atributos repetidos.
+4. Genera el DDL y léelo: ese es el modelo físico.
+
+```text norun
+Requerimiento: "Una academia dicta cursos. Cada curso tiene varias clases y un docente a cargo.
+Los alumnos se inscriben en muchos cursos y por cada inscripción se guarda la fecha y la nota final."
+```
+
+Reto: explica por qué la nota final va en la tabla de inscripciones y no en alumnos ni en cursos.
+
+Documentación oficial: [modelo estrella (Microsoft)](https://learn.microsoft.com/es-es/power-bi/guidance/star-schema) · [restricciones en PostgreSQL](https://www.postgresql.org/docs/current/ddl-constraints.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

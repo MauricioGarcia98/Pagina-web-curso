@@ -444,6 +444,16 @@
     lectura = null;
     main = m; ctxApp = ctx; Store = ctx.Store; toast = ctx.toast; SQLc = window.Engines.SQL;
     S = migrar(Store.data.powerbi && Store.data.powerbi.tablas ? Store.data.powerbi : (Store.data.powerbi = NUEVO()));
+    // práctica de una lección (practica.js) con motor dax: abre la vista de consultas DAX con la consulta en una pestaña
+    try {
+      const enc = JSON.parse(sessionStorage.getItem('practica-activa') || 'null');
+      const marca = enc && enc.leccion ? enc.leccion.id + '#' + enc.idx : '';
+      if (enc && enc.app === 'powerbi' && enc.motor === 'dax' && enc.codigo && sessionStorage.getItem('pbi-practica') !== marca) {
+        S.daxTabs = S.daxTabs || []; let i = S.daxTabs.findIndex((t) => t.texto === enc.codigo.trim());
+        if (i < 0) { S.daxTabs.push({ nombre: 'Práctica: ' + (enc.titulo || 'consulta').slice(0, 30), texto: enc.codigo.trim() }); i = S.daxTabs.length - 1; }
+        S.daxTab = i; S.vista = 'dax'; sessionStorage.setItem('pbi-practica', marca); Store.saveSoon();
+      }
+    } catch (e) { /* sin práctica */ }
     cargarDatos(); version++;
     hist.pila = [foto()]; hist.i = 0;
     main.innerHTML = '<div class="loading-block"><span class="spinner"></span> Abriendo Power BI Desktop…</div>';
@@ -1916,7 +1926,7 @@
   }
 
   window.addEventListener('hashchange', () => { if (!/^#\/powerbi/.test(location.hash)) document.body.classList.remove('pb-abierto'); });
-  window.PowerBI = { vista, verPublicado, NUEVO, _estado: () => S, _motor: () => (construir(), motor), _tmdl: () => (construir(), tmdlModelo()) };
+  window.PowerBI = { vista, verPublicado, NUEVO, _estado: () => S, _cambio: () => cambioModelo(), _motor: () => (construir(), motor), _tmdl: () => (construir(), tmdlModelo()) };
   // funciones internas para los módulos que amplían la práctica (powerbi-informe.js)
   window.PowerBI._i = {
     S: () => S, main: () => main, lectura: () => lectura, toast: (...a) => toast(...a), pag, vis, todos, tablas, meta, tipoDe, esNum, esFecha, nomCampo, campoKey, paleta, fl, esc,

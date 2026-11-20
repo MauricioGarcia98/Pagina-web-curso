@@ -125,6 +125,28 @@ w = Window.partitionBy(&quot;categoria_id&quot;).orderBy(F.desc(&quot;precio&quo
 <td><code>df.printSchema()</code></td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El mismo plan, en PySpark</div>
+
+<ol>
+<li>El plan es el mismo que en SQL: filtrar → agrupar → rankear → quedarse con el top.</li>
+<li>Ejecuta: cada paso es una línea; no hay <code>for</code>, Spark recorre por ti.</li>
+<li>Verifica contando filas después de cada paso, igual que en SQL.</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+ped = spark.table(&quot;pedidos&quot;).filter(F.col(&quot;estado&quot;) == &quot;entregado&quot;)          # filtrar
+por_cliente = ped.groupBy(&quot;canal&quot;, &quot;cliente_id&quot;).count()                      # agrupar
+w = Window.partitionBy(&quot;canal&quot;).orderBy(F.desc(&quot;count&quot;))
+top = por_cliente.withColumn(&quot;puesto&quot;, F.row_number().over(w)).filter(&quot;puesto &lt;= 3&quot;)   # rankear y top
+print(ped.count(), por_cliente.count(), top.count())
+top.orderBy(&quot;canal&quot;, &quot;puesto&quot;).show()</code></pre>
+<p>Reto: escribe la misma consulta en SQL y en pandas, y anota en una tabla la traducción de cada paso.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/window.html">Window</a> · <a href="https://spark.apache.org/docs/latest/api/python/getting_started/quickstart_df.html">guía rápida de DataFrame</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

@@ -140,6 +140,27 @@ FROM pedidos;</code></pre>
 </tr>
 </tbody></table></div>
 <p>Regla práctica: <strong>agrega antes de unir</strong> cuando juntas dos tablas que tienen muchas filas por la misma clave.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Construir por capas y contar filas en cada una</div>
+
+<ol>
+<li>Pregunta: &quot;clientes que compraron en los 4 canales&quot;. Grano final: una fila por cliente.</li>
+<li>Ejecuta: cada CTE es una capa y la consulta final cuenta filas en cada una: si un número no tiene sentido, el error está en esa capa.</li>
+<li>Fíjate en la trampa del JOIN: unir pedidos con detalle multiplica filas.</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH capa1 AS (SELECT DISTINCT cliente_id, canal FROM pedidos),
+     capa2 AS (SELECT cliente_id, COUNT(*) AS canales FROM capa1 GROUP BY cliente_id),
+     final AS (SELECT cliente_id FROM capa2 WHERE canales = 4)
+SELECT (SELECT COUNT(*) FROM pedidos) AS pedidos,
+       (SELECT COUNT(*) FROM capa1)   AS cliente_canal,
+       (SELECT COUNT(*) FROM capa2)   AS clientes,
+       (SELECT COUNT(*) FROM final)   AS en_4_canales,
+       (SELECT COUNT(*) FROM pedidos p JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id) AS filas_tras_join;</code></pre>
+<p>Reto: resuelve lo mismo con un solo <code>GROUP BY … HAVING COUNT(DISTINCT canal) = 4</code> y verifica que da igual.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/query_syntax/with">CTEs</a> · <a href="https://duckdb.org/docs/current/sql/query_syntax/having">HAVING</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

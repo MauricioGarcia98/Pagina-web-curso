@@ -76,6 +76,31 @@ Puedes escribir `Nombre = expresión` o solo la expresión. Abre "Tu medida se l
 
 ## Practica
 
+:::practica powerbi:dax Tus primeras medidas, probadas antes de crearlas
+1. En **Inicio → Obtener datos → Base de datos del curso (SQLite)**, marca `clientes`, `productos`, `categorias`, `pedidos` y `detalle_pedidos` y pulsa **Cargar**: Power BI detecta las relaciones solo (revísalas en la vista **Modelo**).
+2. En **Consultas DAX**, ejecuta la consulta: `DEFINE MEASURE` prueba las medidas sin agregarlas al modelo.
+3. Arriba de cada medida aparece **Actualizar modelo: agregar medida nueva**: úsalo para guardarlas en el modelo.
+4. En la vista **Informe**, arma una tabla con `pedidos[canal]` y las tres medidas.
+
+```dax norun
+DEFINE
+    MEASURE detalle_pedidos[Unidades] = SUM(detalle_pedidos[cantidad])
+    MEASURE detalle_pedidos[Pedidos] = DISTINCTCOUNT(detalle_pedidos[pedido_id])
+    MEASURE detalle_pedidos[Unidades por pedido] = DIVIDE([Unidades], [Pedidos])
+EVALUATE
+    SUMMARIZECOLUMNS(
+        pedidos[canal],
+        "Unidades", [Unidades],
+        "Pedidos", [Pedidos],
+        "Unidades por pedido", [Unidades por pedido]
+    )
+```
+
+Reto: explica por qué `Unidades por pedido` se calcula con `DIVIDE` de dos medidas y no como un promedio de una columna.
+
+Documentación oficial: [DIVIDE](https://learn.microsoft.com/es-es/dax/divide-function-dax) · [medidas en Power BI Desktop](https://learn.microsoft.com/es-es/power-bi/transform-model/desktop-measures)
+:::
+
 :::ejercicio dax dificultad=Básico titulo="Unidades vendidas"
 Escribe la medida **Unidades**: la suma de `detalle_pedidos[cantidad]`.
 ```dax prueba

@@ -73,6 +73,25 @@ Ranking de categoría = RANKX(ALL(categorias[nombre]), [Ventas])
 
 ## Practica
 
+:::practica powerbi:dax Margen con SUMX y RELATED, y un ranking
+1. En **Inicio → Obtener datos → Base de datos del curso (SQLite)**, marca `clientes`, `productos`, `categorias`, `pedidos` y `detalle_pedidos` y pulsa **Cargar**: Power BI detecta las relaciones solo (revísalas en la vista **Modelo**).
+2. Ejecuta en **Consultas DAX**: `SUMX` recorre cada línea y `RELATED` trae el costo desde la dimensión `productos` (lado *uno* de la relación).
+3. `RANKX` sobre `ALL(productos[marca])` pone el puesto de cada marca contra todas las demás.
+
+```dax norun
+DEFINE
+    MEASURE detalle_pedidos[Margen] =
+        SUMX(detalle_pedidos, detalle_pedidos[cantidad] * (detalle_pedidos[precio_unitario] - RELATED(productos[costo])))
+    MEASURE detalle_pedidos[Puesto] = RANKX(ALL(productos[marca]), [Margen])
+EVALUATE
+    TOPN(10, SUMMARIZECOLUMNS(productos[marca], "Margen", [Margen], "Puesto", [Puesto]), [Margen], DESC)
+```
+
+Reto: crea el mismo margen como **columna calculada** en `detalle_pedidos` y explica cuándo conviene columna y cuándo medida.
+
+Documentación oficial: [SUMX](https://learn.microsoft.com/es-es/dax/sumx-function-dax) · [RELATED](https://learn.microsoft.com/es-es/dax/related-function-dax) · [RANKX](https://learn.microsoft.com/es-es/dax/rankx-function-dax)
+:::
+
 :::ejercicio dax dificultad=Intermedio titulo="Ventas brutas fila por fila"
 Escribe **Ventas brutas**: la suma de `cantidad × precio_unitario` de cada línea (sin descuento). Se evalúa por canal.
 ```dax prueba

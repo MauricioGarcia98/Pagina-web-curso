@@ -53,6 +53,32 @@ Contribución del segmento = cambio del segmento ÷ cambio total. Las contribuci
 “Bolivia creció 200 %” suena enorme… y son 4 pedidos más. Ordena siempre por el cambio absoluto o por la contribución.
 :::
 
+:::practica sql Descomponer una caída por canal
+1. Ejecuta: ventas de dos meses por canal y la diferencia.
+2. La columna `aporte_pct` dice qué parte de la variación total explica cada canal.
+3. Antes de concluir, revisa la otra mitad de la ecuación: ¿bajaron los pedidos o el ticket?
+
+```sql norun
+WITH m AS (
+    SELECT p.canal,
+           SUM(CASE WHEN SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 7) = '2024-10' THEN d.cantidad * d.precio_unitario * (1 - d.descuento) ELSE 0 END) AS oct,
+           SUM(CASE WHEN SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 7) = '2024-11' THEN d.cantidad * d.precio_unitario * (1 - d.descuento) ELSE 0 END) AS nov
+    FROM pedidos p
+    JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+    WHERE p.estado = 'entregado'
+    GROUP BY p.canal
+)
+SELECT canal, ROUND(oct, 2) AS oct, ROUND(nov, 2) AS nov, ROUND(nov - oct, 2) AS diferencia,
+       ROUND(100.0 * (nov - oct) / SUM(nov - oct) OVER (), 1) AS aporte_pct
+FROM m
+ORDER BY diferencia;
+```
+
+Reto: separa la diferencia de cada canal en efecto cantidad de pedidos y efecto ticket promedio.
+
+Documentación oficial: [SUM() OVER ()](https://duckdb.org/docs/current/sql/functions/window_functions)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql dificultad=Básico

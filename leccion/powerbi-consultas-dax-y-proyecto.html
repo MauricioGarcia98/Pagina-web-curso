@@ -79,6 +79,28 @@ ORDER BY [Ticket] DESC</code></pre>
 
 
 <h2>Practica: consultas</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: De la consulta al modelo como código (TMDL)</div>
+
+<ol>
+<li>En <strong>Inicio → Obtener datos → Base de datos del curso (SQLite)</strong>, marca <code>clientes</code>, <code>productos</code>, <code>categorias</code>, <code>pedidos</code> y <code>detalle_pedidos</code> y pulsa <strong>Cargar</strong>: Power BI detecta las relaciones solo (revísalas en la vista <strong>Modelo</strong>).</li>
+<li>Ejecuta la consulta en <strong>Consultas DAX</strong> y agrega las medidas al modelo con <strong>Actualizar modelo</strong>.</li>
+<li>Abre la vista <strong>TMDL</strong>: tus medidas aparecen como código, listas para versionar en Git (formato PBIP).</li>
+<li>Con esas medidas, arma en <strong>Informe</strong> una página: tarjeta de ventas, gráfico por mes y tabla por país.</li>
+</ol>
+<pre data-norun><code class="language-dax">DEFINE
+    MEASURE detalle_pedidos[Ventas] =
+        SUMX(detalle_pedidos, detalle_pedidos[cantidad] * detalle_pedidos[precio_unitario] * (1 - detalle_pedidos[descuento]))
+    MEASURE detalle_pedidos[Clientes] = DISTINCTCOUNT(pedidos[cliente_id])
+    MEASURE detalle_pedidos[Venta por cliente] = DIVIDE([Ventas], [Clientes])
+EVALUATE
+    SUMMARIZECOLUMNS(clientes[pais], &quot;Ventas&quot;, [Ventas], &quot;Clientes&quot;, [Clientes], &quot;Venta por cliente&quot;, [Venta por cliente])
+ORDER BY [Ventas] DESC</code></pre>
+<p>Reto: guarda el informe como proyecto (PBIP) y explica qué archivo cambiaría en un <em>pull request</em> si editas una medida.</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/analysis-services/tmdl/tmdl-overview">TMDL</a> · <a href="https://learn.microsoft.com/es-es/power-bi/developer/projects/projects-overview">proyectos de Power BI (PBIP)</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

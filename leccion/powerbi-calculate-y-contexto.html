@@ -92,6 +92,26 @@ Ventas de los presupuestados = CALCULATE([Ventas], TREATAS(VALUES(Presupuesto[ca
 <p>En todos los ejercicios el modelo ya tiene estas medidas:</p>
 <pre><code class="language-dax">Ventas = SUMX(detalle_pedidos, detalle_pedidos[cantidad] * detalle_pedidos[precio_unitario] * (1 - detalle_pedidos[descuento]))
 Pedidos = COUNTROWS(pedidos)</code></pre>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: CALCULATE: cambiar el filtro de una medida</div>
+
+<ol>
+<li>En <strong>Inicio → Obtener datos → Base de datos del curso (SQLite)</strong>, marca <code>clientes</code>, <code>productos</code>, <code>categorias</code>, <code>pedidos</code> y <code>detalle_pedidos</code> y pulsa <strong>Cargar</strong>: Power BI detecta las relaciones solo (revísalas en la vista <strong>Modelo</strong>).</li>
+<li>Ejecuta en <strong>Consultas DAX</strong>: en cada fila (un canal), <code>Ventas</code> respeta el filtro de la fila; <code>Ventas web</code> lo reemplaza; <code>% del total</code> lo quita con <code>REMOVEFILTERS</code> para el denominador.</li>
+<li>Verifica que la columna <code>% del total</code> suma 100 %.</li>
+</ol>
+<pre data-norun><code class="language-dax">DEFINE
+    MEASURE detalle_pedidos[Ventas] =
+        SUMX(detalle_pedidos, detalle_pedidos[cantidad] * detalle_pedidos[precio_unitario] * (1 - detalle_pedidos[descuento]))
+    MEASURE detalle_pedidos[Ventas web] = CALCULATE([Ventas], pedidos[canal] = &quot;web&quot;)
+    MEASURE detalle_pedidos[% del total] = DIVIDE([Ventas], CALCULATE([Ventas], REMOVEFILTERS(pedidos[canal])))
+EVALUATE
+    SUMMARIZECOLUMNS(pedidos[canal], &quot;Ventas&quot;, [Ventas], &quot;Ventas web&quot;, [Ventas web], &quot;% del total&quot;, [% del total])</code></pre>
+<p>Reto: agrega una medida <code>Ventas sin cancelados</code> con <code>CALCULATE</code> y <code>KEEPFILTERS</code>, y explica la diferencia con un filtro normal.</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/dax/calculate-function-dax">CALCULATE</a> · <a href="https://learn.microsoft.com/es-es/dax/removefilters-function-dax">REMOVEFILTERS</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

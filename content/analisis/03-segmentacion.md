@@ -136,6 +136,36 @@ LIMIT 5;
 `NTILE(4) OVER (ORDER BY recencia DESC)` da 4 a los de recencia más baja (los que compraron hace poco). Elige el orden para que **4 siempre sea “lo mejor”**: así el puntaje se lee fácil.
 :::
 
+:::practica sql Segmentación RFM con NTILE
+1. Ejecuta: para cada cliente se calcula recencia (días desde la última compra), frecuencia (pedidos) y monto.
+2. `NTILE(5)` reparte a los clientes en quintiles: 5 es el mejor.
+3. Mira los clientes con R=5, F=5 y M=5: son tus campeones.
+
+```sql norun
+WITH base AS (
+    SELECT p.cliente_id,
+           MAX(p.fecha_pedido)                                   AS ultima,
+           COUNT(DISTINCT p.pedido_id)                           AS frecuencia,
+           SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS monto
+    FROM pedidos p
+    JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+    WHERE p.estado = 'entregado'
+    GROUP BY p.cliente_id
+)
+SELECT cliente_id, ultima, frecuencia, ROUND(monto, 2) AS monto,
+       NTILE(5) OVER (ORDER BY ultima)     AS r,
+       NTILE(5) OVER (ORDER BY frecuencia) AS f,
+       NTILE(5) OVER (ORDER BY monto)      AS m
+FROM base
+ORDER BY monto DESC
+LIMIT 20;
+```
+
+Reto: cuenta cuántos clientes hay en cada combinación de R y F, y arma con eso la tabla de segmentos.
+
+Documentación oficial: [funciones de ventana](https://duckdb.org/docs/current/sql/functions/window_functions)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado dificultad=Básico

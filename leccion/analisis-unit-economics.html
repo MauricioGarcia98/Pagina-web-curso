@@ -77,6 +77,29 @@ LIMIT 5;</code></pre>
 <p>Un LTV de servilleta: <code>ARPA × margen bruto ÷ churn mensual</code>. Con ARPA de 200, margen de 80 % y churn de 2 % mensual, el LTV es 200 × 0,8 ÷ 0,02 = 8.000. Sirve para compararlo con el costo de conseguir un cliente (CAC).</p>
 <h2>La economía de un pedido de delivery</h2>
 <p>Para la plataforma, cada pedido entregado deja: comisión del restaurante + costo de envío − cupón que pagó la plataforma. Esa diferencia es la <strong>contribución</strong> (antes de pagarle al repartidor y de los costos fijos).</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: MRR mensual y su variación</div>
+
+<ol>
+<li>Ejecuta: el MRR de cada mes es la suma de las facturas pagadas de ese mes.</li>
+<li><code>LAG</code> trae el MRR del mes anterior para calcular la variación.</li>
+<li>Busca los meses en que el MRR bajó: ¿más bajas o menos altas?</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH mrr AS (
+    SELECT mes, SUM(monto) AS mrr
+    FROM saas_facturas
+    WHERE estado = 'pagada'
+    GROUP BY mes
+)
+SELECT mes, mrr,
+       mrr - LAG(mrr) OVER (ORDER BY mes) AS variacion,
+       ROUND(100.0 * (mrr - LAG(mrr) OVER (ORDER BY mes)) / LAG(mrr) OVER (ORDER BY mes), 1) AS variacion_pct
+FROM mrr
+ORDER BY mes;</code></pre>
+<p>Reto: separa la variación en MRR nuevo (empresas que facturan por primera vez) y MRR perdido (empresas que dejaron de facturar).</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/window_functions">LAG y funciones de ventana</a></p>
+</div>
+
+
 <h2>Caso real: así te lo piden en un trabajo</h2>
 <p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
 <div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>

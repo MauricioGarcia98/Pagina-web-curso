@@ -160,6 +160,36 @@ for v in ventas:
 
 print(movil([10, 20, 30, 40], 3))   # [None, None, 20.0, 30.0]</code></pre>
 <p>En SQL lo mismo es <code>AVG(x) OVER (ORDER BY fecha ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)</code>. SQL no pone <code>None</code> en los bordes: promedia los que haya. Es una diferencia que conviene saber, no un error.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Dos patrones: diccionario índice y racha</div>
+
+<ol>
+<li>Ejecuta el primero: encontrar dos montos que sumen un objetivo pasa de dos bucles a uno con un diccionario.</li>
+<li>Ejecuta el segundo: la racha más larga de días con ventas en alza compara cada valor con el anterior.</li>
+<li>Para cada uno, escribe en una línea qué patrón es y en qué otro problema lo usarías.</li>
+</ol>
+<pre data-norun><code class="language-python"># patrón 1: diccionario índice (de O(n²) a O(n))
+montos = [120, 45, 300, 80, 75]
+objetivo = 155
+vistos = {}
+for i, m in enumerate(montos):
+    if objetivo - m in vistos:
+        print(&quot;par:&quot;, vistos[objetivo - m], i)
+        break
+    vistos[m] = i
+
+# patrón 2: comparar con el anterior (rachas)
+ventas = [10, 12, 15, 9, 11, 13, 18, 20, 7]
+mejor = actual = 1
+for ant, hoy in zip(ventas, ventas[1:]):
+    actual = actual + 1 if hoy &gt; ant else 1
+    mejor = max(mejor, actual)
+print(&quot;racha más larga en alza:&quot;, mejor)</code></pre>
+<p>Reto: aplica el patrón de ventana deslizante para el promedio de 3 días sin recalcular la suma entera cada vez.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/library/functions.html#enumerate">enumerate</a> · <a href="https://docs.python.org/es/3/library/functions.html#zip">zip</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 
