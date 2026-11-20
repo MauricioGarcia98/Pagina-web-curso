@@ -208,6 +208,28 @@ spark.table(&quot;productos&quot;).agg(F.max(&quot;precio&quot;), F.min(&quot;pr
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un resumen por canal y estado</div>
+
+<ol>
+<li>Ejecuta: pedidos y clientes distintos por canal.</li>
+<li>Agrega una agregación condicional: cuántos pedidos <code>cancelado</code> tiene cada canal (<code>F.sum(F.when(...))</code>).</li>
+<li>Pasa los estados a columnas con <code>pivot</code>.</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+
+pedidos = spark.table(&quot;pedidos&quot;)
+(pedidos.groupBy(&quot;canal&quot;)
+    .agg(F.count(&quot;*&quot;).alias(&quot;pedidos&quot;),
+         F.countDistinct(&quot;cliente_id&quot;).alias(&quot;clientes&quot;))
+    .orderBy(F.desc(&quot;pedidos&quot;))
+    .show())
+
+pedidos.groupBy(&quot;canal&quot;).pivot(&quot;estado&quot;).count().show()</code></pre>
+<p>Reto: con <code>rollup(&quot;canal&quot;, &quot;metodo_pago&quot;)</code>, agrega subtotales por canal y un total general.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.groupBy.html">groupBy</a> · <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.GroupedData.pivot.html">pivot</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

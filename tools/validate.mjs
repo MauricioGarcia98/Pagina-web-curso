@@ -93,6 +93,8 @@ for (const m of course.modulos) {
       if (app === 'sql') {
         if (/\bQUALIFY\b|EXPLAIN ANALYZE|^\s*--.*\n\s*SELECT 1;\s*$/i.test(code) || cm[2].includes('duckdb')) continue; // solo DuckDB, o un esqueleto
         const pdb = new SQL.Database(bytes); try { pdb.exec(code); okCount++; } catch (e) { fails++; console.log(`✗ ${id}: ${e.message}`); } pdb.close();
+      } else if (app === 'dbt') {
+        exampleJobs.push({ id, type: 'dbt', solucion: code });
       } else if (['python', 'pyspark', 'airflow-lab'].includes(app)) {
         exampleJobs.push({ id, type: app === 'pyspark' ? 'pyspark' : app === 'airflow-lab' ? 'airflow' : 'python', solucion: code, example: true });
       }

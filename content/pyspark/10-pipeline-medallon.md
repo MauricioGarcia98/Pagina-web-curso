@@ -150,6 +150,32 @@ print("✔ test OK")
 - **Pipeline que no es idempotente.** Correrlo dos veces debe dar lo mismo.
 :::
 
+:::practica pyspark Bronze → silver → gold con funciones
+1. Ejecuta: cada capa es una función que recibe y devuelve un DataFrame.
+2. Agrega a `a_silver` el descarte de pedidos `cancelado`.
+3. Agrega a `a_gold` la cantidad de pedidos por día además del total.
+
+```python norun
+from pyspark.sql import DataFrame, functions as F
+
+def a_silver(df: DataFrame) -> DataFrame:
+    return (df.withColumn("estado", F.lower(F.trim("estado")))
+              .withColumn("monto", F.regexp_replace("monto", ",", ".").try_cast("double"))
+              .dropDuplicates(["pedido_id"])
+              .filter(F.col("monto").isNotNull()))
+
+def a_gold(df: DataFrame) -> DataFrame:
+    return df.groupBy("fecha").agg(F.round(F.sum("monto"), 2).alias("ventas")).orderBy("fecha")
+
+gold = a_gold(a_silver(spark.table("bronze_pedidos")))
+gold.show(7)
+```
+
+Reto: escribe un test chico (un DataFrame de 3 filas armado a mano) que verifique que `a_silver` elimina el duplicado.
+
+Documentación oficial: [probar PySpark](https://spark.apache.org/docs/latest/api/python/getting_started/testing_pyspark.html) · [API de DataFrame](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/dataframe.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio pyspark

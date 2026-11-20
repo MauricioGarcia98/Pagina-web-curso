@@ -224,6 +224,31 @@ En proyectos reales se usan frameworks: **expectations** de Lakeflow Declarative
 No los descarto en silencio. En silver aplico reglas de validación con `when` encadenados que asignan un motivo de rechazo, separo las filas válidas de las inválidas y guardo las inválidas en una tabla de cuarentena con el motivo y la fecha de carga. Para tipos uso `try_cast`, porque en Spark 4 `cast` falla con datos inválidos, y cuento cuántos valores no se pudieron convertir. Registro las métricas de cada ejecución y alerto si el porcentaje de inválidos supera un umbral, porque suele indicar un cambio en el origen.
 :::
 
+:::practica pyspark Limpiar la capa bronze de pedidos
+1. Ejecuta: normaliza el estado (`ENTREGADO`, `Entregado` → `entregado`) y convierte el monto que a veces trae coma decimal.
+2. Deduplica: un mismo `pedido_id` llega en varios archivos; quédate con la carga más reciente.
+3. Manda a una tabla de cuarentena las filas cuyo monto no se pudo convertir.
+
+```python norun
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+bronze = spark.table("bronze_pedidos")
+limpio = (bronze
+    .withColumn("estado", F.lower(F.trim("estado")))
+    .withColumn("monto_num", F.regexp_replace("monto", ",", ".").try_cast("double")))
+
+w = Window.partitionBy("pedido_id").orderBy(F.desc("cargado_en"))
+unico = limpio.withColumn("rn", F.row_number().over(w)).filter("rn = 1").drop("rn")
+print("bronze:", bronze.count(), "| sin duplicados:", unico.count())
+unico.groupBy("estado").count().show()
+```
+
+Reto: cuenta cuántas filas quedan con `monto_num` nulo y muéstralas: esa es tu cuarentena.
+
+Documentación oficial: [dropDuplicates](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.dropDuplicates.html) · [Column.try_cast](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.Column.try_cast.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio pyspark

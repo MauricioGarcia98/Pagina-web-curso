@@ -267,6 +267,29 @@ Lucía España</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tu primera exploración con Spark</div>
+
+<ol>
+<li>Ejecuta: abre la tabla <code>pedidos</code>, mira su esquema y las primeras filas.</li>
+<li>Fíjate que <code>filter</code> no imprime nada hasta que llamas a <code>show()</code> o <code>count()</code>: es una transformación perezosa.</li>
+<li>Cambia el filtro a otro canal y vuelve a contar.</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import SparkSession
+from pyspark.sql import functions as F
+
+spark = SparkSession.builder.appName(&quot;primeros-pasos&quot;).getOrCreate()
+
+pedidos = spark.table(&quot;pedidos&quot;)
+pedidos.printSchema()
+pedidos.show(5)
+
+web = pedidos.filter(F.col(&quot;canal&quot;) == &quot;web&quot;)   # transformación: todavía no corre
+print(&quot;Pedidos web:&quot;, web.count())             # acción: ahora sí corre</code></pre>
+<p>Reto: crea un DataFrame a mano con <code>spark.createDataFrame</code> (3 filas, columnas <code>canal</code> y <code>meta</code>) y muéstralo.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.SparkSession.html">SparkSession</a> · <a href="https://spark.apache.org/docs/latest/api/python/getting_started/quickstart_df.html">guía rápida de DataFrame</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <p>En los ejercicios de PySpark guarda tu resultado en la variable <strong><code>resultado</code></strong> (un DataFrame). El corrector compara tus filas con las de la solución (sin importar el orden, salvo que se pida).</p>
 <div class="exercise-slot"></div>

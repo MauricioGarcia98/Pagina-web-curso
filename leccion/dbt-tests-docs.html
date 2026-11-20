@@ -337,6 +337,25 @@ dbt docs serve      # abre el sitio en el navegador</code></pre>
 <td>Columnas y tipos garantizados antes de crear la tabla</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tests genéricos y un test singular propio</div>
+
+<ol>
+<li>Mira los tests genéricos declarados en <code>schema.yml</code> y córrelos.</li>
+<li>Crea un test singular: un <code>SELECT</code> que devuelve las filas que violan la regla (si devuelve 0 filas, pasa).</li>
+<li>Corre solo los tests del modelo con <code>-s</code>.</li>
+</ol>
+<pre data-norun><code class="language-bash">cd ~/tienda_dbt
+cat models/schema.yml
+dbt run
+dbt test
+mkdir -p tests
+echo &quot;select * from {{ ref('ventas_por_canal') }} where ventas &lt; 0&quot; &gt; tests/ventas_no_negativas.sql
+dbt test -s ventas_por_canal</code></pre>
+<p>Reto: agrega en <code>schema.yml</code> un test <code>accepted_values</code> para <code>canal</code> con los valores que esperas y córrelo.</p>
+<p>Documentación oficial: <a href="https://docs.getdbt.com/docs/build/data-tests">data tests</a> · <a href="https://docs.getdbt.com/reference/resource-properties/data-tests">propiedades de los tests</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -205,6 +205,34 @@ En Databricks, **Photon** es un motor de ejecución vectorizado escrito en C++ q
 - **`repartition` antes de cada escritura.** Fuerza un shuffle; `coalesce` reduce particiones sin shuffle completo.
 :::
 
+:::practica pyspark Medir antes de optimizar: UDF contra función nativa
+1. Ejecuta: el mismo cálculo con una UDF de Python y con funciones nativas.
+2. Compara los tiempos. En un clúster la diferencia es mayor: la UDF saca cada fila de la JVM a Python y la vuelve a meter.
+3. Usa `cache()` solo si reutilizas el resultado: mira `InMemoryTableScan` en el plan.
+
+```python norun
+import time
+from pyspark.sql import functions as F
+from pyspark.sql.types import StringType
+
+clientes = spark.table("clientes")
+
+@F.udf(StringType())
+def dominio_udf(email):
+    return email.split("@")[1] if email else None
+
+t = time.time(); clientes.select(dominio_udf("email").alias("d")).groupBy("d").count().collect(); print("UDF:", round(time.time() - t, 3), "s")
+t = time.time(); clientes.select(F.substring_index("email", "@", -1).alias("d")).groupBy("d").count().collect(); print("nativa:", round(time.time() - t, 3), "s")
+
+c = clientes.filter(F.col("pais") == "Chile").cache()
+c.groupBy("ciudad").count().explain()
+```
+
+Reto: escribe una checklist de 5 cosas que revisarías en el plan antes de tocar la configuración del clúster.
+
+Documentación oficial: [ajuste de rendimiento](https://spark.apache.org/docs/latest/sql-performance-tuning.html) · [Arrow y UDFs de pandas](https://spark.apache.org/docs/latest/api/python/user_guide/sql/arrow_pandas.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

@@ -264,6 +264,33 @@ Lo convertiría en incremental: en la primera ejecución construye todo, y en la
 | `{{ this }}` | La tabla actual del propio modelo |
 | `on_schema_change` | Qué hacer si cambian las columnas de un incremental |
 
+:::practica dbt Un modelo incremental
+1. Ejecuta: en la primera corrida `is_incremental()` es falso y el modelo carga todo.
+2. Lee el bloque `{% if is_incremental() %}`: en las corridas siguientes dbt agrega ese `where` y solo procesa lo nuevo.
+3. Piensa qué pasa con un pedido que cambia de estado días después: por eso hay `unique_key` (dbt lo actualiza en vez de duplicarlo).
+
+```sql norun
+{{ config(materialized='incremental', unique_key='pedido_id') }}
+
+select
+    pedido_id,
+    cliente_id,
+    fecha_pedido,
+    estado,
+    canal
+from {{ ref('stg_pedidos') }}
+
+{% if is_incremental() %}
+  -- solo lo que llegó desde la última corrida
+  where fecha_pedido > (select max(fecha_pedido) from {{ this }})
+{% endif %}
+```
+
+Reto: cambia el filtro para reprocesar siempre los últimos 3 días (los datos que llegan tarde) y explica el costo de hacerlo.
+
+Documentación oficial: [modelos incrementales](https://docs.getdbt.com/docs/build/incremental-models) · [materializaciones](https://docs.getdbt.com/docs/build/materializations)
+:::
+
 ## Ejercicios
 
 :::ejercicio dbt incremental this=fct_pedidos_diarios

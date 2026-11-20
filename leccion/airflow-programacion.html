@@ -233,6 +233,31 @@ print(dag.get_task(&quot;tarea&quot;).retries)</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: La fecha lógica de cada corrida</div>
+
+<ol>
+<li>Ejecuta: el DAG corre de lunes a viernes a las 6:00 (cron) y la tarea imprime su fecha lógica.</li>
+<li>Cambia la fecha de <code>dag.test</code> y mira cómo cambian <code>ds</code> y <code>logical_date</code>.</li>
+<li>Usa <code>ds</code> para armar la ruta del archivo del día: es lo que hace que una corrida sea reprocesable.</li>
+</ol>
+<pre data-norun><code class="language-python">from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+
+def mostrar(**context):
+    print(&quot;logical_date:&quot;, context[&quot;logical_date&quot;])
+    print(&quot;ds:&quot;, context[&quot;ds&quot;])
+    print(&quot;ruta del día:&quot;, f&quot;/lake/bronze/ventas/{context['ds']}.json&quot;)
+
+with DAG(dag_id=&quot;programado&quot;, start_date=datetime(2024, 1, 1), schedule=&quot;0 6 * * 1-5&quot;, catchup=False) as dag:
+    PythonOperator(task_id=&quot;mostrar&quot;, python_callable=mostrar)
+
+dag.test(logical_date=datetime(2024, 3, 15))</code></pre>
+<p>Reto: explica qué pasaría al activar este DAG con <code>catchup=True</code> y <code>start_date</code> en enero.</p>
+<p>Documentación oficial: <a href="https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/cron.html">programación con cron</a> · <a href="https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dag-run.html">DAG runs y catchup</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

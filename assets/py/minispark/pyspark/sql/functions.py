@@ -388,6 +388,15 @@ def monotonically_increasing_id():
     return Column("fn", "monotonically_increasing_id()", [], run, rowwise_df=True)
 
 
+def spark_partition_id():
+    """En qué partición está cada fila (mini-Spark reparte las filas en bloques contiguos)."""
+    def run(df, children):
+        import builtins
+        n, total = builtins.max(1, df._partitions), len(df._rows)
+        return [i * n // total if total else 0 for i in range(total)]
+    return Column("fn", "SPARK_PARTITION_ID()", [], run, rowwise_df=True)
+
+
 # ----------------------------------------------------------------- strings
 def upper(c):
     return _fn("upper", [c], _null_safe(lambda s: str(s).upper()))
@@ -744,8 +753,34 @@ def to_json(c):
 
 
 def from_json(c, schema, options=None):
+    # Como Spark: en modo PERMISSIVE (el de siempre) un JSON roto da un registro con todos sus campos nulos;
+    # con options={"mode": "FAILFAST"} el error corta la consulta.
     import json
-    return _fn("from_json", [c], _null_safe(lambda s: json.loads(s)))
+    modo = str((options or {}).get("mode", "PERMISSIVE")).upper()
+    if hasattr(schema, "fieldNames"):
+        campos = list(schema.fieldNames())
+    elif isinstance(schema, str) and not schema.strip().lower().startswith(("array", "map")):
+        campos, prof, act = [], 0, ""
+        for ch in schema.replace("struct<", "").rstrip(">") if schema.strip().lower().startswith("struct<") else schema:
+            prof += ch in "<(" ; prof -= ch in ">)"
+            if ch == "," and prof == 0:
+                campos.append(act); act = ""
+            else:
+                act += ch
+        campos = [x.strip().replace(":", " ").split()[0].strip("`") for x in campos + [act] if x.strip()]
+    else:
+        campos = None
+
+    def f(s):
+        try:
+            v = json.loads(s)
+            # se queda solo con los campos del esquema; los que faltan en el JSON quedan nulos
+            return {k: v.get(k) for k in campos} if campos and isinstance(v, dict) else v
+        except ValueError:
+            if modo == "FAILFAST":
+                raise ValueError("[MALFORMED_RECORD_IN_PARSING] Registro JSON mal formado (modo FAILFAST): %s" % s[:80])
+            return {k: None for k in campos} if campos else None
+    return _fn("from_json", [c], _null_safe(f))
 
 
 def get_json_object(c, path):
@@ -777,7 +812,8 @@ def desc_nulls_first(c): return _c(c).desc_nulls_first()
 
 
 def broadcast(df):
-    return df
+    from . import _plan
+    return _plan.marcar_broadcast(df)
 
 
 def input_file_name():

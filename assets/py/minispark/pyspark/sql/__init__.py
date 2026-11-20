@@ -2782,3 +2782,8 @@ class _Streams:
 
 
 SparkSession.streams = property(lambda self: _Streams())
+
+
+# --------------------------------------------------------------------- planes de ejecución (explain)
+from . import _plan as _plan_mod  # noqa: E402
+_plan_mod.instalar(DataFrame, GroupedData, SparkSession, DataFrameReader)

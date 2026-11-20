@@ -125,6 +125,31 @@ print(&quot;✔ test OK&quot;)</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Bronze → silver → gold con funciones</div>
+
+<ol>
+<li>Ejecuta: cada capa es una función que recibe y devuelve un DataFrame.</li>
+<li>Agrega a <code>a_silver</code> el descarte de pedidos <code>cancelado</code>.</li>
+<li>Agrega a <code>a_gold</code> la cantidad de pedidos por día además del total.</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import DataFrame, functions as F
+
+def a_silver(df: DataFrame) -&gt; DataFrame:
+    return (df.withColumn(&quot;estado&quot;, F.lower(F.trim(&quot;estado&quot;)))
+              .withColumn(&quot;monto&quot;, F.regexp_replace(&quot;monto&quot;, &quot;,&quot;, &quot;.&quot;).try_cast(&quot;double&quot;))
+              .dropDuplicates([&quot;pedido_id&quot;])
+              .filter(F.col(&quot;monto&quot;).isNotNull()))
+
+def a_gold(df: DataFrame) -&gt; DataFrame:
+    return df.groupBy(&quot;fecha&quot;).agg(F.round(F.sum(&quot;monto&quot;), 2).alias(&quot;ventas&quot;)).orderBy(&quot;fecha&quot;)
+
+gold = a_gold(a_silver(spark.table(&quot;bronze_pedidos&quot;)))
+gold.show(7)</code></pre>
+<p>Reto: escribe un test chico (un DataFrame de 3 filas armado a mano) que verifique que <code>a_silver</code> elimina el duplicado.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/api/python/getting_started/testing_pyspark.html">probar PySpark</a> · <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/dataframe.html">API de DataFrame</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

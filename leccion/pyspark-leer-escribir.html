@@ -224,6 +224,28 @@ df.repartition(&quot;anio&quot;, &quot;mes&quot;).write.partitionBy(&quot;anio&q
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Escribir en el lake y volver a leer</div>
+
+<ol>
+<li>Ejecuta: escribe los pedidos entregados en Parquet, particionados por canal.</li>
+<li>Vuelve a ejecutar: falla porque la ruta ya existe. Cambia el modo a <code>overwrite</code>.</li>
+<li>Lee la ruta y verifica que el conteo coincide.</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+
+entregados = spark.table(&quot;pedidos&quot;).filter(F.col(&quot;estado&quot;) == &quot;entregado&quot;)
+(entregados.write
+    .mode(&quot;overwrite&quot;)
+    .partitionBy(&quot;canal&quot;)
+    .parquet(&quot;/lake/silver/pedidos_entregados&quot;))
+
+leidos = spark.read.parquet(&quot;/lake/silver/pedidos_entregados&quot;)
+print(entregados.count(), leidos.count())</code></pre>
+<p>Reto: guarda el mismo resultado como tabla con <code>saveAsTable(&quot;silver_entregados&quot;)</code> y léelo con <code>spark.table</code>.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/sql-data-sources.html">fuentes de datos</a> · <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrameWriter.mode.html">modos de escritura</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

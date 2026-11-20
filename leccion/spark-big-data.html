@@ -203,6 +203,27 @@ ventas.groupBy(&quot;pais&quot;).sum(&quot;total&quot;).write.parquet(&quot;s3:/
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Dividir el trabajo en particiones</div>
+
+<ol>
+<li>Ejecuta: mira en cuántas particiones (pedazos) está la tabla y cuántas filas tiene cada una.</li>
+<li>Cambia a <code>repartition(4)</code> y vuelve a contar: cada partición la procesa una tarea, en paralelo.</li>
+<li>Piensa: si tuvieras 1.000 millones de filas en una sola máquina, ¿qué parte de este código cambia en un clúster? (Respuesta: ninguna; cambia dónde corre cada partición.)</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+
+pedidos = spark.table(&quot;pedidos&quot;)
+print(&quot;particiones:&quot;, pedidos.rdd.getNumPartitions())
+
+(pedidos.withColumn(&quot;particion&quot;, F.spark_partition_id())
+    .groupBy(&quot;particion&quot;).count()
+    .orderBy(&quot;particion&quot;)
+    .show())</code></pre>
+<p>Reto: con <code>glom()</code> sobre el RDD, muestra cuántas filas quedó en cada partición sin usar <code>groupBy</code>.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/index.html">qué es Apache Spark</a> · <a href="https://spark.apache.org/docs/latest/rdd-programming-guide.html#parallelized-collections">colecciones paralelizadas</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

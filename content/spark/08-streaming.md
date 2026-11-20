@@ -127,6 +127,37 @@ Databricks ofrece una forma **declarativa** de construir pipelines batch y strea
 - **Agregaciones sin watermark.** El estado crece sin límite esperando datos tardíos.
 :::
 
+:::practica pyspark Un stream con checkpoint que procesa solo lo nuevo
+1. Ejecuta: llega un primer lote de archivos JSON, el stream lo procesa y guarda en el checkpoint qué leyó.
+2. Descomenta el segundo lote y ejecuta de nuevo: solo se procesan las filas nuevas.
+3. Cambia la ruta del checkpoint y vuelve a ejecutar: sin memoria, el stream relee todo (por eso el checkpoint no se borra).
+
+```python norun
+from pyspark.sql import functions as F
+
+lote1 = spark.createDataFrame([(1, "compra", 120.0), (2, "vista", 0.0)], ["evento_id", "tipo", "monto"])
+lote1.write.mode("overwrite").json("/lake/landing/eventos/lote1")
+# lote2 = spark.createDataFrame([(3, "compra", 80.0)], ["evento_id", "tipo", "monto"])
+# lote2.write.mode("overwrite").json("/lake/landing/eventos/lote2")
+
+eventos = (spark.readStream.format("json")
+    .schema("evento_id LONG, tipo STRING, monto DOUBLE")
+    .load("/lake/landing/eventos"))
+
+q = (eventos.filter(F.col("tipo") == "compra")
+    .writeStream
+    .option("checkpointLocation", "/lake/_checkpoints/compras")
+    .trigger(availableNow=True)
+    .toTable("silver_compras"))
+q.awaitTermination()
+spark.table("silver_compras").show()
+```
+
+Reto: explica qué pasaría con `outputMode("complete")` y una agregación por tipo.
+
+Documentación oficial: [Structured Streaming](https://spark.apache.org/docs/latest/streaming/index.html) · [API de streaming](https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html)
+:::
+
 :::ejercicio quiz
 ¿Para qué sirve el `checkpointLocation` en un stream?
 

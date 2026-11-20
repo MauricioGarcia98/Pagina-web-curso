@@ -220,6 +220,33 @@ airflow dags test etl_ventas 2024-12-31</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tu DAG de extracción, transformación y carga</div>
+
+<ol>
+<li>Ejecuta: tres tareas en cadena con <code>&gt;&gt;</code>.</li>
+<li>Agrega una cuarta tarea <code>validar</code> (PythonOperator) entre <code>transformar</code> y <code>cargar</code>.</li>
+<li>Rompe a propósito la función (<code>1 / 0</code>) y mira cómo la tarea falla y las siguientes no corren.</li>
+</ol>
+<pre data-norun><code class="language-python">from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.python import PythonOperator
+
+def transformar():
+    print(&quot;limpiando y transformando&quot;)
+
+with DAG(dag_id=&quot;etl_ventas_lab&quot;, start_date=datetime(2024, 1, 1), schedule=&quot;@daily&quot;, catchup=False, tags=[&quot;ventas&quot;]) as dag:
+    extraer = BashOperator(task_id=&quot;extraer&quot;, bash_command=&quot;echo descargando ventas&quot;)
+    limpiar = PythonOperator(task_id=&quot;transformar&quot;, python_callable=transformar)
+    cargar = BashOperator(task_id=&quot;cargar&quot;, bash_command=&quot;echo cargando en el lakehouse&quot;)
+    extraer &gt;&gt; limpiar &gt;&gt; cargar
+
+dag.test()</code></pre>
+<p>Reto: copia el DAG a <code>~/dags/</code> en la terminal y córrelo con <code>airflow dags test etl_ventas_lab 2024-01-01</code>.</p>
+<p>Documentación oficial: <a href="https://airflow.apache.org/docs/apache-airflow/stable/tutorial/fundamentals.html">tutorial: fundamentos</a> · <a href="https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/operators.html">operadores</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

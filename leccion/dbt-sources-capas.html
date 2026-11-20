@@ -211,6 +211,34 @@ sqlite3 &quot;SELECT * FROM clientes_por_region&quot;</code></pre>
 </tr>
 </tbody></table></div>
 <p>Prueba ahora a cambiar <code>Costa Rica,Centroamérica</code> por <code>Costa Rica,Norteamérica</code> en el CSV, y vuelve a correr <code>dbt seed</code> y <code>dbt run -s clientes_por_region</code>. El mart cambia sin tocar ningún SQL. Esa es la ventaja de tener la regla de negocio en un seed versionado.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un modelo de staging desde un source</div>
+
+<ol>
+<li>Ejecuta: <code>source()</code> apunta a la tabla cruda; el staging solo renombra, limpia y tipa.</li>
+<li>Agrega <code>segmento</code> en minúsculas.</li>
+<li>Regla de staging: una fila por fila de origen, sin joins ni agregaciones. Verifica que no agregaste ninguna.</li>
+</ol>
+<pre data-norun><code class="language-sql">with origen as (
+    select * from {{ source('tienda', 'clientes') }}
+),
+
+renombrado as (
+    select
+        cliente_id,
+        trim(nombre) || ' ' || trim(apellido) as nombre_completo,
+        lower(trim(email))                    as email,
+        ciudad,
+        pais,
+        cast(fecha_registro as date)          as fecha_registro
+    from origen
+)
+
+select * from renombrado</code></pre>
+<p>Reto: escribe el staging de <code>productos</code> con un campo <code>margen</code> = precio - costo y la columna <code>activo</code> convertida en booleano.</p>
+<p>Documentación oficial: <a href="https://docs.getdbt.com/docs/build/sources">sources</a> · <a href="https://docs.getdbt.com/best-practices/how-we-structure/2-staging">la capa de staging</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <p>En estos ejercicios, las fuentes <code>tienda</code> apuntan a las tablas originales: <code>{{ source(&#39;tienda&#39;, &#39;pedidos&#39;) }}</code> se compila como <code>main.pedidos</code> (<code>main</code> es el esquema de SQLite; en Databricks verías algo como <code>prod.bronze.pedidos</code>).</p>
 <div class="exercise-slot"></div>

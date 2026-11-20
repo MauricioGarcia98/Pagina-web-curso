@@ -219,6 +219,27 @@ print(spark.table(&quot;pedidos&quot;).dropDuplicates([&quot;cliente_id&quot;]).
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Calcular el margen de cada producto</div>
+
+<ol>
+<li>Ejecuta: margen por producto, solo los activos, de mayor a menor.</li>
+<li>Agrega una columna <code>margen_pct</code> = margen / precio × 100, redondeada a 1 decimal.</li>
+<li>Renombra <code>nombre</code> a <code>producto</code> con <code>withColumnRenamed</code>.</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+
+productos = spark.table(&quot;productos&quot;)
+(productos
+    .filter(F.col(&quot;activo&quot;) == 1)
+    .withColumn(&quot;margen&quot;, F.round(F.col(&quot;precio&quot;) - F.col(&quot;costo&quot;), 2))
+    .select(&quot;producto_id&quot;, &quot;nombre&quot;, &quot;marca&quot;, &quot;precio&quot;, &quot;margen&quot;)
+    .orderBy(F.col(&quot;margen&quot;).desc())
+    .show(10))</code></pre>
+<p>Reto: deja solo los productos con stock menor a 20 y margen mayor a 50, y cuenta cuántos son.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/dataframe.html">API de DataFrame</a> · <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.withColumn.html">withColumn</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

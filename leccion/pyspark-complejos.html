@@ -195,6 +195,31 @@ spark.createDataFrame([(36,), (42,), (None,)], [&quot;talla&quot;]).withColumn(&
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Abrir el JSON de los eventos de la app</div>
+
+<ol>
+<li>Ejecuta: convierte el texto <code>payload</code> en un struct con <code>from_json</code> y cuenta por versión (<code>v</code>).</li>
+<li>Mira el resultado: la versión 2 de la app manda <code>evento</code> y <code>usuario</code> en vez de <code>tipo</code> y <code>cliente</code> (el esquema evolucionó), y hay filas con <code>v</code> nulo: JSON roto que Spark, en modo PERMISSIVE, deja en nulos en vez de fallar.</li>
+<li>Unifica las dos versiones con <code>coalesce</code> y cuenta eventos por tipo.</li>
+<li>Junta los productos que vio cada cliente en un array con <code>collect_set</code>.</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+
+esquema = &quot;v INT, tipo STRING, cliente INT, evento STRING, usuario INT, producto INT, ts STRING&quot;
+crudo = spark.table(&quot;bronze_eventos_app&quot;).withColumn(&quot;e&quot;, F.from_json(&quot;payload&quot;, esquema))
+crudo.groupBy(&quot;e.v&quot;).count().show()
+
+eventos = crudo.select(
+    &quot;evento_id&quot;,
+    F.coalesce(&quot;e.tipo&quot;, &quot;e.evento&quot;).alias(&quot;tipo&quot;),        # v1 decía tipo, v2 dice evento
+    F.coalesce(&quot;e.cliente&quot;, &quot;e.usuario&quot;).alias(&quot;cliente&quot;),
+    F.col(&quot;e.producto&quot;).alias(&quot;producto&quot;))
+eventos.groupBy(&quot;tipo&quot;).count().show()</code></pre>
+<p>Reto: con <code>explode</code>, vuelve a separar el array de productos de cada cliente en filas.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.from_json.html">from_json</a> · <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.explode.html">explode</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

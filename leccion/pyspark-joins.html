@@ -213,6 +213,29 @@ spark.table(&quot;productos&quot;).join(F.broadcast(spark.table(&quot;categorias
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Unir ventas con productos</div>
+
+<ol>
+<li>Ejecuta: importe por marca, uniendo detalle y productos por <code>producto_id</code>.</li>
+<li>Cambia a un <code>left_anti</code> para encontrar los productos que nunca se vendieron.</li>
+<li>Compara <code>count()</code> antes y después de cada join: ¿se duplicaron filas?</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+
+det = spark.table(&quot;detalle_pedidos&quot;)
+prod = spark.table(&quot;productos&quot;)
+
+(det.join(prod, &quot;producto_id&quot;)
+    .withColumn(&quot;importe&quot;, F.col(&quot;cantidad&quot;) * F.col(&quot;precio_unitario&quot;) * (1 - F.col(&quot;descuento&quot;)))
+    .groupBy(&quot;marca&quot;)
+    .agg(F.round(F.sum(&quot;importe&quot;), 2).alias(&quot;ventas&quot;))
+    .orderBy(F.desc(&quot;ventas&quot;))
+    .show(5))</code></pre>
+<p>Reto: los clientes que se registraron pero nunca compraron (<code>clientes</code> contra <code>pedidos</code>).</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.join.html">DataFrame.join</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

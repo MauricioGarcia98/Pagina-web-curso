@@ -204,6 +204,32 @@ with DAG("etl", default_args=default_args, ...) as dag:
     ...   # todas las tareas tienen 2 reintentos, salvo que una lo cambie
 ```
 
+:::practica airflow-lab Plantillas Jinja y reintentos
+1. Ejecuta: `{{ ds }}` se reemplaza por la fecha lógica al momento de correr.
+2. Agrega `{{ ds_nodash }}` al nombre del archivo.
+3. Mira `retries` y `retry_delay` en `default_args`: si `descargar` falla, Airflow la reintenta.
+
+```python norun
+from datetime import datetime, timedelta
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+
+default_args = {"retries": 2, "retry_delay": timedelta(minutes=5)}
+
+with DAG(dag_id="plantillas", start_date=datetime(2024, 1, 1), schedule="@daily", catchup=False, default_args=default_args) as dag:
+    descargar = BashOperator(
+        task_id="descargar",
+        bash_command="echo descargando ventas del {{ ds }} en /lake/bronze/ventas/{{ ds }}.json",
+    )
+
+dag.test(logical_date=datetime(2024, 5, 20))
+```
+
+Reto: agrega `execution_timeout=timedelta(minutes=30)` a la tarea y explica cuándo lo usarías.
+
+Documentación oficial: [referencia de plantillas](https://airflow.apache.org/docs/apache-airflow/stable/templates-ref.html) · [tareas, reintentos y timeouts](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/tasks.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio airflow

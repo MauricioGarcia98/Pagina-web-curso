@@ -247,6 +247,30 @@ Lucía España
 - **Esperar resultados de una transformación.** Hace falta una acción para que Spark ejecute.
 :::
 
+:::practica pyspark Tu primera exploración con Spark
+1. Ejecuta: abre la tabla `pedidos`, mira su esquema y las primeras filas.
+2. Fíjate que `filter` no imprime nada hasta que llamas a `show()` o `count()`: es una transformación perezosa.
+3. Cambia el filtro a otro canal y vuelve a contar.
+
+```python norun
+from pyspark.sql import SparkSession
+from pyspark.sql import functions as F
+
+spark = SparkSession.builder.appName("primeros-pasos").getOrCreate()
+
+pedidos = spark.table("pedidos")
+pedidos.printSchema()
+pedidos.show(5)
+
+web = pedidos.filter(F.col("canal") == "web")   # transformación: todavía no corre
+print("Pedidos web:", web.count())             # acción: ahora sí corre
+```
+
+Reto: crea un DataFrame a mano con `spark.createDataFrame` (3 filas, columnas `canal` y `meta`) y muéstralo.
+
+Documentación oficial: [SparkSession](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.SparkSession.html) · [guía rápida de DataFrame](https://spark.apache.org/docs/latest/api/python/getting_started/quickstart_df.html)
+:::
+
 ## Ejercicios
 
 En los ejercicios de PySpark guarda tu resultado en la variable **`resultado`** (un DataFrame). El corrector compara tus filas con las de la solución (sin importar el orden, salvo que se pida).

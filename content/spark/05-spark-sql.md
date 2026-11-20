@@ -141,6 +141,30 @@ FROM ...
 - **Nombres de tabla sin catálogo y esquema.** En un entorno compartido, puede leer otra tabla con el mismo nombre.
 :::
 
+:::practica pyspark De DataFrame a SQL y vuelta
+1. Ejecuta: registra una vista temporal y consúltala con `spark.sql`.
+2. Mira el catálogo con `spark.catalog.listTables()`: la vista temporal aparece junto a las tablas.
+3. Vuelve a DataFrame: el resultado de `spark.sql` es un DataFrame y puedes seguir con `.filter()`.
+
+```python norun
+spark.table("pedidos").createOrReplaceTempView("ped")
+
+top = spark.sql("""
+    SELECT canal, metodo_pago, COUNT(*) AS n
+    FROM ped
+    WHERE estado = 'entregado'
+    GROUP BY canal, metodo_pago
+    ORDER BY n DESC
+""")
+top.show(5)
+print([t.name for t in spark.catalog.listTables()][:8])
+```
+
+Reto: escribe la misma consulta con la API de DataFrame y compara que dé lo mismo.
+
+Documentación oficial: [primeros pasos con Spark SQL](https://spark.apache.org/docs/latest/sql-getting-started.html) · [Catalog](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/catalog.html)
+:::
+
 :::ejercicio pyspark
 Registra el DataFrame de la tabla `clientes` como vista temporal `cli` y, con `spark.sql`, cuenta los clientes por `pais` y `segmento`. Guarda el DataFrame resultante en `resultado` con columnas `pais`, `segmento`, `n`.
 ```python inicial

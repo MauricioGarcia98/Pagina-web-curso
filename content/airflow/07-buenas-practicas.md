@@ -204,6 +204,26 @@ Abre la terminal del curso (botón ⌨ Terminal) y prueba: `ls dags`, `airflow d
 - [ ] ¿Los secretos están en Connections?
 - [ ] ¿Pasa el test de `DagBag` sin import errors?
 
+:::practica terminal La CLI de Airflow para revisar antes de subir
+1. Lista los DAGs y revisa los errores de importación: es lo primero que se mira en una guardia.
+2. Guarda una Variable y lístala.
+3. Prueba una sola tarea y luego el DAG completo, sin scheduler.
+
+```bash norun
+airflow dags list
+airflow dags list-import-errors
+airflow variables set entorno dev
+airflow variables list
+airflow tasks list etl_ventas
+airflow tasks test etl_ventas extraer 2024-01-01
+airflow dags test etl_ventas 2024-01-01
+```
+
+Reto: rompe a propósito `~/dags/etl_ventas.py` (borra un paréntesis) y verifica que `list-import-errors` lo detecta.
+
+Documentación oficial: [buenas prácticas](https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html) · [referencia de la CLI](https://airflow.apache.org/docs/apache-airflow/stable/cli-and-env-variables-ref.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

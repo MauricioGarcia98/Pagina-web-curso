@@ -209,6 +209,32 @@ Para ejecutar una UDF, Spark tiene que **sacar** cada valor del motor (en la JVM
 - **Acceder a campos de struct con corchetes.** Se usa `col("struct.campo")`.
 :::
 
+:::practica pyspark Abrir el JSON de los eventos de la app
+1. Ejecuta: convierte el texto `payload` en un struct con `from_json` y cuenta por versión (`v`).
+2. Mira el resultado: la versión 2 de la app manda `evento` y `usuario` en vez de `tipo` y `cliente` (el esquema evolucionó), y hay filas con `v` nulo: JSON roto que Spark, en modo PERMISSIVE, deja en nulos en vez de fallar.
+3. Unifica las dos versiones con `coalesce` y cuenta eventos por tipo.
+4. Junta los productos que vio cada cliente en un array con `collect_set`.
+
+```python norun
+from pyspark.sql import functions as F
+
+esquema = "v INT, tipo STRING, cliente INT, evento STRING, usuario INT, producto INT, ts STRING"
+crudo = spark.table("bronze_eventos_app").withColumn("e", F.from_json("payload", esquema))
+crudo.groupBy("e.v").count().show()
+
+eventos = crudo.select(
+    "evento_id",
+    F.coalesce("e.tipo", "e.evento").alias("tipo"),        # v1 decía tipo, v2 dice evento
+    F.coalesce("e.cliente", "e.usuario").alias("cliente"),
+    F.col("e.producto").alias("producto"))
+eventos.groupBy("tipo").count().show()
+```
+
+Reto: con `explode`, vuelve a separar el array de productos de cada cliente en filas.
+
+Documentación oficial: [from_json](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.from_json.html) · [explode](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.explode.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio pyspark

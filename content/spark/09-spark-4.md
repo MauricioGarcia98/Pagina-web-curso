@@ -248,6 +248,29 @@ Desde Spark 4.0 `spark.sql.ansi.enabled` está activado por defecto, así que la
 | Sintaxis pipe | `FROM t \|> WHERE … \|> AGGREGATE …` en el orden en que se ejecuta |
 | Declarative Pipelines | Defines tablas con funciones; el motor decide orden y ejecución |
 
+:::practica pyspark Modo ANSI: errores en vez de NULL silenciosos
+1. Ejecuta: con el modo ANSI (activo por defecto en Spark 4), convertir `"abc"` a número corta la consulta con un error.
+2. Cambia a `try_cast`: el valor inválido queda en NULL y la consulta sigue.
+3. Desactiva ANSI (`spark.sql.ansi.enabled = false`) y repite el `cast` original: así se comportaba Spark 3, sin avisar.
+
+```python norun
+from pyspark.sql import functions as F
+
+montos = spark.createDataFrame([("120.5",), ("abc",), ("80",)], ["monto"])
+
+try:
+    montos.select(F.col("monto").cast("double")).show()
+except Exception as e:
+    print("ANSI cortó la consulta:", str(e)[:120])
+
+montos.select(F.col("monto").try_cast("double").alias("monto")).show()
+```
+
+Reto: con `try_divide`, divide un monto por una cantidad que a veces es 0 sin que falle la consulta.
+
+Documentación oficial: [cumplimiento ANSI](https://spark.apache.org/docs/latest/sql-ref-ansi-compliance.html) · [try_divide](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.try_divide.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz dificultad=Intermedio

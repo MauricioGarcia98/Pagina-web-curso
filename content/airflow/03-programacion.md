@@ -240,6 +240,32 @@ print(dag.get_task("tarea").retries)
 Es la fecha que identifica la ejecución y que las tareas usan para saber qué período procesar, por ejemplo con `{{ ds }}`. En Airflow 3, con un horario cron, es el momento en que se dispara la ejecución; en Airflow 2 era el comienzo del intervalo de datos, por eso la ejecución "del 1 de enero" corría el 2. Lo importante es que las tareas usen esa fecha y no la hora actual, para que se puedan reprocesar días pasados con un backfill y obtener siempre el mismo resultado.
 :::
 
+:::practica airflow-lab La fecha lógica de cada corrida
+1. Ejecuta: el DAG corre de lunes a viernes a las 6:00 (cron) y la tarea imprime su fecha lógica.
+2. Cambia la fecha de `dag.test` y mira cómo cambian `ds` y `logical_date`.
+3. Usa `ds` para armar la ruta del archivo del día: es lo que hace que una corrida sea reprocesable.
+
+```python norun
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+
+def mostrar(**context):
+    print("logical_date:", context["logical_date"])
+    print("ds:", context["ds"])
+    print("ruta del día:", f"/lake/bronze/ventas/{context['ds']}.json")
+
+with DAG(dag_id="programado", start_date=datetime(2024, 1, 1), schedule="0 6 * * 1-5", catchup=False) as dag:
+    PythonOperator(task_id="mostrar", python_callable=mostrar)
+
+dag.test(logical_date=datetime(2024, 3, 15))
+```
+
+Reto: explica qué pasaría al activar este DAG con `catchup=True` y `start_date` en enero.
+
+Documentación oficial: [programación con cron](https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/cron.html) · [DAG runs y catchup](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dag-run.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio airflow

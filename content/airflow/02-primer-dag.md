@@ -202,6 +202,34 @@ airflow dags test etl_ventas 2024-12-31
 Se ejecuta cada vez que Airflow parsea el archivo, que es cada pocos segundos o minutos, aunque el DAG no esté corriendo. Eso carga la base, hace lento al Dag processor y puede hacer que el DAG no se cargue por exceder el tiempo de parseo. Todo trabajo con sistemas externos debe ir dentro de la función de una tarea; para valores de configuración se usan Variables o plantillas de Jinja, que se resuelven al ejecutar.
 :::
 
+:::practica airflow-lab Tu DAG de extracción, transformación y carga
+1. Ejecuta: tres tareas en cadena con `>>`.
+2. Agrega una cuarta tarea `validar` (PythonOperator) entre `transformar` y `cargar`.
+3. Rompe a propósito la función (`1 / 0`) y mira cómo la tarea falla y las siguientes no corren.
+
+```python norun
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.python import PythonOperator
+
+def transformar():
+    print("limpiando y transformando")
+
+with DAG(dag_id="etl_ventas_lab", start_date=datetime(2024, 1, 1), schedule="@daily", catchup=False, tags=["ventas"]) as dag:
+    extraer = BashOperator(task_id="extraer", bash_command="echo descargando ventas")
+    limpiar = PythonOperator(task_id="transformar", python_callable=transformar)
+    cargar = BashOperator(task_id="cargar", bash_command="echo cargando en el lakehouse")
+    extraer >> limpiar >> cargar
+
+dag.test()
+```
+
+Reto: copia el DAG a `~/dags/` en la terminal y córrelo con `airflow dags test etl_ventas_lab 2024-01-01`.
+
+Documentación oficial: [tutorial: fundamentos](https://airflow.apache.org/docs/apache-airflow/stable/tutorial/fundamentals.html) · [operadores](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/operators.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio airflow

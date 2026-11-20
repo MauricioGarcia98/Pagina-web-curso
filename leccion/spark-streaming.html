@@ -126,6 +126,36 @@ checkpoint:  &quot;leí hasta e3&quot;   &quot;leí hasta e5&quot;     &quot;le�
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un stream con checkpoint que procesa solo lo nuevo</div>
+
+<ol>
+<li>Ejecuta: llega un primer lote de archivos JSON, el stream lo procesa y guarda en el checkpoint qué leyó.</li>
+<li>Descomenta el segundo lote y ejecuta de nuevo: solo se procesan las filas nuevas.</li>
+<li>Cambia la ruta del checkpoint y vuelve a ejecutar: sin memoria, el stream relee todo (por eso el checkpoint no se borra).</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+
+lote1 = spark.createDataFrame([(1, &quot;compra&quot;, 120.0), (2, &quot;vista&quot;, 0.0)], [&quot;evento_id&quot;, &quot;tipo&quot;, &quot;monto&quot;])
+lote1.write.mode(&quot;overwrite&quot;).json(&quot;/lake/landing/eventos/lote1&quot;)
+# lote2 = spark.createDataFrame([(3, &quot;compra&quot;, 80.0)], [&quot;evento_id&quot;, &quot;tipo&quot;, &quot;monto&quot;])
+# lote2.write.mode(&quot;overwrite&quot;).json(&quot;/lake/landing/eventos/lote2&quot;)
+
+eventos = (spark.readStream.format(&quot;json&quot;)
+    .schema(&quot;evento_id LONG, tipo STRING, monto DOUBLE&quot;)
+    .load(&quot;/lake/landing/eventos&quot;))
+
+q = (eventos.filter(F.col(&quot;tipo&quot;) == &quot;compra&quot;)
+    .writeStream
+    .option(&quot;checkpointLocation&quot;, &quot;/lake/_checkpoints/compras&quot;)
+    .trigger(availableNow=True)
+    .toTable(&quot;silver_compras&quot;))
+q.awaitTermination()
+spark.table(&quot;silver_compras&quot;).show()</code></pre>
+<p>Reto: explica qué pasaría con <code>outputMode(&quot;complete&quot;)</code> y una agregación por tipo.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/streaming/index.html">Structured Streaming</a> · <a href="https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html">API de streaming</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

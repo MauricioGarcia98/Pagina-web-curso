@@ -199,6 +199,25 @@ def test_todas_las_tareas_tienen_reintentos():
 <li><input disabled="" type="checkbox"> ¿Los secretos están en Connections?</li>
 <li><input disabled="" type="checkbox"> ¿Pasa el test de <code>DagBag</code> sin import errors?</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: La CLI de Airflow para revisar antes de subir</div>
+
+<ol>
+<li>Lista los DAGs y revisa los errores de importación: es lo primero que se mira en una guardia.</li>
+<li>Guarda una Variable y lístala.</li>
+<li>Prueba una sola tarea y luego el DAG completo, sin scheduler.</li>
+</ol>
+<pre data-norun><code class="language-bash">airflow dags list
+airflow dags list-import-errors
+airflow variables set entorno dev
+airflow variables list
+airflow tasks list etl_ventas
+airflow tasks test etl_ventas extraer 2024-01-01
+airflow dags test etl_ventas 2024-01-01</code></pre>
+<p>Reto: rompe a propósito <code>~/dags/etl_ventas.py</code> (borra un paréntesis) y verifica que <code>list-import-errors</code> lo detecta.</p>
+<p>Documentación oficial: <a href="https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html">buenas prácticas</a> · <a href="https://airflow.apache.org/docs/apache-airflow/stable/cli-and-env-variables-ref.html">referencia de la CLI</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

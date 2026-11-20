@@ -229,6 +229,39 @@ cargar_archivos().test()</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: TaskFlow: tareas que se pasan datos</div>
+
+<ol>
+<li>Ejecuta: cada <code>return</code> viaja a la tarea siguiente por XCom, sin que lo escribas a mano.</li>
+<li>Mira el mapeo dinámico: <code>expand</code> crea una tarea por cada archivo.</li>
+<li>Agrega un archivo a la lista y vuelve a ejecutar: aparece una instancia más.</li>
+</ol>
+<pre data-norun><code class="language-python">from datetime import datetime
+from airflow.sdk import dag, task
+
+@dag(start_date=datetime(2024, 1, 1), schedule=&quot;@daily&quot;, catchup=False)
+def ventas_taskflow():
+    @task
+    def listar():
+        return [&quot;ventas_norte.csv&quot;, &quot;ventas_sur.csv&quot;, &quot;ventas_centro.csv&quot;]
+
+    @task
+    def procesar(archivo: str) -&gt; int:
+        print(&quot;procesando&quot;, archivo)
+        return len(archivo)
+
+    @task
+    def resumir(filas: list):
+        print(&quot;total:&quot;, sum(filas))
+
+    resumir(procesar.expand(archivo=listar()))
+
+ventas_taskflow().test()</code></pre>
+<p>Reto: explica por qué no conviene pasar un DataFrame de 1 GB por XCom y qué pasarías en su lugar.</p>
+<p>Documentación oficial: <a href="https://airflow.apache.org/docs/apache-airflow/stable/tutorial/taskflow.html">TaskFlow</a> · <a href="https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/dynamic-task-mapping.html">mapeo dinámico</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -244,6 +244,28 @@ print(spark.table("pedidos").dropDuplicates(["cliente_id"]).count())         # u
 - **Comparar con un string donde va una columna.** `"precio" > 100` compara texto; usa `F.col("precio") > 100`.
 :::
 
+:::practica pyspark Calcular el margen de cada producto
+1. Ejecuta: margen por producto, solo los activos, de mayor a menor.
+2. Agrega una columna `margen_pct` = margen / precio × 100, redondeada a 1 decimal.
+3. Renombra `nombre` a `producto` con `withColumnRenamed`.
+
+```python norun
+from pyspark.sql import functions as F
+
+productos = spark.table("productos")
+(productos
+    .filter(F.col("activo") == 1)
+    .withColumn("margen", F.round(F.col("precio") - F.col("costo"), 2))
+    .select("producto_id", "nombre", "marca", "precio", "margen")
+    .orderBy(F.col("margen").desc())
+    .show(10))
+```
+
+Reto: deja solo los productos con stock menor a 20 y margen mayor a 50, y cuenta cuántos son.
+
+Documentación oficial: [API de DataFrame](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/dataframe.html) · [withColumn](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.withColumn.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio pyspark

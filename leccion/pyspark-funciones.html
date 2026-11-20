@@ -281,6 +281,29 @@ print(c.na.drop(subset=[&quot;email&quot;]).count())                # descartar 
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Texto, fechas y condiciones sobre clientes</div>
+
+<ol>
+<li>Ejecuta: año de registro, ciudad en mayúsculas y un tramo de antigüedad con <code>when</code>.</li>
+<li>Reemplaza el teléfono vacío por <code>&quot;sin dato&quot;</code> con <code>coalesce</code>.</li>
+<li>Calcula la edad aproximada con <code>months_between</code> desde <code>fecha_nacimiento</code>.</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+
+clientes = spark.table(&quot;clientes&quot;)
+(clientes
+    .withColumn(&quot;anio_registro&quot;, F.year(F.to_date(&quot;fecha_registro&quot;)))
+    .withColumn(&quot;ciudad_may&quot;, F.upper(&quot;ciudad&quot;))
+    .withColumn(&quot;tramo&quot;, F.when(F.col(&quot;anio_registro&quot;) &lt;= 2021, &quot;antiguo&quot;)
+                          .when(F.col(&quot;anio_registro&quot;) &lt;= 2023, &quot;medio&quot;)
+                          .otherwise(&quot;nuevo&quot;))
+    .select(&quot;cliente_id&quot;, &quot;ciudad_may&quot;, &quot;anio_registro&quot;, &quot;tramo&quot;)
+    .show(8))</code></pre>
+<p>Reto: el dominio del email (lo que va después de <code>@</code>) con <code>split</code> o <code>substring_index</code>, y cuántos clientes tiene cada dominio.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/functions.html">funciones de pyspark.sql</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

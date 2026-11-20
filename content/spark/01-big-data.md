@@ -175,6 +175,28 @@ No siempre. Si tus datos entran cómodamente en una máquina (pocos GB), pandas,
 - **Ignorar dónde están los datos.** Mover datos por la red es lo más caro.
 :::
 
+:::practica pyspark Dividir el trabajo en particiones
+1. Ejecuta: mira en cuántas particiones (pedazos) está la tabla y cuántas filas tiene cada una.
+2. Cambia a `repartition(4)` y vuelve a contar: cada partición la procesa una tarea, en paralelo.
+3. Piensa: si tuvieras 1.000 millones de filas en una sola máquina, ¿qué parte de este código cambia en un clúster? (Respuesta: ninguna; cambia dónde corre cada partición.)
+
+```python norun
+from pyspark.sql import functions as F
+
+pedidos = spark.table("pedidos")
+print("particiones:", pedidos.rdd.getNumPartitions())
+
+(pedidos.withColumn("particion", F.spark_partition_id())
+    .groupBy("particion").count()
+    .orderBy("particion")
+    .show())
+```
+
+Reto: con `glom()` sobre el RDD, muestra cuántas filas quedó en cada partición sin usar `groupBy`.
+
+Documentación oficial: [qué es Apache Spark](https://spark.apache.org/docs/latest/index.html) · [colecciones paralelizadas](https://spark.apache.org/docs/latest/rdd-programming-guide.html#parallelized-collections)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

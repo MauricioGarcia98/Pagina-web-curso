@@ -127,6 +127,31 @@ flecha api <-> meta
 flecha w -> ext: dispara trabajo
 ```
 
+:::practica airflow-lab Un DAG con ramas que se separan y se juntan
+1. Ejecuta: el DAG extrae dos fuentes en paralelo y recién después las junta.
+2. Mira el orden de ejecución en la salida: `ventas` y `clientes` no dependen entre sí.
+3. Agrega una tarea `publicar` después de `unir`.
+
+```python norun
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+
+with DAG(dag_id="panorama", start_date=datetime(2024, 1, 1), schedule="@daily", catchup=False) as dag:
+    ventas = BashOperator(task_id="ventas", bash_command="echo extrayendo ventas")
+    clientes = BashOperator(task_id="clientes", bash_command="echo extrayendo clientes")
+    unir = BashOperator(task_id="unir", bash_command="echo uniendo")
+
+    [ventas, clientes] >> unir      # dos padres, un hijo
+
+dag.test()
+```
+
+Reto: dibuja en papel el grafo y explica por qué no puede tener ciclos (la A de DAG).
+
+Documentación oficial: [DAGs](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html) · [arquitectura de Airflow](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/overview.html)
+:::
+
 :::ejercicio quiz
 ¿Por qué un DAG no puede tener ciclos?
 

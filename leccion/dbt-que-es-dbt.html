@@ -126,6 +126,22 @@ dbt test</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tu primer dbt build</div>
+
+<ol>
+<li>Entra al proyecto y mira un modelo: es un <code>SELECT</code> con <code>{{ ref(...) }}</code>.</li>
+<li>Compílalo: dbt reemplaza <code>ref</code> por el nombre real de la tabla. Eso es todo lo que hace con tu SQL.</li>
+<li>Ejecuta <code>dbt build</code>: construye los modelos en orden y corre sus tests.</li>
+</ol>
+<pre data-norun><code class="language-bash">cd ~/tienda_dbt
+cat models/marts/ventas_por_canal.sql
+dbt compile -s ventas_por_canal
+dbt build</code></pre>
+<p>Reto: con <code>dbt ls</code>, lista todos los nodos del proyecto y explica qué es cada uno.</p>
+<p>Documentación oficial: <a href="https://docs.getdbt.com/docs/introduction">qué es dbt</a> · <a href="https://docs.getdbt.com/reference/commands/build">dbt build</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

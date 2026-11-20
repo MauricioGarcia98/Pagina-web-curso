@@ -78,6 +78,27 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Desafío con reloj: top 3 por categoría</div>
+
+<ol>
+<li>Pedido: &quot;los 3 productos con más ingresos en cada categoría, con su ingreso y su puesto&quot;. 20 minutos.</li>
+<li>Antes de escribir código, anota: tabla de grano, joins, agregación y ventana.</li>
+<li>Verifica a mano una categoría chica.</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+det = spark.table(&quot;detalle_pedidos&quot;)
+prod = spark.table(&quot;productos&quot;)
+# 1) ingreso por producto  2) ranking dentro de cada categoría  3) quedarse con 3
+ingresos = det.join(prod, &quot;producto_id&quot;).groupBy(&quot;categoria_id&quot;, &quot;producto_id&quot;, &quot;nombre&quot;) \
+    .agg(F.sum(F.col(&quot;cantidad&quot;) * F.col(&quot;precio_unitario&quot;)).alias(&quot;ingreso&quot;))
+ingresos.show(5)</code></pre>
+<p>Reto: resuélvelo también en Spark SQL con <code>spark.sql(...)</code> y compara los resultados.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.dense_rank.html">dense_rank</a> · <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/window.html">Window</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

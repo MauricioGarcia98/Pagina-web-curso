@@ -251,6 +251,23 @@ cat models/schema.yml</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Crear un proyecto dbt desde cero</div>
+
+<ol>
+<li>Crea un proyecto nuevo con <code>dbt init</code>.</li>
+<li>Recorre lo que creó: <code>dbt_project.yml</code>, la carpeta <code>models</code> y las carpetas vacías (<code>seeds</code>, <code>snapshots</code>, <code>tests</code>, <code>macros</code>).</li>
+<li>Ejecuta el modelo de ejemplo con <code>dbt run</code>.</li>
+</ol>
+<pre data-norun><code class="language-bash">dbt init mi_tienda
+cd ~/mi_tienda
+find . -type f
+cat dbt_project.yml
+dbt run</code></pre>
+<p>Reto: en <code>dbt_project.yml</code>, cambia la materialización por defecto a <code>table</code> y vuelve a correr <code>dbt run</code>.</p>
+<p>Documentación oficial: <a href="https://docs.getdbt.com/reference/commands/init">dbt init</a> · <a href="https://docs.getdbt.com/reference/dbt_project.yml">dbt_project.yml</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

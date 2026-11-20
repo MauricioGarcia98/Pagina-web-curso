@@ -133,6 +133,35 @@ for fila in df.collect():
 - **`cache()` en todo.** Ocupa memoria; úsalo solo en lo que se reutiliza.
 :::
 
+:::practica pyspark Leer el plan: broadcast, shuffle y sort-merge
+1. Ejecuta y lee el plan de abajo hacia arriba: `FileScan` (lee solo las columnas que usas), `BroadcastExchange` y `BroadcastHashJoin`. Spark eligió broadcast solo, porque `productos` pesa menos que `spark.sql.autoBroadcastJoinThreshold` (10 MB).
+2. Descomenta la línea del `conf.set(... -1)` y vuelve a ejecutar: ahora el plan es `SortMergeJoin`, con un `Exchange hashpartitioning` (shuffle) y un `Sort` en cada lado. Ese shuffle es lo que cuesta caro con datos grandes.
+3. Con el broadcast automático desactivado, envuelve `prod` en `F.broadcast(prod)`: el hint vuelve a dar `BroadcastHashJoin`.
+4. Agrega un `groupBy("marca").count()` al final y busca el par `HashAggregate` parcial → `Exchange` → `HashAggregate` final.
+
+```python norun
+from pyspark.sql import functions as F
+
+det = spark.table("detalle_pedidos")
+prod = spark.table("productos")
+# spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)   # desactiva el broadcast automático
+
+j = det.join(prod, "producto_id").select("pedido_id", "marca", "cantidad")
+j.explain()
+
+# un RDD: contar palabras de los nombres de producto
+palabras = (prod.select("nombre").rdd
+    .flatMap(lambda r: r[0].lower().split())
+    .map(lambda w: (w, 1))
+    .reduceByKey(lambda a, b: a + b))
+print(sorted(palabras.collect(), key=lambda x: -x[1])[:5])
+```
+
+Reto: ejecuta `j.explain(True)` y compara el plan lógico analizado con el optimizado: ¿qué columnas dejó de leer Catalyst?
+
+Documentación oficial: [ajuste de rendimiento (estrategias de join)](https://spark.apache.org/docs/latest/sql-performance-tuning.html) · [DataFrame.explain](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.explain.html)
+:::
+
 :::ejercicio pyspark variable=conteo
 Con RDDs, haz un **word count** de `lineas` (palabras separadas por espacio) y guarda en `conteo` una **lista de tuplas** `(palabra, cantidad)` ordenada por cantidad descendente y, si empatan, por palabra. Usa `flatMap`, `map`, `reduceByKey` y `collect`.
 ```python inicial

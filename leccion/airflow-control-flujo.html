@@ -312,6 +312,35 @@ dag.tree()</code></pre>
 <td><code>TaskGroup</code></td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Elegir un camino y volver a juntar</div>
+
+<ol>
+<li>Ejecuta: la rama elige <code>carga_completa</code> los lunes y <code>carga_incremental</code> el resto.</li>
+<li>Mira el estado de la rama no elegida: queda <code>skipped</code>.</li>
+<li><code>fin</code> usa <code>none_failed_min_one_success</code>: sin esa regla, el skip de la otra rama la saltaría también. Pruébalo quitándola.</li>
+</ol>
+<pre data-norun><code class="language-python">from datetime import datetime
+from airflow.sdk import dag, task
+from airflow.providers.standard.operators.empty import EmptyOperator
+
+@dag(start_date=datetime(2024, 1, 1), schedule=&quot;@daily&quot;, catchup=False)
+def ramas():
+    @task.branch
+    def elegir(**context):
+        return &quot;carga_completa&quot; if context[&quot;logical_date&quot;].weekday() == 0 else &quot;carga_incremental&quot;
+
+    completa = EmptyOperator(task_id=&quot;carga_completa&quot;)
+    incremental = EmptyOperator(task_id=&quot;carga_incremental&quot;)
+    fin = EmptyOperator(task_id=&quot;fin&quot;, trigger_rule=&quot;none_failed_min_one_success&quot;)
+
+    elegir() &gt;&gt; [completa, incremental] &gt;&gt; fin
+
+ramas().test(logical_date=datetime(2024, 3, 18))</code></pre>
+<p>Reto: cambia la fecha a un martes y verifica qué rama corre.</p>
+<p>Documentación oficial: <a href="https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html#branching">ramas</a> · <a href="https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html#trigger-rules">trigger rules</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

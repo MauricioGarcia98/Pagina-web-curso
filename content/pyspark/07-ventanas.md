@@ -200,6 +200,29 @@ Una ventana con `partitionBy` necesita que todas las filas de cada grupo estén 
 - **Confundir `rank` con `dense_rank`.** `rank` salta posiciones después de un empate.
 :::
 
+:::practica pyspark Número de compra y días entre compras
+1. Ejecuta: numera las compras de cada cliente en orden de fecha.
+2. Con `lag`, calcula los días desde la compra anterior.
+3. Filtra la primera compra de cada cliente (`n_compra == 1`).
+
+```python norun
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+w = Window.partitionBy("cliente_id").orderBy("fecha_pedido")
+(spark.table("pedidos")
+    .withColumn("n_compra", F.row_number().over(w))
+    .withColumn("anterior", F.lag("fecha_pedido").over(w))
+    .withColumn("dias", F.datediff(F.to_date("fecha_pedido"), F.to_date("anterior")))
+    .select("cliente_id", "fecha_pedido", "n_compra", "dias")
+    .show(10))
+```
+
+Reto: el top 3 de productos más vendidos por categoría con `dense_rank`.
+
+Documentación oficial: [Window](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/window.html) · [lag](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.lag.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio pyspark

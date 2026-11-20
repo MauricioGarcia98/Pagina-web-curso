@@ -162,6 +162,27 @@ Ahí se pierde la aplicación completa, porque el driver es quien tiene el plan.
 - **Más executors sin más particiones.** Si hay pocas particiones, los executors extra quedan ociosos.
 :::
 
+:::practica pyspark Ver dónde se corta un stage
+1. Ejecuta y lee el plan de abajo hacia arriba.
+2. Cuenta los `Exchange`: cada uno es un shuffle y separa un stage del siguiente. Este job tiene 3 stages.
+3. Saca el `orderBy` y vuelve a mirar: desaparece un `Exchange` y con él un stage.
+
+```python norun
+from pyspark.sql import functions as F
+
+consulta = (spark.table("pedidos")
+    .filter(F.col("estado") == "entregado")      # narrow: cada partición por su cuenta
+    .groupBy("canal").count()                     # wide: necesita juntar cada canal (shuffle)
+    .orderBy(F.desc("count")))                    # wide: orden global (otro shuffle)
+
+consulta.explain()
+```
+
+Reto: explica por qué el `HashAggregate` aparece dos veces (uno con `partial_count` antes del `Exchange` y otro después).
+
+Documentación oficial: [arquitectura del clúster](https://spark.apache.org/docs/latest/cluster-overview.html) · [operaciones con shuffle](https://spark.apache.org/docs/latest/rdd-programming-guide.html#shuffle-operations)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz
