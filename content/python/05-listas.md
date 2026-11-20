@@ -206,6 +206,23 @@ print(lat, lon, registro[1])
 - `b = a` no copia: usa `a.copy()`.
 - Tupla: como una lista inmutable; ideal para registros fijos y desempaquetado.
 
+:::practica python Ordenar y cortar listas
+1. Ejecuta: el top 3 de precios.
+2. Agrega un producto con `append` y vuelve a ordenar.
+3. Saca el último con `pop()` y muéstralo.
+
+```python norun
+precios = [45.5, 12.0, 99.9, 7.25, 60.0]
+precios.sort(reverse=True)
+print("Top 3:", precios[:3])
+print("Más barato:", precios[-1])
+```
+
+Reto: con `zip`, une una lista de nombres con su lista de precios.
+
+Documentación oficial: [estructuras de datos](https://docs.python.org/es/3/tutorial/datastructures.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio python

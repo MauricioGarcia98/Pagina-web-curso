@@ -317,6 +317,22 @@ print(limpio, usuario, dominio)</code></pre>
 <li>f-strings: <code>f&quot;Total: {total:,.2f}&quot;</code>.</li>
 <li>Los métodos de texto devuelven un string nuevo: guarda el resultado.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Limpiar un texto que llega sucio</div>
+
+<ol>
+<li>Ejecuta: el email llega con espacios y mayúsculas.</li>
+<li>Separa usuario y dominio con <code>split(&quot;@&quot;)</code>.</li>
+<li>Verifica el tipo de cada variable con <code>type()</code>.</li>
+</ol>
+<pre data-norun><code class="language-python">email = &quot;  Ana.Gomez@Correo.Example  &quot;
+limpio = email.strip().lower()
+usuario, dominio = limpio.split(&quot;@&quot;)
+print(limpio, usuario, dominio, sep=&quot; | &quot;)</code></pre>
+<p>Reto: convierte <code>&quot;1.250,50&quot;</code> (formato con coma decimal) en el número <code>1250.5</code>.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/library/stdtypes.html#string-methods">métodos de str</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

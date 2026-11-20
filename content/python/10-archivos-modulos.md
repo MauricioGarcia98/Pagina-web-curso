@@ -248,6 +248,27 @@ Es la forma moderna de trabajar con archivos y carpetas: procesar todos los CSV 
 - `datetime`: `strptime` (texto → fecha), `strftime` (fecha → texto), `timedelta` para sumar.
 - `Counter` y `defaultdict` para contar y agrupar; `pathlib.Path` para rutas.
 
+:::practica python Escribir y leer un CSV
+1. Ejecuta: escribe un CSV y lo vuelve a leer.
+2. Calcula el total de la columna `monto` al leerlo.
+3. Guarda el resultado en un JSON con el módulo `json`.
+
+```python norun
+import csv
+filas = [{"pedido": 1, "monto": 120}, {"pedido": 2, "monto": 80}]
+with open("ventas.csv", "w", newline="") as f:
+    w = csv.DictWriter(f, fieldnames=["pedido", "monto"])
+    w.writeheader()
+    w.writerows(filas)
+with open("ventas.csv") as f:
+    print(list(csv.DictReader(f)))
+```
+
+Reto: agrega una columna `fecha` con `datetime.date.today().isoformat()`.
+
+Documentación oficial: [módulo csv](https://docs.python.org/es/3/library/csv.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio python

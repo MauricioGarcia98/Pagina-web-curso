@@ -560,3 +560,21 @@ Tu extracción falló a mitad de camino y la vuelves a correr. Al otro día ves 
 Correr dos veces tiene que dar lo mismo que correr una. Reemplazar la partición del día, o hacer `MERGE` por la clave, lo garantiza.
 ```
 :::
+
+:::practica python Paginar una API real del curso
+1. Ejecuta: pide la primera página de productos.
+2. Recorre todas las páginas hasta `total_pages`.
+3. Cuenta cuántos productos hay en stock.
+
+```python norun
+import requests
+r = requests.get("https://api.tiendaandina.dev/v1/productos", params={"page": 1})
+datos = r.json()
+print(r.status_code, datos["total"], "productos en", datos["total_pages"], "páginas")
+```
+
+Reto: agrega reintentos con espera cuando la respuesta sea 429.
+
+Documentación oficial: [guía rápida de requests](https://requests.readthedocs.io/en/latest/user/quickstart/)
+:::
+

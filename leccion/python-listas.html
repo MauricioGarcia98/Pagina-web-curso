@@ -201,6 +201,22 @@ print(lat, lon, registro[1])</code></pre>
 <li><code>b = a</code> no copia: usa <code>a.copy()</code>.</li>
 <li>Tupla: como una lista inmutable; ideal para registros fijos y desempaquetado.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Ordenar y cortar listas</div>
+
+<ol>
+<li>Ejecuta: el top 3 de precios.</li>
+<li>Agrega un producto con <code>append</code> y vuelve a ordenar.</li>
+<li>Saca el último con <code>pop()</code> y muéstralo.</li>
+</ol>
+<pre data-norun><code class="language-python">precios = [45.5, 12.0, 99.9, 7.25, 60.0]
+precios.sort(reverse=True)
+print(&quot;Top 3:&quot;, precios[:3])
+print(&quot;Más barato:&quot;, precios[-1])</code></pre>
+<p>Reto: con <code>zip</code>, une una lista de nombres con su lista de precios.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/tutorial/datastructures.html">estructuras de datos</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -247,6 +247,24 @@ print(procesar(datos))</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un proyecto Python como en el trabajo</div>
+
+<ol>
+<li>Crea la carpeta del proyecto y un entorno virtual.</li>
+<li>Escribe una función y su test.</li>
+<li>Corre el test con pytest.</li>
+</ol>
+<pre><code class="language-bash">mkdir -p ~/proyecto &amp;&amp; cd ~/proyecto
+python -m venv .venv
+echo &quot;def total(xs): return sum(xs)&quot; &gt; calculos.py
+echo &quot;from calculos import total&quot; &gt; test_calculos.py
+echo &quot;def test_total(): assert total([1, 2, 3]) == 6&quot; &gt;&gt; test_calculos.py
+pytest -q</code></pre>
+<p>Reto: agrega un <code>requirements.txt</code> y un <code>.gitignore</code> que excluya <code>.venv</code>.</p>
+<p>Documentación oficial: <a href="https://docs.pytest.org/en/stable/getting-started.html">primeros pasos con pytest</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -281,6 +281,26 @@ except DatosInvalidos as e:
 <li><code>raise ValueError(&quot;mensaje claro&quot;)</code> para datos que no tienen sentido; puedes crear tus propias excepciones.</li>
 <li>En pipelines: apartar registros inválidos con su motivo, y fallar si son demasiados.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Que un dato malo no corte el proceso</div>
+
+<ol>
+<li>Ejecuta: convierte montos y separa los que no son números.</li>
+<li>Agrega un <code>finally</code> que imprima cuántos se procesaron.</li>
+<li>Lanza tu propio error si un monto es negativo.</li>
+</ol>
+<pre data-norun><code class="language-python">crudos = [&quot;120&quot;, &quot;45.5&quot;, &quot;abc&quot;, &quot;&quot;, &quot;300&quot;]
+ok, malos = [], []
+for x in crudos:
+    try:
+        ok.append(float(x))
+    except ValueError:
+        malos.append(x)
+print(&quot;ok:&quot;, ok, &quot;| malos:&quot;, malos)</code></pre>
+<p>Reto: guarda el motivo de cada error junto al valor (por ejemplo, vacío o no numérico).</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/tutorial/errors.html">errores y excepciones</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

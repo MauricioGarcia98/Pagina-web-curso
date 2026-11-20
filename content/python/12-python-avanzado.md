@@ -205,6 +205,25 @@ with transaccion("carga_diaria"):
 - Los decoradores están en todas las herramientas de datos: `@task` y `@dag` en Airflow, `@pytest.fixture` en tests, `@F.udf` en PySpark, `@retry` de tenacity.
 :::
 
+:::practica python Leer de a pedazos con un generador
+1. Ejecuta: un generador que entrega lotes de 3.
+2. Cambia el tamaño del lote.
+3. Escribe un decorador que mida cuánto tarda una función.
+
+```python norun
+def lotes(datos, tam):
+    for i in range(0, len(datos), tam):
+        yield datos[i:i + tam]
+
+for lote in lotes(list(range(1, 11)), 3):
+    print(lote)
+```
+
+Reto: un context manager con `contextlib.contextmanager` que imprima "inicio" y "fin".
+
+Documentación oficial: [generadores](https://docs.python.org/es/3/howto/functional.html#generators)
+:::
+
 ## Ejercicios
 
 :::ejercicio python

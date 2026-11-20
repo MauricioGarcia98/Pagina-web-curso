@@ -241,6 +241,24 @@ En Python puro, un bucle sobre 10 millones de filas es lento (segundos o minutos
 - `break` sale del bucle; `continue` salta a la siguiente vuelta.
 - `enumerate` da posición + elemento; `zip` recorre listas en paralelo.
 
+:::practica python Recorrer ventas y acumular
+1. Ejecuta: suma las ventas de la semana.
+2. Cuenta cuántos días superaron 1.000.
+3. Usa `enumerate` para imprimir el número de día.
+
+```python norun
+ventas = [820, 1340, 990, 1510, 760, 2100, 430]
+total = 0
+for v in ventas:
+    total += v
+print("Total:", total)
+```
+
+Reto: con un `while`, cuántos días hacen falta para llegar a 5.000 acumulado.
+
+Documentación oficial: [for en el tutorial](https://docs.python.org/es/3/tutorial/controlflow.html#for-statements)
+:::
+
 ## Ejercicios
 
 :::ejercicio python

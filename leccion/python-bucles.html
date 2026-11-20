@@ -287,6 +287,23 @@ for p, precio in zip(productos, precios):
 <li><code>break</code> sale del bucle; <code>continue</code> salta a la siguiente vuelta.</li>
 <li><code>enumerate</code> da posición + elemento; <code>zip</code> recorre listas en paralelo.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Recorrer ventas y acumular</div>
+
+<ol>
+<li>Ejecuta: suma las ventas de la semana.</li>
+<li>Cuenta cuántos días superaron 1.000.</li>
+<li>Usa <code>enumerate</code> para imprimir el número de día.</li>
+</ol>
+<pre data-norun><code class="language-python">ventas = [820, 1340, 990, 1510, 760, 2100, 430]
+total = 0
+for v in ventas:
+    total += v
+print(&quot;Total:&quot;, total)</code></pre>
+<p>Reto: con un <code>while</code>, cuántos días hacen falta para llegar a 5.000 acumulado.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/tutorial/controlflow.html#for-statements">for en el tutorial</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

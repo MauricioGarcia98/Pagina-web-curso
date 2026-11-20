@@ -261,6 +261,25 @@ Y en el repositorio: un `pyproject.toml` (o `requirements.txt`) con las dependen
 - Los logs de los pipelines terminan en sistemas centralizados (CloudWatch, Azure Monitor, Datadog), donde se buscan y se configuran alertas. Un buen mensaje de log incluye siempre **cuántas filas** se procesaron.
 :::
 
+:::practica terminal Un proyecto Python como en el trabajo
+1. Crea la carpeta del proyecto y un entorno virtual.
+2. Escribe una función y su test.
+3. Corre el test con pytest.
+
+```bash
+mkdir -p ~/proyecto && cd ~/proyecto
+python -m venv .venv
+echo "def total(xs): return sum(xs)" > calculos.py
+echo "from calculos import total" > test_calculos.py
+echo "def test_total(): assert total([1, 2, 3]) == 6" >> test_calculos.py
+pytest -q
+```
+
+Reto: agrega un `requirements.txt` y un `.gitignore` que excluya `.venv`.
+
+Documentación oficial: [primeros pasos con pytest](https://docs.pytest.org/en/stable/getting-started.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

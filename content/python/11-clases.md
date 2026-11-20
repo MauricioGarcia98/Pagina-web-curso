@@ -250,6 +250,34 @@ print(t.celsius, t.fahrenheit)
 - Herencia: `class Hija(Padre)`, `super().__init__()`, polimorfismo (así funcionan los operadores de Airflow).
 - `@dataclass` para clases de datos; `@property` para atributos calculados; `@classmethod` para constructores alternativos.
 
+:::practica python Una clase para un pedido
+1. Ejecuta: crea un pedido y agrega líneas.
+2. Agrega un método `aplicar_descuento(pct)`.
+3. Agrega `__repr__` para que el pedido se imprima legible.
+
+```python norun
+class Pedido:
+    def __init__(self, pedido_id):
+        self.pedido_id = pedido_id
+        self.lineas = []
+
+    def agregar(self, producto, cantidad, precio):
+        self.lineas.append((producto, cantidad, precio))
+
+    def total(self):
+        return sum(c * p for _, c, p in self.lineas)
+
+p = Pedido(1)
+p.agregar("Mouse", 2, 12.5)
+p.agregar("Teclado", 1, 45.0)
+print(p.total())
+```
+
+Reto: convierte la clase en una `dataclass` y compara cuánto código ahorras.
+
+Documentación oficial: [clases](https://docs.python.org/es/3/tutorial/classes.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio python

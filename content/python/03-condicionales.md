@@ -221,6 +221,27 @@ Se lee: "`resultado` es `'aprobado'` **si** `nota >= 6`, **si no** `'desaprobado
 - `and`, `or`, `not`; paréntesis cuando los mezcles.
 - `0`, `""`, `[]`, `None` son falsos en un `if`; cuidado con el `0` válido.
 
+:::practica python Clasificar un pedido
+1. Ejecuta con distintos montos.
+2. Agrega una categoría `mayorista` para montos de más de 100.000.
+3. Agrega una condición con `and`: envío gratis si el monto supera 50.000 y el país es Chile.
+
+```python norun
+monto = 72000
+if monto >= 50000:
+    categoria = "grande"
+elif monto >= 10000:
+    categoria = "mediano"
+else:
+    categoria = "chico"
+print(monto, "→", categoria)
+```
+
+Reto: escribe la misma lógica en una sola línea con un if ternario.
+
+Documentación oficial: [if en el tutorial](https://docs.python.org/es/3/tutorial/controlflow.html#if-statements)
+:::
+
 ## Ejercicios
 
 :::ejercicio python

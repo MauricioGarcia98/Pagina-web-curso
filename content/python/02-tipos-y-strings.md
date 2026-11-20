@@ -229,6 +229,23 @@ Un paso típico de la capa *silver* es normalizar textos: `strip()` para espacio
 - f-strings: `f"Total: {total:,.2f}"`.
 - Los métodos de texto devuelven un string nuevo: guarda el resultado.
 
+:::practica python Limpiar un texto que llega sucio
+1. Ejecuta: el email llega con espacios y mayúsculas.
+2. Separa usuario y dominio con `split("@")`.
+3. Verifica el tipo de cada variable con `type()`.
+
+```python norun
+email = "  Ana.Gomez@Correo.Example  "
+limpio = email.strip().lower()
+usuario, dominio = limpio.split("@")
+print(limpio, usuario, dominio, sep=" | ")
+```
+
+Reto: convierte `"1.250,50"` (formato con coma decimal) en el número `1250.5`.
+
+Documentación oficial: [métodos de str](https://docs.python.org/es/3/library/stdtypes.html#string-methods)
+:::
+
 ## Ejercicios
 
 :::ejercicio python

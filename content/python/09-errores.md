@@ -239,6 +239,27 @@ Lo profesional es combinar ambas: apartar las filas malas con su motivo, y **fal
 - `raise ValueError("mensaje claro")` para datos que no tienen sentido; puedes crear tus propias excepciones.
 - En pipelines: apartar registros inválidos con su motivo, y fallar si son demasiados.
 
+:::practica python Que un dato malo no corte el proceso
+1. Ejecuta: convierte montos y separa los que no son números.
+2. Agrega un `finally` que imprima cuántos se procesaron.
+3. Lanza tu propio error si un monto es negativo.
+
+```python norun
+crudos = ["120", "45.5", "abc", "", "300"]
+ok, malos = [], []
+for x in crudos:
+    try:
+        ok.append(float(x))
+    except ValueError:
+        malos.append(x)
+print("ok:", ok, "| malos:", malos)
+```
+
+Reto: guarda el motivo de cada error junto al valor (por ejemplo, vacío o no numérico).
+
+Documentación oficial: [errores y excepciones](https://docs.python.org/es/3/tutorial/errors.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio python

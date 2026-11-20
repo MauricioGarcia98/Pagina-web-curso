@@ -269,6 +269,26 @@ print((carpeta / &quot;a.txt&quot;).exists(), (carpeta / &quot;a.txt&quot;).suff
 <li><code>datetime</code>: <code>strptime</code> (texto → fecha), <code>strftime</code> (fecha → texto), <code>timedelta</code> para sumar.</li>
 <li><code>Counter</code> y <code>defaultdict</code> para contar y agrupar; <code>pathlib.Path</code> para rutas.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Escribir y leer un CSV</div>
+
+<ol>
+<li>Ejecuta: escribe un CSV y lo vuelve a leer.</li>
+<li>Calcula el total de la columna <code>monto</code> al leerlo.</li>
+<li>Guarda el resultado en un JSON con el módulo <code>json</code>.</li>
+</ol>
+<pre data-norun><code class="language-python">import csv
+filas = [{&quot;pedido&quot;: 1, &quot;monto&quot;: 120}, {&quot;pedido&quot;: 2, &quot;monto&quot;: 80}]
+with open(&quot;ventas.csv&quot;, &quot;w&quot;, newline=&quot;&quot;) as f:
+    w = csv.DictWriter(f, fieldnames=[&quot;pedido&quot;, &quot;monto&quot;])
+    w.writeheader()
+    w.writerows(filas)
+with open(&quot;ventas.csv&quot;) as f:
+    print(list(csv.DictReader(f)))</code></pre>
+<p>Reto: agrega una columna <code>fecha</code> con <code>datetime.date.today().isoformat()</code>.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/library/csv.html">módulo csv</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

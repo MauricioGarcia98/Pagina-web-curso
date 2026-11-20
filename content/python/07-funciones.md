@@ -207,6 +207,25 @@ Se lee: "`precio` es un `float`, `tasa` es un `float` con valor por defecto 0.21
 - Variables locales: lo que entra por parámetros, lo que sale por `return`.
 - `lambda` para funciones cortas como argumento; type hints para documentar tipos.
 
+:::practica python Una función reutilizable
+1. Ejecuta: calcula el precio final con descuento.
+2. Agrega un parámetro `iva` con valor por defecto `0.21`.
+3. Llama la función con argumentos por nombre.
+
+```python norun
+def precio_final(precio, descuento=0.0):
+    """Devuelve el precio con el descuento aplicado."""
+    return round(precio * (1 - descuento), 2)
+
+print(precio_final(100))
+print(precio_final(100, descuento=0.15))
+```
+
+Reto: agrega una validación que lance `ValueError` si el descuento no está entre 0 y 1.
+
+Documentación oficial: [definir funciones](https://docs.python.org/es/3/tutorial/controlflow.html#defining-functions)
+:::
+
 ## Ejercicios
 
 :::ejercicio python
