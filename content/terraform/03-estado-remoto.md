@@ -347,6 +347,30 @@ Primero entiendo si el cambio era correcto. Si lo era, lo llevo al código para 
 | Que algo no se pueda destruir | `lifecycle { prevent_destroy = true }` |
 | Usar outputs de otro proyecto | `data "terraform_remote_state"` |
 
+:::practica terminal Workspaces y el estado
+1. Crea el lago en el workspace `default` y mira el estado.
+2. Crea el workspace `prod`: tiene su propio estado, vacío. Planifica ahí.
+3. Vuelve a `default`. En equipo, el estado vive en un backend remoto (S3, Azure Storage, GCS) con bloqueo.
+
+```bash norun
+aws configure
+mkdir -p ~/infra/estado && cd ~/infra/estado
+printf 'variable "entorno" {\n  default = "dev"\n}\n\nresource "aws_s3_bucket" "bronze" {\n  bucket = "estado-${var.entorno}-bronze"\n}\n' > main.tf
+terraform init
+terraform apply -auto-approve
+terraform state list
+terraform state show aws_s3_bucket.bronze
+terraform workspace new prod
+terraform workspace list
+terraform plan -var entorno=prod
+terraform workspace select default
+```
+
+Reto: escribe el bloque `backend "s3"` con bucket, key, región y bloqueo para guardar este estado en equipo.
+
+Documentación oficial: [el estado](https://developer.hashicorp.com/terraform/language/state) · [workspaces](https://developer.hashicorp.com/terraform/language/state/workspaces)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

@@ -110,6 +110,34 @@ print(Decimal("2.675").quantize(Decimal("0.01"), ROUND_HALF_UP))   # 2.68  (redo
 
 En los ejercicios de abajo alcanza con `round`, pero en un sistema financiero real se usa `Decimal` (en Python) o `DECIMAL(18, 2)` (en SQL), nunca `float`. Y se **define una regla de redondeo**: ¿se redondea cada cuota y la última absorbe la diferencia, o se redondea al final? Esa regla la decide el área de negocio, no el programador, y va escrita en los tests.
 
+:::practica python La cuota francesa y su tabla de amortización
+1. Ejecuta: con la fórmula de la cuota francesa, la cuota es la misma todos los meses; cambia cuánto es interés y cuánto capital.
+2. Mira la tabla: el saldo llega a 0 en la última cuota (si no, la fórmula está mal).
+3. Cambia la tasa anual y el plazo y observa cuánto interés total se paga.
+
+```python norun
+def cuota_francesa(monto, tasa_anual, meses):
+    i = tasa_anual / 12
+    return monto * i / (1 - (1 + i) ** -meses)
+
+monto, tasa, meses = 1_000_000, 0.36, 12
+cuota = cuota_francesa(monto, tasa, meses)
+saldo, total_interes = monto, 0
+for n in range(1, meses + 1):
+    interes = saldo * tasa / 12
+    capital = cuota - interes
+    saldo -= capital
+    total_interes += interes
+    if n in (1, 2, meses):
+        print(f"cuota {n:2}: interés {interes:10,.2f} · capital {capital:10,.2f} · saldo {saldo:12,.2f}")
+print(f"cuota fija {cuota:,.2f} · interés total {total_interes:,.2f}")
+```
+
+Reto: compara con el sistema alemán (capital fijo, cuota decreciente) y explica cuál paga menos interés total.
+
+Documentación oficial: [round y números](https://docs.python.org/es/3/library/functions.html#round) · [f-strings](https://docs.python.org/es/3/tutorial/inputoutput.html#formatted-string-literals)
+:::
+
 :::ejercicio python titulo="Cuota francesa"
 Escribe `cuota_francesa(monto, tasa_anual, meses)` que devuelva la cuota mensual redondeada a 2 decimales. Si la tasa es 0, la cuota es simplemente `monto / meses`.
 ```python inicial

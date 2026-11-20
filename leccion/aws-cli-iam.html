@@ -180,6 +180,23 @@ echo &quot;Trabajando en la cuenta $CUENTA&quot;</code></pre>
 aws iam attach-role-policy --role-name GlueJobSilver \
   --policy-arn arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
 aws iam list-roles --query &quot;Roles[].RoleName&quot; --output text</code></pre>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Salidas, --query y quién puede hacer qué</div>
+
+<ol>
+<li>Compara el mismo comando con <code>--output json</code>, <code>table</code> y <code>text</code>.</li>
+<li>Filtra con <code>--query</code> (JMESPath): primero una lista de nombres, después un filtro con condición.</li>
+<li>Revisa qué roles existen: cada servicio (Glue, Lambda) trabaja con un rol, no con tus claves.</li>
+</ol>
+<pre data-norun><code class="language-bash">aws configure
+aws s3 mb s3://practica-iam-dev
+aws s3api list-buckets --output table
+aws s3api list-buckets --query &quot;Buckets[].Name&quot; --output text
+aws iam list-roles --query &quot;Roles[].RoleName&quot; --output text</code></pre>
+<p>Reto: escribe la política IAM mínima (en JSON) que permita a un job leer solo <code>s3://practica-iam-dev/bronze/*</code>.</p>
+<p>Documentación oficial: <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-usage-filter.html">filtrar con --query</a> · <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html">buenas prácticas de IAM</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <p>Las terminales de los ejercicios ya tienen una sesión iniciada. Escribe el comando y presiona Enter.</p>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>

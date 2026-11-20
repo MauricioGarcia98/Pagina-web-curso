@@ -382,6 +382,25 @@ gcloud pubsub subscriptions list</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: La misma pieza en Google Cloud</div>
+
+<ol>
+<li>Inicia sesión en Google Cloud y elige el proyecto.</li>
+<li>Escribe un bucket de Cloud Storage y aplícalo.</li>
+<li>Verifícalo con <code>gcloud</code>: el mismo flujo de Terraform sirve para las tres nubes; cambia el provider y el tipo de recurso.</li>
+</ol>
+<pre data-norun><code class="language-bash">gcloud auth login
+gcloud config set project academia-datos-dev
+mkdir -p ~/infra/gcp &amp;&amp; cd ~/infra/gcp
+printf 'resource &quot;google_storage_bucket&quot; &quot;lago&quot; {\n  name     = &quot;tf-lab-lago&quot;\n  location = &quot;US&quot;\n}\n' &gt; main.tf
+terraform init
+terraform apply -auto-approve
+gcloud storage buckets list --format=&quot;value(name)&quot;</code></pre>
+<p>Reto: agrega <code>uniform_bucket_level_access = true</code> y una regla <code>lifecycle_rule</code> que borre objetos de más de 90 días.</p>
+<p>Documentación oficial: <a href="https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/storage_bucket">google_storage_bucket</a> · <a href="https://developer.hashicorp.com/terraform/language/providers">providers</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

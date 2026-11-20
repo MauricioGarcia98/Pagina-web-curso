@@ -200,6 +200,24 @@ aws iam attach-role-policy --role-name GlueJobSilver \
 aws iam list-roles --query "Roles[].RoleName" --output text
 ```
 
+:::practica terminal Salidas, --query y quién puede hacer qué
+1. Compara el mismo comando con `--output json`, `table` y `text`.
+2. Filtra con `--query` (JMESPath): primero una lista de nombres, después un filtro con condición.
+3. Revisa qué roles existen: cada servicio (Glue, Lambda) trabaja con un rol, no con tus claves.
+
+```bash norun
+aws configure
+aws s3 mb s3://practica-iam-dev
+aws s3api list-buckets --output table
+aws s3api list-buckets --query "Buckets[].Name" --output text
+aws iam list-roles --query "Roles[].RoleName" --output text
+```
+
+Reto: escribe la política IAM mínima (en JSON) que permita a un job leer solo `s3://practica-iam-dev/bronze/*`.
+
+Documentación oficial: [filtrar con --query](https://docs.aws.amazon.com/cli/latest/userguide/cli-usage-filter.html) · [buenas prácticas de IAM](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html)
+:::
+
 ## Ejercicios
 
 Las terminales de los ejercicios ya tienen una sesión iniciada. Escribe el comando y presiona Enter.

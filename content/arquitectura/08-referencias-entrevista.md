@@ -180,6 +180,30 @@ flecha kv -> dbx | estilo=punteada
 - Las nubes publican sus propias arquitecturas de referencia (AWS Architecture Center, Google Cloud Architecture Center, Azure Architecture Center). Son un buen punto de partida, pero siempre se adaptan a los requisitos propios.
 :::
 
+:::practica python Estimaciones rápidas para una entrevista de diseño
+1. Ejecuta: a partir de eventos por día y tamaño por evento, calcula throughput, almacenamiento por año y costo aproximado de almacenamiento.
+2. Cambia los supuestos (más usuarios, eventos más grandes) y mira qué número cambia más.
+3. En la entrevista, di los supuestos en voz alta antes de dar los números.
+
+```python norun
+usuarios_activos = 2_000_000
+eventos_por_usuario_dia = 40
+bytes_por_evento = 500
+compresion_parquet = 0.2     # Parquet suele ocupar ~20 % del JSON
+usd_por_tb_mes = 23          # orden de magnitud de almacenamiento de objetos estándar
+
+eventos_dia = usuarios_activos * eventos_por_usuario_dia
+por_segundo = eventos_dia / 86_400
+tb_anio = eventos_dia * bytes_por_evento * 365 * compresion_parquet / 1e12
+print(f"{eventos_dia:,.0f} eventos/día · {por_segundo:,.0f}/s en promedio (el pico suele ser 3 a 5 veces)")
+print(f"{tb_anio:,.1f} TB/año en Parquet · ~US$ {tb_anio * usd_por_tb_mes:,.0f} al mes al cerrar el año")
+```
+
+Reto: con el pico de eventos por segundo, decide si alcanza un batch cada hora o hace falta streaming, y justifícalo en dos líneas.
+
+Documentación oficial: [precios de S3](https://aws.amazon.com/s3/pricing/) · [Well-Architected Framework (Azure)](https://learn.microsoft.com/es-es/azure/architecture/framework/)
+:::
+
 ## Ejercicios
 
 :::ejercicio python titulo="Estimación rápida de volumen"

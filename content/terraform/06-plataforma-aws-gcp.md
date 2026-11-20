@@ -375,6 +375,26 @@ gcloud pubsub subscriptions list
 Cada proceso tiene su propia identidad (un rol de IAM, una cuenta de servicio o una identidad administrada) y le doy permisos solo sobre los recursos que usa, escribiendo los ARN o nombres a partir de los recursos de Terraform (por ejemplo, la lista de buckets del lago con una expresión for), nunca con comodines. Prefiero asignaciones a nivel de recurso (bucket, dataset) antes que de proyecto o cuenta, y en GCP uso `_member` para no pisar otros permisos. El pull request muestra exactamente qué permiso se agrega, y un chequeo automático (Checkov, tfsec) rechaza comodines.
 :::
 
+:::practica terminal La misma pieza en Google Cloud
+1. Inicia sesión en Google Cloud y elige el proyecto.
+2. Escribe un bucket de Cloud Storage y aplícalo.
+3. Verifícalo con `gcloud`: el mismo flujo de Terraform sirve para las tres nubes; cambia el provider y el tipo de recurso.
+
+```bash norun
+gcloud auth login
+gcloud config set project academia-datos-dev
+mkdir -p ~/infra/gcp && cd ~/infra/gcp
+printf 'resource "google_storage_bucket" "lago" {\n  name     = "tf-lab-lago"\n  location = "US"\n}\n' > main.tf
+terraform init
+terraform apply -auto-approve
+gcloud storage buckets list --format="value(name)"
+```
+
+Reto: agrega `uniform_bucket_level_access = true` y una regla `lifecycle_rule` que borre objetos de más de 90 días.
+
+Documentación oficial: [google_storage_bucket](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/storage_bucket) · [providers](https://developer.hashicorp.com/terraform/language/providers)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

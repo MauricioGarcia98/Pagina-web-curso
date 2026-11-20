@@ -169,6 +169,21 @@ FILTER USING (pais = 'Chile');</code></pre>
  base de suscripciones (Cloud SQL) ──► Datastream (CDC) ──► streaming_bronze.suscripciones
  Composer 03:00 ──► Dataform: silver (dedup, tipos) ──► gold (MAU, churn, MRR, skip rate) ──► assertions ──► Looker
  gobierno: policy tags en email/edad, row-level por país, Dataplex (calidad + linaje) · IaC: Terraform + Cloud Build</code></pre>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Ver el Airflow administrado de Google Cloud</div>
+
+<ol>
+<li>Lista los entornos de Cloud Composer: cada entorno es un Airflow completo administrado por Google.</li>
+<li>Los DAGs se suben a la carpeta <code>dags/</code> del bucket del entorno.</li>
+<li>Compara con Dataform: SQL versionado que corre dentro de BigQuery, sin Airflow.</li>
+</ol>
+<pre data-norun><code class="language-bash">gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud composer environments list --locations us-central1</code></pre>
+<p>Reto: arma la arquitectura de referencia en una línea por capa: ingesta (Pub/Sub), lago (Cloud Storage), transformación (Dataform o Dataproc), warehouse (BigQuery), orquestación (Composer).</p>
+<p>Documentación oficial: <a href="https://cloud.google.com/composer/docs/composer-3/composer-overview">Cloud Composer</a> · <a href="https://cloud.google.com/dataform/docs/overview">Dataform</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

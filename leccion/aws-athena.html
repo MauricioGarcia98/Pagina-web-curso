@@ -175,6 +175,26 @@ aws athena get-query-results --query-execution-id $QID --output table</code></pr
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: SQL sobre el lago con Athena</div>
+
+<ol>
+<li>Prepara el catálogo (bucket, archivo, crawler).</li>
+<li>Lanza la consulta: Athena devuelve un id y escribe el resultado en S3.</li>
+<li>Pide el resultado con ese id. Se paga por datos escaneados: con Parquet y particiones se escanea mucho menos.</li>
+</ol>
+<pre data-norun><code class="language-bash">aws configure
+aws s3 mb s3://lake-practica-dev
+aws s3 cp datos/clientes.csv s3://lake-practica-dev/bronze/clientes/
+aws glue create-database --database-input '{&quot;Name&quot;: &quot;lake_bronze&quot;}'
+aws glue create-crawler --name crawler-clientes --role GlueServiceRole-datos --database-name lake_bronze --targets '{&quot;S3Targets&quot;: [{&quot;Path&quot;: &quot;s3://lake-practica-dev/bronze/clientes/&quot;}]}'
+aws glue start-crawler --name crawler-clientes
+QID=$(aws athena start-query-execution --query-string &quot;SELECT ciudad, COUNT(*) AS n FROM lake_bronze.clientes GROUP BY ciudad&quot; --query-execution-context Database=lake_bronze --result-configuration OutputLocation=s3://lake-practica-dev/athena/ --query QueryExecutionId --output text)
+aws athena get-query-results --query-execution-id $QID --output table</code></pre>
+<p>Reto: escribe el <code>CREATE TABLE AS SELECT</code> (CTAS) que convertiría <code>clientes</code> a Parquet particionado por país.</p>
+<p>Documentación oficial: <a href="https://docs.aws.amazon.com/athena/latest/ug/what-is.html">qué es Athena</a> · <a href="https://docs.aws.amazon.com/athena/latest/ug/ctas.html">CTAS en Athena</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

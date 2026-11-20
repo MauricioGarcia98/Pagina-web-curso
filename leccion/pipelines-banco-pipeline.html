@@ -59,6 +59,31 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Agrupar por préstamo: contar las vencidas y tomar el <strong>máximo</strong> de días (la cuota más atrasada define el tramo).</li>
 <li>Clasificar el máximo en tramos con <code>F.when</code>.</li>
 </ol>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: La cartera en mora con PySpark</div>
+
+<ol>
+<li>Ejecuta: una cuota está en mora si se pagó tarde o si venció y no se pagó a la fecha de corte.</li>
+<li>Mira los días de atraso por cuota y el tramo de mora (1-30, 31-90, más de 90).</li>
+<li>Resume por tramo: es el reporte que pide el área de riesgo.</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+
+corte = F.lit(&quot;2024-12-31&quot;)
+cuotas = spark.table(&quot;banco_cuotas&quot;)
+mora = (cuotas
+    .withColumn(&quot;pago_o_corte&quot;, F.coalesce(F.col(&quot;fecha_pago&quot;), corte))
+    .withColumn(&quot;dias_atraso&quot;, F.datediff(F.to_date(&quot;pago_o_corte&quot;), F.to_date(&quot;fecha_vencimiento&quot;)))
+    .filter((F.col(&quot;dias_atraso&quot;) &gt; 0) &amp; (F.to_date(&quot;fecha_vencimiento&quot;) &lt;= F.to_date(corte)))
+    .withColumn(&quot;tramo&quot;, F.when(F.col(&quot;dias_atraso&quot;) &lt;= 30, &quot;1-30&quot;)
+                          .when(F.col(&quot;dias_atraso&quot;) &lt;= 90, &quot;31-90&quot;)
+                          .otherwise(&quot;+90&quot;)))
+mora.groupBy(&quot;tramo&quot;).agg(F.count(&quot;*&quot;).alias(&quot;cuotas&quot;), F.round(F.sum(&quot;monto&quot;), 2).alias(&quot;monto&quot;)).orderBy(&quot;tramo&quot;).show()</code></pre>
+<p>Reto: une con <code>banco_prestamos</code> y calcula el porcentaje de préstamos con al menos una cuota en el tramo +90.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.datediff.html">datediff</a> · <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.when.html">when</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

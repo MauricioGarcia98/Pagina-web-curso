@@ -156,6 +156,24 @@ Las llaves de cuentas de servicio (`.json`) son el equivalente a las *access key
 - **Roles básicos (Owner, Editor) para todo.** Usa roles predefinidos con el mínimo necesario.
 :::
 
+:::practica terminal Formatos, filtros y servicios
+1. Configura proyecto y región por defecto.
+2. Usa `--format` para quedarte solo con lo que te interesa.
+3. Habilita las APIs de datos: en Google Cloud cada servicio se activa por proyecto antes de usarlo.
+
+```bash norun
+gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud config set compute/region us-central1
+gcloud projects list --format="value(projectId)"
+gcloud services enable bigquery.googleapis.com storage.googleapis.com pubsub.googleapis.com
+```
+
+Reto: ¿qué rol predefinido le darías a un analista que solo consulta BigQuery? Busca la diferencia entre `roles/bigquery.dataViewer` y `roles/bigquery.jobUser`.
+
+Documentación oficial: [formatos de salida](https://cloud.google.com/sdk/gcloud/reference/topic/formats) · [roles de IAM](https://cloud.google.com/iam/docs/understanding-roles)
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

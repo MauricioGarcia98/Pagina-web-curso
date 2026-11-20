@@ -240,6 +240,27 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Particionar en el lago y leer solo lo necesario</div>
+
+<ol>
+<li>Ejecuta: los pedidos se escriben en Parquet particionados por canal (una carpeta por valor).</li>
+<li>Al leer con un filtro por <code>canal</code>, Spark solo abre la carpeta de ese canal (<em>partition pruning</em>).</li>
+<li>Compara cuántas filas hay en total y cuántas lee la consulta filtrada.</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+
+pedidos = spark.table(&quot;pedidos&quot;)
+pedidos.write.mode(&quot;overwrite&quot;).partitionBy(&quot;canal&quot;).parquet(&quot;/lake/silver/pedidos_por_canal&quot;)
+
+lago = spark.read.parquet(&quot;/lake/silver/pedidos_por_canal&quot;)
+web = lago.filter(F.col(&quot;canal&quot;) == &quot;web&quot;)
+print(&quot;total:&quot;, lago.count(), &quot;| solo web:&quot;, web.count())
+web.explain()</code></pre>
+<p>Reto: explica por qué particionar por <code>cliente_id</code> sería una mala idea (piensa en cuántas carpetas chicas crearía).</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/sql-data-sources-parquet.html#partition-discovery">particiones en Parquet</a> · <a href="https://docs.databricks.com/aws/en/delta/best-practices">buenas prácticas de Delta</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

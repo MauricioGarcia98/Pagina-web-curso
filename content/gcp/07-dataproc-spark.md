@@ -247,6 +247,23 @@ Estos ejercicios corren en el simulador de Spark del curso, con las tablas de lo
 - **Clusters grandes para jobs chicos.** Empieza chico y mide.
 :::
 
+:::practica terminal Un clúster de Dataproc que se borra solo
+1. Crea el clúster con 2 workers y `--max-idle`: si nadie lo usa en 30 minutos, se elimina (y deja de cobrar).
+2. Lístalo y mira su estado.
+3. Compara con Dataproc Serverless: el mismo job sin administrar clúster.
+
+```bash norun
+gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud dataproc clusters create spark-etl --region us-central1 --num-workers 2 --max-idle 30m
+gcloud dataproc clusters list --region us-central1
+```
+
+Reto: escribe el comando `gcloud dataproc batches submit pyspark` para correr el mismo script en modo serverless.
+
+Documentación oficial: [crear un clúster](https://cloud.google.com/dataproc/docs/guides/create-cluster) · [Dataproc Serverless](https://cloud.google.com/dataproc-serverless/docs/overview)
+:::
+
 :::ejercicio pyspark titulo="Streaming 🎧: minutos escuchados por género"
 Con `streaming_reproducciones` y `streaming_contenidos`, calcula por `genero`: `reproducciones` (cantidad) y `minutos` (suma de `segundos_escuchados` / 60, redondeado a 1). Guarda en `resultado`.
 ```python solucion

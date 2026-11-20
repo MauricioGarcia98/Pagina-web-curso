@@ -328,6 +328,26 @@ module &quot;red&quot; {
 <td><code>terraform init</code></td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tu primer módulo, usado dos veces</div>
+
+<ol>
+<li>El módulo <code>modules/capa</code> recibe un nombre y crea un bucket.</li>
+<li>La raíz lo llama dos veces (<code>bronze</code> y <code>silver</code>) y junta sus outputs.</li>
+<li>Mira las direcciones en el estado: <code>module.bronze.aws_s3_bucket.este</code>.</li>
+</ol>
+<pre data-norun><code class="language-bash">aws configure
+mkdir -p ~/infra/m/modules/capa &amp;&amp; cd ~/infra/m
+printf 'variable &quot;nombre&quot; {}\n\nresource &quot;aws_s3_bucket&quot; &quot;este&quot; {\n  bucket = &quot;modulo-${var.nombre}&quot;\n}\n\noutput &quot;bucket&quot; {\n  value = aws_s3_bucket.este.bucket\n}\n' &gt; modules/capa/main.tf
+printf 'module &quot;bronze&quot; {\n  source = &quot;./modules/capa&quot;\n  nombre = &quot;bronze&quot;\n}\n\nmodule &quot;silver&quot; {\n  source = &quot;./modules/capa&quot;\n  nombre = &quot;silver&quot;\n}\n\noutput &quot;buckets&quot; {\n  value = [module.bronze.bucket, module.silver.bucket]\n}\n' &gt; main.tf
+terraform init
+terraform apply -auto-approve
+terraform output buckets
+terraform state list</code></pre>
+<p>Reto: llama el módulo con <code>for_each</code> sobre una lista de capas en vez de repetir el bloque.</p>
+<p>Documentación oficial: <a href="https://developer.hashicorp.com/terraform/language/modules">módulos</a> · <a href="https://developer.hashicorp.com/terraform/language/modules/develop">escribir módulos</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

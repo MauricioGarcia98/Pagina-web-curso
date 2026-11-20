@@ -128,6 +128,23 @@ AWS tiene una capa gratuita (*Free Tier*) para aprender. Aun así, crea una aler
 - **No poner un presupuesto.** Un servicio olvidado encendido cobra todo el mes; configura AWS Budgets el primer día.
 :::
 
+:::practica terminal Tu primera sesión con la AWS CLI
+1. Configura las credenciales (en la práctica se simulan; en tu trabajo usa IAM Identity Center, nunca claves pegadas en un script).
+2. Pregúntale a AWS quién eres: cuenta, usuario y ARN.
+3. Lista tus buckets y tus roles: es el primer mapa de cualquier cuenta nueva.
+
+```bash norun
+aws configure
+aws sts get-caller-identity
+aws s3 ls
+aws iam list-roles --query "Roles[].RoleName" --output text
+```
+
+Reto: con `--query`, muestra solo el número de cuenta de `get-caller-identity`.
+
+Documentación oficial: [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html) · [qué es IAM](https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

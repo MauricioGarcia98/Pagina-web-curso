@@ -168,6 +168,28 @@ Así, si mañana descubres un error en la limpieza, reprocesas desde bronze sin 
 Pregunta primero si hay una columna de modificación confiable y si hay borrados. Si hay columna y no hay borrados: incremental con marca de agua (guardada al final y con margen de seguridad) y `MERGE` en el destino para que sea idempotente. Si hay borrados o la tabla es crítica: CDC desde el log de transacciones (Debezium, DMS, Datastream). Menciona la carga inicial (un *snapshot* histórico en paralelo, por particiones), la deduplicación en silver y cómo verificarías que no se pierden filas (conteos por día contra el origen).
 :::
 
+:::practica sql Carga incremental con marca de agua
+1. Ejecuta: el destino arranca con los pedidos hasta noviembre (la primera carga completa).
+2. La segunda sentencia trae solo lo que es más nuevo que la marca de agua (`MAX(fecha_pedido)` del destino).
+3. Vuelve a ejecutar solo el `INSERT`: no duplica nada, porque la marca de agua ya avanzó (idempotencia).
+
+```sql norun
+DROP TABLE IF EXISTS destino_pedidos;
+CREATE TABLE destino_pedidos AS
+SELECT pedido_id, cliente_id, fecha_pedido, estado FROM pedidos WHERE fecha_pedido < '2024-12-01';
+
+INSERT INTO destino_pedidos
+SELECT pedido_id, cliente_id, fecha_pedido, estado FROM pedidos
+WHERE fecha_pedido > (SELECT MAX(fecha_pedido) FROM destino_pedidos);
+
+SELECT COUNT(*) AS filas, MAX(fecha_pedido) AS marca_de_agua FROM destino_pedidos;
+```
+
+Reto: un pedido de octubre cambió de estado en diciembre. ¿Lo trae esta carga? Explica por qué hace falta CDC o una columna `actualizado_en`.
+
+Documentación oficial: [ingesta en Databricks](https://docs.databricks.com/aws/en/ingestion/) · [copia incremental (Data Factory)](https://learn.microsoft.com/es-es/azure/data-factory/tutorial-incremental-copy-overview)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

@@ -144,6 +144,29 @@ ORDER BY total_bytes_billed DESC LIMIT 10;
 
 ## Ejercicios de SQL
 
+:::practica bigquery Particiones y clustering: ver los bytes bajar
+1. `tienda.pedidos` está particionada por día (`fecha_pedido`) y agrupada por `canal`: míralo en su pestaña **Details**.
+2. La consulta se abre en el editor: anota los bytes estimados (arriba a la derecha). Después comenta la primera y descomenta la segunda, con el filtro por fecha: BigQuery solo lee esa partición y la estimación baja.
+3. Agrega también `canal = 'web'`: el clustering reduce un poco más.
+
+```sql norun
+-- sin filtro de partición: lee toda la tabla
+SELECT canal, COUNT(*) AS pedidos
+FROM `tienda-andina-dev.tienda.pedidos`
+GROUP BY canal;
+
+-- con filtro de partición: lee un solo día (comenta la consulta de arriba y descomenta esta)
+-- SELECT canal, COUNT(*) AS pedidos
+-- FROM `tienda-andina-dev.tienda.pedidos`
+-- WHERE fecha_pedido = '2024-12-24'
+-- GROUP BY canal;
+```
+
+Reto: crea una tabla con `CREATE TABLE … PARTITION BY … CLUSTER BY … AS SELECT` en un dataset tuyo y repite la comparación.
+
+Documentación oficial: [tablas particionadas](https://cloud.google.com/bigquery/docs/partitioned-tables) · [tablas con clustering](https://cloud.google.com/bigquery/docs/clustered-tables)
+:::
+
 :::ejercicio sql ordenado titulo="Banco: saldo de fin de mes por cuenta"
 Caso 🏦. Para la cuenta `cuenta_id = 1`, calcula el saldo acumulado al cierre de cada `mes` (`YYYY-MM`). Ojo: `monto` ya viene **con signo** (los depósitos son positivos y las compras, retiros, transferencias y pagos de tarjeta, negativos). Columnas: `mes`, `movimiento_neto` (redondeado a 2) y `saldo_cierre` (acumulado, redondeado a 2). Ordena por mes.
 ```sql solucion

@@ -225,6 +225,28 @@ terraform state show aws_s3_bucket.bronze    # sus atributos
 Es el archivo donde Terraform registra qué recursos reales corresponden a cada recurso del código, con sus atributos; lo usa para calcular el plan. En un equipo se guarda en un backend remoto (un bucket de S3, GCS o un contenedor de Azure) con bloqueo, versionado y cifrado, para que todos usen el mismo estado, nadie aplique a la vez y se pueda recuperar una versión anterior. Nunca va a Git porque puede contener secretos.
 :::
 
+:::practica terminal Tu primer ciclo init → plan → apply → destroy
+1. Escribe un archivo de Terraform (el comando `printf` lo crea por ti) y míralo.
+2. `init` descarga el provider, `plan` muestra qué va a crear, `apply` lo crea.
+3. Verifica con `state list` y destruye todo con `destroy`.
+
+```bash norun
+mkdir -p ~/infra/hola && cd ~/infra/hola
+printf 'resource "local_file" "hola" {\n  filename = "hola.txt"\n  content  = "hola terraform"\n}\n' > main.tf
+cat main.tf
+terraform init
+terraform plan
+terraform apply -auto-approve
+terraform state list
+cat hola.txt
+terraform destroy -auto-approve
+```
+
+Reto: cambia el `content`, corre `terraform plan` y explica por qué dice *replace*.
+
+Documentación oficial: [qué es Terraform](https://developer.hashicorp.com/terraform/intro) · [el ciclo de trabajo](https://developer.hashicorp.com/terraform/cli/run)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

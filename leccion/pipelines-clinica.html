@@ -20,6 +20,28 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>En <strong>Clínica del Sur</strong> (caso 🏥) el problema número uno es el <strong>ausentismo</strong>: turnos reservados a los que el paciente no viene. La estrategia del equipo: (1) mostrar bien los turnos libres para reasignar rápido, (2) estimar qué turnos tienen <strong>riesgo</strong> de ausencia, (3) identificar a los pacientes reincidentes, y (4) enviar <strong>recordatorios</strong> el día anterior.</p>
 <h2>1. Python: los turnos libres de una agenda</h2>
 <p>Un médico atiende de 08:00 a 12:00 en turnos de 20 minutos. Algunos turnos ya están tomados, y a veces hay bloqueos de distinta duración (una reunión de 08:30 a 09:10). El sistema de reservas tiene que mostrar los turnos <strong>libres</strong>: los que caben <strong>completos</strong> sin solaparse con nada ocupado.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Ausentismo por médico y especialidad</div>
+
+<ol>
+<li>Ejecuta: tasa de ausencia (turnos con estado <code>ausente</code> sobre turnos no cancelados) por especialidad.</li>
+<li>Los cancelados se excluyen del denominador: un turno cancelado se puede reasignar, uno ausente se pierde.</li>
+<li>Busca la especialidad con peor ausentismo: ahí conviene un recordatorio el día anterior.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT m.especialidad,
+       COUNT(*) AS turnos,
+       SUM(CASE WHEN t.estado = 'ausente' THEN 1 ELSE 0 END) AS ausentes,
+       ROUND(100.0 * SUM(CASE WHEN t.estado = 'ausente' THEN 1 ELSE 0 END) / COUNT(*), 1) AS pct_ausencia
+FROM clinica_turnos t
+JOIN clinica_medicos m ON m.medico_id = t.medico_id
+WHERE t.estado &lt;&gt; 'cancelado'
+GROUP BY m.especialidad
+ORDER BY pct_ausencia DESC;</code></pre>
+<p>Reto: agrega la anticipación de la reserva (días entre <code>fecha_reserva</code> y <code>fecha_hora</code>) y comprueba si los turnos reservados con mucha anticipación se ausentan más.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/expressions/case">CASE</a> · <a href="https://duckdb.org/docs/current/sql/query_syntax/groupby">GROUP BY</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

@@ -380,6 +380,28 @@ Todo por pull request. La CI corre fmt, validate, tflint, un escáner de segurid
 | Producción | Apply con aprobación manual, rol separado, OIDC |
 | Todos los días | Plan con `-detailed-exitcode` para detectar drift |
 
+:::practica terminal Los chequeos de un pipeline y el drift
+1. Aplica un bucket y corre los chequeos que haría CI: `fmt -check` y `validate`.
+2. Simula un cambio hecho a mano afuera de Terraform (borras el bucket con la CLI).
+3. `plan -refresh-only` muestra la diferencia entre el estado y la realidad: eso es *drift*.
+
+```bash norun
+aws configure
+mkdir -p ~/infra/drift && cd ~/infra/drift
+printf 'resource "aws_s3_bucket" "gold" {\n  bucket = "tienda-prod-gold"\n}\n' > main.tf
+terraform init
+terraform apply -auto-approve
+terraform fmt -check
+terraform validate
+aws s3 rb s3://tienda-prod-gold
+terraform plan -refresh-only
+```
+
+Reto: escribe el job de GitHub Actions que corre `fmt -check`, `validate` y `plan` en cada pull request y solo hace `apply` en `main`.
+
+Documentación oficial: [terraform plan (refresh-only)](https://developer.hashicorp.com/terraform/cli/commands/plan) · [Terraform con GitHub Actions](https://developer.hashicorp.com/terraform/tutorials/automation/github-actions)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

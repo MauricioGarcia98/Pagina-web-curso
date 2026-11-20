@@ -29,6 +29,41 @@ P(sobreventa) = P(se presentan más de C) = suma de P(k) para k = C+1 … n</cod
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Una tarea por aeropuerto con mapeo dinámico</div>
+
+<ol>
+<li>Ejecuta: el DAG lista los aeropuertos y crea <strong>una tarea por aeropuerto</strong> con <code>expand</code>, sin escribirlas a mano.</li>
+<li>Mira la salida: cada instancia calcula la demora de su aeropuerto y la última tarea junta los resultados.</li>
+<li>Agrega un aeropuerto a la lista: aparece una instancia más.</li>
+</ol>
+<pre data-norun><code class="language-python">from datetime import datetime
+from airflow.sdk import dag, task
+
+@dag(start_date=datetime(2024, 1, 1), schedule=&quot;@daily&quot;, catchup=False)
+def demoras_por_aeropuerto():
+    @task
+    def aeropuertos():
+        return [&quot;EZE&quot;, &quot;SCL&quot;, &quot;LIM&quot;, &quot;BOG&quot;, &quot;MEX&quot;]
+
+    @task
+    def demora_promedio(codigo: str) -&gt; dict:
+        minutos = len(codigo) * 7   # aquí iría la consulta al warehouse
+        print(f&quot;{codigo}: {minutos} min de demora promedio&quot;)
+        return {&quot;aeropuerto&quot;: codigo, &quot;minutos&quot;: minutos}
+
+    @task
+    def reporte(filas: list):
+        peor = max(filas, key=lambda f: f[&quot;minutos&quot;])
+        print(&quot;peor aeropuerto:&quot;, peor)
+
+    reporte(demora_promedio.expand(codigo=aeropuertos()))
+
+demoras_por_aeropuerto().test()</code></pre>
+<p>Reto: limita el paralelismo a 2 instancias a la vez con <code>max_active_tis_per_dag</code> y explica por qué lo harías con un warehouse compartido.</p>
+<p>Documentación oficial: <a href="https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/dynamic-task-mapping.html">mapeo dinámico</a> · <a href="https://airflow.apache.org/docs/apache-airflow/stable/tutorial/taskflow.html">TaskFlow</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

@@ -25,6 +25,28 @@ La regla del negocio (simplificada, pero con la misma lógica que usan las apps 
 - Hay un **tope** regulatorio de **2.5**.
 - Si no hay **ningún** conductor libre, se aplica el tope.
 
+:::practica pyspark Oferta y demanda por ciudad y hora
+1. Ejecuta: por ciudad y hora del día, cuántos viajes se pidieron y qué parte quedó sin conductor.
+2. Las horas con más "sin conductor" son donde subiría la tarifa dinámica.
+3. Mira el multiplicador promedio en esas horas: ¿el precio ya está reaccionando?
+
+```python norun
+from pyspark.sql import functions as F
+
+v = spark.table("viajes_viajes").withColumn("hora", F.hour(F.to_timestamp("fecha_hora_solicitud")))
+(v.groupBy("ciudad", "hora")
+    .agg(F.count("*").alias("pedidos"),
+         F.round(F.avg(F.when(F.col("estado") == "sin_conductor", 1).otherwise(0)) * 100, 1).alias("pct_sin_conductor"),
+         F.round(F.avg("multiplicador"), 2).alias("multiplicador"))
+    .orderBy(F.desc("pct_sin_conductor"))
+    .show(10))
+```
+
+Reto: con una ventana, encuentra para cada ciudad la hora con peor porcentaje sin conductor.
+
+Documentación oficial: [hour](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.hour.html) · [Window](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/window.html)
+:::
+
 :::ejercicio python titulo="multiplicador_dinamico"
 Escribe `multiplicador_dinamico(solicitudes, conductores_libres)` que aplique la regla anterior.
 ```python inicial

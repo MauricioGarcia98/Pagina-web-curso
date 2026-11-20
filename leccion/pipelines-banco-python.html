@@ -84,6 +84,34 @@ print(Decimal(&quot;2.675&quot;).quantize(Decimal(&quot;0.01&quot;), ROUND_HALF_
 <li><code>quantize(Decimal(&quot;0.01&quot;), ROUND_HALF_UP)</code> redondea a centavos con la regla que se enseña en la escuela: 5 o más, hacia arriba.</li>
 </ul>
 <p>En los ejercicios de abajo alcanza con <code>round</code>, pero en un sistema financiero real se usa <code>Decimal</code> (en Python) o <code>DECIMAL(18, 2)</code> (en SQL), nunca <code>float</code>. Y se <strong>define una regla de redondeo</strong>: ¿se redondea cada cuota y la última absorbe la diferencia, o se redondea al final? Esa regla la decide el área de negocio, no el programador, y va escrita en los tests.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: La cuota francesa y su tabla de amortización</div>
+
+<ol>
+<li>Ejecuta: con la fórmula de la cuota francesa, la cuota es la misma todos los meses; cambia cuánto es interés y cuánto capital.</li>
+<li>Mira la tabla: el saldo llega a 0 en la última cuota (si no, la fórmula está mal).</li>
+<li>Cambia la tasa anual y el plazo y observa cuánto interés total se paga.</li>
+</ol>
+<pre data-norun><code class="language-python">def cuota_francesa(monto, tasa_anual, meses):
+    i = tasa_anual / 12
+    return monto * i / (1 - (1 + i) ** -meses)
+
+monto, tasa, meses = 1_000_000, 0.36, 12
+cuota = cuota_francesa(monto, tasa, meses)
+saldo, total_interes = monto, 0
+for n in range(1, meses + 1):
+    interes = saldo * tasa / 12
+    capital = cuota - interes
+    saldo -= capital
+    total_interes += interes
+    if n in (1, 2, meses):
+        print(f&quot;cuota {n:2}: interés {interes:10,.2f} · capital {capital:10,.2f} · saldo {saldo:12,.2f}&quot;)
+print(f&quot;cuota fija {cuota:,.2f} · interés total {total_interes:,.2f}&quot;)</code></pre>
+<p>Reto: compara con el sistema alemán (capital fijo, cuota decreciente) y explica cuál paga menos interés total.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/library/functions.html#round">round y números</a> · <a href="https://docs.python.org/es/3/tutorial/inputoutput.html#formatted-string-literals">f-strings</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

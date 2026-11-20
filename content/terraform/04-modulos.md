@@ -325,6 +325,27 @@ Un repositorio con dos carpetas: `modules/`, con módulos chicos por patrón (ca
 | Fuentes | Local (`./modules/x`), registro (`org/nombre/proveedor` + `version`), Git (`git::…?ref=v1.0.0`) |
 | Después de agregar o cambiar un módulo | `terraform init` |
 
+:::practica terminal Tu primer módulo, usado dos veces
+1. El módulo `modules/capa` recibe un nombre y crea un bucket.
+2. La raíz lo llama dos veces (`bronze` y `silver`) y junta sus outputs.
+3. Mira las direcciones en el estado: `module.bronze.aws_s3_bucket.este`.
+
+```bash norun
+aws configure
+mkdir -p ~/infra/m/modules/capa && cd ~/infra/m
+printf 'variable "nombre" {}\n\nresource "aws_s3_bucket" "este" {\n  bucket = "modulo-${var.nombre}"\n}\n\noutput "bucket" {\n  value = aws_s3_bucket.este.bucket\n}\n' > modules/capa/main.tf
+printf 'module "bronze" {\n  source = "./modules/capa"\n  nombre = "bronze"\n}\n\nmodule "silver" {\n  source = "./modules/capa"\n  nombre = "silver"\n}\n\noutput "buckets" {\n  value = [module.bronze.bucket, module.silver.bucket]\n}\n' > main.tf
+terraform init
+terraform apply -auto-approve
+terraform output buckets
+terraform state list
+```
+
+Reto: llama el módulo con `for_each` sobre una lista de capas en vez de repetir el bloque.
+
+Documentación oficial: [módulos](https://developer.hashicorp.com/terraform/language/modules) · [escribir módulos](https://developer.hashicorp.com/terraform/language/modules/develop)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

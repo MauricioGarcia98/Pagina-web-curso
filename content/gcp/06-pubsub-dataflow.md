@@ -137,6 +137,26 @@ ventana,compras,total
 
 ## Ejercicios: programa la lógica de streaming
 
+:::practica terminal Publicar y leer mensajes con Pub/Sub
+1. Crea el tópico y una suscripción: el tópico recibe, la suscripción entrega a cada consumidor.
+2. Publica dos mensajes.
+3. Léelos con `pull`. Con `--auto-ack` se confirman; sin confirmar, Pub/Sub los vuelve a entregar.
+
+```bash norun
+gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud pubsub topics create ventas
+gcloud pubsub subscriptions create ventas-fraude --topic ventas
+gcloud pubsub topics publish ventas --message '{"pedido_id": 1, "total": 350.0}'
+gcloud pubsub topics publish ventas --message '{"pedido_id": 2, "total": 12.5}'
+gcloud pubsub subscriptions pull ventas-fraude --auto-ack --limit 10
+```
+
+Reto: crea una segunda suscripción y publica otro mensaje: ¿lo reciben las dos? Explica qué patrón es (fan-out).
+
+Documentación oficial: [Pub/Sub con gcloud](https://cloud.google.com/pubsub/docs/publish-receive-messages-gcloud) · [Dataflow](https://cloud.google.com/dataflow/docs/overview)
+:::
+
 :::ejercicio python titulo="Deduplicar mensajes de Pub/Sub"
 Pub/Sub puede entregar mensajes repetidos. Escribe `deduplicar(mensajes)` que reciba una lista de diccionarios con `message_id` y `data`, y devuelva la lista **sin repetidos** (conservando la **primera** aparición de cada `message_id`, en el orden original).
 ```python inicial

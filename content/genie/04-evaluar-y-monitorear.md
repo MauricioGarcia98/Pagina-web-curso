@@ -137,6 +137,28 @@ Los porcentajes del recorrido son ilustrativos.
 Con un conjunto de preguntas de prueba con su respuesta correcta en SQL, que cubra las preguntas frecuentes con varias formas de escribirlas, y lo correría después de cada cambio para medir la exactitud y detectar regresiones. En Genie eso son los benchmarks: comparan el resultado de la consulta generada con el de la respuesta. Además revisaría el uso real en el monitoreo, las respuestas marcadas como incorrectas y las revisiones pedidas, y convertiría cada error corregido en un nuevo ejemplo y un nuevo benchmark.
 :::
 
+:::practica databricks:genie Un set de preguntas de prueba con su respuesta correcta
+1. Antes de compartir el agente, arma tus preguntas de prueba: cada una con el SQL que da la respuesta correcta (de abajo).
+2. Corre el SQL en el **SQL Editor** y anota el número esperado.
+3. Haz la misma pregunta en **Chat** y compara: si no coincide, ajusta instrucciones o ejemplos y vuelve a probar todas (las benchmarks del producto automatizan esto).
+
+```sql norun
+-- Pregunta: ¿cuántos pedidos entregados hubo en diciembre de 2024?
+SELECT COUNT(*) FROM samples.tienda.pedidos
+WHERE estado = 'entregado' AND fecha_pedido BETWEEN '2024-12-01' AND '2024-12-31';
+
+-- Pregunta: ¿qué canal vendió más en 2024?
+SELECT p.canal, ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas
+FROM samples.tienda.pedidos p JOIN samples.tienda.detalle_pedidos d ON d.pedido_id = p.pedido_id
+WHERE p.estado = 'entregado' AND p.fecha_pedido >= '2024-01-01'
+GROUP BY ALL ORDER BY ventas DESC LIMIT 1;
+```
+
+Reto: agrega una pregunta "trampa" (algo que el agente no debería responder con estas tablas) y define la respuesta correcta: decir que no tiene el dato.
+
+Documentación oficial: [benchmarks de Genie](https://docs.databricks.com/aws/en/genie/benchmarks) · [monitorear un agente](https://docs.databricks.com/aws/en/genie/monitor)
+:::
+
 ## Ejercicios
 
 :::ejercicio python dificultad=Avanzado titulo="Un calificador de benchmarks como el de Genie"

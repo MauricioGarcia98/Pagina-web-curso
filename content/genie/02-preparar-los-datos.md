@@ -220,6 +220,30 @@ Cuando una vista de métricas se agrega a un Genie Agent, Genie usa esas definic
 Elegiría pocas tablas del tema del equipo y las simplificaría en una vista desnormalizada con nombres claros y sin columnas confusas o sensibles. Escribiría descripciones en Unity Catalog que digan el grano de cada tabla, cómo se usa cada columna y sus valores posibles, y declararía claves primarias y foráneas. Definiría los indicadores en una vista de métricas para que tengan una sola definición, con sinónimos del lenguaje del negocio, y revisaría los permisos y los filtros de filas en Unity Catalog.
 :::
 
+:::practica databricks:sql Documentar las tablas que verá Genie
+1. Ejecuta: una vista con nombres claros y comentarios en la tabla y en las columnas. Genie lee esos comentarios para entender qué significa cada dato.
+2. Abre la vista en **Catalog** y verifica que los comentarios aparecen.
+3. Usa esta vista (y no las tablas crudas) cuando armes el agente.
+
+```sql norun
+CREATE SCHEMA IF NOT EXISTS main.genie;
+CREATE OR REPLACE VIEW main.genie.ventas COMMENT 'Una fila por línea de pedido entregado, con su importe neto' AS
+SELECT p.pedido_id, p.fecha_pedido AS fecha, p.canal, c.pais, pr.nombre AS producto,
+       d.cantidad, ROUND(d.cantidad * d.precio_unitario * (1 - d.descuento), 2) AS importe
+FROM samples.tienda.pedidos p
+JOIN samples.tienda.detalle_pedidos d ON d.pedido_id = p.pedido_id
+JOIN samples.tienda.clientes c ON c.cliente_id = p.cliente_id
+JOIN samples.tienda.productos pr ON pr.producto_id = d.producto_id
+WHERE p.estado = 'entregado';
+COMMENT ON COLUMN main.genie.ventas.importe IS 'Cantidad por precio unitario menos descuento, en moneda local';
+SELECT canal, ROUND(SUM(importe), 2) AS ventas FROM main.genie.ventas GROUP BY ALL ORDER BY ventas DESC;
+```
+
+Reto: agrega un comentario a `canal` que liste sus valores posibles; Genie lo usa para filtrar bien.
+
+Documentación oficial: [buenas prácticas de Genie](https://docs.databricks.com/aws/en/genie/best-practices) · [comentarios en Unity Catalog](https://docs.databricks.com/aws/en/comments/)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql dificultad=Intermedio titulo="La vista para el agente de ventas"

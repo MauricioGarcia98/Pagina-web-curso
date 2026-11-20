@@ -25,6 +25,38 @@ Si se venden 130 unidades: 100 salen del lote de enero (1.000) y 30 del de febre
 En un supermercado, el repositor pone la leche nueva **atrás** y la vieja adelante, para que se venda primero la que vence antes. FIFO hace lo mismo con los costos: las primeras unidades en entrar son las primeras en "salir" con su costo.
 :::
 
+:::practica python Costo de lo vendido con FIFO
+1. Ejecuta: las compras entran a una cola con su costo; cada venta consume primero lo más viejo (*first in, first out*).
+2. Mira el costo de cada venta: puede mezclar lotes con precios distintos.
+3. Verifica el stock final: unidades compradas menos vendidas.
+
+```python norun
+from collections import deque
+
+movimientos = [("entrada", 100, 10.0), ("entrada", 50, 12.0), ("salida", 120, None), ("entrada", 80, 11.0), ("salida", 90, None)]
+lotes = deque()
+for tipo, cant, costo in movimientos:
+    if tipo == "entrada":
+        lotes.append([cant, costo])
+        continue
+    pendiente, total = cant, 0.0
+    while pendiente:
+        lote = lotes[0]
+        usa = min(pendiente, lote[0])
+        total += usa * lote[1]
+        lote[0] -= usa
+        pendiente -= usa
+        if lote[0] == 0:
+            lotes.popleft()
+    print(f"venta de {cant}: costo {total:,.2f} ({total / cant:.2f} por unidad)")
+print("stock final:", [tuple(l) for l in lotes])
+```
+
+Reto: ¿qué pasa si una venta pide más de lo que hay en stock? Decide qué hacer (error o venta parcial) y agrégalo.
+
+Documentación oficial: [collections.deque](https://docs.python.org/es/3/library/collections.html#collections.deque)
+:::
+
 :::ejercicio python titulo="costo_fifo"
 Escribe `costo_fifo(lotes, vendidas)` donde `lotes` es una lista de tuplas `(unidades, costo_unitario)` en orden de llegada. Devuelve `(costo_vendido, lotes_restantes)`: el costo total de las unidades vendidas (redondeado a 2) y la lista de lotes que quedan (sin lotes vacíos). Si se quieren vender más unidades que las disponibles, lanza `ValueError`. No modifiques la lista original.
 ```python inicial

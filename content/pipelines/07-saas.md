@@ -18,6 +18,32 @@ Una empresa paga el plan Básico (49 por mes) y el día 11 de un mes de 30 días
 - **Cargo** por la parte restante del plan nuevo: 149 × 20/30 = 99,33.
 - A cobrar ahora: cargo − crédito = **66,67** (si es una bajada de plan, el resultado es negativo: un saldo a favor).
 
+:::practica dbt Un modelo dbt de MRR mensual por plan
+1. Ejecuta: el modelo lee las facturas desde el `source` y calcula el MRR de cada mes por plan.
+2. Mira el SQL compilado: `source('tienda', 'saas_facturas')` se reemplazó por la tabla real.
+3. En el proyecto real, este modelo iría en `marts/` y tendría tests de `not_null` y `unique` sobre `mes` + `plan_id`.
+
+```sql norun
+with facturas as (
+    select * from {{ source('tienda', 'saas_facturas') }}
+    where estado = 'pagada'
+)
+
+select
+    mes,
+    plan_id,
+    count(distinct empresa_id) as empresas,
+    sum(monto)                 as mrr
+from facturas
+group by mes, plan_id
+order by mes, plan_id
+```
+
+Reto: agrega la columna `mrr_mes_anterior` con `lag()` y calcula el crecimiento por plan.
+
+Documentación oficial: [sources en dbt](https://docs.getdbt.com/docs/build/sources) · [la capa de marts](https://docs.getdbt.com/best-practices/how-we-structure/4-marts)
+:::
+
 :::ejercicio python titulo="prorrateo"
 Escribe `prorrateo(precio_viejo, precio_nuevo, fecha_cambio)` con `fecha_cambio` como `"YYYY-MM-DD"`. Usa la cantidad **real** de días del mes (`calendar.monthrange`). Devuelve un diccionario con `dias_restantes`, `credito`, `cargo` y `neto` (los tres montos redondeados a 2; `neto` se calcula con los valores ya redondeados).
 ```python inicial

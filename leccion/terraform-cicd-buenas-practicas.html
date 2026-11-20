@@ -442,6 +442,27 @@ Plan: 1 to add, 0 to change, 0 to destroy.
 <td>Plan con <code>-detailed-exitcode</code> para detectar drift</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Los chequeos de un pipeline y el drift</div>
+
+<ol>
+<li>Aplica un bucket y corre los chequeos que haría CI: <code>fmt -check</code> y <code>validate</code>.</li>
+<li>Simula un cambio hecho a mano afuera de Terraform (borras el bucket con la CLI).</li>
+<li><code>plan -refresh-only</code> muestra la diferencia entre el estado y la realidad: eso es <em>drift</em>.</li>
+</ol>
+<pre data-norun><code class="language-bash">aws configure
+mkdir -p ~/infra/drift &amp;&amp; cd ~/infra/drift
+printf 'resource &quot;aws_s3_bucket&quot; &quot;gold&quot; {\n  bucket = &quot;tienda-prod-gold&quot;\n}\n' &gt; main.tf
+terraform init
+terraform apply -auto-approve
+terraform fmt -check
+terraform validate
+aws s3 rb s3://tienda-prod-gold
+terraform plan -refresh-only</code></pre>
+<p>Reto: escribe el job de GitHub Actions que corre <code>fmt -check</code>, <code>validate</code> y <code>plan</code> en cada pull request y solo hace <code>apply</code> en <code>main</code>.</p>
+<p>Documentación oficial: <a href="https://developer.hashicorp.com/terraform/cli/commands/plan">terraform plan (refresh-only)</a> · <a href="https://developer.hashicorp.com/terraform/tutorials/automation/github-actions">Terraform con GitHub Actions</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

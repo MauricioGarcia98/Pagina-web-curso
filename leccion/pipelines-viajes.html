@@ -52,6 +52,28 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Hay un <strong>tope</strong> regulatorio de <strong>2.5</strong>.</li>
 <li>Si no hay <strong>ningún</strong> conductor libre, se aplica el tope.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Oferta y demanda por ciudad y hora</div>
+
+<ol>
+<li>Ejecuta: por ciudad y hora del día, cuántos viajes se pidieron y qué parte quedó sin conductor.</li>
+<li>Las horas con más &quot;sin conductor&quot; son donde subiría la tarifa dinámica.</li>
+<li>Mira el multiplicador promedio en esas horas: ¿el precio ya está reaccionando?</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+
+v = spark.table(&quot;viajes_viajes&quot;).withColumn(&quot;hora&quot;, F.hour(F.to_timestamp(&quot;fecha_hora_solicitud&quot;)))
+(v.groupBy(&quot;ciudad&quot;, &quot;hora&quot;)
+    .agg(F.count(&quot;*&quot;).alias(&quot;pedidos&quot;),
+         F.round(F.avg(F.when(F.col(&quot;estado&quot;) == &quot;sin_conductor&quot;, 1).otherwise(0)) * 100, 1).alias(&quot;pct_sin_conductor&quot;),
+         F.round(F.avg(&quot;multiplicador&quot;), 2).alias(&quot;multiplicador&quot;))
+    .orderBy(F.desc(&quot;pct_sin_conductor&quot;))
+    .show(10))</code></pre>
+<p>Reto: con una ventana, encuentra para cada ciudad la hora con peor porcentaje sin conductor.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.hour.html">hour</a> · <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/window.html">Window</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

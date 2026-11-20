@@ -209,6 +209,34 @@ evento 10:04:10 llega 10:07:30  → la marca ya pasó 10:07 → la ventana 10:00
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tiempo del evento, ventanas y datos tardíos</div>
+
+<ol>
+<li>Ejecuta: los eventos llegan desordenados; cada uno tiene la hora en que <strong>ocurrió</strong> (evento) y la hora en que <strong>llegó</strong> (proceso).</li>
+<li>Se agrupan en ventanas de 5 minutos por hora del evento, con una marca de agua de 10 minutos: lo que llega más tarde se descarta.</li>
+<li>Cambia la marca de agua a 30 minutos y mira qué evento deja de perderse.</li>
+</ol>
+<pre data-norun><code class="language-python">eventos = [  # (minuto del evento, minuto de llegada)
+    (1, 1), (3, 4), (6, 7), (2, 9), (8, 9), (11, 12), (4, 20),
+]
+MARCA_DE_AGUA = 10
+ventanas, descartados = {}, []
+maximo_visto = 0
+for ev, llega in sorted(eventos, key=lambda e: e[1]):
+    maximo_visto = max(maximo_visto, ev)
+    if ev &lt; maximo_visto - MARCA_DE_AGUA:
+        descartados.append((ev, llega))
+        continue
+    inicio = ev // 5 * 5
+    ventanas[inicio] = ventanas.get(inicio, 0) + 1
+for inicio in sorted(ventanas):
+    print(f&quot;[{inicio:02}-{inicio + 5:02}) {ventanas[inicio]} eventos&quot;)
+print(&quot;descartados por tardíos:&quot;, descartados)</code></pre>
+<p>Reto: escribe lo mismo en Structured Streaming con <code>withWatermark(&quot;ts&quot;, &quot;10 minutes&quot;)</code> y <code>F.window(&quot;ts&quot;, &quot;5 minutes&quot;)</code>.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html#handling-late-data-and-watermarking">watermarking en Spark</a> · <a href="https://beam.apache.org/documentation/basics/#watermark">watermarks en Apache Beam</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

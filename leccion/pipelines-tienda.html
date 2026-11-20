@@ -75,6 +75,46 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>cualquier otro caso</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El ETL completo de la tienda como DAG</div>
+
+<ol>
+<li>Ejecuta: extraer → validar → transformar → cargar, cada paso una tarea que pasa su resultado a la siguiente.</li>
+<li>La validación corta el pipeline si llegan menos filas de las esperadas (mejor fallar que publicar datos incompletos).</li>
+<li>Cambia el mínimo de filas a 10 y vuelve a correr: mira cómo falla y las tareas siguientes no corren.</li>
+</ol>
+<pre data-norun><code class="language-python">from datetime import datetime
+from airflow.sdk import dag, task
+from airflow.exceptions import AirflowFailException
+
+@dag(start_date=datetime(2024, 1, 1), schedule=&quot;@daily&quot;, catchup=False)
+def etl_tienda():
+    @task
+    def extraer():
+        return [{&quot;pedido&quot;: i, &quot;monto&quot;: 100 + i} for i in range(1, 6)]
+
+    @task
+    def validar(filas: list):
+        if len(filas) &lt; 3:
+            raise AirflowFailException(f&quot;llegaron {len(filas)} filas, se esperaban al menos 3&quot;)
+        return filas
+
+    @task
+    def transformar(filas: list):
+        return {&quot;pedidos&quot;: len(filas), &quot;total&quot;: sum(f[&quot;monto&quot;] for f in filas)}
+
+    @task
+    def cargar(resumen: dict):
+        print(&quot;cargando en gold:&quot;, resumen)
+
+    cargar(transformar(validar(extraer())))
+
+etl_tienda().test()</code></pre>
+<p>Reto: agrega reintentos a <code>extraer</code> (<code>retries=2</code>) pero no a <code>validar</code>: explica por qué uno se reintenta y el otro no.</p>
+<p>Documentación oficial: <a href="https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/tasks.html">tareas</a> · <a href="https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html">buenas prácticas</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

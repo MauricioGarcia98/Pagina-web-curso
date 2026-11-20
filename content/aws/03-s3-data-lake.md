@@ -159,6 +159,25 @@ Parquet guarda datos, pero no sabe de transacciones. **Apache Iceberg** (muy usa
 - **`aws s3 sync --delete` sin pensar.** Borra en el destino lo que no está en el origen; prueba antes con `--dryrun`.
 :::
 
+:::practica terminal Un data lake en S3 con capas
+1. Crea el bucket del lago y sube el archivo crudo a `bronze/` con un prefijo por tabla.
+2. Lista el lago completo con `--recursive --summarize`.
+3. Copia a `silver/` y borra lo que sobra: en S3 no hay carpetas, solo prefijos en el nombre del objeto.
+
+```bash norun
+aws configure
+aws s3 mb s3://lake-practica-dev
+aws s3 cp datos/clientes.csv s3://lake-practica-dev/bronze/clientes/
+aws s3 cp datos/ventas_2024_12.csv s3://lake-practica-dev/bronze/ventas/anio=2024/mes=12/
+aws s3 ls s3://lake-practica-dev --recursive --summarize
+aws s3 cp s3://lake-practica-dev/bronze/clientes/clientes.csv s3://lake-practica-dev/silver/clientes/
+```
+
+Reto: genera un enlace temporal de 1 hora con `aws s3 presign` y explica por qué es mejor que hacer público el bucket.
+
+Documentación oficial: [comandos de aws s3](https://docs.aws.amazon.com/cli/latest/userguide/cli-services-s3-commands.html) · [prefijos en S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-prefixes.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

@@ -248,6 +248,22 @@ crear &gt;&gt; correr &gt;&gt; borrar</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un clúster de Dataproc que se borra solo</div>
+
+<ol>
+<li>Crea el clúster con 2 workers y <code>--max-idle</code>: si nadie lo usa en 30 minutos, se elimina (y deja de cobrar).</li>
+<li>Lístalo y mira su estado.</li>
+<li>Compara con Dataproc Serverless: el mismo job sin administrar clúster.</li>
+</ol>
+<pre data-norun><code class="language-bash">gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud dataproc clusters create spark-etl --region us-central1 --num-workers 2 --max-idle 30m
+gcloud dataproc clusters list --region us-central1</code></pre>
+<p>Reto: escribe el comando <code>gcloud dataproc batches submit pyspark</code> para correr el mismo script en modo serverless.</p>
+<p>Documentación oficial: <a href="https://cloud.google.com/dataproc/docs/guides/create-cluster">crear un clúster</a> · <a href="https://cloud.google.com/dataproc-serverless/docs/overview">Dataproc Serverless</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

@@ -180,6 +180,21 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Los datos se leen con los permisos de Unity Catalog de quien pregunta</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tu primer Genie Agent</div>
+
+<ol>
+<li>En <strong>Genie Agents</strong>, pulsa <strong>New</strong>, deja el nombre <em>Ventas de la tienda</em> y elige pocas tablas: <code>pedidos</code>, <code>detalle_pedidos</code>, <code>productos</code> y <code>clientes</code> de <code>samples.tienda</code>.</li>
+<li>En <strong>Chat</strong>, haz las preguntas de abajo y abre el SQL de cada respuesta: Genie no &quot;inventa&quot; números, escribe una consulta sobre tus tablas.</li>
+<li>Si una respuesta está mal, anota por qué: casi siempre falta una definición del negocio (lo resuelves en la lección 3).</li>
+</ol>
+<pre data-norun><code class="language-text">¿Cuántos pedidos hubo por canal en 2024?
+¿Cuáles son los 5 productos con más ventas?
+¿En qué país gastan más los clientes?</code></pre>
+<p>Reto: haz una pregunta ambigua (&quot;¿cómo nos fue el mes pasado?&quot;) y mira qué supuesto tomó Genie.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/genie/">qué es Genie</a> · <a href="https://docs.databricks.com/aws/en/genie/set-up">crear un agente</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

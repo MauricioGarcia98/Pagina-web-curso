@@ -501,6 +501,26 @@ retencion_gold = 730</code></pre>
 <td>Una copia por clave</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Variables, locals, for_each y outputs</div>
+
+<ol>
+<li>El archivo define una variable <code>entorno</code>, un conjunto de capas en <code>locals</code> y un bucket por capa con <code>for_each</code>.</li>
+<li>Aplica y lee el output: tres buckets con un solo bloque.</li>
+<li>Planifica con otro entorno (<code>-var entorno=prod</code>) y mira qué cambiaría.</li>
+</ol>
+<pre data-norun><code class="language-bash">aws configure
+mkdir -p ~/infra/capas &amp;&amp; cd ~/infra/capas
+printf 'variable &quot;entorno&quot; {\n  default = &quot;dev&quot;\n}\n\nlocals {\n  capas = toset([&quot;bronze&quot;, &quot;silver&quot;, &quot;gold&quot;])\n}\n\nresource &quot;aws_s3_bucket&quot; &quot;capa&quot; {\n  for_each = local.capas\n  bucket   = &quot;practica-${var.entorno}-${each.key}&quot;\n}\n\noutput &quot;buckets&quot; {\n  value = [for b in aws_s3_bucket.capa : b.bucket]\n}\n' &gt; main.tf
+terraform init
+terraform apply -auto-approve
+terraform output buckets
+aws s3 ls
+terraform plan -var entorno=prod</code></pre>
+<p>Reto: agrega una variable <code>retencion_dias</code> con <code>validation</code> que rechace valores menores a 7.</p>
+<p>Documentación oficial: <a href="https://developer.hashicorp.com/terraform/language/values/variables">variables</a> · <a href="https://developer.hashicorp.com/terraform/language/meta-arguments/for_each">for_each</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

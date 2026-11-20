@@ -221,6 +221,25 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Los requisitos en números: volumen y picos</div>
+
+<ol>
+<li>Antes de dibujar una arquitectura hay que medir. Ejecuta: pedidos por día (promedio y máximo) y la hora pico.</li>
+<li>Con esos números decides: ¿alcanza un batch nocturno o hace falta algo casi en tiempo real?</li>
+<li>Anota el resultado como lo pondrías en un documento de diseño: &quot;N pedidos/día, pico de M por hora&quot;.</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH por_dia AS (
+    SELECT fecha_pedido, COUNT(*) AS pedidos FROM pedidos GROUP BY fecha_pedido
+)
+SELECT ROUND(AVG(pedidos), 1) AS promedio_diario,
+       MAX(pedidos)           AS dia_pico,
+       COUNT(*)               AS dias_con_datos
+FROM por_dia;</code></pre>
+<p>Reto: estima cuánto ocuparían 5 años de pedidos y detalle si cada fila pesa unos 200 bytes en Parquet comprimido.</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/azure/architecture/data-guide/">guía de arquitectura de datos (Microsoft)</a> · <a href="https://docs.aws.amazon.com/wellarchitected/latest/analytics-lens/analytics-lens.html">Analytics Lens (AWS)</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

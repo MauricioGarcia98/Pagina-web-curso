@@ -154,6 +154,23 @@ gcloud projects add-iam-policy-binding academia-datos-dev \
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Formatos, filtros y servicios</div>
+
+<ol>
+<li>Configura proyecto y región por defecto.</li>
+<li>Usa <code>--format</code> para quedarte solo con lo que te interesa.</li>
+<li>Habilita las APIs de datos: en Google Cloud cada servicio se activa por proyecto antes de usarlo.</li>
+</ol>
+<pre data-norun><code class="language-bash">gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud config set compute/region us-central1
+gcloud projects list --format=&quot;value(projectId)&quot;
+gcloud services enable bigquery.googleapis.com storage.googleapis.com pubsub.googleapis.com</code></pre>
+<p>Reto: ¿qué rol predefinido le darías a un analista que solo consulta BigQuery? Busca la diferencia entre <code>roles/bigquery.dataViewer</code> y <code>roles/bigquery.jobUser</code>.</p>
+<p>Documentación oficial: <a href="https://cloud.google.com/sdk/gcloud/reference/topic/formats">formatos de salida</a> · <a href="https://cloud.google.com/iam/docs/understanding-roles">roles de IAM</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

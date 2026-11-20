@@ -167,6 +167,23 @@ No hay "el mejor" servicio: depende de **cuántas veces**, **qué tan rápido**,
 - **Cargar Redshift fila por fila.** `COPY` desde S3 es la forma rápida de cargar volumen.
 :::
 
+:::practica terminal Consultar Redshift con la Data API
+1. Lanza una consulta con la Data API: no necesitas un driver ni una conexión abierta.
+2. Revisa el estado y pide el resultado con el id.
+3. Piensa cuándo usarías Redshift (consultas de negocio, concurrencia) y cuándo EMR (Spark a medida).
+
+```bash norun
+aws configure
+ID=$(aws redshift-data execute-statement --workgroup-name analitica --database tienda --sql "SELECT canal, COUNT(*) AS pedidos FROM pedidos GROUP BY canal" --query Id --output text)
+aws redshift-data describe-statement --id $ID --query Status
+aws redshift-data get-statement-result --id $ID
+```
+
+Reto: arma la tabla de decisión Athena / Redshift / EMR con tres preguntas: ¿cuántas consultas por hora? ¿quién las corre? ¿cuánto dato?
+
+Documentación oficial: [Redshift Data API](https://docs.aws.amazon.com/redshift/latest/mgmt/data-api.html) · [qué es EMR](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-what-is-emr.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="Consulta de dashboard en el warehouse"

@@ -26,6 +26,32 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Cargo</strong> por la parte restante del plan nuevo: 149 × 20/30 = 99,33.</li>
 <li>A cobrar ahora: cargo − crédito = <strong>66,67</strong> (si es una bajada de plan, el resultado es negativo: un saldo a favor).</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un modelo dbt de MRR mensual por plan</div>
+
+<ol>
+<li>Ejecuta: el modelo lee las facturas desde el <code>source</code> y calcula el MRR de cada mes por plan.</li>
+<li>Mira el SQL compilado: <code>source(&#39;tienda&#39;, &#39;saas_facturas&#39;)</code> se reemplazó por la tabla real.</li>
+<li>En el proyecto real, este modelo iría en <code>marts/</code> y tendría tests de <code>not_null</code> y <code>unique</code> sobre <code>mes</code> + <code>plan_id</code>.</li>
+</ol>
+<pre data-norun><code class="language-sql">with facturas as (
+    select * from {{ source('tienda', 'saas_facturas') }}
+    where estado = 'pagada'
+)
+
+select
+    mes,
+    plan_id,
+    count(distinct empresa_id) as empresas,
+    sum(monto)                 as mrr
+from facturas
+group by mes, plan_id
+order by mes, plan_id</code></pre>
+<p>Reto: agrega la columna <code>mrr_mes_anterior</code> con <code>lag()</code> y calcula el crecimiento por plan.</p>
+<p>Documentación oficial: <a href="https://docs.getdbt.com/docs/build/sources">sources en dbt</a> · <a href="https://docs.getdbt.com/best-practices/how-we-structure/4-marts">la capa de marts</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

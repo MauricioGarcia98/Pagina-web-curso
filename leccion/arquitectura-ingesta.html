@@ -196,6 +196,27 @@ ORDER BY pedido_id;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Carga incremental con marca de agua</div>
+
+<ol>
+<li>Ejecuta: el destino arranca con los pedidos hasta noviembre (la primera carga completa).</li>
+<li>La segunda sentencia trae solo lo que es más nuevo que la marca de agua (<code>MAX(fecha_pedido)</code> del destino).</li>
+<li>Vuelve a ejecutar solo el <code>INSERT</code>: no duplica nada, porque la marca de agua ya avanzó (idempotencia).</li>
+</ol>
+<pre data-norun><code class="language-sql">DROP TABLE IF EXISTS destino_pedidos;
+CREATE TABLE destino_pedidos AS
+SELECT pedido_id, cliente_id, fecha_pedido, estado FROM pedidos WHERE fecha_pedido &lt; '2024-12-01';
+
+INSERT INTO destino_pedidos
+SELECT pedido_id, cliente_id, fecha_pedido, estado FROM pedidos
+WHERE fecha_pedido &gt; (SELECT MAX(fecha_pedido) FROM destino_pedidos);
+
+SELECT COUNT(*) AS filas, MAX(fecha_pedido) AS marca_de_agua FROM destino_pedidos;</code></pre>
+<p>Reto: un pedido de octubre cambió de estado en diciembre. ¿Lo trae esta carga? Explica por qué hace falta CDC o una columna <code>actualizado_en</code>.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/ingestion/">ingesta en Databricks</a> · <a href="https://learn.microsoft.com/es-es/azure/data-factory/tutorial-incremental-copy-overview">copia incremental (Data Factory)</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

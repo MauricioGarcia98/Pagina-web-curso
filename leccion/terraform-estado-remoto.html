@@ -360,6 +360,29 @@ No changes. Your infrastructure matches the configuration.</code></pre>
 <td><code>data &quot;terraform_remote_state&quot;</code></td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Workspaces y el estado</div>
+
+<ol>
+<li>Crea el lago en el workspace <code>default</code> y mira el estado.</li>
+<li>Crea el workspace <code>prod</code>: tiene su propio estado, vacío. Planifica ahí.</li>
+<li>Vuelve a <code>default</code>. En equipo, el estado vive en un backend remoto (S3, Azure Storage, GCS) con bloqueo.</li>
+</ol>
+<pre data-norun><code class="language-bash">aws configure
+mkdir -p ~/infra/estado &amp;&amp; cd ~/infra/estado
+printf 'variable &quot;entorno&quot; {\n  default = &quot;dev&quot;\n}\n\nresource &quot;aws_s3_bucket&quot; &quot;bronze&quot; {\n  bucket = &quot;estado-${var.entorno}-bronze&quot;\n}\n' &gt; main.tf
+terraform init
+terraform apply -auto-approve
+terraform state list
+terraform state show aws_s3_bucket.bronze
+terraform workspace new prod
+terraform workspace list
+terraform plan -var entorno=prod
+terraform workspace select default</code></pre>
+<p>Reto: escribe el bloque <code>backend &quot;s3&quot;</code> con bucket, key, región y bloqueo para guardar este estado en equipo.</p>
+<p>Documentación oficial: <a href="https://developer.hashicorp.com/terraform/language/state">el estado</a> · <a href="https://developer.hashicorp.com/terraform/language/state/workspaces">workspaces</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

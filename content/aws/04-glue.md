@@ -181,6 +181,26 @@ Los jobs de Glue son PySpark. Este ejercicio corre en el simulador de Spark del 
 - **Esquemas que cambia el crawler solo.** Un archivo raro puede cambiar los tipos de la tabla; fija el esquema en producción.
 :::
 
+:::practica terminal Un crawler que descubre el esquema
+1. Sube el archivo y crea la base del catálogo.
+2. Crea el crawler apuntando al prefijo y ejecútalo.
+3. Lista las tablas: el crawler leyó el archivo y registró columnas y tipos en el Data Catalog.
+
+```bash norun
+aws configure
+aws s3 mb s3://lake-practica-dev
+aws s3 cp datos/clientes.csv s3://lake-practica-dev/bronze/clientes/
+aws glue create-database --database-input '{"Name": "lake_bronze"}'
+aws glue create-crawler --name crawler-clientes --role GlueServiceRole-datos --database-name lake_bronze --targets '{"S3Targets": [{"Path": "s3://lake-practica-dev/bronze/clientes/"}]}'
+aws glue start-crawler --name crawler-clientes
+aws glue get-tables --database-name lake_bronze --query "TableList[].Name"
+```
+
+Reto: explica por qué conviene un crawler por tabla (prefijo) y no uno para todo el lago.
+
+Documentación oficial: [crawlers de Glue](https://docs.aws.amazon.com/glue/latest/dg/add-crawler.html) · [Data Catalog](https://docs.aws.amazon.com/glue/latest/dg/catalog-and-crawler.html)
+:::
+
 :::ejercicio pyspark titulo="Job bronze → silver del banco"
 Escribe la transformación de un job que prepara `banco_transacciones` para silver: conserva solo las **compras** (`tipo == 'compra'`), agrega la columna `fecha` (la parte de fecha de `fecha_hora`, como texto `YYYY-MM-DD`) y `mes` (`YYYY-MM`), y deja las columnas `tx_id`, `cuenta_id`, `fecha`, `mes`, `monto`, `canal`, `comercio`. Guarda el DataFrame en `resultado`.
 ```python solucion

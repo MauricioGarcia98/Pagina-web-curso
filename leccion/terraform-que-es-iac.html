@@ -243,6 +243,27 @@ terraform state show aws_s3_bucket.bronze    # sus atributos</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tu primer ciclo init → plan → apply → destroy</div>
+
+<ol>
+<li>Escribe un archivo de Terraform (el comando <code>printf</code> lo crea por ti) y míralo.</li>
+<li><code>init</code> descarga el provider, <code>plan</code> muestra qué va a crear, <code>apply</code> lo crea.</li>
+<li>Verifica con <code>state list</code> y destruye todo con <code>destroy</code>.</li>
+</ol>
+<pre data-norun><code class="language-bash">mkdir -p ~/infra/hola &amp;&amp; cd ~/infra/hola
+printf 'resource &quot;local_file&quot; &quot;hola&quot; {\n  filename = &quot;hola.txt&quot;\n  content  = &quot;hola terraform&quot;\n}\n' &gt; main.tf
+cat main.tf
+terraform init
+terraform plan
+terraform apply -auto-approve
+terraform state list
+cat hola.txt
+terraform destroy -auto-approve</code></pre>
+<p>Reto: cambia el <code>content</code>, corre <code>terraform plan</code> y explica por qué dice <em>replace</em>.</p>
+<p>Documentación oficial: <a href="https://developer.hashicorp.com/terraform/intro">qué es Terraform</a> · <a href="https://developer.hashicorp.com/terraform/cli/run">el ciclo de trabajo</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

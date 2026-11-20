@@ -37,6 +37,31 @@ El razonamiento en PySpark:
 2. Agrupar por préstamo: contar las vencidas y tomar el **máximo** de días (la cuota más atrasada define el tramo).
 3. Clasificar el máximo en tramos con `F.when`.
 
+:::practica pyspark La cartera en mora con PySpark
+1. Ejecuta: una cuota está en mora si se pagó tarde o si venció y no se pagó a la fecha de corte.
+2. Mira los días de atraso por cuota y el tramo de mora (1-30, 31-90, más de 90).
+3. Resume por tramo: es el reporte que pide el área de riesgo.
+
+```python norun
+from pyspark.sql import functions as F
+
+corte = F.lit("2024-12-31")
+cuotas = spark.table("banco_cuotas")
+mora = (cuotas
+    .withColumn("pago_o_corte", F.coalesce(F.col("fecha_pago"), corte))
+    .withColumn("dias_atraso", F.datediff(F.to_date("pago_o_corte"), F.to_date("fecha_vencimiento")))
+    .filter((F.col("dias_atraso") > 0) & (F.to_date("fecha_vencimiento") <= F.to_date(corte)))
+    .withColumn("tramo", F.when(F.col("dias_atraso") <= 30, "1-30")
+                          .when(F.col("dias_atraso") <= 90, "31-90")
+                          .otherwise("+90")))
+mora.groupBy("tramo").agg(F.count("*").alias("cuotas"), F.round(F.sum("monto"), 2).alias("monto")).orderBy("tramo").show()
+```
+
+Reto: une con `banco_prestamos` y calcula el porcentaje de préstamos con al menos una cuota en el tramo +90.
+
+Documentación oficial: [datediff](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.datediff.html) · [when](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.when.html)
+:::
+
 :::ejercicio pyspark titulo="silver.cartera_mora"
 Construye la cartera al `2024-12-31` con **una fila por préstamo** (todos los de `banco_cuotas`): `prestamo_id`, `cuotas_vencidas` (cuotas con `fecha_pago` nula y `fecha_vencimiento` < `'2024-12-31'`), `dias_atraso` (el máximo de días entre el vencimiento y el corte entre esas cuotas; **0** si no tiene ninguna) y `tramo`: `'al_dia'` (0 días), `'1-30'`, `'31-60'`, `'61-90'` o `'90+'`. Guarda en `resultado`.
 ```python solucion

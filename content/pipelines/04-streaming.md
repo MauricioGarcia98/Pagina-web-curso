@@ -23,6 +23,29 @@ Los planes cubren distintas cantidades de personas: `individual` (1 persona, 5,9
 
 Este problema parece simple pero tiene una trampa: elegir "siempre el plan con menor precio por persona" (el familiar) **no** siempre da el mínimo. Para 7 personas, familiar + individual = 15,98; pero para 8, ¿familiar + duo (17,98) o dos familiares (19,98)? Hay que probar combinaciones. La técnica se llama **programación dinámica**: calcular el mínimo para 1 persona, después para 2, para 3…, reutilizando los resultados anteriores.
 
+:::practica pyspark Features de churn por usuario
+1. Ejecuta: por cada usuario se calculan días desde la última reproducción, reproducciones de los últimos 30 días y minutos escuchados.
+2. Esas columnas son las *features* que usa un modelo de churn.
+3. Mira los usuarios con más de 30 días sin escuchar: son los candidatos a abandonar.
+
+```python norun
+from pyspark.sql import functions as F
+
+r = spark.table("streaming_reproducciones").withColumn("dia", F.to_date("fecha_hora"))
+corte = r.agg(F.max("dia")).first()[0]
+features = (r.groupBy("usuario_id")
+    .agg(F.datediff(F.lit(corte), F.max("dia")).alias("dias_sin_escuchar"),
+         F.sum(F.when(F.col("dia") > F.date_sub(F.lit(corte), 30), 1).otherwise(0)).alias("repros_30d"),
+         F.round(F.sum("segundos_escuchados") / 60, 1).alias("minutos")))
+features.orderBy(F.desc("dias_sin_escuchar")).show(8)
+print("en riesgo:", features.filter("dias_sin_escuchar > 30").count())
+```
+
+Reto: une con `streaming_suscripciones` y compara los días sin escuchar de quienes se dieron de baja con los de quienes siguen.
+
+Documentación oficial: [date_sub](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.date_sub.html) · [agg](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.GroupedData.agg.html)
+:::
+
 :::ejercicio python titulo="Costo mínimo para cubrir un hogar"
 Escribe `costo_minimo(personas, planes)` donde `planes` es un diccionario `{nombre: (precio, capacidad)}`. Devuelve el costo mínimo (redondeado a 2) para cubrir **al menos** `personas` personas combinando planes (se puede repetir un plan). Para 0 personas, el costo es 0.
 ```python inicial
