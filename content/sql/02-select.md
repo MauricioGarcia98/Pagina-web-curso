@@ -311,6 +311,23 @@ Es muy útil para probar una expresión antes de usarla en una consulta grande.
 - `ROUND(x, n)` redondea; `AS alias` nombra la columna del resultado (en `snake_case`).
 - El texto va entre comillas simples y se une con `||` (o `CONCAT` en otros motores).
 
+:::practica sql Elegir columnas y calcular
+1. Ejecuta la consulta: nombre, precio y el precio con IVA del 21 %.
+2. Agrega una columna `margen` con `precio - costo`.
+3. Ponle un alias con espacios usando comillas dobles: `AS "margen en pesos"`.
+
+```sql norun
+SELECT nombre,
+       precio,
+       ROUND(precio * 1.21, 2) AS precio_con_iva
+FROM productos;
+```
+
+Reto: agrega el porcentaje de margen, `ROUND((precio - costo) / precio * 100, 1)`.
+
+Documentación oficial: [SELECT en DuckDB](https://duckdb.org/docs/current/sql/query_syntax/select)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

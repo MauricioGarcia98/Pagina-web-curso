@@ -324,6 +324,23 @@ Según el estándar, no, porque `GROUP BY` y `HAVING` se evalúan antes que el `
 - **Contar filas después de un JOIN.** Si el JOIN multiplica filas, `COUNT(*)` cuenta de más; usa `COUNT(DISTINCT id)`.
 :::
 
+:::practica sql Ventas por grupo
+1. Ejecuta: pedidos por canal.
+2. Agrupa por canal y estado a la vez.
+3. Con `HAVING`, deja solo los grupos con más de 100 pedidos.
+
+```sql norun
+SELECT canal, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY canal
+ORDER BY pedidos DESC;
+```
+
+Reto: los 5 clientes con más pedidos entregados.
+
+Documentación oficial: [GROUP BY en DuckDB](https://duckdb.org/docs/current/sql/query_syntax/groupby)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

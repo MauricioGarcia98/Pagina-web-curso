@@ -363,3 +363,21 @@ ORDER BY mes;
 Arma la consulta en CTE: `ultimo` (deduplicar), `silver` (convertir fecha, monto y estado) y al final agrupa por `substr(fecha, 1, 7)`.
 ```
 :::
+
+:::practica sql Revisar datos crudos antes de usarlos
+1. Ejecuta: emails con mayúsculas o espacios.
+2. Cuenta los clientes duplicados por email normalizado (`LOWER(TRIM(email))`).
+3. Escribe la versión limpia en una CTE y cuenta cuántos quedan.
+
+```sql norun
+SELECT email
+FROM clientes
+WHERE email <> LOWER(TRIM(email))
+LIMIT 20;
+```
+
+Reto: ciudades escritas de más de una forma (`LOWER(TRIM(ciudad))` con más de un valor original).
+
+Documentación oficial: [limpieza en DuckDB](https://duckdb.org/docs/current/sql/functions/text)
+:::
+

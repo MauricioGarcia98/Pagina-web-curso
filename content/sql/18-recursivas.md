@@ -269,6 +269,27 @@ nivel,empleados
 - Usos: series de números y fechas (calendarios para rellenar huecos), árboles (organigramas, categorías), rutas.
 - Arrastra columnas como `nivel` y `ruta` para describir la posición en la jerarquía.
 
+:::practica sql Recorrer una jerarquía
+1. Ejecuta: el organigrama desde los empleados sin jefe, con su nivel.
+2. Agrega una columna con la cadena de jefes (`ruta || ' > ' || nombre`).
+3. Genera una serie del 1 al 12 con una CTE recursiva (los meses de un año).
+
+```sql norun
+WITH RECURSIVE org AS (
+  SELECT empleado_id, nombre, jefe_id, 1 AS nivel
+  FROM empleados WHERE jefe_id IS NULL
+  UNION ALL
+  SELECT e.empleado_id, e.nombre, e.jefe_id, o.nivel + 1
+  FROM empleados AS e JOIN org AS o ON e.jefe_id = o.empleado_id
+)
+SELECT * FROM org ORDER BY nivel, nombre;
+```
+
+Reto: las categorías con su categoría padre, de la raíz a las hojas.
+
+Documentación oficial: [CTE recursivas](https://www.postgresql.org/docs/current/queries-with.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

@@ -314,6 +314,23 @@ LIMIT 10;</code></pre>
 <li>Números: <code>ROUND</code>, <code>ABS</code>, <code>%</code>, <code>CEIL</code>, <code>FLOOR</code>; <code>100.0 *</code> para evitar la división entera.</li>
 <li><code>CAST</code> convierte tipos; trunca en vez de redondear y en SQLite puede devolver 0 en silencio.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Limpiar textos y números</div>
+
+<ol>
+<li>Ejecuta: nombre completo en mayúsculas y el largo del email.</li>
+<li>Extrae el dominio del email con <code>SUBSTR</code> e <code>INSTR</code> (en DuckDB también existe <code>split_part</code>).</li>
+<li>Redondea el precio de los productos a la decena con <code>ROUND(precio, -1)</code>.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT UPPER(nombre || ' ' || apellido) AS nombre_completo,
+       email,
+       LENGTH(email) AS largo_email
+FROM clientes
+LIMIT 10;</code></pre>
+<p>Reto: cuenta cuántos clientes usan cada dominio de correo.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/text">funciones de texto en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -245,6 +245,23 @@ FROM pedidos;</code></pre>
 <li><code>WHERE</code> filtra antes de agregar; para contar con condición usa <code>SUM(CASE WHEN … THEN 1 ELSE 0 END)</code>.</li>
 <li>Sin <code>GROUP BY</code> el resultado es una sola fila: no mezcles columnas sueltas con agregaciones.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Resumir una tabla en una fila</div>
+
+<ol>
+<li>Ejecuta: cantidad de productos, precio promedio, mínimo y máximo.</li>
+<li>Agrega el costo total del inventario: <code>SUM(costo * stock)</code>.</li>
+<li>Cuenta las marcas distintas con <code>COUNT(DISTINCT marca)</code>.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT COUNT(*) AS productos,
+       ROUND(AVG(precio), 2) AS precio_promedio,
+       MIN(precio) AS minimo,
+       MAX(precio) AS maximo
+FROM productos;</code></pre>
+<p>Reto: el ticket promedio de los pedidos (pista: primero el total de cada pedido en <code>detalle_pedidos</code>).</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/aggregates">agregaciones en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

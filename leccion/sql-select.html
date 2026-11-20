@@ -295,6 +295,22 @@ LIMIT 5;</code></pre>
 <li><code>ROUND(x, n)</code> redondea; <code>AS alias</code> nombra la columna del resultado (en <code>snake_case</code>).</li>
 <li>El texto va entre comillas simples y se une con <code>||</code> (o <code>CONCAT</code> en otros motores).</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Elegir columnas y calcular</div>
+
+<ol>
+<li>Ejecuta la consulta: nombre, precio y el precio con IVA del 21 %.</li>
+<li>Agrega una columna <code>margen</code> con <code>precio - costo</code>.</li>
+<li>Ponle un alias con espacios usando comillas dobles: <code>AS &quot;margen en pesos&quot;</code>.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT nombre,
+       precio,
+       ROUND(precio * 1.21, 2) AS precio_con_iva
+FROM productos;</code></pre>
+<p>Reto: agrega el porcentaje de margen, <code>ROUND((precio - costo) / precio * 100, 1)</code>.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/query_syntax/select">SELECT en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

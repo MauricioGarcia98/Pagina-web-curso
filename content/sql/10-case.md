@@ -284,6 +284,24 @@ También dentro de `WHERE` (aunque casi siempre se puede escribir más simple co
 - `CASE` + `GROUP BY` crea segmentos; `SUM(CASE WHEN … THEN 1 ELSE 0 END)` cuenta con condición.
 - Varias agregaciones condicionales = un pivot (valores de una columna convertidos en columnas).
 
+:::practica sql Clasificar con CASE
+1. Ejecuta: cada producto en una franja de precio.
+2. Cuenta cuántos productos hay en cada franja (agrupa por la expresión).
+3. Agrega una franja `premium` para los de más de 500.
+
+```sql norun
+SELECT nombre, precio,
+       CASE WHEN precio < 50 THEN 'económico'
+            WHEN precio < 200 THEN 'medio'
+            ELSE 'alto' END AS franja
+FROM productos;
+```
+
+Reto: cuenta pedidos entregados y cancelados por canal en columnas separadas, con `SUM(CASE WHEN … THEN 1 ELSE 0 END)`.
+
+Documentación oficial: [CASE en DuckDB](https://duckdb.org/docs/current/sql/expressions/case)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

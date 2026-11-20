@@ -251,6 +251,23 @@ ORDER BY dp.categoria, anio;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Una tabla de hechos y sus dimensiones</div>
+
+<ol>
+<li>Ejecuta: la tabla de hechos de ventas (una fila por línea de pedido).</li>
+<li>Agrega la dimensión fecha (año y mes) y la dimensión producto (categoría).</li>
+<li>Responde: facturación por categoría y año, solo con la estrella.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT d.detalle_id, p.fecha_pedido, p.cliente_id, d.producto_id,
+       d.cantidad, d.cantidad * d.precio_unitario AS importe
+FROM detalle_pedidos AS d
+JOIN pedidos AS p ON p.pedido_id = d.pedido_id
+LIMIT 20;</code></pre>
+<p>Reto: dibuja la estrella en el laboratorio de modelado con estas mismas tablas.</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/power-bi/guidance/star-schema">esquema estrella</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

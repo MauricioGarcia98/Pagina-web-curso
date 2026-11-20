@@ -283,3 +283,19 @@ SELECT COUNT(*) AS reactivados FROM (
 WHERE c22 = 1 AND c23 = 0 AND c24 = 1;
 ```
 :::
+
+:::practica sql Un desafío con reloj
+1. Lee el pedido de abajo y escribe la consulta sin mirar soluciones: 20 minutos.
+2. Pedido: "el segundo producto más vendido (en unidades) de cada categoría".
+3. Verifica con un caso chico: elige una categoría y cuenta a mano.
+
+```sql norun
+-- el segundo producto más vendido de cada categoría
+SELECT 1;
+```
+
+Reto: explica en voz alta qué harías si dos productos empatan.
+
+Documentación oficial: [entrevista en DuckDB](https://duckdb.org/docs/current/sql/functions/window_functions)
+:::
+

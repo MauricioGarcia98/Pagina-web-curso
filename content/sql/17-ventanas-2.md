@@ -303,6 +303,28 @@ Agrega primero por mes (en una CTE), y después usa `LAG(ventas) OVER (ORDER BY 
 - `LAG`/`LEAD` miran filas anteriores/siguientes: crecimiento, días entre compras, sesiones.
 - `FIRST_VALUE` es seguro; `LAST_VALUE` necesita ampliar el marco. `NTILE` y `PERCENT_RANK` describen distribuciones.
 
+:::practica sql Acumulados y variación mes a mes
+1. Ejecuta: pedidos por mes y su acumulado.
+2. Agrega la variación contra el mes anterior con `LAG`.
+3. Calcula un promedio móvil de 3 meses con `ROWS BETWEEN 2 PRECEDING AND CURRENT ROW`.
+
+```sql norun
+WITH mensual AS (
+  SELECT SUBSTR(CAST(fecha_pedido AS VARCHAR), 1, 7) AS mes, COUNT(*) AS pedidos
+  FROM pedidos GROUP BY 1
+)
+SELECT mes, pedidos,
+       SUM(pedidos) OVER (ORDER BY mes) AS acumulado,
+       pedidos - LAG(pedidos) OVER (ORDER BY mes) AS variacion
+FROM mensual
+ORDER BY mes;
+```
+
+Reto: los días entre un pedido y el siguiente del mismo cliente.
+
+Documentación oficial: [LAG y acumulados en DuckDB](https://duckdb.org/docs/current/sql/functions/window_functions)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado

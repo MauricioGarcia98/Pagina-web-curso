@@ -264,6 +264,21 @@ LIMIT 10;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Encontrar y tratar los NULL</div>
+
+<ol>
+<li>Ejecuta: cuántos clientes no tienen teléfono.</li>
+<li>Cambia <code>IS NULL</code> por <code>= NULL</code>. ¿Por qué da 0?</li>
+<li>Muestra el teléfono o el texto <code>sin teléfono</code> con <code>COALESCE</code>.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT COUNT(*) AS sin_telefono
+FROM clientes
+WHERE telefono IS NULL;</code></pre>
+<p>Reto: compara <code>COUNT(*)</code> con <code>COUNT(telefono)</code> en la misma consulta y explica la diferencia.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/data_types/nulls">NULL en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

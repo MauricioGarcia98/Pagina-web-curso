@@ -313,6 +313,23 @@ Las dos encuentran filas de A sin pareja en B y, en los motores modernos, suelen
 - **SELF JOIN sin alias.** Sin alias distintos no se puede saber de qué copia es cada columna.
 :::
 
+:::practica sql Encontrar lo que falta con LEFT JOIN
+1. Ejecuta: clientes que nunca hicieron un pedido.
+2. Cambia `LEFT JOIN` por `JOIN`. ¿Por qué ahora no aparece nadie?
+3. Con un self join de `empleados`, muestra cada empleado con el nombre de su jefe.
+
+```sql norun
+SELECT c.cliente_id, c.nombre, c.apellido
+FROM clientes AS c
+LEFT JOIN pedidos AS p ON p.cliente_id = c.cliente_id
+WHERE p.pedido_id IS NULL;
+```
+
+Reto: productos que nunca se vendieron.
+
+Documentación oficial: [joins en DuckDB](https://duckdb.org/docs/current/sql/query_syntax/from)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

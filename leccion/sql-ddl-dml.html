@@ -403,6 +403,21 @@ SELECT * FROM v_ventas_diarias ORDER BY dia DESC LIMIT 5;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Crear, cargar y corregir una tabla</div>
+
+<ol>
+<li>Ejecuta el bloque: crea una tabla, inserta dos filas y la consulta.</li>
+<li>Agrega un <code>UPDATE</code> que cambie la meta de un canal.</li>
+<li>Prueba un <code>DELETE</code> y después <strong>Reiniciar base</strong> para volver a empezar.</li>
+</ol>
+<pre data-norun><code class="language-sql">CREATE TABLE metas_canal (canal TEXT PRIMARY KEY, meta INTEGER);
+INSERT INTO metas_canal VALUES ('web', 500), ('app', 300);
+SELECT * FROM metas_canal;</code></pre>
+<p>Reto: compara los pedidos reales de cada canal con su meta en una sola consulta.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/statements/create_table">DDL y DML en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <p>Estos ejercicios se corrigen ejecutando una consulta de verificación <strong>después</strong> de tu código.</p>
 <div class="exercise-slot"></div>

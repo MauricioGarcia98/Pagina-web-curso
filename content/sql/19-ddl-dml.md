@@ -372,6 +372,22 @@ En dbt, elegir entre vista y tabla es elegir la **materialización** de un model
 - **Tablas sin clave primaria.** Después no se pueden actualizar filas puntuales ni evitar duplicados.
 :::
 
+:::practica sql Crear, cargar y corregir una tabla
+1. Ejecuta el bloque: crea una tabla, inserta dos filas y la consulta.
+2. Agrega un `UPDATE` que cambie la meta de un canal.
+3. Prueba un `DELETE` y después **Reiniciar base** para volver a empezar.
+
+```sql norun
+CREATE TABLE metas_canal (canal TEXT PRIMARY KEY, meta INTEGER);
+INSERT INTO metas_canal VALUES ('web', 500), ('app', 300);
+SELECT * FROM metas_canal;
+```
+
+Reto: compara los pedidos reales de cada canal con su meta en una sola consulta.
+
+Documentación oficial: [DDL y DML en DuckDB](https://duckdb.org/docs/current/sql/statements/create_table)
+:::
+
 ## Ejercicios
 
 Estos ejercicios se corrigen ejecutando una consulta de verificación **después** de tu código.

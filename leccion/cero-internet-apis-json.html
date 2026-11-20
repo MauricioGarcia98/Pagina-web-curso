@@ -177,6 +177,20 @@ print(producto[&quot;nombre&quot;])</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Pedirle datos a una API</div>
+
+<ol>
+<li>Pide la lista de productos a la API de práctica con <code>curl</code>.</li>
+<li>Mira las cabeceras de la respuesta con <code>curl -i</code>.</li>
+<li>Pide una página distinta con el parámetro <code>?page=2</code>.</li>
+</ol>
+<pre><code class="language-bash">curl -s https://api.tiendaandina.dev/v1/productos | head -c 400
+curl -i -s https://api.tiendaandina.dev/v1/productos | head -15</code></pre>
+<p>Reto: guarda la respuesta en un archivo con <code>-o productos.json</code> y míralo con <code>cat</code>.</p>
+<p>Documentación oficial: <a href="https://developer.mozilla.org/es/docs/Web/HTTP/Overview">HTTP en MDN</a></p>
+</div>
+
+
 <h2>Practica</h2>
 <div class="exercise-slot"></div>
 

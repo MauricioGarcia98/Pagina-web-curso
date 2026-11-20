@@ -328,6 +328,24 @@ LIMIT 5;
 - `date()` con modificadores mueve y trunca fechas; `strftime()` extrae partes (devuelve texto); `julianday()` permite restar (resultado en días).
 - Evita `date('now')` en pipelines: la fecha de referencia debe ser un parámetro. Guarda en UTC.
 
+:::practica sql Agrupar por mes
+1. Ejecuta: pedidos por mes (los primeros 7 caracteres de la fecha).
+2. Filtra solo los meses de 2024.
+3. En DuckDB, prueba lo mismo con `date_trunc('month', CAST(fecha_pedido AS DATE))`.
+
+```sql norun
+SELECT SUBSTR(CAST(fecha_pedido AS VARCHAR), 1, 7) AS mes,
+       COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY 1
+ORDER BY 1;
+```
+
+Reto: el día de la semana con más pedidos (en DuckDB, `dayname(CAST(fecha_pedido AS DATE))`).
+
+Documentación oficial: [fechas en DuckDB](https://duckdb.org/docs/current/sql/functions/date)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

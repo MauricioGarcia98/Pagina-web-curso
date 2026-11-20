@@ -314,6 +314,23 @@ Este orden explica varias cosas que parecían caprichos:
 - `DISTINCT` devuelve combinaciones únicas de todas las columnas seleccionadas; no lo uses para tapar duplicados que no entiendes.
 - Orden de ejecución: `FROM → WHERE → SELECT → DISTINCT → ORDER BY → LIMIT`.
 
+:::practica sql Ordenar, limitar y quitar repetidos
+1. Ejecuta: los 5 productos más caros.
+2. Cambia a los 5 más baratos.
+3. Escribe otra consulta con `SELECT DISTINCT pais FROM clientes ORDER BY pais`.
+
+```sql norun
+SELECT nombre, marca, precio
+FROM productos
+ORDER BY precio DESC
+LIMIT 5;
+```
+
+Reto: los 3 clientes registrados más recientemente, con su país.
+
+Documentación oficial: [ORDER BY en DuckDB](https://duckdb.org/docs/current/sql/query_syntax/orderby)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado

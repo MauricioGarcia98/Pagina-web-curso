@@ -690,3 +690,20 @@ body.herr-on :is(a, button, [role="button"], [tabindex], summary, select):focus-
 /* VS Code: fila para escribir el nombre de un archivo nuevo o renombrado, dentro del explorador */
 .vs-entrada { flex: 1; min-width: 60px; width: calc(100% - 28px); font: inherit; color: inherit; background: var(--vs-input-bg, #313131); border: 1px solid var(--vs-focus, #0078d4); outline: none; padding: 1px 4px; border-radius: 2px; }
 .vs-n-nueva { display: flex; align-items: center; gap: 4px; }
+
+/* práctica en la herramienta (practica.js) */
+.callout-practica { border-left-color: var(--brand); background: var(--info-soft); }
+.practica-barra { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 12px 0 4px; }
+.practica-hecha { color: var(--ok); font-weight: 600; font-size: 13.5px; }
+.practica-panel { position: fixed; right: 16px; bottom: 16px; width: min(380px, calc(100vw - 32px)); max-height: 62vh; display: flex; flex-direction: column; background: var(--surface, #fff); color: inherit; border: 1px solid var(--line); border-left: 4px solid var(--brand); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.18); z-index: 9000; font-size: 13.5px; }
+.practica-panel.min .practica-cuerpo, .practica-panel.min .practica-pie { display: none; }
+.practica-cab { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.practica-cab b { flex: 1; }
+.practica-min { border: 0; background: none; cursor: pointer; font-size: 16px; color: inherit; }
+.practica-cuerpo { overflow: auto; padding: 4px 14px 8px; }
+.practica-cuerpo pre { font-size: 12px; max-height: 180px; overflow: auto; }
+.practica-code-tools { display: flex; gap: 6px; margin: -6px 0 8px; }
+.practica-cmds { display: flex; flex-direction: column; gap: 4px; margin: 0 0 10px; }
+.practica-cmd { text-align: left; font-family: var(--mono, monospace); font-size: 12px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: inherit; cursor: pointer; white-space: pre-wrap; word-break: break-all; }
+.practica-cmd:hover { border-color: var(--brand); }
+.practica-pie { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--line); flex-wrap: wrap; }

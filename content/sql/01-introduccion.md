@@ -230,6 +230,22 @@ Respuesta modelo: "Es una columna (o combinación de columnas) cuyo valor identi
 - **Texto con comillas dobles.** En SQL estándar el texto va entre comillas simples; las dobles son para nombres de columna.
 :::
 
+:::practica sql Tu primera consulta en el laboratorio
+1. Ejecuta la consulta con **Ctrl+Enter**: muestra 10 clientes.
+2. Cambia `10` por `3` y vuelve a ejecutar.
+3. Cambia `clientes` por `productos`. ¿Qué columnas tiene esa tabla?
+
+```sql norun
+SELECT *
+FROM clientes
+LIMIT 10;
+```
+
+Reto: muestra 5 filas de la tabla `pedidos` y anota qué columnas la conectan con `clientes`.
+
+Documentación oficial: [SELECT en DuckDB](https://duckdb.org/docs/current/sql/query_syntax/select)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

@@ -126,6 +126,21 @@ print(producto["nombre"])
 "Traer datos de una API" es una de las tareas más comunes de un ingeniero de datos junior. El trabajo real está en los detalles: guardar el token en un lugar seguro, recorrer todas las páginas, esperar cuando la API dice 429, reintentar cuando falla y no traer dos veces lo mismo. Lo practicas en el módulo de Python, lección "Python para ingeniería de datos".
 :::
 
+:::practica terminal Pedirle datos a una API
+1. Pide la lista de productos a la API de práctica con `curl`.
+2. Mira las cabeceras de la respuesta con `curl -i`.
+3. Pide una página distinta con el parámetro `?page=2`.
+
+```bash
+curl -s https://api.tiendaandina.dev/v1/productos | head -c 400
+curl -i -s https://api.tiendaandina.dev/v1/productos | head -15
+```
+
+Reto: guarda la respuesta en un archivo con `-o productos.json` y míralo con `cat`.
+
+Documentación oficial: [HTTP en MDN](https://developer.mozilla.org/es/docs/Web/HTTP/Overview)
+:::
+
 ## Practica
 
 :::ejercicio quiz

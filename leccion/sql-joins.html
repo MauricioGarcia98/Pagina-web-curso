@@ -307,6 +307,22 @@ LIMIT 5;</code></pre>
 <li>En relaciones 1:N, el lado &quot;uno&quot; se repite: cuidado con <code>COUNT(*)</code> y con sumar columnas del lado &quot;uno&quot;.</li>
 <li>Une tablas de a una, definiendo primero el grano y verificando la cantidad de filas.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Unir pedidos con clientes</div>
+
+<ol>
+<li>Ejecuta: cada pedido con el nombre y el país del cliente.</li>
+<li>Suma una tercera tabla: <code>detalle_pedidos</code> para ver los productos de cada pedido.</li>
+<li>Agrupa por país: ¿cuántos pedidos tiene cada uno?</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT p.pedido_id, p.fecha_pedido, c.nombre, c.apellido, c.pais
+FROM pedidos AS p
+JOIN clientes AS c ON c.cliente_id = p.cliente_id
+LIMIT 20;</code></pre>
+<p>Reto: la facturación por categoría de producto (pedidos → detalle → productos → categorías).</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/query_syntax/from">JOIN en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

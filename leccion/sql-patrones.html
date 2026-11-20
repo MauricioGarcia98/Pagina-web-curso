@@ -241,6 +241,24 @@ LIMIT 10;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Retención por cohorte</div>
+
+<ol>
+<li>Ejecuta: el mes del primer pedido de cada cliente (su cohorte).</li>
+<li>Une con todos sus pedidos y cuenta clientes activos por cohorte y mes.</li>
+<li>Convierte el conteo en porcentaje del tamaño de la cohorte.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT cliente_id,
+       MIN(SUBSTR(CAST(fecha_pedido AS VARCHAR), 1, 7)) AS cohorte
+FROM pedidos
+GROUP BY cliente_id
+ORDER BY cohorte
+LIMIT 20;</code></pre>
+<p>Reto: el embudo de <code>eventos_web</code> (visitas → carrito → compra) por dispositivo.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/query_syntax/groupby">patrones de análisis en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

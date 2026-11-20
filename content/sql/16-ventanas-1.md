@@ -288,6 +288,23 @@ LIMIT 10;
 - Se calculan después del `WHERE`: para filtrar por ellas usa una CTE (o `QUALIFY` donde exista).
 - Top-N por grupo y deduplicación: `ROW_NUMBER() … AS rn` + `WHERE rn <= N`.
 
+:::practica sql Rankings con funciones de ventana
+1. Ejecuta: el ranking de productos por precio dentro de cada categoría.
+2. Cambia `RANK` por `ROW_NUMBER` y por `DENSE_RANK`: ¿dónde difieren?
+3. Filtra el top 3 de cada categoría (en DuckDB, prueba `QUALIFY`).
+
+```sql norun
+SELECT categoria_id, nombre, precio,
+       RANK() OVER (PARTITION BY categoria_id ORDER BY precio DESC) AS puesto
+FROM productos
+ORDER BY categoria_id, puesto;
+```
+
+Reto: el cliente que más gastó en cada país.
+
+Documentación oficial: [funciones de ventana en DuckDB](https://duckdb.org/docs/current/sql/functions/window_functions)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

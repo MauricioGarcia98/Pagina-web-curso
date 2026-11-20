@@ -260,6 +260,25 @@ Esto se llama **as-of join** o *point-in-time join*. Con volúmenes grandes, la 
 - Cuando el volumen es muy grande (miles de millones de eventos), la sesionización se hace en Spark con las mismas ventanas que aprendiste aquí: el SQL se traslada casi palabra por palabra.
 :::
 
+:::practica sql Retención por cohorte
+1. Ejecuta: el mes del primer pedido de cada cliente (su cohorte).
+2. Une con todos sus pedidos y cuenta clientes activos por cohorte y mes.
+3. Convierte el conteo en porcentaje del tamaño de la cohorte.
+
+```sql norun
+SELECT cliente_id,
+       MIN(SUBSTR(CAST(fecha_pedido AS VARCHAR), 1, 7)) AS cohorte
+FROM pedidos
+GROUP BY cliente_id
+ORDER BY cohorte
+LIMIT 20;
+```
+
+Reto: el embudo de `eventos_web` (visitas → carrito → compra) por dispositivo.
+
+Documentación oficial: [patrones de análisis en DuckDB](https://duckdb.org/docs/current/sql/query_syntax/groupby)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

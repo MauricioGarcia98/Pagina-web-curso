@@ -258,3 +258,20 @@ Ordenas por una columna con NULL de forma ascendente. ¿Dónde quedan los NULL?
 - [x] Depende del motor: al principio en SQLite, MySQL y SQL Server; al final en PostgreSQL y Oracle
 - [ ] Se descartan del resultado
 :::
+
+:::practica sql La misma consulta en varios motores
+1. Ejecuta en DuckDB: el top 3 por categoría con `QUALIFY`.
+2. Cambia el motor a PostgreSQL: `QUALIFY` no existe. Reescríbela con una subconsulta.
+3. Cambia a SQL Server y usa `TOP` en lugar de `LIMIT` en otra consulta.
+
+```sql norun
+SELECT categoria_id, nombre, precio
+FROM productos
+QUALIFY ROW_NUMBER() OVER (PARTITION BY categoria_id ORDER BY precio DESC) <= 3;
+```
+
+Reto: anota las tres diferencias de dialecto que más te costaron.
+
+Documentación oficial: [dialectos en DuckDB](https://duckdb.org/docs/current/sql/query_syntax/qualify)
+:::
+
