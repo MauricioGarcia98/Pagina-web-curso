@@ -107,6 +107,24 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Practica SQL a diario (15 minutos) en plataformas de ejercicios.</li>
 <li>Únete a comunidades (dbt Slack, foros de Databricks, meetups locales) y escribe sobre lo que aprendes.</li>
 </ol>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Simulacro de entrevista técnica (20 minutos)</div>
+
+<ol>
+<li>Pon un reloj de 20 minutos. Pedido: &quot;dada una lista de eventos (usuario, página), devuelve las 3 páginas más visitadas por usuarios distintos&quot;.</li>
+<li>Antes de escribir, di en voz alta: qué entra, qué sale, un ejemplo chico y casos borde (lista vacía, empates).</li>
+<li>Resuélvelo, pruébalo con el ejemplo y explica la complejidad.</li>
+</ol>
+<pre data-norun><code class="language-python">eventos = [(&quot;ana&quot;, &quot;/home&quot;), (&quot;ana&quot;, &quot;/home&quot;), (&quot;luis&quot;, &quot;/home&quot;), (&quot;luis&quot;, &quot;/precios&quot;),
+           (&quot;sofia&quot;, &quot;/precios&quot;), (&quot;sofia&quot;, &quot;/blog&quot;), (&quot;ana&quot;, &quot;/blog&quot;), (&quot;pedro&quot;, &quot;/home&quot;)]
+# esperado: /home (3 usuarios), /precios (2), /blog (2)
+# tu solución acá
+print(len(eventos), &quot;eventos&quot;)</code></pre>
+<p>Reto: resuélvelo también en SQL (<code>COUNT(DISTINCT usuario)</code> + <code>ORDER BY</code> + <code>LIMIT</code>) y en PySpark, y compara las tres versiones.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/library/collections.html#collections.Counter">collections.Counter</a> · <a href="https://docs.python.org/es/3/howto/sorting.html">ordenar en Python</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

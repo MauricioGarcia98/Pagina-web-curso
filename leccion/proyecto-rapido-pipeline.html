@@ -68,6 +68,43 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>1. Python: las reglas de negocio, con pruebas</h2>
 <p>La regla de validez de la primera parte vive en un <code>CASE</code> de SQL. Escrita como función de Python, se puede <strong>probar</strong> con casos borde antes de confiar en ella, y reutilizar (por ejemplo, en el servicio que recibe los pedidos).</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Rápido: el DAG del pipeline en producción</div>
+
+<ol>
+<li>Ejecuta: extraer pedidos → validar → construir el mart con dbt → avisar, cada día a las 6:00.</li>
+<li>Si la validación falla, no se publica nada (mejor un tablero con datos de ayer que con datos rotos).</li>
+<li>Mira la salida de <code>dag.test</code>: el orden y lo que hace cada tarea.</li>
+</ol>
+<pre data-norun><code class="language-python">from datetime import datetime, timedelta
+from airflow.sdk import dag, task
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.exceptions import AirflowFailException
+
+@dag(start_date=datetime(2024, 1, 1), schedule=&quot;0 6 * * *&quot;, catchup=False, default_args={&quot;retries&quot;: 2, &quot;retry_delay&quot;: timedelta(minutes=5)})
+def rapido_diario():
+    @task
+    def extraer(**context):
+        print(&quot;extrayendo pedidos del&quot;, context[&quot;ds&quot;])
+        return 1532
+
+    @task
+    def validar(filas: int):
+        if filas &lt; 100:
+            raise AirflowFailException(f&quot;solo {filas} pedidos: algo falló en la fuente&quot;)
+        return filas
+
+    dbt = BashOperator(task_id=&quot;dbt_build&quot;, bash_command=&quot;cd /opt/dbt/rapido &amp;&amp; dbt build --select +mart_entregas_diario&quot;)
+    avisar = BashOperator(task_id=&quot;avisar&quot;, bash_command=&quot;echo mart publicado&quot;)
+
+    validar(extraer()) &gt;&gt; dbt &gt;&gt; avisar
+
+rapido_diario().test(logical_date=datetime(2024, 6, 1))</code></pre>
+<p>Reto: cambia el número de filas a 50 y vuelve a ejecutar: mira qué tareas no corren y qué verías en la interfaz.</p>
+<p>Documentación oficial: <a href="https://airflow.apache.org/docs/apache-airflow/stable/tutorial/taskflow.html">TaskFlow</a> · <a href="https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html">buenas prácticas</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

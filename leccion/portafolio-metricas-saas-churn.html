@@ -109,6 +109,40 @@ select empresa_id, plan, mrr from {{ ref('stg_suscripcion_actual') }}
 <li><input disabled="" type="checkbox"> Lista de riesgo semanal y cuántas bajas reales anticipa.</li>
 </ul>
 <h2>Práctica</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El modelo central: MRR por empresa y mes</div>
+
+<ol>
+<li>Ejecuta: una fila por empresa y mes con su MRR, y el MRR del mes anterior con <code>lag()</code>.</li>
+<li>Con esas dos columnas se clasifica cada movimiento: nuevo, expansión, contracción o baja.</li>
+<li>Mira el SQL compilado: así quedaría el modelo en <code>marts/</code>.</li>
+</ol>
+<pre data-norun><code class="language-sql">with facturas as (
+    select empresa_id, mes, sum(monto) as mrr
+    from {{ source('tienda', 'saas_facturas') }}
+    where estado = 'pagada'
+    group by empresa_id, mes
+)
+
+select
+    empresa_id,
+    mes,
+    mrr,
+    lag(mrr) over (partition by empresa_id order by mes) as mrr_anterior,
+    case
+        when lag(mrr) over (partition by empresa_id order by mes) is null then 'nuevo'
+        when mrr &gt; lag(mrr) over (partition by empresa_id order by mes) then 'expansion'
+        when mrr &lt; lag(mrr) over (partition by empresa_id order by mes) then 'contraccion'
+        else 'igual'
+    end as movimiento
+from facturas
+order by empresa_id, mes
+limit 30</code></pre>
+<p>Reto: las bajas no aparecen (una empresa que dejó de pagar no tiene fila ese mes). Explica cómo las detectarías con una tabla de meses × empresas.</p>
+<p>Documentación oficial: <a href="https://docs.getdbt.com/docs/build/sql-models">modelos SQL en dbt</a> · <a href="https://docs.getdbt.com/docs/build/snapshots">snapshots para el historial de planes</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

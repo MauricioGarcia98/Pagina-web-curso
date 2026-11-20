@@ -110,6 +110,37 @@ En dos partes. La recuperación: para un conjunto de preguntas sé qué document
 
 ## Práctica
 
+:::practica python Recuperar el fragmento correcto y citarlo
+1. Ejecuta: cada pregunta busca el fragmento de la base de conocimiento con más palabras en común y responde **citando** de dónde salió.
+2. Si ningún fragmento se parece lo suficiente, el asistente dice que no sabe (mejor que inventar).
+3. Cambia una pregunta por algo que no está en los documentos y verifica que no responde.
+
+```python norun
+documentos = {
+    "politica-devoluciones#1": "Puedes devolver un producto dentro de los 30 días con la factura.",
+    "politica-envios#2": "Los envíos a todo el país demoran entre 3 y 5 días hábiles.",
+    "politica-garantia#1": "La garantía cubre fallas de fábrica por 12 meses.",
+}
+
+def palabras(t):
+    return {p.strip(".,¿?").lower() for p in t.split() if len(p) > 3}
+
+def responder(pregunta, umbral=2):
+    puntajes = {doc: len(palabras(pregunta) & palabras(texto)) for doc, texto in documentos.items()}
+    mejor = max(puntajes, key=puntajes.get)
+    if puntajes[mejor] < umbral:
+        return "No encontré esa información en la documentación."
+    return f"{documentos[mejor]} [fuente: {mejor}]"
+
+for q in ["¿Cuántos días tengo para devolver un producto?", "¿Cuánto demoran los envíos?", "¿Tienen locales en Madrid?"]:
+    print(q, "→", responder(q))
+```
+
+Reto: reemplaza el conteo de palabras por similitud de embeddings y explica qué tipo de pregunta mejora.
+
+Documentación oficial: [RAG (Databricks)](https://docs.databricks.com/aws/en/generative-ai/retrieval-augmented-generation) · [RAG (Microsoft)](https://learn.microsoft.com/es-es/azure/search/retrieval-augmented-generation-overview)
+:::
+
 :::ejercicio cli dificultad=Básico titulo="La base de conocimiento"
 Genera el escenario `soporte` y muestra el archivo `~/datos/generados/soporte/base_conocimiento.csv` con `cat`.
 ```setup

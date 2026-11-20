@@ -122,6 +122,27 @@ WHERE abs(s.monto) &gt; 8 * h.monto_habitual AND (hour(s.ts) &lt; 6 OR s.pais_tx
 <li><input disabled="" type="checkbox"> Cálculo de latencia de punta a punta y costo estimado (continuo contra disparado).</li>
 </ul>
 <h2>Práctica</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Reglas de fraude con ventanas</div>
+
+<ol>
+<li>Ejecuta: para cada transacción se compara el monto contra el promedio de las 10 anteriores de la misma cuenta.</li>
+<li>Una transacción 5 veces mayor que lo habitual dispara la regla.</li>
+<li>Compara con la etiqueta real (<code>es_fraude</code>): cuántas alertas eran fraude de verdad (precisión) y cuántos fraudes se escaparon.</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+tx = spark.table(&quot;banco_transacciones&quot;)
+w = Window.partitionBy(&quot;cuenta_id&quot;).orderBy(&quot;fecha_hora&quot;).rowsBetween(-10, -1)
+alertas = (tx.withColumn(&quot;promedio_previo&quot;, F.avg(&quot;monto&quot;).over(w))
+    .withColumn(&quot;alerta&quot;, (F.col(&quot;monto&quot;) &gt; 5 * F.col(&quot;promedio_previo&quot;)).cast(&quot;int&quot;)))
+(alertas.groupBy(&quot;alerta&quot;, &quot;es_fraude&quot;).count().orderBy(&quot;alerta&quot;, &quot;es_fraude&quot;).show())</code></pre>
+<p>Reto: agrega una segunda regla (más de 3 transacciones de la misma cuenta en 10 minutos) y mide si mejora la detección.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/window.html">Window</a> · <a href="https://spark.apache.org/docs/latest/streaming/index.html">Structured Streaming</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

@@ -166,6 +166,31 @@ jobs:
 <li><input disabled="" type="checkbox"> Documento &quot;cómo se promueve un cambio&quot; y qué se haría ante un deploy fallido (rollback).</li>
 </ul>
 <h2>Práctica</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Infraestructura y código, validados como en CI</div>
+
+<ol>
+<li>Terraform crea la base (un bucket por capa) y se valida como en un pipeline: <code>fmt -check</code>, <code>validate</code>, <code>plan</code>.</li>
+<li>El bundle de Databricks se valida y despliega al entorno de desarrollo.</li>
+<li>Esos mismos comandos son los pasos del workflow de GitHub Actions.</li>
+</ol>
+<pre data-norun><code class="language-bash">aws configure
+mkdir -p ~/plataforma &amp;&amp; cd ~/plataforma
+printf 'resource &quot;aws_s3_bucket&quot; &quot;bronze&quot; {\n  bucket = &quot;plataforma-dev-bronze&quot;\n}\n' &gt; main.tf
+terraform init
+terraform fmt -check
+terraform validate
+terraform plan
+databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+databricks bundle init
+cd mi_proyecto
+databricks bundle validate
+databricks bundle deploy -t dev</code></pre>
+<p>Reto: escribe el workflow <code>.github/workflows/ci.yml</code> con estos pasos y la condición para desplegar a <code>prod</code> solo desde <code>main</code>.</p>
+<p>Documentación oficial: <a href="https://developer.hashicorp.com/terraform/tutorials/automation/github-actions">Terraform con GitHub Actions</a> · <a href="https://docs.databricks.com/aws/en/dev-tools/bundles/ci-cd">bundles en CI/CD</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

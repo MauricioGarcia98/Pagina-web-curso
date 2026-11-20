@@ -83,6 +83,28 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El informe ejecutivo en una consulta</div>
+
+<ol>
+<li>Ejecuta: los cuatro números que pide la gerencia, por año: ventas, pedidos, clientes y ticket promedio.</li>
+<li>Revisa cada definición (¿con cancelados? ¿ticket por pedido o por línea?).</li>
+<li>Escribe en dos líneas la conclusión para la gerencia.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 4) AS anio,
+       ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas,
+       COUNT(DISTINCT p.pedido_id) AS pedidos,
+       COUNT(DISTINCT p.cliente_id) AS clientes,
+       ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) / COUNT(DISTINCT p.pedido_id), 2) AS ticket_promedio
+FROM pedidos p
+JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+WHERE p.estado = 'entregado'
+GROUP BY SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 4)
+ORDER BY anio;</code></pre>
+<p>Reto: agrega la variación porcentual contra el año anterior de cada número con <code>LAG</code>.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/aggregates">agregaciones</a> · <a href="https://duckdb.org/docs/current/sql/functions/window_functions">LAG</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

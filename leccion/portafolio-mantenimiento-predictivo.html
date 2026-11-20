@@ -112,6 +112,31 @@ with mlflow.start_run(run_name=&quot;hgb_v1&quot;):
 <li><input disabled="" type="checkbox"> Métrica de negocio: fallas anticipadas y falsas alarmas por semana sobre el período de prueba.</li>
 </ul>
 <h2>Práctica</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Anomalías en una serie de sensores</div>
+
+<ol>
+<li>Ejecuta: una serie de temperatura con ruido y una falla que empieza a subir de a poco.</li>
+<li>La media móvil y su desvío marcan los puntos que se alejan más de 3 desvíos.</li>
+<li>Fíjate cuántas horas antes de la falla aparece la primera alerta: ese margen es el valor del proyecto.</li>
+</ol>
+<pre data-norun><code class="language-python">import random
+from statistics import mean, stdev
+
+random.seed(7)
+lecturas = [70 + random.gauss(0, 1) for _ in range(60)] + [70 + (i * 0.6) + random.gauss(0, 1) for i in range(20)]
+VENTANA = 24
+for h in range(VENTANA, len(lecturas)):
+    previo = lecturas[h - VENTANA:h]
+    z = (lecturas[h] - mean(previo)) / stdev(previo)
+    if z &gt; 3:
+        print(f&quot;hora {h}: {lecturas[h]:.1f} °C (z = {z:.1f}) → alerta&quot;)
+        break</code></pre>
+<p>Reto: ¿qué pasa si la ventana incluye datos de la falla misma? Explica qué es la fuga de datos (<em>data leakage</em>) en este proyecto.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/library/statistics.html">módulo statistics</a> · <a href="https://mlflow.org/docs/latest/ml/tracking/">MLflow Tracking</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

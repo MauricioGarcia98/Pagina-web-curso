@@ -234,6 +234,25 @@ FROM read_files('/Volumes/workspace/ventas/crudo/pedidos.csv', format =&gt; 'csv
 <li><input disabled="" type="checkbox"> Sección <strong>Dialectos</strong>: qué cambió de DuckDB a Databricks.</li>
 </ul>
 <h2>Práctica</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: La fase local del lakehouse: dbt y DuckDB</div>
+
+<ol>
+<li>Construye los modelos y tests del proyecto dbt del curso: son las capas staging y marts del lakehouse.</li>
+<li>Consulta el resultado con DuckDB como lo haría un analista.</li>
+<li>Genera la documentación: el linaje (qué modelo sale de cuál) es parte del entregable.</li>
+</ol>
+<pre data-norun><code class="language-bash">cd ~/tienda_dbt
+dbt build
+dbt docs generate
+dbt ls -s +ventas_por_canal
+cd ~
+duckdb -c &quot;SELECT canal, COUNT(*) AS ventas FROM 'datos/ventas_2024_12.csv' GROUP BY canal ORDER BY ventas DESC&quot;</code></pre>
+<p>Reto: agrega un modelo <code>marts/ventas_por_mes.sql</code> con su test <code>not_null</code> y vuelve a correr <code>dbt build</code>.</p>
+<p>Documentación oficial: <a href="https://docs.getdbt.com/docs/core/connect-data-platform/duckdb-setup">dbt con DuckDB</a> · <a href="https://docs.databricks.com/aws/en/getting-started/free-edition">Databricks Free Edition</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

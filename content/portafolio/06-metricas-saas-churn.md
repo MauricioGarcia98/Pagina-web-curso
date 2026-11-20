@@ -104,6 +104,40 @@ Con la identidad contable: MRR inicial más nuevo y expansión, menos contracci�
 
 ## Práctica
 
+:::practica dbt El modelo central: MRR por empresa y mes
+1. Ejecuta: una fila por empresa y mes con su MRR, y el MRR del mes anterior con `lag()`.
+2. Con esas dos columnas se clasifica cada movimiento: nuevo, expansión, contracción o baja.
+3. Mira el SQL compilado: así quedaría el modelo en `marts/`.
+
+```sql norun
+with facturas as (
+    select empresa_id, mes, sum(monto) as mrr
+    from {{ source('tienda', 'saas_facturas') }}
+    where estado = 'pagada'
+    group by empresa_id, mes
+)
+
+select
+    empresa_id,
+    mes,
+    mrr,
+    lag(mrr) over (partition by empresa_id order by mes) as mrr_anterior,
+    case
+        when lag(mrr) over (partition by empresa_id order by mes) is null then 'nuevo'
+        when mrr > lag(mrr) over (partition by empresa_id order by mes) then 'expansion'
+        when mrr < lag(mrr) over (partition by empresa_id order by mes) then 'contraccion'
+        else 'igual'
+    end as movimiento
+from facturas
+order by empresa_id, mes
+limit 30
+```
+
+Reto: las bajas no aparecen (una empresa que dejó de pagar no tiene fila ese mes). Explica cómo las detectarías con una tabla de meses × empresas.
+
+Documentación oficial: [modelos SQL en dbt](https://docs.getdbt.com/docs/build/sql-models) · [snapshots para el historial de planes](https://docs.getdbt.com/docs/build/snapshots)
+:::
+
 :::ejercicio cli dificultad=Básico titulo="Los datos SaaS"
 Genera el escenario `saas` con 100 empresas y semilla 33.
 ```respuesta

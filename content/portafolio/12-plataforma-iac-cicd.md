@@ -163,6 +163,31 @@ Infraestructura en Terraform o Bicep con estado remoto y un archivo de variables
 
 ## Práctica
 
+:::practica terminal Infraestructura y código, validados como en CI
+1. Terraform crea la base (un bucket por capa) y se valida como en un pipeline: `fmt -check`, `validate`, `plan`.
+2. El bundle de Databricks se valida y despliega al entorno de desarrollo.
+3. Esos mismos comandos son los pasos del workflow de GitHub Actions.
+
+```bash norun
+aws configure
+mkdir -p ~/plataforma && cd ~/plataforma
+printf 'resource "aws_s3_bucket" "bronze" {\n  bucket = "plataforma-dev-bronze"\n}\n' > main.tf
+terraform init
+terraform fmt -check
+terraform validate
+terraform plan
+databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+databricks bundle init
+cd mi_proyecto
+databricks bundle validate
+databricks bundle deploy -t dev
+```
+
+Reto: escribe el workflow `.github/workflows/ci.yml` con estos pasos y la condición para desplegar a `prod` solo desde `main`.
+
+Documentación oficial: [Terraform con GitHub Actions](https://developer.hashicorp.com/terraform/tutorials/automation/github-actions) · [bundles en CI/CD](https://docs.databricks.com/aws/en/dev-tools/bundles/ci-cd)
+:::
+
 :::ejercicio cli dificultad=Básico titulo="Crear el bundle"
 Crea un Asset Bundle nuevo con la plantilla `default-python`.
 ```respuesta

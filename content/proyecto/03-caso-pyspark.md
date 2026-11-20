@@ -71,6 +71,35 @@ bronze ──▶ silver.fct_ventas ──┬──▶ gold.ventas_mensuales_pais
 3. Compara contra la consulta SQL equivalente del caso práctico I: los totales deben coincidir.
 :::
 
+:::practica pyspark El pipeline del caso, en funciones que se pueden probar
+1. Ejecuta: cada paso del pipeline es una función (leer, limpiar, agregar) que se puede probar sola.
+2. El resultado es la tabla gold de ventas por canal y mes.
+3. Agrega un `assert` que verifique que no hay meses repetidos por canal (el grano de la tabla).
+
+```python norun
+from pyspark.sql import DataFrame, functions as F
+
+def leer() -> DataFrame:
+    return spark.table("pedidos").join(spark.table("detalle_pedidos"), "pedido_id")
+
+def limpiar(df: DataFrame) -> DataFrame:
+    return (df.filter(F.col("estado") == "entregado")
+              .withColumn("importe", F.col("cantidad") * F.col("precio_unitario") * (1 - F.col("descuento"))))
+
+def agregar(df: DataFrame) -> DataFrame:
+    return (df.withColumn("mes", F.substring(F.col("fecha_pedido").cast("string"), 1, 7))
+              .groupBy("canal", "mes").agg(F.round(F.sum("importe"), 2).alias("ventas")))
+
+gold = agregar(limpiar(leer()))
+gold.orderBy("mes", "canal").show(8)
+assert gold.count() == gold.select("canal", "mes").distinct().count()
+```
+
+Reto: escribe un test con un DataFrame de 3 filas armado a mano que pruebe `limpiar` (que excluye un pedido cancelado).
+
+Documentación oficial: [probar PySpark](https://spark.apache.org/docs/latest/api/python/getting_started/testing_pyspark.html) · [API de DataFrame](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/dataframe.html)
+:::
+
 :::ejercicio pyspark titulo="silver.fct_ventas"
 Construye la tabla de hechos con grano “línea de pedido”, solo pedidos no cancelados: `detalle_id`, `pedido_id`, `fecha_pedido`, `anio` (año), `cliente_id`, `producto_id`, `canal`, `cantidad`, `importe` (neto, redondeado a 2).
 ```python solucion

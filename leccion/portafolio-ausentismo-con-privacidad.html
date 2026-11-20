@@ -95,6 +95,25 @@ GRANT SELECT ON TABLE workspace.clinica.gold_ausentismo TO `analistas`;</code></
 <li><input disabled="" type="checkbox"> Matriz de acceso por rol (qué ve cada uno) y el SQL de máscaras, filtros y permisos.</li>
 </ul>
 <h2>Práctica</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Datos de salud con máscaras de columna</div>
+
+<ol>
+<li>Ejecuta: se copia la tabla de pacientes y se le pone una <strong>máscara</strong> a la fecha de nacimiento: solo el grupo <code>medicos</code> la ve.</li>
+<li>El último <code>SELECT</code> la muestra vacía, porque tu usuario no está en ese grupo.</li>
+<li>Así el equipo de análisis trabaja con los datos sin ver lo que no necesita (minimización de datos).</li>
+</ol>
+<pre data-norun><code class="language-sql">CREATE SCHEMA IF NOT EXISTS main.clinica_priv;
+CREATE OR REPLACE TABLE main.clinica_priv.pacientes AS SELECT * FROM samples.clinica.clinica_pacientes;
+CREATE OR REPLACE FUNCTION main.clinica_priv.ocultar_fecha(f DATE)
+  RETURN CASE WHEN is_account_group_member('medicos') THEN f ELSE NULL END;
+ALTER TABLE main.clinica_priv.pacientes ALTER COLUMN fecha_nacimiento SET MASK main.clinica_priv.ocultar_fecha;
+SELECT paciente_id, fecha_nacimiento, cobertura FROM main.clinica_priv.pacientes LIMIT 5;</code></pre>
+<p>Reto: en vez de ocultar la fecha, devuelve solo el año (<code>year(f)</code>) para quien no es médico: alcanza para analizar ausentismo por edad.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/tables/row-and-column-filters">filtros de filas y máscaras de columna</a> · <a href="https://docs.databricks.com/aws/en/sql/language-manual/functions/is_account_group_member">is_account_group_member</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

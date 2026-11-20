@@ -119,6 +119,31 @@ No la exactitud, porque con fallas raras engaña. Usaría precisión y recall, o
 
 ## Práctica
 
+:::practica python Anomalías en una serie de sensores
+1. Ejecuta: una serie de temperatura con ruido y una falla que empieza a subir de a poco.
+2. La media móvil y su desvío marcan los puntos que se alejan más de 3 desvíos.
+3. Fíjate cuántas horas antes de la falla aparece la primera alerta: ese margen es el valor del proyecto.
+
+```python norun
+import random
+from statistics import mean, stdev
+
+random.seed(7)
+lecturas = [70 + random.gauss(0, 1) for _ in range(60)] + [70 + (i * 0.6) + random.gauss(0, 1) for i in range(20)]
+VENTANA = 24
+for h in range(VENTANA, len(lecturas)):
+    previo = lecturas[h - VENTANA:h]
+    z = (lecturas[h] - mean(previo)) / stdev(previo)
+    if z > 3:
+        print(f"hora {h}: {lecturas[h]:.1f} °C (z = {z:.1f}) → alerta")
+        break
+```
+
+Reto: ¿qué pasa si la ventana incluye datos de la falla misma? Explica qué es la fuga de datos (*data leakage*) en este proyecto.
+
+Documentación oficial: [módulo statistics](https://docs.python.org/es/3/library/statistics.html) · [MLflow Tracking](https://mlflow.org/docs/latest/ml/tracking/)
+:::
+
 :::ejercicio cli dificultad=Básico titulo="Los datos de los sensores"
 Genera los datos del escenario `iot` con 6 dispositivos y semilla 11.
 ```respuesta

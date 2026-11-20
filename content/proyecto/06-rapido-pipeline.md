@@ -48,6 +48,43 @@ flecha af -> ing | estilo=punteada
 
 La regla de validez de la primera parte vive en un `CASE` de SQL. Escrita como función de Python, se puede **probar** con casos borde antes de confiar en ella, y reutilizar (por ejemplo, en el servicio que recibe los pedidos).
 
+:::practica airflow-lab Rápido: el DAG del pipeline en producción
+1. Ejecuta: extraer pedidos → validar → construir el mart con dbt → avisar, cada día a las 6:00.
+2. Si la validación falla, no se publica nada (mejor un tablero con datos de ayer que con datos rotos).
+3. Mira la salida de `dag.test`: el orden y lo que hace cada tarea.
+
+```python norun
+from datetime import datetime, timedelta
+from airflow.sdk import dag, task
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.exceptions import AirflowFailException
+
+@dag(start_date=datetime(2024, 1, 1), schedule="0 6 * * *", catchup=False, default_args={"retries": 2, "retry_delay": timedelta(minutes=5)})
+def rapido_diario():
+    @task
+    def extraer(**context):
+        print("extrayendo pedidos del", context["ds"])
+        return 1532
+
+    @task
+    def validar(filas: int):
+        if filas < 100:
+            raise AirflowFailException(f"solo {filas} pedidos: algo falló en la fuente")
+        return filas
+
+    dbt = BashOperator(task_id="dbt_build", bash_command="cd /opt/dbt/rapido && dbt build --select +mart_entregas_diario")
+    avisar = BashOperator(task_id="avisar", bash_command="echo mart publicado")
+
+    validar(extraer()) >> dbt >> avisar
+
+rapido_diario().test(logical_date=datetime(2024, 6, 1))
+```
+
+Reto: cambia el número de filas a 50 y vuelve a ejecutar: mira qué tareas no corren y qué verías en la interfaz.
+
+Documentación oficial: [TaskFlow](https://airflow.apache.org/docs/apache-airflow/stable/tutorial/taskflow.html) · [buenas prácticas](https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html)
+:::
+
 :::ejercicio python titulo="validar_pedido"
 Escribe `validar_pedido(p)` que recibe un diccionario con `estado`, `subtotal`, `creado`, `aceptado`, `retirado`, `entregado` (textos `"AAAA-MM-DD hh:mm:ss"` o `None`) y devuelve la **lista** de reglas que incumple (vacía si es válido), con estos códigos: `"estado_desconocido"`, `"subtotal_no_positivo"`, `"faltan_tiempos"` (entregado sin alguno de los tres tiempos) y `"tiempos_desordenados"` (entregado con los cuatro tiempos pero no en orden creado ≤ aceptado ≤ retirado ≤ entregado).
 ```python inicial

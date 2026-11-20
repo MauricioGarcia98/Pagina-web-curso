@@ -113,6 +113,28 @@ echo &quot;Tu cuenta se llama: $ST&quot;         # anótalo: lo vas a usar en lo
 <li><input disabled="" type="checkbox"> Explicación de seguridad: identidades administradas y RBAC.</li>
 </ul>
 <h2>Práctica</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Los KPIs de la torre de control</div>
+
+<ol>
+<li>Ejecuta: por semana, envíos, porcentaje entregado a tiempo (OTD) y perdidos.</li>
+<li>Esa tabla es la que alimentaría el tablero de la torre de control.</li>
+<li>Busca la semana con peor OTD y averigua qué transportista la explica.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT date_trunc('week', CAST(fecha_despacho AS DATE)) AS semana,
+       COUNT(*) AS envios,
+       ROUND(100.0 * AVG(CASE WHEN estado = 'entregado' AND fecha_entrega &lt;= fecha_prometida THEN 1 ELSE 0 END), 1) AS otd_pct,
+       SUM(CASE WHEN estado = 'perdido' THEN 1 ELSE 0 END) AS perdidos
+FROM logistica_envios
+WHERE estado &lt;&gt; 'en_transito'
+GROUP BY ALL
+ORDER BY semana DESC
+LIMIT 12;</code></pre>
+<p>Reto: arma la misma tabla en el pipeline de Azure (Data Factory → ADLS → Databricks) siguiendo la fase 2 de la lección.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/date#date_truncpart-date">date_trunc</a> · <a href="https://learn.microsoft.com/es-es/azure/architecture/solution-ideas/articles/azure-databricks-modern-analytics-architecture">arquitectura analítica moderna (Microsoft)</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 
