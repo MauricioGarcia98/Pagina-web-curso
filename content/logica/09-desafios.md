@@ -27,6 +27,23 @@ Hasta acá practicaste cada técnica por separado, como un músico que practica 
 Vuelve al paso 1 y resuelve el problema **a mano** con 4 datos inventados. Lo que hiciste con la cabeza es el algoritmo; solo falta escribirlo.
 :::
 
+:::practica python Desafío de entrevista con reloj: sesiones
+1. Pedido (25 minutos): "dado un registro de eventos (usuario, minuto), agrupa en sesiones: una sesión se corta si pasan más de 30 minutos sin eventos. Devuelve cuántas sesiones tiene cada usuario".
+2. Aplica el método completo: ejemplo a mano, plan, código, casos borde.
+3. Explica la complejidad de tu solución en voz alta, como en una entrevista.
+
+```python norun
+eventos = [("ana", 0), ("ana", 10), ("ana", 50), ("luis", 5), ("ana", 55), ("luis", 100)]
+# esperado: ana → 2 sesiones (0-10 y 50-55), luis → 2 sesiones
+# tu solución acá
+print(sorted(eventos))
+```
+
+Reto: resuélvelo también en SQL con `LAG` y una suma acumulada de "inicios de sesión", y compara.
+
+Documentación oficial: [itertools.groupby](https://docs.python.org/es/3/library/itertools.html#itertools.groupby) · [LAG en SQL](https://duckdb.org/docs/current/sql/functions/window_functions)
+:::
+
 :::ejercicio python dificultad=Intermedio titulo="Agrupar en sesiones"
 Recibes una lista **ordenada** de minutos en que un usuario hizo clic, por ejemplo `[0, 5, 50, 52, 120]`. Una sesión nueva empieza cuando pasan **más de 30 minutos** desde el clic anterior. Escribe `contar_sesiones(minutos)` que devuelva cuántas sesiones hubo. Lista vacía → `0`.
 ```python inicial

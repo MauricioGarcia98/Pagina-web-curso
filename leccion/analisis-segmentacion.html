@@ -101,6 +101,35 @@ LIMIT 5;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Segmentación RFM con NTILE</div>
+
+<ol>
+<li>Ejecuta: para cada cliente se calcula recencia (días desde la última compra), frecuencia (pedidos) y monto.</li>
+<li><code>NTILE(5)</code> reparte a los clientes en quintiles: 5 es el mejor.</li>
+<li>Mira los clientes con R=5, F=5 y M=5: son tus campeones.</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH base AS (
+    SELECT p.cliente_id,
+           MAX(p.fecha_pedido)                                   AS ultima,
+           COUNT(DISTINCT p.pedido_id)                           AS frecuencia,
+           SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS monto
+    FROM pedidos p
+    JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+    WHERE p.estado = 'entregado'
+    GROUP BY p.cliente_id
+)
+SELECT cliente_id, ultima, frecuencia, ROUND(monto, 2) AS monto,
+       NTILE(5) OVER (ORDER BY ultima)     AS r,
+       NTILE(5) OVER (ORDER BY frecuencia) AS f,
+       NTILE(5) OVER (ORDER BY monto)      AS m
+FROM base
+ORDER BY monto DESC
+LIMIT 20;</code></pre>
+<p>Reto: cuenta cuántos clientes hay en cada combinación de R y F, y arma con eso la tabla de segmentos.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/window_functions">funciones de ventana</a></p>
+</div>
+
+
 <h2>Caso real: así te lo piden en un trabajo</h2>
 <p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
 <div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>

@@ -92,6 +92,32 @@ Si unes `pedidos` con `detalle_pedidos` y después sumas una columna de **pedido
 | “La tasa de …” | ¿Sobre qué total (el denominador)? |
 | “Comparado con antes” | ¿Contra el mes anterior o el mismo mes del año anterior? |
 
+:::practica sql De la pregunta a la consulta
+1. Pregunta del negocio: "¿qué canal trae a los clientes que más gastan?". Antes de ejecutar, escribe el grano: **una fila por canal**.
+2. Ejecuta: primero se calcula el gasto de cada cliente en su canal (capa 1) y después se resume por canal (capa 2).
+3. Agrega una columna con la cantidad de clientes y verifica que la suma coincida con los clientes con pedidos entregados.
+
+```sql norun
+WITH gasto_cliente AS (            -- capa 1: una fila por cliente y canal
+    SELECT p.cliente_id, p.canal,
+           SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS gasto
+    FROM pedidos p
+    JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+    WHERE p.estado = 'entregado'
+    GROUP BY p.cliente_id, p.canal
+)
+SELECT canal,                       -- capa 2: una fila por canal
+       ROUND(AVG(gasto), 2) AS gasto_promedio
+FROM gasto_cliente
+GROUP BY canal
+ORDER BY gasto_promedio DESC;
+```
+
+Reto: cambia el promedio por la mediana (`MEDIAN` en DuckDB) y explica por qué puede cambiar el ranking.
+
+Documentación oficial: [CTEs (WITH)](https://duckdb.org/docs/current/sql/query_syntax/with) · [funciones de agregación](https://duckdb.org/docs/current/sql/functions/aggregates)
+:::
+
 ## Ejercicios
 
 Cada enunciado ya trae las definiciones acordadas: respétalas al pie de la letra (son las que usará la corrección).

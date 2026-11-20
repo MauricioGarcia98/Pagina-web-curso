@@ -152,6 +152,34 @@ print(mayor)</code></pre>
 <li><strong>Agrupar y después filtrar:</strong> primero calculas el promedio de todos, y ya es tarde para sacar los cancelados.</li>
 </ul>
 <p>Regla práctica: <strong>filtra lo antes posible</strong>, agrupa después, ordena al final.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Una función por paso y una tabla de traza</div>
+
+<ol>
+<li>Ejecuta: el problema &quot;ticket promedio por cliente&quot; está partido en funciones chicas.</li>
+<li>Sigue el programa a mano con la tabla de traza (anota el valor de cada variable en cada vuelta).</li>
+<li>Cambia los datos y predice el resultado <strong>antes</strong> de ejecutar.</li>
+</ol>
+<pre data-norun><code class="language-python">pedidos = [(&quot;ana&quot;, 120), (&quot;luis&quot;, 80), (&quot;ana&quot;, 60), (&quot;luis&quot;, 40), (&quot;sofia&quot;, 200)]
+
+def agrupar(filas):
+    grupos = {}
+    for cliente, monto in filas:
+        grupos.setdefault(cliente, []).append(monto)
+    return grupos
+
+def promedio(xs):
+    return sum(xs) / len(xs)
+
+def ticket_por_cliente(filas):
+    return {c: round(promedio(m), 2) for c, m in agrupar(filas).items()}
+
+print(ticket_por_cliente(pedidos))</code></pre>
+<p>Reto: agrega un paso que filtre clientes con menos de 2 pedidos, como otra función, sin tocar las demás.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/tutorial/controlflow.html#defining-functions">funciones</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

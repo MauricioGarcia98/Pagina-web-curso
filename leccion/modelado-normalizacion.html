@@ -278,6 +278,36 @@ GROUP BY huesped;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: De una planilla plana a tablas normalizadas</div>
+
+<ol>
+<li>Ejecuta: <code>planilla</code> repite el nombre del cliente y del producto en cada fila (así llegan los Excel).</li>
+<li>Las dos consultas siguientes sacan esas repeticiones a sus propias tablas (3FN): cada dato vive en un solo lugar.</li>
+<li>Verifica: la cantidad de clientes distintos de la planilla coincide con las filas de <code>cliente_n</code>.</li>
+</ol>
+<pre data-norun><code class="language-sql">DROP TABLE IF EXISTS planilla;
+CREATE TABLE planilla AS
+SELECT p.pedido_id, p.fecha_pedido, c.cliente_id, c.nombre AS cliente, c.ciudad,
+       pr.producto_id, pr.nombre AS producto, pr.precio, d.cantidad
+FROM pedidos p
+JOIN clientes c         ON c.cliente_id = p.cliente_id
+JOIN detalle_pedidos d  ON d.pedido_id = p.pedido_id
+JOIN productos pr       ON pr.producto_id = d.producto_id
+WHERE p.pedido_id &lt;= 50;
+
+DROP TABLE IF EXISTS cliente_n;
+CREATE TABLE cliente_n  AS SELECT DISTINCT cliente_id, cliente, ciudad FROM planilla;
+DROP TABLE IF EXISTS producto_n;
+CREATE TABLE producto_n AS SELECT DISTINCT producto_id, producto, precio FROM planilla;
+
+SELECT (SELECT COUNT(*) FROM planilla)  AS filas_planilla,
+       (SELECT COUNT(*) FROM cliente_n) AS clientes,
+       (SELECT COUNT(*) FROM producto_n) AS productos;</code></pre>
+<p>Reto: crea la tabla <code>pedido_n</code> (una fila por pedido) y la tabla <code>linea_n</code> (una fila por línea), y reconstruye la planilla con JOINs.</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/office/troubleshoot/access/database-normalization-description">normalización (Microsoft)</a> · <a href="https://duckdb.org/docs/current/sql/statements/create_table">CREATE TABLE AS</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

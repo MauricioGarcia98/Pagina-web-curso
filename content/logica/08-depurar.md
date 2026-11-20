@@ -69,6 +69,26 @@ assert total([{"monto": 1}, {"monto": 2}]) == 3, f"esperaba 3, dio {total([{'mon
 
 El `assert` con un caso chico convierte un error silencioso en uno que grita.
 
+:::practica python Encontrar el error que no da error
+1. Ejecuta: el programa corre sin fallar, pero el promedio está mal.
+2. Aplica el método: reproduce con datos chicos, aísla (imprime valores intermedios), formula una hipótesis y pruébala.
+3. Arréglalo y deja un `assert` que lo habría detectado.
+
+```python norun
+montos = ["120", "80", "100"]       # llegan como texto desde un CSV
+
+total = 0
+for m in montos:
+    total += len(m)                  # ← algo no está bien aquí
+promedio = total / len(montos)
+print("promedio:", promedio)       # esperado: 100.0
+```
+
+Reto: escribe otro error silencioso típico de datos (por ejemplo, una división entera o un JOIN que duplica) y cómo lo detectarías.
+
+Documentación oficial: [errores y excepciones](https://docs.python.org/es/3/tutorial/errors.html) · [pdb, el depurador](https://docs.python.org/es/3/library/pdb.html)
+:::
+
 :::ejercicio quiz
 En un traceback de Python, ¿dónde está normalmente la información más útil?
 - [ ] En la primera línea, "Traceback (most recent call last)"

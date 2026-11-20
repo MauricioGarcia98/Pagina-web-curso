@@ -77,6 +77,25 @@ Margen % = DIVIDE([Ventas] - [Costo], [Ventas])</code></pre>
 
 
 <h2>Practica</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Margen con SUMX y RELATED, y un ranking</div>
+
+<ol>
+<li>En <strong>Inicio → Obtener datos → Base de datos del curso (SQLite)</strong>, marca <code>clientes</code>, <code>productos</code>, <code>categorias</code>, <code>pedidos</code> y <code>detalle_pedidos</code> y pulsa <strong>Cargar</strong>: Power BI detecta las relaciones solo (revísalas en la vista <strong>Modelo</strong>).</li>
+<li>Ejecuta en <strong>Consultas DAX</strong>: <code>SUMX</code> recorre cada línea y <code>RELATED</code> trae el costo desde la dimensión <code>productos</code> (lado <em>uno</em> de la relación).</li>
+<li><code>RANKX</code> sobre <code>ALL(productos[marca])</code> pone el puesto de cada marca contra todas las demás.</li>
+</ol>
+<pre data-norun><code class="language-dax">DEFINE
+    MEASURE detalle_pedidos[Margen] =
+        SUMX(detalle_pedidos, detalle_pedidos[cantidad] * (detalle_pedidos[precio_unitario] - RELATED(productos[costo])))
+    MEASURE detalle_pedidos[Puesto] = RANKX(ALL(productos[marca]), [Margen])
+EVALUATE
+    TOPN(10, SUMMARIZECOLUMNS(productos[marca], &quot;Margen&quot;, [Margen], &quot;Puesto&quot;, [Puesto]), [Margen], DESC)</code></pre>
+<p>Reto: crea el mismo margen como <strong>columna calculada</strong> en <code>detalle_pedidos</code> y explica cuándo conviene columna y cuándo medida.</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/dax/sumx-function-dax">SUMX</a> · <a href="https://learn.microsoft.com/es-es/dax/related-function-dax">RELATED</a> · <a href="https://learn.microsoft.com/es-es/dax/rankx-function-dax">RANKX</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

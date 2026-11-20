@@ -60,6 +60,28 @@ Si guardas el informe como **proyecto de Power BI (.pbip)**, el modelo queda en 
 
 ## Practica: consultas
 
+:::practica powerbi:dax De la consulta al modelo como código (TMDL)
+1. En **Inicio → Obtener datos → Base de datos del curso (SQLite)**, marca `clientes`, `productos`, `categorias`, `pedidos` y `detalle_pedidos` y pulsa **Cargar**: Power BI detecta las relaciones solo (revísalas en la vista **Modelo**).
+2. Ejecuta la consulta en **Consultas DAX** y agrega las medidas al modelo con **Actualizar modelo**.
+3. Abre la vista **TMDL**: tus medidas aparecen como código, listas para versionar en Git (formato PBIP).
+4. Con esas medidas, arma en **Informe** una página: tarjeta de ventas, gráfico por mes y tabla por país.
+
+```dax norun
+DEFINE
+    MEASURE detalle_pedidos[Ventas] =
+        SUMX(detalle_pedidos, detalle_pedidos[cantidad] * detalle_pedidos[precio_unitario] * (1 - detalle_pedidos[descuento]))
+    MEASURE detalle_pedidos[Clientes] = DISTINCTCOUNT(pedidos[cliente_id])
+    MEASURE detalle_pedidos[Venta por cliente] = DIVIDE([Ventas], [Clientes])
+EVALUATE
+    SUMMARIZECOLUMNS(clientes[pais], "Ventas", [Ventas], "Clientes", [Clientes], "Venta por cliente", [Venta por cliente])
+ORDER BY [Ventas] DESC
+```
+
+Reto: guarda el informe como proyecto (PBIP) y explica qué archivo cambiaría en un *pull request* si editas una medida.
+
+Documentación oficial: [TMDL](https://learn.microsoft.com/es-es/analysis-services/tmdl/tmdl-overview) · [proyectos de Power BI (PBIP)](https://learn.microsoft.com/es-es/power-bi/developer/projects/projects-overview)
+:::
+
 :::ejercicio dax dificultad=Avanzado titulo="Ventas por país"
 Con `SUMMARIZECOLUMNS`, devuelve una fila por país del cliente con una columna `"Ventas"` que use la medida **[Ventas]**.
 ```dax medidas

@@ -83,6 +83,28 @@ w = Window.partitionBy("categoria_id").orderBy(F.desc("precio"), "nombre")
 | ¿Cómo se ven los datos? | `df.show(5)` |
 | ¿Qué columnas y tipos tengo? | `df.printSchema()` |
 
+:::practica pyspark El mismo plan, en PySpark
+1. El plan es el mismo que en SQL: filtrar → agrupar → rankear → quedarse con el top.
+2. Ejecuta: cada paso es una línea; no hay `for`, Spark recorre por ti.
+3. Verifica contando filas después de cada paso, igual que en SQL.
+
+```python norun
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+ped = spark.table("pedidos").filter(F.col("estado") == "entregado")          # filtrar
+por_cliente = ped.groupBy("canal", "cliente_id").count()                      # agrupar
+w = Window.partitionBy("canal").orderBy(F.desc("count"))
+top = por_cliente.withColumn("puesto", F.row_number().over(w)).filter("puesto <= 3")   # rankear y top
+print(ped.count(), por_cliente.count(), top.count())
+top.orderBy("canal", "puesto").show()
+```
+
+Reto: escribe la misma consulta en SQL y en pandas, y anota en una tabla la traducción de cada paso.
+
+Documentación oficial: [Window](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/window.html) · [guía rápida de DataFrame](https://spark.apache.org/docs/latest/api/python/getting_started/quickstart_df.html)
+:::
+
 :::ejercicio quiz
 ¿Qué método de DataFrame equivale a `HAVING` en SQL?
 - [ ] `groupBy` sin `agg`

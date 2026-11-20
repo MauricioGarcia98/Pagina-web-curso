@@ -117,6 +117,39 @@ En una suscripción, el **churn del mes** es: suscriptores que se dieron de baja
 La cohorte de diciembre todavía no tuvo “mes 3”. En la tabla, esa celda no es 0 %: es “todavía no ocurrió”. Mostrarla como 0 hace pensar que la retención se desplomó.
 :::
 
+:::practica sql Una tabla de cohortes mensuales
+1. Ejecuta: la cohorte de cada cliente es el mes de su primera compra.
+2. `meses` es la distancia entre cada compra y esa primera compra.
+3. Lee la tabla: de los clientes que empezaron en un mes, cuántos volvieron 1, 2 y 3 meses después.
+
+```sql norun
+WITH compras AS (
+    SELECT cliente_id,
+           SUBSTR(CAST(fecha_pedido AS VARCHAR), 1, 7) AS ym,
+           CAST(SUBSTR(CAST(fecha_pedido AS VARCHAR), 1, 4) AS INTEGER) * 12
+         + CAST(SUBSTR(CAST(fecha_pedido AS VARCHAR), 6, 2) AS INTEGER) AS mes_n
+    FROM pedidos WHERE estado = 'entregado'
+),
+primera AS (
+    SELECT cliente_id, MIN(mes_n) AS cohorte, MIN(ym) AS cohorte_mes
+    FROM compras GROUP BY cliente_id
+)
+SELECT p.cohorte_mes,
+       COUNT(DISTINCT CASE WHEN c.mes_n - p.cohorte = 0 THEN c.cliente_id END) AS m0,
+       COUNT(DISTINCT CASE WHEN c.mes_n - p.cohorte = 1 THEN c.cliente_id END) AS m1,
+       COUNT(DISTINCT CASE WHEN c.mes_n - p.cohorte = 2 THEN c.cliente_id END) AS m2,
+       COUNT(DISTINCT CASE WHEN c.mes_n - p.cohorte = 3 THEN c.cliente_id END) AS m3
+FROM primera p JOIN compras c ON c.cliente_id = p.cliente_id
+GROUP BY p.cohorte_mes
+ORDER BY p.cohorte_mes
+LIMIT 12;
+```
+
+Reto: convierte los conteos en porcentaje de retención (m1 / m0, m2 / m0…) y lleva la tabla a Excel con formato condicional.
+
+Documentación oficial: [CASE](https://duckdb.org/docs/current/sql/expressions/case) · [COUNT DISTINCT](https://duckdb.org/docs/current/sql/functions/aggregates)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado dificultad=Básico

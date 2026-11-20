@@ -96,6 +96,34 @@ La traza muestra exactamente dónde el programa hace algo distinto de lo que ima
 
 Regla práctica: **filtra lo antes posible**, agrupa después, ordena al final.
 
+:::practica python Una función por paso y una tabla de traza
+1. Ejecuta: el problema "ticket promedio por cliente" está partido en funciones chicas.
+2. Sigue el programa a mano con la tabla de traza (anota el valor de cada variable en cada vuelta).
+3. Cambia los datos y predice el resultado **antes** de ejecutar.
+
+```python norun
+pedidos = [("ana", 120), ("luis", 80), ("ana", 60), ("luis", 40), ("sofia", 200)]
+
+def agrupar(filas):
+    grupos = {}
+    for cliente, monto in filas:
+        grupos.setdefault(cliente, []).append(monto)
+    return grupos
+
+def promedio(xs):
+    return sum(xs) / len(xs)
+
+def ticket_por_cliente(filas):
+    return {c: round(promedio(m), 2) for c, m in agrupar(filas).items()}
+
+print(ticket_por_cliente(pedidos))
+```
+
+Reto: agrega un paso que filtre clientes con menos de 2 pedidos, como otra función, sin tocar las demás.
+
+Documentación oficial: [funciones](https://docs.python.org/es/3/tutorial/controlflow.html#defining-functions)
+:::
+
 :::ejercicio quiz
 "Muestra los 5 productos **activos** con más unidades vendidas." ¿En qué orden van las operaciones?
 - [ ] Ordenar → agrupar → filtrar

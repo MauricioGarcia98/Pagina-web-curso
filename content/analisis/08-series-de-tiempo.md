@@ -101,6 +101,32 @@ Un criterio simple: un día es anómalo si se aleja de la media más de 2 desvia
 “Anómalo” no existe sin una regla. Escribe cuál usaste (2 desviaciones, ventana de 28 días, excluyendo feriados…) y qué hiciste con los datos atípicos.
 :::
 
+:::practica sql Promedio móvil de 7 días
+1. Ejecuta: ventas por día y su promedio móvil de los últimos 7 días.
+2. Compara las dos columnas: el promedio móvil quita el ruido diario y deja ver la tendencia.
+3. Busca días que se alejen mucho del promedio: candidatos a anomalía.
+
+```sql norun
+WITH diario AS (
+    SELECT p.fecha_pedido AS dia,
+           SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS ventas
+    FROM pedidos p
+    JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+    WHERE p.estado = 'entregado'
+    GROUP BY p.fecha_pedido
+)
+SELECT dia, ROUND(ventas, 2) AS ventas,
+       ROUND(AVG(ventas) OVER (ORDER BY dia ROWS BETWEEN 6 PRECEDING AND CURRENT ROW), 2) AS movil_7d
+FROM diario
+ORDER BY dia DESC
+LIMIT 30;
+```
+
+Reto: compara cada día con el mismo día del año anterior (`LAG(ventas, 364)` sobre una serie sin huecos) y explica por qué hace falta una tabla calendario.
+
+Documentación oficial: [marcos de ventana (ROWS BETWEEN)](https://duckdb.org/docs/current/sql/functions/window_functions)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado dificultad=Básico

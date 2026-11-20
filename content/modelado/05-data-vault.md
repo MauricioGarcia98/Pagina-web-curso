@@ -140,6 +140,32 @@ Data Vault multiplica la cantidad de tablas y de JOINs. En una empresa mediana, 
 No son excluyentes: Data Vault es una forma de modelar la capa de integración (historia completa, muchas fuentes, auditoría, cambios sin rediseño) y Kimball es la forma de modelar la capa de consumo (simple y rápida para el BI). En empresas con muchas fuentes y regulación, se usa Data Vault en el medio y estrellas encima. En empresas chicas, silver con SCD donde haga falta y estrellas en gold es más simple y suficiente.
 :::
 
+:::practica sql:duckdb Un hub y un satélite con claves hash
+1. Ejecuta: el hub guarda solo la clave de negocio y su hash; el satélite guarda los atributos con su fecha de carga.
+2. El `hashdiff` del satélite detecta cambios: si los atributos no cambian, el hash es el mismo y no se inserta otra fila.
+3. Cuenta filas: el hub tiene una por cliente; el satélite, una por cliente y versión.
+
+```sql norun
+DROP TABLE IF EXISTS hub_cliente;
+CREATE TABLE hub_cliente AS
+SELECT DISTINCT md5(CAST(cliente_id AS VARCHAR)) AS hk_cliente, cliente_id, 'crm' AS fuente
+FROM clientes_crudo;
+
+DROP TABLE IF EXISTS sat_cliente;
+CREATE TABLE sat_cliente AS
+SELECT DISTINCT md5(CAST(cliente_id AS VARCHAR)) AS hk_cliente,
+       md5(COALESCE(nombre, '') || '|' || COALESCE(ciudad, '') || '|' || COALESCE(email, '')) AS hashdiff,
+       nombre, ciudad, email, fecha_carga
+FROM clientes_crudo;
+
+SELECT (SELECT COUNT(*) FROM hub_cliente) AS hub, (SELECT COUNT(*) FROM sat_cliente) AS satelite;
+```
+
+Reto: arma la vista "actual" del satélite (la última versión por `hk_cliente`) con `QUALIFY`.
+
+Documentación oficial: [funciones de texto (md5) en DuckDB](https://duckdb.org/docs/current/sql/functions/text) · [QUALIFY](https://duckdb.org/docs/current/sql/query_syntax/qualify)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

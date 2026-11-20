@@ -230,6 +230,22 @@ FROM delivery_pedidos;</code></pre>
 <td>Etapas de un proceso: <code>COUNT(columna_de_tiempo)</code> por etapa</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un embudo de conversión por clientes</div>
+
+<ol>
+<li>Ejecuta: cuántos clientes distintos llegaron a cada paso (vista → carrito → compra).</li>
+<li>Calcula la conversión de cada paso contra el anterior.</li>
+<li>¿Dónde se pierde más gente? Esa es la primera pregunta para el equipo de producto.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT COUNT(DISTINCT CASE WHEN tipo_evento = 'vista'           THEN cliente_id END) AS vieron,
+       COUNT(DISTINCT CASE WHEN tipo_evento = 'agregar_carrito' THEN cliente_id END) AS carrito,
+       COUNT(DISTINCT CASE WHEN tipo_evento = 'compra'          THEN cliente_id END) AS compraron
+FROM eventos_web;</code></pre>
+<p>Reto: repite el embudo por <code>dispositivo</code> y explica si la diferencia viene del paso a carrito o del paso a compra.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/expressions/case">CASE</a> · <a href="https://learn.microsoft.com/es-es/power-bi/visuals/power-bi-visualization-funnel-charts">gráfico de embudo en Power BI</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -174,6 +174,30 @@ Checklist de validación antes de publicar:
 - El proyecto se entrega en etapas: primero las dimensiones conformadas y una tabla de hechos con un tablero; después la segunda. Cada etapa se valida con el negocio antes de seguir.
 :::
 
+:::practica sql El modelo de Ritmo: hechos de reproducción
+1. Ejecuta: la tabla de hechos tiene grano **una fila por reproducción** y se une a usuarios y contenidos.
+2. Responde la pregunta del negocio: minutos escuchados por plan y género.
+3. Verifica el grano: la cantidad de filas de la tabla de hechos debe ser igual a la de `streaming_reproducciones`.
+
+```sql norun
+DROP TABLE IF EXISTS fct_reproducciones;
+CREATE TABLE fct_reproducciones AS
+SELECT r.repro_id, r.usuario_id, r.contenido_id, r.fecha_hora, r.dispositivo,
+       r.segundos_escuchados / 60.0 AS minutos
+FROM streaming_reproducciones r;
+
+SELECT c.genero, COUNT(*) AS reproducciones, ROUND(SUM(f.minutos), 0) AS minutos
+FROM fct_reproducciones f
+JOIN streaming_contenidos c ON c.contenido_id = f.contenido_id
+GROUP BY c.genero
+ORDER BY minutos DESC;
+```
+
+Reto: agrega el plan vigente de cada usuario en la fecha de la reproducción (desde `streaming_suscripciones`, point-in-time) y repite el análisis por plan.
+
+Documentación oficial: [técnicas de modelado dimensional](https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/) · [la capa de marts (dbt)](https://docs.getdbt.com/best-practices/how-we-structure/4-marts)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql titulo="Horas por género y dispositivo" ordenado

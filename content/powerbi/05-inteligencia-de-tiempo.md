@@ -67,6 +67,33 @@ En Power BI, *Inicio → Medida rápida* arma estas fórmulas con unos clics ("T
 
 Las consultas filtran fechas con `DATESBETWEEN` o con `TREATAS` para mirar días puntuales. Lee la consulta de prueba de cada ejercicio.
 
+:::practica powerbi:dax Acumulado del año y comparación con el año anterior
+1. En **Inicio → Obtener datos → Base de datos del curso (SQLite)**, marca `clientes`, `productos`, `categorias`, `pedidos` y `detalle_pedidos` y pulsa **Cargar**.
+2. Crea la tabla calendario con **Modelado → Nueva tabla** y la fórmula de esta lección (`Calendario = ADDCOLUMNS(CALENDAR(DATE(2022, 1, 1), DATE(2024, 12, 31)), "Año", YEAR([Date]), "Trimestre", "T" & QUARTER([Date]))`).
+3. Márcala como tabla de fechas (**Herramientas de tabla → Marcar como tabla de fechas**, columna `Date`) y relaciona `Calendario[Date]` (lado 1) con `pedidos[fecha_pedido]` (lado varios) en la vista **Modelo**.
+4. Ejecuta la consulta en **Consultas DAX**: acumulado del año (`TOTALYTD`) y mismo período del año anterior (`SAMEPERIODLASTYEAR`). 2022 no tiene año anterior: por eso su columna queda vacía.
+
+```dax norun
+DEFINE
+    MEASURE detalle_pedidos[Ventas] =
+        SUMX(detalle_pedidos, detalle_pedidos[cantidad] * detalle_pedidos[precio_unitario] * (1 - detalle_pedidos[descuento]))
+    MEASURE detalle_pedidos[Ventas YTD] = TOTALYTD([Ventas], Calendario[Date])
+    MEASURE detalle_pedidos[Ventas año anterior] = CALCULATE([Ventas], SAMEPERIODLASTYEAR(Calendario[Date]))
+    MEASURE detalle_pedidos[Variación %] = DIVIDE([Ventas] - [Ventas año anterior], [Ventas año anterior])
+EVALUATE
+    SUMMARIZECOLUMNS(
+        Calendario[Año], Calendario[Trimestre],
+        "Ventas", [Ventas], "YTD", [Ventas YTD],
+        "Año anterior", [Ventas año anterior], "Variación %", [Variación %]
+    )
+ORDER BY Calendario[Año], Calendario[Trimestre]
+```
+
+Reto: reescribe `Variación %` con `VAR` y `RETURN` para no calcular dos veces la venta del año anterior.
+
+Documentación oficial: [TOTALYTD](https://learn.microsoft.com/es-es/dax/totalytd-function-dax) · [SAMEPERIODLASTYEAR](https://learn.microsoft.com/es-es/dax/sameperiodlastyear-function-dax) · [tablas de fechas](https://learn.microsoft.com/es-es/power-bi/transform-model/desktop-date-tables)
+:::
+
 :::ejercicio dax dificultad=Avanzado titulo="Acumulado del año"
 Escribe **Ventas acumuladas del año** con `TOTALYTD` sobre `pedidos[fecha_pedido]`. Se evalúa en tres fechas de 2024 (31/3, 30/6 y 31/12).
 ```dax medidas

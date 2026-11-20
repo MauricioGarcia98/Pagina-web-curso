@@ -99,6 +99,31 @@ WHERE d.pedido_id IS NULL;</code></pre>
 <td>¿Contra el mes anterior o el mismo mes del año anterior?</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: De la pregunta a la consulta</div>
+
+<ol>
+<li>Pregunta del negocio: &quot;¿qué canal trae a los clientes que más gastan?&quot;. Antes de ejecutar, escribe el grano: <strong>una fila por canal</strong>.</li>
+<li>Ejecuta: primero se calcula el gasto de cada cliente en su canal (capa 1) y después se resume por canal (capa 2).</li>
+<li>Agrega una columna con la cantidad de clientes y verifica que la suma coincida con los clientes con pedidos entregados.</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH gasto_cliente AS (            -- capa 1: una fila por cliente y canal
+    SELECT p.cliente_id, p.canal,
+           SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS gasto
+    FROM pedidos p
+    JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+    WHERE p.estado = 'entregado'
+    GROUP BY p.cliente_id, p.canal
+)
+SELECT canal,                       -- capa 2: una fila por canal
+       ROUND(AVG(gasto), 2) AS gasto_promedio
+FROM gasto_cliente
+GROUP BY canal
+ORDER BY gasto_promedio DESC;</code></pre>
+<p>Reto: cambia el promedio por la mediana (<code>MEDIAN</code> en DuckDB) y explica por qué puede cambiar el ranking.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/query_syntax/with">CTEs (WITH)</a> · <a href="https://duckdb.org/docs/current/sql/functions/aggregates">funciones de agregación</a></p>
+</div>
+
+
 <h2>Caso real: así te lo piden en un trabajo</h2>
 <p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
 <div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>

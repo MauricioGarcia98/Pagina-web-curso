@@ -86,6 +86,30 @@ Un LTV de servilleta: `ARPA × margen bruto ÷ churn mensual`. Con ARPA de 200, 
 
 Para la plataforma, cada pedido entregado deja: comisión del restaurante + costo de envío − cupón que pagó la plataforma. Esa diferencia es la **contribución** (antes de pagarle al repartidor y de los costos fijos).
 
+:::practica sql MRR mensual y su variación
+1. Ejecuta: el MRR de cada mes es la suma de las facturas pagadas de ese mes.
+2. `LAG` trae el MRR del mes anterior para calcular la variación.
+3. Busca los meses en que el MRR bajó: ¿más bajas o menos altas?
+
+```sql norun
+WITH mrr AS (
+    SELECT mes, SUM(monto) AS mrr
+    FROM saas_facturas
+    WHERE estado = 'pagada'
+    GROUP BY mes
+)
+SELECT mes, mrr,
+       mrr - LAG(mrr) OVER (ORDER BY mes) AS variacion,
+       ROUND(100.0 * (mrr - LAG(mrr) OVER (ORDER BY mes)) / LAG(mrr) OVER (ORDER BY mes), 1) AS variacion_pct
+FROM mrr
+ORDER BY mes;
+```
+
+Reto: separa la variación en MRR nuevo (empresas que facturan por primera vez) y MRR perdido (empresas que dejaron de facturar).
+
+Documentación oficial: [LAG y funciones de ventana](https://duckdb.org/docs/current/sql/functions/window_functions)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado dificultad=Básico

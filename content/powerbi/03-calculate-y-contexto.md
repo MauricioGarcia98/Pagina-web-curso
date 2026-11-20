@@ -92,6 +92,26 @@ Ventas = SUMX(detalle_pedidos, detalle_pedidos[cantidad] * detalle_pedidos[preci
 Pedidos = COUNTROWS(pedidos)
 ```
 
+:::practica powerbi:dax CALCULATE: cambiar el filtro de una medida
+1. En **Inicio → Obtener datos → Base de datos del curso (SQLite)**, marca `clientes`, `productos`, `categorias`, `pedidos` y `detalle_pedidos` y pulsa **Cargar**: Power BI detecta las relaciones solo (revísalas en la vista **Modelo**).
+2. Ejecuta en **Consultas DAX**: en cada fila (un canal), `Ventas` respeta el filtro de la fila; `Ventas web` lo reemplaza; `% del total` lo quita con `REMOVEFILTERS` para el denominador.
+3. Verifica que la columna `% del total` suma 100 %.
+
+```dax norun
+DEFINE
+    MEASURE detalle_pedidos[Ventas] =
+        SUMX(detalle_pedidos, detalle_pedidos[cantidad] * detalle_pedidos[precio_unitario] * (1 - detalle_pedidos[descuento]))
+    MEASURE detalle_pedidos[Ventas web] = CALCULATE([Ventas], pedidos[canal] = "web")
+    MEASURE detalle_pedidos[% del total] = DIVIDE([Ventas], CALCULATE([Ventas], REMOVEFILTERS(pedidos[canal])))
+EVALUATE
+    SUMMARIZECOLUMNS(pedidos[canal], "Ventas", [Ventas], "Ventas web", [Ventas web], "% del total", [% del total])
+```
+
+Reto: agrega una medida `Ventas sin cancelados` con `CALCULATE` y `KEEPFILTERS`, y explica la diferencia con un filtro normal.
+
+Documentación oficial: [CALCULATE](https://learn.microsoft.com/es-es/dax/calculate-function-dax) · [REMOVEFILTERS](https://learn.microsoft.com/es-es/dax/removefilters-function-dax)
+:::
+
 :::ejercicio dax dificultad=Intermedio titulo="Ventas por la web"
 Escribe **Ventas web**: las ventas del canal `"web"`. Se evalúa por país.
 ```dax medidas

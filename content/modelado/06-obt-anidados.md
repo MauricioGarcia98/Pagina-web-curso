@@ -153,6 +153,34 @@ Muchos motores lo hacen solos: las **vistas materializadas** (BigQuery, Databric
 Depende del motor y del consumidor. En motores columnares una OBT es eficiente (solo se leen las columnas usadas y la repetición se comprime bien) y simplifica el uso; pero no debe reemplazar a la estrella, que mantiene dimensiones conformadas y es la fuente de verdad. Lo habitual es generar la OBT desde la estrella en el pipeline, y regenerarla cuando cambian las dimensiones.
 :::
 
+:::practica sql:duckdb Una tabla ancha y datos anidados
+1. Ejecuta la OBT: una fila por línea con todo lo que un analista necesita, sin JOINs al consultar.
+2. La segunda consulta anida: una fila por pedido con sus productos en una **lista** (como en BigQuery o Databricks).
+3. Compara: ¿cuál usarías para un dashboard y cuál para guardar eventos?
+
+```sql norun
+DROP TABLE IF EXISTS obt_ventas;
+CREATE TABLE obt_ventas AS
+SELECT d.detalle_id, p.pedido_id, p.fecha_pedido, p.canal, c.ciudad, c.segmento,
+       pr.nombre AS producto, pr.marca, d.cantidad,
+       d.cantidad * d.precio_unitario * (1 - d.descuento) AS importe
+FROM detalle_pedidos d
+JOIN pedidos p   ON p.pedido_id = d.pedido_id
+JOIN clientes c  ON c.cliente_id = p.cliente_id
+JOIN productos pr ON pr.producto_id = d.producto_id;
+
+SELECT pedido_id, canal, list(producto ORDER BY producto) AS productos, ROUND(SUM(importe), 2) AS total
+FROM obt_ventas
+GROUP BY pedido_id, canal
+ORDER BY pedido_id
+LIMIT 10;
+```
+
+Reto: con `unnest(productos)` vuelve a separar la lista en filas y verifica que obtienes la misma cantidad de líneas.
+
+Documentación oficial: [el tipo LIST en DuckDB](https://duckdb.org/docs/current/sql/data_types/list) · [UNNEST](https://duckdb.org/docs/current/sql/query_syntax/unnest)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

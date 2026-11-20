@@ -74,6 +74,31 @@ GROUP BY grupo;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Leer un experimento con una prueba z</div>
+
+<ol>
+<li>Ejecuta: con las conversiones de cada grupo, la prueba z para dos proporciones dice si la diferencia puede ser azar.</li>
+<li>Mira el valor p: si es menor a 0,05 (el umbral que fijaste <strong>antes</strong> de mirar), la diferencia es estadísticamente significativa.</li>
+<li>Con estos datos el valor p es muy alto: <strong>no hay evidencia</strong> de que el checkout nuevo convierta mejor. Esa también es una respuesta valiosa (y la más común en experimentos reales).</li>
+<li>Mira también el tamaño del efecto: aunque algo sea significativo, puede ser demasiado chico para importar.</li>
+</ol>
+<pre data-norun><code class="language-python">from math import sqrt, erf
+
+# conversiones reales de experimento_checkout (contadas con SQL, ver el reto)
+n_a, conv_a = 1014, 126   # control
+n_b, conv_b = 986, 123    # nuevo_checkout
+
+p_a, p_b = conv_a / n_a, conv_b / n_b
+p = (conv_a + conv_b) / (n_a + n_b)
+z = (p_b - p_a) / sqrt(p * (1 - p) * (1 / n_a + 1 / n_b))
+valor_p = 2 * (1 - 0.5 * (1 + erf(abs(z) / sqrt(2))))
+print(f&quot;control {p_a:.1%} · nuevo {p_b:.1%} · diferencia {p_b - p_a:+.1%}&quot;)
+print(f&quot;z = {z:.2f} · valor p = {valor_p:.4f}&quot;)</code></pre>
+<p>Reto: verifica los números en el laboratorio SQL (<code>SELECT grupo, COUNT(*), SUM(convirtio) FROM experimento_checkout GROUP BY grupo</code>) y calcula cuántos usuarios por grupo harían falta para detectar una mejora de 2 puntos.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/library/math.html">módulo math</a> · <a href="https://docs.python.org/es/3/library/statistics.html">módulo statistics</a></p>
+</div>
+
+
 <h2>Caso real: así te lo piden en un trabajo</h2>
 <p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
 <div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>

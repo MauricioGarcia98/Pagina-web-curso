@@ -154,6 +154,32 @@ En una entrevista y en el trabajo, resolver en silencio vale la mitad. Acostúmb
 3. **Cómo lo resuelvo** ("sumo por vendedor y busco el máximo").
 4. **Qué probé** ("lista vacía, un solo vendedor y un empate").
 
+:::practica python El método en un problema nuevo
+1. Problema: "dada una lista de ventas (producto, cantidad), devuelve el **segundo** producto más vendido".
+2. Antes de tocar el código: escribe un ejemplo chico y la respuesta esperada a mano.
+3. Ejecuta: el código sigue los pasos del método (entender, ejemplo, plan, código, verificar).
+
+```python norun
+ventas = [("mouse", 3), ("teclado", 5), ("mouse", 4), ("monitor", 2), ("teclado", 1)]
+
+# plan: 1) sumar por producto  2) ordenar de mayor a menor  3) tomar el segundo
+totales = {}
+for producto, cantidad in ventas:
+    totales[producto] = totales.get(producto, 0) + cantidad
+
+ranking = sorted(totales.items(), key=lambda x: x[1], reverse=True)
+print(ranking)
+print("segundo:", ranking[1][0])
+
+# verificar con el ejemplo hecho a mano
+assert ranking[1][0] == "teclado" or ranking[1][0] == "mouse"
+```
+
+Reto: ¿qué pasa si hay empate en el segundo puesto o si hay un solo producto? Decide qué devolver y agrégalo.
+
+Documentación oficial: [ordenar en Python](https://docs.python.org/es/3/howto/sorting.html) · [diccionarios](https://docs.python.org/es/3/tutorial/datastructures.html#dictionaries)
+:::
+
 :::ejercicio quiz
 Te dan un problema nuevo. ¿Qué haces primero?
 - [ ] Empiezo a escribir código y voy viendo

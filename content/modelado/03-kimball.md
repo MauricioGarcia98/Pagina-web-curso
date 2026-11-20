@@ -187,6 +187,42 @@ Fíjate en el **costo**: se guarda calculado en el hecho (con el costo del produ
 Aplica los 4 pasos en voz alta. Proceso: venta de entradas. Grano: una fila por entrada vendida. Dimensiones: fecha y hora de la función, película, sala/cine, cliente (si hay programa de fidelidad), canal (taquilla, web, app), tipo de entrada (adulto, menor, promoción). Hechos: precio pagado, descuento, costo de comisión. Después menciona otros procesos con su propia tabla de hechos (ventas de la confitería, con dimensiones conformadas fecha y cine) y un snapshot periódico de ocupación por función.
 :::
 
+:::practica sql Un esquema estrella en 4 pasos
+1. Proceso: ventas. Grano: **una fila por línea de pedido**. Lo escribes antes de crear nada.
+2. Ejecuta: se crean dos dimensiones y la tabla de hechos con sus claves y medidas.
+3. La última consulta responde una pregunta de negocio con el modelo: hechos al centro, dimensiones alrededor.
+
+```sql norun
+DROP TABLE IF EXISTS dim_producto;
+CREATE TABLE dim_producto AS
+SELECT p.producto_id, p.nombre AS producto, p.marca, c.nombre AS categoria
+FROM productos p JOIN categorias c ON c.categoria_id = p.categoria_id;
+
+DROP TABLE IF EXISTS dim_cliente;
+CREATE TABLE dim_cliente AS
+SELECT cliente_id, ciudad, pais, segmento FROM clientes;
+
+DROP TABLE IF EXISTS fct_ventas;
+CREATE TABLE fct_ventas AS
+SELECT d.detalle_id, p.fecha_pedido, p.cliente_id, d.producto_id, p.canal,
+       d.cantidad, d.cantidad * d.precio_unitario * (1 - d.descuento) AS importe
+FROM detalle_pedidos d JOIN pedidos p ON p.pedido_id = d.pedido_id
+WHERE p.estado = 'entregado';
+
+SELECT dp.categoria, dc.pais, ROUND(SUM(f.importe), 2) AS ventas
+FROM fct_ventas f
+JOIN dim_producto dp ON dp.producto_id = f.producto_id
+JOIN dim_cliente dc  ON dc.cliente_id = f.cliente_id
+GROUP BY dp.categoria, dc.pais
+ORDER BY ventas DESC
+LIMIT 10;
+```
+
+Reto: agrega una `dim_fecha` (año, mes, trimestre, día de la semana) y úsala para ventas por trimestre.
+
+Documentación oficial: [técnicas de modelado dimensional (Kimball Group)](https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/) · [esquema estrella](https://learn.microsoft.com/es-es/power-bi/guidance/star-schema)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

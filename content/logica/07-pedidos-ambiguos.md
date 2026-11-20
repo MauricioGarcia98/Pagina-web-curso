@@ -86,6 +86,26 @@ Algunas preguntas de entrevista no tienen datos a propósito: "¿cuántos litros
 
 Dilo en voz alta, anota cada supuesto y termina con un chequeo de sentido común ("¿600.000 litros es razonable? Son unas 30 cisternas de camión: plausible").
 
+:::practica sql Dos lecturas de "las ventas del mes"
+1. Pedido ambiguo: "las ventas de noviembre". ¿Por fecha del pedido o del pago? ¿Con o sin cancelados?
+2. Ejecuta: la consulta muestra las cuatro combinaciones lado a lado.
+3. Escribe la pregunta que le harías a quien pidió el dato y el supuesto que usarías si no puede responder.
+
+```sql norun
+SELECT
+    SUM(CASE WHEN SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 7) = '2024-11' THEN pg.monto END)                             AS por_pedido_todos,
+    SUM(CASE WHEN SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 7) = '2024-11' AND p.estado <> 'cancelado' THEN pg.monto END) AS por_pedido_sin_cancelados,
+    SUM(CASE WHEN SUBSTR(CAST(pg.fecha_pago AS VARCHAR), 1, 7) = '2024-11' THEN pg.monto END)                              AS por_pago_todos,
+    SUM(CASE WHEN SUBSTR(CAST(pg.fecha_pago AS VARCHAR), 1, 7) = '2024-11' AND pg.estado = 'aprobado' THEN pg.monto END)   AS por_pago_aprobados
+FROM pagos pg
+JOIN pedidos p ON p.pedido_id = pg.pedido_id;
+```
+
+Reto: ¿cuál es la diferencia en porcentaje entre la versión más alta y la más baja? Escríbelo en una línea como lo pondrías en un correo.
+
+Documentación oficial: [CASE](https://duckdb.org/docs/current/sql/expressions/case)
+:::
+
 :::ejercicio quiz
 Te piden "la cantidad de clientes activos". ¿Cuál es la mejor primera respuesta?
 - [ ] Contar todas las filas de la tabla clientes

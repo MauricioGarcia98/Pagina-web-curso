@@ -87,11 +87,11 @@ for (const m of course.modulos) {
     const src = fs.readFileSync(path.join(dir, f), 'utf8').replace(/^:::ejercicio[\s\S]*?^:::[ \t]*$/gm, '');
     // bloques :::practica: el primer bloque de código es lo que se precarga en el laboratorio, así que tiene que correr
     let kp = 0;
-    for (const pm of src.matchAll(/^:::practica[ \t]+([a-z-]+)[^\n]*\n([\s\S]*?)^:::[ \t]*$/gm)) {
-      kp++; const app = pm[1]; const cm = /^```(\w+)([^\n]*)\n([\s\S]*?)^```[ \t]*$/m.exec(pm[2]); if (!cm) continue;
+    for (const pm of src.matchAll(/^:::practica[ \t]+([a-z-]+)(?::([a-z\/]+))?[^\n]*\n([\s\S]*?)^:::[ \t]*$/gm)) {
+      kp++; const app = pm[1], motor = pm[2] || ''; const cm = /^```(\w+)([^\n]*)\n([\s\S]*?)^```[ \t]*$/m.exec(pm[3]); if (!cm) continue;
       const code = cm[3], id = `practica:${m.id}/${f}#${kp}`;
       if (app === 'sql') {
-        if (/\bQUALIFY\b|EXPLAIN ANALYZE|^\s*--.*\n\s*SELECT 1;\s*$/i.test(code) || cm[2].includes('duckdb')) continue; // solo DuckDB, o un esqueleto
+        if (/\bQUALIFY\b|EXPLAIN ANALYZE|^\s*--.*\n\s*SELECT 1;\s*$/i.test(code) || cm[2].includes('duckdb') || motor === 'duckdb') continue; // solo DuckDB (se prueba en el navegador), o un esqueleto
         const pdb = new SQL.Database(bytes); try { pdb.exec(code); okCount++; } catch (e) { fails++; console.log(`✗ ${id}: ${e.message}`); } pdb.close();
       } else if (app === 'dbt') {
         exampleJobs.push({ id, type: 'dbt', solucion: code });

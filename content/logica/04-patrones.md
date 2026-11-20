@@ -101,6 +101,36 @@ print(movil([10, 20, 30, 40], 3))   # [None, None, 20.0, 30.0]
 
 En SQL lo mismo es `AVG(x) OVER (ORDER BY fecha ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)`. SQL no pone `None` en los bordes: promedia los que haya. Es una diferencia que conviene saber, no un error.
 
+:::practica python Dos patrones: diccionario índice y racha
+1. Ejecuta el primero: encontrar dos montos que sumen un objetivo pasa de dos bucles a uno con un diccionario.
+2. Ejecuta el segundo: la racha más larga de días con ventas en alza compara cada valor con el anterior.
+3. Para cada uno, escribe en una línea qué patrón es y en qué otro problema lo usarías.
+
+```python norun
+# patrón 1: diccionario índice (de O(n²) a O(n))
+montos = [120, 45, 300, 80, 75]
+objetivo = 155
+vistos = {}
+for i, m in enumerate(montos):
+    if objetivo - m in vistos:
+        print("par:", vistos[objetivo - m], i)
+        break
+    vistos[m] = i
+
+# patrón 2: comparar con el anterior (rachas)
+ventas = [10, 12, 15, 9, 11, 13, 18, 20, 7]
+mejor = actual = 1
+for ant, hoy in zip(ventas, ventas[1:]):
+    actual = actual + 1 if hoy > ant else 1
+    mejor = max(mejor, actual)
+print("racha más larga en alza:", mejor)
+```
+
+Reto: aplica el patrón de ventana deslizante para el promedio de 3 días sin recalcular la suma entera cada vez.
+
+Documentación oficial: [enumerate](https://docs.python.org/es/3/library/functions.html#enumerate) · [zip](https://docs.python.org/es/3/library/functions.html#zip)
+:::
+
 :::ejercicio quiz
 "¿Algún cliente compró más de 10 veces?" ¿Qué patrón es?
 - [ ] Ventana

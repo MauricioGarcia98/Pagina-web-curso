@@ -199,6 +199,29 @@ ORDER BY mes;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El modelo de Ritmo: hechos de reproducción</div>
+
+<ol>
+<li>Ejecuta: la tabla de hechos tiene grano <strong>una fila por reproducción</strong> y se une a usuarios y contenidos.</li>
+<li>Responde la pregunta del negocio: minutos escuchados por plan y género.</li>
+<li>Verifica el grano: la cantidad de filas de la tabla de hechos debe ser igual a la de <code>streaming_reproducciones</code>.</li>
+</ol>
+<pre data-norun><code class="language-sql">DROP TABLE IF EXISTS fct_reproducciones;
+CREATE TABLE fct_reproducciones AS
+SELECT r.repro_id, r.usuario_id, r.contenido_id, r.fecha_hora, r.dispositivo,
+       r.segundos_escuchados / 60.0 AS minutos
+FROM streaming_reproducciones r;
+
+SELECT c.genero, COUNT(*) AS reproducciones, ROUND(SUM(f.minutos), 0) AS minutos
+FROM fct_reproducciones f
+JOIN streaming_contenidos c ON c.contenido_id = f.contenido_id
+GROUP BY c.genero
+ORDER BY minutos DESC;</code></pre>
+<p>Reto: agrega el plan vigente de cada usuario en la fecha de la reproducción (desde <code>streaming_suscripciones</code>, point-in-time) y repite el análisis por plan.</p>
+<p>Documentación oficial: <a href="https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/">técnicas de modelado dimensional</a> · <a href="https://docs.getdbt.com/best-practices/how-we-structure/4-marts">la capa de marts (dbt)</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -107,6 +107,26 @@ KeyError: 'Chile'</code></pre>
 
 assert total([{&quot;monto&quot;: 1}, {&quot;monto&quot;: 2}]) == 3, f&quot;esperaba 3, dio {total([{'monto': 1}, {'monto': 2}])}&quot;</code></pre>
 <p>El <code>assert</code> con un caso chico convierte un error silencioso en uno que grita.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Encontrar el error que no da error</div>
+
+<ol>
+<li>Ejecuta: el programa corre sin fallar, pero el promedio está mal.</li>
+<li>Aplica el método: reproduce con datos chicos, aísla (imprime valores intermedios), formula una hipótesis y pruébala.</li>
+<li>Arréglalo y deja un <code>assert</code> que lo habría detectado.</li>
+</ol>
+<pre data-norun><code class="language-python">montos = [&quot;120&quot;, &quot;80&quot;, &quot;100&quot;]       # llegan como texto desde un CSV
+
+total = 0
+for m in montos:
+    total += len(m)                  # ← algo no está bien aquí
+promedio = total / len(montos)
+print(&quot;promedio:&quot;, promedio)       # esperado: 100.0</code></pre>
+<p>Reto: escribe otro error silencioso típico de datos (por ejemplo, una división entera o un JOIN que duplica) y cómo lo detectarías.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/tutorial/errors.html">errores y excepciones</a> · <a href="https://docs.python.org/es/3/library/pdb.html">pdb, el depurador</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

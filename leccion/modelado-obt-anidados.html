@@ -199,6 +199,33 @@ ORDER BY fecha, canal;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Una tabla ancha y datos anidados</div>
+
+<ol>
+<li>Ejecuta la OBT: una fila por línea con todo lo que un analista necesita, sin JOINs al consultar.</li>
+<li>La segunda consulta anida: una fila por pedido con sus productos en una <strong>lista</strong> (como en BigQuery o Databricks).</li>
+<li>Compara: ¿cuál usarías para un dashboard y cuál para guardar eventos?</li>
+</ol>
+<pre data-norun><code class="language-sql">DROP TABLE IF EXISTS obt_ventas;
+CREATE TABLE obt_ventas AS
+SELECT d.detalle_id, p.pedido_id, p.fecha_pedido, p.canal, c.ciudad, c.segmento,
+       pr.nombre AS producto, pr.marca, d.cantidad,
+       d.cantidad * d.precio_unitario * (1 - d.descuento) AS importe
+FROM detalle_pedidos d
+JOIN pedidos p   ON p.pedido_id = d.pedido_id
+JOIN clientes c  ON c.cliente_id = p.cliente_id
+JOIN productos pr ON pr.producto_id = d.producto_id;
+
+SELECT pedido_id, canal, list(producto ORDER BY producto) AS productos, ROUND(SUM(importe), 2) AS total
+FROM obt_ventas
+GROUP BY pedido_id, canal
+ORDER BY pedido_id
+LIMIT 10;</code></pre>
+<p>Reto: con <code>unnest(productos)</code> vuelve a separar la lista en filas y verifica que obtienes la misma cantidad de líneas.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/data_types/list">el tipo LIST en DuckDB</a> · <a href="https://duckdb.org/docs/current/sql/query_syntax/unnest">UNNEST</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

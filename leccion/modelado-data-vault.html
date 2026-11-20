@@ -159,6 +159,31 @@ ORDER BY documento;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un hub y un satélite con claves hash</div>
+
+<ol>
+<li>Ejecuta: el hub guarda solo la clave de negocio y su hash; el satélite guarda los atributos con su fecha de carga.</li>
+<li>El <code>hashdiff</code> del satélite detecta cambios: si los atributos no cambian, el hash es el mismo y no se inserta otra fila.</li>
+<li>Cuenta filas: el hub tiene una por cliente; el satélite, una por cliente y versión.</li>
+</ol>
+<pre data-norun><code class="language-sql">DROP TABLE IF EXISTS hub_cliente;
+CREATE TABLE hub_cliente AS
+SELECT DISTINCT md5(CAST(cliente_id AS VARCHAR)) AS hk_cliente, cliente_id, 'crm' AS fuente
+FROM clientes_crudo;
+
+DROP TABLE IF EXISTS sat_cliente;
+CREATE TABLE sat_cliente AS
+SELECT DISTINCT md5(CAST(cliente_id AS VARCHAR)) AS hk_cliente,
+       md5(COALESCE(nombre, '') || '|' || COALESCE(ciudad, '') || '|' || COALESCE(email, '')) AS hashdiff,
+       nombre, ciudad, email, fecha_carga
+FROM clientes_crudo;
+
+SELECT (SELECT COUNT(*) FROM hub_cliente) AS hub, (SELECT COUNT(*) FROM sat_cliente) AS satelite;</code></pre>
+<p>Reto: arma la vista &quot;actual&quot; del satélite (la última versión por <code>hk_cliente</code>) con <code>QUALIFY</code>.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/text">funciones de texto (md5) en DuckDB</a> · <a href="https://duckdb.org/docs/current/sql/query_syntax/qualify">QUALIFY</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

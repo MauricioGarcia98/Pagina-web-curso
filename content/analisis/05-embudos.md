@@ -236,6 +236,23 @@ Primero, la conversión total bajó (de compras/visitas), así que no se puede d
 | Ventana | Plazo máximo entre pasos para que cuente |
 | Embudo operativo | Etapas de un proceso: `COUNT(columna_de_tiempo)` por etapa |
 
+:::practica sql Un embudo de conversión por clientes
+1. Ejecuta: cuántos clientes distintos llegaron a cada paso (vista → carrito → compra).
+2. Calcula la conversión de cada paso contra el anterior.
+3. ¿Dónde se pierde más gente? Esa es la primera pregunta para el equipo de producto.
+
+```sql norun
+SELECT COUNT(DISTINCT CASE WHEN tipo_evento = 'vista'           THEN cliente_id END) AS vieron,
+       COUNT(DISTINCT CASE WHEN tipo_evento = 'agregar_carrito' THEN cliente_id END) AS carrito,
+       COUNT(DISTINCT CASE WHEN tipo_evento = 'compra'          THEN cliente_id END) AS compraron
+FROM eventos_web;
+```
+
+Reto: repite el embudo por `dispositivo` y explica si la diferencia viene del paso a carrito o del paso a compra.
+
+Documentación oficial: [CASE](https://duckdb.org/docs/current/sql/expressions/case) · [gráfico de embudo en Power BI](https://learn.microsoft.com/es-es/power-bi/visuals/power-bi-visualization-funnel-charts)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql dificultad=Básico
