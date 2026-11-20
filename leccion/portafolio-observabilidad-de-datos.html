@@ -98,6 +98,27 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><input disabled="" type="checkbox"> Un incidente provocado a propósito (por ejemplo, cargar un día con 12 % de nulos), detectado por el sistema, con su postmortem.</li>
 </ul>
 <h2>Práctica</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Salud de las tablas en una sola consulta</div>
+
+<ol>
+<li>Ejecuta: por tabla, cantidad de filas y fecha más reciente (frescura).</li>
+<li>En producción, esta consulta corre cada hora y se compara con lo esperado: una tabla que no creció o que no tiene datos de ayer es una alerta.</li>
+<li>Agrega una tabla más a la lista.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT 'pedidos' AS tabla, COUNT(*) AS filas, MAX(fecha_pedido) AS ultimo_dato FROM pedidos
+UNION ALL
+SELECT 'pagos', COUNT(*), MAX(fecha_pago) FROM pagos
+UNION ALL
+SELECT 'eventos_web', COUNT(*), MAX(fecha_hora) FROM eventos_web
+UNION ALL
+SELECT 'bronze_pedidos', COUNT(*), MAX(cargado_en) FROM bronze_pedidos
+ORDER BY tabla;</code></pre>
+<p>Reto: guarda el resultado de cada día en una tabla de historial y escribe la consulta que avisa si el volumen bajó más de 30 % contra el promedio de la semana.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/lakehouse-monitoring/">monitoreo de datos (Databricks)</a> · <a href="https://docs.getdbt.com/reference/resource-properties/freshness">freshness en dbt</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

@@ -135,6 +135,27 @@ Con una watermark que define cuánto atraso acepto, por ejemplo 10 minutos sobre
 
 ## Práctica
 
+:::practica pyspark Reglas de fraude con ventanas
+1. Ejecuta: para cada transacción se compara el monto contra el promedio de las 10 anteriores de la misma cuenta.
+2. Una transacción 5 veces mayor que lo habitual dispara la regla.
+3. Compara con la etiqueta real (`es_fraude`): cuántas alertas eran fraude de verdad (precisión) y cuántos fraudes se escaparon.
+
+```python norun
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+tx = spark.table("banco_transacciones")
+w = Window.partitionBy("cuenta_id").orderBy("fecha_hora").rowsBetween(-10, -1)
+alertas = (tx.withColumn("promedio_previo", F.avg("monto").over(w))
+    .withColumn("alerta", (F.col("monto") > 5 * F.col("promedio_previo")).cast("int")))
+(alertas.groupBy("alerta", "es_fraude").count().orderBy("alerta", "es_fraude").show())
+```
+
+Reto: agrega una segunda regla (más de 3 transacciones de la misma cuenta en 10 minutos) y mide si mejora la detección.
+
+Documentación oficial: [Window](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/window.html) · [Structured Streaming](https://spark.apache.org/docs/latest/streaming/index.html)
+:::
+
 :::ejercicio cli dificultad=Básico titulo="Los datos del banco"
 Genera los datos del escenario `banco` con 300 clientes y semilla 7.
 ```respuesta

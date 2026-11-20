@@ -124,6 +124,41 @@ Con un conjunto de evaluación etiquetado y una métrica por categoría, compara
 
 ## Práctica
 
+:::practica python Evaluar un clasificador antes de confiar en él
+1. Ejecuta: un clasificador simple (palabras clave) etiqueta tickets; lo comparamos con las etiquetas que puso una persona.
+2. Mira la exactitud y, sobre todo, la tabla de confusión: en qué categorías se equivoca.
+3. Con un modelo de lenguaje harías lo mismo: el set de evaluación etiquetado a mano es lo que no puede faltar.
+
+```python norun
+tickets = [
+    ("no puedo entrar a mi cuenta", "acceso"), ("me cobraron dos veces", "facturacion"),
+    ("la app se cierra sola", "tecnico"), ("olvidé mi contraseña", "acceso"),
+    ("quiero la factura de marzo", "facturacion"), ("el reporte tarda mucho", "tecnico"),
+    ("cambiar el medio de pago", "facturacion"), ("error 500 al exportar", "tecnico"),
+]
+reglas = {"acceso": ["cuenta", "contraseña", "entrar"], "facturacion": ["cobr", "factura", "pago"]}
+
+def clasificar(texto):
+    for cat, palabras in reglas.items():
+        if any(p in texto for p in palabras):
+            return cat
+    return "tecnico"
+
+confusion = {}
+for texto, real in tickets:
+    pred = clasificar(texto)
+    confusion[(real, pred)] = confusion.get((real, pred), 0) + 1
+aciertos = sum(n for (r, p), n in confusion.items() if r == p)
+print(f"exactitud: {aciertos}/{len(tickets)}")
+for (r, p), n in sorted(confusion.items()):
+    print(f"real={r:12} predicho={p:12} {n}")
+```
+
+Reto: agrega 4 tickets difíciles (ironía, dos temas a la vez) y mira qué le pasa a la exactitud.
+
+Documentación oficial: [evaluación de modelos (scikit-learn)](https://scikit-learn.org/stable/modules/model_evaluation.html) · [Counter](https://docs.python.org/es/3/library/collections.html#collections.Counter)
+:::
+
 :::ejercicio cli dificultad=Básico titulo="Los tickets"
 Genera el escenario `soporte` con 300 tickets y semilla 88.
 ```respuesta

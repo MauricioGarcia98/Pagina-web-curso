@@ -95,6 +95,25 @@ Minimizando: solo los datos necesarios, con identificadores seudonimizados con u
 
 ## Práctica
 
+:::practica databricks:sql Datos de salud con máscaras de columna
+1. Ejecuta: se copia la tabla de pacientes y se le pone una **máscara** a la fecha de nacimiento: solo el grupo `medicos` la ve.
+2. El último `SELECT` la muestra vacía, porque tu usuario no está en ese grupo.
+3. Así el equipo de análisis trabaja con los datos sin ver lo que no necesita (minimización de datos).
+
+```sql norun
+CREATE SCHEMA IF NOT EXISTS main.clinica_priv;
+CREATE OR REPLACE TABLE main.clinica_priv.pacientes AS SELECT * FROM samples.clinica.clinica_pacientes;
+CREATE OR REPLACE FUNCTION main.clinica_priv.ocultar_fecha(f DATE)
+  RETURN CASE WHEN is_account_group_member('medicos') THEN f ELSE NULL END;
+ALTER TABLE main.clinica_priv.pacientes ALTER COLUMN fecha_nacimiento SET MASK main.clinica_priv.ocultar_fecha;
+SELECT paciente_id, fecha_nacimiento, cobertura FROM main.clinica_priv.pacientes LIMIT 5;
+```
+
+Reto: en vez de ocultar la fecha, devuelve solo el año (`year(f)`) para quien no es médico: alcanza para analizar ausentismo por edad.
+
+Documentación oficial: [filtros de filas y máscaras de columna](https://docs.databricks.com/aws/en/tables/row-and-column-filters) · [is_account_group_member](https://docs.databricks.com/aws/en/sql/language-manual/functions/is_account_group_member)
+:::
+
 :::ejercicio cli dificultad=Básico titulo="Los datos de la clínica"
 Genera el escenario `salud` con 500 pacientes y semilla 55.
 ```respuesta

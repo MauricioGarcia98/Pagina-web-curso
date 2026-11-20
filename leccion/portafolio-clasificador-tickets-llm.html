@@ -127,6 +127,41 @@ FROM workspace.soporte.tickets;</code></pre>
 <li><input disabled="" type="checkbox"> Decisión de activación: qué se automatiza y qué va a revisión humana.</li>
 </ul>
 <h2>Práctica</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Evaluar un clasificador antes de confiar en él</div>
+
+<ol>
+<li>Ejecuta: un clasificador simple (palabras clave) etiqueta tickets; lo comparamos con las etiquetas que puso una persona.</li>
+<li>Mira la exactitud y, sobre todo, la tabla de confusión: en qué categorías se equivoca.</li>
+<li>Con un modelo de lenguaje harías lo mismo: el set de evaluación etiquetado a mano es lo que no puede faltar.</li>
+</ol>
+<pre data-norun><code class="language-python">tickets = [
+    (&quot;no puedo entrar a mi cuenta&quot;, &quot;acceso&quot;), (&quot;me cobraron dos veces&quot;, &quot;facturacion&quot;),
+    (&quot;la app se cierra sola&quot;, &quot;tecnico&quot;), (&quot;olvidé mi contraseña&quot;, &quot;acceso&quot;),
+    (&quot;quiero la factura de marzo&quot;, &quot;facturacion&quot;), (&quot;el reporte tarda mucho&quot;, &quot;tecnico&quot;),
+    (&quot;cambiar el medio de pago&quot;, &quot;facturacion&quot;), (&quot;error 500 al exportar&quot;, &quot;tecnico&quot;),
+]
+reglas = {&quot;acceso&quot;: [&quot;cuenta&quot;, &quot;contraseña&quot;, &quot;entrar&quot;], &quot;facturacion&quot;: [&quot;cobr&quot;, &quot;factura&quot;, &quot;pago&quot;]}
+
+def clasificar(texto):
+    for cat, palabras in reglas.items():
+        if any(p in texto for p in palabras):
+            return cat
+    return &quot;tecnico&quot;
+
+confusion = {}
+for texto, real in tickets:
+    pred = clasificar(texto)
+    confusion[(real, pred)] = confusion.get((real, pred), 0) + 1
+aciertos = sum(n for (r, p), n in confusion.items() if r == p)
+print(f&quot;exactitud: {aciertos}/{len(tickets)}&quot;)
+for (r, p), n in sorted(confusion.items()):
+    print(f&quot;real={r:12} predicho={p:12} {n}&quot;)</code></pre>
+<p>Reto: agrega 4 tickets difíciles (ironía, dos temas a la vez) y mira qué le pasa a la exactitud.</p>
+<p>Documentación oficial: <a href="https://scikit-learn.org/stable/modules/model_evaluation.html">evaluación de modelos (scikit-learn)</a> · <a href="https://docs.python.org/es/3/library/collections.html#collections.Counter">Counter</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

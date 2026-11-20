@@ -123,6 +123,38 @@ Para el volumen del caso (algunos GB por día), un entorno así cuesta en Azure 
 Empezaría por los requisitos: fuentes, volumen, frescura, quién consume y presupuesto. Propondría un lakehouse: ingesta a bronze sin transformar (por lotes del ERP, la API con un proceso en Python, eventos por streaming), silver con limpieza, deduplicación y cuarentena en Spark con MERGE, y gold con dbt y tests, servido por un SQL warehouse a Power BI. Unity Catalog para permisos y linaje, un orquestador con reintentos y alertas que no publica si fallan los tests, y todo como código con CI/CD. Terminaría con costos y monitoreo de frescura.
 :::
 
+:::practica notas El documento de diseño del proyecto
+1. Crea una nota y copia la plantilla de abajo.
+2. Complétala con el caso del proyecto: cada sección responde una pregunta que te van a hacer en una revisión de diseño.
+3. Guarda la nota: es el primer entregable, antes de escribir código.
+
+```text norun
+# Diseño: plataforma de datos de Tienda Andina
+
+## Problema y usuarios
+- Qué preguntas tiene que responder y para quién.
+
+## Requisitos
+- Volumen (filas/día), frescura (cada cuánto), retención, privacidad.
+
+## Arquitectura
+- Ingesta → almacenamiento (bronze/silver/gold) → transformación → orquestación → consumo.
+
+## Decisiones y alternativas descartadas
+- Por qué esta herramienta y no otra.
+
+## Calidad y operación
+- Tests, alertas, SLA y quién responde.
+
+## Costos
+- Estimación mensual y cómo se controla.
+```
+
+Reto: agrega una sección "riesgos" con los dos problemas más probables y cómo los mitigarías.
+
+Documentación oficial: [Well-Architected Framework (Microsoft)](https://learn.microsoft.com/es-es/azure/architecture/framework/) · [Analytics Lens (AWS)](https://docs.aws.amazon.com/wellarchitected/latest/analytics-lens/analytics-lens.html)
+:::
+
 :::ejercicio abierto
 Antes de construir, escribe en 5–8 líneas las **decisiones de diseño** para la tabla `silver.pedidos`: formato, clave, estrategia de carga (append/merge), manejo de duplicados, columnas de auditoría y particionado o clustering. Luego compara con la respuesta modelo.
 ```text solucion

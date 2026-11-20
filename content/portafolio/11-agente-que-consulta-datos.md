@@ -94,6 +94,23 @@ Acceso de solo lectura con un usuario propio y permisos sobre vistas aprobadas, 
 
 ## Práctica
 
+:::practica databricks:genie Un agente sobre tus datos, con guardas
+1. Crea un Genie Agent con las tablas de ventas (pocas y documentadas).
+2. En **Instructions**, agrega las guardas de abajo: qué puede responder y qué no.
+3. Prueba una pregunta permitida y una que debería rechazar.
+
+```text norun
+- Responde solo sobre ventas, pedidos, productos y clientes de Tienda Andina.
+- Nunca muestres emails ni teléfonos de clientes: agrega o anonimiza.
+- Si la pregunta es ambigua ("el mes pasado"), aclara el supuesto en la respuesta.
+- Si no tienes el dato, dilo en vez de estimarlo.
+```
+
+Reto: escribe 5 preguntas de prueba con su respuesta esperada, incluida una que el agente debe rechazar.
+
+Documentación oficial: [Genie](https://docs.databricks.com/aws/en/genie/) · [buenas prácticas](https://docs.databricks.com/aws/en/genie/best-practices)
+:::
+
 :::ejercicio sql dificultad=Avanzado titulo="El error del prototipo"
 El prototipo calculó las ventas uniendo `ped_ag` (cabecera con `monto_total`) con `det_ag` (líneas) y sumando `monto_total`. Devuelve `respuesta_prototipo` (esa suma) y `respuesta_correcta` (suma de `monto_total` de `ped_ag`, sin join) para marzo de 2024.
 ```sql setup

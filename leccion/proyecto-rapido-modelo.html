@@ -107,6 +107,29 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>El subtotal es positivo.</li>
 </ol>
 <p>Los pedidos que no cumplen no se borran: se marcan (<code>es_valido = 0</code>) y un control cuenta cuántos hay.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Rápido: el mart diario de entregas</div>
+
+<ol>
+<li>Ejecuta: una fila por ciudad y día con pedidos, entregados, tiempo de entrega mediano y GMV.</li>
+<li>Ese es el grano de la tabla gold del proyecto: lo defines antes de escribir el pipeline.</li>
+<li>Verifica que no hay días repetidos por ciudad.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT ciudad,
+       CAST(creado AS DATE) AS dia,
+       COUNT(*) AS pedidos,
+       SUM(CASE WHEN estado = 'entregado' THEN 1 ELSE 0 END) AS entregados,
+       MEDIAN(CASE WHEN estado = 'entregado' THEN date_diff('minute', CAST(creado AS TIMESTAMP), CAST(entregado AS TIMESTAMP)) END) AS minutos_mediana,
+       ROUND(SUM(CASE WHEN estado = 'entregado' THEN subtotal ELSE 0 END), 2) AS gmv
+FROM delivery_pedidos
+GROUP BY ALL
+ORDER BY dia DESC, ciudad
+LIMIT 15;</code></pre>
+<p>Reto: agrega el porcentaje de pedidos entregados en menos de 40 minutos (la promesa de la app).</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/date">funciones de fecha</a> · <a href="https://duckdb.org/docs/current/sql/query_syntax/groupby#group-by-all">GROUP BY ALL</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

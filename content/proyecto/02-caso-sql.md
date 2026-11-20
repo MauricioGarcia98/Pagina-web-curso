@@ -80,6 +80,29 @@ en 2024 (+52 %). Crecieron a la vez los pedidos (+38 %) y el ticket promedio (+1
 **RFM** clasifica a los clientes por **R**ecencia (hace cuánto compraron), **F**recuencia (cuántas veces) y **M**onto (cuánto gastaron). Un cliente que compró hace poco, seguido y mucho es un "campeón"; uno que compraba mucho pero hace meses que no vuelve está "en riesgo". Es una de las segmentaciones más usadas en marketing porque se calcula solo con datos de ventas.
 :::
 
+:::practica sql El informe ejecutivo en una consulta
+1. Ejecuta: los cuatro números que pide la gerencia, por año: ventas, pedidos, clientes y ticket promedio.
+2. Revisa cada definición (¿con cancelados? ¿ticket por pedido o por línea?).
+3. Escribe en dos líneas la conclusión para la gerencia.
+
+```sql norun
+SELECT SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 4) AS anio,
+       ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas,
+       COUNT(DISTINCT p.pedido_id) AS pedidos,
+       COUNT(DISTINCT p.cliente_id) AS clientes,
+       ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) / COUNT(DISTINCT p.pedido_id), 2) AS ticket_promedio
+FROM pedidos p
+JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+WHERE p.estado = 'entregado'
+GROUP BY SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 4)
+ORDER BY anio;
+```
+
+Reto: agrega la variación porcentual contra el año anterior de cada número con `LAG`.
+
+Documentación oficial: [agregaciones](https://duckdb.org/docs/current/sql/functions/aggregates) · [LAG](https://duckdb.org/docs/current/sql/functions/window_functions)
+:::
+
 :::ejercicio sql ordenado titulo="KPIs anuales"
 Para cada año: `anio`, `pedidos` (cantidad de pedidos no cancelados), `clientes` (distintos), `ventas` (redondeado a 2) y `ticket_promedio` (ventas / pedidos, redondeado a 2). Ordena por año.
 ```sql solucion

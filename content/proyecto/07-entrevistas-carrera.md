@@ -98,6 +98,24 @@ Un **proyecto propio** bien documentado en GitHub (como el del módulo anterior)
 4. Practica SQL a diario (15 minutos) en plataformas de ejercicios.
 5. Únete a comunidades (dbt Slack, foros de Databricks, meetups locales) y escribe sobre lo que aprendes.
 
+:::practica python Simulacro de entrevista técnica (20 minutos)
+1. Pon un reloj de 20 minutos. Pedido: "dada una lista de eventos (usuario, página), devuelve las 3 páginas más visitadas por usuarios distintos".
+2. Antes de escribir, di en voz alta: qué entra, qué sale, un ejemplo chico y casos borde (lista vacía, empates).
+3. Resuélvelo, pruébalo con el ejemplo y explica la complejidad.
+
+```python norun
+eventos = [("ana", "/home"), ("ana", "/home"), ("luis", "/home"), ("luis", "/precios"),
+           ("sofia", "/precios"), ("sofia", "/blog"), ("ana", "/blog"), ("pedro", "/home")]
+# esperado: /home (3 usuarios), /precios (2), /blog (2)
+# tu solución acá
+print(len(eventos), "eventos")
+```
+
+Reto: resuélvelo también en SQL (`COUNT(DISTINCT usuario)` + `ORDER BY` + `LIMIT`) y en PySpark, y compara las tres versiones.
+
+Documentación oficial: [collections.Counter](https://docs.python.org/es/3/library/collections.html#collections.Counter) · [ordenar en Python](https://docs.python.org/es/3/howto/sorting.html)
+:::
+
 :::ejercicio quiz
 En una entrevista te piden diseñar un pipeline. ¿Qué deberías hacer **primero**?
 

@@ -117,6 +117,37 @@ Pregunta: {pregunta}</code></pre>
 <li><input disabled="" type="checkbox"> Costo y latencia por pregunta.</li>
 </ul>
 <h2>Práctica</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Recuperar el fragmento correcto y citarlo</div>
+
+<ol>
+<li>Ejecuta: cada pregunta busca el fragmento de la base de conocimiento con más palabras en común y responde <strong>citando</strong> de dónde salió.</li>
+<li>Si ningún fragmento se parece lo suficiente, el asistente dice que no sabe (mejor que inventar).</li>
+<li>Cambia una pregunta por algo que no está en los documentos y verifica que no responde.</li>
+</ol>
+<pre data-norun><code class="language-python">documentos = {
+    &quot;politica-devoluciones#1&quot;: &quot;Puedes devolver un producto dentro de los 30 días con la factura.&quot;,
+    &quot;politica-envios#2&quot;: &quot;Los envíos a todo el país demoran entre 3 y 5 días hábiles.&quot;,
+    &quot;politica-garantia#1&quot;: &quot;La garantía cubre fallas de fábrica por 12 meses.&quot;,
+}
+
+def palabras(t):
+    return {p.strip(&quot;.,¿?&quot;).lower() for p in t.split() if len(p) &gt; 3}
+
+def responder(pregunta, umbral=2):
+    puntajes = {doc: len(palabras(pregunta) &amp; palabras(texto)) for doc, texto in documentos.items()}
+    mejor = max(puntajes, key=puntajes.get)
+    if puntajes[mejor] &lt; umbral:
+        return &quot;No encontré esa información en la documentación.&quot;
+    return f&quot;{documentos[mejor]} [fuente: {mejor}]&quot;
+
+for q in [&quot;¿Cuántos días tengo para devolver un producto?&quot;, &quot;¿Cuánto demoran los envíos?&quot;, &quot;¿Tienen locales en Madrid?&quot;]:
+    print(q, &quot;→&quot;, responder(q))</code></pre>
+<p>Reto: reemplaza el conteo de palabras por similitud de embeddings y explica qué tipo de pregunta mejora.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/generative-ai/retrieval-augmented-generation">RAG (Databricks)</a> · <a href="https://learn.microsoft.com/es-es/azure/search/retrieval-augmented-generation-overview">RAG (Microsoft)</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

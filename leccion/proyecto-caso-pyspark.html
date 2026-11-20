@@ -64,6 +64,34 @@ clientes ───────────────────────�
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El pipeline del caso, en funciones que se pueden probar</div>
+
+<ol>
+<li>Ejecuta: cada paso del pipeline es una función (leer, limpiar, agregar) que se puede probar sola.</li>
+<li>El resultado es la tabla gold de ventas por canal y mes.</li>
+<li>Agrega un <code>assert</code> que verifique que no hay meses repetidos por canal (el grano de la tabla).</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import DataFrame, functions as F
+
+def leer() -&gt; DataFrame:
+    return spark.table(&quot;pedidos&quot;).join(spark.table(&quot;detalle_pedidos&quot;), &quot;pedido_id&quot;)
+
+def limpiar(df: DataFrame) -&gt; DataFrame:
+    return (df.filter(F.col(&quot;estado&quot;) == &quot;entregado&quot;)
+              .withColumn(&quot;importe&quot;, F.col(&quot;cantidad&quot;) * F.col(&quot;precio_unitario&quot;) * (1 - F.col(&quot;descuento&quot;))))
+
+def agregar(df: DataFrame) -&gt; DataFrame:
+    return (df.withColumn(&quot;mes&quot;, F.substring(F.col(&quot;fecha_pedido&quot;).cast(&quot;string&quot;), 1, 7))
+              .groupBy(&quot;canal&quot;, &quot;mes&quot;).agg(F.round(F.sum(&quot;importe&quot;), 2).alias(&quot;ventas&quot;)))
+
+gold = agregar(limpiar(leer()))
+gold.orderBy(&quot;mes&quot;, &quot;canal&quot;).show(8)
+assert gold.count() == gold.select(&quot;canal&quot;, &quot;mes&quot;).distinct().count()</code></pre>
+<p>Reto: escribe un test con un DataFrame de 3 filas armado a mano que pruebe <code>limpiar</code> (que excluye un pedido cancelado).</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/api/python/getting_started/testing_pyspark.html">probar PySpark</a> · <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/dataframe.html">API de DataFrame</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

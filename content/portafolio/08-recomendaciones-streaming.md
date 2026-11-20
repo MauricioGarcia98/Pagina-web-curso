@@ -81,6 +81,28 @@ Fuera de línea, con una partición temporal: entreno con el historial hasta una
 
 ## Práctica
 
+:::practica sql:duckdb Co-ocurrencia: "quienes escucharon esto también escucharon"
+1. Ejecuta: para cada par de contenidos se cuenta cuántos usuarios escucharon los dos.
+2. Los pares con más usuarios en común son la base de una recomendación simple.
+3. Filtra un contenido y mira sus 5 recomendados.
+
+```sql norun
+WITH escuchas AS (
+    SELECT DISTINCT usuario_id, contenido_id FROM streaming_reproducciones
+)
+SELECT a.contenido_id AS contenido, b.contenido_id AS recomendado, COUNT(*) AS usuarios_en_comun
+FROM escuchas a
+JOIN escuchas b ON a.usuario_id = b.usuario_id AND a.contenido_id < b.contenido_id
+GROUP BY ALL
+ORDER BY usuarios_en_comun DESC
+LIMIT 10;
+```
+
+Reto: los contenidos muy populares aparecen con todos. Normaliza por popularidad (por ejemplo, con el índice de Jaccard) y compara.
+
+Documentación oficial: [JOIN](https://duckdb.org/docs/current/sql/query_syntax/from) · [CTEs](https://duckdb.org/docs/current/sql/query_syntax/with)
+:::
+
 :::ejercicio cli dificultad=Básico titulo="Los datos de streaming"
 Genera el escenario `streaming` con 300 usuarios y semilla 77.
 ```respuesta

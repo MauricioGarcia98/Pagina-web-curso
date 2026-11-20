@@ -85,6 +85,27 @@ Frescura de las tablas clave contra lo acordado, volumen de filas por carga comp
 
 ## Práctica
 
+:::practica sql Salud de las tablas en una sola consulta
+1. Ejecuta: por tabla, cantidad de filas y fecha más reciente (frescura).
+2. En producción, esta consulta corre cada hora y se compara con lo esperado: una tabla que no creció o que no tiene datos de ayer es una alerta.
+3. Agrega una tabla más a la lista.
+
+```sql norun
+SELECT 'pedidos' AS tabla, COUNT(*) AS filas, MAX(fecha_pedido) AS ultimo_dato FROM pedidos
+UNION ALL
+SELECT 'pagos', COUNT(*), MAX(fecha_pago) FROM pagos
+UNION ALL
+SELECT 'eventos_web', COUNT(*), MAX(fecha_hora) FROM eventos_web
+UNION ALL
+SELECT 'bronze_pedidos', COUNT(*), MAX(cargado_en) FROM bronze_pedidos
+ORDER BY tabla;
+```
+
+Reto: guarda el resultado de cada día en una tabla de historial y escribe la consulta que avisa si el volumen bajó más de 30 % contra el promedio de la semana.
+
+Documentación oficial: [monitoreo de datos (Databricks)](https://docs.databricks.com/aws/en/lakehouse-monitoring/) · [freshness en dbt](https://docs.getdbt.com/reference/resource-properties/freshness)
+:::
+
 :::ejercicio cli dificultad=Básico titulo="Los datos caóticos"
 Genera el escenario `banco` con 300 clientes, semilla 99 y problemas `caotico`.
 ```respuesta

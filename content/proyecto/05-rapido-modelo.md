@@ -74,6 +74,29 @@ Reglas acordadas para que un pedido sea **válido** para el tablero:
 
 Los pedidos que no cumplen no se borran: se marcan (`es_valido = 0`) y un control cuenta cuántos hay.
 
+:::practica sql:duckdb Rápido: el mart diario de entregas
+1. Ejecuta: una fila por ciudad y día con pedidos, entregados, tiempo de entrega mediano y GMV.
+2. Ese es el grano de la tabla gold del proyecto: lo defines antes de escribir el pipeline.
+3. Verifica que no hay días repetidos por ciudad.
+
+```sql norun
+SELECT ciudad,
+       CAST(creado AS DATE) AS dia,
+       COUNT(*) AS pedidos,
+       SUM(CASE WHEN estado = 'entregado' THEN 1 ELSE 0 END) AS entregados,
+       MEDIAN(CASE WHEN estado = 'entregado' THEN date_diff('minute', CAST(creado AS TIMESTAMP), CAST(entregado AS TIMESTAMP)) END) AS minutos_mediana,
+       ROUND(SUM(CASE WHEN estado = 'entregado' THEN subtotal ELSE 0 END), 2) AS gmv
+FROM delivery_pedidos
+GROUP BY ALL
+ORDER BY dia DESC, ciudad
+LIMIT 15;
+```
+
+Reto: agrega el porcentaje de pedidos entregados en menos de 40 minutos (la promesa de la app).
+
+Documentación oficial: [funciones de fecha](https://duckdb.org/docs/current/sql/functions/date) · [GROUP BY ALL](https://duckdb.org/docs/current/sql/query_syntax/groupby#group-by-all)
+:::
+
 :::ejercicio sql titulo="stg_rapido_pedidos: la capa silver"
 Escribe la consulta de `stg_rapido_pedidos`: todas las columnas de `delivery_pedidos` que necesita el tablero (`pedido_id`, `cliente_id`, `restaurante_id`, `ciudad`, `creado`, `aceptado`, `retirado`, `entregado`, `subtotal`, `costo_envio`, `descuento_cupon`, `estado`), más `fecha` (la fecha de `creado`, con `date()`) y `es_valido` (1 si cumple las tres reglas de arriba, 0 si no). Ordena por `pedido_id`.
 ```sql inicial

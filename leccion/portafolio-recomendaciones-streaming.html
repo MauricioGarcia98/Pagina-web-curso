@@ -78,6 +78,28 @@ HAVING count(*) &gt;= 3;</code></pre>
 <li><input disabled="" type="checkbox"> Diseño del experimento: grupos, métrica principal (retención a 30 días de usuarios nuevos), duración y tamaño de muestra.</li>
 </ul>
 <h2>Práctica</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Co-ocurrencia: &quot;quienes escucharon esto también escucharon&quot;</div>
+
+<ol>
+<li>Ejecuta: para cada par de contenidos se cuenta cuántos usuarios escucharon los dos.</li>
+<li>Los pares con más usuarios en común son la base de una recomendación simple.</li>
+<li>Filtra un contenido y mira sus 5 recomendados.</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH escuchas AS (
+    SELECT DISTINCT usuario_id, contenido_id FROM streaming_reproducciones
+)
+SELECT a.contenido_id AS contenido, b.contenido_id AS recomendado, COUNT(*) AS usuarios_en_comun
+FROM escuchas a
+JOIN escuchas b ON a.usuario_id = b.usuario_id AND a.contenido_id &lt; b.contenido_id
+GROUP BY ALL
+ORDER BY usuarios_en_comun DESC
+LIMIT 10;</code></pre>
+<p>Reto: los contenidos muy populares aparecen con todos. Normaliza por popularidad (por ejemplo, con el índice de Jaccard) y compara.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/query_syntax/from">JOIN</a> · <a href="https://duckdb.org/docs/current/sql/query_syntax/with">CTEs</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

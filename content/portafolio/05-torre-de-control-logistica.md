@@ -101,6 +101,28 @@ Mostrando en el tablero la hora de la última actualización de los datos y un i
 
 ## Práctica
 
+:::practica sql:duckdb Los KPIs de la torre de control
+1. Ejecuta: por semana, envíos, porcentaje entregado a tiempo (OTD) y perdidos.
+2. Esa tabla es la que alimentaría el tablero de la torre de control.
+3. Busca la semana con peor OTD y averigua qué transportista la explica.
+
+```sql norun
+SELECT date_trunc('week', CAST(fecha_despacho AS DATE)) AS semana,
+       COUNT(*) AS envios,
+       ROUND(100.0 * AVG(CASE WHEN estado = 'entregado' AND fecha_entrega <= fecha_prometida THEN 1 ELSE 0 END), 1) AS otd_pct,
+       SUM(CASE WHEN estado = 'perdido' THEN 1 ELSE 0 END) AS perdidos
+FROM logistica_envios
+WHERE estado <> 'en_transito'
+GROUP BY ALL
+ORDER BY semana DESC
+LIMIT 12;
+```
+
+Reto: arma la misma tabla en el pipeline de Azure (Data Factory → ADLS → Databricks) siguiendo la fase 2 de la lección.
+
+Documentación oficial: [date_trunc](https://duckdb.org/docs/current/sql/functions/date#date_truncpart-date) · [arquitectura analítica moderna (Microsoft)](https://learn.microsoft.com/es-es/azure/architecture/solution-ideas/articles/azure-databricks-modern-analytics-architecture)
+:::
+
 :::ejercicio cli dificultad=Básico titulo="Los datos logísticos"
 Genera los datos del escenario `logistica` con 1500 envíos y semilla 21.
 ```respuesta

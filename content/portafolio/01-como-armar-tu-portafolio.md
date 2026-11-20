@@ -148,6 +148,27 @@ Elegiría un problema concreto del proyecto, por ejemplo duplicados que inflaban
 
 ## Práctica
 
+:::practica generador Los datos de tu proyecto, con el generador
+1. Elige un negocio y un tamaño en el generador: los datos son inventados pero realistas (con nulos, duplicados y fechas desordenadas, como en la vida real).
+2. Descarga los CSV: son la fuente de tu proyecto y van en la carpeta `data/raw/` del repositorio (o el script que los genera, si son grandes).
+3. Con eso, escribe el README de abajo: es lo primero que mira quien revisa tu portafolio.
+
+```text norun
+# Nombre del proyecto
+
+**Problema de negocio:** qué pregunta responde y para quién.
+**Datos:** de dónde salen y cuántas filas tienen.
+**Arquitectura:** diagrama + una línea por pieza.
+**Cómo correrlo:** 3 comandos.
+**Resultados:** 2 o 3 números que importan, con un gráfico.
+**Qué haría con más tiempo:** 2 líneas.
+```
+
+Reto: escribe el "problema de negocio" en una sola frase que entienda alguien que no es técnico.
+
+Documentación oficial: [READMEs en GitHub](https://docs.github.com/es/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes)
+:::
+
 :::ejercicio cli dificultad=Básico titulo="Generar los datos de un proyecto"
 Genera en la terminal el dataset de la tienda online con **500** clientes, semilla **42** y problemas **realista**.
 ```respuesta

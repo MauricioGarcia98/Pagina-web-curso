@@ -249,6 +249,25 @@ Lo contaría con situación, decisiones y resultado: armé un lakehouse de venta
 
 ## Práctica
 
+:::practica terminal La fase local del lakehouse: dbt y DuckDB
+1. Construye los modelos y tests del proyecto dbt del curso: son las capas staging y marts del lakehouse.
+2. Consulta el resultado con DuckDB como lo haría un analista.
+3. Genera la documentación: el linaje (qué modelo sale de cuál) es parte del entregable.
+
+```bash norun
+cd ~/tienda_dbt
+dbt build
+dbt docs generate
+dbt ls -s +ventas_por_canal
+cd ~
+duckdb -c "SELECT canal, COUNT(*) AS ventas FROM 'datos/ventas_2024_12.csv' GROUP BY canal ORDER BY ventas DESC"
+```
+
+Reto: agrega un modelo `marts/ventas_por_mes.sql` con su test `not_null` y vuelve a correr `dbt build`.
+
+Documentación oficial: [dbt con DuckDB](https://docs.getdbt.com/docs/core/connect-data-platform/duckdb-setup) · [Databricks Free Edition](https://docs.databricks.com/aws/en/getting-started/free-edition)
+:::
+
 :::ejercicio cli dificultad=Básico titulo="Los datos del proyecto"
 Genera los datos del proyecto en la terminal: escenario `ecommerce`, 500 clientes, semilla 42, problemas `realista`.
 ```respuesta
