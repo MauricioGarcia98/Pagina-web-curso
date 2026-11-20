@@ -175,6 +175,29 @@ metrics:
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Una sola definición de cada métrica (capa semántica)</div>
+
+<ol>
+<li>Ejecuta: la vista define <strong>una vez</strong> qué es &quot;venta neta&quot; (con descuento, sin cancelados ni devueltos).</li>
+<li>Las dos consultas siguientes la reutilizan con distintos cortes: ninguna repite la fórmula.</li>
+<li>Esa es la idea de la capa semántica: si mañana cambia la definición, se cambia en un solo lugar.</li>
+</ol>
+<pre data-norun><code class="language-sql">DROP VIEW IF EXISTS metrica_venta_neta;
+CREATE VIEW metrica_venta_neta AS
+SELECT p.pedido_id, p.fecha_pedido, p.canal, c.pais,
+       d.cantidad * d.precio_unitario * (1 - d.descuento) AS venta_neta
+FROM pedidos p
+JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+JOIN clientes c ON c.cliente_id = p.cliente_id
+WHERE p.estado NOT IN ('cancelado', 'devuelto');
+
+SELECT canal, ROUND(SUM(venta_neta), 2) AS venta_neta FROM metrica_venta_neta GROUP BY canal ORDER BY venta_neta DESC;
+SELECT pais, ROUND(SUM(venta_neta), 2) AS venta_neta FROM metrica_venta_neta GROUP BY pais ORDER BY venta_neta DESC LIMIT 5;</code></pre>
+<p>Reto: busca en la documentación de Databricks qué son las <em>metric views</em> y escribe esta métrica en ese formato.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/metric-views/">metric views (Databricks)</a> · <a href="https://docs.getdbt.com/docs/build/about-metricflow">MetricFlow (dbt)</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

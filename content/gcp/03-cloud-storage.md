@@ -218,6 +218,25 @@ En GCP muchas veces la capa silver/gold vive directamente en **BigQuery** (tabla
 - **`rsync --delete-unmatched-destination-objects` sin probar.** Borra en el destino; prueba con `--dry-run`.
 :::
 
+:::practica terminal El lago en Cloud Storage
+1. Crea el bucket con acceso uniforme a nivel de bucket (la opción recomendada).
+2. Sube el archivo a `bronze/` y lista el lago.
+3. Mira cuánto ocupa con `du`.
+
+```bash norun
+gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud storage buckets create gs://lake-practica-dev --location=us-central1 --uniform-bucket-level-access
+gcloud storage cp datos/clientes.csv gs://lake-practica-dev/bronze/clientes/
+gcloud storage ls --recursive gs://lake-practica-dev
+gcloud storage du -s --readable-sizes gs://lake-practica-dev
+```
+
+Reto: escribe la regla de ciclo de vida que mueve a Nearline lo que tenga más de 30 días en `bronze/`.
+
+Documentación oficial: [Cloud Storage con gcloud](https://cloud.google.com/storage/docs/discover-object-storage-gcloud) · [ciclo de vida de objetos](https://cloud.google.com/storage/docs/lifecycle)
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

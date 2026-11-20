@@ -362,6 +362,27 @@ retencion_gold = 730
 | `count = n` | `count.index`, `recurso.x[0]` | N copias, o un recurso opcional (`? 1 : 0`) |
 | `for_each = mapa o set` | `each.key`, `each.value`, `recurso.x["k"]` | Una copia por clave |
 
+:::practica terminal Variables, locals, for_each y outputs
+1. El archivo define una variable `entorno`, un conjunto de capas en `locals` y un bucket por capa con `for_each`.
+2. Aplica y lee el output: tres buckets con un solo bloque.
+3. Planifica con otro entorno (`-var entorno=prod`) y mira qué cambiaría.
+
+```bash norun
+aws configure
+mkdir -p ~/infra/capas && cd ~/infra/capas
+printf 'variable "entorno" {\n  default = "dev"\n}\n\nlocals {\n  capas = toset(["bronze", "silver", "gold"])\n}\n\nresource "aws_s3_bucket" "capa" {\n  for_each = local.capas\n  bucket   = "practica-${var.entorno}-${each.key}"\n}\n\noutput "buckets" {\n  value = [for b in aws_s3_bucket.capa : b.bucket]\n}\n' > main.tf
+terraform init
+terraform apply -auto-approve
+terraform output buckets
+aws s3 ls
+terraform plan -var entorno=prod
+```
+
+Reto: agrega una variable `retencion_dias` con `validation` que rechace valores menores a 7.
+
+Documentación oficial: [variables](https://developer.hashicorp.com/terraform/language/values/variables) · [for_each](https://developer.hashicorp.com/terraform/language/meta-arguments/for_each)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

@@ -175,6 +175,24 @@ bq query --use_legacy_sql=false 'SELECT canal, COUNT(*) AS pedidos, ROUND(SUM(to
 
 
 <h2>Ejercicios de SQL</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tu primera consulta en la consola de BigQuery</div>
+
+<ol>
+<li>En el panel <strong>Explorer</strong>, abre el proyecto <code>tienda-andina-dev</code> → dataset <code>tienda</code> → tabla <code>clientes</code>: mira <strong>Schema</strong> y <strong>Preview</strong> (la vista previa no cuesta).</li>
+<li>Pega la consulta en el editor y, <strong>antes de ejecutar</strong>, lee arriba a la derecha cuántos bytes va a procesar.</li>
+<li>Ejecuta y compara con <code>SELECT *</code>: en BigQuery pagas por columnas leídas, no por filas devueltas.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT ciudad, COUNT(*) AS clientes
+FROM `tienda-andina-dev.tienda.clientes`
+GROUP BY ciudad
+ORDER BY clientes DESC
+LIMIT 10;</code></pre>
+<p>Reto: carga el mismo CSV desde la terminal con <code>bq load --autodetect</code> y compara el esquema que infirió con el de la consola.</p>
+<p>Documentación oficial: <a href="https://cloud.google.com/bigquery/docs/bigquery-web-ui">la consola de BigQuery</a> · <a href="https://cloud.google.com/bigquery/docs/estimate-costs">estimar costos</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

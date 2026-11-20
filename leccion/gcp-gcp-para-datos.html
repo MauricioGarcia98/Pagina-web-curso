@@ -213,6 +213,22 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tu primera sesión con gcloud</div>
+
+<ol>
+<li>Inicia sesión y elige el proyecto: en Google Cloud todo vive dentro de un proyecto.</li>
+<li>Mira la configuración activa (cuenta, proyecto, región).</li>
+<li>Lista tus proyectos: es lo primero que haces en una empresa nueva.</li>
+</ol>
+<pre data-norun><code class="language-bash">gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud config list
+gcloud projects list</code></pre>
+<p>Reto: explica la diferencia entre <code>gcloud auth login</code> (tú, en la terminal) y <code>gcloud auth application-default login</code> (tus programas: Python, dbt, Terraform).</p>
+<p>Documentación oficial: <a href="https://cloud.google.com/sdk/gcloud">gcloud CLI</a> · <a href="https://cloud.google.com/resource-manager/docs/cloud-platform-resource-hierarchy">jerarquía de recursos</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

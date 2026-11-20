@@ -252,6 +252,35 @@ cambios: &quot;agregar columnas es compatible; renombrar o borrar exige versión
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Capas, entornos, nombres y documentación en Unity Catalog</div>
+
+<ol>
+<li>Ejecuta: un esquema por capa con el entorno en el nombre (<code>dev_bronze</code>, <code>dev_silver</code>, <code>dev_gold</code>) y un comentario que dice qué va en cada uno.</li>
+<li>La tabla silver lleva comentario, comentario por columna y propiedades (dueño, calidad): eso es parte del contrato.</li>
+<li>La vista gold es lo que consume el negocio. Abre <strong>Catalog</strong> y mira cómo se ven los comentarios.</li>
+</ol>
+<pre data-norun><code class="language-sql">CREATE SCHEMA IF NOT EXISTS main.dev_bronze COMMENT 'Datos crudos, tal como llegan';
+CREATE SCHEMA IF NOT EXISTS main.dev_silver COMMENT 'Limpios, tipados y deduplicados';
+CREATE SCHEMA IF NOT EXISTS main.dev_gold COMMENT 'Listos para el negocio';
+
+CREATE OR REPLACE TABLE main.dev_silver.pedidos AS
+SELECT pedido_id, cliente_id, fecha_pedido, estado, canal FROM samples.tienda.pedidos;
+COMMENT ON TABLE main.dev_silver.pedidos IS 'Un pedido por fila. Fuente: ERP. Se actualiza cada noche.';
+ALTER TABLE main.dev_silver.pedidos ALTER COLUMN canal COMMENT 'Canal de venta: web, app, tienda o telefono';
+ALTER TABLE main.dev_silver.pedidos SET TBLPROPERTIES ('calidad' = 'silver', 'dueño' = 'equipo-datos');
+
+CREATE OR REPLACE VIEW main.dev_gold.ventas_por_canal COMMENT 'Pedidos entregados por canal y mes' AS
+SELECT canal, date_trunc('month', fecha_pedido) AS mes, COUNT(*) AS pedidos
+FROM main.dev_silver.pedidos WHERE estado = 'entregado'
+GROUP BY ALL;
+
+SHOW SCHEMAS IN main;
+SELECT * FROM main.dev_gold.ventas_por_canal ORDER BY mes DESC, pedidos DESC LIMIT 8;</code></pre>
+<p>Reto: escribe el contrato de la vista gold en 5 líneas: columnas, tipos, grano, frescura y dueño.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/data-governance/unity-catalog/">Unity Catalog</a> · <a href="https://docs.databricks.com/aws/en/comments/">comentarios en tablas y columnas</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

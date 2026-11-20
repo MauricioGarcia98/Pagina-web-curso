@@ -13,6 +13,28 @@ En **Clínica del Sur** (caso 🏥) el problema número uno es el **ausentismo**
 
 Un médico atiende de 08:00 a 12:00 en turnos de 20 minutos. Algunos turnos ya están tomados, y a veces hay bloqueos de distinta duración (una reunión de 08:30 a 09:10). El sistema de reservas tiene que mostrar los turnos **libres**: los que caben **completos** sin solaparse con nada ocupado.
 
+:::practica sql Ausentismo por médico y especialidad
+1. Ejecuta: tasa de ausencia (turnos con estado `ausente` sobre turnos no cancelados) por especialidad.
+2. Los cancelados se excluyen del denominador: un turno cancelado se puede reasignar, uno ausente se pierde.
+3. Busca la especialidad con peor ausentismo: ahí conviene un recordatorio el día anterior.
+
+```sql norun
+SELECT m.especialidad,
+       COUNT(*) AS turnos,
+       SUM(CASE WHEN t.estado = 'ausente' THEN 1 ELSE 0 END) AS ausentes,
+       ROUND(100.0 * SUM(CASE WHEN t.estado = 'ausente' THEN 1 ELSE 0 END) / COUNT(*), 1) AS pct_ausencia
+FROM clinica_turnos t
+JOIN clinica_medicos m ON m.medico_id = t.medico_id
+WHERE t.estado <> 'cancelado'
+GROUP BY m.especialidad
+ORDER BY pct_ausencia DESC;
+```
+
+Reto: agrega la anticipación de la reserva (días entre `fecha_reserva` y `fecha_hora`) y comprueba si los turnos reservados con mucha anticipación se ausentan más.
+
+Documentación oficial: [CASE](https://duckdb.org/docs/current/sql/expressions/case) · [GROUP BY](https://duckdb.org/docs/current/sql/query_syntax/groupby)
+:::
+
 :::ejercicio python titulo="turnos_libres"
 Escribe `turnos_libres(inicio, fin, ocupados, duracion=20)` donde `inicio` y `fin` son horas `"HH:MM"` y `ocupados` es una lista de tuplas `("HH:MM", "HH:MM")` (inicio y fin de cada bloqueo). Devuelve la lista de horarios de inicio `"HH:MM"` de los turnos libres, cada `duracion` minutos desde `inicio`, que **no se solapan** con ningún ocupado y terminan a más tardar en `fin`. Dos intervalos se solapan si uno empieza antes de que termine el otro (tocarse en el borde no es solaparse).
 ```python inicial

@@ -190,6 +190,30 @@ Airflow        → la fecha lógica como parámetro, nunca datetime.now()
 Primero reescribo la regla con ejemplos concretos y busco los casos borde con quien la pidió: valores vacíos, fechas límite, ceros, datos tardíos. Convierto esos ejemplos en tests antes de programar y escribo una función pura, con la fecha de proceso como parámetro. Después decido dónde vive: si es una agregación sobre muchas filas, en SQL o dbt con los mismos casos como unit test; si es lógica compleja o una API, en Python. El pipeline que la publica es idempotente, con tests de calidad en la entrada, y Airflow solo orquesta.
 :::
 
+:::practica python De la regla escrita a una función con pruebas
+1. Regla del negocio: "un pedido es **mayorista** si suma más de 50 unidades **o** supera los 500.000; los cancelados nunca lo son".
+2. Ejecuta: la regla vive en una sola función pura (recibe datos, devuelve un valor) y las pruebas son los ejemplos que acordaste con el negocio.
+3. Agrega el caso borde que falta: un pedido de exactamente 50 unidades.
+
+```python norun
+def es_mayorista(unidades: int, monto: float, estado: str) -> bool:
+    if estado == "cancelado":
+        return False
+    return unidades > 50 or monto > 500_000
+
+# los ejemplos acordados con el negocio, convertidos en pruebas
+assert es_mayorista(60, 10_000, "entregado") is True
+assert es_mayorista(10, 600_000, "entregado") is True
+assert es_mayorista(80, 900_000, "cancelado") is False
+assert es_mayorista(5, 1_000, "entregado") is False
+print("la regla cumple los 4 ejemplos")
+```
+
+Reto: el negocio agrega "los pedidos de la tienda física nunca son mayoristas". Cámbialo sin romper las pruebas anteriores.
+
+Documentación oficial: [funciones](https://docs.python.org/es/3/tutorial/controlflow.html#defining-functions) · [pytest](https://docs.pytest.org/en/stable/getting-started.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio python titulo="Porcentaje seguro"

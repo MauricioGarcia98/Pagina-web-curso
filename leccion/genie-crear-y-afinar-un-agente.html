@@ -191,6 +191,22 @@ Instructions you must follow when providing summaries
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Enseñarle al agente el vocabulario del negocio</div>
+
+<ol>
+<li>Abre tu agente → <strong>Configure</strong> → <strong>Instructions</strong> y pega las instrucciones de abajo (el vocabulario del negocio).</li>
+<li>En <strong>SQL queries</strong>, agrega una consulta de ejemplo verificada para &quot;ventas por canal&quot;: Genie la reutiliza para preguntas parecidas.</li>
+<li>Vuelve a <strong>Chat</strong> y repite una pregunta que antes salió mal.</li>
+</ol>
+<pre data-norun><code class="language-text">- &quot;ventas&quot; o &quot;facturación&quot; = SUM(cantidad * precio_unitario * (1 - descuento)) de pedidos entregados.
+- Los pedidos cancelados y devueltos nunca cuentan como venta.
+- &quot;el mes pasado&quot; = el último mes completo, no los últimos 30 días.
+- Los montos están en la moneda local de cada país: no los sumes entre países sin aclararlo.</code></pre>
+<p>Reto: escribe la consulta SQL de ejemplo para &quot;ticket promedio por canal&quot; y verifícala en el SQL Editor antes de agregarla.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/genie/instructions">instrucciones y consultas de ejemplo</a> · <a href="https://docs.databricks.com/aws/en/genie/best-practices">buenas prácticas</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

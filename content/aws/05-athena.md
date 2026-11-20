@@ -190,6 +190,27 @@ Imagina que estas tablas son tablas de `lake_silver` en Athena. Resuélvelas en 
 - **Particiones nuevas que no aparecen.** Hay que registrarlas (MSCK REPAIR, ALTER TABLE ADD PARTITION) o usar partition projection.
 :::
 
+:::practica terminal SQL sobre el lago con Athena
+1. Prepara el catálogo (bucket, archivo, crawler).
+2. Lanza la consulta: Athena devuelve un id y escribe el resultado en S3.
+3. Pide el resultado con ese id. Se paga por datos escaneados: con Parquet y particiones se escanea mucho menos.
+
+```bash norun
+aws configure
+aws s3 mb s3://lake-practica-dev
+aws s3 cp datos/clientes.csv s3://lake-practica-dev/bronze/clientes/
+aws glue create-database --database-input '{"Name": "lake_bronze"}'
+aws glue create-crawler --name crawler-clientes --role GlueServiceRole-datos --database-name lake_bronze --targets '{"S3Targets": [{"Path": "s3://lake-practica-dev/bronze/clientes/"}]}'
+aws glue start-crawler --name crawler-clientes
+QID=$(aws athena start-query-execution --query-string "SELECT ciudad, COUNT(*) AS n FROM lake_bronze.clientes GROUP BY ciudad" --query-execution-context Database=lake_bronze --result-configuration OutputLocation=s3://lake-practica-dev/athena/ --query QueryExecutionId --output text)
+aws athena get-query-results --query-execution-id $QID --output table
+```
+
+Reto: escribe el `CREATE TABLE AS SELECT` (CTAS) que convertiría `clientes` a Parquet particionado por país.
+
+Documentación oficial: [qué es Athena](https://docs.aws.amazon.com/athena/latest/ug/what-is.html) · [CTAS en Athena](https://docs.aws.amazon.com/athena/latest/ug/ctas.html)
+:::
+
 :::ejercicio sql ordenado titulo="Embudo web por dispositivo"
 Con `eventos_web`, arma el embudo por `dispositivo`: `vistas` (eventos `vista`), `carritos` (`agregar_carrito`), `compras` (`compra`) y `conversion_pct` = compras / vistas × 100 (redondeado a 2). Ordena por `conversion_pct` descendente.
 ```sql solucion

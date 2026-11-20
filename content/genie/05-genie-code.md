@@ -161,6 +161,35 @@ La documentación recomienda **revisar siempre** el código antes de ejecutarlo,
 Lo uso para acelerar, no para decidir: le doy pedidos concretos con las tablas, las reglas y el destino, y defino instrucciones permanentes con las convenciones del equipo. Reviso cada propuesta antes de ejecutarla, en especial reglas de negocio, nulos, idempotencia y rendimiento, y le pido que explique lo que no entiendo. El código generado pasa por pull request y tests como cualquier otro, y tengo en cuenta qué datos se envían al modelo.
 :::
 
+:::practica databricks:notebook Pedir bien y verificar lo que propone el asistente
+1. Se crea un notebook con una plantilla de pedido (celda 1) y la consulta que un asistente podría proponer (celda 2).
+2. Fíjate en el pedido: dice la tabla, el grano, el filtro y el formato de salida. Un pedido vago produce código vago.
+3. Ejecuta la celda 2 y **verifícala** antes de usarla: ¿excluye cancelados? ¿el total coincide con otra forma de calcularlo?
+
+```python norun
+# Databricks notebook source
+# MAGIC %md
+# MAGIC ### Pedido al asistente (plantilla)
+# MAGIC "Con `samples.tienda.pedidos` y `samples.tienda.detalle_pedidos`, calcula las ventas netas por mes de 2024
+# MAGIC (cantidad × precio_unitario × (1 − descuento)), solo pedidos entregados. Una fila por mes, ordenado por mes."
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT date_trunc('month', p.fecha_pedido) AS mes,
+# MAGIC        ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas
+# MAGIC FROM samples.tienda.pedidos p
+# MAGIC JOIN samples.tienda.detalle_pedidos d ON d.pedido_id = p.pedido_id
+# MAGIC WHERE p.estado = 'entregado' AND p.fecha_pedido >= '2024-01-01'
+# MAGIC GROUP BY ALL
+# MAGIC ORDER BY mes
+```
+
+Reto: escribe en la celda 1 un pedido malo ("dame las ventas") y otro bueno para la misma tarea, y explica qué le falta al malo.
+
+Documentación oficial: [el asistente en notebooks](https://docs.databricks.com/aws/en/notebooks/use-databricks-assistant) · [preguntas frecuentes del asistente](https://docs.databricks.com/aws/en/notebooks/databricks-assistant-faq)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz dificultad=Básico

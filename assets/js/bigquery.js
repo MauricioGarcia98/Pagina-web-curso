@@ -36,6 +36,14 @@
   function vista(m, ctx, sub) {
     main = m; Store = ctx.Store; toast = ctx.toast || toast; ruta = (sub || []).map(decodeURIComponent);
     M().conectar(Store); document.body.classList.add('bq-abierto');
+    // práctica de una lección (practica.js): una consulta nueva con el SQL de la lección, una sola vez por práctica
+    try {
+      const enc = JSON.parse(sessionStorage.getItem('practica-activa') || 'null');
+      const marca = enc && enc.leccion ? enc.leccion.id + '#' + enc.idx : '';
+      if (enc && enc.app === 'bigquery' && enc.codigo && sessionStorage.getItem('bq-practica') !== marca) {
+        sessionStorage.setItem('bq-practica', marca); nuevaConsulta(enc.codigo.trim(), 'Práctica: ' + (enc.titulo || 'consulta').slice(0, 40)); return;
+      }
+    } catch (e) { /* sin práctica */ }
     dibujar();
   }
   function marco(contenido, seccion) {

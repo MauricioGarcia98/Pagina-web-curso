@@ -177,6 +177,25 @@ aws glue get-job-runs --job-name etl-ventas-silver --query &quot;JobRuns[].{Id:I
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un crawler que descubre el esquema</div>
+
+<ol>
+<li>Sube el archivo y crea la base del catálogo.</li>
+<li>Crea el crawler apuntando al prefijo y ejecútalo.</li>
+<li>Lista las tablas: el crawler leyó el archivo y registró columnas y tipos en el Data Catalog.</li>
+</ol>
+<pre data-norun><code class="language-bash">aws configure
+aws s3 mb s3://lake-practica-dev
+aws s3 cp datos/clientes.csv s3://lake-practica-dev/bronze/clientes/
+aws glue create-database --database-input '{&quot;Name&quot;: &quot;lake_bronze&quot;}'
+aws glue create-crawler --name crawler-clientes --role GlueServiceRole-datos --database-name lake_bronze --targets '{&quot;S3Targets&quot;: [{&quot;Path&quot;: &quot;s3://lake-practica-dev/bronze/clientes/&quot;}]}'
+aws glue start-crawler --name crawler-clientes
+aws glue get-tables --database-name lake_bronze --query &quot;TableList[].Name&quot;</code></pre>
+<p>Reto: explica por qué conviene un crawler por tabla (prefijo) y no uno para todo el lago.</p>
+<p>Documentación oficial: <a href="https://docs.aws.amazon.com/glue/latest/dg/add-crawler.html">crawlers de Glue</a> · <a href="https://docs.aws.amazon.com/glue/latest/dg/catalog-and-crawler.html">Data Catalog</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

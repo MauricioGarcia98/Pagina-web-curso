@@ -186,6 +186,22 @@ aws emr terminate-clusters --cluster-ids j-ABC123</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Consultar Redshift con la Data API</div>
+
+<ol>
+<li>Lanza una consulta con la Data API: no necesitas un driver ni una conexión abierta.</li>
+<li>Revisa el estado y pide el resultado con el id.</li>
+<li>Piensa cuándo usarías Redshift (consultas de negocio, concurrencia) y cuándo EMR (Spark a medida).</li>
+</ol>
+<pre data-norun><code class="language-bash">aws configure
+ID=$(aws redshift-data execute-statement --workgroup-name analitica --database tienda --sql &quot;SELECT canal, COUNT(*) AS pedidos FROM pedidos GROUP BY canal&quot; --query Id --output text)
+aws redshift-data describe-statement --id $ID --query Status
+aws redshift-data get-statement-result --id $ID</code></pre>
+<p>Reto: arma la tabla de decisión Athena / Redshift / EMR con tres preguntas: ¿cuántas consultas por hora? ¿quién las corre? ¿cuánto dato?</p>
+<p>Documentación oficial: <a href="https://docs.aws.amazon.com/redshift/latest/mgmt/data-api.html">Redshift Data API</a> · <a href="https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-what-is-emr.html">qué es EMR</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

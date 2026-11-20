@@ -110,6 +110,23 @@ GCP ofrece crédito inicial y una capa gratuita permanente (BigQuery: 10 GB de a
 - **Sin presupuesto ni alertas.** Configúralos el primer día.
 :::
 
+:::practica terminal Tu primera sesión con gcloud
+1. Inicia sesión y elige el proyecto: en Google Cloud todo vive dentro de un proyecto.
+2. Mira la configuración activa (cuenta, proyecto, región).
+3. Lista tus proyectos: es lo primero que haces en una empresa nueva.
+
+```bash norun
+gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud config list
+gcloud projects list
+```
+
+Reto: explica la diferencia entre `gcloud auth login` (tú, en la terminal) y `gcloud auth application-default login` (tus programas: Python, dbt, Terraform).
+
+Documentación oficial: [gcloud CLI](https://cloud.google.com/sdk/gcloud) · [jerarquía de recursos](https://cloud.google.com/resource-manager/docs/cloud-platform-resource-hierarchy)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

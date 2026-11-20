@@ -395,6 +395,28 @@ for pregunta in [&quot;¿Cuánto vendimos en 2024?&quot;, &quot;Ventas del local
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Preparar los datos del asistente de ventas</div>
+
+<ol>
+<li>Ejecuta: las tablas del proyecto en un esquema propio, con comentarios.</li>
+<li>Verifica los números base que usarás para evaluar al agente (pedidos y ventas totales de 2024).</li>
+<li>Sigue con los pasos de la lección: crear el agente con estas tablas, instrucciones, ejemplos y preguntas de prueba.</li>
+</ol>
+<pre data-norun><code class="language-sql">CREATE SCHEMA IF NOT EXISTS main.tienda_andina COMMENT 'Asistente de ventas de Tienda Andina';
+CREATE OR REPLACE TABLE main.tienda_andina.pedidos AS SELECT * FROM samples.tienda.pedidos;
+CREATE OR REPLACE TABLE main.tienda_andina.detalle_pedidos AS SELECT * FROM samples.tienda.detalle_pedidos;
+COMMENT ON TABLE main.tienda_andina.pedidos IS 'Un pedido por fila, con canal, estado y fecha';
+COMMENT ON TABLE main.tienda_andina.detalle_pedidos IS 'Una línea de producto por fila; importe = cantidad * precio_unitario * (1 - descuento)';
+SELECT COUNT(DISTINCT p.pedido_id) AS pedidos_2024,
+       ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas_2024
+FROM main.tienda_andina.pedidos p
+JOIN main.tienda_andina.detalle_pedidos d ON d.pedido_id = p.pedido_id
+WHERE p.estado = 'entregado' AND p.fecha_pedido &gt;= '2024-01-01';</code></pre>
+<p>Reto: define tres preguntas de prueba con su respuesta esperada usando estas tablas, antes de crear el agente.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/genie/set-up">crear un Genie Agent</a> · <a href="https://docs.databricks.com/aws/en/genie/best-practices">buenas prácticas</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

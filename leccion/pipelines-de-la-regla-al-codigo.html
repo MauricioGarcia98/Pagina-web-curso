@@ -223,6 +223,29 @@ COMMIT;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: De la regla escrita a una función con pruebas</div>
+
+<ol>
+<li>Regla del negocio: &quot;un pedido es <strong>mayorista</strong> si suma más de 50 unidades <strong>o</strong> supera los 500.000; los cancelados nunca lo son&quot;.</li>
+<li>Ejecuta: la regla vive en una sola función pura (recibe datos, devuelve un valor) y las pruebas son los ejemplos que acordaste con el negocio.</li>
+<li>Agrega el caso borde que falta: un pedido de exactamente 50 unidades.</li>
+</ol>
+<pre data-norun><code class="language-python">def es_mayorista(unidades: int, monto: float, estado: str) -&gt; bool:
+    if estado == &quot;cancelado&quot;:
+        return False
+    return unidades &gt; 50 or monto &gt; 500_000
+
+# los ejemplos acordados con el negocio, convertidos en pruebas
+assert es_mayorista(60, 10_000, &quot;entregado&quot;) is True
+assert es_mayorista(10, 600_000, &quot;entregado&quot;) is True
+assert es_mayorista(80, 900_000, &quot;cancelado&quot;) is False
+assert es_mayorista(5, 1_000, &quot;entregado&quot;) is False
+print(&quot;la regla cumple los 4 ejemplos&quot;)</code></pre>
+<p>Reto: el negocio agrega &quot;los pedidos de la tienda física nunca son mayoristas&quot;. Cámbialo sin romper las pruebas anteriores.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/tutorial/controlflow.html#defining-functions">funciones</a> · <a href="https://docs.pytest.org/en/stable/getting-started.html">pytest</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

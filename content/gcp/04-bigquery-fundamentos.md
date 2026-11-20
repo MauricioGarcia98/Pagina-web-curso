@@ -149,6 +149,24 @@ En BigQuery puedes filtrar por una función de ventana sin subconsulta: `SELECT 
 
 ## Ejercicios de SQL
 
+:::practica bigquery Tu primera consulta en la consola de BigQuery
+1. En el panel **Explorer**, abre el proyecto `tienda-andina-dev` → dataset `tienda` → tabla `clientes`: mira **Schema** y **Preview** (la vista previa no cuesta).
+2. Pega la consulta en el editor y, **antes de ejecutar**, lee arriba a la derecha cuántos bytes va a procesar.
+3. Ejecuta y compara con `SELECT *`: en BigQuery pagas por columnas leídas, no por filas devueltas.
+
+```sql norun
+SELECT ciudad, COUNT(*) AS clientes
+FROM `tienda-andina-dev.tienda.clientes`
+GROUP BY ciudad
+ORDER BY clientes DESC
+LIMIT 10;
+```
+
+Reto: carga el mismo CSV desde la terminal con `bq load --autodetect` y compara el esquema que infirió con el de la consola.
+
+Documentación oficial: [la consola de BigQuery](https://cloud.google.com/bigquery/docs/bigquery-web-ui) · [estimar costos](https://cloud.google.com/bigquery/docs/estimate-costs)
+:::
+
 :::ejercicio sql ordenado titulo="Último pedido de cada cliente (deduplicación)"
 Para cada cliente con pedidos, devuelve su **último** pedido: `cliente_id`, `pedido_id`, `fecha_pedido`, `canal`. Si hay dos pedidos el mismo instante, quédate con el `pedido_id` mayor. Ordena por `cliente_id`. (En BigQuery lo harías con `QUALIFY`.)
 ```sql solucion

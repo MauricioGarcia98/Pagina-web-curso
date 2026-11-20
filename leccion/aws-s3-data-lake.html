@@ -139,6 +139,24 @@ aws s3api put-public-access-block --bucket lake-tienda-dev \
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un data lake en S3 con capas</div>
+
+<ol>
+<li>Crea el bucket del lago y sube el archivo crudo a <code>bronze/</code> con un prefijo por tabla.</li>
+<li>Lista el lago completo con <code>--recursive --summarize</code>.</li>
+<li>Copia a <code>silver/</code> y borra lo que sobra: en S3 no hay carpetas, solo prefijos en el nombre del objeto.</li>
+</ol>
+<pre data-norun><code class="language-bash">aws configure
+aws s3 mb s3://lake-practica-dev
+aws s3 cp datos/clientes.csv s3://lake-practica-dev/bronze/clientes/
+aws s3 cp datos/ventas_2024_12.csv s3://lake-practica-dev/bronze/ventas/anio=2024/mes=12/
+aws s3 ls s3://lake-practica-dev --recursive --summarize
+aws s3 cp s3://lake-practica-dev/bronze/clientes/clientes.csv s3://lake-practica-dev/silver/clientes/</code></pre>
+<p>Reto: genera un enlace temporal de 1 hora con <code>aws s3 presign</code> y explica por qué es mejor que hacer público el bucket.</p>
+<p>Documentación oficial: <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-services-s3-commands.html">comandos de aws s3</a> · <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-prefixes.html">prefijos en S3</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -250,6 +250,22 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tu primera sesión con la AWS CLI</div>
+
+<ol>
+<li>Configura las credenciales (en la práctica se simulan; en tu trabajo usa IAM Identity Center, nunca claves pegadas en un script).</li>
+<li>Pregúntale a AWS quién eres: cuenta, usuario y ARN.</li>
+<li>Lista tus buckets y tus roles: es el primer mapa de cualquier cuenta nueva.</li>
+</ol>
+<pre data-norun><code class="language-bash">aws configure
+aws sts get-caller-identity
+aws s3 ls
+aws iam list-roles --query &quot;Roles[].RoleName&quot; --output text</code></pre>
+<p>Reto: con <code>--query</code>, muestra solo el número de cuenta de <code>get-caller-identity</code>.</p>
+<p>Documentación oficial: <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html">AWS CLI</a> · <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html">qué es IAM</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

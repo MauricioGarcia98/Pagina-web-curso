@@ -157,6 +157,24 @@ Estos ejercicios corren Python de verdad en tu navegador. No hay `boto3` (no est
 - **Firehose sin pensar el tamaño del buffer.** Buffers chicos crean miles de archivos pequeños en S3.
 :::
 
+:::practica terminal Un stream de Kinesis de punta a punta
+1. Crea el stream y mira su resumen (shards, retención).
+2. Publica dos eventos con su clave de partición: la misma clave cae siempre en el mismo shard y conserva el orden.
+3. Piensa cómo seguiría: Firehose los lleva a S3 cada pocos minutos o una Lambda reacciona a cada uno.
+
+```bash norun
+aws configure
+aws kinesis create-stream --stream-name transacciones --shard-count 1
+aws kinesis describe-stream-summary --stream-name transacciones
+aws kinesis put-record --stream-name transacciones --partition-key cuenta-1042 --data '{"cuenta_id": 1042, "monto": 350.0}' --cli-binary-format raw-in-base64-out
+aws kinesis put-record --stream-name transacciones --partition-key cuenta-7 --data '{"cuenta_id": 7, "monto": 12.5}' --cli-binary-format raw-in-base64-out
+```
+
+Reto: calcula cuántos shards necesitas para 3.000 eventos por segundo de 1 KB (cada shard acepta 1 MB/s o 1.000 registros/s de escritura).
+
+Documentación oficial: [Kinesis Data Streams](https://docs.aws.amazon.com/streams/latest/dev/introduction.html) · [Amazon Data Firehose](https://docs.aws.amazon.com/firehose/latest/dev/what-is-this-service.html)
+:::
+
 :::ejercicio python titulo="Handler de S3: qué archivos procesar"
 Escribe `handler(event, context)` que devuelva un diccionario `{"procesar": [...], "ignorados": N}`:
 

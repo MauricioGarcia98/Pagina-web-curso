@@ -147,6 +147,30 @@ Las nubes ofrecen integraciones que replican automáticamente una base transacci
 Explica los cuatro principios en una frase cada uno. Luego da criterio: tiene sentido en organizaciones grandes, con muchos dominios y equipos con capacidades de datos, y con una plataforma central madura que dé autoservicio; en organizaciones chicas agrega complejidad sin beneficio. Cierra con lo que sí adoptarías siempre: tratar los datasets publicados como productos, con dueño, contrato, calidad y SLA.
 :::
 
+:::practica sql Una sola definición de cada métrica (capa semántica)
+1. Ejecuta: la vista define **una vez** qué es "venta neta" (con descuento, sin cancelados ni devueltos).
+2. Las dos consultas siguientes la reutilizan con distintos cortes: ninguna repite la fórmula.
+3. Esa es la idea de la capa semántica: si mañana cambia la definición, se cambia en un solo lugar.
+
+```sql norun
+DROP VIEW IF EXISTS metrica_venta_neta;
+CREATE VIEW metrica_venta_neta AS
+SELECT p.pedido_id, p.fecha_pedido, p.canal, c.pais,
+       d.cantidad * d.precio_unitario * (1 - d.descuento) AS venta_neta
+FROM pedidos p
+JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+JOIN clientes c ON c.cliente_id = p.cliente_id
+WHERE p.estado NOT IN ('cancelado', 'devuelto');
+
+SELECT canal, ROUND(SUM(venta_neta), 2) AS venta_neta FROM metrica_venta_neta GROUP BY canal ORDER BY venta_neta DESC;
+SELECT pais, ROUND(SUM(venta_neta), 2) AS venta_neta FROM metrica_venta_neta GROUP BY pais ORDER BY venta_neta DESC LIMIT 5;
+```
+
+Reto: busca en la documentación de Databricks qué son las *metric views* y escribe esta métrica en ese formato.
+
+Documentación oficial: [metric views (Databricks)](https://docs.databricks.com/aws/en/metric-views/) · [MetricFlow (dbt)](https://docs.getdbt.com/docs/build/about-metricflow)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

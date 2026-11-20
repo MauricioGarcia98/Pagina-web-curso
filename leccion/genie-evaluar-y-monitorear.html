@@ -167,6 +167,27 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un set de preguntas de prueba con su respuesta correcta</div>
+
+<ol>
+<li>Antes de compartir el agente, arma tus preguntas de prueba: cada una con el SQL que da la respuesta correcta (de abajo).</li>
+<li>Corre el SQL en el <strong>SQL Editor</strong> y anota el número esperado.</li>
+<li>Haz la misma pregunta en <strong>Chat</strong> y compara: si no coincide, ajusta instrucciones o ejemplos y vuelve a probar todas (las benchmarks del producto automatizan esto).</li>
+</ol>
+<pre data-norun><code class="language-sql">-- Pregunta: ¿cuántos pedidos entregados hubo en diciembre de 2024?
+SELECT COUNT(*) FROM samples.tienda.pedidos
+WHERE estado = 'entregado' AND fecha_pedido BETWEEN '2024-12-01' AND '2024-12-31';
+
+-- Pregunta: ¿qué canal vendió más en 2024?
+SELECT p.canal, ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas
+FROM samples.tienda.pedidos p JOIN samples.tienda.detalle_pedidos d ON d.pedido_id = p.pedido_id
+WHERE p.estado = 'entregado' AND p.fecha_pedido &gt;= '2024-01-01'
+GROUP BY ALL ORDER BY ventas DESC LIMIT 1;</code></pre>
+<p>Reto: agrega una pregunta &quot;trampa&quot; (algo que el agente no debería responder con estas tablas) y define la respuesta correcta: decir que no tiene el dato.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/genie/benchmarks">benchmarks de Genie</a> · <a href="https://docs.databricks.com/aws/en/genie/monitor">monitorear un agente</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

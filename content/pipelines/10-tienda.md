@@ -30,6 +30,46 @@ Cada dimensión se convierte en un **puntaje del 1 al 5** según umbrales, y la 
 | `dormido` | R ≤ 2 |
 | `regular` | cualquier otro caso |
 
+:::practica airflow-lab El ETL completo de la tienda como DAG
+1. Ejecuta: extraer → validar → transformar → cargar, cada paso una tarea que pasa su resultado a la siguiente.
+2. La validación corta el pipeline si llegan menos filas de las esperadas (mejor fallar que publicar datos incompletos).
+3. Cambia el mínimo de filas a 10 y vuelve a correr: mira cómo falla y las tareas siguientes no corren.
+
+```python norun
+from datetime import datetime
+from airflow.sdk import dag, task
+from airflow.exceptions import AirflowFailException
+
+@dag(start_date=datetime(2024, 1, 1), schedule="@daily", catchup=False)
+def etl_tienda():
+    @task
+    def extraer():
+        return [{"pedido": i, "monto": 100 + i} for i in range(1, 6)]
+
+    @task
+    def validar(filas: list):
+        if len(filas) < 3:
+            raise AirflowFailException(f"llegaron {len(filas)} filas, se esperaban al menos 3")
+        return filas
+
+    @task
+    def transformar(filas: list):
+        return {"pedidos": len(filas), "total": sum(f["monto"] for f in filas)}
+
+    @task
+    def cargar(resumen: dict):
+        print("cargando en gold:", resumen)
+
+    cargar(transformar(validar(extraer())))
+
+etl_tienda().test()
+```
+
+Reto: agrega reintentos a `extraer` (`retries=2`) pero no a `validar`: explica por qué uno se reintenta y el otro no.
+
+Documentación oficial: [tareas](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/tasks.html) · [buenas prácticas](https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html)
+:::
+
 :::ejercicio python titulo="segmento_rfm"
 Escribe `puntaje(valor, umbrales, mayor_es_mejor=True)`: recibe 4 umbrales crecientes y devuelve 1 a 5 (con `mayor_es_mejor`, valor ≤ umbral[0] → 1, ≤ umbral[1] → 2, …, mayor que umbral[3] → 5; si `mayor_es_mejor` es `False`, el puntaje se invierte: `6 - puntaje`). Escribe también `segmento_rfm(dias, pedidos, monto)` usando los umbrales `R_UMBRALES` (días, menos es mejor), `F_UMBRALES` y `M_UMBRALES`, y que devuelva `(r, f, m, segmento)`.
 ```python inicial

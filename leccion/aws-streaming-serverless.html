@@ -133,6 +133,23 @@ aws logs tail /aws/lambda/procesar-archivo --follow</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un stream de Kinesis de punta a punta</div>
+
+<ol>
+<li>Crea el stream y mira su resumen (shards, retención).</li>
+<li>Publica dos eventos con su clave de partición: la misma clave cae siempre en el mismo shard y conserva el orden.</li>
+<li>Piensa cómo seguiría: Firehose los lleva a S3 cada pocos minutos o una Lambda reacciona a cada uno.</li>
+</ol>
+<pre data-norun><code class="language-bash">aws configure
+aws kinesis create-stream --stream-name transacciones --shard-count 1
+aws kinesis describe-stream-summary --stream-name transacciones
+aws kinesis put-record --stream-name transacciones --partition-key cuenta-1042 --data '{&quot;cuenta_id&quot;: 1042, &quot;monto&quot;: 350.0}' --cli-binary-format raw-in-base64-out
+aws kinesis put-record --stream-name transacciones --partition-key cuenta-7 --data '{&quot;cuenta_id&quot;: 7, &quot;monto&quot;: 12.5}' --cli-binary-format raw-in-base64-out</code></pre>
+<p>Reto: calcula cuántos shards necesitas para 3.000 eventos por segundo de 1 KB (cada shard acepta 1 MB/s o 1.000 registros/s de escritura).</p>
+<p>Documentación oficial: <a href="https://docs.aws.amazon.com/streams/latest/dev/introduction.html">Kinesis Data Streams</a> · <a href="https://docs.aws.amazon.com/firehose/latest/dev/what-is-this-service.html">Amazon Data Firehose</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

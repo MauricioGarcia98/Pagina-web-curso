@@ -138,6 +138,23 @@ La configuración de un agente (tablas, instrucciones, ejemplos, SQL expressions
 Usaría la API de chat con un service principal autenticado por OAuth máquina a máquina, con CAN VIEW sobre el agente y SELECT sobre sus tablas, o el SDK de Python que resuelve el sondeo. La aplicación inicia la conversación, consulta el estado cada pocos segundos con espera exponencial hasta un estado final y corta a los 10 minutos, y luego muestra el resultado, el resumen y el SQL. Para que cada usuario vea solo sus datos, preferiría que la app actúe con la identidad del usuario, o aplicaría filtros de filas en Unity Catalog. Y borraría conversaciones viejas para respetar el límite.
 :::
 
+:::practica databricks:dashboards Llevar las respuestas a un tablero
+1. En **Dashboards**, crea un tablero con un dataset que use la vista `main.genie.ventas` (créala en la práctica de la lección 2).
+2. Agrega una visualización de ventas por canal y otra por mes.
+3. Piensa quién usa qué: el tablero responde las preguntas de siempre; el agente, las preguntas nuevas.
+
+```sql norun
+SELECT canal, ROUND(SUM(importe), 2) AS ventas
+FROM main.genie.ventas
+GROUP BY ALL
+ORDER BY ventas DESC;
+```
+
+Reto: lee la documentación de la Genie API y escribe en tres pasos cómo una app interna haría una pregunta y leería la respuesta (iniciar conversación, esperar, leer el resultado).
+
+Documentación oficial: [tableros de AI/BI](https://docs.databricks.com/aws/en/dashboards/) · [Genie Conversation API](https://docs.databricks.com/aws/en/genie/conversation-api)
+:::
+
 ## Ejercicios
 
 :::ejercicio python dificultad=Avanzado titulo="Sondear un mensaje con espera exponencial"

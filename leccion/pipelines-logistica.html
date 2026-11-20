@@ -48,6 +48,37 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Costo de lo vendido con FIFO</div>
+
+<ol>
+<li>Ejecuta: las compras entran a una cola con su costo; cada venta consume primero lo más viejo (<em>first in, first out</em>).</li>
+<li>Mira el costo de cada venta: puede mezclar lotes con precios distintos.</li>
+<li>Verifica el stock final: unidades compradas menos vendidas.</li>
+</ol>
+<pre data-norun><code class="language-python">from collections import deque
+
+movimientos = [(&quot;entrada&quot;, 100, 10.0), (&quot;entrada&quot;, 50, 12.0), (&quot;salida&quot;, 120, None), (&quot;entrada&quot;, 80, 11.0), (&quot;salida&quot;, 90, None)]
+lotes = deque()
+for tipo, cant, costo in movimientos:
+    if tipo == &quot;entrada&quot;:
+        lotes.append([cant, costo])
+        continue
+    pendiente, total = cant, 0.0
+    while pendiente:
+        lote = lotes[0]
+        usa = min(pendiente, lote[0])
+        total += usa * lote[1]
+        lote[0] -= usa
+        pendiente -= usa
+        if lote[0] == 0:
+            lotes.popleft()
+    print(f&quot;venta de {cant}: costo {total:,.2f} ({total / cant:.2f} por unidad)&quot;)
+print(&quot;stock final:&quot;, [tuple(l) for l in lotes])</code></pre>
+<p>Reto: ¿qué pasa si una venta pide más de lo que hay en stock? Decide qué hacer (error o venta parcial) y agrégalo.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/library/collections.html#collections.deque">collections.deque</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

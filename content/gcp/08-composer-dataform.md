@@ -209,6 +209,22 @@ FILTER USING (pais = 'Chile');
  gobierno: policy tags en email/edad, row-level por país, Dataplex (calidad + linaje) · IaC: Terraform + Cloud Build
 ```
 
+:::practica terminal Ver el Airflow administrado de Google Cloud
+1. Lista los entornos de Cloud Composer: cada entorno es un Airflow completo administrado por Google.
+2. Los DAGs se suben a la carpeta `dags/` del bucket del entorno.
+3. Compara con Dataform: SQL versionado que corre dentro de BigQuery, sin Airflow.
+
+```bash norun
+gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud composer environments list --locations us-central1
+```
+
+Reto: arma la arquitectura de referencia en una línea por capa: ingesta (Pub/Sub), lago (Cloud Storage), transformación (Dataform o Dataproc), warehouse (BigQuery), orquestación (Composer).
+
+Documentación oficial: [Cloud Composer](https://cloud.google.com/composer/docs/composer-3/composer-overview) · [Dataform](https://cloud.google.com/dataform/docs/overview)
+:::
+
 ## Ejercicios
 
 :::ejercicio dbt titulo="Modelo para BigQuery con dbt: MRR por plan"

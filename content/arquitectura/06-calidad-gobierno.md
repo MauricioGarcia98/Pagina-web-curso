@@ -184,6 +184,29 @@ LIMIT 5;
 Habla de capas: contratos y controles de volumen en la ingesta; tests de unicidad, nulos, valores e integridad en silver (que frenan); conciliación y rangos en gold (que alertan); SLAs de frescura con alertas; linaje para saber a quién afecta un problema; y un proceso de incidentes con post-mortem. Menciona el principio "mejor viejo que incorrecto".
 :::
 
+:::practica sql Un tablero de controles de calidad en una consulta
+1. Ejecuta: cada fila es un control sobre `bronze_pedidos` (completitud, unicidad, validez) con su cantidad de fallas; la última consulta mide la frescura.
+2. Un control que falla no siempre corta el pipeline: decide cuáles bloquean (unicidad del id) y cuáles solo avisan.
+3. Mira cuántos duplicados y montos inválidos trae la capa bronze.
+
+```sql norun
+SELECT 'emails nulos' AS control, COUNT(*) AS fallas FROM bronze_pedidos WHERE cliente_email IS NULL
+UNION ALL
+SELECT 'pedidos duplicados', COUNT(*) - COUNT(DISTINCT pedido_id) FROM bronze_pedidos
+UNION ALL
+SELECT 'montos con coma decimal', COUNT(*) FROM bronze_pedidos WHERE monto LIKE '%,%'
+UNION ALL
+SELECT 'estados fuera de la lista', COUNT(*) FROM bronze_pedidos WHERE LOWER(TRIM(estado)) NOT IN ('entregado', 'enviado', 'pendiente', 'cancelado', 'devuelto');
+
+-- frescura: ¿cuándo llegó lo último? (compáralo con la hora de hoy y con el SLA acordado)
+SELECT MAX(cargado_en) AS ultima_carga, MAX(fecha) AS ultima_fecha_de_negocio FROM bronze_pedidos;
+```
+
+Reto: convierte dos de estos controles en tests de dbt (`unique` y `accepted_values`) y explica qué gana el equipo.
+
+Documentación oficial: [tests de datos en dbt](https://docs.getdbt.com/docs/build/data-tests) · [expectativas en pipelines declarativos](https://docs.databricks.com/aws/en/ldp/expectations)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

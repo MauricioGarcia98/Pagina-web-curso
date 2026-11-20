@@ -144,6 +144,26 @@ Las próximas lecciones de este módulo recorren las grandes decisiones, una por
 No empieces por las herramientas. Pregunta primero: ¿qué preguntas quieren responder?, ¿cada cuánto?, ¿cuánto volumen hay?, ¿quién consume los datos?, ¿en qué nube están? Después recorre los siete componentes en orden (fuentes → ingesta → almacenamiento → procesamiento → servicio, y luego orquestación, calidad y gobierno), nombrando una herramienta para cada uno y **por qué**. Termina con los riesgos: costos, puntos únicos de falla y cómo escalaría.
 :::
 
+:::practica sql Los requisitos en números: volumen y picos
+1. Antes de dibujar una arquitectura hay que medir. Ejecuta: pedidos por día (promedio y máximo) y la hora pico.
+2. Con esos números decides: ¿alcanza un batch nocturno o hace falta algo casi en tiempo real?
+3. Anota el resultado como lo pondrías en un documento de diseño: "N pedidos/día, pico de M por hora".
+
+```sql norun
+WITH por_dia AS (
+    SELECT fecha_pedido, COUNT(*) AS pedidos FROM pedidos GROUP BY fecha_pedido
+)
+SELECT ROUND(AVG(pedidos), 1) AS promedio_diario,
+       MAX(pedidos)           AS dia_pico,
+       COUNT(*)               AS dias_con_datos
+FROM por_dia;
+```
+
+Reto: estima cuánto ocuparían 5 años de pedidos y detalle si cada fila pesa unos 200 bytes en Parquet comprimido.
+
+Documentación oficial: [guía de arquitectura de datos (Microsoft)](https://learn.microsoft.com/es-es/azure/architecture/data-guide/) · [Analytics Lens (AWS)](https://docs.aws.amazon.com/wellarchitected/latest/analytics-lens/analytics-lens.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

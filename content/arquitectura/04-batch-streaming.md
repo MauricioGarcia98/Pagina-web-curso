@@ -154,6 +154,35 @@ En la práctica, "exactamente una vez" casi siempre se logra así: **al menos un
 Es el umbral de tiempo del evento hasta el que el sistema considera que ya llegaron (casi) todos los datos. Permite cerrar ventanas y liberar estado aunque el stream no termine. Un evento con tiempo anterior a la marca se considera tardío y se descarta o se envía aparte. Explica el compromiso: una marca más permisiva da resultados más exactos pero con más demora y más memoria.
 :::
 
+:::practica python Tiempo del evento, ventanas y datos tardíos
+1. Ejecuta: los eventos llegan desordenados; cada uno tiene la hora en que **ocurrió** (evento) y la hora en que **llegó** (proceso).
+2. Se agrupan en ventanas de 5 minutos por hora del evento, con una marca de agua de 10 minutos: lo que llega más tarde se descarta.
+3. Cambia la marca de agua a 30 minutos y mira qué evento deja de perderse.
+
+```python norun
+eventos = [  # (minuto del evento, minuto de llegada)
+    (1, 1), (3, 4), (6, 7), (2, 9), (8, 9), (11, 12), (4, 20),
+]
+MARCA_DE_AGUA = 10
+ventanas, descartados = {}, []
+maximo_visto = 0
+for ev, llega in sorted(eventos, key=lambda e: e[1]):
+    maximo_visto = max(maximo_visto, ev)
+    if ev < maximo_visto - MARCA_DE_AGUA:
+        descartados.append((ev, llega))
+        continue
+    inicio = ev // 5 * 5
+    ventanas[inicio] = ventanas.get(inicio, 0) + 1
+for inicio in sorted(ventanas):
+    print(f"[{inicio:02}-{inicio + 5:02}) {ventanas[inicio]} eventos")
+print("descartados por tardíos:", descartados)
+```
+
+Reto: escribe lo mismo en Structured Streaming con `withWatermark("ts", "10 minutes")` y `F.window("ts", "5 minutes")`.
+
+Documentación oficial: [watermarking en Spark](https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html#handling-late-data-and-watermarking) · [watermarks en Apache Beam](https://beam.apache.org/documentation/basics/#watermark)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

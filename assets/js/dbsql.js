@@ -348,7 +348,41 @@
     const recortar = (x) => { let a = 0, b = x.length; while (a < b && x[a].t === 'ws') a++; while (b > a && x[b - 1].t === 'ws') b--; return x.slice(a, b); };
     // _metadata.file_name (y file_path, file_size…) de read_files: columna oculta con los datos del archivo de cada fila
     const conMeta = (x) => { const y = []; for (let i = 0; i < x.length; i++) { if (x[i].t === 'w' && /^_metadata$/i.test(x[i].v) && x[i + 1] && x[i + 1].v === '.' && x[i + 2] && x[i + 2].t === 'w') { y.push({ t: 'w', v: `get_json_object(_metadata, '$.${x[i + 2].v}')` }); i += 2; } else y.push(x[i]); } return y; };
-    return out.map(recortar).filter((x) => x.length).map((x) => { const y = valoresEnLinea(x); return { T: conMeta(y), texto: unirOriginal(y).trim(), original: unirOriginal(x).trim(), meta: x.some((tk) => tk.t === 'w' && /^_metadata$/i.test(tk.v)) }; });
+    return out.map(recortar).filter((x) => x.length).map((x) => { const y = grupoTodo(valoresEnLinea(x)); return { T: conMeta(y), texto: unirOriginal(y).trim(), original: unirOriginal(x).trim(), meta: x.some((tk) => tk.t === 'w' && /^_metadata$/i.test(tk.v)) }; });
+  }
+  // GROUP BY ALL, como en Databricks: agrupa por todas las expresiones del SELECT que no tienen agregaciones.
+  // Se reescribe con sus posiciones (GROUP BY 1, 2), que SQLite entiende.
+  const AGREGADAS = /^(COUNT|SUM|AVG|MIN|MAX|COUNT_IF|SUM_IF|ANY_VALUE|FIRST|LAST|COLLECT_LIST|COLLECT_SET|ARRAY_AGG|STDDEV|STDDEV_POP|STDDEV_SAMP|VARIANCE|VAR_POP|VAR_SAMP|PERCENTILE|PERCENTILE_APPROX|APPROX_COUNT_DISTINCT|MEDIAN|MODE|BOOL_AND|BOOL_OR|EVERY|STRING_AGG|LISTAGG|MAX_BY|MIN_BY|GROUP_CONCAT)$/i;
+  function grupoTodo(x) {
+    for (let i = 0; i < x.length; i++) {
+      if (!(x[i].t === 'w' && /^GROUP$/i.test(x[i].v))) continue;
+      const b = sig(x, i + 1), a = sig(x, b + 1);
+      if (!(x[b] && /^BY$/i.test(x[b].v) && x[a] && x[a].t === 'w' && /^ALL$/i.test(x[a].v))) continue;
+      // el SELECT del mismo nivel de paréntesis, hacia atrás
+      let d = 0, sel = -1;
+      for (let j = i - 1; j >= 0; j--) { const v = x[j].v; if (v === ')') d++; else if (v === '(') { if (d === 0) break; d--; } else if (d === 0 && x[j].t === 'w' && /^SELECT$/i.test(v)) { sel = j; break; } }
+      if (sel < 0) continue;
+      // la lista de columnas: del SELECT al FROM del mismo nivel
+      const items = []; let cur = []; d = 0;
+      for (let j = sel + 1; j < i; j++) {
+        const tk = x[j];
+        if (tk.v === '(') d++; else if (tk.v === ')') d--;
+        if (d === 0 && tk.t === 'w' && /^FROM$/i.test(tk.v)) break;
+        if (d === 0 && tk.t === 'p' && tk.v === ',') { items.push(cur); cur = []; continue; }
+        if (!(cur.length === 0 && tk.t === 'w' && /^DISTINCT$/i.test(tk.v) && !items.length)) cur.push(tk);
+      }
+      if (cur.length) items.push(cur);
+      const pos = [];
+      items.forEach((it, k) => {
+        const agregada = it.some((tk, n) => tk.t === 'w' && AGREGADAS.test(tk.v) && it[sig(it, n + 1)] && it[sig(it, n + 1)].v === '(');
+        if (!agregada) pos.push(k + 1);
+      });
+      if (!pos.length) { // sin columnas para agrupar: Databricks lo trata como agregación global
+        let k = a + 1; return grupoTodo([...x.slice(0, i), ...x.slice(k)]);
+      }
+      return grupoTodo([...x.slice(0, a), ...tokenizar(pos.join(', ')), ...x.slice(a + 1)]);
+    }
+    return x;
   }
   // Tablas en línea, como en Databricks: FROM VALUES (1, 'a'), (2, 'b') AS t(id, nombre)  y  USING (VALUES …) AS t(…)
   // se reescriben como (SELECT 1 AS id, 'a' AS nombre UNION ALL SELECT 2, 'b') AS t; sin lista de columnas: col1, col2…
@@ -1508,6 +1542,12 @@
     let i = T.findIndex((tk) => W(tk, 'VIEW')); i = sig(T, i + 1);
     if (W(T[i], 'IF')) i = sig(T, sig(T, sig(T, i + 1) + 1) + 1);
     const ids = [T[i].v]; let j = i; while (T[j + 1] && T[j + 1].v === '.' && esId(T[j + 2])) { ids.push(T[j + 2].v); j += 2; }
+    // lista de columnas opcional, como en Databricks: CREATE VIEW v (col1, col2 COMMENT '…') AS …
+    let listaCols = null; const ab = sig(T, j + 1);
+    if (T[ab] && T[ab].v === '(') {
+      const { args } = argsFuncion(T, ab);
+      listaCols = args.map((a) => { const t = a.filter((tk) => tk.t !== 'ws'); const ci = t.findIndex((tk) => W(tk, 'COMMENT')); return { n: t[0].v, comment: ci >= 0 && t[ci + 1] && t[ci + 1].t === 's' ? t[ci + 1].v : null }; });
+    }
     let k = j + 1; let d = 0; for (; k < T.length; k++) { if (T[k].v === '(') d++; else if (T[k].v === ')') d--; else if (d === 0 && W(T[k], 'AS')) break; }
     if (k >= T.length) err('PARSE_SYNTAX_ERROR', 'Syntax error: CREATE VIEW nombre AS SELECT …');
     const lecturas = [];
@@ -1522,13 +1562,15 @@
     const ref = resolver(ids, { crear: true, permitirVista: false });
     if (ref.meta && !reemplazar) { if (/\bIF\s+NOT\s+EXISTS\b/i.test(txt)) return { cols: [], filas: [], msg: 'OK' }; err('TABLE_OR_VIEW_ALREADY_EXISTS', `Cannot create table or view ${fq(ref.c, ref.s, ref.t)} because it already exists.`); }
     if (ref.meta && ref.meta.tipo !== 'VIEW') err('EXPECT_VIEW_NOT_TABLE.NO_ALTERNATIVE', `${fq(ref.c, ref.s, ref.t)} is a table. Bórrala antes de crear una vista con ese nombre.`);
-    db.run(`DROP VIEW IF EXISTS ${q(ref.sql)}`); db.run(`CREATE VIEW ${q(ref.sql)} AS ${sql}`);
+    const colsSql = listaCols ? ` (${listaCols.map((c) => q(c.n)).join(', ')})` : '';
+    db.run(`DROP VIEW IF EXISTS ${q(ref.sql)}`); db.run(`CREATE VIEW ${q(ref.sql)}${colsSql} AS ${sql}`);
     const r = db.exec(`SELECT * FROM ${q(ref.sql)} LIMIT 200`);
     const cn = r.length ? r[0].columns : (db.exec(`PRAGMA table_info(${q(ref.sql)})`)[0] || { values: [] }).values.map((y) => y[1]);
     const tipos = tiposDe(cn, r.length ? r[0].values : []);
     const S = uc().catalogs[ref.c].schemas[ref.s];
     S.tables[ref.t] = { tipo: /\bMATERIALIZED\b/i.test(txt) ? 'MATERIALIZED_VIEW' : 'VIEW', cols: cn.map((n, x) => ({ n, t: tipos[x] })), sqlite: sql, definicion: unirOriginal(T.slice(k + 1)).trim(), creado: ahora(), owner: USUARIO, comment: (/\bCOMMENT\s+'([^']*)'/i.exec(unirOriginal(T.slice(0, k))) || [])[1] || null };
     if (S.tables[ref.t].tipo === 'MATERIALIZED_VIEW') S.tables[ref.t].tipo = 'VIEW';
+    if (listaCols) for (const c of S.tables[ref.t].cols) { const lc = listaCols.find((y) => y.n.toLowerCase() === c.n.toLowerCase()); if (lc && lc.comment) c.comment = lc.comment; }
     for (const l of lecturas) if (!l.sistema) linaje(`${l.c}.${l.s}.${l.t}`, `${ref.c}.${ref.s}.${ref.t}`);
     uc().audit.push({ t: ahora(), servicio: 'unityCatalog', accion: 'createTable', params: { full_name_arg: `${ref.c}.${ref.s}.${ref.t}`, table_type: 'VIEW' } });
     guardar();

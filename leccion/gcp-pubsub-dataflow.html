@@ -158,6 +158,26 @@ gcloud dataflow jobs list --region us-central1</code></pre>
 
 
 <h2>Ejercicios: programa la lógica de streaming</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Publicar y leer mensajes con Pub/Sub</div>
+
+<ol>
+<li>Crea el tópico y una suscripción: el tópico recibe, la suscripción entrega a cada consumidor.</li>
+<li>Publica dos mensajes.</li>
+<li>Léelos con <code>pull</code>. Con <code>--auto-ack</code> se confirman; sin confirmar, Pub/Sub los vuelve a entregar.</li>
+</ol>
+<pre data-norun><code class="language-bash">gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud pubsub topics create ventas
+gcloud pubsub subscriptions create ventas-fraude --topic ventas
+gcloud pubsub topics publish ventas --message '{&quot;pedido_id&quot;: 1, &quot;total&quot;: 350.0}'
+gcloud pubsub topics publish ventas --message '{&quot;pedido_id&quot;: 2, &quot;total&quot;: 12.5}'
+gcloud pubsub subscriptions pull ventas-fraude --auto-ack --limit 10</code></pre>
+<p>Reto: crea una segunda suscripción y publica otro mensaje: ¿lo reciben las dos? Explica qué patrón es (fan-out).</p>
+<p>Documentación oficial: <a href="https://cloud.google.com/pubsub/docs/publish-receive-messages-gcloud">Pub/Sub con gcloud</a> · <a href="https://cloud.google.com/dataflow/docs/overview">Dataflow</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

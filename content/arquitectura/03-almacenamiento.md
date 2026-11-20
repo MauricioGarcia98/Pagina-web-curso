@@ -143,6 +143,28 @@ Una política típica: bronze de más de 90 días pasa a fría, de más de un a�
 Un data lake son archivos en almacenamiento de objetos: barato y flexible, pero sin transacciones, sin `UPDATE` ni `MERGE` y difícil de gobernar. Un lakehouse agrega un formato de tabla abierto (Delta, Iceberg, Hudi) con un log de transacciones: así tienes ACID, *time travel*, evolución de esquema y estadísticas, manteniendo los datos en archivos abiertos y baratos que leen varios motores. Un buen cierre: "es tener la confiabilidad de un warehouse con el costo y la apertura de un lake".
 :::
 
+:::practica pyspark Particionar en el lago y leer solo lo necesario
+1. Ejecuta: los pedidos se escriben en Parquet particionados por canal (una carpeta por valor).
+2. Al leer con un filtro por `canal`, Spark solo abre la carpeta de ese canal (*partition pruning*).
+3. Compara cuántas filas hay en total y cuántas lee la consulta filtrada.
+
+```python norun
+from pyspark.sql import functions as F
+
+pedidos = spark.table("pedidos")
+pedidos.write.mode("overwrite").partitionBy("canal").parquet("/lake/silver/pedidos_por_canal")
+
+lago = spark.read.parquet("/lake/silver/pedidos_por_canal")
+web = lago.filter(F.col("canal") == "web")
+print("total:", lago.count(), "| solo web:", web.count())
+web.explain()
+```
+
+Reto: explica por qué particionar por `cliente_id` sería una mala idea (piensa en cuántas carpetas chicas crearía).
+
+Documentación oficial: [particiones en Parquet](https://spark.apache.org/docs/latest/sql-data-sources-parquet.html#partition-discovery) · [buenas prácticas de Delta](https://docs.databricks.com/aws/en/delta/best-practices)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

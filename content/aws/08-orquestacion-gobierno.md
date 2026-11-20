@@ -280,6 +280,22 @@ aws cloudformation deploy --template-file lake.yaml --stack-name lake-banco-dev 
 Recorre la arquitectura **de izquierda a derecha** y justifica cada decisión con un requisito: "Kinesis porque la alerta de fraude debe salir en segundos; Iceberg en silver porque las cuentas cambian y necesito `MERGE`; Redshift solo para la capa gold porque los dashboards consultan cientos de veces por día; Lake Formation porque riesgo puede ver montos pero no datos personales". Después menciona **fallas**: reintentos, idempotencia, alertas y cómo reprocesar un día.
 :::
 
+:::practica terminal Programar un pipeline con EventBridge
+1. Crea una regla que corre todos los días a las 03:00 UTC (expresión `cron` de AWS: seis campos).
+2. Lista las reglas en una tabla con `--query`.
+3. En un caso real, el objetivo de la regla es la máquina de estados de Step Functions que corre el pipeline.
+
+```bash norun
+aws configure
+aws events put-rule --name diario-banco --schedule-expression "cron(0 3 * * ? *)"
+aws events list-rules --query "Rules[].{Nombre:Name, Horario:ScheduleExpression}" --output table
+```
+
+Reto: compara Step Functions y MWAA (Airflow administrado): ¿cuál elegirías para un pipeline de 4 pasos y cuál para 60 DAGs con dependencias?
+
+Documentación oficial: [reglas programadas](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html) · [Step Functions](https://docs.aws.amazon.com/step-functions/latest/dg/welcome.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio python titulo="Máquina de estados como código"

@@ -356,6 +356,29 @@ En un repositorio de GitHub con un `README.md`:
 Presentaría el asistente de ventas con Genie: el problema de negocio, la preparación de los datos en una vista documentada y una vista de métricas para tener una sola definición de cada indicador, cómo configuré el agente siguiendo el orden recomendado (sinónimos y coincidencia de valores, SQL expressions, una consulta con parámetros como respuesta verificada y pocas instrucciones de texto) y, sobre todo, la medición: benchmarks con variantes de cada pregunta, la exactitud de la línea base y cómo subió en cada iteración, y los límites conocidos.
 :::
 
+:::practica databricks:sql Preparar los datos del asistente de ventas
+1. Ejecuta: las tablas del proyecto en un esquema propio, con comentarios.
+2. Verifica los números base que usarás para evaluar al agente (pedidos y ventas totales de 2024).
+3. Sigue con los pasos de la lección: crear el agente con estas tablas, instrucciones, ejemplos y preguntas de prueba.
+
+```sql norun
+CREATE SCHEMA IF NOT EXISTS main.tienda_andina COMMENT 'Asistente de ventas de Tienda Andina';
+CREATE OR REPLACE TABLE main.tienda_andina.pedidos AS SELECT * FROM samples.tienda.pedidos;
+CREATE OR REPLACE TABLE main.tienda_andina.detalle_pedidos AS SELECT * FROM samples.tienda.detalle_pedidos;
+COMMENT ON TABLE main.tienda_andina.pedidos IS 'Un pedido por fila, con canal, estado y fecha';
+COMMENT ON TABLE main.tienda_andina.detalle_pedidos IS 'Una línea de producto por fila; importe = cantidad * precio_unitario * (1 - descuento)';
+SELECT COUNT(DISTINCT p.pedido_id) AS pedidos_2024,
+       ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas_2024
+FROM main.tienda_andina.pedidos p
+JOIN main.tienda_andina.detalle_pedidos d ON d.pedido_id = p.pedido_id
+WHERE p.estado = 'entregado' AND p.fecha_pedido >= '2024-01-01';
+```
+
+Reto: define tres preguntas de prueba con su respuesta esperada usando estas tablas, antes de crear el agente.
+
+Documentación oficial: [crear un Genie Agent](https://docs.databricks.com/aws/en/genie/set-up) · [buenas prácticas](https://docs.databricks.com/aws/en/genie/best-practices)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql dificultad=Intermedio titulo="El SQL Answer de la pregunta 3"

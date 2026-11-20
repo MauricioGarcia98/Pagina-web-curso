@@ -153,6 +153,22 @@ Genie lee los datos con los permisos de Unity Catalog de quien pregunta: el agen
 | Show code | Ver el SQL que generó Genie |
 | Permisos | Los datos se leen con los permisos de Unity Catalog de quien pregunta |
 
+:::practica databricks:genie Tu primer Genie Agent
+1. En **Genie Agents**, pulsa **New**, deja el nombre *Ventas de la tienda* y elige pocas tablas: `pedidos`, `detalle_pedidos`, `productos` y `clientes` de `samples.tienda`.
+2. En **Chat**, haz las preguntas de abajo y abre el SQL de cada respuesta: Genie no "inventa" números, escribe una consulta sobre tus tablas.
+3. Si una respuesta está mal, anota por qué: casi siempre falta una definición del negocio (lo resuelves en la lección 3).
+
+```text norun
+¿Cuántos pedidos hubo por canal en 2024?
+¿Cuáles son los 5 productos con más ventas?
+¿En qué país gastan más los clientes?
+```
+
+Reto: haz una pregunta ambigua ("¿cómo nos fue el mes pasado?") y mira qué supuesto tomó Genie.
+
+Documentación oficial: [qué es Genie](https://docs.databricks.com/aws/en/genie/) · [crear un agente](https://docs.databricks.com/aws/en/genie/set-up)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz dificultad=Básico

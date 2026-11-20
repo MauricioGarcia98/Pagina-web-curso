@@ -24,6 +24,42 @@ P(sobreventa) = P(se presentan más de C) = suma de P(k) para k = C+1 … n
 Imagina que cada pasajero vendido es una moneda que sale "se presenta" el 95 % de las veces. Vender 165 pasajes es tirar 165 monedas: lo más probable es que salgan unas 157 "se presenta", pero a veces salen 161 o más. La fórmula binomial calcula exactamente qué tan seguido pasa eso.
 :::
 
+:::practica airflow-lab Una tarea por aeropuerto con mapeo dinámico
+1. Ejecuta: el DAG lista los aeropuertos y crea **una tarea por aeropuerto** con `expand`, sin escribirlas a mano.
+2. Mira la salida: cada instancia calcula la demora de su aeropuerto y la última tarea junta los resultados.
+3. Agrega un aeropuerto a la lista: aparece una instancia más.
+
+```python norun
+from datetime import datetime
+from airflow.sdk import dag, task
+
+@dag(start_date=datetime(2024, 1, 1), schedule="@daily", catchup=False)
+def demoras_por_aeropuerto():
+    @task
+    def aeropuertos():
+        return ["EZE", "SCL", "LIM", "BOG", "MEX"]
+
+    @task
+    def demora_promedio(codigo: str) -> dict:
+        minutos = len(codigo) * 7   # aquí iría la consulta al warehouse
+        print(f"{codigo}: {minutos} min de demora promedio")
+        return {"aeropuerto": codigo, "minutos": minutos}
+
+    @task
+    def reporte(filas: list):
+        peor = max(filas, key=lambda f: f["minutos"])
+        print("peor aeropuerto:", peor)
+
+    reporte(demora_promedio.expand(codigo=aeropuertos()))
+
+demoras_por_aeropuerto().test()
+```
+
+Reto: limita el paralelismo a 2 instancias a la vez con `max_active_tis_per_dag` y explica por qué lo harías con un warehouse compartido.
+
+Documentación oficial: [mapeo dinámico](https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/dynamic-task-mapping.html) · [TaskFlow](https://airflow.apache.org/docs/apache-airflow/stable/tutorial/taskflow.html)
+:::
+
 :::ejercicio python titulo="sobreventa"
 Escribe `prob_sobreventa(vendidos, capacidad, p_presentarse)` (la probabilidad de que se presenten **más** pasajeros que la capacidad, redondeada a 4 decimales) y `max_a_vender(capacidad, p_presentarse, riesgo_max)`: la mayor cantidad de pasajes que se puede vender sin que la probabilidad de sobreventa supere `riesgo_max` (nunca menos que la capacidad).
 ```python inicial

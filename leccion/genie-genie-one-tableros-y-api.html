@@ -127,6 +127,22 @@ for adjunto in mensaje.attachments or []:
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Llevar las respuestas a un tablero</div>
+
+<ol>
+<li>En <strong>Dashboards</strong>, crea un tablero con un dataset que use la vista <code>main.genie.ventas</code> (créala en la práctica de la lección 2).</li>
+<li>Agrega una visualización de ventas por canal y otra por mes.</li>
+<li>Piensa quién usa qué: el tablero responde las preguntas de siempre; el agente, las preguntas nuevas.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT canal, ROUND(SUM(importe), 2) AS ventas
+FROM main.genie.ventas
+GROUP BY ALL
+ORDER BY ventas DESC;</code></pre>
+<p>Reto: lee la documentación de la Genie API y escribe en tres pasos cómo una app interna haría una pregunta y leería la respuesta (iniciar conversación, esperar, leer el resultado).</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/dashboards/">tableros de AI/BI</a> · <a href="https://docs.databricks.com/aws/en/genie/conversation-api">Genie Conversation API</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

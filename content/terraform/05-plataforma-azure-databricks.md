@@ -442,6 +442,25 @@ databricks jobs list
 Con una identidad administrada: creo un access connector de Databricks (que tiene una identidad del sistema), le asigno el rol Storage Blob Data Contributor sobre la cuenta del lago, y en Unity Catalog creo una storage credential que usa ese connector y external locations para cada ruta. Así no hay claves de la cuenta ni service principals con secretos que rotar, el acceso se controla con grants de Unity Catalog, y todo queda en Terraform.
 :::
 
+:::practica terminal El lago de Azure como código
+1. Inicia sesión en Azure y escribe el grupo de recursos y la cuenta de almacenamiento con *hierarchical namespace* (ADLS Gen2).
+2. Aplica: Terraform crea primero el grupo y después la cuenta, porque la cuenta lo referencia.
+3. Verifica con la CLI de Azure que la cuenta existe y es Data Lake.
+
+```bash norun
+az login
+mkdir -p ~/infra/az && cd ~/infra/az
+printf 'resource "azurerm_resource_group" "rg" {\n  name     = "rg-tf-lab"\n  location = "eastus2"\n}\n\nresource "azurerm_storage_account" "lago" {\n  name                     = "sttflab01"\n  resource_group_name      = azurerm_resource_group.rg.name\n  location                 = azurerm_resource_group.rg.location\n  account_tier             = "Standard"\n  account_replication_type = "LRS"\n  is_hns_enabled           = true\n}\n' > main.tf
+terraform init
+terraform apply -auto-approve
+az storage account show -n sttflab01 --query isHnsEnabled
+```
+
+Reto: agrega un `azurerm_storage_container` llamado `bronze` que dependa de la cuenta, sin escribir `depends_on`.
+
+Documentación oficial: [azurerm_storage_account](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account) · [orden de creación y dependencias](https://developer.hashicorp.com/terraform/language/resources/behavior)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

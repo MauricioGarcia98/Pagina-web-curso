@@ -161,6 +161,36 @@ Todo lo anterior se junta en un flujo de CI/CD como el que viste en Git, ahora c
 Describe dev, staging/CI y prod separados por catálogo o proyecto y por permisos; que en prod solo escriben cuentas de servicio desplegadas desde Git; que dev lee datos de prod (enmascarados si son sensibles) y escribe en esquemas personales; y que la CI construye solo lo modificado y sus dependientes. Menciona el costo: compartir almacenamiento y separar por permisos es mucho más barato que tres plataformas completas.
 :::
 
+:::practica databricks:sql Capas, entornos, nombres y documentación en Unity Catalog
+1. Ejecuta: un esquema por capa con el entorno en el nombre (`dev_bronze`, `dev_silver`, `dev_gold`) y un comentario que dice qué va en cada uno.
+2. La tabla silver lleva comentario, comentario por columna y propiedades (dueño, calidad): eso es parte del contrato.
+3. La vista gold es lo que consume el negocio. Abre **Catalog** y mira cómo se ven los comentarios.
+
+```sql norun
+CREATE SCHEMA IF NOT EXISTS main.dev_bronze COMMENT 'Datos crudos, tal como llegan';
+CREATE SCHEMA IF NOT EXISTS main.dev_silver COMMENT 'Limpios, tipados y deduplicados';
+CREATE SCHEMA IF NOT EXISTS main.dev_gold COMMENT 'Listos para el negocio';
+
+CREATE OR REPLACE TABLE main.dev_silver.pedidos AS
+SELECT pedido_id, cliente_id, fecha_pedido, estado, canal FROM samples.tienda.pedidos;
+COMMENT ON TABLE main.dev_silver.pedidos IS 'Un pedido por fila. Fuente: ERP. Se actualiza cada noche.';
+ALTER TABLE main.dev_silver.pedidos ALTER COLUMN canal COMMENT 'Canal de venta: web, app, tienda o telefono';
+ALTER TABLE main.dev_silver.pedidos SET TBLPROPERTIES ('calidad' = 'silver', 'dueño' = 'equipo-datos');
+
+CREATE OR REPLACE VIEW main.dev_gold.ventas_por_canal COMMENT 'Pedidos entregados por canal y mes' AS
+SELECT canal, date_trunc('month', fecha_pedido) AS mes, COUNT(*) AS pedidos
+FROM main.dev_silver.pedidos WHERE estado = 'entregado'
+GROUP BY ALL;
+
+SHOW SCHEMAS IN main;
+SELECT * FROM main.dev_gold.ventas_por_canal ORDER BY mes DESC, pedidos DESC LIMIT 8;
+```
+
+Reto: escribe el contrato de la vista gold en 5 líneas: columnas, tipos, grano, frescura y dueño.
+
+Documentación oficial: [Unity Catalog](https://docs.databricks.com/aws/en/data-governance/unity-catalog/) · [comentarios en tablas y columnas](https://docs.databricks.com/aws/en/comments/)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

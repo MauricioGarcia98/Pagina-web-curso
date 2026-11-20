@@ -441,6 +441,24 @@ databricks jobs list</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El lago de Azure como código</div>
+
+<ol>
+<li>Inicia sesión en Azure y escribe el grupo de recursos y la cuenta de almacenamiento con <em>hierarchical namespace</em> (ADLS Gen2).</li>
+<li>Aplica: Terraform crea primero el grupo y después la cuenta, porque la cuenta lo referencia.</li>
+<li>Verifica con la CLI de Azure que la cuenta existe y es Data Lake.</li>
+</ol>
+<pre data-norun><code class="language-bash">az login
+mkdir -p ~/infra/az &amp;&amp; cd ~/infra/az
+printf 'resource &quot;azurerm_resource_group&quot; &quot;rg&quot; {\n  name     = &quot;rg-tf-lab&quot;\n  location = &quot;eastus2&quot;\n}\n\nresource &quot;azurerm_storage_account&quot; &quot;lago&quot; {\n  name                     = &quot;sttflab01&quot;\n  resource_group_name      = azurerm_resource_group.rg.name\n  location                 = azurerm_resource_group.rg.location\n  account_tier             = &quot;Standard&quot;\n  account_replication_type = &quot;LRS&quot;\n  is_hns_enabled           = true\n}\n' &gt; main.tf
+terraform init
+terraform apply -auto-approve
+az storage account show -n sttflab01 --query isHnsEnabled</code></pre>
+<p>Reto: agrega un <code>azurerm_storage_container</code> llamado <code>bronze</code> que dependa de la cuenta, sin escribir <code>depends_on</code>.</p>
+<p>Documentación oficial: <a href="https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account">azurerm_storage_account</a> · <a href="https://developer.hashicorp.com/terraform/language/resources/behavior">orden de creación y dependencias</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

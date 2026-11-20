@@ -169,6 +169,23 @@ Tres recomendaciones de la documentación:
 Lo defino una sola vez como contexto estructurado, no como texto: una SQL expression de tipo filtro con la condición exacta, por ejemplo al menos una compra en los últimos 90 días, con sinónimos como "clientes vigentes", o mejor aún como medida en la vista de métricas que usa el agente. Agrego una consulta de ejemplo para las preguntas típicas sobre clientes activos y un benchmark con varias formas de preguntarlo, para comprobar que la respuesta es consistente.
 :::
 
+:::practica databricks:genie Enseñarle al agente el vocabulario del negocio
+1. Abre tu agente → **Configure** → **Instructions** y pega las instrucciones de abajo (el vocabulario del negocio).
+2. En **SQL queries**, agrega una consulta de ejemplo verificada para "ventas por canal": Genie la reutiliza para preguntas parecidas.
+3. Vuelve a **Chat** y repite una pregunta que antes salió mal.
+
+```text norun
+- "ventas" o "facturación" = SUM(cantidad * precio_unitario * (1 - descuento)) de pedidos entregados.
+- Los pedidos cancelados y devueltos nunca cuentan como venta.
+- "el mes pasado" = el último mes completo, no los últimos 30 días.
+- Los montos están en la moneda local de cada país: no los sumes entre países sin aclararlo.
+```
+
+Reto: escribe la consulta SQL de ejemplo para "ticket promedio por canal" y verifícala en el SQL Editor antes de agregarla.
+
+Documentación oficial: [instrucciones y consultas de ejemplo](https://docs.databricks.com/aws/en/genie/instructions) · [buenas prácticas](https://docs.databricks.com/aws/en/genie/best-practices)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql dificultad=Intermedio titulo="La consulta de ejemplo con sus parámetros resueltos"

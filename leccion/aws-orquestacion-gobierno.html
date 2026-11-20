@@ -236,6 +236,21 @@ aws cloudformation deploy --template-file lake.yaml --stack-name lake-banco-dev 
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Programar un pipeline con EventBridge</div>
+
+<ol>
+<li>Crea una regla que corre todos los días a las 03:00 UTC (expresión <code>cron</code> de AWS: seis campos).</li>
+<li>Lista las reglas en una tabla con <code>--query</code>.</li>
+<li>En un caso real, el objetivo de la regla es la máquina de estados de Step Functions que corre el pipeline.</li>
+</ol>
+<pre data-norun><code class="language-bash">aws configure
+aws events put-rule --name diario-banco --schedule-expression &quot;cron(0 3 * * ? *)&quot;
+aws events list-rules --query &quot;Rules[].{Nombre:Name, Horario:ScheduleExpression}&quot; --output table</code></pre>
+<p>Reto: compara Step Functions y MWAA (Airflow administrado): ¿cuál elegirías para un pipeline de 4 pasos y cuál para 60 DAGs con dependencias?</p>
+<p>Documentación oficial: <a href="https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html">reglas programadas</a> · <a href="https://docs.aws.amazon.com/step-functions/latest/dg/welcome.html">Step Functions</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -141,6 +141,29 @@ ORDER BY total_bytes_billed DESC LIMIT 10;</code></pre>
 
 
 <h2>Ejercicios de SQL</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Particiones y clustering: ver los bytes bajar</div>
+
+<ol>
+<li><code>tienda.pedidos</code> está particionada por día (<code>fecha_pedido</code>) y agrupada por <code>canal</code>: míralo en su pestaña <strong>Details</strong>.</li>
+<li>La consulta se abre en el editor: anota los bytes estimados (arriba a la derecha). Después comenta la primera y descomenta la segunda, con el filtro por fecha: BigQuery solo lee esa partición y la estimación baja.</li>
+<li>Agrega también <code>canal = &#39;web&#39;</code>: el clustering reduce un poco más.</li>
+</ol>
+<pre data-norun><code class="language-sql">-- sin filtro de partición: lee toda la tabla
+SELECT canal, COUNT(*) AS pedidos
+FROM `tienda-andina-dev.tienda.pedidos`
+GROUP BY canal;
+
+-- con filtro de partición: lee un solo día (comenta la consulta de arriba y descomenta esta)
+-- SELECT canal, COUNT(*) AS pedidos
+-- FROM `tienda-andina-dev.tienda.pedidos`
+-- WHERE fecha_pedido = '2024-12-24'
+-- GROUP BY canal;</code></pre>
+<p>Reto: crea una tabla con <code>CREATE TABLE … PARTITION BY … CLUSTER BY … AS SELECT</code> en un dataset tuyo y repite la comparación.</p>
+<p>Documentación oficial: <a href="https://cloud.google.com/bigquery/docs/partitioned-tables">tablas particionadas</a> · <a href="https://cloud.google.com/bigquery/docs/clustered-tables">tablas con clustering</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

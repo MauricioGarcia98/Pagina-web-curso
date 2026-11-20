@@ -200,6 +200,29 @@ ORDER BY ventas DESC;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Documentar las tablas que verá Genie</div>
+
+<ol>
+<li>Ejecuta: una vista con nombres claros y comentarios en la tabla y en las columnas. Genie lee esos comentarios para entender qué significa cada dato.</li>
+<li>Abre la vista en <strong>Catalog</strong> y verifica que los comentarios aparecen.</li>
+<li>Usa esta vista (y no las tablas crudas) cuando armes el agente.</li>
+</ol>
+<pre data-norun><code class="language-sql">CREATE SCHEMA IF NOT EXISTS main.genie;
+CREATE OR REPLACE VIEW main.genie.ventas COMMENT 'Una fila por línea de pedido entregado, con su importe neto' AS
+SELECT p.pedido_id, p.fecha_pedido AS fecha, p.canal, c.pais, pr.nombre AS producto,
+       d.cantidad, ROUND(d.cantidad * d.precio_unitario * (1 - d.descuento), 2) AS importe
+FROM samples.tienda.pedidos p
+JOIN samples.tienda.detalle_pedidos d ON d.pedido_id = p.pedido_id
+JOIN samples.tienda.clientes c ON c.cliente_id = p.cliente_id
+JOIN samples.tienda.productos pr ON pr.producto_id = d.producto_id
+WHERE p.estado = 'entregado';
+COMMENT ON COLUMN main.genie.ventas.importe IS 'Cantidad por precio unitario menos descuento, en moneda local';
+SELECT canal, ROUND(SUM(importe), 2) AS ventas FROM main.genie.ventas GROUP BY ALL ORDER BY ventas DESC;</code></pre>
+<p>Reto: agrega un comentario a <code>canal</code> que liste sus valores posibles; Genie lo usa para filtrar bien.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/genie/best-practices">buenas prácticas de Genie</a> · <a href="https://docs.databricks.com/aws/en/comments/">comentarios en Unity Catalog</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

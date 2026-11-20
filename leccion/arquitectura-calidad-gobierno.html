@@ -227,6 +227,28 @@ LIMIT 5;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un tablero de controles de calidad en una consulta</div>
+
+<ol>
+<li>Ejecuta: cada fila es un control sobre <code>bronze_pedidos</code> (completitud, unicidad, validez) con su cantidad de fallas; la última consulta mide la frescura.</li>
+<li>Un control que falla no siempre corta el pipeline: decide cuáles bloquean (unicidad del id) y cuáles solo avisan.</li>
+<li>Mira cuántos duplicados y montos inválidos trae la capa bronze.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT 'emails nulos' AS control, COUNT(*) AS fallas FROM bronze_pedidos WHERE cliente_email IS NULL
+UNION ALL
+SELECT 'pedidos duplicados', COUNT(*) - COUNT(DISTINCT pedido_id) FROM bronze_pedidos
+UNION ALL
+SELECT 'montos con coma decimal', COUNT(*) FROM bronze_pedidos WHERE monto LIKE '%,%'
+UNION ALL
+SELECT 'estados fuera de la lista', COUNT(*) FROM bronze_pedidos WHERE LOWER(TRIM(estado)) NOT IN ('entregado', 'enviado', 'pendiente', 'cancelado', 'devuelto');
+
+-- frescura: ¿cuándo llegó lo último? (compáralo con la hora de hoy y con el SLA acordado)
+SELECT MAX(cargado_en) AS ultima_carga, MAX(fecha) AS ultima_fecha_de_negocio FROM bronze_pedidos;</code></pre>
+<p>Reto: convierte dos de estos controles en tests de dbt (<code>unique</code> y <code>accepted_values</code>) y explica qué gana el equipo.</p>
+<p>Documentación oficial: <a href="https://docs.getdbt.com/docs/build/data-tests">tests de datos en dbt</a> · <a href="https://docs.databricks.com/aws/en/ldp/expectations">expectativas en pipelines declarativos</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 
