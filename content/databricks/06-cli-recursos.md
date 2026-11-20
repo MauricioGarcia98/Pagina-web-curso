@@ -152,6 +152,26 @@ databricks jobs list
 
 Fíjate que `list-secrets` muestra las **claves** pero nunca los **valores**: los secretos solo se leen desde el código que corre en Databricks (`dbutils.secrets.get`), y aun así aparecen como `[REDACTED]` si alguien intenta imprimirlos.
 
+:::practica terminal Archivos, secretos y jobs desde la CLI
+1. Sube un archivo a un volumen de Unity Catalog y listalo.
+2. Crea un *scope* de secretos y guarda un valor: en un notebook se lee con `dbutils.secrets.get` y nunca aparece en el código.
+3. Lista los jobs del workspace.
+
+```bash norun
+databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+databricks fs cp datos/clientes.csv dbfs:/Volumes/main/crudo/archivos/clientes.csv
+databricks fs ls dbfs:/Volumes/main/crudo/archivos
+databricks secrets create-scope datos-api
+databricks secrets put-secret datos-api token --string-value abc123
+databricks secrets list-secrets datos-api
+databricks jobs list
+```
+
+Reto: abre **Catalog** en Databricks y busca el volumen `main.crudo.archivos`: ahí está el archivo que subiste por la CLI.
+
+Documentación oficial: [comandos de la CLI](https://docs.databricks.com/aws/en/dev-tools/cli/commands) · [secretos](https://docs.databricks.com/aws/en/security/secrets/)
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

@@ -32,6 +32,28 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Tablas Delta: crear, cargar y modificar</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: QUALIFY, restricciones y read_files</div>
+
+<ol>
+<li>Ejecuta: <code>QUALIFY</code> filtra por el resultado de una ventana sin subconsulta: el último pedido de cada cliente.</li>
+<li>Crea una tabla con una restricción <code>CHECK</code> y prueba un <code>INSERT</code> que la viola: Delta rechaza la escritura entera.</li>
+<li>Compara con el <code>INSERT</code> válido.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT cliente_id, pedido_id, fecha_pedido
+FROM samples.tienda.pedidos
+QUALIFY ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha_pedido DESC) = 1
+LIMIT 10;
+
+CREATE OR REPLACE TABLE main.default.pagos_ok (pago_id BIGINT, monto DOUBLE);
+ALTER TABLE main.default.pagos_ok ADD CONSTRAINT monto_positivo CHECK (monto &gt; 0);
+INSERT INTO main.default.pagos_ok VALUES (1, 120.5);
+INSERT INTO main.default.pagos_ok VALUES (2, -10);</code></pre>
+<p>Reto: resuelve el mismo &quot;último pedido por cliente&quot; sin <code>QUALIFY</code> (con subconsulta) y compara cuál se lee mejor.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-syntax-qry-select-qualify">QUALIFY</a> · <a href="https://docs.databricks.com/aws/en/tables/constraints">restricciones</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

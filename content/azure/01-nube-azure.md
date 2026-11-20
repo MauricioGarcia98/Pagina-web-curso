@@ -151,6 +151,23 @@ En las próximas lecciones vas a manejar Azure con la **Azure CLI** (`az`). Abre
 - **Borrar un grupo de recursos para limpiar algo.** Se borra todo lo que contiene.
 :::
 
+:::practica azure Recorrer la jerarquía de Azure en el portal
+1. En el portal, abre **Subscriptions**: es la unidad que se factura.
+2. Abre **Resource groups** y después **All resources**: cada recurso vive en un grupo, y el grupo en una suscripción.
+3. Abre **Cost Management** y mira de dónde sale el costo.
+4. Abre **Cloud Shell** (ícono de terminal arriba a la derecha) y ejecuta los comandos de abajo: es la misma información desde la CLI.
+
+```bash norun
+az account show -o table
+az group list -o table
+az resource list -o table
+```
+
+Reto: ubica en el portal la región (*location*) de cada grupo de recursos y explica por qué conviene que los datos y el cómputo estén en la misma.
+
+Documentación oficial: [Azure Resource Manager](https://learn.microsoft.com/es-es/azure/azure-resource-manager/management/overview) · [análisis de costos](https://learn.microsoft.com/es-es/azure/cost-management-billing/costs/quick-acm-cost-analysis)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

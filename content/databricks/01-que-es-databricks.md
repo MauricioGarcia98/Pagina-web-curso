@@ -91,6 +91,25 @@ Permisos con SQL (`GRANT SELECT ON TABLE ... TO grupo`), linaje automático colu
 
 Databricks cobra en **DBUs** (*Databricks Units*) por hora de cómputo, según el tipo de cómputo y el plan, **además** de las máquinas virtuales de la nube (en cómputo clásico). Consejos: auto-terminación de clusters, job clusters para producción, autoscaling, políticas de cómputo, y revisar las tablas de sistema de facturación (`system.billing.usage`).
 
+:::practica databricks:sql Recorrer el workspace y su catálogo
+1. Se abre el **SQL Editor** con una consulta nueva. Ejecuta las sentencias con **Run all** (o de a una con Ctrl+Enter).
+2. `SHOW CATALOGS` muestra los tres niveles de Unity Catalog desde arriba: `catalogo.esquema.tabla`.
+3. En la barra lateral abre **Catalog** y encuentra `samples.tienda.pedidos`: mira su esquema, una muestra de datos y su historial.
+4. Abre **Compute**: el SQL que corriste usó un *SQL warehouse* serverless; los notebooks usan clusters o serverless.
+
+```sql norun
+SHOW CATALOGS;
+SHOW SCHEMAS IN samples;
+SHOW TABLES IN samples.tienda;
+SELECT current_user(), current_catalog();
+SELECT canal, COUNT(*) AS pedidos FROM samples.tienda.pedidos GROUP BY canal ORDER BY pedidos DESC;
+```
+
+Reto: encuentra en **Catalog** quién es el dueño (*owner*) de una tabla de `main.default` y qué permisos tiene.
+
+Documentación oficial: [qué es Databricks](https://docs.databricks.com/aws/en/introduction/) · [catálogos de Unity Catalog](https://docs.databricks.com/aws/en/catalogs/)
+:::
+
 :::ejercicio quiz
 ¿Qué tipo de cómputo conviene para un job de producción que corre una vez por noche?
 

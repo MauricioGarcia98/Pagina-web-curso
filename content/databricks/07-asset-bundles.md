@@ -217,6 +217,26 @@ databricks bundle summary
 
 En `summary`, el job aparece como `[dev alumno] mi_proyecto_job`: en el target `dev` (con `mode: development`), Databricks antepone tu nombre a cada recurso. Así cada desarrollador despliega su propia copia sin pisar la de los demás. En `prod` el nombre queda limpio.
 
+:::practica terminal Un bundle de punta a punta
+1. Crea un bundle desde la plantilla y mira `databricks.yml`: el job y sus recursos están definidos como código.
+2. Valídalo y despliégalo al target `dev`.
+3. Revisa el resumen: qué recursos creó y dónde.
+
+```bash norun
+databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+databricks bundle init
+cd mi_proyecto
+cat databricks.yml
+databricks bundle validate
+databricks bundle deploy -t dev
+databricks bundle summary
+```
+
+Reto: escribe el paso de GitHub Actions que haría `databricks bundle deploy -t prod` cuando se hace merge a `main`.
+
+Documentación oficial: [bundles](https://docs.databricks.com/aws/en/dev-tools/bundles/) · [configuración de databricks.yml](https://docs.databricks.com/aws/en/dev-tools/bundles/settings)
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

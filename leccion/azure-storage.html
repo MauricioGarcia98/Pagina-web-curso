@@ -220,6 +220,22 @@ az storage blob list --account-name stdatosdev001 --container-name bronze --outp
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tu data lake: cuenta de almacenamiento con ADLS Gen2</div>
+
+<ol>
+<li>En <strong>Basics</strong>: grupo <code>rg-lab-datos</code>, nombre <code>stlabdatos01</code> (solo minúsculas y números), redundancia <strong>LRS</strong>.</li>
+<li>En <strong>Advanced</strong>, marca <strong>Enable hierarchical namespace</strong>: eso la convierte en Data Lake Storage Gen2 (carpetas reales).</li>
+<li><strong>Review + create</strong> → <strong>Create</strong>. Abre el recurso → <strong>Containers</strong> → <strong>Container</strong> y crea <code>bronze</code>. Entra y sube un archivo con <strong>Upload</strong>.</li>
+<li>En <strong>Cloud Shell</strong>, verifica lo que hiciste.</li>
+</ol>
+<pre data-norun><code class="language-bash">az storage account show -n stlabdatos01 --query isHnsEnabled
+az storage container list --account-name stlabdatos01 --auth-mode login -o table
+az storage blob list --account-name stlabdatos01 --container-name bronze --auth-mode login -o table</code></pre>
+<p>Reto: escribe la ruta <code>abfss://</code> con la que Spark leería ese archivo desde Databricks.</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/azure/storage/blobs/create-data-lake-storage-account">crear una cuenta de ADLS Gen2</a> · <a href="https://learn.microsoft.com/es-es/azure/storage/blobs/data-lake-storage-introduction">qué es Data Lake Storage Gen2</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -268,6 +268,20 @@ databricks bundle run dbt_diario -t prod</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un pipeline de copia en Data Factory Studio</div>
+
+<ol>
+<li>En <strong>Author</strong>, crea un pipeline nuevo y arrastra la actividad <strong>Copy data</strong>.</li>
+<li>Configura el origen y el destino (datasets del lago de práctica).</li>
+<li>En la ruta del destino usa contenido dinámico con la expresión de abajo: cada día escribe en su propia carpeta.</li>
+<li>Ejecuta con <strong>Debug</strong> y revisa la salida de la actividad: filas leídas y escritas.</li>
+</ol>
+<pre data-norun><code class="language-text">@concat('bronze/ventas/', formatDateTime(utcnow(), 'yyyy/MM/dd'))</code></pre>
+<p>Reto: agrega un parámetro <code>fecha</code> al pipeline y cambia la expresión para que use <code>pipeline().parameters.fecha</code> en vez de <code>utcnow()</code> (así puedes reprocesar un día).</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/azure/data-factory/copy-activity-overview">actividad de copia</a> · <a href="https://learn.microsoft.com/es-es/azure/data-factory/control-flow-expression-language-functions">expresiones y funciones</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

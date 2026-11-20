@@ -173,7 +173,7 @@ function md(text, file = '') {
   });
   // bloques :::tip ... ::: (no confundir con :::ejercicio)
   // :::practica <app>[:<motor>] <título> → bloque que abre la herramienta de práctica (practica.js le agrega el botón)
-  text = text.replace(/^:::practica[ \t]+([a-z-]+)(?::([a-z]+))?[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*$/gm, (_, app, motor, title, body) =>
+  text = text.replace(/^:::practica[ \t]+([a-z-]+)(?::([a-z/]+))?[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*$/gm, (_, app, motor, title, body) =>
     `<div class="callout callout-practica" data-app="${app}" data-motor="${motor || ''}" data-titulo="${escapeHtml(title)}"><div class="callout-title">🛠️ Practícalo en la herramienta${title ? ': ' + escapeHtml(title) : ''}</div>\n\n${body}\n</div>\n`);
   text = text.replace(/^:::(tip|nota|cuidado|analogia|experto|entrevista|escenario|trabajo|errores|examen)[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*$/gm, (_, kind, title, body) =>
     `<div class="callout callout-${kind}"><div class="callout-title">${escapeHtml(title ? CALLOUTS[kind].split(' ')[0] + ' ' + title : CALLOUTS[kind])}</div>\n\n${body}\n</div>\n`);

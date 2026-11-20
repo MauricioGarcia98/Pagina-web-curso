@@ -130,6 +130,22 @@ az account set --subscription sub-datos-dev</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: La CLI dentro del portal: Cloud Shell</div>
+
+<ol>
+<li>Abre <strong>Cloud Shell</strong> desde el ícono de terminal de la barra superior.</li>
+<li>Ejecuta los comandos: todos siguen la forma <code>az &lt;grupo&gt; &lt;subgrupo&gt; &lt;acción&gt; --parámetros</code>.</li>
+<li>Cambia el formato de salida (<code>-o table</code>, <code>-o json</code>, <code>-o tsv</code>) y compara.</li>
+</ol>
+<pre data-norun><code class="language-bash">az account show -o table
+az group list -o table
+az group list -o json
+az group list --query &quot;[].name&quot; -o tsv</code></pre>
+<p>Reto: con <code>--query</code>, muestra solo el nombre y la región de cada grupo en una tabla.</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/cli/azure/get-started-with-azure-cli">primeros pasos con la CLI</a> · <a href="https://learn.microsoft.com/es-es/azure/cloud-shell/overview">Azure Cloud Shell</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

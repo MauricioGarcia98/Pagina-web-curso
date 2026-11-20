@@ -131,6 +131,25 @@ databricks secrets put-secret datos-api token --string-value abc123
 databricks secrets list-secrets datos-api
 databricks jobs list</code></pre>
 <p>Fíjate que <code>list-secrets</code> muestra las <strong>claves</strong> pero nunca los <strong>valores</strong>: los secretos solo se leen desde el código que corre en Databricks (<code>dbutils.secrets.get</code>), y aun así aparecen como <code>[REDACTED]</code> si alguien intenta imprimirlos.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Archivos, secretos y jobs desde la CLI</div>
+
+<ol>
+<li>Sube un archivo a un volumen de Unity Catalog y listalo.</li>
+<li>Crea un <em>scope</em> de secretos y guarda un valor: en un notebook se lee con <code>dbutils.secrets.get</code> y nunca aparece en el código.</li>
+<li>Lista los jobs del workspace.</li>
+</ol>
+<pre data-norun><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+databricks fs cp datos/clientes.csv dbfs:/Volumes/main/crudo/archivos/clientes.csv
+databricks fs ls dbfs:/Volumes/main/crudo/archivos
+databricks secrets create-scope datos-api
+databricks secrets put-secret datos-api token --string-value abc123
+databricks secrets list-secrets datos-api
+databricks jobs list</code></pre>
+<p>Reto: abre <strong>Catalog</strong> en Databricks y busca el volumen <code>main.crudo.archivos</code>: ahí está el archivo que subiste por la CLI.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/dev-tools/cli/commands">comandos de la CLI</a> · <a href="https://docs.databricks.com/aws/en/security/secrets/">secretos</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -197,6 +197,23 @@ az storage blob list --account-name stdatosdev001 --container-name bronze --outp
 - **Invertir contenedor y cuenta en la ruta.** Es `abfss://contenedor@cuenta.dfs.core.windows.net/`.
 :::
 
+:::practica azure:crear/storage Tu data lake: cuenta de almacenamiento con ADLS Gen2
+1. En **Basics**: grupo `rg-lab-datos`, nombre `stlabdatos01` (solo minúsculas y números), redundancia **LRS**.
+2. En **Advanced**, marca **Enable hierarchical namespace**: eso la convierte en Data Lake Storage Gen2 (carpetas reales).
+3. **Review + create** → **Create**. Abre el recurso → **Containers** → **Container** y crea `bronze`. Entra y sube un archivo con **Upload**.
+4. En **Cloud Shell**, verifica lo que hiciste.
+
+```bash norun
+az storage account show -n stlabdatos01 --query isHnsEnabled
+az storage container list --account-name stlabdatos01 --auth-mode login -o table
+az storage blob list --account-name stlabdatos01 --container-name bronze --auth-mode login -o table
+```
+
+Reto: escribe la ruta `abfss://` con la que Spark leería ese archivo desde Databricks.
+
+Documentación oficial: [crear una cuenta de ADLS Gen2](https://learn.microsoft.com/es-es/azure/storage/blobs/create-data-lake-storage-account) · [qué es Data Lake Storage Gen2](https://learn.microsoft.com/es-es/azure/storage/blobs/data-lake-storage-introduction)
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

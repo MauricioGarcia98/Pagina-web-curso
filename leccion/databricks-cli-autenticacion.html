@@ -138,6 +138,23 @@ databricks catalogs list</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Autenticarte con la CLI de Databricks</div>
+
+<ol>
+<li>Inicia sesión: en la práctica el login se simula; en tu trabajo abre el navegador para OAuth (nunca pegues tokens en un script).</li>
+<li>Mira los perfiles guardados y con quién estás conectado.</li>
+<li>Lista clusters y catálogos: es la misma información que ves en la interfaz web.</li>
+</ol>
+<pre data-norun><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+databricks auth profiles
+databricks current-user me
+databricks clusters list
+databricks catalogs list</code></pre>
+<p>Reto: explica la diferencia entre autenticarte con OAuth (U2M) y con un <em>service principal</em> (M2M), y cuál usarías en CI/CD.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/dev-tools/cli/">Databricks CLI</a> · <a href="https://docs.databricks.com/aws/en/dev-tools/cli/authentication">autenticación de la CLI</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

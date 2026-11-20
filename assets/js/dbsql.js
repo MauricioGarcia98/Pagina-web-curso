@@ -348,7 +348,37 @@
     const recortar = (x) => { let a = 0, b = x.length; while (a < b && x[a].t === 'ws') a++; while (b > a && x[b - 1].t === 'ws') b--; return x.slice(a, b); };
     // _metadata.file_name (y file_path, file_size…) de read_files: columna oculta con los datos del archivo de cada fila
     const conMeta = (x) => { const y = []; for (let i = 0; i < x.length; i++) { if (x[i].t === 'w' && /^_metadata$/i.test(x[i].v) && x[i + 1] && x[i + 1].v === '.' && x[i + 2] && x[i + 2].t === 'w') { y.push({ t: 'w', v: `get_json_object(_metadata, '$.${x[i + 2].v}')` }); i += 2; } else y.push(x[i]); } return y; };
-    return out.map(recortar).filter((x) => x.length).map((x) => ({ T: conMeta(x), texto: unirOriginal(x).trim(), meta: x.some((tk) => tk.t === 'w' && /^_metadata$/i.test(tk.v)) }));
+    return out.map(recortar).filter((x) => x.length).map((x) => { const y = valoresEnLinea(x); return { T: conMeta(y), texto: unirOriginal(y).trim(), original: unirOriginal(x).trim(), meta: x.some((tk) => tk.t === 'w' && /^_metadata$/i.test(tk.v)) }; });
+  }
+  // Tablas en línea, como en Databricks: FROM VALUES (1, 'a'), (2, 'b') AS t(id, nombre)  y  USING (VALUES …) AS t(…)
+  // se reescriben como (SELECT 1 AS id, 'a' AS nombre UNION ALL SELECT 2, 'b') AS t; sin lista de columnas: col1, col2…
+  function valoresEnLinea(x) {
+    const ant = (i) => { let j = i - 1; while (j >= 0 && x[j].t === 'ws') j--; return j; };
+    const esFuente = (j) => j >= 0 && x[j].t === 'w' && /^(FROM|USING|JOIN)$/i.test(x[j].v);
+    for (let i = 0; i < x.length; i++) {
+      if (!(x[i].t === 'w' && /^VALUES$/i.test(x[i].v))) continue;
+      const a = ant(i); const envuelto = a >= 0 && x[a].v === '(' && esFuente(ant(a));
+      if (!esFuente(a) && !envuelto) continue;
+      const filas = []; let k = sig(x, i + 1);
+      while (k < x.length && x[k].v === '(') {
+        const { fin, args } = argsFuncion(x, k); filas.push(args.map((t) => unirOriginal(t).trim()));
+        k = sig(x, fin + 1); if (x[k] && x[k].v === ',' && x[sig(x, k + 1)] && x[sig(x, k + 1)].v === '(') k = sig(x, k + 1); else break;
+      }
+      if (!filas.length) continue;
+      if (envuelto) { if (!x[k] || x[k].v !== ')') continue; k = sig(x, k + 1); }
+      if (x[k] && x[k].t === 'w' && /^AS$/i.test(x[k].v)) k = sig(x, k + 1);
+      let alias = 'vt', cols = null;
+      if (x[k] && (x[k].t === 'w' || x[k].t === 'b') && !/^(ON|WHERE|GROUP|ORDER|LIMIT|JOIN|LEFT|RIGHT|INNER|FULL|CROSS|WHEN|UNION)$/i.test(x[k].v)) {
+        alias = x[k].v; k = sig(x, k + 1);
+        if (x[k] && x[k].v === '(') { const { fin, args } = argsFuncion(x, k); cols = args.map((t) => unirOriginal(t).trim()); k = fin + 1; }
+      } else k = k;
+      const n = filas[0].length; cols = cols && cols.length === n ? cols : Array.from({ length: n }, (_, c) => 'col' + (c + 1));
+      const sel = filas.map((f, r) => 'SELECT ' + f.map((v, c) => (r ? v : `${v} AS ${cols[c]}`)).join(', ')).join(' UNION ALL ');
+      const nuevo = tokenizar(`(${sel}) AS ${alias}`);
+      const desde = envuelto ? a : i;
+      return valoresEnLinea([...x.slice(0, desde), ...nuevo, ...x.slice(k)]);
+    }
+    return x;
   }
   function unirOriginal(T) { return T.map((tk) => (tk.t === 's' ? `'${tk.v.replace(/'/g, "\\'")}'` : tk.t === 'b' ? '`' + tk.v + '`' : tk.v)).join(''); }
 
@@ -1826,18 +1856,18 @@
     try { lista = sentencias(script); } catch (e) { return [{ ok: false, error: traducirError(e), texto: script }]; }
     for (const st of lista) {
       const t0 = performance.now();
-      const reg = { id: hashHex(st.texto + Date.now() + Math.random(), 8) + '-' + hashHex(String(Math.random()), 4), texto: st.texto.slice(0, 2000), inicio: ahora(), origen: opts.origen || 'Databricks SQL Editor', compute: opts.compute || 'WAREHOUSE' };
+      const reg = { id: hashHex(st.texto + Date.now() + Math.random(), 8) + '-' + hashHex(String(Math.random()), 4), texto: (st.original || st.texto).slice(0, 2000), inicio: ahora(), origen: opts.origen || 'Databricks SQL Editor', compute: opts.compute || 'WAREHOUSE' };
       try {
         pendiente = null; sesion.quiereMeta = !!st.meta;
         const r = ejecutarUna(st, opts);
-        r.ok = true; r.ms = Math.round(performance.now() - t0); r.texto = st.texto;
+        r.ok = true; r.ms = Math.round(performance.now() - t0); r.texto = st.original || st.texto;
         if (!r.tipos && r.cols && r.cols.length) r.tipos = tiposDe(r.cols, r.filas || []);
         if (r.filas && r.filas.length > (opts.limite || 10000)) { r.truncado = r.filas.length; r.filas = r.filas.slice(0, opts.limite || 10000); }
         res.push(r);
         Object.assign(reg, { estado: 'FINISHED', ms: r.ms, filas: r.filas ? r.filas.length : 0 });
       } catch (e) {
         const msg = traducirError(e, st.texto);
-        res.push({ ok: false, error: msg, texto: st.texto, ms: Math.round(performance.now() - t0) });
+        res.push({ ok: false, error: msg, texto: st.original || st.texto, ms: Math.round(performance.now() - t0) });
         Object.assign(reg, { estado: 'FAILED', ms: Math.round(performance.now() - t0), filas: 0, error: msg });
         U.historial.push(reg); if (U.historial.length > 500) U.historial.splice(0, U.historial.length - 500);
         guardar();

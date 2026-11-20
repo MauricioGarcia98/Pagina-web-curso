@@ -230,6 +230,21 @@ La documentación recomienda **fijar la versión** de `dbt-databricks` para que 
 Instalaría el adaptador dbt-databricks con una versión fija y agregaría un destino en profiles.yml apuntando al SQL warehouse de Azure Databricks con OAuth, con las tablas en un catálogo de Unity Catalog. Ajustaría los sources al catálogo donde está bronze y probaría con dbt debug y dbt build. Para producción crearía un Lakeflow Job con una tarea dbt que toma el proyecto desde Git y ejecuta dbt deps y dbt build, con un service principal como Run as con permisos mínimos, definido en un bundle y desplegado desde CI. También usaría dbt build, para que un test que falla impida publicar datos malos.
 :::
 
+:::practica adf Un pipeline de copia en Data Factory Studio
+1. En **Author**, crea un pipeline nuevo y arrastra la actividad **Copy data**.
+2. Configura el origen y el destino (datasets del lago de práctica).
+3. En la ruta del destino usa contenido dinámico con la expresión de abajo: cada día escribe en su propia carpeta.
+4. Ejecuta con **Debug** y revisa la salida de la actividad: filas leídas y escritas.
+
+```text norun
+@concat('bronze/ventas/', formatDateTime(utcnow(), 'yyyy/MM/dd'))
+```
+
+Reto: agrega un parámetro `fecha` al pipeline y cambia la expresión para que use `pipeline().parameters.fecha` en vez de `utcnow()` (así puedes reprocesar un día).
+
+Documentación oficial: [actividad de copia](https://learn.microsoft.com/es-es/azure/data-factory/copy-activity-overview) · [expresiones y funciones](https://learn.microsoft.com/es-es/azure/data-factory/control-flow-expression-language-functions)
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

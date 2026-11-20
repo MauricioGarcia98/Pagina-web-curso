@@ -140,6 +140,22 @@ Fíjate en el último comando: `--query value -o tsv` devuelve **solo** el valor
 - **Secretos en el código.** Van en Key Vault y se leen por nombre.
 :::
 
+:::practica azure:crear/kv Key Vault y un permiso con RBAC
+1. Crea el Key Vault `kv-lab-datos01` en el grupo `rg-lab-datos` (**Review + create** → **Create**).
+2. Abre el recurso → **Secrets** → **Generate/Import**: crea el secreto `api-token`.
+3. Abre **Access control (IAM)** → **Add role assignment** y da el rol **Key Vault Secrets User** a una identidad: puede leer secretos, no administrarlos (mínimo privilegio).
+4. Verifica en **Cloud Shell**.
+
+```bash norun
+az keyvault secret list --vault-name kv-lab-datos01 -o table
+az role assignment list -g rg-lab-datos -o table
+```
+
+Reto: explica por qué una identidad administrada (*managed identity*) es mejor que guardar una clave de la cuenta de almacenamiento en un notebook.
+
+Documentación oficial: [Key Vault](https://learn.microsoft.com/es-es/azure/key-vault/general/overview) · [asignar roles en el portal](https://learn.microsoft.com/es-es/azure/role-based-access-control/role-assignments-portal)
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

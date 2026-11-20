@@ -255,6 +255,44 @@ En cada ejecución, GitHub emite un token de corta duración que dice "soy el wo
 Con el modo por defecto, que es incremental, nada: el recurso sigue existiendo en Azure y what-if lo marca como Ignore. Bicep solo crea o actualiza lo que está en el archivo. Si quiero que el código sea la fuente de verdad también para las eliminaciones, uso un deployment stack con `--action-on-unmanage deleteResources`, que recuerda qué recursos administra y borra los que ya no están. El modo complete existía para esto pero Microsoft lo está retirando. Además tengo en cuenta que el modo incremental vuelve a aplicar el recurso completo, así que las propiedades que no escribo vuelven a sus valores por defecto.
 :::
 
+:::practica azure:crear/plantilla Infraestructura como código: una plantilla ARM
+1. Elige **Build your own template in the editor**, borra lo que hay, pega la plantilla de abajo y guarda (**Save**).
+2. Elige el grupo `rg-lab-datos` y pasa a **Review + create** → **Create**.
+3. Mira el despliegue: los recursos se crean en el orden que marca `dependsOn` (primero la cuenta, después el contenedor).
+4. Despliega otra vez la misma plantilla: no duplica nada, porque ARM es declarativo (idempotente).
+
+```json norun
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "nombre": { "type": "string", "defaultValue": "[concat('stiac', uniqueString(resourceGroup().id))]" }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-05-01",
+      "name": "[parameters('nombre')]",
+      "location": "[resourceGroup().location]",
+      "sku": { "name": "Standard_LRS" },
+      "kind": "StorageV2",
+      "properties": { "isHnsEnabled": true, "minimumTlsVersion": "TLS1_2" }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}/default/{1}', parameters('nombre'), 'silver')]",
+      "dependsOn": ["[resourceId('Microsoft.Storage/storageAccounts', parameters('nombre'))]"]
+    }
+  ]
+}
+```
+
+Reto: escribe la misma cuenta en Bicep (unas 10 líneas) y compara qué se lee mejor.
+
+Documentación oficial: [plantillas ARM](https://learn.microsoft.com/es-es/azure/azure-resource-manager/templates/overview) · [Bicep](https://learn.microsoft.com/es-es/azure/azure-resource-manager/bicep/overview)
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

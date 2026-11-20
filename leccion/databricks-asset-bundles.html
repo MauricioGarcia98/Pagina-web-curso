@@ -163,6 +163,25 @@ databricks bundle validate
 databricks bundle deploy -t dev
 databricks bundle summary</code></pre>
 <p>En <code>summary</code>, el job aparece como <code>[dev alumno] mi_proyecto_job</code>: en el target <code>dev</code> (con <code>mode: development</code>), Databricks antepone tu nombre a cada recurso. Así cada desarrollador despliega su propia copia sin pisar la de los demás. En <code>prod</code> el nombre queda limpio.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un bundle de punta a punta</div>
+
+<ol>
+<li>Crea un bundle desde la plantilla y mira <code>databricks.yml</code>: el job y sus recursos están definidos como código.</li>
+<li>Valídalo y despliégalo al target <code>dev</code>.</li>
+<li>Revisa el resumen: qué recursos creó y dónde.</li>
+</ol>
+<pre data-norun><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+databricks bundle init
+cd mi_proyecto
+cat databricks.yml
+databricks bundle validate
+databricks bundle deploy -t dev
+databricks bundle summary</code></pre>
+<p>Reto: escribe el paso de GitHub Actions que haría <code>databricks bundle deploy -t prod</code> cuando se hace merge a <code>main</code>.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/dev-tools/bundles/">bundles</a> · <a href="https://docs.databricks.com/aws/en/dev-tools/bundles/settings">configuración de databricks.yml</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

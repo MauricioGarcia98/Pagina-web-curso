@@ -100,6 +100,28 @@ LOCATION 'abfss://bronze@stdatosprod001.dfs.core.windows.net/archivos/';
 
 `system.access.audit` (quién hizo qué), `system.billing.usage` (costos), `system.access.table_lineage` (linaje), `system.compute.clusters`… Se consultan con SQL como cualquier tabla.
 
+:::practica databricks:sql Permisos y un filtro de filas
+1. Ejecuta todo: das `SELECT` a un grupo, revisas los permisos y creas un filtro de filas con una función SQL.
+2. Mira el último `SELECT`: el filtro deja ver solo las filas de Lima, aunque la consulta no tenga `WHERE`.
+3. Abre la tabla en **Catalog** → pestaña **Permissions** y verifica lo que diste con SQL.
+
+```sql norun
+CREATE OR REPLACE TABLE main.default.clientes_lima AS
+SELECT cliente_id, nombre, ciudad FROM samples.tienda.clientes WHERE cliente_id <= 20;
+
+GRANT SELECT ON TABLE main.default.clientes_lima TO `analistas`;
+SHOW GRANTS ON TABLE main.default.clientes_lima;
+
+CREATE OR REPLACE FUNCTION main.default.solo_lima(ciudad STRING) RETURN ciudad = 'Lima';
+ALTER TABLE main.default.clientes_lima SET ROW FILTER main.default.solo_lima ON (ciudad);
+SELECT * FROM main.default.clientes_lima;
+```
+
+Reto: quita el filtro con `ALTER TABLE … DROP ROW FILTER` y revoca el permiso con `REVOKE`.
+
+Documentación oficial: [privilegios en Unity Catalog](https://docs.databricks.com/aws/en/data-governance/unity-catalog/manage-privileges/) · [filtros de filas y máscaras](https://docs.databricks.com/aws/en/tables/row-and-column-filters)
+:::
+
 :::ejercicio abierto
 El grupo `finanzas` debe poder **leer** todas las tablas del esquema `prod.gold`, pero nada más. Escribe los `GRANT` necesarios.
 ```sql solucion

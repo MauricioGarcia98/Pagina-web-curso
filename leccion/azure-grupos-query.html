@@ -240,6 +240,22 @@ done</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Crear un grupo de recursos en el portal y consultarlo con --query</div>
+
+<ol>
+<li>Se abre el asistente <strong>Create a resource group</strong>. Ponle de nombre <code>rg-lab-datos</code> y elige una región.</li>
+<li>En la pestaña <strong>Tags</strong>, agrega la etiqueta <code>proyecto</code> = <code>lab</code>.</li>
+<li><strong>Review + create</strong> → <strong>Create</strong>.</li>
+<li>Abre <strong>Cloud Shell</strong> y verifica con la CLI: el filtro de JMESPath encuentra el grupo por su etiqueta.</li>
+</ol>
+<pre data-norun><code class="language-bash">az group show -n rg-lab-datos -o table
+az group list --query &quot;[?tags.proyecto=='lab'].name&quot; -o tsv
+az group show -n rg-lab-datos --query tags</code></pre>
+<p>Reto: crea un segundo grupo con la etiqueta <code>proyecto</code> = <code>prod</code> y arma una consulta que liste ambos con su etiqueta.</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/azure/azure-resource-manager/management/manage-resource-groups-portal">grupos de recursos en el portal</a> · <a href="https://learn.microsoft.com/es-es/cli/azure/query-azure-cli">consultas con --query</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

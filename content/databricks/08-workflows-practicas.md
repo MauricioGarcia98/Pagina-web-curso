@@ -215,6 +215,34 @@ Es el resumen de todo el módulo. Si tu proyecto cumple estos puntos, está al n
 - [ ] Secretos en Key Vault / secret scopes; acceso a datos con managed identities.
 - [ ] Costos vigilados: auto-terminación, políticas de cómputo, tags y tablas de facturación.
 
+:::practica databricks:jobs Crear y correr un job desde la interfaz
+1. En **Jobs & Pipelines**, crea un job con **Create job**.
+2. Agrega una tarea de tipo **Notebook** que apunte a `Introducción a Databricks` (está en tu carpeta de usuario).
+3. Agrega una segunda tarea que dependa de la primera y córrelo con **Run now**.
+4. Abre la corrida: mira el grafo de tareas, la duración y la salida de cada una.
+
+```yaml norun
+# lo mismo, como código (lo que guardarías en un bundle):
+resources:
+  jobs:
+    lakehouse_diario:
+      name: lakehouse_diario
+      tasks:
+        - task_key: ingesta
+          notebook_task:
+            notebook_path: ./ingesta.ipynb
+        - task_key: modelos
+          depends_on:
+            - task_key: ingesta
+          notebook_task:
+            notebook_path: ./modelos.ipynb
+```
+
+Reto: agrega al job un reintento (*retries*) y una notificación por correo si falla.
+
+Documentación oficial: [Lakeflow Jobs](https://docs.databricks.com/aws/en/jobs/) · [configurar un job](https://docs.databricks.com/aws/en/jobs/configure-job)
+:::
+
 :::ejercicio quiz
 En un job, la tarea `bronze` calcula cuántas filas ingirió y la tarea `silver` necesita ese número. ¿Cómo se lo pasa?
 
