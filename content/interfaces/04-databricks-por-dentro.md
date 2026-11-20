@@ -273,6 +273,21 @@ En **Experiments** comparas corridas lado a lado para elegir la mejor; en **Mode
 | MLflow: experimentos, corridas, comparación, registro de modelos en Unity Catalog y alias | Model Serving, Playground y AI Gateway |
 | Exportar como Asset Bundle | Desplegar en un workspace real (para eso: Databricks Free Edition) |
 
+:::practica databricks:sql Del catálogo a la consulta
+1. Se abre el **SQL Editor** con una consulta: ejecútala.
+2. En la barra lateral, abre **Catalog** y navega `samples` → `tienda` → `pedidos`: esquema, datos de muestra, historial y permisos.
+3. Abre **Compute** y **Workspace**: dónde corre el código y dónde viven tus notebooks.
+
+```sql norun
+SHOW TABLES IN samples.tienda;
+SELECT estado, COUNT(*) AS pedidos FROM samples.tienda.pedidos GROUP BY ALL ORDER BY pedidos DESC;
+```
+
+Reto: desde la tabla en **Catalog**, abre su linaje y explica qué te dice.
+
+Documentación oficial: [el workspace](https://docs.databricks.com/aws/en/workspace/) · [Catalog Explorer](https://docs.databricks.com/aws/en/catalog-explorer/)
+:::
+
 :::ejercicio quiz
 ¿Cómo se llama de forma completa la tabla `pedidos` del esquema `silver` en el catálogo `main`?
 - [ ] silver.pedidos.main

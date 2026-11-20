@@ -139,6 +139,30 @@ PAMI,1296,9.82
 - Las clínicas usan modelos de predicción de ausentismo para decidir a quién confirmar o a quién sobreagendar. La base de esos modelos son exactamente las variables de este caso: anticipación, día, especialidad e historial del paciente.
 :::
 
+:::practica sql Clínica del Sur: cuánto paga cada cobertura
+1. Ejecuta: facturación total, lo que cubre la obra social o prepaga y lo que paga el paciente, por cobertura.
+2. El porcentaje cubierto dice qué convenios convienen más a la clínica.
+3. Agrega la cantidad de facturas impagas por cobertura.
+
+```sql norun
+SELECT pa.cobertura,
+       COUNT(*) AS facturas,
+       ROUND(SUM(f.monto), 2) AS facturado,
+       ROUND(SUM(f.monto_cubierto), 2) AS cubierto,
+       ROUND(100.0 * SUM(f.monto_cubierto) / SUM(f.monto), 1) AS pct_cubierto,
+       SUM(CASE WHEN f.pagada = 0 THEN 1 ELSE 0 END) AS impagas
+FROM clinica_facturas f
+JOIN clinica_turnos t ON t.turno_id = f.turno_id
+JOIN clinica_pacientes pa ON pa.paciente_id = t.paciente_id
+GROUP BY pa.cobertura
+ORDER BY facturado DESC;
+```
+
+Reto: ¿qué especialidad tiene más facturas impagas? Une con `clinica_medicos`.
+
+Documentación oficial: [CASE](https://duckdb.org/docs/current/sql/expressions/case) · [JOIN](https://duckdb.org/docs/current/sql/query_syntax/from)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="Ausentismo por especialidad"

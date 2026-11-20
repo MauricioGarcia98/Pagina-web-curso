@@ -117,6 +117,28 @@ En los ejercicios de código, el editor ya trae el programa **con el error**. Ej
 - **Cambiar muchas cosas a la vez**: pierdes el hilo de qué arregló qué.
 :::
 
+:::practica python Leer un error de Python sin asustarse
+1. Ejecuta: el código tiene un error a propósito, y lo mostramos completo (con `traceback`) sin cortar el programa.
+2. Lee de abajo hacia arriba: la **última línea** dice el tipo de error (`NameError`) y qué pasó.
+3. Arriba está la línea exacta donde ocurrió. Corrige el nombre y vuelve a ejecutar.
+
+```python norun
+import traceback
+
+try:
+    precio = 100
+    print(precio * cantidad)   # "cantidad" no existe todavía
+except Exception:
+    traceback.print_exc()
+
+print("el programa siguió después del error")
+```
+
+Reto: provoca un `TypeError` sumando un número y un texto (`100 + "5"`) y escribe en una línea qué te dice el mensaje.
+
+Documentación oficial: [errores y excepciones](https://docs.python.org/es/3/tutorial/errors.html)
+:::
+
 :::ejercicio quiz
 Este es un error de Python. ¿Qué te está diciendo?
 

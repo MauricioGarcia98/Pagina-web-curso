@@ -47,6 +47,25 @@ Si te vas a dormir con el endpoint creado, pagas toda la noche. Para cargas espo
 
 ## Práctica guiada
 
+:::practica terminal SageMaker: el endpoint que no se puede olvidar
+1. Lista los endpoints: un endpoint encendido cobra por hora, se use o no.
+2. Prepara el bucket del laboratorio.
+3. Limpia y verifica que no quedó ningún endpoint ni bucket.
+
+```bash norun
+aws configure
+aws sagemaker list-endpoints
+aws s3 mb s3://ml-demoras-lab
+aws s3 cp datos/ventas_2024_12.csv s3://ml-demoras-lab/entrenamiento/
+aws s3 rb s3://ml-demoras-lab --force
+aws sagemaker list-endpoints
+```
+
+Reto: explica por qué el laboratorio entrena con instancias Spot y qué pasa si AWS reclama la instancia en medio del entrenamiento.
+
+Documentación oficial: [entrenamiento con Spot](https://docs.aws.amazon.com/sagemaker/latest/dg/model-managed-spot-training.html) · [borrar endpoints](https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints-delete-resources.html)
+:::
+
 :::ejercicio cli
 Paso 1. Crea el bucket `ml-demoras-lab` para datos, checkpoints y artefactos.
 ```respuesta

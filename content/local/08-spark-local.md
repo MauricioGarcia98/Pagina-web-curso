@@ -169,6 +169,23 @@ Tus archivos aparecen en la carpeta `work/` del Jupyter.
 - Las pruebas de Spark se hacen con DataFrames chicos construidos en la prueba (`spark.createDataFrame([...])`) y se comparan resultados esperados: rápidas y sin depender de archivos.
 :::
 
+:::practica terminal Spark en modo local y spark-submit
+1. Verifica Java y Spark: Spark corre sobre la JVM.
+2. Escribe un script de PySpark que lee un CSV y córrelo con `spark-submit` en modo local (`local[*]` usa todos los núcleos). En la práctica, los CSV de las tablas del curso están en `/datos/`.
+3. Mientras corre, en tu computadora la Spark UI está en `http://localhost:4040`.
+
+```bash norun
+java -version
+spark-submit --version
+printf 'from pyspark.sql import SparkSession\nspark = SparkSession.builder.master("local[*]").appName("local").getOrCreate()\ndf = spark.read.option("header", True).csv("/datos/pedidos.csv")\ndf.groupBy("canal").count().show()\n' > contar.py
+spark-submit contar.py
+```
+
+Reto: agrega `.config("spark.sql.shuffle.partitions", 8)` y explica por qué 200 particiones es demasiado para una laptop.
+
+Documentación oficial: [spark-submit](https://spark.apache.org/docs/latest/submitting-applications.html) · [la Spark UI](https://spark.apache.org/docs/latest/web-ui.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

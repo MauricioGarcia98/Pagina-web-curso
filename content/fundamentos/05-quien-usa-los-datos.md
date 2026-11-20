@@ -110,6 +110,24 @@ Los **datos personales** (PII) son los que identifican a una persona: nombre, em
 
 ## Práctica
 
+:::practica sql Encontrar problemas de calidad
+1. Ejecuta: tres controles sobre los clientes que llegan de la fuente (correos vacíos, clientes repetidos y ciudades escritas de varias formas).
+2. Cada número distinto de cero es un problema que alguien va a ver en un tablero.
+3. Piensa quién se entera primero si nadie lo controla: el analista, el gerente o el cliente.
+
+```sql norun
+SELECT 'emails vacíos' AS control, COUNT(*) AS casos FROM clientes_crudo WHERE email IS NULL
+UNION ALL
+SELECT 'clientes repetidos', COUNT(*) - COUNT(DISTINCT cliente_id) FROM clientes_crudo
+UNION ALL
+SELECT 'ciudades escritas distinto', COUNT(DISTINCT ciudad) - COUNT(DISTINCT LOWER(TRIM(ciudad))) FROM clientes_crudo;
+```
+
+Reto: muestra las versiones distintas de una misma ciudad (por ejemplo "lima" y "Lima").
+
+Documentación oficial: [funciones de texto](https://duckdb.org/docs/current/sql/functions/text)
+:::
+
 :::ejercicio sql dificultad=Básico titulo="Check de completitud"
 Cuenta cuántas filas de `clientes_crudo` no tienen email (nulo o vacío). Columna `sin_email`.
 ```sql inicial

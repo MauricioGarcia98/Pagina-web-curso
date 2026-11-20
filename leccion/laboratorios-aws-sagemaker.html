@@ -56,6 +56,25 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Práctica guiada</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: SageMaker: el endpoint que no se puede olvidar</div>
+
+<ol>
+<li>Lista los endpoints: un endpoint encendido cobra por hora, se use o no.</li>
+<li>Prepara el bucket del laboratorio.</li>
+<li>Limpia y verifica que no quedó ningún endpoint ni bucket.</li>
+</ol>
+<pre data-norun><code class="language-bash">aws configure
+aws sagemaker list-endpoints
+aws s3 mb s3://ml-demoras-lab
+aws s3 cp datos/ventas_2024_12.csv s3://ml-demoras-lab/entrenamiento/
+aws s3 rb s3://ml-demoras-lab --force
+aws sagemaker list-endpoints</code></pre>
+<p>Reto: explica por qué el laboratorio entrena con instancias Spot y qué pasa si AWS reclama la instancia en medio del entrenamiento.</p>
+<p>Documentación oficial: <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/model-managed-spot-training.html">entrenamiento con Spot</a> · <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints-delete-resources.html">borrar endpoints</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

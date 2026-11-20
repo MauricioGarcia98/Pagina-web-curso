@@ -40,6 +40,26 @@ flecha an -> ms | estilo=punteada
 
 ## Práctica guiada: Declarative Automation Bundles
 
+:::practica terminal Bundle, pipelines y endpoints desde la CLI
+1. Inicia sesión y crea el bundle del laboratorio.
+2. Valídalo y despliégalo al target de desarrollo.
+3. Lista pipelines y endpoints de serving: los endpoints son lo que hay que apagar al terminar.
+
+```bash norun
+databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+databricks bundle init
+cd mi_proyecto
+databricks bundle validate
+databricks bundle deploy -t dev
+databricks pipelines list-pipelines
+databricks serving-endpoints list
+```
+
+Reto: escribe el comando `databricks bundle destroy -t dev` y explica qué borra y qué no.
+
+Documentación oficial: [bundles](https://docs.databricks.com/aws/en/dev-tools/bundles/) · [Model Serving](https://docs.databricks.com/aws/en/machine-learning/model-serving/)
+:::
+
 :::ejercicio cli
 Paso 1. Inicializa un bundle con la plantilla `default-python`.
 ```respuesta

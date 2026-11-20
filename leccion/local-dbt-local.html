@@ -188,6 +188,23 @@ models:
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un proyecto dbt local de punta a punta</div>
+
+<ol>
+<li>Entra al proyecto dbt del curso y verifica la conexión.</li>
+<li>Construye modelos y tests con <code>dbt build</code>.</li>
+<li>Genera la documentación: en tu computadora, <code>dbt docs serve</code> la abre en el navegador con el linaje.</li>
+</ol>
+<pre data-norun><code class="language-bash">cd ~/tienda_dbt
+dbt debug
+dbt build
+dbt docs generate
+dbt ls -s marts</code></pre>
+<p>Reto: escribe el <code>profiles.yml</code> para DuckDB local (<code>type: duckdb</code>, <code>path: tienda.duckdb</code>) y explica por qué ese archivo va fuera del repositorio.</p>
+<p>Documentación oficial: <a href="https://docs.getdbt.com/docs/core/connect-data-platform/duckdb-setup">dbt con DuckDB</a> · <a href="https://docs.getdbt.com/reference/commands/cmd-docs">dbt docs</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

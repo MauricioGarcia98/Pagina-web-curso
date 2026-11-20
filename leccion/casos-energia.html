@@ -174,6 +174,26 @@ ORDER BY pct_del_consumo;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Luz del Valle: cobranza por zona</div>
+
+<ol>
+<li>Ejecuta: por zona, facturas, porcentaje pagado fuera de término (o impago) y monto pendiente.</li>
+<li>Las fechas están en formato ISO (<code>AAAA-MM-DD</code>), así que se pueden comparar como texto.</li>
+<li>La zona con más atraso ¿es la misma que tiene más cortes de servicio? (mira <code>energia_cortes</code>).</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT c.zona,
+       COUNT(*) AS facturas,
+       ROUND(100.0 * AVG(CASE WHEN f.fecha_pago IS NULL OR f.fecha_pago &gt; f.fecha_vencimiento THEN 1 ELSE 0 END), 1) AS pct_tarde_o_impaga,
+       ROUND(SUM(CASE WHEN f.fecha_pago IS NULL THEN f.monto ELSE 0 END), 2) AS pendiente
+FROM energia_facturas f
+JOIN energia_clientes c ON c.cliente_id = f.cliente_id
+GROUP BY c.zona
+ORDER BY pct_tarde_o_impaga DESC;</code></pre>
+<p>Reto: busca medidores con lecturas estimadas muchos meses seguidos: es una señal de posible hurto o de medidor inaccesible.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/expressions/case">CASE</a> · <a href="https://duckdb.org/docs/current/sql/query_syntax/from">JOIN</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -195,6 +195,25 @@ Si un comando dice `command not found`, la herramienta no está instalada **o** 
 - Las empresas suelen entregar laptops con restricciones (sin permisos de administrador, proxy corporativo). Si `apt`, `brew` o `pip` fallan por certificados o red, es eso: pide ayuda a soporte en lugar de desactivar la seguridad.
 :::
 
+:::practica terminal Verificar que tu computadora está lista
+1. Estos son los comandos que corres en tu computadora (o en WSL en Windows) para comprobar cada herramienta instalada. Ejecútalos aquí para ver qué responde cada uno.
+2. Si alguno dice *command not found* en tu máquina, esa es la herramienta que te falta instalar.
+3. Anota las versiones: cuando pidas ayuda, es lo primero que te van a preguntar.
+
+```bash norun
+git --version
+python3 --version
+uv --version
+docker --version
+java -version
+code --version
+```
+
+Reto: en tu computadora, corre `which python3` y explica la diferencia entre el Python del sistema y el que maneja `uv`.
+
+Documentación oficial: [instalar WSL (Microsoft)](https://learn.microsoft.com/es-es/windows/wsl/install) · [instalar Homebrew (macOS)](https://docs.brew.sh/Installation)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

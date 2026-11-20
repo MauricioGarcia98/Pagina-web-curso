@@ -46,6 +46,27 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>Práctica guiada: eventos a BigQuery sin código</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Pub/Sub a BigQuery y los endpoints de Vertex AI</div>
+
+<ol>
+<li>Habilita las APIs y crea el tópico de eventos con su suscripción.</li>
+<li>Publica un evento y léelo.</li>
+<li>Lista los endpoints de Vertex AI: igual que en SageMaker, un endpoint desplegado cobra por hora.</li>
+</ol>
+<pre data-norun><code class="language-bash">gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud services enable pubsub.googleapis.com workflows.googleapis.com cloudscheduler.googleapis.com aiplatform.googleapis.com
+gcloud pubsub topics create eventos-lab
+gcloud pubsub subscriptions create eventos-lab-sub --topic eventos-lab
+gcloud pubsub topics publish eventos-lab --message '{&quot;cliente_id&quot;: 7, &quot;evento&quot;: &quot;compra&quot;}'
+gcloud pubsub subscriptions pull eventos-lab-sub --auto-ack --limit 5
+gcloud ai endpoints list --region us-central1</code></pre>
+<p>Reto: escribe la suscripción de tipo BigQuery que guardaría cada evento en una tabla sin escribir código.</p>
+<p>Documentación oficial: <a href="https://cloud.google.com/pubsub/docs/bigquery">suscripciones de BigQuery</a> · <a href="https://cloud.google.com/vertex-ai/docs/general/deployment">desplegar en Vertex AI</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

@@ -144,6 +144,24 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>Práctica</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Encontrar problemas de calidad</div>
+
+<ol>
+<li>Ejecuta: tres controles sobre los clientes que llegan de la fuente (correos vacíos, clientes repetidos y ciudades escritas de varias formas).</li>
+<li>Cada número distinto de cero es un problema que alguien va a ver en un tablero.</li>
+<li>Piensa quién se entera primero si nadie lo controla: el analista, el gerente o el cliente.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT 'emails vacíos' AS control, COUNT(*) AS casos FROM clientes_crudo WHERE email IS NULL
+UNION ALL
+SELECT 'clientes repetidos', COUNT(*) - COUNT(DISTINCT cliente_id) FROM clientes_crudo
+UNION ALL
+SELECT 'ciudades escritas distinto', COUNT(DISTINCT ciudad) - COUNT(DISTINCT LOWER(TRIM(ciudad))) FROM clientes_crudo;</code></pre>
+<p>Reto: muestra las versiones distintas de una misma ciudad (por ejemplo &quot;lima&quot; y &quot;Lima&quot;).</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/text">funciones de texto</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

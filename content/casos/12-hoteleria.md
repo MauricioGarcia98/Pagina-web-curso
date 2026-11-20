@@ -115,6 +115,34 @@ ORDER BY revpar DESC;
 RevPAR es el ingreso de habitaciones dividido por las habitaciones disponibles en el período; equivale a ocupación × ADR. La ocupación sola premia llenar el hotel a cualquier precio, y el ADR solo premia cobrar caro aunque el hotel quede vacío. El RevPAR mide cuánto rinde cada habitación que el hotel tiene, vendida o no, así que solo sube si se combina bien precio y ocupación.
 :::
 
+:::practica sql:duckdb Posada Andina: ocupación, ADR y RevPAR
+1. Ejecuta: noches vendidas por hotel (de las reservas completadas), ADR (tarifa promedio por noche vendida) y RevPAR (ingreso por habitación disponible).
+2. RevPAR = ADR × ocupación: un hotel puede tener ADR alto y RevPAR bajo si está vacío.
+3. Ordena por RevPAR: es el número que mira la gerencia.
+
+```sql norun
+WITH noches AS (
+    SELECT hotel_id, SUM(date_diff('day', CAST(check_in AS DATE), CAST(check_out AS DATE))) AS noches,
+           SUM(date_diff('day', CAST(check_in AS DATE), CAST(check_out AS DATE)) * tarifa_noche) AS ingreso
+    FROM hotel_reservas WHERE estado = 'completada'
+    GROUP BY hotel_id
+),
+periodo AS (
+    SELECT date_diff('day', MIN(CAST(check_in AS DATE)), MAX(CAST(check_out AS DATE))) AS dias FROM hotel_reservas
+)
+SELECT h.nombre, h.habitaciones,
+       ROUND(100.0 * n.noches / (h.habitaciones * p.dias), 1) AS ocupacion_pct,
+       ROUND(n.ingreso / n.noches, 2) AS adr,
+       ROUND(n.ingreso / (h.habitaciones * p.dias), 2) AS revpar
+FROM noches n JOIN hotel_hoteles h ON h.hotel_id = n.hotel_id, periodo p
+ORDER BY revpar DESC;
+```
+
+Reto: calcula el ADR neto por canal descontando la comisión (`comision_pct`) y explica por qué el canal directo vale más de lo que parece.
+
+Documentación oficial: [funciones de fecha](https://duckdb.org/docs/current/sql/functions/date) · [CTEs](https://duckdb.org/docs/current/sql/query_syntax/with)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="Lo que deja cada canal"

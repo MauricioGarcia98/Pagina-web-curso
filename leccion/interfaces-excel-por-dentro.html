@@ -258,6 +258,22 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Archivos .xlsx</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Referencias, funciones y una tabla dinámica</div>
+
+<ol>
+<li>Carga una tabla del curso (por ejemplo <code>pedidos</code>) en una hoja.</li>
+<li>En una celda vacía escribe las fórmulas de abajo: cuántos pedidos hay, cuántos son del canal web (la columna F) y el canal del pedido 1. La práctica usa los nombres en inglés y la coma como separador, como Excel en inglés; en Excel en español son <code>CONTARA</code>, <code>CONTAR.SI</code>, <code>BUSCARV</code> y el separador es <code>;</code>.</li>
+<li>Arma una <strong>tabla dinámica</strong> con canal en filas y cantidad de pedidos en valores.</li>
+</ol>
+<pre data-norun><code class="language-text">=COUNTA(A2:A12001)
+=COUNTIF(F2:F12001,&quot;web&quot;)
+=VLOOKUP(1,A2:G12001,6,FALSE)</code></pre>
+<p>Reto: explica la diferencia entre <code>A2</code> y <code>$A$2</code> al copiar una fórmula hacia abajo.</p>
+<p>Documentación oficial: <a href="https://support.microsoft.com/es-es/office/crear-una-tabla-din%C3%A1mica-para-analizar-datos-de-una-hoja-de-c%C3%A1lculo-a9a84538-bfe9-40a9-a8e9-f99134456576">tablas dinámicas</a> · <a href="https://support.microsoft.com/es-es/office/funci%C3%B3n-buscarv-0bbc8083-26fe-4963-8ab8-93a18ad188a1">BUSCARV / VLOOKUP</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

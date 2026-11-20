@@ -33,6 +33,7 @@
     airflow: { nombre: 'Airflow', ico: '🌬️', ruta: '#/airflow', rutas: ['airflow'] },
     modelado: { nombre: 'el laboratorio de modelado', ico: '📐', ruta: '#/modelado', rutas: ['modelado'] },
     generador: { nombre: 'el generador de datos', ico: '🎲', ruta: '#/generador', rutas: ['generador'] },
+    notas: { nombre: 'tus notas', ico: '📝', ruta: '#/notas', rutas: ['notas'] },
   };
   const leer = () => { try { return JSON.parse(sessionStorage.getItem(CLAVE) || 'null'); } catch (e) { return null; } };
   const guardar = (enc) => { try { if (enc) sessionStorage.setItem(CLAVE, JSON.stringify(enc)); else sessionStorage.removeItem(CLAVE); } catch (e) { /* sin almacenamiento */ } };

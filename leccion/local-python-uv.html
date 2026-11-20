@@ -231,6 +231,24 @@ def test_tiempos_desordenados():
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un proyecto Python profesional con uv</div>
+
+<ol>
+<li>Crea el proyecto: <code>uv</code> arma la carpeta, el <code>pyproject.toml</code> y el entorno virtual.</li>
+<li>Agrega pandas como dependencia y ruff/pytest como dependencias de desarrollo.</li>
+<li>Corre el linter y un script dentro del entorno con <code>uv run</code>: nunca instalas nada en el Python del sistema.</li>
+</ol>
+<pre data-norun><code class="language-bash">cd ~ &amp;&amp; uv init analisis-ventas &amp;&amp; cd analisis-ventas
+uv add pandas
+uv add --dev ruff pytest
+cat pyproject.toml
+uv run python -c &quot;import pandas as pd; print(pd.DataFrame({'x': [1, 2, 3]}).sum())&quot;
+uv run ruff check .</code></pre>
+<p>Reto: escribe un test en <code>tests/test_suma.py</code> y córrelo con <code>uv run pytest</code>.</p>
+<p>Documentación oficial: <a href="https://docs.astral.sh/uv/">documentación de uv</a> · <a href="https://docs.astral.sh/ruff/">Ruff</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

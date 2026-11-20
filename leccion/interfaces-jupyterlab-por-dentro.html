@@ -264,6 +264,22 @@ def limpiar_email(email):
 <td>Colaboración en tiempo real</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Kernel, celdas y el orden de ejecución</div>
+
+<ol>
+<li>Crea un notebook y escribe la celda de abajo; ejecútala con <strong>Shift + Enter</strong>.</li>
+<li>Mira el número entre corchetes <code>[1]</code>: indica en qué orden corrió cada celda.</li>
+<li>Reinicia el kernel (<strong>Kernel → Restart</strong>) y ejecuta todo de nuevo con <strong>Run All</strong>: un notebook confiable corre de arriba hacia abajo sin errores.</li>
+</ol>
+<pre data-norun><code class="language-python">import pandas as pd
+ventas = pd.DataFrame({&quot;canal&quot;: [&quot;web&quot;, &quot;app&quot;, &quot;web&quot;, &quot;tienda&quot;], &quot;monto&quot;: [120, 80, 45, 200]})
+ventas.groupby(&quot;canal&quot;)[&quot;monto&quot;].sum()</code></pre>
+<p>Reto: agrega una celda Markdown con un título y una conclusión de una línea, como lo entregarías a un equipo.</p>
+<p>Documentación oficial: <a href="https://jupyterlab.readthedocs.io/en/stable/user/notebook.html">notebooks en JupyterLab</a> · <a href="https://jupyterlab.readthedocs.io/en/stable/user/interface.html">la interfaz</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

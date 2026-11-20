@@ -259,6 +259,20 @@ Recuerda: la seguridad por filas (RLS) se aplica a los **Visores**. Quien es Adm
 | RLS con Ver como, grupos de cálculo, exportación a TMDL | OLS, perspectivas |
 | Servicio de práctica: publicar, áreas de trabajo y roles, actualización programada, puerta de enlace, credenciales, miembros de RLS, compartir, paneles, apps, aval, confidencialidad, linaje y canalizaciones | Cuentas reales, suscripciones por correo, alertas de datos, métricas |
 
+:::practica powerbi Un recorrido por Power BI Desktop
+1. **Obtener datos → Base de datos del curso**: carga `pedidos` y `clientes`. Mira cómo aparecen en el panel **Datos**.
+2. Abre **Transformar datos** (Power Query) y mira los *pasos aplicados* de una tabla: cada paso es una línea de M.
+3. Ve a la vista **Modelo** y revisa la relación que Power BI detectó; después, en **Informe**, arma un gráfico de columnas de pedidos por canal.
+
+```dax norun
+Pedidos = COUNTROWS(pedidos)
+```
+
+Reto: crea la medida de arriba (**Nueva medida**) y úsala en una tarjeta. ¿Por qué conviene una medida y no arrastrar la columna `pedido_id`?
+
+Documentación oficial: [primeros pasos con Power BI Desktop](https://learn.microsoft.com/es-es/power-bi/fundamentals/desktop-getting-started) · [qué es Power Query](https://learn.microsoft.com/es-es/power-query/power-query-what-is-power-query)
+:::
+
 :::ejercicio quiz
 Tienes una tabla `ventas` (una fila por venta) y una tabla `clientes` (una fila por cliente). ¿Qué relación creas?
 - [ ] Uno a uno, dirección ambas

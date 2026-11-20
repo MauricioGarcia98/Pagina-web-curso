@@ -164,6 +164,20 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Seguridad de OneLake por carpeta y etiquetas de confidencialidad</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Workspace, lakehouse y su endpoint SQL</div>
+
+<ol>
+<li>Abre un <strong>workspace</strong> y crea un <strong>lakehouse</strong>.</li>
+<li>Sube un archivo a <strong>Files</strong> y conviértelo en tabla con <strong>Load to Tables</strong>: pasa a <strong>Tables</strong> en formato Delta.</li>
+<li>Abre el <strong>SQL analytics endpoint</strong> del lakehouse y consulta la tabla.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT TOP 10 * FROM clientes;</code></pre>
+<p>Reto: explica la diferencia entre un lakehouse y un warehouse en Fabric y cuándo elegirías cada uno.</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/fabric/data-engineering/lakehouse-overview">lakehouse en Fabric</a> · <a href="https://learn.microsoft.com/es-es/fabric/data-engineering/lakehouse-sql-analytics-endpoint">SQL analytics endpoint</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

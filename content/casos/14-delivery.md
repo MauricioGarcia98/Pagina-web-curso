@@ -103,6 +103,30 @@ ORDER BY total_min DESC;
 Con cohortes: agrupo a los clientes por el mes de su primer pedido y, para cada cohorte, calculo qué porcentaje vuelve a pedir dentro de 30, 60 y 90 días desde su primer pedido. Uso ventanas relativas al primer pedido (no meses calendario) para que todos los clientes tengan la misma oportunidad, y excluyo o marco las cohortes que todavía no completaron la ventana. Después corto por canal de adquisición, ciudad o si el primer pedido llegó tarde, para encontrar qué explica la diferencia.
 :::
 
+:::practica sql Rápido: take rate y cancelaciones por ciudad
+1. Ejecuta: por ciudad, GMV (subtotal de pedidos entregados), ingreso de la plataforma (comisión del restaurante + costo de envío) y *take rate* (ingreso / GMV).
+2. Agrega las cancelaciones: un pedido cancelado no deja ingreso pero sí costo operativo.
+3. ¿La ciudad con mejor take rate es también la que menos cancela?
+
+```sql norun
+SELECT p.ciudad,
+       SUM(CASE WHEN p.estado = 'entregado' THEN 1 ELSE 0 END) AS entregados,
+       ROUND(SUM(CASE WHEN p.estado = 'entregado' THEN p.subtotal ELSE 0 END), 2) AS gmv,
+       ROUND(SUM(CASE WHEN p.estado = 'entregado' THEN p.subtotal * r.comision_pct / 100.0 + p.costo_envio ELSE 0 END), 2) AS ingreso,
+       ROUND(100.0 * SUM(CASE WHEN p.estado = 'entregado' THEN p.subtotal * r.comision_pct / 100.0 + p.costo_envio ELSE 0 END)
+             / SUM(CASE WHEN p.estado = 'entregado' THEN p.subtotal ELSE 0 END), 1) AS take_rate_pct,
+       ROUND(100.0 * AVG(CASE WHEN p.estado LIKE 'cancelado%' OR p.estado = 'sin_repartidor' THEN 1 ELSE 0 END), 1) AS pct_no_entregados
+FROM delivery_pedidos p
+JOIN delivery_restaurantes r ON r.restaurante_id = p.restaurante_id
+GROUP BY p.ciudad
+ORDER BY take_rate_pct DESC;
+```
+
+Reto: resta el costo de los cupones (`descuento_cupon`) al ingreso y recalcula el take rate neto.
+
+Documentación oficial: [CASE](https://duckdb.org/docs/current/sql/expressions/case) · [agregaciones](https://duckdb.org/docs/current/sql/functions/aggregates)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="La demora y la calificación"

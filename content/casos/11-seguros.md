@@ -109,6 +109,33 @@ ORDER BY siniestralidad_pct DESC;
 Agrego cada tabla a su propio grano antes de unir: un CTE que suma las primas por ramo desde pólizas, otro que cuenta y suma los siniestros por ramo, y recién después uno los dos resultados por ramo. Si uniera primero, cada póliza aparecería una vez por siniestro y su prima se sumaría varias veces. Para comprobarlo, comparo el total de primas de mi consulta con un SUM directo sobre la tabla de pólizas.
 :::
 
+:::practica sql Escudo Seguros: siniestralidad, frecuencia y severidad por ramo
+1. Ejecuta: por ramo, primas anuales, siniestros pagados, siniestralidad (pagado / primas), frecuencia (siniestros / pólizas) y severidad (pago promedio por siniestro).
+2. Siniestralidad = frecuencia × severidad / prima: si un ramo está alto, mira cuál de las dos lo explica.
+3. Más de 100 % de siniestralidad significa que el ramo pierde plata.
+
+```sql norun
+WITH primas AS (
+    SELECT ramo, COUNT(*) AS polizas, SUM(prima_mensual * 12) AS prima_anual FROM seguros_polizas GROUP BY ramo
+),
+siniestros AS (
+    SELECT p.ramo, COUNT(*) AS siniestros, SUM(CASE WHEN s.estado = 'pagado' THEN s.monto_pagado ELSE 0 END) AS pagado
+    FROM seguros_siniestros s JOIN seguros_polizas p ON p.poliza_id = s.poliza_id
+    GROUP BY p.ramo
+)
+SELECT pr.ramo, pr.polizas, ROUND(pr.prima_anual, 0) AS prima_anual, ROUND(si.pagado, 0) AS pagado,
+       ROUND(100.0 * si.pagado / pr.prima_anual, 1) AS siniestralidad_pct,
+       ROUND(1.0 * si.siniestros / pr.polizas, 3) AS frecuencia,
+       ROUND(si.pagado / si.siniestros, 0) AS severidad
+FROM primas pr JOIN siniestros si ON si.ramo = pr.ramo
+ORDER BY siniestralidad_pct DESC;
+```
+
+Reto: calcula el porcentaje de siniestros con fraude confirmado por ramo y cuánto dinero se evitó pagar.
+
+Documentación oficial: [CTEs](https://duckdb.org/docs/current/sql/query_syntax/with) · [CASE](https://duckdb.org/docs/current/sql/expressions/case)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="Frecuencia y severidad por ramo"

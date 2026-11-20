@@ -42,6 +42,27 @@ flecha web -> ep: predict
 
 ## Práctica guiada: eventos a BigQuery sin código
 
+:::practica terminal Pub/Sub a BigQuery y los endpoints de Vertex AI
+1. Habilita las APIs y crea el tópico de eventos con su suscripción.
+2. Publica un evento y léelo.
+3. Lista los endpoints de Vertex AI: igual que en SageMaker, un endpoint desplegado cobra por hora.
+
+```bash norun
+gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud services enable pubsub.googleapis.com workflows.googleapis.com cloudscheduler.googleapis.com aiplatform.googleapis.com
+gcloud pubsub topics create eventos-lab
+gcloud pubsub subscriptions create eventos-lab-sub --topic eventos-lab
+gcloud pubsub topics publish eventos-lab --message '{"cliente_id": 7, "evento": "compra"}'
+gcloud pubsub subscriptions pull eventos-lab-sub --auto-ack --limit 5
+gcloud ai endpoints list --region us-central1
+```
+
+Reto: escribe la suscripción de tipo BigQuery que guardaría cada evento en una tabla sin escribir código.
+
+Documentación oficial: [suscripciones de BigQuery](https://cloud.google.com/pubsub/docs/bigquery) · [desplegar en Vertex AI](https://cloud.google.com/vertex-ai/docs/general/deployment)
+:::
+
 :::ejercicio cli
 Paso 1. Prepara los archivos con `lab-preparar gcp`, crea el dataset `eventos_lab` y la tabla `eventos_lab.clics` con el esquema `evento:STRING,usuario:STRING,ts:TIMESTAMP`.
 ```respuesta

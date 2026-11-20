@@ -241,6 +241,23 @@ USE ROLE analista;       -- prueba el rol: solo puede leer ese esquema</code></p
 </tr>
 </tbody></table></div>
 <p>El motor por debajo es DuckDB: algunas funciones muy específicas de Snowflake pueden no estar o dar mensajes de error distintos.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Warehouse, worksheet y Time Travel</div>
+
+<ol>
+<li>Crea (o elige) un <strong>warehouse</strong> chico con suspensión automática: solo cobra mientras consulta.</li>
+<li>Abre un <strong>worksheet</strong>, elige base y esquema, y ejecuta la consulta de abajo.</li>
+<li>Revisa <strong>Query History</strong>: cuánto tardó y qué warehouse usó.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT canal, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY canal
+ORDER BY pedidos DESC;</code></pre>
+<p>Reto: borra una tabla de prueba y recupérala con <code>UNDROP TABLE</code>; explica qué es Time Travel y cuánto tiempo guarda.</p>
+<p>Documentación oficial: <a href="https://docs.snowflake.com/en/user-guide/warehouses-overview">warehouses</a> · <a href="https://docs.snowflake.com/en/user-guide/data-time-travel">Time Travel</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

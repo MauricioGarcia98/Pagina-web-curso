@@ -213,6 +213,24 @@ tienda,2645
 telefono,982
 ```
 
+:::practica terminal Dos bases, dos usos: PostgreSQL y DuckDB
+1. PostgreSQL (en Docker) es la base de una aplicación: muchas escrituras chicas y concurrentes.
+2. DuckDB es analítica en tu propia máquina: lee un CSV directo y agrega millones de filas sin servidor.
+3. Compara: la misma pregunta, una herramienta para cada trabajo.
+
+```bash norun
+docker run -d --name pg -e POSTGRES_PASSWORD=secreta -p 5432:5432 postgres:16
+psql -h localhost -U postgres -c "CREATE TABLE ventas (id INT, canal TEXT, monto NUMERIC);"
+psql -h localhost -U postgres -c "INSERT INTO ventas VALUES (1, 'web', 120), (2, 'app', 80), (3, 'web', 45);"
+psql -h localhost -U postgres -c "SELECT canal, SUM(monto) FROM ventas GROUP BY canal;"
+duckdb -c "SELECT canal, COUNT(*) AS ventas, ROUND(SUM(total), 2) AS total FROM 'datos/ventas_2024_12.csv' GROUP BY canal ORDER BY total DESC"
+```
+
+Reto: con DuckDB, convierte el CSV a Parquet (`COPY (SELECT * FROM 'datos/ventas_2024_12.csv') TO 'ventas.parquet' (FORMAT parquet)`) y compara el tamaño de los dos archivos con `ls -lh`.
+
+Documentación oficial: [psql](https://www.postgresql.org/docs/current/app-psql.html) · [leer CSV con DuckDB](https://duckdb.org/docs/current/data/csv/overview)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

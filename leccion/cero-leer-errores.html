@@ -199,6 +199,27 @@ NameError: name 'precio' is not defined</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Leer un error de Python sin asustarse</div>
+
+<ol>
+<li>Ejecuta: el código tiene un error a propósito, y lo mostramos completo (con <code>traceback</code>) sin cortar el programa.</li>
+<li>Lee de abajo hacia arriba: la <strong>última línea</strong> dice el tipo de error (<code>NameError</code>) y qué pasó.</li>
+<li>Arriba está la línea exacta donde ocurrió. Corrige el nombre y vuelve a ejecutar.</li>
+</ol>
+<pre data-norun><code class="language-python">import traceback
+
+try:
+    precio = 100
+    print(precio * cantidad)   # &quot;cantidad&quot; no existe todavía
+except Exception:
+    traceback.print_exc()
+
+print(&quot;el programa siguió después del error&quot;)</code></pre>
+<p>Reto: provoca un <code>TypeError</code> sumando un número y un texto (<code>100 + &quot;5&quot;</code>) y escribe en una línea qué te dice el mensaje.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/tutorial/errors.html">errores y excepciones</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

@@ -205,6 +205,23 @@ Configuraría un presupuesto con alertas en varios umbrales y destinatarios, sab
 
 ## Práctica
 
+:::practica azure Recorrer en el portal de práctica lo que harás en tu cuenta
+1. Repite en el portal de práctica los pasos de la guía: grupo `rg-datos-lab`, cuenta de almacenamiento con *hierarchical namespace* y contenedor `bronze`.
+2. Verifica en **Cloud Shell** con los comandos de abajo.
+3. Al terminar, borra el grupo: en tu cuenta real eso evita cualquier cobro.
+
+```bash norun
+az account show --query "{suscripcion:name, usuario:user.name}" -o table
+az group list -o table
+az storage account list -g rg-datos-lab --query "[].{nombre:name, hns:isHnsEnabled, sku:sku.name}" -o table
+az group delete -n rg-datos-lab --yes
+```
+
+Reto: anota cuánto costaría dejar encendido un clúster de Azure Databricks una noche entera y cómo lo evitas (terminación automática).
+
+Documentación oficial: [crear una cuenta de ADLS Gen2](https://learn.microsoft.com/es-es/azure/storage/blobs/create-data-lake-storage-account) · [administrar clústeres](https://learn.microsoft.com/es-es/azure/databricks/compute/clusters-manage)
+:::
+
 :::ejercicio quiz dificultad=Básico
 ¿Qué opción de la pestaña Advanced convierte una cuenta de almacenamiento en ADLS Gen2?
 

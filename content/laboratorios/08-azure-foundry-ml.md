@@ -46,6 +46,25 @@ Durante el blue/green tienes dos despliegues encendidos. Termina el laboratorio 
 
 ## Práctica guiada: Foundry
 
+:::practica terminal Azure: grupo propio y borrado en un paso
+1. Crea un grupo de recursos solo para el laboratorio: todo lo que crees va adentro.
+2. Mira los recursos del grupo.
+3. Al terminar, borrar el grupo borra todo su contenido de una vez: es la limpieza más segura en Azure.
+
+```bash norun
+az login
+az group create -n rg-lab-ia -l eastus2 --tags proyecto=lab
+az keyvault create -n kv-lab-ia01 -g rg-lab-ia
+az resource list -g rg-lab-ia -o table
+az group delete -n rg-lab-ia --yes
+az group list --query "[?tags.proyecto=='lab'].name" -o tsv
+```
+
+Reto: explica por qué el despliegue blue/green manda primero un porcentaje chico del tráfico al modelo nuevo.
+
+Documentación oficial: [borrar un grupo de recursos](https://learn.microsoft.com/es-es/azure/azure-resource-manager/management/delete-resource-group) · [despliegue seguro en Azure ML](https://learn.microsoft.com/es-es/azure/machine-learning/how-to-safely-rollout-online-endpoints)
+:::
+
 :::ejercicio cli
 Paso 1. Crea el grupo `rg-lab-ia` en `eastus2` (si no lo hiciste en la lección 1).
 ```respuesta

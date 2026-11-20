@@ -148,6 +148,27 @@ Los ejercicios con terminal se escriben en la terminal que aparece debajo del en
 En un equipo de datos, la forma de nombrar carpetas y archivos se acuerda entre todos (por ejemplo `datos/AAAA/MM/DD/tabla.parquet`). Esa convención hace que los programas encuentren solos los archivos de cada día. Respetarla es parte del trabajo.
 :::
 
+:::practica terminal Moverte entre carpetas y crear archivos
+1. `pwd` te dice dónde estás; `ls` muestra lo que hay en esa carpeta.
+2. Crea una carpeta, entra y crea un archivo de texto con extensión `.txt`.
+3. Vuelve una carpeta atrás con `cd ..` y mira la ruta completa del archivo.
+
+```bash norun
+pwd
+ls
+mkdir mi-carpeta
+cd mi-carpeta
+echo "hola" > notas.txt
+ls -l
+cd ..
+ls mi-carpeta
+```
+
+Reto: crea `mi-carpeta/datos/2024` en un solo comando (`mkdir -p`) y escribe la ruta completa de esa carpeta.
+
+Documentación oficial: [ls (manual de GNU)](https://www.gnu.org/software/coreutils/manual/html_node/ls-invocation.html)
+:::
+
 :::ejercicio quiz
 En el archivo `reporte_marzo.csv`, ¿qué te dice la parte `.csv`?
 - [ ] La fecha en que se creó el archivo

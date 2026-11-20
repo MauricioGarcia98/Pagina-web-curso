@@ -121,6 +121,24 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Práctica guiada: prepara la terminal</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: La red de seguridad: presupuestos antes del primer recurso</div>
+
+<ol>
+<li>Antes de crear cualquier cosa en una cuenta real, crea un presupuesto con alerta en cada nube que uses.</li>
+<li>Revisa el presupuesto: el gasto real y el pronosticado.</li>
+<li>Regla del curso: cada laboratorio termina con su limpieza y una verificación de que no quedó nada encendido.</li>
+</ol>
+<pre data-norun><code class="language-bash">aws configure
+aws budgets create-budget --account-id 123456789012 --budget '{&quot;BudgetName&quot;:&quot;labs&quot;,&quot;BudgetLimit&quot;:{&quot;Amount&quot;:&quot;10&quot;,&quot;Unit&quot;:&quot;USD&quot;},&quot;TimeUnit&quot;:&quot;MONTHLY&quot;,&quot;BudgetType&quot;:&quot;COST&quot;}'
+aws budgets describe-budgets --account-id 123456789012
+az login
+az consumption budget create --budget-name labs --amount 10 --time-grain Monthly --start-date 2026-11-01 --end-date 2027-11-01</code></pre>
+<p>Reto: escribe tu checklist de limpieza en 4 líneas (qué borras, en qué orden y cómo verificas que no quedó nada).</p>
+<p>Documentación oficial: <a href="https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html">AWS Budgets</a> · <a href="https://cloud.google.com/billing/docs/how-to/budgets">presupuestos en Google Cloud</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

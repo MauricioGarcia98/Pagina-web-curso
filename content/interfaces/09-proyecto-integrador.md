@@ -144,6 +144,32 @@ Dos cosas para observar:
 
 La idea que se repite: **cada herramienta deja su propio registro**, y se sigue la cadena de atrás hacia adelante hasta el primer eslabón que falló.
 
+:::practica airflow-lab El DAG que conecta las herramientas
+1. Ejecuta: el DAG lanza el job de Databricks, después carga en Snowflake y al final refresca el modelo de Power BI.
+2. Cada operador registra con qué parámetros llamaría a la herramienta real.
+3. Sigue los pasos de la lección para hacer cada parte en su réplica.
+
+```python norun
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
+from airflow.providers.snowflake.operators.snowflake import SnowflakeSqlApiOperator
+from airflow.providers.standard.operators.bash import BashOperator
+
+with DAG(dag_id="integrador", start_date=datetime(2024, 1, 1), schedule="@daily", catchup=False) as dag:
+    silver = DatabricksRunNowOperator(task_id="silver_en_databricks", databricks_conn_id="databricks_default", job_id=42)
+    carga = SnowflakeSqlApiOperator(task_id="carga_en_snowflake", snowflake_conn_id="snowflake_default", sql="COPY INTO ventas FROM @stage_silver")
+    refresco = BashOperator(task_id="refrescar_power_bi", bash_command="echo refrescando el modelo semántico")
+    silver >> carga >> refresco
+
+dag.test()
+```
+
+Reto: agrega una tarea de validación entre Databricks y Snowflake que falle si la tabla silver tiene menos filas que ayer.
+
+Documentación oficial: [DatabricksRunNowOperator](https://airflow.apache.org/docs/apache-airflow-providers-databricks/stable/operators/run_now.html) · [operadores de Snowflake](https://airflow.apache.org/docs/apache-airflow-providers-snowflake/stable/operators/snowflake.html)
+:::
+
 :::ejercicio quiz
 Tu DAG usa `DatabricksRunNowOperator` y la tarea falla con *The conn_id `databricks_default` isn't defined*. ¿Qué falta?
 - [ ] Instalar Spark en el worker de Airflow

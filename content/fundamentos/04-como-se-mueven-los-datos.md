@@ -154,6 +154,22 @@ flecha p -> r
 
 ## Práctica
 
+:::practica terminal Extraer datos de una API y guardarlos
+1. Pide los productos a la API de práctica con `curl`: es el paso **extraer** de un ETL.
+2. Guarda la respuesta en un archivo y mira cuánto pesa.
+3. Ese archivo es la capa *bronze*: lo que llegó, tal cual, antes de transformarlo.
+
+```bash norun
+curl -s "https://api.tiendaandina.dev/v1/productos?page=1" -o productos.json
+ls -lh productos.json
+head -c 300 productos.json
+```
+
+Reto: pide la página 2 y guárdala en otro archivo. ¿Cómo sabrías cuántas páginas hay?
+
+Documentación oficial: [manual de curl](https://curl.se/docs/manual.html)
+:::
+
 :::ejercicio sql dificultad=Básico titulo="Extracción completa"
 Una extracción completa copia toda la tabla. Cuenta cuántos pedidos tendría que mover.
 ```sql inicial

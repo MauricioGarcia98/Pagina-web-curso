@@ -186,6 +186,21 @@ Los logs detallados se consultan en **Log Analytics** con el lenguaje **KQL**.
 | Monitor: métricas, reglas de alerta y grupos de acciones | Log Analytics con KQL, métricas reales |
 | IAM con roles de control y de datos, bloqueos, etiquetas, registro de actividad, costos y presupuestos estimados, Cloud Shell con `az` | Costos reales |
 
+:::practica azure Las partes del portal en 5 minutos
+1. Usa la **barra de búsqueda** de arriba para llegar a *Storage accounts* sin usar el menú.
+2. Abre **Resource groups** → un grupo → mira su menú lateral: **Overview**, **Access control (IAM)**, **Tags**, **Cost Management**.
+3. Abre **Cloud Shell** y ejecuta los comandos de abajo: el portal y la CLI muestran lo mismo.
+
+```bash norun
+az group list -o table
+az resource list -o table
+```
+
+Reto: encuentra en el portal dónde se ve el JSON de un recurso (*JSON View*) y explica para qué sirve al automatizar.
+
+Documentación oficial: [el portal de Azure](https://learn.microsoft.com/es-es/azure/azure-portal/azure-portal-overview) · [Cloud Shell](https://learn.microsoft.com/es-es/azure/cloud-shell/overview)
+:::
+
 :::ejercicio quiz
 Eres Owner de la suscripción y, al abrir un contenedor, el portal dice que no tienes permiso para listar los blobs. ¿Qué falta?
 - [ ] Ser Owner de la cuenta de almacenamiento

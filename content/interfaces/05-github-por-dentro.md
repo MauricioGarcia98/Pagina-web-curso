@@ -180,6 +180,20 @@ Es la configuración de casi cualquier equipo: main siempre funciona porque todo
 | Actions con YAML, expresiones, matrix, needs, secretos, artefactos; los `run:` corren en la bash del curso | Acciones de terceros (se dan por buenas), Docker, runners de Windows/macOS |
 | Protección de ramas, secretos, Pages, escaneo de secretos, `gh` | Rulesets nuevos, Dependabot, notificaciones por correo |
 
+:::practica github Un repositorio pestaña por pestaña
+1. Abre un repositorio y recorre sus pestañas: **Code**, **Issues**, **Pull requests**, **Actions** y **Settings**.
+2. Crea un *issue* que describa un cambio chico (por ejemplo, "agregar un README").
+3. Haz el cambio en una rama, abre un *pull request* que cierre el issue (`Closes #1`) y revisa la pestaña **Files changed**.
+
+```text norun
+Closes #1
+```
+
+Reto: en **Settings → Branches**, protege `main` para que exija una revisión antes de hacer *merge*.
+
+Documentación oficial: [repositorios](https://docs.github.com/es/repositories/creating-and-managing-repositories/about-repositories) · [pull requests](https://docs.github.com/es/pull-requests)
+:::
+
 :::ejercicio quiz
 Hiciste push de dos commits más a la rama de tu pull request abierto. ¿Qué pasa con el PR?
 - [ ] Hay que cerrarlo y abrir uno nuevo

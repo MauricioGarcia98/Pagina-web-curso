@@ -186,6 +186,33 @@ ORDER BY revpar DESC;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Posada Andina: ocupación, ADR y RevPAR</div>
+
+<ol>
+<li>Ejecuta: noches vendidas por hotel (de las reservas completadas), ADR (tarifa promedio por noche vendida) y RevPAR (ingreso por habitación disponible).</li>
+<li>RevPAR = ADR × ocupación: un hotel puede tener ADR alto y RevPAR bajo si está vacío.</li>
+<li>Ordena por RevPAR: es el número que mira la gerencia.</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH noches AS (
+    SELECT hotel_id, SUM(date_diff('day', CAST(check_in AS DATE), CAST(check_out AS DATE))) AS noches,
+           SUM(date_diff('day', CAST(check_in AS DATE), CAST(check_out AS DATE)) * tarifa_noche) AS ingreso
+    FROM hotel_reservas WHERE estado = 'completada'
+    GROUP BY hotel_id
+),
+periodo AS (
+    SELECT date_diff('day', MIN(CAST(check_in AS DATE)), MAX(CAST(check_out AS DATE))) AS dias FROM hotel_reservas
+)
+SELECT h.nombre, h.habitaciones,
+       ROUND(100.0 * n.noches / (h.habitaciones * p.dias), 1) AS ocupacion_pct,
+       ROUND(n.ingreso / n.noches, 2) AS adr,
+       ROUND(n.ingreso / (h.habitaciones * p.dias), 2) AS revpar
+FROM noches n JOIN hotel_hoteles h ON h.hotel_id = n.hotel_id, periodo p
+ORDER BY revpar DESC;</code></pre>
+<p>Reto: calcula el ADR neto por canal descontando la comisión (<code>comision_pct</code>) y explica por qué el canal directo vale más de lo que parece.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/date">funciones de fecha</a> · <a href="https://duckdb.org/docs/current/sql/query_syntax/with">CTEs</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

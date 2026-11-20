@@ -131,6 +131,41 @@ Salud,57,127887
 - Los datos de facturación suelen venir de herramientas externas (Stripe, Chargebee) y los de soporte de otras (Zendesk). Unirlos exige un id común de cliente, y conciliar esos ids es parte importante del trabajo.
 :::
 
+:::practica sql Nube Pyme: ingresos y soporte por plan
+1. Ejecuta: empresas, MRR del último mes y tickets críticos por plan.
+2. Normaliza: tickets por cada 10 empresas, para comparar planes de distinto tamaño.
+3. Si un plan caro tiene muchos tickets críticos, es un riesgo de churn de los clientes que más pagan.
+
+```sql norun
+WITH ultimo AS (SELECT MAX(mes) AS mes FROM saas_facturas),
+mrr AS (
+    SELECT f.plan_id, COUNT(DISTINCT f.empresa_id) AS empresas, SUM(f.monto) AS mrr
+    FROM saas_facturas f, ultimo u
+    WHERE f.mes = u.mes AND f.estado = 'pagada'
+    GROUP BY f.plan_id
+),
+plan_actual AS (
+    SELECT f.empresa_id, f.plan_id FROM saas_facturas f, ultimo u WHERE f.mes = u.mes
+),
+criticos AS (
+    SELECT pa.plan_id, COUNT(*) AS tickets_criticos
+    FROM saas_tickets t JOIN plan_actual pa ON pa.empresa_id = t.empresa_id
+    WHERE t.prioridad = 'critica'
+    GROUP BY pa.plan_id
+)
+SELECT pl.nombre AS plan, m.empresas, m.mrr, COALESCE(c.tickets_criticos, 0) AS tickets_criticos,
+       ROUND(10.0 * COALESCE(c.tickets_criticos, 0) / m.empresas, 2) AS criticos_cada_10
+FROM mrr m
+JOIN saas_planes pl ON pl.plan_id = m.plan_id
+LEFT JOIN criticos c ON c.plan_id = m.plan_id
+ORDER BY m.mrr DESC;
+```
+
+Reto: agrega la satisfacción promedio de los tickets por plan y decide si confirma o no la hipótesis de riesgo.
+
+Documentación oficial: [CTEs](https://duckdb.org/docs/current/sql/query_syntax/with) · [CASE](https://duckdb.org/docs/current/sql/expressions/case)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="MRR y clientes activos"

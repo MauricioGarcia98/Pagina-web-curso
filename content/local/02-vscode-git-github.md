@@ -193,6 +193,29 @@ Un buen mensaje dice qué hace el cambio, en presente y en una línea: "Agrega i
 - Un pull request chico (menos de 300 líneas) se revisa en el día; uno enorme espera una semana. Divide el trabajo.
 :::
 
+:::practica terminal Tu identidad en Git y una llave SSH
+1. Configura tu nombre y correo: quedan en cada commit que hagas.
+2. Genera una llave SSH: la parte pública (`.pub`) se sube a GitHub; la privada nunca sale de tu computadora.
+3. Crea un repositorio, haz tu primer commit y mira el historial.
+
+```bash norun
+git config --global user.name "Tu Nombre"
+git config --global user.email "tu@correo.example"
+git config --global init.defaultBranch main
+ssh-keygen -t ed25519 -C "tu@correo.example" -f ~/.ssh/id_ed25519 -N ''
+cat ~/.ssh/id_ed25519.pub
+mkdir -p ~/mi-repo && cd ~/mi-repo && git init
+echo "# Mi primer repo" > README.md
+git add README.md
+git commit -m "primer commit"
+git log --oneline
+```
+
+Reto: crea una rama `feature/readme`, cambia el README, haz commit y únela a `main` con `git merge`.
+
+Documentación oficial: [configurar Git por primera vez](https://git-scm.com/book/es/v2/Inicio---Sobre-el-Control-de-Versiones-Configurando-Git-por-primera-vez) · [conectar GitHub con SSH](https://docs.github.com/es/authentication/connecting-to-github-with-ssh)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

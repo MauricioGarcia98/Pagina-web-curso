@@ -158,6 +158,22 @@ Cada consulta o carga es un **job**. En **Job history** ves quién lo corrió, c
 
 Los bytes se calculan como en BigQuery (8 por número o fecha, 2 más el largo por texto), pero las tablas de práctica son chicas: la página **Costos** proyecta cuánto costaría cada consulta sobre tablas diez mil veces más grandes.
 
+:::practica bigquery El validador: saber el costo antes de ejecutar
+1. La consulta se abre en el editor: mira el **validador** arriba a la derecha ("This query will process…").
+2. Cambia `SELECT *` por dos columnas y mira cómo baja la estimación.
+3. Ejecuta y abre **Job information**: bytes procesados y bytes facturados.
+
+```sql norun
+SELECT *
+FROM `tienda-andina-dev.tienda.pedidos`
+LIMIT 10;
+```
+
+Reto: explica por qué `LIMIT 10` no reduce los bytes procesados en BigQuery (pista: almacenamiento columnar).
+
+Documentación oficial: [controlar costos](https://cloud.google.com/bigquery/docs/best-practices-costs) · [dry run](https://cloud.google.com/bigquery/docs/dry-run-queries)
+:::
+
 :::ejercicio quiz
 `SELECT * FROM ventas LIMIT 10` sobre una tabla de 2 TB sin clustering. ¿Cuánto procesa?
 - [ ] Solo las 10 filas que devuelve

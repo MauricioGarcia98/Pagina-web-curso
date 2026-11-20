@@ -179,6 +179,25 @@ Todavía no hace falta entenderlo, pero intenta adivinar: `SELECT` elige qué co
 - La habilidad que más se valora y menos se enseña: **entender el negocio**. Saber qué es una venta neta, por qué importa la tasa de cancelación o qué espera finanzas de un cierre de mes. Por eso cada lección parte de un pedido del negocio.
 :::
 
+:::practica sql Tu primera consulta a una base de datos
+1. Presiona **Ejecutar**: le pediste a la base las primeras 5 filas de la tabla de clientes.
+2. Cambia `5` por `10` y vuelve a ejecutar.
+3. La segunda consulta cuenta cuántos clientes hay por país: eso ya es una pregunta de negocio.
+
+```sql norun
+SELECT * FROM clientes LIMIT 5;
+
+SELECT pais, COUNT(*) AS clientes
+FROM clientes
+GROUP BY pais
+ORDER BY clientes DESC;
+```
+
+Reto: cambia la segunda consulta para contar clientes por `segmento` en vez de por país.
+
+Documentación oficial: [SELECT (documentación de DuckDB)](https://duckdb.org/docs/current/sql/query_syntax/select)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

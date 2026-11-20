@@ -168,6 +168,29 @@ ORDER BY total_min DESC;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Rápido: take rate y cancelaciones por ciudad</div>
+
+<ol>
+<li>Ejecuta: por ciudad, GMV (subtotal de pedidos entregados), ingreso de la plataforma (comisión del restaurante + costo de envío) y <em>take rate</em> (ingreso / GMV).</li>
+<li>Agrega las cancelaciones: un pedido cancelado no deja ingreso pero sí costo operativo.</li>
+<li>¿La ciudad con mejor take rate es también la que menos cancela?</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT p.ciudad,
+       SUM(CASE WHEN p.estado = 'entregado' THEN 1 ELSE 0 END) AS entregados,
+       ROUND(SUM(CASE WHEN p.estado = 'entregado' THEN p.subtotal ELSE 0 END), 2) AS gmv,
+       ROUND(SUM(CASE WHEN p.estado = 'entregado' THEN p.subtotal * r.comision_pct / 100.0 + p.costo_envio ELSE 0 END), 2) AS ingreso,
+       ROUND(100.0 * SUM(CASE WHEN p.estado = 'entregado' THEN p.subtotal * r.comision_pct / 100.0 + p.costo_envio ELSE 0 END)
+             / SUM(CASE WHEN p.estado = 'entregado' THEN p.subtotal ELSE 0 END), 1) AS take_rate_pct,
+       ROUND(100.0 * AVG(CASE WHEN p.estado LIKE 'cancelado%' OR p.estado = 'sin_repartidor' THEN 1 ELSE 0 END), 1) AS pct_no_entregados
+FROM delivery_pedidos p
+JOIN delivery_restaurantes r ON r.restaurante_id = p.restaurante_id
+GROUP BY p.ciudad
+ORDER BY take_rate_pct DESC;</code></pre>
+<p>Reto: resta el costo de los cupones (<code>descuento_cupon</code>) al ingreso y recalcula el take rate neto.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/expressions/case">CASE</a> · <a href="https://duckdb.org/docs/current/sql/functions/aggregates">agregaciones</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

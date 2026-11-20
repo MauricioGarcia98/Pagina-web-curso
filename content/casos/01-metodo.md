@@ -192,6 +192,40 @@ propongo un incentivo para conectarse en esas franjas."
 ¿Conversión de qué a qué (visita a compra, carrito a compra)? ¿Por sesión o por usuario? ¿En qué período? ¿Se excluyen bots, empleados o pedidos cancelados? ¿Cómo se trata a un usuario que compra dos veces? Mostrar que el número depende de esas decisiones es exactamente lo que buscan con esta pregunta.
 :::
 
+:::practica sql El método completo en una pregunta de negocio
+1. Pregunta del directorio: "¿qué categoría creció más en 2024 contra 2023?". Grano final: **una fila por categoría**.
+2. Ejecuta: capa 1 = ventas por categoría y año; capa 2 = las dos columnas lado a lado; capa 3 = el crecimiento.
+3. Revisa la trampa: una categoría chica puede crecer 200 % y sumar poco. Mira también la diferencia absoluta.
+
+```sql norun
+WITH ventas AS (
+    SELECT c.nombre AS categoria, SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 4) AS anio,
+           SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS ventas
+    FROM pedidos p
+    JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+    JOIN productos pr ON pr.producto_id = d.producto_id
+    JOIN categorias c ON c.categoria_id = pr.categoria_id
+    WHERE p.estado = 'entregado'
+    GROUP BY c.nombre, SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 4)
+),
+lado_a_lado AS (
+    SELECT categoria,
+           SUM(CASE WHEN anio = '2023' THEN ventas END) AS v2023,
+           SUM(CASE WHEN anio = '2024' THEN ventas END) AS v2024
+    FROM ventas GROUP BY categoria
+)
+SELECT categoria, ROUND(v2023, 2) AS v2023, ROUND(v2024, 2) AS v2024,
+       ROUND(v2024 - v2023, 2) AS diferencia,
+       ROUND(100.0 * (v2024 - v2023) / v2023, 1) AS crecimiento_pct
+FROM lado_a_lado
+ORDER BY crecimiento_pct DESC;
+```
+
+Reto: escribe en dos líneas la respuesta para el directorio, con el número que importa y la advertencia que corresponda.
+
+Documentación oficial: [CTEs](https://duckdb.org/docs/current/sql/query_syntax/with) · [CASE](https://duckdb.org/docs/current/sql/expressions/case)
+:::
+
 :::ejercicio quiz
 Te piden la “tasa de cancelación de viajes”. Escribes `SELECT COUNT(*) FROM viajes_viajes WHERE estado = 'completado'` y luego divides cancelados por ese número. ¿Qué error lógico cometiste?
 

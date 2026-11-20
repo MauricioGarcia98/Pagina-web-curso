@@ -120,6 +120,27 @@ La mayoría de las empresas medianas y grandes usan una arquitectura **medallón
 
 ## Práctica
 
+:::practica sql Dos preguntas, dos tipos de base
+1. La primera consulta busca **un** pedido por su id: es el trabajo de una base transaccional (OLTP), la de la aplicación.
+2. La segunda resume **todos** los pedidos: es el trabajo de un warehouse (OLAP).
+3. Mira el medidor de costo debajo del resultado: la segunda lee muchas más filas.
+
+```sql norun
+-- OLTP: una fila, por su clave
+SELECT * FROM pedidos WHERE pedido_id = 4217;
+
+-- OLAP: todas las filas, resumidas
+SELECT canal, estado, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY canal, estado
+ORDER BY pedidos DESC;
+```
+
+Reto: explica por qué la segunda consulta funciona mejor en una base que guarda los datos por columnas.
+
+Documentación oficial: [OLTP (Microsoft)](https://learn.microsoft.com/es-es/azure/architecture/data-guide/relational-data/online-transaction-processing) · [OLAP (Microsoft)](https://learn.microsoft.com/es-es/azure/architecture/data-guide/relational-data/online-analytical-processing)
+:::
+
 :::ejercicio sql dificultad=Básico titulo="Una consulta OLTP"
 Una consulta operativa típica: trae el cliente `1722` completo de la tabla `clientes`.
 ```sql inicial
