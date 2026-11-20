@@ -1561,8 +1561,9 @@ models:
   });
   Commands.python3 = Commands.python;
   def('pytest', 'ejecuta tests (archivos test_*.py)', async (a) => {
-    const root = norm(a[0] || '.');
-    const files = Object.keys(Machine.fs).filter((k) => (k === root || k.startsWith(root + '/')) && /\/test_[^/]*\.py$/.test(k));
+    // las opciones (-q, -v, -x…) no son rutas: sin rutas, se buscan tests desde la carpeta actual
+    const rutas = a.filter((x) => !x.startsWith('-')).map((x) => norm(x)); if (!rutas.length) rutas.push(norm('.'));
+    const files = Object.keys(Machine.fs).filter((k) => rutas.some((root) => k === root || k.startsWith(root + '/')) && /\/test_[^/]*\.py$/.test(k));
     if (!files.length) return { out: 'no tests ran in 0.01s', code: 5 };
     const code = `import traceback\n_ok = _fail = 0\n` + files.map((f) => `
 _ns = {"__name__": "test"}

@@ -350,6 +350,22 @@ print(df.assign(total_con_iva=pd.col(&quot;total&quot;) * 1.21))         # nuevo
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un mini pipeline con pandas</div>
+
+<ol>
+<li>Ejecuta: crea un DataFrame, limpia y agrupa.</li>
+<li>Agrega una columna <code>mes</code> desde la fecha.</li>
+<li>Ordena el resultado de mayor a menor venta.</li>
+</ol>
+<pre data-norun><code class="language-python">import pandas as pd
+df = pd.DataFrame({&quot;fecha&quot;: [&quot;2024-01-05&quot;, &quot;2024-01-20&quot;, &quot;2024-02-03&quot;], &quot;canal&quot;: [&quot;web&quot;, &quot;app&quot;, &quot;web&quot;], &quot;monto&quot;: [120, 80, 200]})
+df[&quot;fecha&quot;] = pd.to_datetime(df[&quot;fecha&quot;])
+print(df.groupby(&quot;canal&quot;)[&quot;monto&quot;].sum())</code></pre>
+<p>Reto: repite el ejercicio en JupyterLab, celda por celda, como lo harías en un notebook de trabajo.</p>
+<p>Documentación oficial: <a href="https://pandas.pydata.org/docs/user_guide/10min.html">10 minutos con pandas</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -200,6 +200,24 @@ print(iva(100))</code></pre>
 <li>Variables locales: lo que entra por parámetros, lo que sale por <code>return</code>.</li>
 <li><code>lambda</code> para funciones cortas como argumento; type hints para documentar tipos.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Una función reutilizable</div>
+
+<ol>
+<li>Ejecuta: calcula el precio final con descuento.</li>
+<li>Agrega un parámetro <code>iva</code> con valor por defecto <code>0.21</code>.</li>
+<li>Llama la función con argumentos por nombre.</li>
+</ol>
+<pre data-norun><code class="language-python">def precio_final(precio, descuento=0.0):
+    &quot;&quot;&quot;Devuelve el precio con el descuento aplicado.&quot;&quot;&quot;
+    return round(precio * (1 - descuento), 2)
+
+print(precio_final(100))
+print(precio_final(100, descuento=0.15))</code></pre>
+<p>Reto: agrega una validación que lance <code>ValueError</code> si el descuento no está entre 0 y 1.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/tutorial/controlflow.html#defining-functions">definir funciones</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

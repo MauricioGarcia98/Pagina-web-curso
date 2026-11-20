@@ -140,6 +140,22 @@ def primer_repetido(ids):
     return None
 ```
 
+:::practica python Un desafío con reloj
+1. Lee el pedido de abajo y resuélvelo sin mirar soluciones: 15 minutos.
+2. Pedido: "dada una lista de ventas (cliente, monto), devuelve los 3 clientes que más gastaron, con su total".
+3. Prueba con un caso chico que puedas verificar a mano.
+
+```python norun
+ventas = [("ana", 120), ("luis", 80), ("ana", 45), ("sofia", 200), ("luis", 30), ("pablo", 60)]
+# tu solución acá
+print(ventas[:1])
+```
+
+Reto: resuélvelo de dos formas (diccionario y `collections.Counter`) y explica cuál prefieres.
+
+Documentación oficial: [collections.Counter](https://docs.python.org/es/3/library/collections.html#collections.Counter)
+:::
+
 ## Ejercicios
 
 :::ejercicio python dificultad=Avanzado titulo="Promedio móvil"

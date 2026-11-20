@@ -351,6 +351,23 @@ La regla práctica: empieza por lo más simple que alcance. Usar Spark para 50 M
 Menciona: autenticación con un token desde un gestor de secretos; extracción incremental (pedir solo lo nuevo desde la última fecha cargada); paginación hasta que no haya más resultados; reintentos con espera exponencial ante `429` y `5xx`; timeout en cada llamada; guardar la respuesta cruda en el lake antes de transformar; y que todo sea idempotente, para poder volver a correr un día sin duplicar.
 :::
 
+:::practica python Un mini pipeline con pandas
+1. Ejecuta: crea un DataFrame, limpia y agrupa.
+2. Agrega una columna `mes` desde la fecha.
+3. Ordena el resultado de mayor a menor venta.
+
+```python norun
+import pandas as pd
+df = pd.DataFrame({"fecha": ["2024-01-05", "2024-01-20", "2024-02-03"], "canal": ["web", "app", "web"], "monto": [120, 80, 200]})
+df["fecha"] = pd.to_datetime(df["fecha"])
+print(df.groupby("canal")["monto"].sum())
+```
+
+Reto: repite el ejercicio en JupyterLab, celda por celda, como lo harías en un notebook de trabajo.
+
+Documentación oficial: [10 minutos con pandas](https://pandas.pydata.org/docs/user_guide/10min.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio python

@@ -241,6 +241,23 @@ print(len(set([&quot;a&quot;, &quot;b&quot;, &quot;a&quot;, &quot;c&quot;])))   
 <li>JSON = diccionarios y listas anidados; se navega encadenando <code>[&quot;clave&quot;]</code> y <code>[índice]</code>.</li>
 <li><code>set</code>: valores únicos; <code>&amp;</code>, <code>-</code>, <code>|</code> son <code>INTERSECT</code>, <code>EXCEPT</code>, <code>UNION</code>.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Contar por categoría</div>
+
+<ol>
+<li>Ejecuta: cuenta cuántas ventas tiene cada canal.</li>
+<li>Agrega el monto total por canal en otro diccionario.</li>
+<li>Usa un conjunto para ver los canales distintos.</li>
+</ol>
+<pre data-norun><code class="language-python">ventas = [(&quot;web&quot;, 120), (&quot;app&quot;, 80), (&quot;web&quot;, 45), (&quot;tienda&quot;, 200), (&quot;app&quot;, 30)]
+conteo = {}
+for canal, monto in ventas:
+    conteo[canal] = conteo.get(canal, 0) + 1
+print(conteo)</code></pre>
+<p>Reto: el canal con más dinero vendido, con <code>max(…, key=…)</code>.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/tutorial/datastructures.html#dictionaries">diccionarios</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

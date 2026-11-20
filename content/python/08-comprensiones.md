@@ -203,6 +203,24 @@ Si no entra cómodamente en una línea, tiene varios `if`/`else` anidados, o nec
 - Sin corchetes, dentro de `sum`/`any`/`all`/`max`, es una expresión generadora: no crea la lista.
 - Las funciones son valores: se pasan como argumento (`sorted(key=…)`, `map`, `filter`).
 
+:::practica python Transformar en una línea
+1. Ejecuta: los precios con IVA, con una comprensión.
+2. Filtra solo los mayores a 50.
+3. Arma un diccionario `{nombre: precio}` con otra comprensión.
+
+```python norun
+precios = [45.5, 12.0, 99.9, 7.25, 60.0]
+con_iva = [round(p * 1.21, 2) for p in precios]
+caros = [p for p in precios if p > 50]
+print(con_iva)
+print(caros)
+```
+
+Reto: con `sorted(…, key=lambda …)`, ordena una lista de pedidos por monto.
+
+Documentación oficial: [comprensiones de listas](https://docs.python.org/es/3/tutorial/datastructures.html#list-comprehensions)
+:::
+
 ## Ejercicios
 
 :::ejercicio python

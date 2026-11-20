@@ -211,6 +211,23 @@ def get_con_reintentos(url, intentos=5, **kw):
 <div class="exercise-slot"></div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Paginar una API real del curso</div>
+
+<ol>
+<li>Ejecuta: pide la primera página de productos.</li>
+<li>Recorre todas las páginas hasta <code>total_pages</code>.</li>
+<li>Cuenta cuántos productos hay en stock.</li>
+</ol>
+<pre data-norun><code class="language-python">import requests
+r = requests.get(&quot;https://api.tiendaandina.dev/v1/productos&quot;, params={&quot;page&quot;: 1})
+datos = r.json()
+print(r.status_code, datos[&quot;total&quot;], &quot;productos en&quot;, datos[&quot;total_pages&quot;], &quot;páginas&quot;)</code></pre>
+<p>Reto: agrega reintentos con espera cuando la respuesta sea 429.</p>
+<p>Documentación oficial: <a href="https://requests.readthedocs.io/en/latest/user/quickstart/">guía rápida de requests</a></p>
+</div>
+
+
+
 <h2>Practica</h2><p>Esta lección tiene <b>12 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/python-extraer-de-apis">▶ Hacer los ejercicios</a>
 <nav class="nav"><a href="python-python-datos.html">← Python para ingeniería de datos</a><a href="python-buenas-practicas.html">Python profesional: entornos, paquetes, tests y estilo →</a></nav></main>
 <footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>

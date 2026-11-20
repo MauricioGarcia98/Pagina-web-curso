@@ -256,6 +256,33 @@ print(t.celsius, t.fahrenheit)</code></pre>
 <li>Herencia: <code>class Hija(Padre)</code>, <code>super().__init__()</code>, polimorfismo (así funcionan los operadores de Airflow).</li>
 <li><code>@dataclass</code> para clases de datos; <code>@property</code> para atributos calculados; <code>@classmethod</code> para constructores alternativos.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Una clase para un pedido</div>
+
+<ol>
+<li>Ejecuta: crea un pedido y agrega líneas.</li>
+<li>Agrega un método <code>aplicar_descuento(pct)</code>.</li>
+<li>Agrega <code>__repr__</code> para que el pedido se imprima legible.</li>
+</ol>
+<pre data-norun><code class="language-python">class Pedido:
+    def __init__(self, pedido_id):
+        self.pedido_id = pedido_id
+        self.lineas = []
+
+    def agregar(self, producto, cantidad, precio):
+        self.lineas.append((producto, cantidad, precio))
+
+    def total(self):
+        return sum(c * p for _, c, p in self.lineas)
+
+p = Pedido(1)
+p.agregar(&quot;Mouse&quot;, 2, 12.5)
+p.agregar(&quot;Teclado&quot;, 1, 45.0)
+print(p.total())</code></pre>
+<p>Reto: convierte la clase en una <code>dataclass</code> y compara cuánto código ahorras.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/tutorial/classes.html">clases</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

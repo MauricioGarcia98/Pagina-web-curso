@@ -180,6 +180,23 @@ print(lineas)   # [(1, 'A'), (1, 'B'), (2, 'C')]</code></pre>
 <li>Sin corchetes, dentro de <code>sum</code>/<code>any</code>/<code>all</code>/<code>max</code>, es una expresión generadora: no crea la lista.</li>
 <li>Las funciones son valores: se pasan como argumento (<code>sorted(key=…)</code>, <code>map</code>, <code>filter</code>).</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Transformar en una línea</div>
+
+<ol>
+<li>Ejecuta: los precios con IVA, con una comprensión.</li>
+<li>Filtra solo los mayores a 50.</li>
+<li>Arma un diccionario <code>{nombre: precio}</code> con otra comprensión.</li>
+</ol>
+<pre data-norun><code class="language-python">precios = [45.5, 12.0, 99.9, 7.25, 60.0]
+con_iva = [round(p * 1.21, 2) for p in precios]
+caros = [p for p in precios if p &gt; 50]
+print(con_iva)
+print(caros)</code></pre>
+<p>Reto: con <code>sorted(…, key=lambda …)</code>, ordena una lista de pedidos por monto.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/tutorial/datastructures.html#list-comprehensions">comprensiones de listas</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

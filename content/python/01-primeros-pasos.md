@@ -216,6 +216,23 @@ Usa **▶ Ejecutar** las veces que quieras para probar sin que se califique, y *
 - `nombre = valor` crea o cambia una variable; usa `snake_case` y nombres descriptivos.
 - Operadores: `+ - * / // % **`; `/` siempre da decimal en Python.
 
+:::practica python Tus primeras variables
+1. Ejecuta el programa con **Ctrl+Enter**.
+2. Cambia los valores de `producto` y `precio` y vuelve a ejecutar.
+3. Agrega una variable `cantidad` y muestra el total.
+
+```python norun
+producto = "Teclado"
+precio = 45.5
+print("Producto:", producto)
+print(f"Precio con IVA: {precio * 1.21:.2f}")
+```
+
+Reto: muestra el total de 3 unidades con un 10 % de descuento, con dos decimales.
+
+Documentación oficial: [introducción informal a Python](https://docs.python.org/es/3/tutorial/introduction.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio python

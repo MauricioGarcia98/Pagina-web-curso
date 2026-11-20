@@ -216,6 +216,24 @@ Diccionarios y conjuntos usan una **tabla hash**: calculan una "dirección" a pa
 - JSON = diccionarios y listas anidados; se navega encadenando `["clave"]` y `[índice]`.
 - `set`: valores únicos; `&`, `-`, `|` son `INTERSECT`, `EXCEPT`, `UNION`.
 
+:::practica python Contar por categoría
+1. Ejecuta: cuenta cuántas ventas tiene cada canal.
+2. Agrega el monto total por canal en otro diccionario.
+3. Usa un conjunto para ver los canales distintos.
+
+```python norun
+ventas = [("web", 120), ("app", 80), ("web", 45), ("tienda", 200), ("app", 30)]
+conteo = {}
+for canal, monto in ventas:
+    conteo[canal] = conteo.get(canal, 0) + 1
+print(conteo)
+```
+
+Reto: el canal con más dinero vendido, con `max(…, key=…)`.
+
+Documentación oficial: [diccionarios](https://docs.python.org/es/3/tutorial/datastructures.html#dictionaries)
+:::
+
 ## Ejercicios
 
 :::ejercicio python

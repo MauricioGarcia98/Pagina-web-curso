@@ -255,6 +255,26 @@ print(resultado)</code></pre>
 <li><code>and</code>, <code>or</code>, <code>not</code>; paréntesis cuando los mezcles.</li>
 <li><code>0</code>, <code>&quot;&quot;</code>, <code>[]</code>, <code>None</code> son falsos en un <code>if</code>; cuidado con el <code>0</code> válido.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Clasificar un pedido</div>
+
+<ol>
+<li>Ejecuta con distintos montos.</li>
+<li>Agrega una categoría <code>mayorista</code> para montos de más de 100.000.</li>
+<li>Agrega una condición con <code>and</code>: envío gratis si el monto supera 50.000 y el país es Chile.</li>
+</ol>
+<pre data-norun><code class="language-python">monto = 72000
+if monto &gt;= 50000:
+    categoria = &quot;grande&quot;
+elif monto &gt;= 10000:
+    categoria = &quot;mediano&quot;
+else:
+    categoria = &quot;chico&quot;
+print(monto, &quot;→&quot;, categoria)</code></pre>
+<p>Reto: escribe la misma lógica en una sola línea con un if ternario.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/es/3/tutorial/controlflow.html#if-statements">if en el tutorial</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 
