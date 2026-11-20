@@ -273,6 +273,23 @@ Cada fila de un lado se combina con **todas** las filas del otro que tienen la m
 - En relaciones 1:N, el lado "uno" se repite: cuidado con `COUNT(*)` y con sumar columnas del lado "uno".
 - Une tablas de a una, definiendo primero el grano y verificando la cantidad de filas.
 
+:::practica sql Unir pedidos con clientes
+1. Ejecuta: cada pedido con el nombre y el país del cliente.
+2. Suma una tercera tabla: `detalle_pedidos` para ver los productos de cada pedido.
+3. Agrupa por país: ¿cuántos pedidos tiene cada uno?
+
+```sql norun
+SELECT p.pedido_id, p.fecha_pedido, c.nombre, c.apellido, c.pais
+FROM pedidos AS p
+JOIN clientes AS c ON c.cliente_id = p.cliente_id
+LIMIT 20;
+```
+
+Reto: la facturación por categoría de producto (pedidos → detalle → productos → categorías).
+
+Documentación oficial: [JOIN en DuckDB](https://duckdb.org/docs/current/sql/query_syntax/from)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

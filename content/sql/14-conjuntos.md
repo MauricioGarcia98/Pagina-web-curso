@@ -231,6 +231,23 @@ GROUP BY tipo;
 - `INTERSECT` = filas en ambas; `EXCEPT` = filas solo en la primera. Útiles para comparar tablas.
 - Agrega una columna literal de origen cuando apilas fuentes distintas.
 
+:::practica sql Unir y restar listas
+1. Ejecuta: los países de clientes, sin repetidos, junto a las ciudades de departamentos.
+2. Cambia `UNION` por `UNION ALL`. ¿Qué cambió?
+3. Con `EXCEPT`, encuentra los clientes registrados que nunca pidieron.
+
+```sql norun
+SELECT pais AS lugar FROM clientes
+UNION
+SELECT ciudad FROM departamentos
+ORDER BY 1;
+```
+
+Reto: con `INTERSECT`, los clientes que compraron por web y también por app.
+
+Documentación oficial: [operaciones de conjuntos en DuckDB](https://duckdb.org/docs/current/sql/query_syntax/setops)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

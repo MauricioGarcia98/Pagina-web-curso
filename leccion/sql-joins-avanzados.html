@@ -286,6 +286,22 @@ GROUP BY r.nombre;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Encontrar lo que falta con LEFT JOIN</div>
+
+<ol>
+<li>Ejecuta: clientes que nunca hicieron un pedido.</li>
+<li>Cambia <code>LEFT JOIN</code> por <code>JOIN</code>. ¿Por qué ahora no aparece nadie?</li>
+<li>Con un self join de <code>empleados</code>, muestra cada empleado con el nombre de su jefe.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT c.cliente_id, c.nombre, c.apellido
+FROM clientes AS c
+LEFT JOIN pedidos AS p ON p.cliente_id = c.cliente_id
+WHERE p.pedido_id IS NULL;</code></pre>
+<p>Reto: productos que nunca se vendieron.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/query_syntax/from">joins en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

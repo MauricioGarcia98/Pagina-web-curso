@@ -300,6 +300,24 @@ LIMIT 10;
 - Números: `ROUND`, `ABS`, `%`, `CEIL`, `FLOOR`; `100.0 *` para evitar la división entera.
 - `CAST` convierte tipos; trunca en vez de redondear y en SQLite puede devolver 0 en silencio.
 
+:::practica sql Limpiar textos y números
+1. Ejecuta: nombre completo en mayúsculas y el largo del email.
+2. Extrae el dominio del email con `SUBSTR` e `INSTR` (en DuckDB también existe `split_part`).
+3. Redondea el precio de los productos a la decena con `ROUND(precio, -1)`.
+
+```sql norun
+SELECT UPPER(nombre || ' ' || apellido) AS nombre_completo,
+       email,
+       LENGTH(email) AS largo_email
+FROM clientes
+LIMIT 10;
+```
+
+Reto: cuenta cuántos clientes usan cada dominio de correo.
+
+Documentación oficial: [funciones de texto en DuckDB](https://duckdb.org/docs/current/sql/functions/text)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

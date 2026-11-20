@@ -224,6 +224,27 @@ GROUP BY p.canal, m.meta_mensual;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Partir una consulta larga con WITH</div>
+
+<ol>
+<li>Ejecuta: el total de cada pedido en una CTE y el promedio por canal encima.</li>
+<li>Agrega una segunda CTE con los clientes por país y únelas.</li>
+<li>Ponle a cada CTE un nombre que explique qué contiene.</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH totales AS (
+  SELECT pedido_id, SUM(cantidad * precio_unitario) AS total
+  FROM detalle_pedidos
+  GROUP BY pedido_id
+)
+SELECT p.canal, ROUND(AVG(t.total), 2) AS ticket_promedio
+FROM totales AS t
+JOIN pedidos AS p ON p.pedido_id = t.pedido_id
+GROUP BY p.canal;</code></pre>
+<p>Reto: con dos CTE, el porcentaje de la facturación que aporta cada país.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/query_syntax/with">WITH en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

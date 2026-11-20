@@ -157,6 +157,29 @@ En la mayoría de los equipos `main` está protegida: nadie hace push directo, t
 Leo qué cambió cada lado (`git status`, el diff, y si hace falta hablo con quien hizo el otro cambio). Edito el archivo para que quede la combinación correcta, borro las marcas, corro los tests, `git add` y commit. Si me equivoco, `git merge --abort` y empiezo de nuevo. Para evitarlos: ramas cortas, PRs chicos y traer `main` seguido.
 :::
 
+:::practica terminal Resolver un conflicto en tu máquina
+1. Crea un repositorio con un archivo y haz el primer commit.
+2. Cambia la misma línea en dos ramas distintas y haz commit en cada una.
+3. Haz el merge, abre el archivo, deja los dos cambios y termina el merge.
+
+```bash
+mkdir -p ~/equipo && cd ~/equipo && git init
+echo 'PAISES = ["Chile", "Perú"]' > etl.py
+git add etl.py && git commit -m "ETL inicial"
+git switch -c colombia
+echo 'PAISES = ["Chile", "Perú", "Colombia"]' > etl.py
+git commit -am "Agrega Colombia"
+git switch main
+echo 'PAISES = ["Chile", "Perú", "México"]' > etl.py
+git commit -am "Agrega México"
+git merge colombia
+```
+
+Reto: después de resolverlo, mira el historial con `git log --oneline --graph`.
+
+Documentación oficial: [ramas y fusiones en Pro Git](https://git-scm.com/book/es/v2/Ramificaciones-en-Git-Procedimientos-B%C3%A1sicos-para-Ramificar-y-Fusionar)
+:::
+
 ## Practica
 
 Cada ejercicio prepara el repositorio cuando haces clic en su terminal. El comando `reiniciar-remoto` que verás en la preparación es del curso: deja el remoto de práctica como nuevo.

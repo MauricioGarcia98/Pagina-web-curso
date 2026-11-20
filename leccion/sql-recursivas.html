@@ -246,6 +246,26 @@ LIMIT 25;</code></pre>
 <li>Usos: series de números y fechas (calendarios para rellenar huecos), árboles (organigramas, categorías), rutas.</li>
 <li>Arrastra columnas como <code>nivel</code> y <code>ruta</code> para describir la posición en la jerarquía.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Recorrer una jerarquía</div>
+
+<ol>
+<li>Ejecuta: el organigrama desde los empleados sin jefe, con su nivel.</li>
+<li>Agrega una columna con la cadena de jefes (<code>ruta || &#39; &gt; &#39; || nombre</code>).</li>
+<li>Genera una serie del 1 al 12 con una CTE recursiva (los meses de un año).</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH RECURSIVE org AS (
+  SELECT empleado_id, nombre, jefe_id, 1 AS nivel
+  FROM empleados WHERE jefe_id IS NULL
+  UNION ALL
+  SELECT e.empleado_id, e.nombre, e.jefe_id, o.nivel + 1
+  FROM empleados AS e JOIN org AS o ON e.jefe_id = o.empleado_id
+)
+SELECT * FROM org ORDER BY nivel, nombre;</code></pre>
+<p>Reto: las categorías con su categoría padre, de la raíz a las hojas.</p>
+<p>Documentación oficial: <a href="https://www.postgresql.org/docs/current/queries-with.html">CTE recursivas</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

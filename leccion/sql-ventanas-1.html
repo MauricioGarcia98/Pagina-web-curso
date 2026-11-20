@@ -274,6 +274,22 @@ LIMIT 10;</code></pre>
 <li>Se calculan después del <code>WHERE</code>: para filtrar por ellas usa una CTE (o <code>QUALIFY</code> donde exista).</li>
 <li>Top-N por grupo y deduplicación: <code>ROW_NUMBER() … AS rn</code> + <code>WHERE rn &lt;= N</code>.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Rankings con funciones de ventana</div>
+
+<ol>
+<li>Ejecuta: el ranking de productos por precio dentro de cada categoría.</li>
+<li>Cambia <code>RANK</code> por <code>ROW_NUMBER</code> y por <code>DENSE_RANK</code>: ¿dónde difieren?</li>
+<li>Filtra el top 3 de cada categoría (en DuckDB, prueba <code>QUALIFY</code>).</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT categoria_id, nombre, precio,
+       RANK() OVER (PARTITION BY categoria_id ORDER BY precio DESC) AS puesto
+FROM productos
+ORDER BY categoria_id, puesto;</code></pre>
+<p>Reto: el cliente que más gastó en cada país.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/window_functions">funciones de ventana en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

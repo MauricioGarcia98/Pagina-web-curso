@@ -194,6 +194,25 @@ git switch main &amp;&amp; git pull                          # 8. actualizar tu 
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tu primer repositorio y tu primer commit</div>
+
+<ol>
+<li>Crea un repositorio en una carpeta nueva.</li>
+<li>Agrega un archivo, mira <code>git status</code> antes y después de <code>git add</code>.</li>
+<li>Haz el commit y míralo en <code>git log --oneline</code>.</li>
+</ol>
+<pre><code class="language-bash">mkdir -p ~/mi-repo &amp;&amp; cd ~/mi-repo
+git init
+echo &quot;# Mi repo de datos&quot; &gt; README.md
+git status
+git add README.md
+git commit -m &quot;Primer commit&quot;
+git log --oneline</code></pre>
+<p>Reto: crea una rama <code>consulta-ventas</code>, agrega un archivo <code>ventas.sql</code>, haz commit y vuelve a <code>main</code> con <code>git switch main</code>.</p>
+<p>Documentación oficial: <a href="https://git-scm.com/book/es/v2">libro Pro Git (en español)</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

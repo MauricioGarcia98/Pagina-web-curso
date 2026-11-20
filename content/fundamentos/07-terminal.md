@@ -331,6 +331,25 @@ No hace falta aprenderlos hoy, pero vas a encontrarlos en el trabajo y la termin
 | Correrlo todas las noches | `crontab -e` | Programa comandos a horario. `30 2 * * * python etl.py` = todos los días a las 2:30. Es el "Airflow" más simple que existe. |
 | Comparar dos listas | `comm -23 hoy.txt ayer.txt` | Muestra lo que está en `hoy.txt` y no en `ayer.txt` (los archivos tienen que estar ordenados con `sort`). |
 
+:::practica terminal Moverte y mirar archivos de verdad
+1. Haz clic en cada comando del panel para escribirlo y presiona **Enter**.
+2. Crea una carpeta de trabajo, entra y crea un archivo con un texto.
+3. Busca una palabra dentro del archivo con `grep`.
+
+```bash
+pwd
+ls -la
+mkdir -p ~/practica && cd ~/practica
+echo "ventas 2024 ok" > notas.txt
+cat notas.txt
+grep ventas notas.txt
+```
+
+Reto: cuenta cuántas líneas tiene `notas.txt` con `wc -l` después de agregarle dos líneas más con `>>`.
+
+Documentación oficial: [manual de Bash](https://www.gnu.org/software/bash/manual/bash.html)
+:::
+
 ## Practica
 
 Cada ejercicio trae su propia **terminal**: escribe el comando y presiona Enter. Se ejecuta de verdad sobre una máquina simulada (la misma del **Laboratorio → Terminal**), que ya tiene archivos en las carpetas `datos/` y `logs/`. Puedes explorar con `ls` antes de responder.

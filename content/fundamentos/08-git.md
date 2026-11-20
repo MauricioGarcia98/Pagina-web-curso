@@ -212,6 +212,26 @@ flecha rev -> rama: pide cambios | estilo=punteada | color=rojo
 - Las herramientas de datos modernas se despliegan desde Git: dbt Cloud, Declarative Automation Bundles y Airflow leen el código de la rama `main`. Lo que no está en Git, no existe.
 :::
 
+:::practica terminal Tu primer repositorio y tu primer commit
+1. Crea un repositorio en una carpeta nueva.
+2. Agrega un archivo, mira `git status` antes y después de `git add`.
+3. Haz el commit y míralo en `git log --oneline`.
+
+```bash
+mkdir -p ~/mi-repo && cd ~/mi-repo
+git init
+echo "# Mi repo de datos" > README.md
+git status
+git add README.md
+git commit -m "Primer commit"
+git log --oneline
+```
+
+Reto: crea una rama `consulta-ventas`, agrega un archivo `ventas.sql`, haz commit y vuelve a `main` con `git switch main`.
+
+Documentación oficial: [libro Pro Git (en español)](https://git-scm.com/book/es/v2)
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

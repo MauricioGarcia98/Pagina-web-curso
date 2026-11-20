@@ -201,6 +201,24 @@ Una buena respuesta es un método: 1) ¿Cambió el volumen de datos o la consult
 - **Optimizar sin mirar el plan.** `EXPLAIN` dice qué hace el motor; adivinar lleva a cambios inútiles.
 :::
 
+:::practica sql Leer un plan de ejecución
+1. Ejecuta `EXPLAIN` sobre la consulta y mira cómo une las tablas.
+2. Cambia `EXPLAIN` por `EXPLAIN ANALYZE` (en DuckDB) para ver tiempos reales.
+3. Quita columnas que no usas del `SELECT` y compara.
+
+```sql norun
+EXPLAIN
+SELECT c.pais, COUNT(*) AS pedidos
+FROM pedidos AS p
+JOIN clientes AS c ON c.cliente_id = p.cliente_id
+GROUP BY c.pais;
+```
+
+Reto: crea un índice sobre `pedidos(cliente_id)` en el motor PostgreSQL y compara el plan.
+
+Documentación oficial: [planes de ejecución en DuckDB](https://duckdb.org/docs/current/guides/meta/explain)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

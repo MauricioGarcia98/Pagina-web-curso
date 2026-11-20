@@ -203,6 +203,23 @@ GROUP BY c.pais;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Leer un plan de ejecución</div>
+
+<ol>
+<li>Ejecuta <code>EXPLAIN</code> sobre la consulta y mira cómo une las tablas.</li>
+<li>Cambia <code>EXPLAIN</code> por <code>EXPLAIN ANALYZE</code> (en DuckDB) para ver tiempos reales.</li>
+<li>Quita columnas que no usas del <code>SELECT</code> y compara.</li>
+</ol>
+<pre data-norun><code class="language-sql">EXPLAIN
+SELECT c.pais, COUNT(*) AS pedidos
+FROM pedidos AS p
+JOIN clientes AS c ON c.cliente_id = p.cliente_id
+GROUP BY c.pais;</code></pre>
+<p>Reto: crea un índice sobre <code>pedidos(cliente_id)</code> en el motor PostgreSQL y compara el plan.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/guides/meta/explain">planes de ejecución en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

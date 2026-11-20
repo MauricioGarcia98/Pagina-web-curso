@@ -2399,6 +2399,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (window.CuentasClarasProyecto) window.CuentasClarasProyecto.montar(body);
     if (window.AlmacenesSolProyecto) window.AlmacenesSolProyecto.montar(body);
     if (window.ConectaProyecto) window.ConectaProyecto.montar(body);
+    if (window.Practica) window.Practica.montarLeccion(body, Store, l, { toast });
     // cada lección con ejercicios de terminal empieza como una terminal recién abierta: en ~ y sin entorno
     // virtual (los archivos y el historial se conservan). Así un ejercicio de Azure no hereda la carpeta
     // ni el .venv de la lección de dbt.
@@ -2742,6 +2743,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     </div>`;
     const exp = window.ExplicaCmd ? window.ExplicaCmd.panel() : null;
     const term = window.Shell.createTerminal($('#termHost'), { onCommand: (l, r, modo) => { paint(); if (exp) exp.actualizar(l, r, modo); } });
+    window.__terminalActiva = term;
     if (exp) { $('#expHost').append(exp.el); $('#chuletaHost').append(window.ExplicaCmd.chuleta((c) => term.type(c))); }
     $('.exp-tabs', main).addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (!b) return; $$('.exp-tabs button', main).forEach((x) => x.classList.toggle('on', x === b)); $$('[data-panel]', main).forEach((p) => { p.hidden = p.dataset.panel !== b.dataset.tab; }); });
     term.el.classList.add('term-big');
@@ -3935,6 +3937,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'certificaciones') viewCertificaciones(r.q);
     else main.innerHTML = `<div class="container prose"><h1>Página no encontrada</h1><p>La dirección <code>${esc(location.hash)}</code> no existe o cambió de lugar.</p><p><a class="btn btn-primary" href="#/">Ir al inicio</a> <a class="btn" href="#/ruta">Ver la ruta de aprendizaje</a> <a class="btn" href="#/herramientas">Herramientas de práctica</a></p><p class="muted">También puedes usar el buscador de arriba.${enlaceReporte('Página no encontrada', `**Dirección:** ${location.href}`).replace('class="badge badge-link"', 'style="margin-left:6px"')}</p></div>`;
     barraHerramienta(r);
+    if (window.Practica) window.Practica.panel(r);
     if (window.RetosHerramientas) { if (r.name === 'azure') window.RetosHerramientas.montar(r.sub && r.sub[0] === 'studio' ? 'adf' : 'azure', Store); else if (r.name === 'databricks') window.RetosHerramientas.montar('databricks', Store); else if (r.name === 'github') window.RetosHerramientas.montar('github', Store); else if (r.name === 'snowflake') window.RetosHerramientas.montar('snowflake', Store); else if (r.name === 'bigquery') window.RetosHerramientas.montar('bigquery', Store); else if (r.name === 'airflow') window.RetosHerramientas.montar('airflow', Store); else if (r.name === 'fabric') window.RetosHerramientas.montar('fabric', Store); else if (r.name === 'jupyter') window.RetosHerramientas.montar('jupyter', Store); else if (r.name === 'excel') window.RetosHerramientas.montar('excel', Store); else window.RetosHerramientas.desmontar(); }
     document.title = r.lesson ? `${r.lesson.titulo} · Academia de Datos` : r.module ? `${r.module.titulo} · Academia de Datos` : (titles[r.name] || 'Academia de Datos');
     const anchor = location.hash.split('#')[2];

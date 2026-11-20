@@ -298,6 +298,23 @@ Pero **no** puedes usar en el `WHERE` un alias definido en el `SELECT` (`WHERE m
 - `IN (lista)` reemplaza varios `OR`; `BETWEEN a AND b` incluye extremos (cuidado con fechas con hora: usa `>=` y `<`).
 - `LIKE` busca patrones con `%` (cualquier cosa) y `_` (un carácter).
 
+:::practica sql Filtrar como lo pide el negocio
+1. Ejecuta: pedidos entregados por el canal web.
+2. Cambia la condición para ver los pedidos `cancelado` de cualquier canal.
+3. Usa `IN` para ver los pedidos de los canales `app` y `tienda`.
+
+```sql norun
+SELECT pedido_id, cliente_id, fecha_pedido, estado, canal
+FROM pedidos
+WHERE estado = 'entregado'
+  AND canal = 'web';
+```
+
+Reto: clientes de Colombia registrados desde 2024 (`fecha_registro >= '2024-01-01'`).
+
+Documentación oficial: [WHERE en DuckDB](https://duckdb.org/docs/current/sql/query_syntax/where)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

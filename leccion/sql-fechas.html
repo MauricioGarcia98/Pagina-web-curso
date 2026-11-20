@@ -349,6 +349,23 @@ LIMIT 3;</code></pre>
 <li><code>date()</code> con modificadores mueve y trunca fechas; <code>strftime()</code> extrae partes (devuelve texto); <code>julianday()</code> permite restar (resultado en días).</li>
 <li>Evita <code>date(&#39;now&#39;)</code> en pipelines: la fecha de referencia debe ser un parámetro. Guarda en UTC.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Agrupar por mes</div>
+
+<ol>
+<li>Ejecuta: pedidos por mes (los primeros 7 caracteres de la fecha).</li>
+<li>Filtra solo los meses de 2024.</li>
+<li>En DuckDB, prueba lo mismo con <code>date_trunc(&#39;month&#39;, CAST(fecha_pedido AS DATE))</code>.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT SUBSTR(CAST(fecha_pedido AS VARCHAR), 1, 7) AS mes,
+       COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY 1
+ORDER BY 1;</code></pre>
+<p>Reto: el día de la semana con más pedidos (en DuckDB, <code>dayname(CAST(fecha_pedido AS DATE))</code>).</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/date">fechas en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

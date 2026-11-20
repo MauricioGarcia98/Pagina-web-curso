@@ -85,6 +85,18 @@ for (const m of course.modulos) {
   if (!fs.existsSync(dir)) continue;
   for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.md')).sort()) {
     const src = fs.readFileSync(path.join(dir, f), 'utf8').replace(/^:::ejercicio[\s\S]*?^:::[ \t]*$/gm, '');
+    // bloques :::practica: el primer bloque de código es lo que se precarga en el laboratorio, así que tiene que correr
+    let kp = 0;
+    for (const pm of src.matchAll(/^:::practica[ \t]+([a-z-]+)[^\n]*\n([\s\S]*?)^:::[ \t]*$/gm)) {
+      kp++; const app = pm[1]; const cm = /^```(\w+)([^\n]*)\n([\s\S]*?)^```[ \t]*$/m.exec(pm[2]); if (!cm) continue;
+      const code = cm[3], id = `practica:${m.id}/${f}#${kp}`;
+      if (app === 'sql') {
+        if (/\bQUALIFY\b|EXPLAIN ANALYZE|^\s*--.*\n\s*SELECT 1;\s*$/i.test(code) || cm[2].includes('duckdb')) continue; // solo DuckDB, o un esqueleto
+        const pdb = new SQL.Database(bytes); try { pdb.exec(code); okCount++; } catch (e) { fails++; console.log(`✗ ${id}: ${e.message}`); } pdb.close();
+      } else if (['python', 'pyspark', 'airflow-lab'].includes(app)) {
+        exampleJobs.push({ id, type: app === 'pyspark' ? 'pyspark' : app === 'airflow-lab' ? 'airflow' : 'python', solucion: code, example: true });
+      }
+    }
     const db = new SQL.Database(bytes);
     let k = 0;
     for (const mm of src.matchAll(/^```(sql|python|pyspark|dbt)([^\n]*)\n([\s\S]*?)^```[ \t]*$/gm)) {

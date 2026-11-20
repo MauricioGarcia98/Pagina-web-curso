@@ -273,6 +273,22 @@ WHERE (precio - costo) / precio &lt; 0.20;</code></pre>
 <li><code>IN (lista)</code> reemplaza varios <code>OR</code>; <code>BETWEEN a AND b</code> incluye extremos (cuidado con fechas con hora: usa <code>&gt;=</code> y <code>&lt;</code>).</li>
 <li><code>LIKE</code> busca patrones con <code>%</code> (cualquier cosa) y <code>_</code> (un carácter).</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Filtrar como lo pide el negocio</div>
+
+<ol>
+<li>Ejecuta: pedidos entregados por el canal web.</li>
+<li>Cambia la condición para ver los pedidos <code>cancelado</code> de cualquier canal.</li>
+<li>Usa <code>IN</code> para ver los pedidos de los canales <code>app</code> y <code>tienda</code>.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT pedido_id, cliente_id, fecha_pedido, estado, canal
+FROM pedidos
+WHERE estado = 'entregado'
+  AND canal = 'web';</code></pre>
+<p>Reto: clientes de Colombia registrados desde 2024 (<code>fecha_registro &gt;= &#39;2024-01-01&#39;</code>).</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/query_syntax/where">WHERE en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -398,6 +398,27 @@ LIMIT 10;</code></pre>
 <li><code>LAG</code>/<code>LEAD</code> miran filas anteriores/siguientes: crecimiento, días entre compras, sesiones.</li>
 <li><code>FIRST_VALUE</code> es seguro; <code>LAST_VALUE</code> necesita ampliar el marco. <code>NTILE</code> y <code>PERCENT_RANK</code> describen distribuciones.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Acumulados y variación mes a mes</div>
+
+<ol>
+<li>Ejecuta: pedidos por mes y su acumulado.</li>
+<li>Agrega la variación contra el mes anterior con <code>LAG</code>.</li>
+<li>Calcula un promedio móvil de 3 meses con <code>ROWS BETWEEN 2 PRECEDING AND CURRENT ROW</code>.</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH mensual AS (
+  SELECT SUBSTR(CAST(fecha_pedido AS VARCHAR), 1, 7) AS mes, COUNT(*) AS pedidos
+  FROM pedidos GROUP BY 1
+)
+SELECT mes, pedidos,
+       SUM(pedidos) OVER (ORDER BY mes) AS acumulado,
+       pedidos - LAG(pedidos) OVER (ORDER BY mes) AS variacion
+FROM mensual
+ORDER BY mes;</code></pre>
+<p>Reto: los días entre un pedido y el siguiente del mismo cliente.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/window_functions">LAG y acumulados en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

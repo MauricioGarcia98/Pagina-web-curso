@@ -379,6 +379,22 @@ SELECT * FROM main.ventas.pedidos TIMESTAMP AS OF '2024-06-01';</code></pre>
 <div class="exercise-slot"></div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: La misma consulta en varios motores</div>
+
+<ol>
+<li>Ejecuta en DuckDB: el top 3 por categoría con <code>QUALIFY</code>.</li>
+<li>Cambia el motor a PostgreSQL: <code>QUALIFY</code> no existe. Reescríbela con una subconsulta.</li>
+<li>Cambia a SQL Server y usa <code>TOP</code> en lugar de <code>LIMIT</code> en otra consulta.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT categoria_id, nombre, precio
+FROM productos
+QUALIFY ROW_NUMBER() OVER (PARTITION BY categoria_id ORDER BY precio DESC) &lt;= 3;</code></pre>
+<p>Reto: anota las tres diferencias de dialecto que más te costaron.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/query_syntax/qualify">dialectos en DuckDB</a></p>
+</div>
+
+
+
 <h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-dialectos">▶ Hacer los ejercicios</a>
 <nav class="nav"><a href="sql-modelado.html">← Modelado de datos: normalización y esquema estrella</a><a href="sql-entrevistas.html">Desafíos SQL de entrevista (nivel senior) →</a></nav></main>
 <footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>

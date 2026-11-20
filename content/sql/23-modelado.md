@@ -172,6 +172,24 @@ Es una pregunta habitual en entrevistas de data engineer (una app de viajes, un 
 - Las SCD tipo 2 se implementan con los **snapshots** de dbt o con `MERGE` en Delta Lake. Las vas a construir en esos módulos.
 :::
 
+:::practica sql Una tabla de hechos y sus dimensiones
+1. Ejecuta: la tabla de hechos de ventas (una fila por línea de pedido).
+2. Agrega la dimensión fecha (año y mes) y la dimensión producto (categoría).
+3. Responde: facturación por categoría y año, solo con la estrella.
+
+```sql norun
+SELECT d.detalle_id, p.fecha_pedido, p.cliente_id, d.producto_id,
+       d.cantidad, d.cantidad * d.precio_unitario AS importe
+FROM detalle_pedidos AS d
+JOIN pedidos AS p ON p.pedido_id = d.pedido_id
+LIMIT 20;
+```
+
+Reto: dibuja la estrella en el laboratorio de modelado con estas mismas tablas.
+
+Documentación oficial: [esquema estrella](https://learn.microsoft.com/es-es/power-bi/guidance/star-schema)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

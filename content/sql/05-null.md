@@ -287,6 +287,22 @@ ORDER BY CASE WHEN telefono IS NULL THEN 1 ELSE 0 END, telefono;
 - **`NOT IN` con una lista que tiene NULL.** No devuelve nada; usa `NOT EXISTS` o filtra los NULL.
 :::
 
+:::practica sql Encontrar y tratar los NULL
+1. Ejecuta: cuántos clientes no tienen teléfono.
+2. Cambia `IS NULL` por `= NULL`. ¿Por qué da 0?
+3. Muestra el teléfono o el texto `sin teléfono` con `COALESCE`.
+
+```sql norun
+SELECT COUNT(*) AS sin_telefono
+FROM clientes
+WHERE telefono IS NULL;
+```
+
+Reto: compara `COUNT(*)` con `COUNT(telefono)` en la misma consulta y explica la diferencia.
+
+Documentación oficial: [NULL en DuckDB](https://duckdb.org/docs/current/sql/data_types/nulls)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

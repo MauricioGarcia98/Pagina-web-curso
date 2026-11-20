@@ -401,6 +401,24 @@ echo &quot;El archivo tiene $TOTAL líneas&quot;</code></pre>
 <td>Muestra lo que está en <code>hoy.txt</code> y no en <code>ayer.txt</code> (los archivos tienen que estar ordenados con <code>sort</code>).</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Moverte y mirar archivos de verdad</div>
+
+<ol>
+<li>Haz clic en cada comando del panel para escribirlo y presiona <strong>Enter</strong>.</li>
+<li>Crea una carpeta de trabajo, entra y crea un archivo con un texto.</li>
+<li>Busca una palabra dentro del archivo con <code>grep</code>.</li>
+</ol>
+<pre><code class="language-bash">pwd
+ls -la
+mkdir -p ~/practica &amp;&amp; cd ~/practica
+echo &quot;ventas 2024 ok&quot; &gt; notas.txt
+cat notas.txt
+grep ventas notas.txt</code></pre>
+<p>Reto: cuenta cuántas líneas tiene <code>notas.txt</code> con <code>wc -l</code> después de agregarle dos líneas más con <code>&gt;&gt;</code>.</p>
+<p>Documentación oficial: <a href="https://www.gnu.org/software/bash/manual/bash.html">manual de Bash</a></p>
+</div>
+
+
 <h2>Practica</h2>
 <p>Cada ejercicio trae su propia <strong>terminal</strong>: escribe el comando y presiona Enter. Se ejecuta de verdad sobre una máquina simulada (la misma del <strong>Laboratorio → Terminal</strong>), que ya tiene archivos en las carpetas <code>datos/</code> y <code>logs/</code>. Puedes explorar con <code>ls</code> antes de responder.</p>
 <!-- estandar:errores -->

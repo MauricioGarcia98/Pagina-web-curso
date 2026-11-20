@@ -181,6 +181,22 @@ GROUP BY tipo;</code></pre>
 <li><code>INTERSECT</code> = filas en ambas; <code>EXCEPT</code> = filas solo en la primera. Útiles para comparar tablas.</li>
 <li>Agrega una columna literal de origen cuando apilas fuentes distintas.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Unir y restar listas</div>
+
+<ol>
+<li>Ejecuta: los países de clientes, sin repetidos, junto a las ciudades de departamentos.</li>
+<li>Cambia <code>UNION</code> por <code>UNION ALL</code>. ¿Qué cambió?</li>
+<li>Con <code>EXCEPT</code>, encuentra los clientes registrados que nunca pidieron.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT pais AS lugar FROM clientes
+UNION
+SELECT ciudad FROM departamentos
+ORDER BY 1;</code></pre>
+<p>Reto: con <code>INTERSECT</code>, los clientes que compraron por web y también por app.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/query_syntax/setops">operaciones de conjuntos en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

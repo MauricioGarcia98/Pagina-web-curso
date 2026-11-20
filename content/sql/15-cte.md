@@ -223,6 +223,28 @@ Una **CTE** y una **subconsulta** existen solo durante esa consulta; la CTE tien
 - **Una CTE gigante.** Varias CTE chicas con nombres claros se leen y prueban mejor.
 :::
 
+:::practica sql Partir una consulta larga con WITH
+1. Ejecuta: el total de cada pedido en una CTE y el promedio por canal encima.
+2. Agrega una segunda CTE con los clientes por país y únelas.
+3. Ponle a cada CTE un nombre que explique qué contiene.
+
+```sql norun
+WITH totales AS (
+  SELECT pedido_id, SUM(cantidad * precio_unitario) AS total
+  FROM detalle_pedidos
+  GROUP BY pedido_id
+)
+SELECT p.canal, ROUND(AVG(t.total), 2) AS ticket_promedio
+FROM totales AS t
+JOIN pedidos AS p ON p.pedido_id = t.pedido_id
+GROUP BY p.canal;
+```
+
+Reto: con dos CTE, el porcentaje de la facturación que aporta cada país.
+
+Documentación oficial: [WITH en DuckDB](https://duckdb.org/docs/current/sql/query_syntax/with)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

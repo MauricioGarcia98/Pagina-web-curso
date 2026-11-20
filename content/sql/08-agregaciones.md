@@ -259,6 +259,24 @@ GROUP BY pais;
 - `WHERE` filtra antes de agregar; para contar con condición usa `SUM(CASE WHEN … THEN 1 ELSE 0 END)`.
 - Sin `GROUP BY` el resultado es una sola fila: no mezcles columnas sueltas con agregaciones.
 
+:::practica sql Resumir una tabla en una fila
+1. Ejecuta: cantidad de productos, precio promedio, mínimo y máximo.
+2. Agrega el costo total del inventario: `SUM(costo * stock)`.
+3. Cuenta las marcas distintas con `COUNT(DISTINCT marca)`.
+
+```sql norun
+SELECT COUNT(*) AS productos,
+       ROUND(AVG(precio), 2) AS precio_promedio,
+       MIN(precio) AS minimo,
+       MAX(precio) AS maximo
+FROM productos;
+```
+
+Reto: el ticket promedio de los pedidos (pista: primero el total de cada pedido en `detalle_pedidos`).
+
+Documentación oficial: [agregaciones en DuckDB](https://duckdb.org/docs/current/sql/functions/aggregates)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

@@ -235,6 +235,22 @@ FROM (
 <li><code>NOT IN</code> con un <code>NULL</code> en la lista devuelve vacío: usa <code>NOT EXISTS</code>.</li>
 <li>Las correlacionadas usan columnas de afuera; las tablas derivadas permiten agregar dos veces.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Comparar contra un promedio</div>
+
+<ol>
+<li>Ejecuta: productos más caros que el promedio.</li>
+<li>Reescribe el filtro con <code>IN</code>: clientes que compraron por el canal <code>app</code>.</li>
+<li>Prueba <code>EXISTS</code> para la misma pregunta y compara los resultados.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT nombre, precio
+FROM productos
+WHERE precio &gt; (SELECT AVG(precio) FROM productos)
+ORDER BY precio DESC;</code></pre>
+<p>Reto: el producto más caro de cada categoría con una subconsulta correlacionada.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/expressions/subqueries">subconsultas en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

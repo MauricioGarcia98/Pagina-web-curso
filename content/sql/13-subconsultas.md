@@ -242,6 +242,23 @@ Hay tres formas, y conviene mencionar al menos dos: una subconsulta correlaciona
 - `NOT IN` con un `NULL` en la lista devuelve vacío: usa `NOT EXISTS`.
 - Las correlacionadas usan columnas de afuera; las tablas derivadas permiten agregar dos veces.
 
+:::practica sql Comparar contra un promedio
+1. Ejecuta: productos más caros que el promedio.
+2. Reescribe el filtro con `IN`: clientes que compraron por el canal `app`.
+3. Prueba `EXISTS` para la misma pregunta y compara los resultados.
+
+```sql norun
+SELECT nombre, precio
+FROM productos
+WHERE precio > (SELECT AVG(precio) FROM productos)
+ORDER BY precio DESC;
+```
+
+Reto: el producto más caro de cada categoría con una subconsulta correlacionada.
+
+Documentación oficial: [subconsultas en DuckDB](https://duckdb.org/docs/current/sql/expressions/subqueries)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

@@ -289,6 +289,23 @@ LIMIT 20;</code></pre>
 <div class="exercise-slot"></div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Revisar datos crudos antes de usarlos</div>
+
+<ol>
+<li>Ejecuta: emails con mayúsculas o espacios.</li>
+<li>Cuenta los clientes duplicados por email normalizado (<code>LOWER(TRIM(email))</code>).</li>
+<li>Escribe la versión limpia en una CTE y cuenta cuántos quedan.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT email
+FROM clientes
+WHERE email &lt;&gt; LOWER(TRIM(email))
+LIMIT 20;</code></pre>
+<p>Reto: ciudades escritas de más de una forma (<code>LOWER(TRIM(ciudad))</code> con más de un valor original).</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/text">limpieza en DuckDB</a></p>
+</div>
+
+
+
 <h2>Practica</h2><p>Esta lección tiene <b>11 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-capa-bronze">▶ Hacer los ejercicios</a>
 <nav class="nav"><a href="sql-ddl-dml.html">← Crear y modificar datos: DDL, DML y transacciones</a><a href="sql-patrones.html">Patrones avanzados de análisis →</a></nav></main>
 <footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>

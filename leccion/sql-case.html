@@ -287,6 +287,23 @@ LIMIT 10;</code></pre>
 <li><code>CASE</code> + <code>GROUP BY</code> crea segmentos; <code>SUM(CASE WHEN … THEN 1 ELSE 0 END)</code> cuenta con condición.</li>
 <li>Varias agregaciones condicionales = un pivot (valores de una columna convertidos en columnas).</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Clasificar con CASE</div>
+
+<ol>
+<li>Ejecuta: cada producto en una franja de precio.</li>
+<li>Cuenta cuántos productos hay en cada franja (agrupa por la expresión).</li>
+<li>Agrega una franja <code>premium</code> para los de más de 500.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT nombre, precio,
+       CASE WHEN precio &lt; 50 THEN 'económico'
+            WHEN precio &lt; 200 THEN 'medio'
+            ELSE 'alto' END AS franja
+FROM productos;</code></pre>
+<p>Reto: cuenta pedidos entregados y cancelados por canal en columnas separadas, con <code>SUM(CASE WHEN … THEN 1 ELSE 0 END)</code>.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/expressions/case">CASE en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -271,6 +271,22 @@ LIMIT     n OFFSET m;</code></pre>
 <li><code>DISTINCT</code> devuelve combinaciones únicas de todas las columnas seleccionadas; no lo uses para tapar duplicados que no entiendes.</li>
 <li>Orden de ejecución: <code>FROM → WHERE → SELECT → DISTINCT → ORDER BY → LIMIT</code>.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Ordenar, limitar y quitar repetidos</div>
+
+<ol>
+<li>Ejecuta: los 5 productos más caros.</li>
+<li>Cambia a los 5 más baratos.</li>
+<li>Escribe otra consulta con <code>SELECT DISTINCT pais FROM clientes ORDER BY pais</code>.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT nombre, marca, precio
+FROM productos
+ORDER BY precio DESC
+LIMIT 5;</code></pre>
+<p>Reto: los 3 clientes registrados más recientemente, con su país.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/query_syntax/orderby">ORDER BY en DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 
