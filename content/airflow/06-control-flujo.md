@@ -290,6 +290,36 @@ En tutoriales viejos vas a ver `SubDagOperator`. Está obsoleto y se eliminó en
 | Esperar un archivo o evento | Sensor con `timeout` y `mode="reschedule"` |
 | Ordenar un DAG grande | `TaskGroup` |
 
+:::practica airflow-lab Elegir un camino y volver a juntar
+1. Ejecuta: la rama elige `carga_completa` los lunes y `carga_incremental` el resto.
+2. Mira el estado de la rama no elegida: queda `skipped`.
+3. `fin` usa `none_failed_min_one_success`: sin esa regla, el skip de la otra rama la saltaría también. Pruébalo quitándola.
+
+```python norun
+from datetime import datetime
+from airflow.sdk import dag, task
+from airflow.providers.standard.operators.empty import EmptyOperator
+
+@dag(start_date=datetime(2024, 1, 1), schedule="@daily", catchup=False)
+def ramas():
+    @task.branch
+    def elegir(**context):
+        return "carga_completa" if context["logical_date"].weekday() == 0 else "carga_incremental"
+
+    completa = EmptyOperator(task_id="carga_completa")
+    incremental = EmptyOperator(task_id="carga_incremental")
+    fin = EmptyOperator(task_id="fin", trigger_rule="none_failed_min_one_success")
+
+    elegir() >> [completa, incremental] >> fin
+
+ramas().test(logical_date=datetime(2024, 3, 18))
+```
+
+Reto: cambia la fecha a un martes y verifica qué rama corre.
+
+Documentación oficial: [ramas](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html#branching) · [trigger rules](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html#trigger-rules)
+:::
+
 ## Ejercicios
 
 :::ejercicio airflow

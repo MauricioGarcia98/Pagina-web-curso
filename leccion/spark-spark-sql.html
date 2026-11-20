@@ -125,6 +125,29 @@ FROM ...</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: De DataFrame a SQL y vuelta</div>
+
+<ol>
+<li>Ejecuta: registra una vista temporal y consúltala con <code>spark.sql</code>.</li>
+<li>Mira el catálogo con <code>spark.catalog.listTables()</code>: la vista temporal aparece junto a las tablas.</li>
+<li>Vuelve a DataFrame: el resultado de <code>spark.sql</code> es un DataFrame y puedes seguir con <code>.filter()</code>.</li>
+</ol>
+<pre data-norun><code class="language-python">spark.table(&quot;pedidos&quot;).createOrReplaceTempView(&quot;ped&quot;)
+
+top = spark.sql(&quot;&quot;&quot;
+    SELECT canal, metodo_pago, COUNT(*) AS n
+    FROM ped
+    WHERE estado = 'entregado'
+    GROUP BY canal, metodo_pago
+    ORDER BY n DESC
+&quot;&quot;&quot;)
+top.show(5)
+print([t.name for t in spark.catalog.listTables()][:8])</code></pre>
+<p>Reto: escribe la misma consulta con la API de DataFrame y compara que dé lo mismo.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/sql-getting-started.html">primeros pasos con Spark SQL</a> · <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/catalog.html">Catalog</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

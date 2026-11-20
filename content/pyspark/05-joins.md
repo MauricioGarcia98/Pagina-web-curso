@@ -230,6 +230,30 @@ Lo verás en detalle en la lección de rendimiento; por ahora quédate con la id
 - **Hacer un join para filtrar.** `left_semi` y `left_anti` filtran sin traer columnas de la otra tabla.
 :::
 
+:::practica pyspark Unir ventas con productos
+1. Ejecuta: importe por marca, uniendo detalle y productos por `producto_id`.
+2. Cambia a un `left_anti` para encontrar los productos que nunca se vendieron.
+3. Compara `count()` antes y después de cada join: ¿se duplicaron filas?
+
+```python norun
+from pyspark.sql import functions as F
+
+det = spark.table("detalle_pedidos")
+prod = spark.table("productos")
+
+(det.join(prod, "producto_id")
+    .withColumn("importe", F.col("cantidad") * F.col("precio_unitario") * (1 - F.col("descuento")))
+    .groupBy("marca")
+    .agg(F.round(F.sum("importe"), 2).alias("ventas"))
+    .orderBy(F.desc("ventas"))
+    .show(5))
+```
+
+Reto: los clientes que se registraron pero nunca compraron (`clientes` contra `pedidos`).
+
+Documentación oficial: [DataFrame.join](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.join.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio pyspark

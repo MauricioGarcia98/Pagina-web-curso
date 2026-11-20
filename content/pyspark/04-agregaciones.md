@@ -238,6 +238,29 @@ Agrupar en un cluster obliga a **mover** datos: todas las filas de "Chile" tiene
 - **Contar filas después de un join que duplica.** Revisa la cardinalidad antes de agregar.
 :::
 
+:::practica pyspark Un resumen por canal y estado
+1. Ejecuta: pedidos y clientes distintos por canal.
+2. Agrega una agregación condicional: cuántos pedidos `cancelado` tiene cada canal (`F.sum(F.when(...))`).
+3. Pasa los estados a columnas con `pivot`.
+
+```python norun
+from pyspark.sql import functions as F
+
+pedidos = spark.table("pedidos")
+(pedidos.groupBy("canal")
+    .agg(F.count("*").alias("pedidos"),
+         F.countDistinct("cliente_id").alias("clientes"))
+    .orderBy(F.desc("pedidos"))
+    .show())
+
+pedidos.groupBy("canal").pivot("estado").count().show()
+```
+
+Reto: con `rollup("canal", "metodo_pago")`, agrega subtotales por canal y un total general.
+
+Documentación oficial: [groupBy](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.groupBy.html) · [pivot](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.GroupedData.pivot.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio pyspark

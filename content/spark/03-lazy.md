@@ -155,7 +155,7 @@ Se lee **de abajo hacia arriba**. Las palabras que más vas a buscar son:
 - **`PushedFilters`**: los filtros que se aplicaron al leer el archivo (bien).
 - **`BroadcastHashJoin`** o **`SortMergeJoin`**: qué estrategia de join eligió.
 
-Pruébalo con los datos del curso. El mini-Spark del curso ejecuta al instante y su `explain()` es simplificado, pero el resultado es el mismo que obtendrías en un clúster:
+Pruébalo con los datos del curso. El mini-Spark del curso arma el plan con las mismas reglas de Catalyst: verás el filtro empujado a la lectura (`PushedFilters`), solo las columnas que usas en `ReadSchema`, el par `HashAggregate` parcial → `Exchange` → `HashAggregate` final y el `Exchange rangepartitioning` del `orderBy`. Los números de `plan_id` y algunos detalles (como `WholeStageCodegen`) cambian en un clúster real; la forma del plan es la misma:
 
 ```python
 from pyspark.sql import functions as F
@@ -205,6 +205,26 @@ Spark encadena todas las transformaciones narrow seguidas en **un mismo stage** 
 - **Esperar que una transformación se ejecute al escribirla.** Nada pasa hasta una acción (count, write, show).
 - **Llamar varias acciones sobre el mismo DataFrame caro.** Cada acción recalcula todo; usa `cache()` si lo reutilizas.
 - **Usar RDDs para todo.** Los DataFrames tienen optimizador; los RDDs no.
+:::
+
+:::practica pyspark La pereza de Spark y Catalyst en acción
+1. Ejecuta: las transformaciones no hacen nada hasta la acción final.
+2. Mira el plan extendido: en el plan **analizado** el filtro está arriba del `select`; en el **optimizado** Catalyst lo bajó hasta la lectura.
+3. Fíjate en `ReadSchema`: Spark lee solo las 2 columnas que usas, aunque la tabla tenga 7.
+
+```python norun
+from pyspark.sql import functions as F
+
+pedidos = spark.table("pedidos")
+web = pedidos.select("canal", "estado").filter(F.col("canal") == "web")   # nada se ejecutó todavía
+
+web.explain(True)      # el plan: parsed, analyzed, optimized, physical
+print(web.count())     # la acción: recién ahora Spark lee los datos
+```
+
+Reto: agrega un `withColumn` con una columna nueva y un filtro sobre esa columna nueva: ¿por qué ese filtro no puede bajar a la lectura?
+
+Documentación oficial: [DataFrame.explain](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.explain.html) · [transformaciones y acciones](https://spark.apache.org/docs/latest/rdd-programming-guide.html#transformations)
 :::
 
 ## Ejercicios

@@ -192,6 +192,29 @@ ignore    → no hace nada si existe
 - **Escribir sin particionar tablas grandes.** Las consultas por fecha leen todo.
 :::
 
+:::practica pyspark Escribir en el lake y volver a leer
+1. Ejecuta: escribe los pedidos entregados en Parquet, particionados por canal.
+2. Vuelve a ejecutar: falla porque la ruta ya existe. Cambia el modo a `overwrite`.
+3. Lee la ruta y verifica que el conteo coincide.
+
+```python norun
+from pyspark.sql import functions as F
+
+entregados = spark.table("pedidos").filter(F.col("estado") == "entregado")
+(entregados.write
+    .mode("overwrite")
+    .partitionBy("canal")
+    .parquet("/lake/silver/pedidos_entregados"))
+
+leidos = spark.read.parquet("/lake/silver/pedidos_entregados")
+print(entregados.count(), leidos.count())
+```
+
+Reto: guarda el mismo resultado como tabla con `saveAsTable("silver_entregados")` y léelo con `spark.table`.
+
+Documentación oficial: [fuentes de datos](https://spark.apache.org/docs/latest/sql-data-sources.html) · [modos de escritura](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrameWriter.mode.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio pyspark

@@ -130,6 +130,23 @@ dbt popularizó el rol de **Analytics Engineer**: alguien entre el analista y el
 Los ejercicios de dbt compilan tus modelos con **Jinja real** (la misma librería que usa dbt) y ejecutan el SQL resultante en la base SQLite del curso. Ya existen los modelos de staging `stg_clientes`, `stg_productos`, `stg_pedidos`, `stg_detalle_pedidos` (con la columna `importe`) y `stg_pagos`, y las fuentes de la tienda: `source('tienda', 'pedidos')` apunta a la tabla `pedidos` (se compila como `main.pedidos`), etc. Siempre verás el **SQL compilado**.
 :::
 
+:::practica terminal Tu primer dbt build
+1. Entra al proyecto y mira un modelo: es un `SELECT` con `{{ ref(...) }}`.
+2. Compílalo: dbt reemplaza `ref` por el nombre real de la tabla. Eso es todo lo que hace con tu SQL.
+3. Ejecuta `dbt build`: construye los modelos en orden y corre sus tests.
+
+```bash norun
+cd ~/tienda_dbt
+cat models/marts/ventas_por_canal.sql
+dbt compile -s ventas_por_canal
+dbt build
+```
+
+Reto: con `dbt ls`, lista todos los nodos del proyecto y explica qué es cada uno.
+
+Documentación oficial: [qué es dbt](https://docs.getdbt.com/docs/introduction) · [dbt build](https://docs.getdbt.com/reference/commands/build)
+:::
+
 :::ejercicio quiz
 Tu empresa necesita copiar datos de Salesforce al lakehouse cada hora. ¿dbt sirve para eso?
 

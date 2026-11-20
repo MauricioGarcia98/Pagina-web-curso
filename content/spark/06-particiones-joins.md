@@ -227,6 +227,31 @@ Está activado por defecto en Databricks y en Spark ≥ 3.2 (`spark.sql.adaptive
 - **Particionar por columnas con millones de valores.** Crea millones de archivos chicos.
 :::
 
+:::practica pyspark Shuffle, broadcast y skew con datos reales
+1. Ejecuta: el join sale `BroadcastHashJoin` porque `productos` es chica.
+2. Desactiva el broadcast (`autoBroadcastJoinThreshold = -1`) y mira el `SortMergeJoin` con shuffle en ambos lados.
+3. Busca skew: cuenta pedidos por `cliente_id`. Si un cliente concentrara la mitad, una sola tarea haría la mitad del trabajo.
+
+```python norun
+from pyspark.sql import functions as F
+
+det = spark.table("detalle_pedidos")
+prod = spark.table("productos")
+
+det.join(prod, "producto_id").explain()
+
+spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)
+det.join(prod, "producto_id").explain()
+spark.conf.set("spark.sql.autoBroadcastJoinThreshold", 10485760)
+
+spark.table("pedidos").groupBy("cliente_id").count().orderBy(F.desc("count")).show(5)
+```
+
+Reto: compara `repartition(4)` y `coalesce(4)` en `explain()`: ¿cuál genera un `Exchange` y cuál no?
+
+Documentación oficial: [hints de join](https://spark.apache.org/docs/latest/sql-performance-tuning.html#join-strategy-hints-for-sql-queries) · [Adaptive Query Execution](https://spark.apache.org/docs/latest/sql-performance-tuning.html#adaptive-query-execution)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

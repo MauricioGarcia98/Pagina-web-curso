@@ -204,6 +204,35 @@ Resultado esperado:
 
 Prueba ahora a cambiar `Costa Rica,Centroamérica` por `Costa Rica,Norteamérica` en el CSV, y vuelve a correr `dbt seed` y `dbt run -s clientes_por_region`. El mart cambia sin tocar ningún SQL. Esa es la ventaja de tener la regla de negocio en un seed versionado.
 
+:::practica dbt Un modelo de staging desde un source
+1. Ejecuta: `source()` apunta a la tabla cruda; el staging solo renombra, limpia y tipa.
+2. Agrega `segmento` en minúsculas.
+3. Regla de staging: una fila por fila de origen, sin joins ni agregaciones. Verifica que no agregaste ninguna.
+
+```sql norun
+with origen as (
+    select * from {{ source('tienda', 'clientes') }}
+),
+
+renombrado as (
+    select
+        cliente_id,
+        trim(nombre) || ' ' || trim(apellido) as nombre_completo,
+        lower(trim(email))                    as email,
+        ciudad,
+        pais,
+        cast(fecha_registro as date)          as fecha_registro
+    from origen
+)
+
+select * from renombrado
+```
+
+Reto: escribe el staging de `productos` con un campo `margen` = precio - costo y la columna `activo` convertida en booleano.
+
+Documentación oficial: [sources](https://docs.getdbt.com/docs/build/sources) · [la capa de staging](https://docs.getdbt.com/best-practices/how-we-structure/2-staging)
+:::
+
 ## Ejercicios
 
 En estos ejercicios, las fuentes `tienda` apuntan a las tablas originales: `{{ source('tienda', 'pedidos') }}` se compila como `main.pedidos` (`main` es el esquema de SQLite; en Databricks verías algo como `prod.bronze.pedidos`).

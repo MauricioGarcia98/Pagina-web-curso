@@ -240,6 +240,30 @@ extraer_clientes ┘</code></pre>
 <figure class="diagrama"><figcaption>Los componentes de Airflow 3 y cómo se comunican</figcaption></figure>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un DAG con ramas que se separan y se juntan</div>
+
+<ol>
+<li>Ejecuta: el DAG extrae dos fuentes en paralelo y recién después las junta.</li>
+<li>Mira el orden de ejecución en la salida: <code>ventas</code> y <code>clientes</code> no dependen entre sí.</li>
+<li>Agrega una tarea <code>publicar</code> después de <code>unir</code>.</li>
+</ol>
+<pre data-norun><code class="language-python">from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+
+with DAG(dag_id=&quot;panorama&quot;, start_date=datetime(2024, 1, 1), schedule=&quot;@daily&quot;, catchup=False) as dag:
+    ventas = BashOperator(task_id=&quot;ventas&quot;, bash_command=&quot;echo extrayendo ventas&quot;)
+    clientes = BashOperator(task_id=&quot;clientes&quot;, bash_command=&quot;echo extrayendo clientes&quot;)
+    unir = BashOperator(task_id=&quot;unir&quot;, bash_command=&quot;echo uniendo&quot;)
+
+    [ventas, clientes] &gt;&gt; unir      # dos padres, un hijo
+
+dag.test()</code></pre>
+<p>Reto: dibuja en papel el grafo y explica por qué no puede tener ciclos (la A de DAG).</p>
+<p>Documentación oficial: <a href="https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html">DAGs</a> · <a href="https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/overview.html">arquitectura de Airflow</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

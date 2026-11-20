@@ -235,6 +235,24 @@ Esa lógica vive en una macro llamada `generate_schema_name`. Si en producción 
 `dbt_project.yml` define qué se construye y cómo: nombre del proyecto, carpetas y configuraciones por defecto como la materialización; se versiona en Git. `profiles.yml` define dónde se construye: la conexión a la base y las credenciales para cada entorno (dev, prod); vive fuera del repositorio porque tiene secretos. El campo `profile:` del primero dice qué perfil del segundo usar, y `--target` elige el entorno.
 :::
 
+:::practica terminal Crear un proyecto dbt desde cero
+1. Crea un proyecto nuevo con `dbt init`.
+2. Recorre lo que creó: `dbt_project.yml`, la carpeta `models` y las carpetas vacías (`seeds`, `snapshots`, `tests`, `macros`).
+3. Ejecuta el modelo de ejemplo con `dbt run`.
+
+```bash norun
+dbt init mi_tienda
+cd ~/mi_tienda
+find . -type f
+cat dbt_project.yml
+dbt run
+```
+
+Reto: en `dbt_project.yml`, cambia la materialización por defecto a `table` y vuelve a correr `dbt run`.
+
+Documentación oficial: [dbt init](https://docs.getdbt.com/reference/commands/init) · [dbt_project.yml](https://docs.getdbt.com/reference/dbt_project.yml)
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

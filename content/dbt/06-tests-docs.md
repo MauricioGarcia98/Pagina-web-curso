@@ -343,6 +343,26 @@ El data test revisa los valores de los datos reales después de construir el mod
 | Unit test | Entrada inventada + salida esperada para probar la lógica |
 | Contrato | Columnas y tipos garantizados antes de crear la tabla |
 
+:::practica terminal Tests genéricos y un test singular propio
+1. Mira los tests genéricos declarados en `schema.yml` y córrelos.
+2. Crea un test singular: un `SELECT` que devuelve las filas que violan la regla (si devuelve 0 filas, pasa).
+3. Corre solo los tests del modelo con `-s`.
+
+```bash norun
+cd ~/tienda_dbt
+cat models/schema.yml
+dbt run
+dbt test
+mkdir -p tests
+echo "select * from {{ ref('ventas_por_canal') }} where ventas < 0" > tests/ventas_no_negativas.sql
+dbt test -s ventas_por_canal
+```
+
+Reto: agrega en `schema.yml` un test `accepted_values` para `canal` con los valores que esperas y córrelo.
+
+Documentación oficial: [data tests](https://docs.getdbt.com/docs/build/data-tests) · [propiedades de los tests](https://docs.getdbt.com/reference/resource-properties/data-tests)
+:::
+
 ## Ejercicios
 
 :::ejercicio dbt vacio

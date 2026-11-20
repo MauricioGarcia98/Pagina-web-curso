@@ -198,6 +198,37 @@ select * from final</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un modelo con ref() y CTEs</div>
+
+<ol>
+<li>Ejecuta: el modelo une los dos modelos de staging con <code>ref()</code> y abajo ves el SQL compilado.</li>
+<li>Cambia el <code>limit</code> y agrega la fecha de la última compra (<code>max(p.fecha_pedido)</code>).</li>
+<li>Mira el compilado: cada <code>ref</code> se convirtió en <code>main.&lt;modelo&gt;</code>. Por esas referencias dbt sabe el orden del DAG.</li>
+</ol>
+<pre data-norun><code class="language-sql">-- gasto por cliente, a partir de los modelos de staging
+with pedidos as (
+    select * from {{ ref('stg_pedidos') }}
+    where estado &lt;&gt; 'cancelado'
+),
+
+detalle as (
+    select * from {{ ref('stg_detalle_pedidos') }}
+)
+
+select
+    p.cliente_id,
+    count(distinct p.pedido_id) as pedidos,
+    round(sum(d.importe), 2)    as gasto
+from pedidos p
+join detalle d on d.pedido_id = p.pedido_id
+group by p.cliente_id
+order by gasto desc
+limit 20</code></pre>
+<p>Reto: agrega un tercer CTE con <code>ref(&#39;stg_clientes&#39;)</code> para mostrar el nombre y la ciudad de cada cliente.</p>
+<p>Documentación oficial: <a href="https://docs.getdbt.com/reference/dbt-jinja-functions/ref">ref()</a> · <a href="https://docs.getdbt.com/best-practices/how-we-structure/1-guide-overview">cómo estructurar un proyecto</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <p>En estos ejercicios usa siempre <code>{{ ref(&#39;...&#39;) }}</code> para referirte a los modelos <code>stg_*</code>.</p>
 <div class="exercise-slot"></div>

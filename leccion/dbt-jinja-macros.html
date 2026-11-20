@@ -219,6 +219,28 @@ sqlite3 &quot;SELECT * FROM stg_importes LIMIT 3&quot;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Generar SQL repetitivo con un bucle</div>
+
+<ol>
+<li>Ejecuta: el bucle <code>for</code> genera una columna por canal. Mira el SQL compilado.</li>
+<li>Agrega un canal a la lista y vuelve a ejecutar: no escribiste otra línea de SQL.</li>
+<li>Fíjate en <code>loop.last</code>: evita la coma después de la última columna.</li>
+</ol>
+<pre data-norun><code class="language-sql">{% set canales = ['web', 'app', 'tienda', 'telefono'] %}
+
+select
+    cliente_id,
+    {% for c in canales %}
+    sum(case when canal = '{{ c }}' then 1 else 0 end) as pedidos_{{ c }}{% if not loop.last %},{% endif %}
+    {% endfor %}
+from {{ ref('stg_pedidos') }}
+group by cliente_id
+limit 20</code></pre>
+<p>Reto: convierte el bucle en una macro <code>contar_por(columna, valores)</code> y úsala para <code>metodo_pago</code>.</p>
+<p>Documentación oficial: <a href="https://docs.getdbt.com/docs/build/jinja-macros">Jinja y macros</a> · <a href="https://docs.getdbt.com/reference/dbt-jinja-functions">funciones de Jinja en dbt</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

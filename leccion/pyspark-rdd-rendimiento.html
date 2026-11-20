@@ -116,6 +116,34 @@ for fila in df.collect():
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Leer el plan: broadcast, shuffle y sort-merge</div>
+
+<ol>
+<li>Ejecuta y lee el plan de abajo hacia arriba: <code>FileScan</code> (lee solo las columnas que usas), <code>BroadcastExchange</code> y <code>BroadcastHashJoin</code>. Spark eligió broadcast solo, porque <code>productos</code> pesa menos que <code>spark.sql.autoBroadcastJoinThreshold</code> (10 MB).</li>
+<li>Descomenta la línea del <code>conf.set(... -1)</code> y vuelve a ejecutar: ahora el plan es <code>SortMergeJoin</code>, con un <code>Exchange hashpartitioning</code> (shuffle) y un <code>Sort</code> en cada lado. Ese shuffle es lo que cuesta caro con datos grandes.</li>
+<li>Con el broadcast automático desactivado, envuelve <code>prod</code> en <code>F.broadcast(prod)</code>: el hint vuelve a dar <code>BroadcastHashJoin</code>.</li>
+<li>Agrega un <code>groupBy(&quot;marca&quot;).count()</code> al final y busca el par <code>HashAggregate</code> parcial → <code>Exchange</code> → <code>HashAggregate</code> final.</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+
+det = spark.table(&quot;detalle_pedidos&quot;)
+prod = spark.table(&quot;productos&quot;)
+# spark.conf.set(&quot;spark.sql.autoBroadcastJoinThreshold&quot;, -1)   # desactiva el broadcast automático
+
+j = det.join(prod, &quot;producto_id&quot;).select(&quot;pedido_id&quot;, &quot;marca&quot;, &quot;cantidad&quot;)
+j.explain()
+
+# un RDD: contar palabras de los nombres de producto
+palabras = (prod.select(&quot;nombre&quot;).rdd
+    .flatMap(lambda r: r[0].lower().split())
+    .map(lambda w: (w, 1))
+    .reduceByKey(lambda a, b: a + b))
+print(sorted(palabras.collect(), key=lambda x: -x[1])[:5])</code></pre>
+<p>Reto: ejecuta <code>j.explain(True)</code> y compara el plan lógico analizado con el optimizado: ¿qué columnas dejó de leer Catalyst?</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/sql-performance-tuning.html">ajuste de rendimiento (estrategias de join)</a> · <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.explain.html">DataFrame.explain</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

@@ -598,7 +598,8 @@ class _RecordingOperator(BaseOperator):
         self.template_fields = tuple(own.keys())
 
     def execute(self, context):
-        print("     (simulado) %s con %s" % (type(self).__name__, ", ".join("%s=%r" % kv for kv in self.config.items())))
+        # ya renderizados: los parámetros propios son template_fields (como json/job_parameters en el provider real)
+        print("     (simulado) %s con %s" % (type(self).__name__, ", ".join("%s=%r" % (k, self.render(getattr(self, k, v), context)) for k, v in self.config.items())))
 
 
 class DatabricksRunNowOperator(_RecordingOperator):

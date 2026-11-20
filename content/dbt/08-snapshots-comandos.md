@@ -194,6 +194,24 @@ where '2024-12-01' >= dbt_valid_from
 - **CD / producción**: un job programado (dbt Cloud, **Lakeflow Jobs** (antes Databricks Workflows) con una tarea de tipo dbt, o **Airflow** con `BashOperator` / Cosmos) ejecuta `dbt build --target prod`.
 - **Databricks**: el adaptador `dbt-databricks` usa un SQL Warehouse o un cluster; los modelos son tablas Delta en Unity Catalog.
 
+:::practica terminal Selección de nodos y un snapshot
+1. Lista lo que está aguas arriba de `top_clientes` (`+` adelante) y construye lo que está aguas abajo de `stg_ventas` (`+` atrás).
+2. Crea un snapshot en YAML (sintaxis de dbt 1.9) con estrategia `check`.
+3. Ejecútalo: la primera vez guarda la foto con `dbt_valid_from` y `dbt_valid_to`.
+
+```bash norun
+cd ~/tienda_dbt
+dbt ls -s +top_clientes
+dbt build -s stg_ventas+
+printf "snapshots:\n  - name: clientes_snap\n    relation: source('tienda', 'clientes')\n    config:\n      unique_key: cliente_id\n      strategy: check\n      check_cols: all\n" > models/snapshots.yml
+dbt snapshot
+```
+
+Reto: explica cuándo usarías `strategy: timestamp` en vez de `check`, y qué columna necesitas en el origen.
+
+Documentación oficial: [sintaxis de selección](https://docs.getdbt.com/reference/node-selection/syntax) · [snapshots](https://docs.getdbt.com/docs/build/snapshots)
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

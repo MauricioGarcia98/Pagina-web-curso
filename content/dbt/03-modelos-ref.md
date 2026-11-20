@@ -219,6 +219,38 @@ Un **CTE** (*Common Table Expression*) es una consulta con nombre que se define 
 Porque `ref()` le dice a dbt que el modelo depende de otro: con eso arma el DAG y ejecuta en el orden correcto, en paralelo donde se puede. Además resuelve el nombre completo según el entorno (el esquema de desarrollo de cada persona o el de producción), así el mismo código sirve en todos lados, y permite el linaje en la documentación y la selección con `+modelo+`.
 :::
 
+:::practica dbt Un modelo con ref() y CTEs
+1. Ejecuta: el modelo une los dos modelos de staging con `ref()` y abajo ves el SQL compilado.
+2. Cambia el `limit` y agrega la fecha de la última compra (`max(p.fecha_pedido)`).
+3. Mira el compilado: cada `ref` se convirtió en `main.<modelo>`. Por esas referencias dbt sabe el orden del DAG.
+
+```sql norun
+-- gasto por cliente, a partir de los modelos de staging
+with pedidos as (
+    select * from {{ ref('stg_pedidos') }}
+    where estado <> 'cancelado'
+),
+
+detalle as (
+    select * from {{ ref('stg_detalle_pedidos') }}
+)
+
+select
+    p.cliente_id,
+    count(distinct p.pedido_id) as pedidos,
+    round(sum(d.importe), 2)    as gasto
+from pedidos p
+join detalle d on d.pedido_id = p.pedido_id
+group by p.cliente_id
+order by gasto desc
+limit 20
+```
+
+Reto: agrega un tercer CTE con `ref('stg_clientes')` para mostrar el nombre y la ciudad de cada cliente.
+
+Documentación oficial: [ref()](https://docs.getdbt.com/reference/dbt-jinja-functions/ref) · [cómo estructurar un proyecto](https://docs.getdbt.com/best-practices/how-we-structure/1-guide-overview)
+:::
+
 ## Ejercicios
 
 En estos ejercicios usa siempre `{{ ref('...') }}` para referirte a los modelos `stg_*`.

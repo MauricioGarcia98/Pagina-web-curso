@@ -210,6 +210,33 @@ df.withColumn(&quot;dominio&quot;, dominio_vec(&quot;email&quot;))</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Medir antes de optimizar: UDF contra función nativa</div>
+
+<ol>
+<li>Ejecuta: el mismo cálculo con una UDF de Python y con funciones nativas.</li>
+<li>Compara los tiempos. En un clúster la diferencia es mayor: la UDF saca cada fila de la JVM a Python y la vuelve a meter.</li>
+<li>Usa <code>cache()</code> solo si reutilizas el resultado: mira <code>InMemoryTableScan</code> en el plan.</li>
+</ol>
+<pre data-norun><code class="language-python">import time
+from pyspark.sql import functions as F
+from pyspark.sql.types import StringType
+
+clientes = spark.table(&quot;clientes&quot;)
+
+@F.udf(StringType())
+def dominio_udf(email):
+    return email.split(&quot;@&quot;)[1] if email else None
+
+t = time.time(); clientes.select(dominio_udf(&quot;email&quot;).alias(&quot;d&quot;)).groupBy(&quot;d&quot;).count().collect(); print(&quot;UDF:&quot;, round(time.time() - t, 3), &quot;s&quot;)
+t = time.time(); clientes.select(F.substring_index(&quot;email&quot;, &quot;@&quot;, -1).alias(&quot;d&quot;)).groupBy(&quot;d&quot;).count().collect(); print(&quot;nativa:&quot;, round(time.time() - t, 3), &quot;s&quot;)
+
+c = clientes.filter(F.col(&quot;pais&quot;) == &quot;Chile&quot;).cache()
+c.groupBy(&quot;ciudad&quot;).count().explain()</code></pre>
+<p>Reto: escribe una checklist de 5 cosas que revisarías en el plan antes de tocar la configuración del clúster.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/sql-performance-tuning.html">ajuste de rendimiento</a> · <a href="https://spark.apache.org/docs/latest/api/python/user_guide/sql/arrow_pandas.html">Arrow y UDFs de pandas</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

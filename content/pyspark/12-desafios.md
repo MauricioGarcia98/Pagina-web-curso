@@ -105,6 +105,28 @@ cliente_id | sesiones
 - **No probar con datos chicos.** Arma 5 filas y verifica a mano.
 :::
 
+:::practica pyspark Desafío con reloj: top 3 por categoría
+1. Pedido: "los 3 productos con más ingresos en cada categoría, con su ingreso y su puesto". 20 minutos.
+2. Antes de escribir código, anota: tabla de grano, joins, agregación y ventana.
+3. Verifica a mano una categoría chica.
+
+```python norun
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+det = spark.table("detalle_pedidos")
+prod = spark.table("productos")
+# 1) ingreso por producto  2) ranking dentro de cada categoría  3) quedarse con 3
+ingresos = det.join(prod, "producto_id").groupBy("categoria_id", "producto_id", "nombre") \
+    .agg(F.sum(F.col("cantidad") * F.col("precio_unitario")).alias("ingreso"))
+ingresos.show(5)
+```
+
+Reto: resuélvelo también en Spark SQL con `spark.sql(...)` y compara los resultados.
+
+Documentación oficial: [dense_rank](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.dense_rank.html) · [Window](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/window.html)
+:::
+
 :::ejercicio pyspark dificultad=Experto titulo="Sesionización"
 Sesioniza `eventos_web` (solo eventos con `cliente_id`): una nueva sesión empieza si pasaron **más de 30 minutos** desde el evento anterior del mismo cliente. Devuelve, por cliente, la cantidad de sesiones. Columnas: `cliente_id`, `sesiones`.
 ```python solucion

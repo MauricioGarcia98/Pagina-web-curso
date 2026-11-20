@@ -180,6 +180,35 @@ Supón que el notebook de silver falla porque llegó una columna nueva:
 
 ## Ejercicio integrador
 
+:::practica airflow-lab Orquestar Databricks y dbt desde un DAG
+1. Ejecuta: el DAG lanza un job de Databricks y después corre dbt.
+2. Mira en la salida qué parámetros recibió cada operador (el simulador los registra en vez de llamar a la nube).
+3. Agrega `retries=2` al job de Databricks: es la tarea más propensa a fallar por el clúster.
+
+```python norun
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
+from airflow.providers.standard.operators.bash import BashOperator
+
+with DAG(dag_id="lakehouse_diario", start_date=datetime(2024, 1, 1), schedule="0 5 * * *", catchup=False) as dag:
+    ingesta = DatabricksRunNowOperator(
+        task_id="ingesta_bronze_silver",
+        databricks_conn_id="databricks_default",
+        job_id=123,
+        job_parameters={"fecha": "{{ ds }}"},
+    )
+    modelos = BashOperator(task_id="dbt_build", bash_command="cd /opt/dbt/tienda && dbt build --target prod")
+    ingesta >> modelos
+
+dag.test(logical_date=datetime(2024, 6, 1))
+```
+
+Reto: agrega una tarea final que avise por correo solo si algo falló (`trigger_rule="one_failed"`).
+
+Documentación oficial: [DatabricksRunNowOperator](https://airflow.apache.org/docs/apache-airflow-providers-databricks/stable/operators/run_now.html) · [trigger rules](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html#trigger-rules)
+:::
+
 :::ejercicio airflow dificultad=Experto titulo="DAG de producción"
 Crea el DAG `pipeline_prod` con: `schedule="0 4 * * *"`, `start_date=datetime(2024, 1, 1)`, `catchup=False`, `max_active_runs=1` y `default_args` con `retries=2`. Tareas: `esperar_archivo` (un `FileSensor` con `filepath="/datos/ventas_{{ ds_nodash }}.csv"`), `ingesta` (un `DatabricksRunNowOperator` con `job_id=111` y `job_parameters={"fecha": "{{ ds }}"}`), `dbt_build` (`BashOperator` con un comando que contenga `dbt build`) y `notificar` (`EmptyOperator` con `trigger_rule="all_done"`). Orden: `esperar_archivo >> ingesta >> dbt_build >> notificar`.
 ```python inicial

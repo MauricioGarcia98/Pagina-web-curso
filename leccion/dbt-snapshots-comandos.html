@@ -243,6 +243,23 @@ sqlite3 tienda.db &quot;SELECT cliente_id, ciudad, dbt_valid_from, dbt_valid_to 
 <li><strong>CD / producción</strong>: un job programado (dbt Cloud, <strong>Lakeflow Jobs</strong> (antes Databricks Workflows) con una tarea de tipo dbt, o <strong>Airflow</strong> con <code>BashOperator</code> / Cosmos) ejecuta <code>dbt build --target prod</code>.</li>
 <li><strong>Databricks</strong>: el adaptador <code>dbt-databricks</code> usa un SQL Warehouse o un cluster; los modelos son tablas Delta en Unity Catalog.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Selección de nodos y un snapshot</div>
+
+<ol>
+<li>Lista lo que está aguas arriba de <code>top_clientes</code> (<code>+</code> adelante) y construye lo que está aguas abajo de <code>stg_ventas</code> (<code>+</code> atrás).</li>
+<li>Crea un snapshot en YAML (sintaxis de dbt 1.9) con estrategia <code>check</code>.</li>
+<li>Ejecútalo: la primera vez guarda la foto con <code>dbt_valid_from</code> y <code>dbt_valid_to</code>.</li>
+</ol>
+<pre data-norun><code class="language-bash">cd ~/tienda_dbt
+dbt ls -s +top_clientes
+dbt build -s stg_ventas+
+printf &quot;snapshots:\n  - name: clientes_snap\n    relation: source('tienda', 'clientes')\n    config:\n      unique_key: cliente_id\n      strategy: check\n      check_cols: all\n&quot; &gt; models/snapshots.yml
+dbt snapshot</code></pre>
+<p>Reto: explica cuándo usarías <code>strategy: timestamp</code> en vez de <code>check</code>, y qué columna necesitas en el origen.</p>
+<p>Documentación oficial: <a href="https://docs.getdbt.com/reference/node-selection/syntax">sintaxis de selección</a> · <a href="https://docs.getdbt.com/docs/build/snapshots">snapshots</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -344,6 +344,32 @@ from {{ ref('stg_eventos') }}</code></pre>
 <td>Qué hacer si cambian las columnas de un incremental</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un modelo incremental</div>
+
+<ol>
+<li>Ejecuta: en la primera corrida <code>is_incremental()</code> es falso y el modelo carga todo.</li>
+<li>Lee el bloque <code>{% if is_incremental() %}</code>: en las corridas siguientes dbt agrega ese <code>where</code> y solo procesa lo nuevo.</li>
+<li>Piensa qué pasa con un pedido que cambia de estado días después: por eso hay <code>unique_key</code> (dbt lo actualiza en vez de duplicarlo).</li>
+</ol>
+<pre data-norun><code class="language-sql">{{ config(materialized='incremental', unique_key='pedido_id') }}
+
+select
+    pedido_id,
+    cliente_id,
+    fecha_pedido,
+    estado,
+    canal
+from {{ ref('stg_pedidos') }}
+
+{% if is_incremental() %}
+  -- solo lo que llegó desde la última corrida
+  where fecha_pedido &gt; (select max(fecha_pedido) from {{ this }})
+{% endif %}</code></pre>
+<p>Reto: cambia el filtro para reprocesar siempre los últimos 3 días (los datos que llegan tarde) y explica el costo de hacerlo.</p>
+<p>Documentación oficial: <a href="https://docs.getdbt.com/docs/build/incremental-models">modelos incrementales</a> · <a href="https://docs.getdbt.com/docs/build/materializations">materializaciones</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

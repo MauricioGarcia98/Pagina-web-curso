@@ -192,6 +192,26 @@ df.rdd.getNumPartitions()        # ¿en cuántos pedazos quedó? p. ej. 80</code
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Ver dónde se corta un stage</div>
+
+<ol>
+<li>Ejecuta y lee el plan de abajo hacia arriba.</li>
+<li>Cuenta los <code>Exchange</code>: cada uno es un shuffle y separa un stage del siguiente. Este job tiene 3 stages.</li>
+<li>Saca el <code>orderBy</code> y vuelve a mirar: desaparece un <code>Exchange</code> y con él un stage.</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+
+consulta = (spark.table(&quot;pedidos&quot;)
+    .filter(F.col(&quot;estado&quot;) == &quot;entregado&quot;)      # narrow: cada partición por su cuenta
+    .groupBy(&quot;canal&quot;).count()                     # wide: necesita juntar cada canal (shuffle)
+    .orderBy(F.desc(&quot;count&quot;)))                    # wide: orden global (otro shuffle)
+
+consulta.explain()</code></pre>
+<p>Reto: explica por qué el <code>HashAggregate</code> aparece dos veces (uno con <code>partial_count</code> antes del <code>Exchange</code> y otro después).</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/cluster-overview.html">arquitectura del clúster</a> · <a href="https://spark.apache.org/docs/latest/rdd-programming-guide.html#shuffle-operations">operaciones con shuffle</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

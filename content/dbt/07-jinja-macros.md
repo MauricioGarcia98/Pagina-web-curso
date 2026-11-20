@@ -291,6 +291,29 @@ En `dbt compile` vas a ver `round(cantidad * precio_unitario * (1 - descuento), 
 Jinja es potente, pero un modelo lleno de `{% if %}` anidados se vuelve ilegible. La regla de la comunidad es: **SQL primero, Jinja cuando ahorra repetición real**. Si una macro se usa una sola vez, probablemente no hace falta.
 :::
 
+:::practica dbt Generar SQL repetitivo con un bucle
+1. Ejecuta: el bucle `for` genera una columna por canal. Mira el SQL compilado.
+2. Agrega un canal a la lista y vuelve a ejecutar: no escribiste otra línea de SQL.
+3. Fíjate en `loop.last`: evita la coma después de la última columna.
+
+```sql norun
+{% set canales = ['web', 'app', 'tienda', 'telefono'] %}
+
+select
+    cliente_id,
+    {% for c in canales %}
+    sum(case when canal = '{{ c }}' then 1 else 0 end) as pedidos_{{ c }}{% if not loop.last %},{% endif %}
+    {% endfor %}
+from {{ ref('stg_pedidos') }}
+group by cliente_id
+limit 20
+```
+
+Reto: convierte el bucle en una macro `contar_por(columna, valores)` y úsala para `metodo_pago`.
+
+Documentación oficial: [Jinja y macros](https://docs.getdbt.com/docs/build/jinja-macros) · [funciones de Jinja en dbt](https://docs.getdbt.com/reference/dbt-jinja-functions)
+:::
+
 ## Ejercicios
 
 :::ejercicio dbt

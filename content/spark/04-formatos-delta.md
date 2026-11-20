@@ -198,6 +198,24 @@ Si mañana descubres un error en la limpieza, puedes **reprocesar** silver y gol
 - **Delta sin mantenimiento.** Muchas escrituras chicas generan archivos pequeños; OPTIMIZE los compacta.
 :::
 
+:::practica databricks Delta Lake: versiones y viaje en el tiempo
+1. Abre **SQL Editor** en Databricks y ejecuta el bloque de a una sentencia.
+2. Después del `UPDATE`, mira `DESCRIBE HISTORY`: cada escritura es una versión nueva en el log de transacciones.
+3. Consulta la versión anterior con `VERSION AS OF` y compara.
+
+```sql norun
+CREATE TABLE main.default.precios (producto STRING, precio DOUBLE);
+INSERT INTO main.default.precios VALUES ('Teclado', 45.5), ('Mouse', 12.0);
+UPDATE main.default.precios SET precio = 49.9 WHERE producto = 'Teclado';
+DESCRIBE HISTORY main.default.precios;
+SELECT * FROM main.default.precios VERSION AS OF 1;
+```
+
+Reto: vuelve la tabla a la versión 1 con `RESTORE TABLE … TO VERSION AS OF 1` y revisa el historial otra vez.
+
+Documentación oficial: [historial y viaje en el tiempo de Delta](https://docs.databricks.com/aws/en/delta/history) · [Delta Lake: lecturas y escrituras](https://docs.delta.io/latest/delta-batch.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

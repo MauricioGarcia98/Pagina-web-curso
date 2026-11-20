@@ -239,6 +239,31 @@ dag.test(logical_date=datetime(2024, 6, 30))</code></pre>
 <pre data-norun><code class="language-python">default_args = {&quot;retries&quot;: 2, &quot;retry_delay&quot;: timedelta(minutes=5)}
 with DAG(&quot;etl&quot;, default_args=default_args, ...) as dag:
     ...   # todas las tareas tienen 2 reintentos, salvo que una lo cambie</code></pre>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Plantillas Jinja y reintentos</div>
+
+<ol>
+<li>Ejecuta: <code>{{ ds }}</code> se reemplaza por la fecha lógica al momento de correr.</li>
+<li>Agrega <code>{{ ds_nodash }}</code> al nombre del archivo.</li>
+<li>Mira <code>retries</code> y <code>retry_delay</code> en <code>default_args</code>: si <code>descargar</code> falla, Airflow la reintenta.</li>
+</ol>
+<pre data-norun><code class="language-python">from datetime import datetime, timedelta
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+
+default_args = {&quot;retries&quot;: 2, &quot;retry_delay&quot;: timedelta(minutes=5)}
+
+with DAG(dag_id=&quot;plantillas&quot;, start_date=datetime(2024, 1, 1), schedule=&quot;@daily&quot;, catchup=False, default_args=default_args) as dag:
+    descargar = BashOperator(
+        task_id=&quot;descargar&quot;,
+        bash_command=&quot;echo descargando ventas del {{ ds }} en /lake/bronze/ventas/{{ ds }}.json&quot;,
+    )
+
+dag.test(logical_date=datetime(2024, 5, 20))</code></pre>
+<p>Reto: agrega <code>execution_timeout=timedelta(minutes=30)</code> a la tarea y explica cuándo lo usarías.</p>
+<p>Documentación oficial: <a href="https://airflow.apache.org/docs/apache-airflow/stable/templates-ref.html">referencia de plantillas</a> · <a href="https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/tasks.html">tareas, reintentos y timeouts</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

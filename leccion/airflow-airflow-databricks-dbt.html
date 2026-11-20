@@ -199,6 +199,35 @@ default_args = {&quot;on_failure_callback&quot;: avisar_falla, &quot;retries&quo
 <li><input disabled="" type="checkbox"> Tests de importación en CI y despliegue automático de la carpeta <code>dags/</code>.</li>
 </ul>
 <h2>Ejercicio integrador</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Orquestar Databricks y dbt desde un DAG</div>
+
+<ol>
+<li>Ejecuta: el DAG lanza un job de Databricks y después corre dbt.</li>
+<li>Mira en la salida qué parámetros recibió cada operador (el simulador los registra en vez de llamar a la nube).</li>
+<li>Agrega <code>retries=2</code> al job de Databricks: es la tarea más propensa a fallar por el clúster.</li>
+</ol>
+<pre data-norun><code class="language-python">from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
+from airflow.providers.standard.operators.bash import BashOperator
+
+with DAG(dag_id=&quot;lakehouse_diario&quot;, start_date=datetime(2024, 1, 1), schedule=&quot;0 5 * * *&quot;, catchup=False) as dag:
+    ingesta = DatabricksRunNowOperator(
+        task_id=&quot;ingesta_bronze_silver&quot;,
+        databricks_conn_id=&quot;databricks_default&quot;,
+        job_id=123,
+        job_parameters={&quot;fecha&quot;: &quot;{{ ds }}&quot;},
+    )
+    modelos = BashOperator(task_id=&quot;dbt_build&quot;, bash_command=&quot;cd /opt/dbt/tienda &amp;&amp; dbt build --target prod&quot;)
+    ingesta &gt;&gt; modelos
+
+dag.test(logical_date=datetime(2024, 6, 1))</code></pre>
+<p>Reto: agrega una tarea final que avise por correo solo si algo falló (<code>trigger_rule=&quot;one_failed&quot;</code>).</p>
+<p>Documentación oficial: <a href="https://airflow.apache.org/docs/apache-airflow-providers-databricks/stable/operators/run_now.html">DatabricksRunNowOperator</a> · <a href="https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html#trigger-rules">trigger rules</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

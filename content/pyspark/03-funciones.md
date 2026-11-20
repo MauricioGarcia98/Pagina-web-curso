@@ -231,6 +231,30 @@ La última fila de la tabla (contar nulos de todas las columnas en una pasada) e
 - **Fechas como texto.** Convierte con `to_date` antes de calcular.
 :::
 
+:::practica pyspark Texto, fechas y condiciones sobre clientes
+1. Ejecuta: año de registro, ciudad en mayúsculas y un tramo de antigüedad con `when`.
+2. Reemplaza el teléfono vacío por `"sin dato"` con `coalesce`.
+3. Calcula la edad aproximada con `months_between` desde `fecha_nacimiento`.
+
+```python norun
+from pyspark.sql import functions as F
+
+clientes = spark.table("clientes")
+(clientes
+    .withColumn("anio_registro", F.year(F.to_date("fecha_registro")))
+    .withColumn("ciudad_may", F.upper("ciudad"))
+    .withColumn("tramo", F.when(F.col("anio_registro") <= 2021, "antiguo")
+                          .when(F.col("anio_registro") <= 2023, "medio")
+                          .otherwise("nuevo"))
+    .select("cliente_id", "ciudad_may", "anio_registro", "tramo")
+    .show(8))
+```
+
+Reto: el dominio del email (lo que va después de `@`) con `split` o `substring_index`, y cuántos clientes tiene cada dominio.
+
+Documentación oficial: [funciones de pyspark.sql](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/functions.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio pyspark

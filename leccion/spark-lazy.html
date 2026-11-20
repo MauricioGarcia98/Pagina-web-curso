@@ -141,7 +141,7 @@ AdaptiveSparkPlan
 <li><strong><code>PushedFilters</code></strong>: los filtros que se aplicaron al leer el archivo (bien).</li>
 <li><strong><code>BroadcastHashJoin</code></strong> o <strong><code>SortMergeJoin</code></strong>: qué estrategia de join eligió.</li>
 </ul>
-<p>Pruébalo con los datos del curso. El mini-Spark del curso ejecuta al instante y su <code>explain()</code> es simplificado, pero el resultado es el mismo que obtendrías en un clúster:</p>
+<p>Pruébalo con los datos del curso. El mini-Spark del curso arma el plan con las mismas reglas de Catalyst: verás el filtro empujado a la lectura (<code>PushedFilters</code>), solo las columnas que usas en <code>ReadSchema</code>, el par <code>HashAggregate</code> parcial → <code>Exchange</code> → <code>HashAggregate</code> final y el <code>Exchange rangepartitioning</code> del <code>orderBy</code>. Los números de <code>plan_id</code> y algunos detalles (como <code>WholeStageCodegen</code>) cambian en un clúster real; la forma del plan es la misma:</p>
 <pre><code class="language-python">from pyspark.sql import functions as F
 
 pedidos = spark.table(&quot;pedidos&quot;)
@@ -199,6 +199,25 @@ por_canal.show()        # ACCIÓN: ejecuta</code></pre>
 <li><strong>Llamar varias acciones sobre el mismo DataFrame caro.</strong> Cada acción recalcula todo; usa <code>cache()</code> si lo reutilizas.</li>
 <li><strong>Usar RDDs para todo.</strong> Los DataFrames tienen optimizador; los RDDs no.</li>
 </ul>
+</div>
+
+
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: La pereza de Spark y Catalyst en acción</div>
+
+<ol>
+<li>Ejecuta: las transformaciones no hacen nada hasta la acción final.</li>
+<li>Mira el plan extendido: en el plan <strong>analizado</strong> el filtro está arriba del <code>select</code>; en el <strong>optimizado</strong> Catalyst lo bajó hasta la lectura.</li>
+<li>Fíjate en <code>ReadSchema</code>: Spark lee solo las 2 columnas que usas, aunque la tabla tenga 7.</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+
+pedidos = spark.table(&quot;pedidos&quot;)
+web = pedidos.select(&quot;canal&quot;, &quot;estado&quot;).filter(F.col(&quot;canal&quot;) == &quot;web&quot;)   # nada se ejecutó todavía
+
+web.explain(True)      # el plan: parsed, analyzed, optimized, physical
+print(web.count())     # la acción: recién ahora Spark lee los datos</code></pre>
+<p>Reto: agrega un <code>withColumn</code> con una columna nueva y un filtro sobre esa columna nueva: ¿por qué ese filtro no puede bajar a la lectura?</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.explain.html">DataFrame.explain</a> · <a href="https://spark.apache.org/docs/latest/rdd-programming-guide.html#transformations">transformaciones y acciones</a></p>
 </div>
 
 

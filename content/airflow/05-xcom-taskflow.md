@@ -264,6 +264,40 @@ Cada copia es una tarea más para el scheduler. Mapear 50 archivos está bien; m
 Con mapeo dinámico de tareas: una tarea lista los archivos nuevos y devuelve sus rutas, y la tarea de carga se mapea con `.expand(archivo=...)`, de modo que se crea una instancia por archivo en tiempo de ejecución, cada una con su log y sus reintentos. Los argumentos fijos van en `.partial()`. Luego una tarea final recibe la lista de resultados para validar los totales. Por XCom solo viajan rutas y conteos; los datos quedan en el lago.
 :::
 
+:::practica airflow-lab TaskFlow: tareas que se pasan datos
+1. Ejecuta: cada `return` viaja a la tarea siguiente por XCom, sin que lo escribas a mano.
+2. Mira el mapeo dinámico: `expand` crea una tarea por cada archivo.
+3. Agrega un archivo a la lista y vuelve a ejecutar: aparece una instancia más.
+
+```python norun
+from datetime import datetime
+from airflow.sdk import dag, task
+
+@dag(start_date=datetime(2024, 1, 1), schedule="@daily", catchup=False)
+def ventas_taskflow():
+    @task
+    def listar():
+        return ["ventas_norte.csv", "ventas_sur.csv", "ventas_centro.csv"]
+
+    @task
+    def procesar(archivo: str) -> int:
+        print("procesando", archivo)
+        return len(archivo)
+
+    @task
+    def resumir(filas: list):
+        print("total:", sum(filas))
+
+    resumir(procesar.expand(archivo=listar()))
+
+ventas_taskflow().test()
+```
+
+Reto: explica por qué no conviene pasar un DataFrame de 1 GB por XCom y qué pasarías en su lugar.
+
+Documentación oficial: [TaskFlow](https://airflow.apache.org/docs/apache-airflow/stable/tutorial/taskflow.html) · [mapeo dinámico](https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/dynamic-task-mapping.html)
+:::
+
 ## Ejercicios
 
 :::ejercicio airflow

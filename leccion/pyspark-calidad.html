@@ -185,6 +185,30 @@ print(validos.count(), cuarentena.count())</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Limpiar la capa bronze de pedidos</div>
+
+<ol>
+<li>Ejecuta: normaliza el estado (<code>ENTREGADO</code>, <code>Entregado</code> → <code>entregado</code>) y convierte el monto que a veces trae coma decimal.</li>
+<li>Deduplica: un mismo <code>pedido_id</code> llega en varios archivos; quédate con la carga más reciente.</li>
+<li>Manda a una tabla de cuarentena las filas cuyo monto no se pudo convertir.</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+bronze = spark.table(&quot;bronze_pedidos&quot;)
+limpio = (bronze
+    .withColumn(&quot;estado&quot;, F.lower(F.trim(&quot;estado&quot;)))
+    .withColumn(&quot;monto_num&quot;, F.regexp_replace(&quot;monto&quot;, &quot;,&quot;, &quot;.&quot;).try_cast(&quot;double&quot;)))
+
+w = Window.partitionBy(&quot;pedido_id&quot;).orderBy(F.desc(&quot;cargado_en&quot;))
+unico = limpio.withColumn(&quot;rn&quot;, F.row_number().over(w)).filter(&quot;rn = 1&quot;).drop(&quot;rn&quot;)
+print(&quot;bronze:&quot;, bronze.count(), &quot;| sin duplicados:&quot;, unico.count())
+unico.groupBy(&quot;estado&quot;).count().show()</code></pre>
+<p>Reto: cuenta cuántas filas quedan con <code>monto_num</code> nulo y muéstralas: esa es tu cuarentena.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.dropDuplicates.html">dropDuplicates</a> · <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.Column.try_cast.html">Column.try_cast</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 
