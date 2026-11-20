@@ -3,6 +3,8 @@ titulo: "Logística 📦: costo FIFO, días hábiles, stock diario y alertas de 
 nivel: Experto
 duracion: 65
 resumen: El costo de la mercadería con el método FIFO y la fecha de entrega en días hábiles en Python, el stock diario y los quiebres con ventanas en PySpark, la puntualidad mensual por transportista en dbt y un DAG que dispara otro DAG.
+objetivos: Calcular el costo de lo vendido con FIFO | Calcular fechas en días hábiles | Medir stock diario y quiebres con ventanas, y disparar un DAG desde otro
+autoevaluacion: ¿Qué devuelve FIFO cuando el stock tiene dos lotes con precios distintos? | ¿Por qué los días hábiles complican las fechas prometidas?
 ---
 
 En **Mercurio Logística** (caso 📦) el stock no se guarda: se **calcula** sumando movimientos. Y cada envío tiene una **fecha prometida** que hay que cumplir. Esta lección programa la lógica contable y de promesas, y arma el pipeline diario de inventario.

@@ -3,6 +3,8 @@ titulo: "Clínica 🏥: agenda, riesgo de ausencia, pacientes reincidentes y rec
 nivel: Avanzado
 duracion: 60
 resumen: Turnos libres de una agenda y un puntaje de riesgo de ausencia en Python, pacientes reincidentes en PySpark, la facturación mensual por cobertura en dbt y un DAG de recordatorios con ShortCircuitOperator.
+objetivos: Calcular turnos libres y un puntaje de riesgo de ausencia | Encontrar pacientes reincidentes en PySpark | Cortar un DAG a tiempo con ShortCircuitOperator
+autoevaluacion: ¿Qué hace ShortCircuitOperator cuando la condición es falsa? | ¿Cómo defines un paciente reincidente?
 ---
 
 En **Clínica del Sur** (caso 🏥) el problema número uno es el **ausentismo**: turnos reservados a los que el paciente no viene. La estrategia del equipo: (1) mostrar bien los turnos libres para reasignar rápido, (2) estimar qué turnos tienen **riesgo** de ausencia, (3) identificar a los pacientes reincidentes, y (4) enviar **recordatorios** el día anterior.

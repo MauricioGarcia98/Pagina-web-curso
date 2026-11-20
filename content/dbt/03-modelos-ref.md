@@ -3,6 +3,8 @@ titulo: Modelos y ref(): el corazón de dbt
 nivel: Intermedio
 duracion: 35
 resumen: Desde cero - qué es un modelo, qué es Jinja y qué significa compilar; ref() y source(), el DAG de dependencias, los selectores y el estilo de CTEs.
+objetivos: Escribir un modelo y entender qué significa compilarlo | Usar ref() y source() para nombrar tablas | Leer el DAG de dependencias y seleccionar modelos
+autoevaluacion: ¿Qué ventaja tiene ref() sobre escribir el nombre de la tabla a mano? | ¿Qué modelos corre dbt run -s +mi_modelo?
 ---
 
 Un **modelo** es un archivo `.sql` con **un solo SELECT**. El nombre del archivo es el nombre del modelo: `models/marts/fct_ventas.sql` crea `fct_ventas`.

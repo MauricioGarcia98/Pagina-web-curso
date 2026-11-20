@@ -3,6 +3,8 @@ titulo: Glue, catálogo, crawlers y jobs de Spark
 nivel: Intermedio
 duracion: 40
 resumen: El Glue Data Catalog como "índice" del lago, crawlers que descubren esquemas y particiones, jobs de Spark sin servidor, job bookmarks y cuándo usar Glue o EMR.
+objetivos: Explicar qué guarda el Glue Data Catalog | Descubrir esquemas y particiones con un crawler | Elegir entre Glue, EMR y Lambda para un proceso
+autoevaluacion: ¿Qué hace un job bookmark? | ¿Cuándo elegirías EMR en vez de Glue?
 ---
 
 ## El problema que resuelve Glue

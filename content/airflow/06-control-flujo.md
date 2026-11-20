@@ -3,6 +3,8 @@ titulo: Ramas, trigger rules, sensores y TaskGroups
 nivel: Avanzado
 duracion: 50
 resumen: Decidir caminos, controlar cuándo corre una tarea según sus padres, esperar eventos y organizar DAGs grandes.
+objetivos: Elegir caminos con ramas | Controlar cuándo corre una tarea con trigger rules | Esperar eventos con sensores y assets, y ordenar DAGs con TaskGroups
+autoevaluacion: ¿Qué trigger rule usarías para una tarea de limpieza que corre aunque algo falle? | ¿Qué diferencia hay entre un sensor y un asset?
 ---
 
 Hasta ahora tus DAGs eran una línea recta: A, después B, después C. En la vida real hacen falta decisiones como estas:

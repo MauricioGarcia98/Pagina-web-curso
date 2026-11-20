@@ -3,6 +3,8 @@ titulo: AWS para data engineers en 25 minutos
 nivel: Básico
 duracion: 25
 resumen: Qué es AWS, cuentas, regiones y zonas, el mapa de servicios de datos, cuánto cuesta y cómo se compara con Azure y Google Cloud.
+objetivos: Describir cómo se organiza AWS (cuentas, regiones y zonas) | Ubicar los servicios de datos en un mapa | Comparar AWS con Azure y Google Cloud y estimar costos
+autoevaluacion: ¿Qué servicio de AWS cumple el papel del lago de datos? | ¿Qué haces primero para no llevarte un susto con la factura?
 ---
 
 ## Primero, la idea en una frase

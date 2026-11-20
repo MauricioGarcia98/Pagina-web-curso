@@ -3,6 +3,8 @@ titulo: S3, construir un data lake
 nivel: Intermedio
 duracion: 40
 resumen: Buckets, objetos y prefijos; capas bronze, silver y gold; particiones estilo Hive; aws s3 mb, cp, sync, ls y rm; clases de almacenamiento, versionado, ciclo de vida y seguridad.
+objetivos: Organizar un lago en S3 con capas y particiones estilo Hive | Usar aws s3 cp, sync, ls y rm | Configurar clases de almacenamiento, versionado y ciclo de vida
+autoevaluacion: ¿Qué es un prefijo en S3? | ¿Para qué sirve una regla de ciclo de vida?
 ---
 
 ## Qué es S3

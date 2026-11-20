@@ -3,6 +3,8 @@ titulo: Optimización y tuning de Spark
 nivel: Avanzado
 duracion: 50
 resumen: Diagnóstico con la Spark UI, caché, archivos pequeños, configuración de memoria y checklist de rendimiento.
+objetivos: Diagnosticar un job lento con la Spark UI antes de cambiar nada | Aplicar una checklist de rendimiento (archivos pequeños, particiones, filtros) | Decidir cuándo usar caché y por qué evitar las UDFs
+autoevaluacion: ¿Qué miras primero cuando un job tarda el doble que ayer? | ¿Cuándo empeora las cosas un cache()?
 ---
 
 Tu job de Spark funciona, pero tarda 90 minutos y la factura del clúster no para de crecer. Esta lección te da un **método** para encontrar por qué y una lista de soluciones para los problemas más comunes. La idea central es que casi todos los problemas de rendimiento son uno de estos cinco: **leer de más, mover de más (shuffle), skew, archivos chicos o traer datos al driver.**

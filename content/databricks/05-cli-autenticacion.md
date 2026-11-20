@@ -3,6 +3,8 @@ titulo: Databricks CLI: instalación y autenticación
 nivel: Intermedio
 duracion: 25
 resumen: Instalar la CLI, autenticarse con OAuth o token, perfiles en .databrickscfg y comandos de diagnóstico.
+objetivos: Instalar la CLI de Databricks | Autenticarte con OAuth o con un token | Manejar varios perfiles en .databrickscfg
+autoevaluacion: ¿Por qué OAuth es preferible a un token personal? | ¿Qué guarda el archivo .databrickscfg?
 ---
 
 :::tip Practícalo en el navegador

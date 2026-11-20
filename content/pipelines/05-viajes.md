@@ -3,6 +3,8 @@ titulo: "Movilidad 🚕: precios, oferta y demanda, conductores destacados"
 nivel: Avanzado
 duracion: 60
 resumen: La regla de tarifa dinámica y el cotizador de viajes en Python, el balance oferta/demanda por hora en PySpark, los conductores destacados en dbt y un DAG horario con sensor y reintentos.
+objetivos: Programar una tarifa dinámica y un cotizador | Medir el balance de oferta y demanda por hora en PySpark | Armar un DAG horario con sensor y reintentos
+autoevaluacion: ¿Qué datos necesitas para saber dónde falta oferta? | ¿Qué espera el sensor del DAG horario?
 ---
 
 En **Ruta**, la app de viajes del caso 🚕, el precio no es fijo: depende de la distancia, del tiempo y del **equilibrio entre oferta y demanda** en ese momento. Esta lección programa esa lógica y la pone en un pipeline que corre **cada hora**.

@@ -3,6 +3,8 @@ titulo: SparkSession y tu primer DataFrame
 nivel: Básico
 duracion: 35
 resumen: Crear la sesión, crear DataFrames, ver esquema y datos, y cómo funciona el simulador.
+objetivos: Crear una SparkSession y un DataFrame | Ver el esquema y los datos de un DataFrame | Distinguir transformaciones de acciones en tu propio código
+autoevaluacion: ¿Qué devuelve df.filter(...) si no llamas a ninguna acción? | ¿Qué muestra printSchema()?
 ---
 
 ## Qué es PySpark y por qué existe

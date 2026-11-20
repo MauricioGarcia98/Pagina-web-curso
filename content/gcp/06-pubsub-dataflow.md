@@ -3,6 +3,8 @@ titulo: Pub/Sub y Dataflow, streaming en Google Cloud
 nivel: Avanzado
 duracion: 55
 resumen: Temas y suscripciones de Pub/Sub, entrega al menos una vez y deduplicación; Apache Beam y Dataflow; tiempo de evento, ventanas, watermark y datos tardíos, programados en Python.
+objetivos: Usar temas y suscripciones de Pub/Sub, y deduplicar | Explicar Apache Beam y Dataflow | Manejar tiempo de evento, ventanas, watermark y datos tardíos
+autoevaluacion: ¿Por qué la entrega "al menos una vez" obliga a deduplicar? | ¿Qué diferencia hay entre tiempo de evento y tiempo de procesamiento?
 ---
 
 ## Pub/Sub: el correo instantáneo de los eventos

@@ -3,6 +3,8 @@ titulo: Identidad, permisos (RBAC) y Key Vault
 nivel: Avanzado
 duracion: 35
 resumen: Usuarios, service principals, managed identities, roles RBAC, alcance y secretos con Key Vault.
+objetivos: Distinguir usuarios, service principals y managed identities | Asignar roles con RBAC al alcance correcto | Guardar y leer secretos con Key Vault
+autoevaluacion: ¿Por qué una managed identity es mejor que una contraseña en el código? | ¿Qué significa asignar un rol al alcance de un grupo de recursos?
 ---
 
 :::tip Practícalo en el navegador

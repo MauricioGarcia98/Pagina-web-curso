@@ -3,6 +3,8 @@ titulo: BigQuery, fundamentos
 nivel: Intermedio
 duracion: 45
 resumen: Cómo funciona BigQuery por dentro (almacenamiento columnar, slots, separación de cómputo), proyectos, datasets y tablas, la CLI bq (mk, load, query, show, dry_run), costos y el dialecto GoogleSQL.
+objetivos: Explicar cómo funciona BigQuery por dentro (columnar, slots, cómputo separado) | Crear datasets y tablas, y cargar datos con bq | Estimar el costo de una consulta con dry_run
+autoevaluacion: ¿Por qué SELECT * cuesta más en BigQuery? | ¿Qué te dice --dry_run antes de correr una consulta?
 ---
 
 ## Qué hace especial a BigQuery

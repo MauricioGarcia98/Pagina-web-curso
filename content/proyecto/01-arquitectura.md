@@ -3,6 +3,8 @@ titulo: El proyecto final: arquitectura de punta a punta
 nivel: Avanzado
 duracion: 30
 resumen: Diseña la plataforma de datos de Tienda Andina con todo lo aprendido.
+objetivos: Diseñar la plataforma de datos de una empresa de punta a punta | Justificar cada pieza de la arquitectura en una frase | Planificar el trabajo usando lo aprendido en cada módulo
+autoevaluacion: ¿Qué pieza de la arquitectura resuelve la orquestación? | ¿Por qué separar el lago en capas?
 ---
 
 ¡Llegaste al final! Vamos a unir todas las piezas en un proyecto como los que se construyen en empresas reales. Este proyecto es ideal para tu **portafolio**.

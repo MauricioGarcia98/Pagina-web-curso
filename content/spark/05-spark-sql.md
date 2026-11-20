@@ -3,6 +3,8 @@ titulo: Spark SQL y el catálogo
 nivel: Intermedio
 duracion: 25
 resumen: Vistas temporales, tablas administradas y externas, Unity Catalog y SQL desde PySpark.
+objetivos: Consultar un DataFrame con SQL a través de una vista temporal | Diferenciar tablas administradas y externas | Usar el espacio de nombres de tres niveles de Unity Catalog
+autoevaluacion: ¿Qué pasa con los archivos de una tabla externa cuando haces DROP TABLE? | ¿Qué significan las tres partes de catalogo.esquema.tabla?
 ---
 
 Todo lo que aprendiste de SQL funciona en Spark. **Spark SQL** y la API de DataFrames comparten el mismo optimizador: elige el que haga tu código más claro (¡y puedes mezclarlos!).

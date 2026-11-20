@@ -28,7 +28,7 @@ texto: XLOOKUP (1) busca el 5 en la columna A y devuelve lo de la columna F (2)
 =XLOOKUP(qué_busco, dónde_lo_busco, qué_devuelvo, [si_no_lo_encuentra])
 ```
 
-Se lee: "buscá **5** en **A:A**, y devolvé lo que está en la misma fila de **F:F**; si no lo encontrás, poné *no está*".
+Se lee: "busca **5** en **A:A** y devuelve lo que está en la misma fila de **F:F**; si no lo encuentras, pon *no está*".
 
 ## Paso 2 — Unir dos tablas: el país del cliente
 

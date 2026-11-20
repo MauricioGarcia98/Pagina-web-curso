@@ -3,6 +3,8 @@ titulo: Desafíos de PySpark (nivel entrevista)
 nivel: Experto
 duracion: 60
 resumen: Problemas tipo entrevista técnica para Data Engineer con PySpark.
+objetivos: Encarar un problema de PySpark tipo entrevista con un método | Combinar ventanas, joins y agregaciones en una solución | Explicar tu solución y sus alternativas en voz alta
+autoevaluacion: ¿Qué preguntas haces antes de escribir código en una entrevista? | ¿Cómo verificas que tu resultado es correcto con un caso chico?
 ---
 
 Resuelve estos problemas **solo con la API de DataFrames** (sin `spark.sql`). Son los que suelen pedir en entrevistas técnicas para Data Engineer con Spark/Databricks.

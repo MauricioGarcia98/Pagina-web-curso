@@ -3,6 +3,8 @@ titulo: Formatos, Delta Lake y arquitectura medallón
 nivel: Intermedio
 duracion: 45
 resumen: CSV vs Parquet, particionado en disco, Delta Lake (ACID, time travel, MERGE) y bronze/silver/gold.
+objetivos: Elegir entre CSV, JSON y Parquet según el uso | Explicar qué agrega Delta Lake sobre Parquet (ACID, time travel, MERGE) | Organizar un lago en capas bronze, silver y gold
+autoevaluacion: ¿Por qué un formato columnar lee menos datos en una consulta analítica? | ¿Qué guarda la carpeta _delta_log de una tabla Delta?
 ---
 
 Spark no guarda datos: los **lee** de archivos en un data lake (S3, ADLS, Cloud Storage) y **escribe** archivos nuevos. El formato de esos archivos y cómo los organizas en carpetas deciden si una consulta tarda 5 segundos o 50 minutos, y si cuesta centavos o cientos de dólares. Esta lección cubre los formatos, el particionado, **Delta Lake** y la forma estándar de ordenar todo: la **arquitectura medallón**.

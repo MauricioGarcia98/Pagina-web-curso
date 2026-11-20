@@ -3,6 +3,8 @@ titulo: Limpieza y calidad de datos
 nivel: Avanzado
 duracion: 50
 resumen: Deduplicar, normalizar textos, manejar nulos, convertir tipos con el modo ANSI de Spark 4 (cast y try_cast), validar reglas y separar registros inválidos en cuarentena.
+objetivos: Normalizar textos y deduplicar registros | Convertir tipos sin perder datos con try_cast | Validar reglas y separar los registros inválidos en cuarentena
+autoevaluacion: ¿Qué hace cast con un valor inválido en modo ANSI y qué hace try_cast? | ¿Por qué separar los registros malos en vez de borrarlos?
 ---
 
 En la vida real, **la mitad del trabajo de un ingeniero de datos es limpiar**. Los datos llegan con espacios de más, mayúsculas mezcladas, duplicados porque un sistema reenvió un archivo, nulos donde no debería haberlos y valores imposibles (cantidades negativas, fechas del año 2099). Si esos problemas llegan a la capa gold, terminan en un reporte del directorio con números equivocados, y la confianza en el equipo de datos se pierde muy rápido.

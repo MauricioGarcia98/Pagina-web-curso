@@ -3,6 +3,8 @@ titulo: Buenas prácticas, Variables, Connections y CLI
 nivel: Avanzado
 duracion: 45
 resumen: Idempotencia, código top-level, secretos, Variables y Connections, pruebas de DAGs y la CLI de Airflow.
+objetivos: Aplicar las reglas de oro de un DAG (idempotencia, nada pesado en el código top-level) | Guardar configuración y secretos en Variables y Connections | Probar DAGs antes de subirlos y usar la CLI
+autoevaluacion: ¿Por qué no se hace una consulta a la base en el nivel superior del archivo del DAG? | ¿Qué comando prueba un DAG completo sin el scheduler?
 ---
 
 Escribir un DAG que corra una vez es fácil. Lo difícil es que siga funcionando a las 3 de la mañana, durante dos años, cuando falla la red, cuando alguien lo relanza por error o cuando hay que recalcular todo marzo. Esta lección reúne las prácticas que separan un DAG de juguete de uno de producción.

@@ -3,6 +3,8 @@ titulo: Google Cloud para data engineers en 25 minutos
 nivel: Básico
 duracion: 25
 resumen: Qué es Google Cloud, proyectos, regiones y la jerarquía de recursos, el mapa de servicios de datos con BigQuery al centro, costos y equivalencias con AWS y Azure.
+objetivos: Describir la jerarquía de recursos de Google Cloud | Ubicar los servicios de datos con BigQuery al centro | Comparar Google Cloud con AWS y Azure y estimar costos
+autoevaluacion: ¿Qué es un proyecto en Google Cloud? | ¿Qué servicio cumple el papel del warehouse?
 ---
 
 ## La idea en una frase

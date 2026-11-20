@@ -16,7 +16,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <main><div class="migas"><a href="index.html#airflow">🌬️ Apache Airflow</a> · Avanzado · 55 min</div>
 <h1>XCom y la TaskFlow API</h1><p class="resumen">Pasar datos pequeños entre tareas con XCom, la TaskFlow API (@dag y @task), dependencias implícitas, multiple_outputs, el contexto de la ejecución, mezclar operadores clásicos y TaskFlow, y mapeo dinámico con expand().</p>
 <a class="cta" href="../index.html#/l/airflow-xcom-taskflow">▶ Abrir la lección interactiva (6 ejercicios)</a>
-
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Pasar datos pequeños entre tareas con XCom</li><li>Escribir DAGs con la TaskFlow API (@dag y @task)</li><li>Generar tareas dinámicamente con expand()</li></ul>
 <h2>XCom: mensajes entre tareas</h2>
 <p>Las tareas pueden correr en máquinas distintas, así que no comparten variables. Para pasar <strong>datos pequeños</strong> (un nombre de archivo, un conteo, una fecha) se usa <strong>XCom</strong> (<em>cross-communication</em>), que los guarda en la base de metadatos.</p>
 <pre><code class="language-python">from datetime import datetime

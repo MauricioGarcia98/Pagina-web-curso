@@ -8,7 +8,7 @@ prerrequisitos: proyecto-red-analitica-el-dia-a-dia
 autoevaluacion: ¿Sabes por qué cada laboratorio tiene su propia vista? | ¿Sabes por qué el documento se normaliza antes del hash? | ¿Sabes qué hace que un paciente olvidado no reaparezca al recargar?
 ---
 
-:::cuidado Intentalo primero
+:::cuidado Inténtalo primero
 Esta es **una** solución. Si ya resolviste el proyecto, compara: si mañana Costa cambia la cantidad de filas de título de su planilla, ¿qué hace tu versión?
 :::
 

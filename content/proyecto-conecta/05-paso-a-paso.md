@@ -8,7 +8,7 @@ prerrequisitos: proyecto-conecta-el-dia-a-dia
 autoevaluacion: ¿Sabes por qué se guarda una caché de categorías? | ¿Sabes en qué orden se enmascara una tarjeta y un DNI? | ¿Sabes por qué el plazo se toma de la última coincidencia del contrato?
 ---
 
-:::cuidado Intentalo primero
+:::cuidado Inténtalo primero
 Esta es **una** solución, no la única. Si llegaste acá sin intentarlo, vuelve al [tablero](#/l/proyecto-conecta-el-dia-a-dia) y prueba al menos la clasificación. Si ya lo resolviste, compara: ¿qué hiciste distinto? ¿Cuál de las dos versiones aguanta mejor un cambio del proveedor?
 :::
 

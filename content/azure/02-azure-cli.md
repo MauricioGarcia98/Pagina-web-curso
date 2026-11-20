@@ -3,6 +3,8 @@ titulo: Azure CLI: instalación y primeros comandos
 nivel: Básico
 duracion: 30
 resumen: Instalar az, iniciar sesión, elegir suscripción, ayuda, extensiones y configuración por defecto.
+objetivos: Instalar Azure CLI e iniciar sesión | Elegir la suscripción de trabajo | Entender la estructura de los comandos y encontrar ayuda
+autoevaluacion: ¿Qué comando muestra la suscripción activa? | ¿Por qué conviene la CLI sobre el portal para tareas repetidas?
 ---
 
 :::tip Practícalo en el navegador

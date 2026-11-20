@@ -3,6 +3,8 @@ titulo: Servicios de datos en Azure desde la CLI
 nivel: Avanzado
 duracion: 55
 resumen: La arquitectura de referencia de un lakehouse en Azure, crear Databricks, Data Factory y Event Hubs desde la CLI, y llevar un proyecto dbt de tu terminal a Azure Databricks (profiles.yml, SQL warehouse, job con tarea dbt).
+objetivos: Describir una arquitectura de referencia de lakehouse en Azure | Crear Databricks, Data Factory y Event Hubs desde la CLI | Llevar un proyecto dbt de tu terminal a Azure Databricks
+autoevaluacion: ¿Qué servicio recibe eventos en tiempo real en Azure? | ¿Para qué sirven las etiquetas (tags) en los recursos?
 ---
 
 :::tip Practícalo en el navegador

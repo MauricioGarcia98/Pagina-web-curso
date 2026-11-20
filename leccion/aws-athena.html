@@ -16,7 +16,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <main><div class="migas"><a href="index.html#aws">🟧 AWS para Data Engineers</a> · Intermedio · 45 min</div>
 <h1>Athena, SQL sobre el lago sin servidores</h1><p class="resumen">Cómo funciona Athena, tablas externas, particiones y partition projection, CTAS a Parquet, Iceberg, costos por TB escaneado, workgroups y la API desde la CLI.</p>
 <a class="cta" href="../index.html#/l/aws-athena">▶ Abrir la lección interactiva (10 ejercicios)</a>
-
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Consultar archivos de S3 con Athena y tablas externas</li><li>Reducir el costo con particiones, Parquet y CTAS</li><li>Usar tablas Iceberg para UPDATE, DELETE y MERGE</li></ul>
 <h2>Qué es Athena</h2>
 <p><strong>Athena</strong> es un motor de SQL <strong>sin servidor</strong> (por dentro es Trino/Presto) que consulta directamente los archivos de S3 usando las tablas del <strong>Glue Data Catalog</strong>. No hay nada que encender ni apagar: escribes SQL, Athena lee los archivos, y pagas <strong>por TB escaneado</strong> (~USD 5).</p>
 <pre><code class="language-text">  tu SQL ──► Athena ──► ¿qué es lake_silver.ventas? ──► Glue Data Catalog

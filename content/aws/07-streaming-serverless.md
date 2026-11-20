@@ -3,6 +3,8 @@ titulo: Streaming y eventos, Kinesis, Firehose y Lambda
 nivel: Avanzado
 duracion: 50
 resumen: Datos en tiempo real con Kinesis Data Streams y Firehose, funciones Lambda disparadas por eventos de S3 y de Kinesis, y cómo programar la lógica de negocio de un handler en Python.
+objetivos: Diferenciar batch y streaming en AWS | Usar Kinesis Data Streams y Firehose | Escribir la lógica de un handler de Lambda disparado por eventos
+autoevaluacion: ¿Qué hace Firehose que Kinesis Data Streams no hace solo? | ¿Qué recibe un handler de Lambda cuando llega un archivo a S3?
 ---
 
 ## Batch vs. streaming

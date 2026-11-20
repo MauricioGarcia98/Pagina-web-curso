@@ -3,6 +3,8 @@ titulo: Cloud Storage, el lago de datos
 nivel: Intermedio
 duracion: 45
 resumen: Buckets y objetos, ubicaciones, gcloud storage (create, cp, ls, rm, rsync), clases de almacenamiento, ciclo de vida, permisos uniformes y la organización del lago.
+objetivos: Crear buckets y manejar objetos con gcloud storage | Configurar clases de almacenamiento y ciclo de vida | Organizar el lago y sus permisos
+autoevaluacion: ¿Qué hace gcloud storage rsync? | ¿Qué significa acceso uniforme a nivel de bucket?
 ---
 
 En Google Cloud, el data lake vive en **Cloud Storage** (GCS). Es donde aterrizan los archivos que mandan los sistemas de origen, donde se guarda la capa bronze y de donde BigQuery, Dataproc y Dataflow leen. En esta lección vas a entender cómo se organiza, cuánto cuesta, cómo se protege y cómo se maneja desde la terminal.

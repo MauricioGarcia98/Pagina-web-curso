@@ -3,6 +3,8 @@ titulo: Jinja y macros
 nivel: Avanzado
 duracion: 50
 resumen: Variables, bucles y condicionales en SQL, macros reutilizables, var() y dbt_utils.
+objetivos: Usar las tres marcas de Jinja en SQL | Generar SQL repetitivo con variables, bucles y condicionales | Escribir macros reutilizables y usar paquetes como dbt_utils
+autoevaluacion: ¿Qué diferencia hay entre {{ }} y {% %}? | ¿Cuándo conviene una macro en vez de copiar y pegar SQL?
 ---
 
 Hasta ahora tus modelos eran SQL casi puro, con algún `{{ ref() }}`. Pero ese `{{ }}` es la punta de algo mucho más potente: dbt pasa cada modelo por **Jinja**, un lenguaje de plantillas de Python, **antes** de mandarlo al warehouse. Con Jinja puedes generar SQL repetitivo con un bucle, cambiar el SQL según el entorno y escribir **macros**: funciones que devuelven pedazos de SQL y se reutilizan en todo el proyecto.

@@ -8,7 +8,7 @@ prerrequisitos: proyecto-ruta-sur-el-dia-a-dia
 autoevaluacion: ¿Sabes qué guarda el checkpoint de una streaming table? | ¿Sabes cómo distinguir un evento de firmware 2.0? | ¿Sabes por qué el plan va a la izquierda del LEFT JOIN?
 ---
 
-:::cuidado Intentalo primero
+:::cuidado Inténtalo primero
 Esta es **una** solución. Si ya resolviste el proyecto, compara: ¿qué hace tu versión con los eventos que llegan un día tarde?
 :::
 

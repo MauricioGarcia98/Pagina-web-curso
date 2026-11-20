@@ -3,6 +3,8 @@ titulo: Composer, Dataform, gobierno y arquitectura de referencia
 nivel: Experto
 duracion: 55
 resumen: Cloud Composer (Airflow administrado) con operadores de Google, Dataform para SQL versionado en BigQuery, Workflows y Scheduler, gobierno con Dataplex y policy tags, y una arquitectura completa para el caso de streaming.
+objetivos: Orquestar con Cloud Composer y operadores de Google | Versionar SQL en BigQuery con Dataform | Gobernar datos con Dataplex y policy tags
+autoevaluacion: ¿Qué diferencia hay entre Composer y Workflows? | ¿Para qué sirven las policy tags?
 ---
 
 :::analogia En palabras simples

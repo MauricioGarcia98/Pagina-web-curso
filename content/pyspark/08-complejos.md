@@ -3,6 +3,8 @@ titulo: Arrays, structs, maps y JSON
 nivel: Avanzado
 duracion: 40
 resumen: Tipos complejos, explode, collect_list, structs anidados, JSON y UDFs.
+objetivos: Trabajar con arrays, structs y maps | Aplanar datos anidados con explode | Leer JSON anidado y decidir cuándo usar una UDF
+autoevaluacion: ¿Qué hace explode con una fila que tiene un array de tres elementos? | ¿Por qué una UDF es más lenta que una función nativa?
 ---
 
 ## Datos que no son "planos"

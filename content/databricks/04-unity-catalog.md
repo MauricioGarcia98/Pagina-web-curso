@@ -3,6 +3,8 @@ titulo: Unity Catalog: permisos y gobierno
 nivel: Intermedio
 duracion: 25
 resumen: Jerarquía de objetos, GRANT/REVOKE, grupos, external locations, volúmenes y tablas de sistema.
+objetivos: Describir la jerarquía de objetos de Unity Catalog | Dar y quitar permisos con GRANT y REVOKE | Acceder al almacenamiento con external locations y volúmenes
+autoevaluacion: ¿Qué permisos necesita alguien para leer una tabla de otro catálogo? | ¿Para qué sirven las tablas de sistema?
 ---
 
 :::tip Practícalo en el navegador

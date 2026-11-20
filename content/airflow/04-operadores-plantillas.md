@@ -3,6 +3,8 @@ titulo: Operadores, plantillas Jinja y contexto
 nivel: Intermedio
 duracion: 45
 resumen: PythonOperator con argumentos, plantillas {{ ds }}, macros, el contexto de ejecución y reintentos.
+objetivos: Usar los operadores más comunes y pasarles argumentos | Usar plantillas como {{ ds }} y el contexto de ejecución | Configurar reintentos y timeouts
+autoevaluacion: ¿Cuándo se reemplaza {{ ds }} por una fecha? | ¿Para qué sirve retry_delay?
 ---
 
 Un **operador** es una plantilla de tarea: "ejecuta esta función de Python", "corre este comando bash", "lanza este job de Databricks". Cuando creas un operador con un `task_id` dentro de un DAG, nace una **tarea**. En esta lección aprendes a pasarle argumentos, a usar **plantillas** para que cada ejecución sepa qué día le toca procesar, a leer el **contexto** de ejecución y a configurar **reintentos**.

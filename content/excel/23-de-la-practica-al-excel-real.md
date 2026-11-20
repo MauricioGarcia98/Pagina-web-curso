@@ -155,7 +155,7 @@ Las fórmulas se traducen solas: un libro hecho en inglés se abre en un Excel e
 
 ## Paso 11 — Copilot y la IA en Excel
 
-Algunas cuentas empresariales tienen **Copilot** en Excel: le pides en lenguaje natural "agregá una columna con el mes" o "resumí ventas por canal" y propone fórmulas o tablas dinámicas. Úsalo como un compañero rápido, no como un auditor: **verifica cada fórmula que proponga** con lo que aprendiste (controles, números de control, Show Formulas). Si no sabes leer la fórmula que te propone, no puedes saber si está bien.
+Algunas cuentas empresariales tienen **Copilot** en Excel: le pides en lenguaje natural "agrega una columna con el mes" o "resume las ventas por canal" y propone fórmulas o tablas dinámicas. Úsalo como un compañero rápido, no como un auditor: **verifica cada fórmula que proponga** con lo que aprendiste (controles, números de control, Show Formulas). Si no sabes leer la fórmula que te propone, no puedes saber si está bien.
 
 ## Tu checklist de transición
 

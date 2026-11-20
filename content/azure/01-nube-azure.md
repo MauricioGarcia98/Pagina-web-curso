@@ -3,6 +3,8 @@ titulo: La nube y Azure en 20 minutos
 nivel: Básico
 duracion: 35
 resumen: Qué es la nube, la jerarquía de Azure (tenant, suscripción, grupo de recursos, recurso), regiones y costos.
+objetivos: Explicar qué es la nube y qué cambia respecto de tener servidores propios | Describir la jerarquía tenant, suscripción, grupo de recursos y recurso | Reconocer los servicios de datos de Azure y cómo se cobran
+autoevaluacion: ¿Para qué sirve un grupo de recursos? | ¿Qué servicio de Azure usarías para el lago de datos?
 ---
 
 :::tip Practícalo en el navegador

@@ -3,6 +3,8 @@ titulo: Big data y computación distribuida
 nivel: Básico
 duracion: 35
 resumen: Por qué una sola computadora no alcanza y cómo se reparte el trabajo entre muchas.
+objetivos: Explicar por qué una sola computadora no alcanza para ciertos volúmenes de datos | Describir la idea de dividir el trabajo entre muchas máquinas | Ubicar a Apache Spark en la historia del procesamiento distribuido
+autoevaluacion: ¿Cuánto tardaría un disco en leer 10 TB a 500 MB por segundo? | ¿Qué gana un sistema al repartir los datos entre muchas máquinas y qué complica?
 ---
 
 ## El problema

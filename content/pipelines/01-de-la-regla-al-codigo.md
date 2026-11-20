@@ -3,6 +3,8 @@ titulo: De la regla de negocio al código
 nivel: Intermedio
 duracion: 35
 resumen: Cómo convertir una regla escrita en palabras en una función probada, qué va en Python, qué va en SQL/dbt, qué va en Spark y qué va en Airflow, y los principios que hacen confiable un pipeline.
+objetivos: Convertir una regla de negocio escrita en palabras en una función probada | Decidir qué va en Python, SQL/dbt, Spark y Airflow | Aplicar los principios de un pipeline confiable, empezando por la idempotencia
+autoevaluacion: ¿Cuál es el primer paso antes de escribir código para una regla? | ¿Qué pasa si corres dos veces un pipeline que no es idempotente?
 ---
 
 ## El trabajo real de un data engineer

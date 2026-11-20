@@ -3,6 +3,8 @@ titulo: Sources, seeds y las capas del proyecto
 nivel: Intermedio
 duracion: 45
 resumen: Declarar fuentes con source(), freshness, seeds y cómo organizar staging, intermediate y marts.
+objetivos: Declarar fuentes y medir su frescura | Cargar tablas chicas con seeds | Organizar el proyecto en staging, intermediate y marts
+autoevaluacion: ¿Qué hace dbt source freshness? | ¿Qué va en un modelo de staging y qué no?
 ---
 
 Un proyecto dbt real tiene decenas o cientos de modelos. Si cada uno lee las tablas crudas como quiere, el proyecto se vuelve inmanejable: cuando la fuente cambia una columna, hay que buscar y corregir 30 archivos. Esta lección explica las tres piezas que ponen orden: **sources** (de dónde vienen los datos), **seeds** (pequeñas tablas de referencia que tú mantienes) y las **capas** (staging, intermediate y marts).

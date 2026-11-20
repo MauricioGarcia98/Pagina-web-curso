@@ -3,6 +3,8 @@ titulo: RDD, DataFrame y evaluación perezosa
 nivel: Intermedio
 duracion: 40
 resumen: Las APIs de Spark, transformaciones vs acciones, narrow vs wide y el optimizador Catalyst.
+objetivos: Distinguir RDD, DataFrame y Dataset | Diferenciar transformaciones de acciones y explicar la evaluación perezosa | Reconocer transformaciones narrow y wide y su relación con el shuffle
+autoevaluacion: ¿Por qué Spark no ejecuta nada hasta que pides una acción? | ¿Un groupBy es una transformación narrow o wide? ¿Por qué?
 ---
 
 Ya sabes que Spark reparte el trabajo en particiones, stages y tasks. Esta lección responde dos preguntas: **con qué API** le das instrucciones a Spark, y **cuándo** las ejecuta. La segunda respuesta sorprende a todos al principio: Spark no hace nada hasta que no le queda más remedio.

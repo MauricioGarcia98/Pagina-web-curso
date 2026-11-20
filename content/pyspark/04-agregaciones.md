@@ -3,6 +3,8 @@ titulo: groupBy, agg, pivot y rollup
 nivel: Intermedio
 duracion: 40
 resumen: Agregar datos por grupos con varias métricas, pivotear y subtotales.
+objetivos: Agregar por grupos con varias métricas usando groupBy y agg | Escribir agregaciones condicionales | Pivotear y calcular subtotales con rollup
+autoevaluacion: ¿Cómo cuentas solo las filas que cumplen una condición dentro de un agg? | ¿Qué diferencia hay entre collect_list y collect_set?
 ---
 
 :::analogia En palabras simples

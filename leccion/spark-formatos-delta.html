@@ -16,7 +16,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <main><div class="migas"><a href="index.html#spark">⚡ Apache Spark</a> · Intermedio · 45 min</div>
 <h1>Formatos, Delta Lake y arquitectura medallón</h1><p class="resumen">CSV vs Parquet, particionado en disco, Delta Lake (ACID, time travel, MERGE) y bronze/silver/gold.</p>
 <a class="cta" href="../index.html#/l/spark-formatos-delta">▶ Abrir la lección interactiva (6 ejercicios)</a>
-
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir entre CSV, JSON y Parquet según el uso</li><li>Explicar qué agrega Delta Lake sobre Parquet (ACID, time travel, MERGE)</li><li>Organizar un lago en capas bronze, silver y gold</li></ul>
 <p>Spark no guarda datos: los <strong>lee</strong> de archivos en un data lake (S3, ADLS, Cloud Storage) y <strong>escribe</strong> archivos nuevos. El formato de esos archivos y cómo los organizas en carpetas deciden si una consulta tarda 5 segundos o 50 minutos, y si cuesta centavos o cientos de dólares. Esta lección cubre los formatos, el particionado, <strong>Delta Lake</strong> y la forma estándar de ordenar todo: la <strong>arquitectura medallón</strong>.</p>
 <h2>Filas vs. columnas: la idea clave</h2>
 <p>Imagina la tabla de pedidos con 100 millones de filas y 30 columnas. La pregunta del negocio es: &quot;¿cuánto vendimos por canal?&quot;. Solo necesitas <strong>2 de las 30 columnas</strong>: <code>canal</code> y <code>total</code>.</p>

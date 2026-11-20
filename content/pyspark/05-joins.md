@@ -3,6 +3,8 @@ titulo: Joins en PySpark
 nivel: Intermedio
 duracion: 40
 resumen: inner, left, anti y semi joins, columnas ambiguas, alias y self joins.
+objetivos: Unir DataFrames con inner, left, semi y anti join | Resolver columnas ambiguas con alias | Explicar cómo ejecuta Spark un join
+autoevaluacion: ¿Qué devuelve un left_anti join? | ¿Por qué aparece el error de columna ambigua y cómo se evita?
 ---
 
 :::analogia En palabras simples

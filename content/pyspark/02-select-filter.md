@@ -3,6 +3,8 @@ titulo: select, filter, withColumn y columnas
 nivel: Básico
 duracion: 45
 resumen: Elegir y renombrar columnas, filtrar filas, crear columnas calculadas y castear tipos.
+objetivos: Elegir, calcular y renombrar columnas con select y withColumn | Filtrar filas con condiciones combinadas | Convertir tipos y ordenar resultados
+autoevaluacion: ¿Qué diferencia hay entre select y withColumn? | ¿Cómo se combinan dos condiciones en un filter?
 ---
 
 :::analogia En palabras simples

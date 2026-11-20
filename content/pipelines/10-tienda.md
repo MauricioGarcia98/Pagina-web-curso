@@ -3,6 +3,8 @@ titulo: "Tienda 🛒: segmentación RFM, cohortes de retención y el ETL complet
 nivel: Experto
 duracion: 65
 resumen: Puntajes RFM y segmentos de clientes en Python, la matriz de retención por cohorte en PySpark, la tabla de clientes con tests en dbt y el ETL diario completo con TaskFlow y una verificación de calidad.
+objetivos: Calcular puntajes RFM y segmentar clientes | Armar una matriz de retención por cohorte en PySpark | Construir el ETL diario completo con tests y una verificación de calidad
+autoevaluacion: ¿Qué miden la R, la F y la M de RFM? | ¿Qué muestra una matriz de retención por cohorte?
 ---
 
 Cerramos el módulo con **Tienda Andina**, la tienda que conoces desde el primer día. Marketing quiere dejar de mandar la misma promoción a todos: necesita **segmentos** de clientes y saber si los clientes **vuelven**. Esta lección arma todo, de la lógica en Python al pipeline diario.

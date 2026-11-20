@@ -3,6 +3,8 @@ titulo: "Caso práctico I: el informe ejecutivo en SQL"
 nivel: Experto
 duracion: 60
 resumen: Responde las preguntas de la gerencia con SQL sobre los datos de Tienda Andina.
+objetivos: Traducir las preguntas de la gerencia a consultas SQL | Armar un informe ejecutivo con métricas claras | Verificar los resultados antes de presentarlos
+autoevaluacion: ¿Qué haces cuando una pregunta de negocio admite dos interpretaciones? | ¿Cómo compruebas que un total es correcto?
 ---
 
 La gerente general te pide un informe para la reunión de directorio. Cada pregunta es un ejercicio. Usa CTEs y piensa en el **grano** de cada resultado. Considera **ventas netas** = `cantidad * precio_unitario * (1 - descuento)` y excluye pedidos **cancelados** salvo que se indique otra cosa.

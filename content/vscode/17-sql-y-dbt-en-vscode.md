@@ -9,7 +9,7 @@ autoevaluacion: ¿Sabes qué hace ref() en un modelo? | ¿Sabes por qué falla d
 ---
 
 :::analogia En palabras simples
-Un proyecto dbt es una receta de varias capas: los modelos de *staging* limpian las tablas crudas y los *marts* arman los resúmenes encima de ellos. `ref('stg_ventas')` dice "usá lo que produce ese otro modelo". Si pides el resumen sin haber preparado la capa de abajo, la receta no puede salir.
+Un proyecto dbt es una receta de varias capas: los modelos de *staging* limpian las tablas crudas y los *marts* arman los resúmenes encima de ellos. `ref('stg_ventas')` dice "usa lo que produce ese otro modelo". Si pides el resumen sin haber preparado la capa de abajo, la receta no puede salir.
 :::
 
 ## Paso 1 — El proyecto en el explorador
