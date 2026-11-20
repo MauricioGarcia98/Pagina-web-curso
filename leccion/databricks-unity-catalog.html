@@ -121,6 +121,28 @@ CREATE EXTERNAL VOLUME prod.crudo.archivos
 LOCATION 'abfss://bronze@stdatosprod001.dfs.core.windows.net/archivos/';</code></pre>
 <h2>Tablas de sistema</h2>
 <p><code>system.access.audit</code> (quién hizo qué), <code>system.billing.usage</code> (costos), <code>system.access.table_lineage</code> (linaje), <code>system.compute.clusters</code>… Se consultan con SQL como cualquier tabla.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Permisos y un filtro de filas</div>
+
+<ol>
+<li>Ejecuta todo: das <code>SELECT</code> a un grupo, revisas los permisos y creas un filtro de filas con una función SQL.</li>
+<li>Mira el último <code>SELECT</code>: el filtro deja ver solo las filas de Lima, aunque la consulta no tenga <code>WHERE</code>.</li>
+<li>Abre la tabla en <strong>Catalog</strong> → pestaña <strong>Permissions</strong> y verifica lo que diste con SQL.</li>
+</ol>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE main.default.clientes_lima AS
+SELECT cliente_id, nombre, ciudad FROM samples.tienda.clientes WHERE cliente_id &lt;= 20;
+
+GRANT SELECT ON TABLE main.default.clientes_lima TO `analistas`;
+SHOW GRANTS ON TABLE main.default.clientes_lima;
+
+CREATE OR REPLACE FUNCTION main.default.solo_lima(ciudad STRING) RETURN ciudad = 'Lima';
+ALTER TABLE main.default.clientes_lima SET ROW FILTER main.default.solo_lima ON (ciudad);
+SELECT * FROM main.default.clientes_lima;</code></pre>
+<p>Reto: quita el filtro con <code>ALTER TABLE … DROP ROW FILTER</code> y revoca el permiso con <code>REVOKE</code>.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/data-governance/unity-catalog/manage-privileges/">privilegios en Unity Catalog</a> · <a href="https://docs.databricks.com/aws/en/tables/row-and-column-filters">filtros de filas y máscaras</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

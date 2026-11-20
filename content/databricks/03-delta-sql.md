@@ -166,6 +166,31 @@ ALTER TABLE dev.silver.pedidos SET TBLPROPERTIES (delta.enableChangeDataFeed = t
 SELECT * FROM table_changes('dev.silver.pedidos', 10);   -- filas insertadas/actualizadas/borradas desde la versión 10
 ```
 
+:::practica databricks:sql MERGE, historial y mantenimiento de una tabla Delta
+1. Ejecuta todo: se crea una dimensión, llegan cambios (uno actualiza y otro inserta) y `MERGE` los aplica en una sola operación.
+2. Mira `DESCRIBE HISTORY`: la versión 1 es el MERGE, con cuántas filas actualizó e insertó en `operationMetrics`.
+3. Consulta la versión 0 con `VERSION AS OF 0` y compárala con la actual.
+
+```sql norun
+CREATE OR REPLACE TABLE main.default.clientes_dim AS
+SELECT cliente_id, nombre, ciudad FROM samples.tienda.clientes WHERE cliente_id <= 5;
+
+MERGE INTO main.default.clientes_dim AS d
+USING (VALUES (1, 'Lucía', 'Lima'), (999, 'Nuevo', 'Quito')) AS c(cliente_id, nombre, ciudad)
+ON d.cliente_id = c.cliente_id
+WHEN MATCHED THEN UPDATE SET *
+WHEN NOT MATCHED THEN INSERT *;
+
+DESCRIBE HISTORY main.default.clientes_dim;
+SELECT * FROM main.default.clientes_dim VERSION AS OF 0;
+OPTIMIZE main.default.clientes_dim ZORDER BY (ciudad);
+```
+
+Reto: agrega a la tabla una restricción `CHECK (cliente_id > 0)` y prueba insertar una fila que la viole.
+
+Documentación oficial: [MERGE en Delta](https://docs.databricks.com/aws/en/delta/merge) · [historial y time travel](https://docs.databricks.com/aws/en/delta/history) · [OPTIMIZE](https://docs.databricks.com/aws/en/delta/optimize)
+:::
+
 ## Ejercicios
 
 :::ejercicio abierto

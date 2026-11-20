@@ -881,6 +881,7 @@
       box.querySelector('#shT').onchange = (e) => { if (e.target.value === 'PowerShell') { toast('En la práctica solo está Bash (con az)'); e.target.value = 'Bash'; } };
       if (window.Shell) {
         term = window.Shell.createTerminal(box.querySelector('#shTerm'), { autoLogin: true, continuarSesion: true, title: 'Bash', welcome: 'Requesting a Cloud Shell.\u0001t-ok\u0002Succeeded.\u0003\nConnecting terminal...\n\nWelcome to Azure Cloud Shell\n\nType "\u0001t-info\u0002az\u0003" to use Azure CLI\nType "\u0001t-info\u0002help\u0003" to learn about Cloud Shell\n', onCommand: (line) => { if (/^\s*az\s/.test(line)) setTimeout(() => { if (location.hash.startsWith('#/azure')) render(actual); }, 60); } });
+        window.__terminalActiva = term; // el panel de práctica de la lección escribe los comandos aquí
       } else box.querySelector('#shTerm').textContent = 'La terminal del curso no está disponible.';
     }
     if (comando && term) { term.type(comando); }

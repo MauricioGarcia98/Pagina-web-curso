@@ -21,6 +21,28 @@ Esta lección es el gimnasio después de la teoría: ejercicios que se corrigen 
 
 ## Tablas Delta: crear, cargar y modificar
 
+:::practica databricks:sql QUALIFY, restricciones y read_files
+1. Ejecuta: `QUALIFY` filtra por el resultado de una ventana sin subconsulta: el último pedido de cada cliente.
+2. Crea una tabla con una restricción `CHECK` y prueba un `INSERT` que la viola: Delta rechaza la escritura entera.
+3. Compara con el `INSERT` válido.
+
+```sql norun
+SELECT cliente_id, pedido_id, fecha_pedido
+FROM samples.tienda.pedidos
+QUALIFY ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha_pedido DESC) = 1
+LIMIT 10;
+
+CREATE OR REPLACE TABLE main.default.pagos_ok (pago_id BIGINT, monto DOUBLE);
+ALTER TABLE main.default.pagos_ok ADD CONSTRAINT monto_positivo CHECK (monto > 0);
+INSERT INTO main.default.pagos_ok VALUES (1, 120.5);
+INSERT INTO main.default.pagos_ok VALUES (2, -10);
+```
+
+Reto: resuelve el mismo "último pedido por cliente" sin `QUALIFY` (con subconsulta) y compara cuál se lee mejor.
+
+Documentación oficial: [QUALIFY](https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-syntax-qry-select-qualify) · [restricciones](https://docs.databricks.com/aws/en/tables/constraints)
+:::
+
 :::ejercicio dbsql dificultad=Básico titulo="Crear una tabla Delta y cargarla"
 Crea la tabla **`productos`** con las columnas `id INT`, `nombre STRING` y `precio DOUBLE`, y carga estos tres productos: (1, 'Mate', 3500), (2, 'Bombilla', 1800), (3, 'Termo', 12000).
 ```sql check

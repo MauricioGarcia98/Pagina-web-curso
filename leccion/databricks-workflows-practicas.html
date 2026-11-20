@@ -185,6 +185,34 @@ SELECT count(*) AS pedidos_hoy FROM silver.pedidos WHERE fecha_pedido = current_
 <li><input disabled="" type="checkbox"> Secretos en Key Vault / secret scopes; acceso a datos con managed identities.</li>
 <li><input disabled="" type="checkbox"> Costos vigilados: auto-terminación, políticas de cómputo, tags y tablas de facturación.</li>
 </ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Crear y correr un job desde la interfaz</div>
+
+<ol>
+<li>En <strong>Jobs &amp; Pipelines</strong>, crea un job con <strong>Create job</strong>.</li>
+<li>Agrega una tarea de tipo <strong>Notebook</strong> que apunte a <code>Introducción a Databricks</code> (está en tu carpeta de usuario).</li>
+<li>Agrega una segunda tarea que dependa de la primera y córrelo con <strong>Run now</strong>.</li>
+<li>Abre la corrida: mira el grafo de tareas, la duración y la salida de cada una.</li>
+</ol>
+<pre data-norun><code class="language-yaml"># lo mismo, como código (lo que guardarías en un bundle):
+resources:
+  jobs:
+    lakehouse_diario:
+      name: lakehouse_diario
+      tasks:
+        - task_key: ingesta
+          notebook_task:
+            notebook_path: ./ingesta.ipynb
+        - task_key: modelos
+          depends_on:
+            - task_key: ingesta
+          notebook_task:
+            notebook_path: ./modelos.ipynb</code></pre>
+<p>Reto: agrega al job un reintento (<em>retries</em>) y una notificación por correo si falla.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/jobs/">Lakeflow Jobs</a> · <a href="https://docs.databricks.com/aws/en/jobs/configure-job">configurar un job</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

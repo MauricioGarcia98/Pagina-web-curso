@@ -155,6 +155,30 @@ ANALYZE TABLE dev.silver.fct_ventas COMPUTE STATISTICS;</code></pre>
 <pre data-norun><code class="language-sql">ALTER TABLE dev.silver.pedidos ADD CONSTRAINT monto_positivo CHECK (monto &gt;= 0);   -- rechaza filas inválidas
 ALTER TABLE dev.silver.pedidos SET TBLPROPERTIES (delta.enableChangeDataFeed = true);
 SELECT * FROM table_changes('dev.silver.pedidos', 10);   -- filas insertadas/actualizadas/borradas desde la versión 10</code></pre>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: MERGE, historial y mantenimiento de una tabla Delta</div>
+
+<ol>
+<li>Ejecuta todo: se crea una dimensión, llegan cambios (uno actualiza y otro inserta) y <code>MERGE</code> los aplica en una sola operación.</li>
+<li>Mira <code>DESCRIBE HISTORY</code>: la versión 1 es el MERGE, con cuántas filas actualizó e insertó en <code>operationMetrics</code>.</li>
+<li>Consulta la versión 0 con <code>VERSION AS OF 0</code> y compárala con la actual.</li>
+</ol>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE main.default.clientes_dim AS
+SELECT cliente_id, nombre, ciudad FROM samples.tienda.clientes WHERE cliente_id &lt;= 5;
+
+MERGE INTO main.default.clientes_dim AS d
+USING (VALUES (1, 'Lucía', 'Lima'), (999, 'Nuevo', 'Quito')) AS c(cliente_id, nombre, ciudad)
+ON d.cliente_id = c.cliente_id
+WHEN MATCHED THEN UPDATE SET *
+WHEN NOT MATCHED THEN INSERT *;
+
+DESCRIBE HISTORY main.default.clientes_dim;
+SELECT * FROM main.default.clientes_dim VERSION AS OF 0;
+OPTIMIZE main.default.clientes_dim ZORDER BY (ciudad);</code></pre>
+<p>Reto: agrega a la tabla una restricción <code>CHECK (cliente_id &gt; 0)</code> y prueba insertar una fila que la viole.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/delta/merge">MERGE en Delta</a> · <a href="https://docs.databricks.com/aws/en/delta/history">historial y time travel</a> · <a href="https://docs.databricks.com/aws/en/delta/optimize">OPTIMIZE</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -248,6 +248,43 @@ jobs:
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Infraestructura como código: una plantilla ARM</div>
+
+<ol>
+<li>Elige <strong>Build your own template in the editor</strong>, borra lo que hay, pega la plantilla de abajo y guarda (<strong>Save</strong>).</li>
+<li>Elige el grupo <code>rg-lab-datos</code> y pasa a <strong>Review + create</strong> → <strong>Create</strong>.</li>
+<li>Mira el despliegue: los recursos se crean en el orden que marca <code>dependsOn</code> (primero la cuenta, después el contenedor).</li>
+<li>Despliega otra vez la misma plantilla: no duplica nada, porque ARM es declarativo (idempotente).</li>
+</ol>
+<pre data-norun><code class="language-json">{
+  &quot;$schema&quot;: &quot;https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#&quot;,
+  &quot;contentVersion&quot;: &quot;1.0.0.0&quot;,
+  &quot;parameters&quot;: {
+    &quot;nombre&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;defaultValue&quot;: &quot;[concat('stiac', uniqueString(resourceGroup().id))]&quot; }
+  },
+  &quot;resources&quot;: [
+    {
+      &quot;type&quot;: &quot;Microsoft.Storage/storageAccounts&quot;,
+      &quot;apiVersion&quot;: &quot;2023-05-01&quot;,
+      &quot;name&quot;: &quot;[parameters('nombre')]&quot;,
+      &quot;location&quot;: &quot;[resourceGroup().location]&quot;,
+      &quot;sku&quot;: { &quot;name&quot;: &quot;Standard_LRS&quot; },
+      &quot;kind&quot;: &quot;StorageV2&quot;,
+      &quot;properties&quot;: { &quot;isHnsEnabled&quot;: true, &quot;minimumTlsVersion&quot;: &quot;TLS1_2&quot; }
+    },
+    {
+      &quot;type&quot;: &quot;Microsoft.Storage/storageAccounts/blobServices/containers&quot;,
+      &quot;apiVersion&quot;: &quot;2023-05-01&quot;,
+      &quot;name&quot;: &quot;[format('{0}/default/{1}', parameters('nombre'), 'silver')]&quot;,
+      &quot;dependsOn&quot;: [&quot;[resourceId('Microsoft.Storage/storageAccounts', parameters('nombre'))]&quot;]
+    }
+  ]
+}</code></pre>
+<p>Reto: escribe la misma cuenta en Bicep (unas 10 líneas) y compara qué se lee mejor.</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/azure/azure-resource-manager/templates/overview">plantillas ARM</a> · <a href="https://learn.microsoft.com/es-es/azure/azure-resource-manager/bicep/overview">Bicep</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

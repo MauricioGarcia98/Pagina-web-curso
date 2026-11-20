@@ -220,6 +220,41 @@ filas = dbutils.jobs.taskValues.get(taskKey=&quot;validar&quot;, key=&quot;filas
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tu primer notebook con widgets y SQL</div>
+
+<ol>
+<li>Se crea un notebook nuevo con 4 celdas (separadas en el código por <code># COMMAND ----------</code>, el formato con que Databricks exporta un notebook).</li>
+<li>Ejecuta todo con <strong>Run all</strong> y mira cómo cada celda usa un lenguaje: Markdown, Python y SQL con <code>%sql</code>.</li>
+<li>Cambia el valor del widget <code>canal</code> arriba del notebook y vuelve a correr la celda 3.</li>
+</ol>
+<pre data-norun><code class="language-python"># Databricks notebook source
+# MAGIC %md
+# MAGIC ## Pedidos por canal
+# MAGIC Notebook de práctica: Python, SQL y widgets.
+
+# COMMAND ----------
+
+df = spark.table(&quot;samples.tienda.pedidos&quot;)
+display(df.groupBy(&quot;canal&quot;).count())
+
+# COMMAND ----------
+
+dbutils.widgets.text(&quot;canal&quot;, &quot;web&quot;)
+canal = dbutils.widgets.get(&quot;canal&quot;)
+print(&quot;pedidos del canal&quot;, canal, &quot;:&quot;, df.filter(df.canal == canal).count())
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT estado, COUNT(*) AS n
+# MAGIC FROM samples.tienda.pedidos
+# MAGIC GROUP BY estado
+# MAGIC ORDER BY n DESC</code></pre>
+<p>Reto: agrega una celda que lea el secreto <code>dbutils.secrets.get(&quot;datos-api&quot;, &quot;token&quot;)</code> y explica por qué nunca debe aparecer impreso.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/notebooks/">notebooks</a> · <a href="https://docs.databricks.com/aws/en/dev-tools/databricks-utils">Databricks Utilities (dbutils)</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

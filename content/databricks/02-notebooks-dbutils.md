@@ -217,6 +217,42 @@ filas = dbutils.jobs.taskValues.get(taskKey="validar", key="filas_validas", defa
 `%run` ejecuta otro notebook dentro del mismo contexto, así que sus funciones y variables quedan disponibles en el notebook que lo llama; sirve para compartir código, aunque hoy se recomienda importar archivos `.py`. `dbutils.notebook.run` ejecuta el notebook como un job separado, con parámetros y un tiempo máximo, y devuelve el valor que el otro notebook pasa a `dbutils.notebook.exit`; no comparte variables. Sirve para lógica dinámica, como recorrer una lista de tablas. Para orquestar producción con dependencias, horarios y reintentos, lo recomendado es un Lakeflow Job.
 :::
 
+:::practica databricks:notebook Tu primer notebook con widgets y SQL
+1. Se crea un notebook nuevo con 4 celdas (separadas en el código por `# COMMAND ----------`, el formato con que Databricks exporta un notebook).
+2. Ejecuta todo con **Run all** y mira cómo cada celda usa un lenguaje: Markdown, Python y SQL con `%sql`.
+3. Cambia el valor del widget `canal` arriba del notebook y vuelve a correr la celda 3.
+
+```python norun
+# Databricks notebook source
+# MAGIC %md
+# MAGIC ## Pedidos por canal
+# MAGIC Notebook de práctica: Python, SQL y widgets.
+
+# COMMAND ----------
+
+df = spark.table("samples.tienda.pedidos")
+display(df.groupBy("canal").count())
+
+# COMMAND ----------
+
+dbutils.widgets.text("canal", "web")
+canal = dbutils.widgets.get("canal")
+print("pedidos del canal", canal, ":", df.filter(df.canal == canal).count())
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT estado, COUNT(*) AS n
+# MAGIC FROM samples.tienda.pedidos
+# MAGIC GROUP BY estado
+# MAGIC ORDER BY n DESC
+```
+
+Reto: agrega una celda que lea el secreto `dbutils.secrets.get("datos-api", "token")` y explica por qué nunca debe aparecer impreso.
+
+Documentación oficial: [notebooks](https://docs.databricks.com/aws/en/notebooks/) · [Databricks Utilities (dbutils)](https://docs.databricks.com/aws/en/dev-tools/databricks-utils)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

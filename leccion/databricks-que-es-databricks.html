@@ -158,6 +158,25 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Permisos con SQL (<code>GRANT SELECT ON TABLE ... TO grupo</code>), linaje automático columna a columna, auditoría, y acceso al almacenamiento mediante <strong>storage credentials</strong> y <strong>external locations</strong>.</p>
 <h2>Costos: DBUs</h2>
 <p>Databricks cobra en <strong>DBUs</strong> (<em>Databricks Units</em>) por hora de cómputo, según el tipo de cómputo y el plan, <strong>además</strong> de las máquinas virtuales de la nube (en cómputo clásico). Consejos: auto-terminación de clusters, job clusters para producción, autoscaling, políticas de cómputo, y revisar las tablas de sistema de facturación (<code>system.billing.usage</code>).</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Recorrer el workspace y su catálogo</div>
+
+<ol>
+<li>Se abre el <strong>SQL Editor</strong> con una consulta nueva. Ejecuta las sentencias con <strong>Run all</strong> (o de a una con Ctrl+Enter).</li>
+<li><code>SHOW CATALOGS</code> muestra los tres niveles de Unity Catalog desde arriba: <code>catalogo.esquema.tabla</code>.</li>
+<li>En la barra lateral abre <strong>Catalog</strong> y encuentra <code>samples.tienda.pedidos</code>: mira su esquema, una muestra de datos y su historial.</li>
+<li>Abre <strong>Compute</strong>: el SQL que corriste usó un <em>SQL warehouse</em> serverless; los notebooks usan clusters o serverless.</li>
+</ol>
+<pre data-norun><code class="language-sql">SHOW CATALOGS;
+SHOW SCHEMAS IN samples;
+SHOW TABLES IN samples.tienda;
+SELECT current_user(), current_catalog();
+SELECT canal, COUNT(*) AS pedidos FROM samples.tienda.pedidos GROUP BY canal ORDER BY pedidos DESC;</code></pre>
+<p>Reto: encuentra en <strong>Catalog</strong> quién es el dueño (<em>owner</em>) de una tabla de <code>main.default</code> y qué permisos tiene.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/introduction/">qué es Databricks</a> · <a href="https://docs.databricks.com/aws/en/catalogs/">catálogos de Unity Catalog</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

@@ -18,8 +18,9 @@
     dbt: { nombre: 'el laboratorio de dbt', ico: '🔧', ruta: '#/lab/dbt?modo=libre', rutas: ['lab-dbt'], precargar: labCode('lab-dbt') },
     'airflow-lab': { nombre: 'el laboratorio de Airflow', ico: '🌬️', ruta: '#/lab/airflow?modo=libre', rutas: ['lab-airflow'], precargar: labCode('lab-airflow') },
     terminal: { nombre: 'la terminal', ico: '⌨️', ruta: '#/lab/terminal?modo=libre', rutas: ['lab-terminal'] },
-    databricks: { nombre: 'Databricks', ico: '🧱', ruta: '#/databricks', rutas: ['databricks'] },
-    azure: { nombre: 'el portal de Azure', ico: '☁️', ruta: '#/azure', rutas: ['azure'] },
+    // databricks:sql y databricks:notebook abren el editor o un notebook nuevo con el código; databricks:<vista>, esa vista
+    databricks: { nombre: 'Databricks', ico: '🧱', ruta: (enc) => (/^(sql|notebook)$/.test(enc.motor) && enc.codigo ? '#/databricks/practica' : '#/databricks/' + (enc.motor || '')), rutas: ['databricks'] },
+    azure: { nombre: 'el portal de Azure', ico: '☁️', ruta: (enc) => '#/azure/' + (enc.motor || ''), rutas: ['azure'] },
     adf: { nombre: 'Data Factory Studio', ico: '🏭', ruta: '#/azure/studio', rutas: ['azure'] },
     powerbi: { nombre: 'Power BI', ico: '📊', ruta: '#/powerbi', rutas: ['powerbi'] },
     github: { nombre: 'GitHub', ico: '🐙', ruta: '#/github', rutas: ['github'] },
@@ -55,7 +56,7 @@
         const enc = { app: b.dataset.app, titulo: b.dataset.titulo || '', html: cuerpo.innerHTML, codigo: pre ? pre.textContent : '', motor: b.dataset.motor || '', leccion: { id: leccion.id, titulo: leccion.titulo, hash: '#/l/' + leccion.id }, idx: i, abierto: true };
         guardar(enc);
         if (A.precargar) try { A.precargar(enc, Store); } catch (e) { /* la app abre igual */ }
-        location.hash = A.ruta;
+        location.hash = typeof A.ruta === 'function' ? A.ruta(enc) : A.ruta;
       });
     });
   }
@@ -82,7 +83,9 @@
     panelEl.querySelectorAll('.practica-cuerpo pre').forEach((pre) => {
       const caja = document.createElement('div'); caja.className = 'practica-code-tools';
       const texto = () => (pre.querySelector('code') || pre).textContent.replace(/\n$/, '');
-      caja.innerHTML = `<button type="button" class="btn btn-ghost btn-sm" data-c>Copiar</button>${enc.app === 'terminal' ? '<button type="button" class="btn btn-ghost btn-sm" data-t>Escribir en la terminal</button>' : ''}`;
+      // comandos de terminal: en la terminal del curso o en Cloud Shell (portal de Azure)
+      const esShell = enc.app === 'terminal' || (enc.app === 'azure' && /language-(bash|sh|shell)/.test((pre.querySelector('code') || pre).className));
+      caja.innerHTML = `<button type="button" class="btn btn-ghost btn-sm" data-c>Copiar</button>${esShell ? '<button type="button" class="btn btn-ghost btn-sm" data-t>Escribir en la terminal</button>' : ''}`;
       pre.after(caja);
       caja.querySelector('[data-c]').addEventListener('click', async () => { try { await navigator.clipboard.writeText(texto()); if (toast) toast('Copiado'); } catch (e) { if (toast) toast('No se pudo copiar: selecciónalo y usa Ctrl+C'); } });
       // en la terminal, un botón por comando: lo escribe en la línea de comandos (Enter lo ejecuta el estudiante)
@@ -90,7 +93,7 @@
         caja.querySelector('[data-t]').remove();
         const lineas = texto().split('\n').filter((x) => x.trim() && !x.trim().startsWith('#'));
         const lista = document.createElement('div'); lista.className = 'practica-cmds';
-        lineas.forEach((l) => { const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'practica-cmd'; btn.title = 'Escribir este comando en la terminal'; btn.textContent = '⌨ ' + l; btn.addEventListener('click', () => { const term = window.__terminalActiva; if (!term || !term.type) { if (toast) toast('Abre la terminal primero'); return; } term.type(l); }); lista.append(btn); });
+        lineas.forEach((l) => { const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'practica-cmd'; btn.title = 'Escribir este comando en la terminal'; btn.textContent = '⌨ ' + l; btn.addEventListener('click', () => { const term = window.__terminalActiva; if (!term || !term.type || !document.body.contains(term.el || document.body)) { if (toast) toast(enc.app === 'azure' ? 'Abre Cloud Shell primero (el ícono de terminal arriba a la derecha)' : 'Abre la terminal primero'); return; } term.type(l); }); lista.append(btn); });
         caja.after(lista);
       }
     });

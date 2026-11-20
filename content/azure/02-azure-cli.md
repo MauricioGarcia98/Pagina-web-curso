@@ -159,6 +159,23 @@ az account set --subscription sub-datos-dev
 - **Defaults olvidados.** Un grupo o región por defecto configurado hace tiempo puede mandar recursos a otro lado; revisa `az config get`.
 :::
 
+:::practica azure La CLI dentro del portal: Cloud Shell
+1. Abre **Cloud Shell** desde el ícono de terminal de la barra superior.
+2. Ejecuta los comandos: todos siguen la forma `az <grupo> <subgrupo> <acción> --parámetros`.
+3. Cambia el formato de salida (`-o table`, `-o json`, `-o tsv`) y compara.
+
+```bash norun
+az account show -o table
+az group list -o table
+az group list -o json
+az group list --query "[].name" -o tsv
+```
+
+Reto: con `--query`, muestra solo el nombre y la región de cada grupo en una tabla.
+
+Documentación oficial: [primeros pasos con la CLI](https://learn.microsoft.com/es-es/cli/azure/get-started-with-azure-cli) · [Azure Cloud Shell](https://learn.microsoft.com/es-es/azure/cloud-shell/overview)
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

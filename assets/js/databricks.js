@@ -848,6 +848,20 @@ def _dbx_reset():
   };
 
   // ------------------------------------------------------------------ notebook
+  // Práctica de una lección (practica.js): abre el editor SQL con el código, o crea un notebook con sus celdas
+  // separadas por "# COMMAND ----------" (el formato de fuente de Databricks al exportar un notebook)
+  D.registrar('practica', () => {
+    let enc = null; try { enc = JSON.parse(sessionStorage.getItem('practica-activa') || 'null'); } catch (e) { enc = null; }
+    if (!enc || !enc.codigo) { location.replace('#/databricks/'); return; }
+    if (enc.motor === 'notebook') {
+      const W = D.ws(); const n = D.nombreLibre(D.HOME, ('Práctica - ' + (enc.titulo || 'notebook')).replace(/[\/]/g, '-').slice(0, 80)); const ruta = D.HOME + '/' + n;
+      const celdas = enc.codigo.replace(/^# Databricks notebook source\n/, '').split(/\n# COMMAND -+\n/).map((x) => x.trim()).filter(Boolean).map((src) => ({ id: D.nid(), src: src.replace(/^# MAGIC ?/gm, '') }));
+      W.items[ruta] = { tipo: 'notebook', lang: 'python', celdas, creado: D.ahora(), modificado: D.ahora(), compute: 'serverless' };
+      D.alCli(ruta, 'NOTEBOOK'); D.guardar(); location.replace('#/databricks/notebook/' + D.ruta(ruta));
+      return;
+    }
+    D.sqlInicial = enc.codigo; location.replace('#/databricks/sql/nueva');
+  });
   D.registrar('notebook', (cont, partes) => {
     const W = D.ws(); const ruta = partes[0]; const nb = W.items[ruta];
     if (!nb || nb.tipo !== 'notebook') return D.stub(cont, 'Notebook no encontrado', 'Puede que lo hayas renombrado o movido a la papelera.', [['Workspace', '#/databricks/workspace'], ['Papelera', '#/databricks/workspace/papelera']]);

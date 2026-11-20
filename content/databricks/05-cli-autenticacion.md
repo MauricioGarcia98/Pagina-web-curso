@@ -160,6 +160,24 @@ El primer `current-user me` falla con el mismo mensaje que la CLI real cuando no
 Con un service principal y OAuth máquina a máquina: se crea el service principal en la cuenta, se le da acceso al workspace con los permisos mínimos y se genera un secreto OAuth. En el CI se guardan como secretos el host, el client ID y el client secret, que la CLI lee de las variables de entorno. Así no hay tokens personales de larga duración, las credenciales se pueden rotar y revocar, y los despliegues no dependen de una persona.
 :::
 
+:::practica terminal Autenticarte con la CLI de Databricks
+1. Inicia sesión: en la práctica el login se simula; en tu trabajo abre el navegador para OAuth (nunca pegues tokens en un script).
+2. Mira los perfiles guardados y con quién estás conectado.
+3. Lista clusters y catálogos: es la misma información que ves en la interfaz web.
+
+```bash norun
+databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+databricks auth profiles
+databricks current-user me
+databricks clusters list
+databricks catalogs list
+```
+
+Reto: explica la diferencia entre autenticarte con OAuth (U2M) y con un *service principal* (M2M), y cuál usarías en CI/CD.
+
+Documentación oficial: [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/) · [autenticación de la CLI](https://docs.databricks.com/aws/en/dev-tools/cli/authentication)
+:::
+
 ## Ejercicios
 
 :::ejercicio cli

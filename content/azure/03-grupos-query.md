@@ -229,6 +229,23 @@ Con `-o json` obtienes `"valor"`, con comillas, y con `-o table` obtienes tambi�
 - **Crear recursos sin etiquetas.** Después no se puede saber de quién son ni repartir costos.
 :::
 
+:::practica azure:crear/grupo Crear un grupo de recursos en el portal y consultarlo con --query
+1. Se abre el asistente **Create a resource group**. Ponle de nombre `rg-lab-datos` y elige una región.
+2. En la pestaña **Tags**, agrega la etiqueta `proyecto` = `lab`.
+3. **Review + create** → **Create**.
+4. Abre **Cloud Shell** y verifica con la CLI: el filtro de JMESPath encuentra el grupo por su etiqueta.
+
+```bash norun
+az group show -n rg-lab-datos -o table
+az group list --query "[?tags.proyecto=='lab'].name" -o tsv
+az group show -n rg-lab-datos --query tags
+```
+
+Reto: crea un segundo grupo con la etiqueta `proyecto` = `prod` y arma una consulta que liste ambos con su etiqueta.
+
+Documentación oficial: [grupos de recursos en el portal](https://learn.microsoft.com/es-es/azure/azure-resource-manager/management/manage-resource-groups-portal) · [consultas con --query](https://learn.microsoft.com/es-es/cli/azure/query-azure-cli)
+:::
+
 ## Ejercicios
 
 :::ejercicio cli
