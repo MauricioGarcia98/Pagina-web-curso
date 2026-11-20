@@ -41,6 +41,29 @@ Puedes hacer todo en el **sandbox de BigQuery**, sin tarjeta (las tablas expiran
 
 ## Práctica guiada
 
+:::practica terminal BigQuery: crear, probar el costo y borrar
+1. Crea el dataset del laboratorio y carga el CSV.
+2. Antes de cada consulta, mide su costo con `--dry_run`.
+3. Borra el dataset con `-r -f` (con todas sus tablas) y verifica.
+
+```bash norun
+gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud storage buckets create gs://academia-lab-datos --location=US
+gcloud storage cp datos/clientes.csv gs://academia-lab-datos/
+bq mk --dataset ventas_lab
+bq load --source_format=CSV --autodetect --skip_leading_rows=1 ventas_lab.clientes gs://academia-lab-datos/clientes.csv
+bq query --use_legacy_sql=false --dry_run 'SELECT * FROM ventas_lab.clientes'
+bq rm -r -f ventas_lab
+gcloud storage rm -r gs://academia-lab-datos
+bq ls
+```
+
+Reto: con BigQuery ML, escribe el `CREATE MODEL` de una regresión logística que prediga si un cliente compra otra vez.
+
+Documentación oficial: [BigQuery ML](https://cloud.google.com/bigquery/docs/bqml-introduction) · [controlar costos en BigQuery](https://cloud.google.com/bigquery/docs/best-practices-costs)
+:::
+
 :::ejercicio cli
 Paso 1. Crea el bucket `gs://academia-lab-datos` en `us-central1` y copia `datos/ventas_2024_12.csv` a la carpeta `ventas/`.
 ```respuesta

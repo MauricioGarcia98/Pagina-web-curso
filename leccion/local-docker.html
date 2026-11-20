@@ -256,6 +256,24 @@ docker compose down -v        # …y también los volúmenes: empezar de cero</c
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: PostgreSQL en un contenedor</div>
+
+<ol>
+<li>Levanta PostgreSQL con una sola línea: imagen, nombre, contraseña y puerto.</li>
+<li>Comprueba que está corriendo y conéctate con <code>psql</code>.</li>
+<li>Para y borra el contenedor: tu computadora queda como estaba.</li>
+</ol>
+<pre data-norun><code class="language-bash">docker run -d --name pg -e POSTGRES_PASSWORD=secreta -p 5432:5432 postgres:16
+docker ps
+psql -h localhost -U postgres -c &quot;SELECT version();&quot;
+docker logs pg
+docker stop pg
+docker rm pg</code></pre>
+<p>Reto: agrega un volumen (<code>-v pgdata:/var/lib/postgresql/data</code>) y explica qué pasa con los datos al borrar el contenedor con y sin volumen.</p>
+<p>Documentación oficial: <a href="https://docs.docker.com/get-started/">primeros pasos con Docker</a> · <a href="https://hub.docker.com/_/postgres">la imagen oficial de PostgreSQL</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

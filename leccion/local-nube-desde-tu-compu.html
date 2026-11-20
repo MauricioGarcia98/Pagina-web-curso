@@ -225,6 +225,27 @@ az consumption budget create --budget-name mensual --amount 10 --category cost \
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Las tres CLIs y un presupuesto antes de empezar</div>
+
+<ol>
+<li>Inicia sesión en cada nube desde la terminal (en tu computadora se abre el navegador; nunca pegues claves en un script).</li>
+<li>Crea un presupuesto con alerta antes de crear cualquier recurso: es tu red de seguridad.</li>
+<li>Verifica con quién estás conectado en cada una.</li>
+</ol>
+<pre data-norun><code class="language-bash">aws configure
+aws sts get-caller-identity
+aws budgets create-budget --account-id 123456789012 --budget '{&quot;BudgetName&quot;:&quot;labs&quot;,&quot;BudgetLimit&quot;:{&quot;Amount&quot;:&quot;10&quot;,&quot;Unit&quot;:&quot;USD&quot;},&quot;TimeUnit&quot;:&quot;MONTHLY&quot;,&quot;BudgetType&quot;:&quot;COST&quot;}'
+az login
+az account show -o table
+az consumption budget create --budget-name labs --amount 10 --time-grain Monthly --start-date 2026-11-01 --end-date 2027-11-01
+gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud config list</code></pre>
+<p>Reto: explica dónde guarda cada CLI sus credenciales en tu computadora (<code>~/.aws</code>, <code>~/.azure</code>, <code>~/.config/gcloud</code>) y por qué esas carpetas nunca van a un repositorio.</p>
+<p>Documentación oficial: <a href="https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html">AWS Budgets</a> · <a href="https://learn.microsoft.com/es-es/azure/cost-management-billing/costs/tutorial-acm-create-budgets">presupuestos en Azure</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

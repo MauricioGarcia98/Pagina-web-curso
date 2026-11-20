@@ -248,6 +248,20 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Integración con Git en vivo, parámetros globales, alertas</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Los cuatro conceptos de Data Factory en el Studio</div>
+
+<ol>
+<li>En <strong>Manage</strong>, mira los <em>linked services</em>: son las conexiones (dónde están los datos).</li>
+<li>En <strong>Author</strong>, mira los <em>datasets</em> (qué datos) y los <em>pipelines</em> (qué hacer con ellos).</li>
+<li>Abre un pipeline, ejecútalo con <strong>Debug</strong> y revisa su salida en <strong>Monitor</strong>.</li>
+</ol>
+<pre data-norun><code class="language-text">@concat('bronze/ventas/', formatDateTime(utcnow(), 'yyyy/MM/dd'))</code></pre>
+<p>Reto: explica la diferencia entre <em>Debug</em> (prueba con tu sesión) y un <em>trigger</em> (corre solo, a horario o por evento).</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/azure/data-factory/introduction">qué es Data Factory</a> · <a href="https://learn.microsoft.com/es-es/azure/data-factory/concepts-pipelines-activities">pipelines y actividades</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

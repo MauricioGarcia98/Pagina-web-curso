@@ -132,6 +132,28 @@ Herramientas como **Starship** muestran en el prompt de la terminal el perfil de
 - Los presupuestos y las alertas de costo se crean también con Terraform, por proyecto y por equipo, junto con etiquetas obligatorias para saber quién gasta qué.
 :::
 
+:::practica terminal Las tres CLIs y un presupuesto antes de empezar
+1. Inicia sesión en cada nube desde la terminal (en tu computadora se abre el navegador; nunca pegues claves en un script).
+2. Crea un presupuesto con alerta antes de crear cualquier recurso: es tu red de seguridad.
+3. Verifica con quién estás conectado en cada una.
+
+```bash norun
+aws configure
+aws sts get-caller-identity
+aws budgets create-budget --account-id 123456789012 --budget '{"BudgetName":"labs","BudgetLimit":{"Amount":"10","Unit":"USD"},"TimeUnit":"MONTHLY","BudgetType":"COST"}'
+az login
+az account show -o table
+az consumption budget create --budget-name labs --amount 10 --time-grain Monthly --start-date 2026-11-01 --end-date 2027-11-01
+gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud config list
+```
+
+Reto: explica dónde guarda cada CLI sus credenciales en tu computadora (`~/.aws`, `~/.azure`, `~/.config/gcloud`) y por qué esas carpetas nunca van a un repositorio.
+
+Documentación oficial: [AWS Budgets](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html) · [presupuestos en Azure](https://learn.microsoft.com/es-es/azure/cost-management-billing/costs/tutorial-acm-create-budgets)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

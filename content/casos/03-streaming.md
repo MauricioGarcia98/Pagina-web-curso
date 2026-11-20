@@ -133,6 +133,26 @@ podcast,1943,18.7,54.1
 - Las listas de "usuarios en riesgo" alimentan campañas automáticas. Por eso se miden después: ¿los que recibieron el mensaje se fueron menos que los que no?
 :::
 
+:::practica sql Ritmo: por qué se van los suscriptores
+1. Ejecuta: tasa de baja por plan (suscripciones con `fecha_fin`) y el motivo más común.
+2. `cambio_plan` no es una baja del cliente: sepáralo antes de concluir.
+3. Compara el plan gratis con los pagos: ¿qué retención importa más para el negocio?
+
+```sql norun
+SELECT plan,
+       COUNT(*) AS suscripciones,
+       SUM(CASE WHEN fecha_fin IS NOT NULL AND motivo_baja <> 'cambio_plan' THEN 1 ELSE 0 END) AS bajas_reales,
+       ROUND(100.0 * SUM(CASE WHEN fecha_fin IS NOT NULL AND motivo_baja <> 'cambio_plan' THEN 1 ELSE 0 END) / COUNT(*), 1) AS tasa_baja_pct
+FROM streaming_suscripciones
+GROUP BY plan
+ORDER BY tasa_baja_pct DESC;
+```
+
+Reto: arma el ranking de motivos de baja por plan y explica cuál atacarías primero.
+
+Documentación oficial: [CASE](https://duckdb.org/docs/current/sql/expressions/case) · [agregaciones](https://duckdb.org/docs/current/sql/functions/aggregates)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="Usuarios activos por mes (MAU)"

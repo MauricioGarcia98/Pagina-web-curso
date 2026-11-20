@@ -135,6 +135,40 @@ ORDER BY facturado DESC;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Nube Pyme: ingresos y soporte por plan</div>
+
+<ol>
+<li>Ejecuta: empresas, MRR del último mes y tickets críticos por plan.</li>
+<li>Normaliza: tickets por cada 10 empresas, para comparar planes de distinto tamaño.</li>
+<li>Si un plan caro tiene muchos tickets críticos, es un riesgo de churn de los clientes que más pagan.</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH ultimo AS (SELECT MAX(mes) AS mes FROM saas_facturas),
+mrr AS (
+    SELECT f.plan_id, COUNT(DISTINCT f.empresa_id) AS empresas, SUM(f.monto) AS mrr
+    FROM saas_facturas f, ultimo u
+    WHERE f.mes = u.mes AND f.estado = 'pagada'
+    GROUP BY f.plan_id
+),
+plan_actual AS (
+    SELECT f.empresa_id, f.plan_id FROM saas_facturas f, ultimo u WHERE f.mes = u.mes
+),
+criticos AS (
+    SELECT pa.plan_id, COUNT(*) AS tickets_criticos
+    FROM saas_tickets t JOIN plan_actual pa ON pa.empresa_id = t.empresa_id
+    WHERE t.prioridad = 'critica'
+    GROUP BY pa.plan_id
+)
+SELECT pl.nombre AS plan, m.empresas, m.mrr, COALESCE(c.tickets_criticos, 0) AS tickets_criticos,
+       ROUND(10.0 * COALESCE(c.tickets_criticos, 0) / m.empresas, 2) AS criticos_cada_10
+FROM mrr m
+JOIN saas_planes pl ON pl.plan_id = m.plan_id
+LEFT JOIN criticos c ON c.plan_id = m.plan_id
+ORDER BY m.mrr DESC;</code></pre>
+<p>Reto: agrega la satisfacción promedio de los tickets por plan y decide si confirma o no la hipótesis de riesgo.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/query_syntax/with">CTEs</a> · <a href="https://duckdb.org/docs/current/sql/expressions/case">CASE</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

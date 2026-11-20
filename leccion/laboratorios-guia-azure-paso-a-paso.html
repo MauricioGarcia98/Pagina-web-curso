@@ -202,6 +202,23 @@ az resource list --tag proyecto=lab -o table</code></pre>
 
 
 <h2>Práctica</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Recorrer en el portal de práctica lo que harás en tu cuenta</div>
+
+<ol>
+<li>Repite en el portal de práctica los pasos de la guía: grupo <code>rg-datos-lab</code>, cuenta de almacenamiento con <em>hierarchical namespace</em> y contenedor <code>bronze</code>.</li>
+<li>Verifica en <strong>Cloud Shell</strong> con los comandos de abajo.</li>
+<li>Al terminar, borra el grupo: en tu cuenta real eso evita cualquier cobro.</li>
+</ol>
+<pre data-norun><code class="language-bash">az account show --query &quot;{suscripcion:name, usuario:user.name}&quot; -o table
+az group list -o table
+az storage account list -g rg-datos-lab --query &quot;[].{nombre:name, hns:isHnsEnabled, sku:sku.name}&quot; -o table
+az group delete -n rg-datos-lab --yes</code></pre>
+<p>Reto: anota cuánto costaría dejar encendido un clúster de Azure Databricks una noche entera y cómo lo evitas (terminación automática).</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/azure/storage/blobs/create-data-lake-storage-account">crear una cuenta de ADLS Gen2</a> · <a href="https://learn.microsoft.com/es-es/azure/databricks/compute/clusters-manage">administrar clústeres</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

@@ -246,6 +246,26 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Moverte entre carpetas y crear archivos</div>
+
+<ol>
+<li><code>pwd</code> te dice dónde estás; <code>ls</code> muestra lo que hay en esa carpeta.</li>
+<li>Crea una carpeta, entra y crea un archivo de texto con extensión <code>.txt</code>.</li>
+<li>Vuelve una carpeta atrás con <code>cd ..</code> y mira la ruta completa del archivo.</li>
+</ol>
+<pre data-norun><code class="language-bash">pwd
+ls
+mkdir mi-carpeta
+cd mi-carpeta
+echo &quot;hola&quot; &gt; notas.txt
+ls -l
+cd ..
+ls mi-carpeta</code></pre>
+<p>Reto: crea <code>mi-carpeta/datos/2024</code> en un solo comando (<code>mkdir -p</code>) y escribe la ruta completa de esa carpeta.</p>
+<p>Documentación oficial: <a href="https://www.gnu.org/software/coreutils/manual/html_node/ls-invocation.html">ls (manual de GNU)</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

@@ -162,6 +162,33 @@ ORDER BY pct_baja DESC;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Conecta (telco): bajas por plan y ARPU</div>
+
+<ol>
+<li>Ejecuta: por plan, líneas, porcentaje de bajas y ARPU (facturación promedio por línea y mes).</li>
+<li>Separa la portabilidad (se fue a la competencia) de la mudanza: no se resuelven igual.</li>
+<li>¿El plan con más bajas es el más barato o el más caro?</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH arpu AS (
+    SELECT l.plan_id, AVG(c.monto_facturado) AS arpu
+    FROM telco_consumos c JOIN telco_lineas l ON l.linea_id = c.linea_id
+    GROUP BY l.plan_id
+)
+SELECT pl.nombre AS plan, pl.precio_mensual,
+       COUNT(*) AS lineas,
+       ROUND(100.0 * AVG(CASE WHEN l.fecha_baja IS NOT NULL THEN 1 ELSE 0 END), 1) AS pct_bajas,
+       SUM(CASE WHEN l.motivo_baja = 'portabilidad' THEN 1 ELSE 0 END) AS a_la_competencia,
+       ROUND(a.arpu, 2) AS arpu
+FROM telco_lineas l
+JOIN telco_planes pl ON pl.plan_id = l.plan_id
+JOIN arpu a ON a.plan_id = l.plan_id
+GROUP BY pl.nombre, pl.precio_mensual, a.arpu
+ORDER BY pct_bajas DESC;</code></pre>
+<p>Reto: ¿las líneas con reclamos sin resolver se dan de baja más? Une con <code>telco_reclamos</code> y compara.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/expressions/case">CASE</a> · <a href="https://duckdb.org/docs/current/sql/query_syntax/with">CTEs</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

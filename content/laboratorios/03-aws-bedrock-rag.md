@@ -48,6 +48,25 @@ El asistente de la consola propone por defecto **OpenSearch Serverless**, que co
 
 ## Práctica guiada
 
+:::practica terminal Bedrock: ver los modelos y no dejar nada encendido
+1. Lista los modelos disponibles en Bedrock: el laboratorio usa uno de embeddings y uno de texto.
+2. Crea el bucket con los documentos de la base de conocimiento.
+3. Limpia el bucket al terminar: la base de conocimiento y su almacén vectorial son lo que más cuesta si se olvidan.
+
+```bash norun
+aws configure
+aws bedrock list-foundation-models --query "modelSummaries[].modelId" --output text
+aws s3 mb s3://kb-politicas-lab
+aws s3 cp datos/clientes.csv s3://kb-politicas-lab/docs/
+aws s3 ls s3://kb-politicas-lab --recursive
+aws s3 rb s3://kb-politicas-lab --force
+```
+
+Reto: anota qué recurso del laboratorio cobra por hora aunque nadie lo use (pista: el almacén vectorial) y cómo verificarías que lo borraste.
+
+Documentación oficial: [Knowledge Bases de Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html) · [Guardrails](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html)
+:::
+
 :::ejercicio cli
 Paso 1. Crea los archivos del laboratorio con `lab-preparar rag` y revisa la carpeta.
 ```respuesta

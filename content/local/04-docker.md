@@ -198,6 +198,25 @@ Dentro de la red de Compose, cada servicio se llama por su **nombre**: pgAdmin s
 - Las imágenes se construyen en la CI, se etiquetan con el commit (`rapido-pipeline:3f2a1c9`) y se publican en un registro privado (ECR, Artifact Registry, ACR). Nunca se usa `latest` en producción.
 :::
 
+:::practica terminal PostgreSQL en un contenedor
+1. Levanta PostgreSQL con una sola línea: imagen, nombre, contraseña y puerto.
+2. Comprueba que está corriendo y conéctate con `psql`.
+3. Para y borra el contenedor: tu computadora queda como estaba.
+
+```bash norun
+docker run -d --name pg -e POSTGRES_PASSWORD=secreta -p 5432:5432 postgres:16
+docker ps
+psql -h localhost -U postgres -c "SELECT version();"
+docker logs pg
+docker stop pg
+docker rm pg
+```
+
+Reto: agrega un volumen (`-v pgdata:/var/lib/postgresql/data`) y explica qué pasa con los datos al borrar el contenedor con y sin volumen.
+
+Documentación oficial: [primeros pasos con Docker](https://docs.docker.com/get-started/) · [la imagen oficial de PostgreSQL](https://hub.docker.com/_/postgres)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

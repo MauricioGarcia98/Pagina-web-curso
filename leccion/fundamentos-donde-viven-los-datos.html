@@ -123,6 +123,27 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Particiones, en una frase</h2>
 <p><strong>Particionar</strong> es repartir una tabla en carpetas según el valor de una columna (casi siempre la fecha), para que las consultas que filtran por esa columna lean solo las carpetas que necesitan. La regla práctica: se particiona por la columna con la que <strong>más se filtra</strong>, y con particiones que no queden demasiado chicas (miles de archivos diminutos son un problema que verás en el módulo de Guardia).</p>
 <h2>Práctica</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Dos preguntas, dos tipos de base</div>
+
+<ol>
+<li>La primera consulta busca <strong>un</strong> pedido por su id: es el trabajo de una base transaccional (OLTP), la de la aplicación.</li>
+<li>La segunda resume <strong>todos</strong> los pedidos: es el trabajo de un warehouse (OLAP).</li>
+<li>Mira el medidor de costo debajo del resultado: la segunda lee muchas más filas.</li>
+</ol>
+<pre data-norun><code class="language-sql">-- OLTP: una fila, por su clave
+SELECT * FROM pedidos WHERE pedido_id = 4217;
+
+-- OLAP: todas las filas, resumidas
+SELECT canal, estado, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY canal, estado
+ORDER BY pedidos DESC;</code></pre>
+<p>Reto: explica por qué la segunda consulta funciona mejor en una base que guarda los datos por columnas.</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/azure/architecture/data-guide/relational-data/online-transaction-processing">OLTP (Microsoft)</a> · <a href="https://learn.microsoft.com/es-es/azure/architecture/data-guide/relational-data/online-analytical-processing">OLAP (Microsoft)</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

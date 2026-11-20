@@ -115,6 +115,22 @@ Excel tiene un límite de 1.048.576 filas por hoja y no deja registro de qué pa
 | Filtro, ordenar, quitar duplicados, tabla dinámica (estática) y gráficos | Tablas dinámicas que se actualizan solas |
 | Las tablas del curso con Data → Get Data, abrir y exportar CSV | Archivos .xlsx |
 
+:::practica excel Referencias, funciones y una tabla dinámica
+1. Carga una tabla del curso (por ejemplo `pedidos`) en una hoja.
+2. En una celda vacía escribe las fórmulas de abajo: cuántos pedidos hay, cuántos son del canal web (la columna F) y el canal del pedido 1. La práctica usa los nombres en inglés y la coma como separador, como Excel en inglés; en Excel en español son `CONTARA`, `CONTAR.SI`, `BUSCARV` y el separador es `;`.
+3. Arma una **tabla dinámica** con canal en filas y cantidad de pedidos en valores.
+
+```text norun
+=COUNTA(A2:A12001)
+=COUNTIF(F2:F12001,"web")
+=VLOOKUP(1,A2:G12001,6,FALSE)
+```
+
+Reto: explica la diferencia entre `A2` y `$A$2` al copiar una fórmula hacia abajo.
+
+Documentación oficial: [tablas dinámicas](https://support.microsoft.com/es-es/office/crear-una-tabla-din%C3%A1mica-para-analizar-datos-de-una-hoja-de-c%C3%A1lculo-a9a84538-bfe9-40a9-a8e9-f99134456576) · [BUSCARV / VLOOKUP](https://support.microsoft.com/es-es/office/funci%C3%B3n-buscarv-0bbc8083-26fe-4963-8ab8-93a18ad188a1)
+:::
+
 :::ejercicio quiz
 En D2 escribes `=B2*C2` y la arrastras hasta D3. ¿Qué fórmula queda en D3?
 - [ ] `=B2*C2`

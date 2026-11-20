@@ -110,6 +110,34 @@ ORDER BY dia_semana;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Cóndor Air: puntualidad y no show por ruta</div>
+
+<ol>
+<li>Ejecuta: por ruta (origen → destino), porcentaje de vuelos a tiempo y tasa de <em>no show</em> (reservas confirmadas que no se presentaron, sobre las que debían volar).</li>
+<li>Excluye los vuelos cancelados al medir puntualidad: no despegaron.</li>
+<li>Una ruta con mucho <em>no show</em> es candidata a sobreventa controlada; una impuntual, a revisar la programación.</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH reservas AS (
+    SELECT vuelo_id,
+           SUM(CASE WHEN estado IN ('confirmada', 'no_show') THEN 1 ELSE 0 END) AS debian_volar,
+           SUM(CASE WHEN estado = 'no_show' THEN 1 ELSE 0 END) AS no_show
+    FROM vuelos_reservas GROUP BY vuelo_id
+)
+SELECT v.origen || ' → ' || v.destino AS ruta,
+       COUNT(*) AS vuelos,
+       ROUND(100.0 * AVG(CASE WHEN v.estado = 'a_tiempo' THEN 1 ELSE 0 END), 1) AS pct_a_tiempo,
+       ROUND(100.0 * SUM(r.no_show) / SUM(r.debian_volar), 1) AS pct_no_show
+FROM vuelos_vuelos v
+LEFT JOIN reservas r ON r.vuelo_id = v.vuelo_id
+WHERE v.estado &lt;&gt; 'cancelado'
+GROUP BY v.origen, v.destino
+ORDER BY pct_no_show DESC
+LIMIT 10;</code></pre>
+<p>Reto: con el porcentaje de <em>no show</em> de una ruta y la capacidad del avión, estima cuántos pasajes extra se podrían vender con riesgo bajo de dejar a alguien en tierra.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/expressions/case">CASE</a> · <a href="https://duckdb.org/docs/current/sql/query_syntax/from">JOIN</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

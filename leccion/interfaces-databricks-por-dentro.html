@@ -373,6 +373,21 @@ with mlflow.start_run():
 <td>Desplegar en un workspace real (para eso: Databricks Free Edition)</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Del catálogo a la consulta</div>
+
+<ol>
+<li>Se abre el <strong>SQL Editor</strong> con una consulta: ejecútala.</li>
+<li>En la barra lateral, abre <strong>Catalog</strong> y navega <code>samples</code> → <code>tienda</code> → <code>pedidos</code>: esquema, datos de muestra, historial y permisos.</li>
+<li>Abre <strong>Compute</strong> y <strong>Workspace</strong>: dónde corre el código y dónde viven tus notebooks.</li>
+</ol>
+<pre data-norun><code class="language-sql">SHOW TABLES IN samples.tienda;
+SELECT estado, COUNT(*) AS pedidos FROM samples.tienda.pedidos GROUP BY ALL ORDER BY pedidos DESC;</code></pre>
+<p>Reto: desde la tabla en <strong>Catalog</strong>, abre su linaje y explica qué te dice.</p>
+<p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/workspace/">el workspace</a> · <a href="https://docs.databricks.com/aws/en/catalog-explorer/">Catalog Explorer</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

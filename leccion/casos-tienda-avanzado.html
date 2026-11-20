@@ -93,6 +93,29 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tienda Andina: el crecimiento por canal, año contra año</div>
+
+<ol>
+<li>Pregunta del directorio: &quot;¿qué canal empuja el crecimiento?&quot;. Ejecuta: ventas por canal y año, y el crecimiento con <code>LAG</code>.</li>
+<li><code>LAG</code> mira la fila anterior <strong>dentro de cada canal</strong> (<code>PARTITION BY canal</code>), ordenada por año.</li>
+<li>Escribe la respuesta en una línea, con el número.</li>
+</ol>
+<pre data-norun><code class="language-sql">WITH anual AS (
+    SELECT p.canal, SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 4) AS anio,
+           SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS ventas
+    FROM pedidos p JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+    WHERE p.estado = 'entregado'
+    GROUP BY p.canal, SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 4)
+)
+SELECT canal, anio, ROUND(ventas, 2) AS ventas,
+       ROUND(100.0 * (ventas - LAG(ventas) OVER (PARTITION BY canal ORDER BY anio)) / LAG(ventas) OVER (PARTITION BY canal ORDER BY anio), 1) AS crecimiento_pct
+FROM anual
+ORDER BY canal, anio;</code></pre>
+<p>Reto: calcula qué parte del crecimiento total de 2024 aporta cada canal (en dinero, no en porcentaje).</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/window_functions">funciones de ventana</a> · <a href="https://duckdb.org/docs/current/sql/query_syntax/with">CTEs</a></p>
+</div>
+
+
 
 <div class="exercise-slot"></div>
 

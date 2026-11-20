@@ -113,6 +113,27 @@ Las primeras filas (de 25):
 Empiezo comparando cada cliente consigo mismo: su consumo reciente contra su línea base (el mismo período del año anterior o su promedio estable), para no confundir tamaños distintos. Marco caídas fuertes y sostenidas (varios meses, no un mes aislado), descarto explicaciones conocidas (casa vacía, cambio de titular, lecturas estimadas) y además comparo con sus vecinos de zona, para separar efectos de clima. Priorizo por energía en juego y mido la precisión con el resultado de las inspecciones.
 :::
 
+:::practica sql Luz del Valle: cobranza por zona
+1. Ejecuta: por zona, facturas, porcentaje pagado fuera de término (o impago) y monto pendiente.
+2. Las fechas están en formato ISO (`AAAA-MM-DD`), así que se pueden comparar como texto.
+3. La zona con más atraso ¿es la misma que tiene más cortes de servicio? (mira `energia_cortes`).
+
+```sql norun
+SELECT c.zona,
+       COUNT(*) AS facturas,
+       ROUND(100.0 * AVG(CASE WHEN f.fecha_pago IS NULL OR f.fecha_pago > f.fecha_vencimiento THEN 1 ELSE 0 END), 1) AS pct_tarde_o_impaga,
+       ROUND(SUM(CASE WHEN f.fecha_pago IS NULL THEN f.monto ELSE 0 END), 2) AS pendiente
+FROM energia_facturas f
+JOIN energia_clientes c ON c.cliente_id = f.cliente_id
+GROUP BY c.zona
+ORDER BY pct_tarde_o_impaga DESC;
+```
+
+Reto: busca medidores con lecturas estimadas muchos meses seguidos: es una señal de posible hurto o de medidor inaccesible.
+
+Documentación oficial: [CASE](https://duckdb.org/docs/current/sql/expressions/case) · [JOIN](https://duckdb.org/docs/current/sql/query_syntax/from)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="Cobranza y deuda por zona"

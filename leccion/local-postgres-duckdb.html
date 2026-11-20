@@ -227,6 +227,23 @@ top = duckdb.sql(&quot;SELECT * FROM df ORDER BY clientes DESC LIMIT 5&quot;).df
 <div class="recorrido"></div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Dos bases, dos usos: PostgreSQL y DuckDB</div>
+
+<ol>
+<li>PostgreSQL (en Docker) es la base de una aplicación: muchas escrituras chicas y concurrentes.</li>
+<li>DuckDB es analítica en tu propia máquina: lee un CSV directo y agrega millones de filas sin servidor.</li>
+<li>Compara: la misma pregunta, una herramienta para cada trabajo.</li>
+</ol>
+<pre data-norun><code class="language-bash">docker run -d --name pg -e POSTGRES_PASSWORD=secreta -p 5432:5432 postgres:16
+psql -h localhost -U postgres -c &quot;CREATE TABLE ventas (id INT, canal TEXT, monto NUMERIC);&quot;
+psql -h localhost -U postgres -c &quot;INSERT INTO ventas VALUES (1, 'web', 120), (2, 'app', 80), (3, 'web', 45);&quot;
+psql -h localhost -U postgres -c &quot;SELECT canal, SUM(monto) FROM ventas GROUP BY canal;&quot;
+duckdb -c &quot;SELECT canal, COUNT(*) AS ventas, ROUND(SUM(total), 2) AS total FROM 'datos/ventas_2024_12.csv' GROUP BY canal ORDER BY total DESC&quot;</code></pre>
+<p>Reto: con DuckDB, convierte el CSV a Parquet (<code>COPY (SELECT * FROM &#39;datos/ventas_2024_12.csv&#39;) TO &#39;ventas.parquet&#39; (FORMAT parquet)</code>) y compara el tamaño de los dos archivos con <code>ls -lh</code>.</p>
+<p>Documentación oficial: <a href="https://www.postgresql.org/docs/current/app-psql.html">psql</a> · <a href="https://duckdb.org/docs/current/data/csv/overview">leer CSV con DuckDB</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -134,6 +134,35 @@ dia_semana,vuelos,demora_min
 - Las aerolíneas combinan datos de muchas fuentes (reservas, operaciones, mantenimiento, clima). Integrarlas por vuelo y fecha es un trabajo típico de data engineering, y los datos de operación llegan en tiempo casi real.
 :::
 
+:::practica sql Cóndor Air: puntualidad y no show por ruta
+1. Ejecuta: por ruta (origen → destino), porcentaje de vuelos a tiempo y tasa de *no show* (reservas confirmadas que no se presentaron, sobre las que debían volar).
+2. Excluye los vuelos cancelados al medir puntualidad: no despegaron.
+3. Una ruta con mucho *no show* es candidata a sobreventa controlada; una impuntual, a revisar la programación.
+
+```sql norun
+WITH reservas AS (
+    SELECT vuelo_id,
+           SUM(CASE WHEN estado IN ('confirmada', 'no_show') THEN 1 ELSE 0 END) AS debian_volar,
+           SUM(CASE WHEN estado = 'no_show' THEN 1 ELSE 0 END) AS no_show
+    FROM vuelos_reservas GROUP BY vuelo_id
+)
+SELECT v.origen || ' → ' || v.destino AS ruta,
+       COUNT(*) AS vuelos,
+       ROUND(100.0 * AVG(CASE WHEN v.estado = 'a_tiempo' THEN 1 ELSE 0 END), 1) AS pct_a_tiempo,
+       ROUND(100.0 * SUM(r.no_show) / SUM(r.debian_volar), 1) AS pct_no_show
+FROM vuelos_vuelos v
+LEFT JOIN reservas r ON r.vuelo_id = v.vuelo_id
+WHERE v.estado <> 'cancelado'
+GROUP BY v.origen, v.destino
+ORDER BY pct_no_show DESC
+LIMIT 10;
+```
+
+Reto: con el porcentaje de *no show* de una ruta y la capacidad del avión, estima cuántos pasajes extra se podrían vender con riesgo bajo de dejar a alguien en tierra.
+
+Documentación oficial: [CASE](https://duckdb.org/docs/current/sql/expressions/case) · [JOIN](https://duckdb.org/docs/current/sql/query_syntax/from)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="Puntualidad por ruta"

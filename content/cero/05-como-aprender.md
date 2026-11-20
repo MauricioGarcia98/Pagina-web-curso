@@ -91,6 +91,28 @@ Todos los que empiezan sienten que los demás saben más. No mires a los demás:
 
 ## Practica
 
+:::practica notas Tu plan de estudio en las notas
+1. Crea una nota nueva y copia la plantilla de abajo.
+2. Complétala con tus horarios reales: poco y seguido le gana a mucho de vez en cuando.
+3. Cada semana, vuelve a la nota y marca lo que cumpliste.
+
+```text norun
+# Mi plan de estudio
+
+- Días y horario: lunes a viernes, 19:00 a 20:00
+- Esta semana termino: Etapa 0
+- Repaso: 10 minutos los domingos con las tarjetas
+- Cuando me trabe: 15 minutos solo → leo el error → pido ayuda con el código y el mensaje
+
+## Lo que aprendí hoy
+-
+```
+
+Reto: escribe la pregunta que le harías a una IA para que te explique un error, siguiendo la estructura de la lección (contexto, código, error, qué probaste).
+
+Documentación oficial: [el tutorial oficial de Python (para empezar a leer documentación)](https://docs.python.org/es/3/tutorial/index.html)
+:::
+
 :::ejercicio quiz
 Llevas 40 minutos trabado en un ejercicio, cada vez más frustrado. ¿Qué haces?
 - [ ] Sigues hasta resolverlo, cueste lo que cueste

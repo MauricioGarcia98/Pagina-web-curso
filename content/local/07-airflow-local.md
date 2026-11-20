@@ -169,6 +169,23 @@ astro dev pytest         # con Astro CLI
 - Nadie edita DAGs directo en el servidor: el despliegue copia la carpeta `dags/` desde Git (un bucket en Composer y MWAA, una imagen en Kubernetes).
 :::
 
+:::practica terminal Airflow en tu máquina
+1. `airflow standalone` levanta todo (base, scheduler, API y la interfaz) con un usuario admin: ideal para aprender.
+2. Lista los DAGs de tu carpeta y prueba uno sin scheduler.
+3. En un equipo se usa Astro CLI o Docker Compose para que todos corran la misma versión.
+
+```bash norun
+airflow version
+airflow standalone
+airflow dags list
+airflow dags test etl_ventas 2024-01-01
+```
+
+Reto: compara en una tabla `airflow standalone`, Astro CLI y Docker Compose: qué instala cada uno y cuándo lo usarías.
+
+Documentación oficial: [Quick Start de Airflow](https://airflow.apache.org/docs/apache-airflow/stable/start.html) · [Astro CLI](https://www.astronomer.io/docs/astro/cli/overview)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

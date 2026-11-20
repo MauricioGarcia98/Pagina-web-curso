@@ -99,6 +99,23 @@ En los equipos de datos de Latinoamérica y España es normal hablar en español
 
 ## Practica
 
+:::practica terminal Las palabras en inglés de los errores
+1. Ejecuta cada comando: todos fallan a propósito.
+2. Lee la palabra clave de cada error: *No such file or directory*, *command not found*, *not a git repository*.
+3. Anota qué significa cada una: son las que más vas a ver.
+
+```bash norun
+ls carpeta-que-no-existe
+comando-inventado
+cd /tmp && git status
+cat archivo-que-no-existe.txt
+```
+
+Reto: busca en la lección qué significan *permission denied* y *syntax error*, y provoca uno de los dos.
+
+Documentación oficial: [manual de Bash](https://www.gnu.org/software/bash/manual/bash.html)
+:::
+
 :::ejercicio quiz
 El error dice `PermissionError: [Errno 13] Permission denied: 'reporte.csv'`. ¿Qué significa?
 - [ ] El archivo no existe

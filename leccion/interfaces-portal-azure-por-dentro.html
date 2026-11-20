@@ -322,6 +322,21 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Costos reales</td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Las partes del portal en 5 minutos</div>
+
+<ol>
+<li>Usa la <strong>barra de búsqueda</strong> de arriba para llegar a <em>Storage accounts</em> sin usar el menú.</li>
+<li>Abre <strong>Resource groups</strong> → un grupo → mira su menú lateral: <strong>Overview</strong>, <strong>Access control (IAM)</strong>, <strong>Tags</strong>, <strong>Cost Management</strong>.</li>
+<li>Abre <strong>Cloud Shell</strong> y ejecuta los comandos de abajo: el portal y la CLI muestran lo mismo.</li>
+</ol>
+<pre data-norun><code class="language-bash">az group list -o table
+az resource list -o table</code></pre>
+<p>Reto: encuentra en el portal dónde se ve el JSON de un recurso (<em>JSON View</em>) y explica para qué sirve al automatizar.</p>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/azure/azure-portal/azure-portal-overview">el portal de Azure</a> · <a href="https://learn.microsoft.com/es-es/azure/cloud-shell/overview">Cloud Shell</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

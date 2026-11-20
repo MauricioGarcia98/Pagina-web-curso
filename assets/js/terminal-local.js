@@ -122,6 +122,10 @@
       .replace(/\bBIGSERIAL\b|\bSERIAL\b/gi, 'INTEGER')
       .replace(/::\s*[a-z_]+(\(\d+(,\s*\d+)?\))?/gi, '')
       .replace(/\bNOW\(\)/gi, "datetime('now')")
+      // funciones de información de PostgreSQL que se usan para comprobar la conexión
+      .replace(/\bversion\(\)(\s+AS\b)?/gi, (m, as) => "'PostgreSQL 16.4 on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit'" + (as || ' AS version'))
+      .replace(/\bcurrent_database\(\)(\s+AS\b)?/gi, (m, as) => "'postgres'" + (as || ' AS current_database'))
+      .replace(/\bcurrent_user\b(?!\s*\()(\s+AS\b)?/gi, (m, as) => "'postgres'" + (as || ' AS current_user'))
       .replace(/\bILIKE\b/gi, 'LIKE')
       .replace(/\bTRUE\b/g, '1').replace(/\bFALSE\b/g, '0')
       .replace(/\bCREATE\s+DATABASE\b[^;]*/gi, 'SELECT 1');

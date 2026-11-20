@@ -143,6 +143,28 @@ Ciudad de México,60000,2680,4.5
 - Un stock negativo en los datos casi siempre es un error de registro: una salida cargada antes que la entrada, o una entrada que nunca se registró. Detectarlos es una tarea típica de calidad de datos.
 :::
 
+:::practica sql Mercurio: entregas a tiempo por transportista
+1. Ejecuta: porcentaje de envíos entregados en la fecha prometida o antes, y perdidos, por transportista.
+2. Los envíos en tránsito todavía no se pueden juzgar: quedan fuera del denominador.
+3. Agrega el costo promedio: el más barato ¿es también el que más falla?
+
+```sql norun
+SELECT transportista,
+       COUNT(*) AS envios,
+       ROUND(100.0 * AVG(CASE WHEN estado = 'entregado' AND fecha_entrega <= fecha_prometida THEN 1 ELSE 0 END), 1) AS pct_a_tiempo,
+       ROUND(100.0 * AVG(CASE WHEN estado = 'perdido' THEN 1 ELSE 0 END), 2) AS pct_perdidos,
+       ROUND(AVG(costo), 2) AS costo_promedio
+FROM logistica_envios
+WHERE estado <> 'en_transito'
+GROUP BY transportista
+ORDER BY pct_a_tiempo DESC;
+```
+
+Reto: repite por ciudad de destino y encuentra la combinación transportista + ciudad que más falla.
+
+Documentación oficial: [CASE](https://duckdb.org/docs/current/sql/expressions/case) · [agregaciones](https://duckdb.org/docs/current/sql/functions/aggregates)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql titulo="Stock al cierre del año"

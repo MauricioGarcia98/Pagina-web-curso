@@ -88,6 +88,24 @@ $ az resource list --tag proyecto=lab -o table
 
 ## Práctica guiada: prepara la terminal
 
+:::practica terminal La red de seguridad: presupuestos antes del primer recurso
+1. Antes de crear cualquier cosa en una cuenta real, crea un presupuesto con alerta en cada nube que uses.
+2. Revisa el presupuesto: el gasto real y el pronosticado.
+3. Regla del curso: cada laboratorio termina con su limpieza y una verificación de que no quedó nada encendido.
+
+```bash norun
+aws configure
+aws budgets create-budget --account-id 123456789012 --budget '{"BudgetName":"labs","BudgetLimit":{"Amount":"10","Unit":"USD"},"TimeUnit":"MONTHLY","BudgetType":"COST"}'
+aws budgets describe-budgets --account-id 123456789012
+az login
+az consumption budget create --budget-name labs --amount 10 --time-grain Monthly --start-date 2026-11-01 --end-date 2027-11-01
+```
+
+Reto: escribe tu checklist de limpieza en 4 líneas (qué borras, en qué orden y cómo verificas que no quedó nada).
+
+Documentación oficial: [AWS Budgets](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html) · [presupuestos en Google Cloud](https://cloud.google.com/billing/docs/how-to/budgets)
+:::
+
 :::ejercicio cli
 Antes de cualquier laboratorio de AWS, comprueba **con qué cuenta e identidad** estás trabajando.
 ```respuesta

@@ -215,6 +215,22 @@ AS SELECT * FROM analitica.eventos_app;</code></pre>
 </tr>
 </tbody></table></div>
 <p>Los bytes se calculan como en BigQuery (8 por número o fecha, 2 más el largo por texto), pero las tablas de práctica son chicas: la página <strong>Costos</strong> proyecta cuánto costaría cada consulta sobre tablas diez mil veces más grandes.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El validador: saber el costo antes de ejecutar</div>
+
+<ol>
+<li>La consulta se abre en el editor: mira el <strong>validador</strong> arriba a la derecha (&quot;This query will process…&quot;).</li>
+<li>Cambia <code>SELECT *</code> por dos columnas y mira cómo baja la estimación.</li>
+<li>Ejecuta y abre <strong>Job information</strong>: bytes procesados y bytes facturados.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT *
+FROM `tienda-andina-dev.tienda.pedidos`
+LIMIT 10;</code></pre>
+<p>Reto: explica por qué <code>LIMIT 10</code> no reduce los bytes procesados en BigQuery (pista: almacenamiento columnar).</p>
+<p>Documentación oficial: <a href="https://cloud.google.com/bigquery/docs/best-practices-costs">controlar costos</a> · <a href="https://cloud.google.com/bigquery/docs/dry-run-queries">dry run</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

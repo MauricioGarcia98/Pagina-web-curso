@@ -98,6 +98,22 @@ Estos ejercicios usan Python como calculadora. No hace falta saber Python todav�
 - Usar el promedio con valores extremos.
 :::
 
+:::practica excel Porcentajes y variaciones en Excel
+1. En una hoja nueva escribe en `A1` las ventas de enero (por ejemplo `1200`) y en `B1` las de febrero (`1500`).
+2. En `C1` escribe la variación porcentual: `=(B1-A1)/A1` y dale formato de porcentaje.
+3. Escribe en `A3:A7` cinco montos y compara `=AVERAGE(A3:A7)` con `=MEDIAN(A3:A7)`; cambia uno por un número muy grande y mira cuál se mueve más.
+
+```text norun
+=(B1-A1)/A1
+=AVERAGE(A3:A7)
+=MEDIAN(A3:A7)
+```
+
+Reto: si las ventas suben 20 % y después bajan 20 %, ¿vuelven al mismo valor? Compruébalo con fórmulas.
+
+Documentación oficial: [calcular porcentajes (Microsoft)](https://support.microsoft.com/es-es/office/calcular-porcentajes-6b9f2cab-6cc4-4a75-8f9a-1b8a6e0b3af1) · [MEDIANA / MEDIAN](https://support.microsoft.com/es-es/office/funci%C3%B3n-mediana-d0916313-4753-414c-8537-ce85bdd967d2)
+:::
+
 :::ejercicio python titulo="Porcentaje del total"
 De `pedidos = 400` pedidos, `con_tarjeta = 60` se pagaron con tarjeta. Guarda en `porcentaje` qué porcentaje del total es (debería dar 15).
 ```python inicial

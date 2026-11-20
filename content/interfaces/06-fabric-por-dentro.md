@@ -110,6 +110,20 @@ En la réplica, la integración de Git usa los repositorios del [GitHub de prác
 | Pipelines con Copy data y Notebook, Run y Schedule, Monitor | Lookup, ForEach e If (practícalos en el [Data Factory del portal de Azure](#/azure/studio)); deployment pipelines |
 | Modelo semántico e integración con Git | Seguridad de OneLake por carpeta y etiquetas de confidencialidad |
 
+:::practica fabric Workspace, lakehouse y su endpoint SQL
+1. Abre un **workspace** y crea un **lakehouse**.
+2. Sube un archivo a **Files** y conviértelo en tabla con **Load to Tables**: pasa a **Tables** en formato Delta.
+3. Abre el **SQL analytics endpoint** del lakehouse y consulta la tabla.
+
+```sql norun
+SELECT TOP 10 * FROM clientes;
+```
+
+Reto: explica la diferencia entre un lakehouse y un warehouse en Fabric y cuándo elegirías cada uno.
+
+Documentación oficial: [lakehouse en Fabric](https://learn.microsoft.com/es-es/fabric/data-engineering/lakehouse-overview) · [SQL analytics endpoint](https://learn.microsoft.com/es-es/fabric/data-engineering/lakehouse-sql-analytics-endpoint)
+:::
+
 :::ejercicio quiz
 Desde el SQL analytics endpoint de un lakehouse ejecutas `INSERT INTO pedidos VALUES (...)` y falla. ¿Por qué?
 - [ ] Porque el lakehouse no usa formato Delta

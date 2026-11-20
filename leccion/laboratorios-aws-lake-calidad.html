@@ -55,6 +55,30 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <p><strong>Total esperado: menos de USD 0,50.</strong> Nada queda cobrando por hora.</p>
 <h2>Práctica guiada</h2>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El lago del laboratorio: crear, consultar y borrar</div>
+
+<ol>
+<li>Crea el bucket, sube el archivo y cataloga con un crawler.</li>
+<li>Consulta con Athena para verificar que todo funciona.</li>
+<li>Limpia: borra el crawler, la base del catálogo y el bucket (con <code>--force</code> borra también su contenido) y verifica.</li>
+</ol>
+<pre data-norun><code class="language-bash">aws configure
+aws s3 mb s3://lake-tienda-lab
+aws s3 cp datos/clientes.csv s3://lake-tienda-lab/bronze/clientes/
+aws glue create-database --database-input '{&quot;Name&quot;: &quot;lab_bronze&quot;}'
+aws glue create-crawler --name crawler-clientes --role GlueServiceRole-datos --database-name lab_bronze --targets '{&quot;S3Targets&quot;: [{&quot;Path&quot;: &quot;s3://lake-tienda-lab/bronze/clientes/&quot;}]}'
+aws glue start-crawler --name crawler-clientes
+aws glue get-tables --database-name lab_bronze --query &quot;TableList[].Name&quot;
+aws glue delete-crawler --name crawler-clientes
+aws glue delete-database --name lab_bronze
+aws s3 rb s3://lake-tienda-lab --force
+aws s3 ls</code></pre>
+<p>Reto: agrega una regla de Glue Data Quality que exija <code>email</code> no nulo y explica dónde la pondrías en el pipeline.</p>
+<p>Documentación oficial: <a href="https://docs.aws.amazon.com/glue/latest/dg/glue-data-quality.html">Glue Data Quality</a> · <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/delete-bucket.html">borrar un bucket</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

@@ -216,6 +216,25 @@ $ uv run pytest -q
 - Las imágenes de Docker de los pipelines se construyen desde el mismo `uv.lock`: así lo que probaste es exactamente lo que corre en producción.
 :::
 
+:::practica terminal Un proyecto Python profesional con uv
+1. Crea el proyecto: `uv` arma la carpeta, el `pyproject.toml` y el entorno virtual.
+2. Agrega pandas como dependencia y ruff/pytest como dependencias de desarrollo.
+3. Corre el linter y un script dentro del entorno con `uv run`: nunca instalas nada en el Python del sistema.
+
+```bash norun
+cd ~ && uv init analisis-ventas && cd analisis-ventas
+uv add pandas
+uv add --dev ruff pytest
+cat pyproject.toml
+uv run python -c "import pandas as pd; print(pd.DataFrame({'x': [1, 2, 3]}).sum())"
+uv run ruff check .
+```
+
+Reto: escribe un test en `tests/test_suma.py` y córrelo con `uv run pytest`.
+
+Documentación oficial: [documentación de uv](https://docs.astral.sh/uv/) · [Ruff](https://docs.astral.sh/ruff/)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

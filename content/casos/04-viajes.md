@@ -149,6 +149,27 @@ moto,1839,10.2,1.26,4.34
 - Las marcas de tiempo se guardan en UTC y se convierten a la hora local de cada ciudad. Con ciudades en distintos husos horarios, un error de zona horaria mueve los picos de demanda.
 :::
 
+:::practica sql:duckdb Ruta: espera y cumplimiento por ciudad
+1. Ejecuta: minutos de espera (solicitud → inicio) de los viajes completados y porcentaje de pedidos sin conductor, por ciudad.
+2. Usa la mediana además del promedio: unas pocas esperas muy largas inflan el promedio.
+3. ¿La ciudad con más "sin conductor" es también la de más espera?
+
+```sql norun
+SELECT ciudad,
+       COUNT(*) AS pedidos,
+       ROUND(100.0 * AVG(CASE WHEN estado = 'sin_conductor' THEN 1 ELSE 0 END), 1) AS pct_sin_conductor,
+       ROUND(AVG(CASE WHEN estado = 'completado' THEN date_diff('minute', CAST(fecha_hora_solicitud AS TIMESTAMP), CAST(fecha_hora_inicio AS TIMESTAMP)) END), 1) AS espera_prom_min,
+       MEDIAN(CASE WHEN estado = 'completado' THEN date_diff('minute', CAST(fecha_hora_solicitud AS TIMESTAMP), CAST(fecha_hora_inicio AS TIMESTAMP)) END) AS espera_mediana_min
+FROM viajes_viajes
+GROUP BY ciudad
+ORDER BY pct_sin_conductor DESC;
+```
+
+Reto: repite por hora del día y encuentra la franja peor de cada ciudad.
+
+Documentación oficial: [funciones de fecha](https://duckdb.org/docs/current/sql/functions/date) · [MEDIAN](https://duckdb.org/docs/current/sql/functions/aggregates#medianx)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="Embudo de estados por ciudad"

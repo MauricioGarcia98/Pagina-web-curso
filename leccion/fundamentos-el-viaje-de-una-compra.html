@@ -106,6 +106,28 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Ahora tú: sigue la compra con SQL</h2>
 <p>Los datos de Tienda Andina están en el editor de cada ejercicio. No necesitas saber SQL todavía: cada ejercicio trae la consulta casi lista o una pista con la respuesta. Lo importante es <strong>ver</strong> que el viaje es real.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Seguir una compra de punta a punta</div>
+
+<ol>
+<li>Ejecuta: el pedido 1 aparece en cuatro tablas distintas, unidas por sus claves (<code>pedido_id</code>, <code>producto_id</code>).</li>
+<li>Lee el resultado: quién compró, qué productos, cuánto y cómo pagó.</li>
+<li>Cambia el número de pedido y sigue otra compra.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT p.pedido_id, p.fecha_pedido, p.canal, c.nombre AS cliente,
+       pr.nombre AS producto, d.cantidad, d.precio_unitario,
+       pg.monto AS pagado, pg.estado AS estado_pago
+FROM pedidos p
+JOIN clientes c         ON c.cliente_id = p.cliente_id
+JOIN detalle_pedidos d  ON d.pedido_id = p.pedido_id
+JOIN productos pr       ON pr.producto_id = d.producto_id
+LEFT JOIN pagos pg      ON pg.pedido_id = p.pedido_id
+WHERE p.pedido_id = 1;</code></pre>
+<p>Reto: encuentra un pedido sin pago (<code>pg.monto</code> vacío) y explica qué pudo pasar.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/query_syntax/from">JOIN</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

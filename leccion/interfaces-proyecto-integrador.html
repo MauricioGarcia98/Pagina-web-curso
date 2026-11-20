@@ -163,6 +163,32 @@ GROUP BY c.pais;</code></pre>
 </tr>
 </tbody></table></div>
 <p>La idea que se repite: <strong>cada herramienta deja su propio registro</strong>, y se sigue la cadena de atrás hacia adelante hasta el primer eslabón que falló.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El DAG que conecta las herramientas</div>
+
+<ol>
+<li>Ejecuta: el DAG lanza el job de Databricks, después carga en Snowflake y al final refresca el modelo de Power BI.</li>
+<li>Cada operador registra con qué parámetros llamaría a la herramienta real.</li>
+<li>Sigue los pasos de la lección para hacer cada parte en su réplica.</li>
+</ol>
+<pre data-norun><code class="language-python">from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
+from airflow.providers.snowflake.operators.snowflake import SnowflakeSqlApiOperator
+from airflow.providers.standard.operators.bash import BashOperator
+
+with DAG(dag_id=&quot;integrador&quot;, start_date=datetime(2024, 1, 1), schedule=&quot;@daily&quot;, catchup=False) as dag:
+    silver = DatabricksRunNowOperator(task_id=&quot;silver_en_databricks&quot;, databricks_conn_id=&quot;databricks_default&quot;, job_id=42)
+    carga = SnowflakeSqlApiOperator(task_id=&quot;carga_en_snowflake&quot;, snowflake_conn_id=&quot;snowflake_default&quot;, sql=&quot;COPY INTO ventas FROM @stage_silver&quot;)
+    refresco = BashOperator(task_id=&quot;refrescar_power_bi&quot;, bash_command=&quot;echo refrescando el modelo semántico&quot;)
+    silver &gt;&gt; carga &gt;&gt; refresco
+
+dag.test()</code></pre>
+<p>Reto: agrega una tarea de validación entre Databricks y Snowflake que falle si la tabla silver tiene menos filas que ayer.</p>
+<p>Documentación oficial: <a href="https://airflow.apache.org/docs/apache-airflow-providers-databricks/stable/operators/run_now.html">DatabricksRunNowOperator</a> · <a href="https://airflow.apache.org/docs/apache-airflow-providers-snowflake/stable/operators/snowflake.html">operadores de Snowflake</a></p>
+</div>
+
+
+
 <div class="exercise-slot"></div>
 
 

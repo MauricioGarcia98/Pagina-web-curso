@@ -210,6 +210,24 @@ En todo el curso usamos empresas ficticias con datos realistas. La principal es 
 - Cuando recibas un archivo nuevo, antes de procesarlo, revisa: cuántas filas tiene, qué columnas, qué separador, qué codificación, cuántos nulos y si hay duplicados. Lo vas a practicar en la terminal, en Python y en SQL.
 :::
 
+:::practica terminal El mismo dato en CSV y en Parquet
+1. Mira las primeras líneas del CSV y cuántas filas tiene.
+2. Conviértelo a Parquet con DuckDB.
+3. Compara los tamaños: Parquet guarda por columnas y comprime, por eso suele pesar mucho menos.
+
+```bash norun
+head -3 datos/ventas_2024_12.csv
+wc -l datos/ventas_2024_12.csv
+duckdb -c "COPY (SELECT * FROM 'datos/ventas_2024_12.csv') TO 'ventas.parquet' (FORMAT parquet)"
+ls -lh datos/ventas_2024_12.csv ventas.parquet
+duckdb -c "SELECT canal, COUNT(*) FROM 'ventas.parquet' GROUP BY canal"
+```
+
+Reto: con `duckdb -c "DESCRIBE SELECT * FROM 'ventas.parquet'"`, mira los tipos de cada columna: el CSV no los guarda, el Parquet sí.
+
+Documentación oficial: [Parquet en DuckDB](https://duckdb.org/docs/current/data/parquet/overview) · [Apache Parquet](https://parquet.apache.org/docs/overview/)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

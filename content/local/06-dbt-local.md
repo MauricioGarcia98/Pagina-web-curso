@@ -181,6 +181,24 @@ La terminal del curso tiene un dbt que ejecuta los modelos de verdad (sobre SQLi
 - La documentación de dbt (`dbt docs`) se publica en cada merge a main: es el catálogo que consultan los analistas.
 :::
 
+:::practica terminal Un proyecto dbt local de punta a punta
+1. Entra al proyecto dbt del curso y verifica la conexión.
+2. Construye modelos y tests con `dbt build`.
+3. Genera la documentación: en tu computadora, `dbt docs serve` la abre en el navegador con el linaje.
+
+```bash norun
+cd ~/tienda_dbt
+dbt debug
+dbt build
+dbt docs generate
+dbt ls -s marts
+```
+
+Reto: escribe el `profiles.yml` para DuckDB local (`type: duckdb`, `path: tienda.duckdb`) y explica por qué ese archivo va fuera del repositorio.
+
+Documentación oficial: [dbt con DuckDB](https://docs.getdbt.com/docs/core/connect-data-platform/duckdb-setup) · [dbt docs](https://docs.getdbt.com/reference/commands/cmd-docs)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

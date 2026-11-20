@@ -285,6 +285,28 @@ El README es lo primero que ve un reclutador. Lo mínimo:
 - En una entrevista técnica, recorrer tu propio repositorio (estructura, una decisión de diseño, una prueba y la CI) es una de las mejores formas de demostrar experiencia práctica.
 :::
 
+:::practica terminal El esqueleto del proyecto local
+1. Crea el repositorio del proyecto con su estructura de carpetas (ingesta, dbt, dags, tests).
+2. Levanta la fuente en Docker y verifica que responde.
+3. Haz el primer commit: desde acá sigues los pasos de la lección.
+
+```bash norun
+mkdir -p ~/rapido-pipeline/{ingesta,dags,tests} && cd ~/rapido-pipeline
+git init
+printf ".venv/\n*.duckdb\n.env\n" > .gitignore
+uv init --no-workspace .
+docker run -d --name fuente -e POSTGRES_PASSWORD=secreta -p 5432:5432 postgres:16
+psql -h localhost -U postgres -c "SELECT current_database(), current_user;"
+git add .
+git commit -m "estructura inicial del proyecto"
+git log --oneline
+```
+
+Reto: escribe el README con tres secciones: qué hace el pipeline, cómo levantarlo en 3 comandos y cómo correr los tests.
+
+Documentación oficial: [proyectos con uv](https://docs.astral.sh/uv/guides/projects/) · [Docker Compose](https://docs.docker.com/compose/)
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

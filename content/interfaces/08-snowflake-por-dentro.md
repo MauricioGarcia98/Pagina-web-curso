@@ -178,6 +178,23 @@ En la réplica los permisos **se cumplen**: con `analista`, una tabla de otro es
 
 El motor por debajo es DuckDB: algunas funciones muy específicas de Snowflake pueden no estar o dar mensajes de error distintos.
 
+:::practica snowflake Warehouse, worksheet y Time Travel
+1. Crea (o elige) un **warehouse** chico con suspensión automática: solo cobra mientras consulta.
+2. Abre un **worksheet**, elige base y esquema, y ejecuta la consulta de abajo.
+3. Revisa **Query History**: cuánto tardó y qué warehouse usó.
+
+```sql norun
+SELECT canal, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY canal
+ORDER BY pedidos DESC;
+```
+
+Reto: borra una tabla de prueba y recupérala con `UNDROP TABLE`; explica qué es Time Travel y cuánto tiempo guarda.
+
+Documentación oficial: [warehouses](https://docs.snowflake.com/en/user-guide/warehouses-overview) · [Time Travel](https://docs.snowflake.com/en/user-guide/data-time-travel)
+:::
+
 :::ejercicio quiz
 Ejecutas `SELECT * FROM ventas;` y Snowflake responde *No active warehouse selected in the current session*. ¿Qué haces?
 - [ ] Creo una base de datos nueva

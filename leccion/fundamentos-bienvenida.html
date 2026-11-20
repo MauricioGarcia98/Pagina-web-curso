@@ -269,6 +269,24 @@ LIMIT 5;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tu primera consulta a una base de datos</div>
+
+<ol>
+<li>Presiona <strong>Ejecutar</strong>: le pediste a la base las primeras 5 filas de la tabla de clientes.</li>
+<li>Cambia <code>5</code> por <code>10</code> y vuelve a ejecutar.</li>
+<li>La segunda consulta cuenta cuántos clientes hay por país: eso ya es una pregunta de negocio.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT * FROM clientes LIMIT 5;
+
+SELECT pais, COUNT(*) AS clientes
+FROM clientes
+GROUP BY pais
+ORDER BY clientes DESC;</code></pre>
+<p>Reto: cambia la segunda consulta para contar clientes por <code>segmento</code> en vez de por país.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/query_syntax/select">SELECT (documentación de DuckDB)</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

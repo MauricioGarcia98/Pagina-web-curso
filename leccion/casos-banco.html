@@ -185,6 +185,26 @@ ORDER BY gasto DESC;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Banco Austral: dónde ocurre el fraude</div>
+
+<ol>
+<li>Ejecuta: tasa de fraude y monto promedio por canal.</li>
+<li>Ojo con el denominador: una tasa alta con pocas transacciones puede ser ruido.</li>
+<li>Agrega cuánto dinero representa el fraude en cada canal: eso decide dónde invertir primero.</li>
+</ol>
+<pre data-norun><code class="language-sql">SELECT canal,
+       COUNT(*) AS transacciones,
+       SUM(es_fraude) AS fraudes,
+       ROUND(100.0 * SUM(es_fraude) / COUNT(*), 2) AS tasa_fraude_pct,
+       ROUND(SUM(CASE WHEN es_fraude = 1 THEN monto ELSE 0 END), 2) AS monto_fraude
+FROM banco_transacciones
+GROUP BY canal
+ORDER BY monto_fraude DESC;</code></pre>
+<p>Reto: compara el monto promedio de las transacciones con fraude contra las normales en cada canal.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/expressions/case">CASE</a> · <a href="https://duckdb.org/docs/current/sql/functions/aggregates">agregaciones</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

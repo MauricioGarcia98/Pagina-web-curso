@@ -170,6 +170,27 @@ pos,1263,321339.38,254.43
 - Los datos bancarios están muy regulados: acceso por roles, enmascaramiento de datos personales y auditoría de quién consultó qué. Lo verás en Unity Catalog, Lake Formation y BigQuery.
 :::
 
+:::practica sql Banco Austral: dónde ocurre el fraude
+1. Ejecuta: tasa de fraude y monto promedio por canal.
+2. Ojo con el denominador: una tasa alta con pocas transacciones puede ser ruido.
+3. Agrega cuánto dinero representa el fraude en cada canal: eso decide dónde invertir primero.
+
+```sql norun
+SELECT canal,
+       COUNT(*) AS transacciones,
+       SUM(es_fraude) AS fraudes,
+       ROUND(100.0 * SUM(es_fraude) / COUNT(*), 2) AS tasa_fraude_pct,
+       ROUND(SUM(CASE WHEN es_fraude = 1 THEN monto ELSE 0 END), 2) AS monto_fraude
+FROM banco_transacciones
+GROUP BY canal
+ORDER BY monto_fraude DESC;
+```
+
+Reto: compara el monto promedio de las transacciones con fraude contra las normales en cada canal.
+
+Documentación oficial: [CASE](https://duckdb.org/docs/current/sql/expressions/case) · [agregaciones](https://duckdb.org/docs/current/sql/functions/aggregates)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql titulo="Saldo de cada cuenta"

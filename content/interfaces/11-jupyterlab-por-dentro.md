@@ -150,6 +150,22 @@ El camino habitual: exploras en el notebook, y lo que funciona lo pasas a funcio
 | Magics: `%timeit`, `%%time`, `%%writefile`, `%run`, `%pwd`, `%cd`, `%who`, `!ls`, `!head`… | Widgets interactivos y otros kernels (R, Julia) |
 | Explorador de archivos, visor de CSV, editor de texto y vista previa de Markdown | Colaboración en tiempo real |
 
+:::practica jupyter Kernel, celdas y el orden de ejecución
+1. Crea un notebook y escribe la celda de abajo; ejecútala con **Shift + Enter**.
+2. Mira el número entre corchetes `[1]`: indica en qué orden corrió cada celda.
+3. Reinicia el kernel (**Kernel → Restart**) y ejecuta todo de nuevo con **Run All**: un notebook confiable corre de arriba hacia abajo sin errores.
+
+```python norun
+import pandas as pd
+ventas = pd.DataFrame({"canal": ["web", "app", "web", "tienda"], "monto": [120, 80, 45, 200]})
+ventas.groupby("canal")["monto"].sum()
+```
+
+Reto: agrega una celda Markdown con un título y una conclusión de una línea, como lo entregarías a un equipo.
+
+Documentación oficial: [notebooks en JupyterLab](https://jupyterlab.readthedocs.io/en/stable/user/notebook.html) · [la interfaz](https://jupyterlab.readthedocs.io/en/stable/user/interface.html)
+:::
+
 :::ejercicio quiz
 Una celda muestra `[*]:` a la izquierda. ¿Qué significa?
 - [ ] Que la celda tiene un error

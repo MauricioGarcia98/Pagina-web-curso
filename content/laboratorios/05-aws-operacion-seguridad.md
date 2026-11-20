@@ -41,6 +41,26 @@ flecha cw -> sns
 
 ## Práctica guiada
 
+:::practica terminal Operación: una tabla, una alerta y la limpieza
+1. Crea la tabla de control en DynamoDB y el tópico de alertas en SNS.
+2. Programa la carga nocturna con EventBridge.
+3. Limpia todo en orden inverso y verifica.
+
+```bash norun
+aws configure
+aws dynamodb create-table --table-name envios-lab --attribute-definitions AttributeName=envio_id,AttributeType=S --key-schema AttributeName=envio_id,KeyType=HASH --billing-mode PAY_PER_REQUEST
+aws sns create-topic --name alertas-datos-lab
+aws events put-rule --name carga-nocturna-lab --schedule-expression "cron(0 3 * * ? *)"
+aws events delete-rule --name carga-nocturna-lab
+aws dynamodb delete-table --table-name envios-lab
+aws dynamodb list-tables
+```
+
+Reto: escribe qué métrica de CloudWatch usarías para alertar si el job de Glue falla y a quién le llega el aviso.
+
+Documentación oficial: [crear una tabla en DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/getting-started-step-1.html) · [primeros pasos con SNS](https://docs.aws.amazon.com/sns/latest/dg/sns-getting-started.html)
+:::
+
 :::ejercicio cli
 Paso 1. Guarda la credencial de la base en el secreto `lab/rds/ventas` con el valor `{"usuario":"etl","clave":"Cambiame-123"}`.
 ```respuesta

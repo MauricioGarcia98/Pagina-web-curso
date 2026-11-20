@@ -226,6 +226,27 @@ Un volumen guarda archivos en cualquier formato, como CSV, JSON, imágenes o PDF
 
 ## Práctica
 
+:::practica databricks:sql Tu primera hora en Databricks, antes de abrir la cuenta real
+1. Practica acá lo mismo que harás en Databricks Free Edition: catálogo, esquema, tabla y consulta.
+2. Ejecuta todo y revisa la tabla en **Catalog**.
+3. Cuando abras tu cuenta real, repite estos pasos: la interfaz es la misma.
+
+```sql norun
+CREATE SCHEMA IF NOT EXISTS main.mi_primer_esquema;
+CREATE OR REPLACE TABLE main.mi_primer_esquema.ventas AS
+SELECT canal, fecha_pedido, estado FROM samples.tienda.pedidos;
+SELECT canal, COUNT(*) AS pedidos
+FROM main.mi_primer_esquema.ventas
+WHERE estado = 'entregado'
+GROUP BY ALL
+ORDER BY pedidos DESC;
+```
+
+Reto: en tu cuenta real, sube un CSV propio a un volumen y crea una tabla con `read_files`.
+
+Documentación oficial: [Databricks Free Edition](https://docs.databricks.com/aws/en/getting-started/free-edition) · [primeros pasos](https://docs.databricks.com/aws/en/getting-started/quick-start)
+:::
+
 :::ejercicio quiz dificultad=Básico
 En Free Edition, ¿qué cómputo usa tu notebook?
 

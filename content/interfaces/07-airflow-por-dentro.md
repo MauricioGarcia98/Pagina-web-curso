@@ -110,6 +110,21 @@ Todo esto también se maneja desde la terminal con `airflow variables`, `airflow
 | Assets con programación por datos | Deferrable operators y triggerer real |
 | Variables, Connections, Pools, Config, Audit Log y la CLI `airflow` | Autenticación y roles de usuario |
 
+:::practica airflow La interfaz de Airflow 3
+1. En la lista de **DAGs**, encuentra uno, actívalo y córrelo a mano (**Trigger**).
+2. Abre el DAG: mira la vista de **grafo** (dependencias) y la de **grilla** (corridas por fecha).
+3. Abre una tarea y su **log**: es lo primero que se mira cuando algo falla.
+
+```bash norun
+airflow dags list
+airflow dags list-import-errors
+```
+
+Reto: provoca un error en una tarea y encuentra en el log la línea exacta que lo explica.
+
+Documentación oficial: [la interfaz de Airflow](https://airflow.apache.org/docs/apache-airflow/stable/ui.html) · [DAG runs](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dag-run.html)
+:::
+
 :::ejercicio quiz
 Escribiste un DAG nuevo sin errores, aparece en la lista, pero nunca corre. ¿Qué revisas primero?
 - [ ] Que el archivo tenga extensión `.txt`

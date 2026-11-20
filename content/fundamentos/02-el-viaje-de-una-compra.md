@@ -175,6 +175,28 @@ Cada capa responde a una necesidad distinta. Bronze permite **reprocesar** si ma
 
 Los datos de Tienda Andina están en el editor de cada ejercicio. No necesitas saber SQL todavía: cada ejercicio trae la consulta casi lista o una pista con la respuesta. Lo importante es **ver** que el viaje es real.
 
+:::practica sql Seguir una compra de punta a punta
+1. Ejecuta: el pedido 1 aparece en cuatro tablas distintas, unidas por sus claves (`pedido_id`, `producto_id`).
+2. Lee el resultado: quién compró, qué productos, cuánto y cómo pagó.
+3. Cambia el número de pedido y sigue otra compra.
+
+```sql norun
+SELECT p.pedido_id, p.fecha_pedido, p.canal, c.nombre AS cliente,
+       pr.nombre AS producto, d.cantidad, d.precio_unitario,
+       pg.monto AS pagado, pg.estado AS estado_pago
+FROM pedidos p
+JOIN clientes c         ON c.cliente_id = p.cliente_id
+JOIN detalle_pedidos d  ON d.pedido_id = p.pedido_id
+JOIN productos pr       ON pr.producto_id = d.producto_id
+LEFT JOIN pagos pg      ON pg.pedido_id = p.pedido_id
+WHERE p.pedido_id = 1;
+```
+
+Reto: encuentra un pedido sin pago (`pg.monto` vacío) y explica qué pudo pasar.
+
+Documentación oficial: [JOIN](https://duckdb.org/docs/current/sql/query_syntax/from)
+:::
+
 :::ejercicio sql dificultad=Básico titulo="El pedido en la base de la tienda"
 Muestra todas las columnas del pedido `10729` de la tabla `pedidos`.
 ```sql inicial

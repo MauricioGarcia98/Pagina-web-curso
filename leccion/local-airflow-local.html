@@ -171,6 +171,22 @@ astro dev pytest         # con Astro CLI</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Airflow en tu máquina</div>
+
+<ol>
+<li><code>airflow standalone</code> levanta todo (base, scheduler, API y la interfaz) con un usuario admin: ideal para aprender.</li>
+<li>Lista los DAGs de tu carpeta y prueba uno sin scheduler.</li>
+<li>En un equipo se usa Astro CLI o Docker Compose para que todos corran la misma versión.</li>
+</ol>
+<pre data-norun><code class="language-bash">airflow version
+airflow standalone
+airflow dags list
+airflow dags test etl_ventas 2024-01-01</code></pre>
+<p>Reto: compara en una tabla <code>airflow standalone</code>, Astro CLI y Docker Compose: qué instala cada uno y cuándo lo usarías.</p>
+<p>Documentación oficial: <a href="https://airflow.apache.org/docs/apache-airflow/stable/start.html">Quick Start de Airflow</a> · <a href="https://www.astronomer.io/docs/astro/cli/overview">Astro CLI</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

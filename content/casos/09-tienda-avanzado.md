@@ -100,6 +100,30 @@ Si 9 clientes vuelven a los 20 días y uno a los 700, el promedio da 88 días, q
 - El análisis de canasta con millones de pedidos genera una explosión de pares. En producción se limita a los productos más vendidos o se usan algoritmos específicos en Spark.
 :::
 
+:::practica sql Tienda Andina: el crecimiento por canal, año contra año
+1. Pregunta del directorio: "¿qué canal empuja el crecimiento?". Ejecuta: ventas por canal y año, y el crecimiento con `LAG`.
+2. `LAG` mira la fila anterior **dentro de cada canal** (`PARTITION BY canal`), ordenada por año.
+3. Escribe la respuesta en una línea, con el número.
+
+```sql norun
+WITH anual AS (
+    SELECT p.canal, SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 4) AS anio,
+           SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS ventas
+    FROM pedidos p JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+    WHERE p.estado = 'entregado'
+    GROUP BY p.canal, SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 4)
+)
+SELECT canal, anio, ROUND(ventas, 2) AS ventas,
+       ROUND(100.0 * (ventas - LAG(ventas) OVER (PARTITION BY canal ORDER BY anio)) / LAG(ventas) OVER (PARTITION BY canal ORDER BY anio), 1) AS crecimiento_pct
+FROM anual
+ORDER BY canal, anio;
+```
+
+Reto: calcula qué parte del crecimiento total de 2024 aporta cada canal (en dinero, no en porcentaje).
+
+Documentación oficial: [funciones de ventana](https://duckdb.org/docs/current/sql/functions/window_functions) · [CTEs](https://duckdb.org/docs/current/sql/query_syntax/with)
+:::
+
 :::ejercicio sql titulo="Productos que se compran juntos"
 Análisis de **canasta**: pares de productos que aparecen en el **mismo pedido**. Devuelve los 10 pares más frecuentes: `producto_a`, `producto_b` (ids, con `producto_a < producto_b` para no duplicar), `pedidos_juntos`. Desempata por `producto_a` y `producto_b`.
 ```sql solucion

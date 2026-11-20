@@ -264,6 +264,27 @@ jobs:
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El esqueleto del proyecto local</div>
+
+<ol>
+<li>Crea el repositorio del proyecto con su estructura de carpetas (ingesta, dbt, dags, tests).</li>
+<li>Levanta la fuente en Docker y verifica que responde.</li>
+<li>Haz el primer commit: desde acá sigues los pasos de la lección.</li>
+</ol>
+<pre data-norun><code class="language-bash">mkdir -p ~/rapido-pipeline/{ingesta,dags,tests} &amp;&amp; cd ~/rapido-pipeline
+git init
+printf &quot;.venv/\n*.duckdb\n.env\n&quot; &gt; .gitignore
+uv init --no-workspace .
+docker run -d --name fuente -e POSTGRES_PASSWORD=secreta -p 5432:5432 postgres:16
+psql -h localhost -U postgres -c &quot;SELECT current_database(), current_user;&quot;
+git add .
+git commit -m &quot;estructura inicial del proyecto&quot;
+git log --oneline</code></pre>
+<p>Reto: escribe el README con tres secciones: qué hace el pipeline, cómo levantarlo en 3 comandos y cómo correr los tests.</p>
+<p>Documentación oficial: <a href="https://docs.astral.sh/uv/guides/projects/">proyectos con uv</a> · <a href="https://docs.docker.com/compose/">Docker Compose</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

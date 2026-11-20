@@ -307,6 +307,23 @@ ORDER BY cliente_id, fecha_carga;</code></pre>
 </div>
 
 
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El mismo dato en CSV y en Parquet</div>
+
+<ol>
+<li>Mira las primeras líneas del CSV y cuántas filas tiene.</li>
+<li>Conviértelo a Parquet con DuckDB.</li>
+<li>Compara los tamaños: Parquet guarda por columnas y comprime, por eso suele pesar mucho menos.</li>
+</ol>
+<pre data-norun><code class="language-bash">head -3 datos/ventas_2024_12.csv
+wc -l datos/ventas_2024_12.csv
+duckdb -c &quot;COPY (SELECT * FROM 'datos/ventas_2024_12.csv') TO 'ventas.parquet' (FORMAT parquet)&quot;
+ls -lh datos/ventas_2024_12.csv ventas.parquet
+duckdb -c &quot;SELECT canal, COUNT(*) FROM 'ventas.parquet' GROUP BY canal&quot;</code></pre>
+<p>Reto: con <code>duckdb -c &quot;DESCRIBE SELECT * FROM &#39;ventas.parquet&#39;&quot;</code>, mira los tipos de cada columna: el CSV no los guarda, el Parquet sí.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/data/parquet/overview">Parquet en DuckDB</a> · <a href="https://parquet.apache.org/docs/overview/">Apache Parquet</a></p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

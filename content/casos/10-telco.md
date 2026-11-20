@@ -109,6 +109,34 @@ ORDER BY pct_baja DESC;
 Defino el grano (línea, cuenta o cliente) y el período. Para cada mes: activas al inicio = altas antes del primer día del mes y sin baja antes de ese día; bajas del mes = bajas con fecha dentro del mes. Churn = bajas del mes / activas al inicio. Excluyo las altas del propio mes del denominador (o las informo aparte), y reviso casos borde: reactivaciones, bajas el mismo día del alta, y cambios de plan que el sistema registra como baja y alta.
 :::
 
+:::practica sql Conecta (telco): bajas por plan y ARPU
+1. Ejecuta: por plan, líneas, porcentaje de bajas y ARPU (facturación promedio por línea y mes).
+2. Separa la portabilidad (se fue a la competencia) de la mudanza: no se resuelven igual.
+3. ¿El plan con más bajas es el más barato o el más caro?
+
+```sql norun
+WITH arpu AS (
+    SELECT l.plan_id, AVG(c.monto_facturado) AS arpu
+    FROM telco_consumos c JOIN telco_lineas l ON l.linea_id = c.linea_id
+    GROUP BY l.plan_id
+)
+SELECT pl.nombre AS plan, pl.precio_mensual,
+       COUNT(*) AS lineas,
+       ROUND(100.0 * AVG(CASE WHEN l.fecha_baja IS NOT NULL THEN 1 ELSE 0 END), 1) AS pct_bajas,
+       SUM(CASE WHEN l.motivo_baja = 'portabilidad' THEN 1 ELSE 0 END) AS a_la_competencia,
+       ROUND(a.arpu, 2) AS arpu
+FROM telco_lineas l
+JOIN telco_planes pl ON pl.plan_id = l.plan_id
+JOIN arpu a ON a.plan_id = l.plan_id
+GROUP BY pl.nombre, pl.precio_mensual, a.arpu
+ORDER BY pct_bajas DESC;
+```
+
+Reto: ¿las líneas con reclamos sin resolver se dan de baja más? Une con `telco_reclamos` y compara.
+
+Documentación oficial: [CASE](https://duckdb.org/docs/current/sql/expressions/case) · [CTEs](https://duckdb.org/docs/current/sql/query_syntax/with)
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="Churn por plan"

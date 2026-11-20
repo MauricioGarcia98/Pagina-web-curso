@@ -131,6 +131,20 @@ Se paga por **ejecuciones de actividades de orquestación**, por **horas de DIU*
 | Parámetros, variables y expresiones con los errores de ADF; Debug, Publish all, Trigger now, triggers de programación (disparo simulado) | Triggers que se disparan solos a su hora, tumbling window, eventos |
 | Exportar ARM template y la estructura del repositorio Git | Integración con Git en vivo, parámetros globales, alertas |
 
+:::practica adf Los cuatro conceptos de Data Factory en el Studio
+1. En **Manage**, mira los *linked services*: son las conexiones (dónde están los datos).
+2. En **Author**, mira los *datasets* (qué datos) y los *pipelines* (qué hacer con ellos).
+3. Abre un pipeline, ejecútalo con **Debug** y revisa su salida en **Monitor**.
+
+```text norun
+@concat('bronze/ventas/', formatDateTime(utcnow(), 'yyyy/MM/dd'))
+```
+
+Reto: explica la diferencia entre *Debug* (prueba con tu sesión) y un *trigger* (corre solo, a horario o por evento).
+
+Documentación oficial: [qué es Data Factory](https://learn.microsoft.com/es-es/azure/data-factory/introduction) · [pipelines y actividades](https://learn.microsoft.com/es-es/azure/data-factory/concepts-pipelines-activities)
+:::
+
 :::ejercicio quiz
 ¿Qué guarda un **linked service**?
 - [ ] La lista de archivos a copiar

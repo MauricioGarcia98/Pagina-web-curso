@@ -42,6 +42,30 @@ flecha cat -> dq
 
 ## Práctica guiada
 
+:::practica terminal El lago del laboratorio: crear, consultar y borrar
+1. Crea el bucket, sube el archivo y cataloga con un crawler.
+2. Consulta con Athena para verificar que todo funciona.
+3. Limpia: borra el crawler, la base del catálogo y el bucket (con `--force` borra también su contenido) y verifica.
+
+```bash norun
+aws configure
+aws s3 mb s3://lake-tienda-lab
+aws s3 cp datos/clientes.csv s3://lake-tienda-lab/bronze/clientes/
+aws glue create-database --database-input '{"Name": "lab_bronze"}'
+aws glue create-crawler --name crawler-clientes --role GlueServiceRole-datos --database-name lab_bronze --targets '{"S3Targets": [{"Path": "s3://lake-tienda-lab/bronze/clientes/"}]}'
+aws glue start-crawler --name crawler-clientes
+aws glue get-tables --database-name lab_bronze --query "TableList[].Name"
+aws glue delete-crawler --name crawler-clientes
+aws glue delete-database --name lab_bronze
+aws s3 rb s3://lake-tienda-lab --force
+aws s3 ls
+```
+
+Reto: agrega una regla de Glue Data Quality que exija `email` no nulo y explica dónde la pondrías en el pipeline.
+
+Documentación oficial: [Glue Data Quality](https://docs.aws.amazon.com/glue/latest/dg/glue-data-quality.html) · [borrar un bucket](https://docs.aws.amazon.com/AmazonS3/latest/userguide/delete-bucket.html)
+:::
+
 :::ejercicio cli
 Paso 1. Crea el bucket `lake-tienda-lab`.
 ```respuesta
