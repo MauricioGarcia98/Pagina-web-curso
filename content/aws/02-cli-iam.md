@@ -3,6 +3,8 @@ titulo: AWS CLI e IAM, quién puede hacer qué
 nivel: Básico
 duracion: 35
 resumen: Instalar y configurar la AWS CLI, perfiles y SSO, --region, --output y --query (JMESPath), y los fundamentos de IAM, usuarios, roles, políticas y mínimo privilegio.
+objetivos: Configurar la AWS CLI con perfiles y región | Filtrar salidas con --query | Explicar IAM: usuarios, roles, políticas y mínimo privilegio
+autoevaluacion: ¿Qué diferencia hay entre un usuario y un rol de IAM? | ¿Qué significa mínimo privilegio?
 ---
 
 ## La AWS CLI: AWS desde la terminal

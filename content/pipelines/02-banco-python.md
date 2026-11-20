@@ -3,6 +3,8 @@ titulo: "Banco 🏦: reglas financieras en Python"
 nivel: Avanzado
 duracion: 50
 resumen: Cuota francesa y tabla de amortización, tramos de mora y provisiones, reglas de aprobación de crédito y conciliación de transacciones, programadas y probadas en Python.
+objetivos: Calcular una cuota francesa y su tabla de amortización | Programar tramos de mora, provisiones y reglas de aprobación | Conciliar transacciones y probar cada regla
+autoevaluacion: ¿Cómo verificas que una tabla de amortización es correcta? | ¿Qué casos borde pruebas en una regla de aprobación de crédito?
 ---
 
 **Banco Andino** (el caso 🏦 del módulo de SQL) necesita su lógica financiera en código: el área de riesgo quiere poder auditar cada regla. Recordemos el modelo:

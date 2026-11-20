@@ -3,6 +3,8 @@ titulo: Arquitectura de Spark
 nivel: Básico
 duracion: 40
 resumen: Driver, executors, cluster manager, particiones, jobs, stages y tasks.
+objetivos: Nombrar las piezas de Spark (driver, executors, cluster manager) y qué hace cada una | Explicar qué es una partición y por qué define el paralelismo | Seguir cómo una acción se divide en jobs, stages y tasks
+autoevaluacion: ¿Qué hace el driver y qué hacen los executors? | ¿Qué separa un stage del siguiente?
 ---
 
 En la lección anterior viste la idea: repartir el trabajo entre muchas máquinas. Ahora vamos a ver **quién hace qué** dentro de un clúster de Spark. Entender estas piezas es lo que te va a permitir leer la Spark UI, entender un error de memoria y saber por qué un job tarda 2 minutos o 2 horas.

@@ -2,7 +2,7 @@
 titulo: Proyecto 1 (guiado paso a paso) - tu repositorio de portafolio de datos
 nivel: 1 · Básico
 duracion: 45
-resumen: Primer proyecto real. Creas el repositorio que va a reunir tus proyectos de datos - el que vas a mostrar en entrevistas - con un README que presenta quién sos, qué sabés hacer y qué proyectos hay, una licencia y un .gitignore, y lo actualizas desde el navegador con commits claros. Paso a paso con capturas, y la versión para hacerlo en GitHub real.
+resumen: Primer proyecto real. Creas el repositorio que va a reunir tus proyectos de datos - el que vas a mostrar en entrevistas - con un README que presenta quién eres, qué sabes hacer y qué proyectos hay, una licencia y un .gitignore, y lo actualizas desde el navegador con commits claros. Paso a paso con capturas, y la versión para hacerlo en GitHub real.
 objetivos: Crear un repositorio público para portafolio con las opciones correctas | Escribir un README que presente tu perfil y tus proyectos | Actualizar el repositorio con commits desde la web | Revisar el resultado con una lista de control
 prerrequisitos: github-crear-y-editar-en-la-web
 autoevaluacion: ¿Sabes qué va en el README de un portafolio? | ¿Sabes crear el repositorio con README, licencia y .gitignore? | ¿Sabes hacer commits con mensajes claros desde la web? | ¿Sabes revisar que no haya datos personales?
@@ -97,7 +97,7 @@ Vuelve a editar el README y agrega una fila a la tabla de proyectos (por ejemplo
 :::ejercicio quiz
 ¿Qué debería tener el README de un portafolio?
 - [ ] El código de todos los proyectos
-- [x] Quién sos, qué herramientas manejás y una lista de proyectos con enlaces
+- [x] Quién eres, qué herramientas manejas y una lista de proyectos con enlaces
 - [ ] Solo el título
 - [ ] Tu dirección y tu teléfono
 :::

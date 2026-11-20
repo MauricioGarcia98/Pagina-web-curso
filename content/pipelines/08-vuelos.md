@@ -3,6 +3,8 @@ titulo: "Aerolínea ✈️: sobreventa, propagación de demoras y tareas generad
 nivel: Experto
 duracion: 65
 resumen: Cuántos pasajes vender por encima de la capacidad (probabilidad binomial) y cómo se propaga una demora en Python, las peores rutas de cada mes en PySpark, la ocupación por ruta en dbt y un DAG con una tarea por aeropuerto generada en un bucle.
+objetivos: Calcular la sobreventa con probabilidad binomial | Modelar cómo se propaga una demora | Generar tareas por código en un DAG con un bucle o expand()
+autoevaluacion: ¿Qué riesgo se equilibra al decidir la sobreventa? | ¿Qué diferencia hay entre generar tareas con un bucle y con expand()?
 ---
 
 En **Cóndor Air** (caso ✈️) cada asiento vacío al despegar es dinero perdido, y cada demora de la mañana arrastra a todos los vuelos del día. Esta lección programa dos decisiones clave de una aerolínea y arma el pipeline de operaciones.

@@ -3,6 +3,8 @@ titulo: Orquestación, gobierno y arquitectura de referencia
 nivel: Experto
 duracion: 55
 resumen: Step Functions, MWAA (Airflow administrado) y EventBridge; Lake Formation para permisos finos; infraestructura como código; y una arquitectura completa de punta a punta para el caso del banco.
+objetivos: Orquestar con Step Functions, MWAA y EventBridge | Dar permisos finos con Lake Formation | Leer una arquitectura de referencia completa en AWS
+autoevaluacion: ¿Cuándo usarías Step Functions en vez de Airflow? | ¿Qué agrega Lake Formation sobre IAM?
 ---
 
 ## Orquestar: quién decide qué corre y cuándo

@@ -3,6 +3,8 @@ titulo: Programación: schedule, start_date, catchup e intervalos
 nivel: Intermedio
 duracion: 50
 resumen: Desde cero - start_date, schedule y catchup; expresiones cron y zona horaria; cómo calcula Airflow 3 la fecha lógica (y cómo lo hacía Airflow 2); procesar el día anterior; catchup, backfill y default_args.
+objetivos: Configurar start_date, schedule y catchup | Explicar cómo calcula Airflow la fecha lógica de una ejecución | Procesar el día anterior y hacer un backfill
+autoevaluacion: Un DAG diario con start_date de hace 5 días y catchup=True, ¿cuántas ejecuciones crea? | ¿Qué fecha usas para procesar los datos del día anterior?
 ---
 
 :::analogia En palabras simples

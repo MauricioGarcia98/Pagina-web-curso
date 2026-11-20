@@ -16,7 +16,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <main><div class="migas"><a href="index.html#pyspark">🔥 PySpark</a> · Intermedio · 40 min</div>
 <h1>Leer y escribir datos</h1><p class="resumen">spark.read y df.write: formatos, opciones, esquemas explícitos, modos de escritura y particionado.</p>
 <a class="cta" href="../index.html#/l/pyspark-leer-escribir">▶ Abrir la lección interactiva (3 ejercicios)</a>
-
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer CSV, JSON y Parquet con opciones y esquema explícito</li><li>Escribir con el modo correcto (overwrite, append, error)</li><li>Particionar la escritura en disco</li></ul>
 <h2>De dónde vienen y adónde van los datos</h2>
 <p>Un pipeline siempre empieza <strong>leyendo</strong> (archivos que llegaron al lago, una tabla bronze, una base de datos) y termina <strong>escribiendo</strong> (una tabla silver o gold, archivos para otro equipo). En Spark ambas cosas tienen una API simétrica:</p>
 <pre><code class="language-text">spark.read  .format(…).option(…).schema(…).load(ruta)     → DataFrame

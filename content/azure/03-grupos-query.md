@@ -3,6 +3,8 @@ titulo: Grupos de recursos, formatos de salida y --query
 nivel: Intermedio
 duracion: 40
 resumen: Crear y listar recursos, --output (json, table, tsv), consultas JMESPath con --query y uso en scripts.
+objetivos: Crear y listar grupos de recursos | Elegir el formato de salida (json, table, tsv) | Filtrar resultados con --query y usarlos en scripts
+autoevaluacion: ¿Qué formato de salida usas para guardar un valor en una variable? | ¿Qué devuelve --query "[].name"?
 ---
 
 :::tip Practícalo en el navegador

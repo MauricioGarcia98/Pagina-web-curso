@@ -3,6 +3,8 @@ titulo: Práctica autocorregida — Databricks SQL y pipelines
 nivel: Intermedio
 duracion: 60
 resumen: 15 ejercicios que se corrigen solos sobre Delta Lake, MERGE, time travel, COPY INTO, QUALIFY, expectativas y AUTO CDC (SCD tipo 1 y 2).
+objetivos: Crear, cargar y modificar tablas Delta | Resolver upserts con MERGE y filtros con QUALIFY | Aplicar restricciones de calidad y AUTO CDC (SCD tipo 1 y 2)
+autoevaluacion: ¿Qué hace QUALIFY que WHERE no puede? | ¿Qué diferencia hay entre SCD tipo 1 y tipo 2?
 ---
 
 :::tip Cómo funcionan estos ejercicios

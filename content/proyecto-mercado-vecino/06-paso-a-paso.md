@@ -8,7 +8,7 @@ prerrequisitos: proyecto-mercado-vecino-el-dia-a-dia
 autoevaluacion: ¿Sabes para qué sirve _lsn en el MERGE? | ¿Sabes por qué se aceptan dos secretos de webhook durante la rotación? | ¿Sabes por qué la conciliación excluye el día de hoy?
 ---
 
-:::cuidado Intentalo primero
+:::cuidado Inténtalo primero
 Esta es **una** solución. Si ya resolviste el proyecto, compara: ¿qué hace tu versión si el mismo cambio de CDC llega dos veces, o llega uno viejo después de uno nuevo?
 :::
 

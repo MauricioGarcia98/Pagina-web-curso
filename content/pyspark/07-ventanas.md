@@ -3,6 +3,8 @@ titulo: Funciones de ventana en PySpark
 nivel: Avanzado
 duracion: 45
 resumen: Window.partitionBy().orderBy(), rankings, lag/lead, acumulados y marcos.
+objetivos: Definir una ventana con partitionBy y orderBy | Calcular rankings y el top N por grupo | Comparar con la fila anterior y calcular acumulados
+autoevaluacion: ¿Qué diferencia hay entre rank y row_number? | ¿Cómo calculas la variación respecto del día anterior?
 ---
 
 :::analogia En palabras simples

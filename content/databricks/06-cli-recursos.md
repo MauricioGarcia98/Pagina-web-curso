@@ -3,6 +3,8 @@ titulo: "Databricks CLI: workspace, archivos, clusters, jobs y secretos"
 nivel: Avanzado
 duracion: 35
 resumen: Los comandos que usarás a diario para operar un workspace desde la terminal.
+objetivos: Manejar notebooks y carpetas del workspace desde la terminal | Operar clusters, jobs y secretos con la CLI | Consultar Unity Catalog y SQL desde la CLI
+autoevaluacion: ¿Qué comando lista los jobs del workspace? | ¿Cómo creas un scope de secretos desde la CLI?
 ---
 
 :::tip Practícalo en el navegador

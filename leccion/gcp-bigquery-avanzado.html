@@ -16,7 +16,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <main><div class="migas"><a href="index.html#gcp">🔷 Google Cloud para Data Engineers</a> · Avanzado · 50 min</div>
 <h1>BigQuery avanzado, particiones, clustering, anidados y MERGE</h1><p class="resumen">Tablas particionadas y clusterizadas, cómo leen menos datos; STRUCT, ARRAY y UNNEST; vistas materializadas; MERGE para upserts; control de costos y buenas prácticas.</p>
 <a class="cta" href="../index.html#/l/gcp-bigquery-avanzado">▶ Abrir la lección interactiva (9 ejercicios)</a>
-
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Particionar y clusterizar tablas para leer menos datos</li><li>Consultar datos anidados con STRUCT, ARRAY y UNNEST</li><li>Hacer upserts con MERGE</li></ul>
 <h2>Particionar: cortar la tabla en trozos por fecha</h2>
 <p>Una tabla <strong>particionada</strong> se divide internamente, por ejemplo una partición por día. Si filtras por la columna de partición, BigQuery <strong>solo lee esas particiones</strong> (y solo te cobra esas).</p>
 <pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE tienda_silver.pedidos

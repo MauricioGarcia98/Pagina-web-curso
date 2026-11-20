@@ -3,6 +3,8 @@ titulo: Funciones: texto, fechas, condiciones y nulos
 nivel: Intermedio
 duracion: 45
 resumen: El módulo pyspark.sql.functions: strings, fechas, when/otherwise, coalesce y manejo de NULL.
+objetivos: Usar las funciones de texto y de fechas de pyspark.sql.functions | Escribir condiciones con when y otherwise | Manejar nulos con coalesce, isNull y fillna
+autoevaluacion: ¿Qué devuelve when(...) si ninguna condición se cumple y no hay otherwise? | ¿Cómo reemplazas un NULL por 0 en una columna?
 ---
 
 ## Las funciones de Spark

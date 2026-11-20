@@ -16,7 +16,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <main><div class="migas"><a href="index.html#pipelines">🧠 Casos de negocio de punta a punta</a> · Avanzado · 60 min</div>
 <h1>Banco 🏦: el pipeline en PySpark, dbt y Airflow</h1><p class="resumen">La cartera en mora con PySpark, el perfil de gasto de cada cliente, un modelo dbt de mora por segmento y el DAG de cierre diario con una rama de calidad.</p>
 <a class="cta" href="../index.html#/l/pipelines-banco-pipeline">▶ Abrir la lección interactiva (6 ejercicios)</a>
-
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular la cartera en mora y el perfil de gasto con PySpark</li><li>Modelar la mora por segmento en dbt</li><li>Orquestar el cierre diario con una rama de calidad en Airflow</li></ul>
 <p>En la lección anterior programaste las <strong>reglas</strong> del banco en Python (cuota francesa, tramos de mora, conciliación). Ahora esas reglas pasan a formar parte de un <strong>pipeline</strong> que corre todas las noches. Este es el diseño:</p>
 <pre><code class="language-text">                 ┌──────────────────────── Airflow: banco_cierre_diario (todos los días 03:00) ────────────────────────┐
  banco_cuotas ───┤ 1. calidad: ¿llegaron datos?  ──no──▶ avisar_sin_datos                                          │

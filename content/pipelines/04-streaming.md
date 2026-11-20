@@ -3,6 +3,8 @@ titulo: "Streaming 🎧: lógica, features de churn, rankings y orquestación"
 nivel: Avanzado
 duracion: 60
 resumen: El plan más barato para un hogar, la tasa de churn mensual en Python, features de comportamiento por usuario en PySpark, el género más escuchado por país en dbt y un DAG semanal con TaskGroups.
+objetivos: Programar el cálculo del plan más barato y la tasa de churn | Calcular features de comportamiento por usuario en PySpark | Organizar un DAG semanal con TaskGroups
+autoevaluacion: ¿Cómo defines la tasa de churn mensual? | ¿Para qué sirven los TaskGroups?
 ---
 
 **Ritmo**, la app de música del caso 🎧, quiere dos cosas: **vender mejor** (recomendar el plan correcto a cada hogar) y **perder menos suscriptores** (detectar a tiempo a quien está por irse). Esta lección arma las piezas de ese proyecto con cada herramienta.

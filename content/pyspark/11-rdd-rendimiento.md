@@ -3,6 +3,8 @@ titulo: RDDs y rendimiento en la práctica
 nivel: Experto
 duracion: 30
 resumen: La API de bajo nivel, explain(), particiones, caché, broadcast y antipatrones en PySpark.
+objetivos: Reconocer cuándo aparece la API de RDD | Leer un plan de ejecución con explain() | Evitar los antipatrones más comunes de PySpark
+autoevaluacion: ¿Qué buscas en un explain() para saber si hay shuffle? | ¿Por qué collect() sobre una tabla grande es un antipatrón?
 ---
 
 :::analogia En palabras simples

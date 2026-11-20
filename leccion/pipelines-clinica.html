@@ -16,7 +16,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <main><div class="migas"><a href="index.html#pipelines">🧠 Casos de negocio de punta a punta</a> · Avanzado · 60 min</div>
 <h1>Clínica 🏥: agenda, riesgo de ausencia, pacientes reincidentes y recordatorios</h1><p class="resumen">Turnos libres de una agenda y un puntaje de riesgo de ausencia en Python, pacientes reincidentes en PySpark, la facturación mensual por cobertura en dbt y un DAG de recordatorios con ShortCircuitOperator.</p>
 <a class="cta" href="../index.html#/l/pipelines-clinica">▶ Abrir la lección interactiva (5 ejercicios)</a>
-
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular turnos libres y un puntaje de riesgo de ausencia</li><li>Encontrar pacientes reincidentes en PySpark</li><li>Cortar un DAG a tiempo con ShortCircuitOperator</li></ul>
 <p>En <strong>Clínica del Sur</strong> (caso 🏥) el problema número uno es el <strong>ausentismo</strong>: turnos reservados a los que el paciente no viene. La estrategia del equipo: (1) mostrar bien los turnos libres para reasignar rápido, (2) estimar qué turnos tienen <strong>riesgo</strong> de ausencia, (3) identificar a los pacientes reincidentes, y (4) enviar <strong>recordatorios</strong> el día anterior.</p>
 <h2>1. Python: los turnos libres de una agenda</h2>
 <p>Un médico atiende de 08:00 a 12:00 en turnos de 20 minutos. Algunos turnos ya están tomados, y a veces hay bloqueos de distinta duración (una reunión de 08:30 a 09:10). El sistema de reservas tiene que mostrar los turnos <strong>libres</strong>: los que caben <strong>completos</strong> sin solaparse con nada ocupado.</p>

@@ -3,6 +3,8 @@ titulo: Snapshots, comandos, selección y CI/CD
 nivel: Experto
 duracion: 50
 resumen: Por qué las tablas de origen "olvidan", SCD2 con snapshots (YAML de dbt 1.9 y sintaxis clásica, estrategias timestamp y check, borrados), cómo consultar la historia, comandos, selección de nodos, state:modified y dbt en producción.
+objetivos: Guardar la historia de una tabla con snapshots (SCD tipo 2) | Elegir entre las estrategias timestamp y check | Seleccionar nodos y correr solo lo modificado en CI
+autoevaluacion: ¿Qué columnas agrega dbt a una tabla de snapshot? | ¿Qué hace state:modified en un pipeline de CI?
 ---
 
 :::analogia En palabras simples

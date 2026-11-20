@@ -3,6 +3,8 @@ titulo: ¿Qué es Databricks? Recorrido por la plataforma
 nivel: Básico
 duracion: 25
 resumen: Workspace, cómputo (clusters, SQL warehouses, serverless), Unity Catalog, notebooks, jobs y costos (DBUs).
+objetivos: Explicar qué problema resolvió el lakehouse | Recorrer las piezas de un workspace | Elegir el tipo de cómputo y entender los DBUs
+autoevaluacion: ¿Qué diferencia hay entre un cluster y un SQL warehouse? | ¿Qué es un DBU?
 ---
 
 :::tip Practícalo en el navegador

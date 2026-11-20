@@ -3,6 +3,8 @@ titulo: Particiones, shuffle, joins y skew
 nivel: Avanzado
 duracion: 45
 resumen: Cómo Spark mueve datos, estrategias de join, data skew y Adaptive Query Execution.
+objetivos: Elegir entre repartition y coalesce | Reconocer las estrategias de join de Spark y cuándo conviene un broadcast | Detectar y mitigar el data skew, y entender qué hace AQE
+autoevaluacion: ¿Por qué un broadcast join evita el shuffle? | ¿Cómo se ve el skew en la Spark UI?
 ---
 
 Ya sabes que el **shuffle** (mover datos entre máquinas) es lo más caro de un job. Esta lección es sobre cómo controlarlo: cuántas particiones tener, cómo hace Spark un join entre dos tablas repartidas en cien máquinas y qué hacer cuando unos pocos valores concentran casi todos los datos (**skew**). Es el tema más preguntado en entrevistas de Spark.

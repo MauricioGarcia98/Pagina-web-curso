@@ -3,6 +3,8 @@ titulo: Proyecto: pipeline bronze → silver → gold
 nivel: Avanzado
 duracion: 45
 resumen: Un pipeline completo en PySpark con funciones reutilizables, idempotente y probado.
+objetivos: Armar un pipeline bronze → silver → gold con funciones de DataFrame a DataFrame | Hacer el pipeline idempotente | Probar una transformación con un test
+autoevaluacion: ¿Qué significa que un pipeline sea idempotente? | ¿Por qué conviene que cada transformación sea una función pura?
 ---
 
 Vamos a construir, paso a paso, un pipeline como los que se hacen en Databricks. Ejecuta cada bloque con **▶ Probar**.

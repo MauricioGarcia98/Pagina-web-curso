@@ -8,7 +8,7 @@ prerrequisitos: proyecto-almacenes-sol-el-dia-a-dia
 autoevaluacion: ¿Sabes qué hace LAG en la dimensión? | ¿Sabes por qué la unión con la dimensión usa un rango de fechas? | ¿Sabes por qué SELECT DISTINCT resuelve el reenvío de Villa Sol?
 ---
 
-:::cuidado Intentalo primero
+:::cuidado Inténtalo primero
 Esta es **una** solución, no la única. Si ya resolviste el proyecto, compárala con la tuya: ¿qué pasa en cada una si un día no se saca la foto?
 :::
 

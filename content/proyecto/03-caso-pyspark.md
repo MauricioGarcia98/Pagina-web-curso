@@ -3,6 +3,8 @@ titulo: "Caso práctico II: el pipeline en PySpark"
 nivel: Experto
 duracion: 60
 resumen: Construye las capas silver y gold del proyecto con PySpark.
+objetivos: Diseñar las capas silver y gold antes de programar | Construir el pipeline en PySpark | Validar la salida de cada capa
+autoevaluacion: ¿Qué decides en el diseño antes de escribir código? | ¿Qué pruebas harías sobre la capa gold?
 ---
 
 Ahora construimos las tablas que alimentan el tablero. Cada ejercicio es una pieza del pipeline; en Databricks, cada una sería una tarea de un job.

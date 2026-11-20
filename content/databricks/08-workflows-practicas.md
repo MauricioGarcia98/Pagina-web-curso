@@ -3,6 +3,8 @@ titulo: Workflows (Jobs), monitoreo y buenas prácticas
 nivel: Experto
 duracion: 45
 resumen: Jobs multi-tarea, parámetros, reintentos, alertas, costos y la checklist de un lakehouse bien hecho.
+objetivos: Armar un job multitarea con parámetros y reintentos | Configurar alertas y monitorear costos | Aplicar la checklist de un lakehouse profesional
+autoevaluacion: ¿Cuándo usarías Lakeflow Jobs y cuándo Airflow? | ¿Qué alerta configurarías primero en un job de producción?
 ---
 
 :::tip Practícalo en el navegador

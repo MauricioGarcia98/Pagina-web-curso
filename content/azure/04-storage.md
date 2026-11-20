@@ -3,6 +3,8 @@ titulo: Almacenamiento: Storage Accounts y ADLS Gen2
 nivel: Intermedio
 duracion: 40
 resumen: Crear el data lake, contenedores, subir y listar archivos, autenticación con --auth-mode login y rutas abfss://.
+objetivos: Crear una cuenta de almacenamiento con espacio de nombres jerárquico (ADLS Gen2) | Subir, listar y descargar archivos | Autenticarte con tu identidad y armar rutas abfss://
+autoevaluacion: ¿Qué agrega --hns true a una cuenta de almacenamiento? | ¿Qué partes tiene una ruta abfss://?
 ---
 
 :::tip Practícalo en el navegador

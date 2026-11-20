@@ -8,7 +8,7 @@ prerrequisitos: proyecto-cuentas-claras-el-dia-a-dia
 autoevaluacion: ¿Sabes por qué el MRR de un mes pasado no sale de /v1/subscriptions? | ¿Sabes qué empresa del CRM se elige cuando hay duplicados? | ¿Sabes qué hace el reverse ETL con un 429?
 ---
 
-:::cuidado Intentalo primero
+:::cuidado Inténtalo primero
 Esta es **una** solución. Si ya resolviste el proyecto, compara: ¿tu reverse ETL sigue funcionando después de que Ventas fusiona los duplicados?
 :::
 

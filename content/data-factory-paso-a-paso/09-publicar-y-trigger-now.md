@@ -36,7 +36,7 @@ archivo: adf/b09-trigger-sin-publicar.webp
 texto: Trigger now ejecuta la versión publicada, y este pipeline todavía no se publicó
 ```
 
-Es justamente la protección que querés: nada se ejecuta "de verdad" sin haberse publicado. Para probar sin publicar existe Debug.
+Es justamente la protección que quieres: nada se ejecuta "de verdad" sin haberse publicado. Para probar sin publicar existe Debug.
 
 ## Paso 3 — Publish all
 

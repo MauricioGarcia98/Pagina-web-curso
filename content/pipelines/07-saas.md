@@ -3,6 +3,8 @@ titulo: "SaaS ☁️: prorrateos, movimientos de MRR, facturación incremental y
 nivel: Experto
 duracion: 65
 resumen: El prorrateo de un cambio de plan y los movimientos de MRR en Python, la conciliación de movimientos en PySpark, un modelo incremental de facturación en dbt y el DAG de cierre de mes.
+objetivos: Calcular el prorrateo de un cambio de plan | Descomponer el MRR en movimientos | Facturar con un modelo incremental de dbt y orquestar el cierre de mes
+autoevaluacion: ¿Qué movimientos componen el cambio del MRR de un mes? | ¿Qué ventaja tiene un modelo incremental?
 ---
 
 En **Nube Pyme** (caso ☁️) las métricas de suscripción se presentan al directorio y a los inversores cada mes. No pueden tener errores. Esta lección construye las piezas del **cierre mensual**: la lógica de facturación de los cambios de plan, la descomposición del MRR en movimientos, la tabla de facturas cargada de forma incremental, y el DAG que lo orquesta.

@@ -98,7 +98,7 @@ En Databricks, el modelo queda en Unity Catalog; el job horario carga la versió
 :::errores
 - **Mezclar datos de entrenamiento y prueba en el tiempo**: con series de sensores, la prueba tiene que ser posterior al entrenamiento.
 - **No registrar el experimento en MLflow**: después no sabes qué parámetros dieron el mejor modelo.
-- **Features calculadas con datos del futuro** (la ventana incluye la falla que querés predecir).
+- **Features calculadas con datos del futuro** (la ventana incluye la falla que quieres predecir).
 - **Medir solo la exactitud** cuando las fallas son raras: un modelo que nunca predice falla tiene 99 % de exactitud.
 :::
 

@@ -3,6 +3,8 @@ titulo: Declarative Automation Bundles (antes Asset Bundles) y CI/CD
 nivel: Experto
 duracion: 40
 resumen: Proyectos como código con databricks.yml, targets dev/prod, validate/deploy/run y despliegue con GitHub Actions.
+objetivos: Definir un proyecto como código con databricks.yml | Separar los entornos dev y prod con targets | Validar, desplegar y correr un bundle desde CI
+autoevaluacion: ¿Qué problema resuelve un bundle? | ¿Qué hace databricks bundle deploy -t prod?
 ---
 
 :::tip Practícalo en el navegador

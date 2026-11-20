@@ -3,6 +3,8 @@ titulo: Orquestación y el concepto de DAG
 nivel: Básico
 duracion: 35
 resumen: Qué problema resuelve un orquestador, qué es un DAG, el vocabulario básico, los componentes de Airflow 3 (Dag processor, scheduler, executor, API server, base de metadatos) y qué cambió respecto de Airflow 2.
+objetivos: Explicar qué problema resuelve un orquestador y por qué no alcanza con cron | Definir un DAG y su vocabulario básico | Nombrar los componentes de Airflow 3 y qué cambió respecto de Airflow 2
+autoevaluacion: ¿Qué significa que un DAG sea acíclico? | ¿Qué hace el scheduler y qué hace el executor?
 ---
 
 Imagina un pipeline diario: a las 2:00 descargar ventas, a las 2:30 limpiarlas con Spark, después correr `dbt build`, y si todo salió bien, actualizar el tablero y avisar por Slack. ¿Qué pasa si la descarga falla? ¿Y si tarda más de lo normal? ¿Cómo reprocesas el martes pasado?

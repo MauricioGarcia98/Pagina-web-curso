@@ -3,6 +3,8 @@ titulo: Entrevistas, diseño de sistemas y tu plan de carrera
 nivel: Experto
 duracion: 40
 resumen: Cómo son las entrevistas de Data Engineer, preguntas de diseño, checklist de conocimientos y cómo seguir creciendo.
+objetivos: Describir las etapas de un proceso de selección de Data Engineer | Responder preguntas de diseño de sistemas con una estructura | Armar tu plan para seguir creciendo después del curso
+autoevaluacion: ¿Qué esperan escuchar en una pregunta de diseño? | ¿Qué te falta de la checklist de Junior?
 ---
 
 ## Cómo es un proceso de selección típico

@@ -3,6 +3,8 @@ titulo: Redshift y EMR, warehouse y Spark a gran escala
 nivel: Avanzado
 duracion: 45
 resumen: Redshift (columnar, MPP, distribución y orden, COPY desde S3, Spectrum, Serverless, Data API) y EMR (clusters, steps, spot, EMR Serverless). Cuándo elegir cada uno.
+objetivos: Explicar cómo funciona Redshift (columnar, MPP, distribución y orden) | Cargar datos desde S3 con COPY | Decidir entre Redshift y EMR para un caso
+autoevaluacion: ¿Para qué sirve la clave de distribución en Redshift? | ¿Cuándo conviene EMR Serverless?
 ---
 
 ## Redshift: el data warehouse de AWS

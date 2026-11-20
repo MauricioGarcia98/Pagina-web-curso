@@ -3,6 +3,8 @@ titulo: Instalación y estructura de un proyecto
 nivel: Básico
 duracion: 40
 resumen: Desde cero - terminal, Python, entorno virtual y adaptador; instalar dbt, dbt init y dbt debug, la estructura de carpetas, las tres capas, dbt_project.yml, profiles.yml y cómo se arma el nombre del esquema.
+objetivos: Instalar dbt Core en un entorno virtual con su adaptador | Crear un proyecto y entender su estructura de carpetas | Configurar dbt_project.yml y profiles.yml (y por qué este último no va al repositorio)
+autoevaluacion: ¿Para qué sirve dbt debug? | ¿Qué nombre de esquema resulta de un +schema: marts con el esquema por defecto analytics?
 ---
 
 ## Antes de empezar: las palabras que vas a ver

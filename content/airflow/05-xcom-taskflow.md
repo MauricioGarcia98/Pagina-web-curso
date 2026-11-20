@@ -3,6 +3,8 @@ titulo: XCom y la TaskFlow API
 nivel: Avanzado
 duracion: 55
 resumen: Pasar datos pequeños entre tareas con XCom, la TaskFlow API (@dag y @task), dependencias implícitas, multiple_outputs, el contexto de la ejecución, mezclar operadores clásicos y TaskFlow, y mapeo dinámico con expand().
+objetivos: Pasar datos pequeños entre tareas con XCom | Escribir DAGs con la TaskFlow API (@dag y @task) | Generar tareas dinámicamente con expand()
+autoevaluacion: ¿Por qué no se pasa un DataFrame entero por XCom? | ¿Cómo crea dependencias la TaskFlow API sin usar >>?
 ---
 
 ## XCom: mensajes entre tareas

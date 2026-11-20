@@ -16,7 +16,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <main><div class="migas"><a href="index.html#airflow">🌬️ Apache Airflow</a> · Básico · 35 min</div>
 <h1>Orquestación y el concepto de DAG</h1><p class="resumen">Qué problema resuelve un orquestador, qué es un DAG, el vocabulario básico, los componentes de Airflow 3 (Dag processor, scheduler, executor, API server, base de metadatos) y qué cambió respecto de Airflow 2.</p>
 <a class="cta" href="../index.html#/l/airflow-orquestacion">▶ Abrir la lección interactiva (7 ejercicios)</a>
-
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué problema resuelve un orquestador y por qué no alcanza con cron</li><li>Definir un DAG y su vocabulario básico</li><li>Nombrar los componentes de Airflow 3 y qué cambió respecto de Airflow 2</li></ul>
 <p>Imagina un pipeline diario: a las 2:00 descargar ventas, a las 2:30 limpiarlas con Spark, después correr <code>dbt build</code>, y si todo salió bien, actualizar el tablero y avisar por Slack. ¿Qué pasa si la descarga falla? ¿Y si tarda más de lo normal? ¿Cómo reprocesas el martes pasado?</p>
 <p>Ese es el trabajo de un <strong>orquestador</strong>. <strong>Apache Airflow</strong> (creado en Airbnb en 2014) es el más usado del mundo.</p>
 <div class="callout callout-analogia"><div class="callout-title">🧠 El director de orquesta</div>

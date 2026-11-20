@@ -16,7 +16,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <main><div class="migas"><a href="index.html#spark">⚡ Apache Spark</a> · Avanzado · 45 min</div>
 <h1>Particiones, shuffle, joins y skew</h1><p class="resumen">Cómo Spark mueve datos, estrategias de join, data skew y Adaptive Query Execution.</p>
 <a class="cta" href="../index.html#/l/spark-particiones-joins">▶ Abrir la lección interactiva (6 ejercicios)</a>
-
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir entre repartition y coalesce</li><li>Reconocer las estrategias de join de Spark y cuándo conviene un broadcast</li><li>Detectar y mitigar el data skew, y entender qué hace AQE</li></ul>
 <p>Ya sabes que el <strong>shuffle</strong> (mover datos entre máquinas) es lo más caro de un job. Esta lección es sobre cómo controlarlo: cuántas particiones tener, cómo hace Spark un join entre dos tablas repartidas en cien máquinas y qué hacer cuando unos pocos valores concentran casi todos los datos (<strong>skew</strong>). Es el tema más preguntado en entrevistas de Spark.</p>
 <h2>repartition vs coalesce</h2>
 <p>A veces el número de particiones que eligió Spark no te sirve: son muy pocas para tu clúster, o vas a escribir el resultado y no quieres 200 archivos de 1 MB. Para cambiarlo hay dos herramientas:</p>

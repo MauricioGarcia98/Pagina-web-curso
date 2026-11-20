@@ -3,6 +3,8 @@ titulo: ¿Qué es dbt y por qué todos lo usan?
 nivel: Básico
 duracion: 20
 resumen: ELT, analytics engineering, qué hace dbt (y qué no) y cómo encaja con Databricks y Airflow.
+objetivos: Explicar qué problema resuelve dbt dentro de un flujo ELT | Describir qué pasa cuando ejecutas dbt run | Distinguir lo que hace dbt de lo que no hace
+autoevaluacion: ¿dbt mueve datos entre sistemas o transforma dentro del warehouse? | ¿Qué es analytics engineering?
 ---
 
 **dbt** (*data build tool*) es la herramienta estándar para la **T** de ELT: transformar datos **dentro** del data warehouse o lakehouse usando **SQL**, pero con las prácticas de la ingeniería de software: control de versiones, modularidad, tests, documentación y entornos.

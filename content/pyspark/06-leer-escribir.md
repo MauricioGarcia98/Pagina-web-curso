@@ -3,6 +3,8 @@ titulo: Leer y escribir datos
 nivel: Intermedio
 duracion: 40
 resumen: spark.read y df.write: formatos, opciones, esquemas explícitos, modos de escritura y particionado.
+objetivos: Leer CSV, JSON y Parquet con opciones y esquema explícito | Escribir con el modo correcto (overwrite, append, error) | Particionar la escritura en disco
+autoevaluacion: ¿Por qué conviene un esquema explícito en vez de inferSchema? | ¿Qué hace mode("overwrite") con lo que había en la carpeta?
 ---
 
 ## De dónde vienen y adónde van los datos

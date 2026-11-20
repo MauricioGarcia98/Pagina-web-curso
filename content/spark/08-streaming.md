@@ -3,6 +3,8 @@ titulo: Structured Streaming
 nivel: Experto
 duracion: 25
 resumen: Procesar datos que llegan sin parar: fuentes, sinks, triggers, checkpoints, watermarks y Auto Loader.
+objetivos: Explicar fuentes, sinks, triggers y checkpoints en Structured Streaming | Usar watermarks para manejar datos que llegan tarde | Ingerir archivos nuevos de forma incremental con Auto Loader
+autoevaluacion: ¿Qué pasa si borras el checkpoint de un stream? | ¿Para qué sirve un watermark de 10 minutos?
 ---
 
 Hasta ahora procesamos datos “en lote” (*batch*): un conjunto fijo, de principio a fin. Pero muchos datos **no paran de llegar**: clics, pagos, sensores, logs. **Structured Streaming** permite tratarlos como una **tabla que crece infinitamente**, con casi la misma API que los DataFrames.

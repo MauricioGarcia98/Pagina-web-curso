@@ -16,7 +16,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <main><div class="migas"><a href="index.html#spark">⚡ Apache Spark</a> · Experto · 25 min</div>
 <h1>Structured Streaming</h1><p class="resumen">Procesar datos que llegan sin parar: fuentes, sinks, triggers, checkpoints, watermarks y Auto Loader.</p>
 <a class="cta" href="../index.html#/l/spark-streaming">▶ Abrir la lección interactiva (5 ejercicios)</a>
-
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar fuentes, sinks, triggers y checkpoints en Structured Streaming</li><li>Usar watermarks para manejar datos que llegan tarde</li><li>Ingerir archivos nuevos de forma incremental con Auto Loader</li></ul>
 <p>Hasta ahora procesamos datos “en lote” (<em>batch</em>): un conjunto fijo, de principio a fin. Pero muchos datos <strong>no paran de llegar</strong>: clics, pagos, sensores, logs. <strong>Structured Streaming</strong> permite tratarlos como una <strong>tabla que crece infinitamente</strong>, con casi la misma API que los DataFrames.</p>
 <pre data-norun><code class="language-python">eventos = (spark.readStream
              .format(&quot;json&quot;)

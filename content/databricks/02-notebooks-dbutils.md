@@ -3,6 +3,8 @@ titulo: Notebooks, magic commands y dbutils
 nivel: Básico
 duracion: 50
 resumen: Qué es un notebook y dónde corre (serverless, clúster, SQL warehouse), celdas multilenguaje y magic commands, _sqldf, display, widgets y marcadores de parámetro en SQL, dbutils.fs, secretos, %run frente a dbutils.notebook.run y task values entre tareas de un job.
+objetivos: Usar celdas multilenguaje y magic commands | Parametrizar un notebook con widgets | Leer archivos y secretos con dbutils, y encadenar notebooks
+autoevaluacion: ¿Qué diferencia hay entre %run y dbutils.notebook.run? | ¿Por qué se usa dbutils.secrets en vez de escribir la contraseña?
 ---
 
 :::tip Practícalo en el navegador

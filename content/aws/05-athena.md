@@ -3,6 +3,8 @@ titulo: Athena, SQL sobre el lago sin servidores
 nivel: Intermedio
 duracion: 45
 resumen: Cómo funciona Athena, tablas externas, particiones y partition projection, CTAS a Parquet, Iceberg, costos por TB escaneado, workgroups y la API desde la CLI.
+objetivos: Consultar archivos de S3 con Athena y tablas externas | Reducir el costo con particiones, Parquet y CTAS | Usar tablas Iceberg para UPDATE, DELETE y MERGE
+autoevaluacion: ¿Por qué Athena cobra por TB escaneado y cómo lo reduces? | ¿Qué hace un CTAS a Parquet?
 ---
 
 ## Qué es Athena

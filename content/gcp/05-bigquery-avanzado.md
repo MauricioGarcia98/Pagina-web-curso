@@ -3,6 +3,8 @@ titulo: BigQuery avanzado, particiones, clustering, anidados y MERGE
 nivel: Avanzado
 duracion: 50
 resumen: Tablas particionadas y clusterizadas, cómo leen menos datos; STRUCT, ARRAY y UNNEST; vistas materializadas; MERGE para upserts; control de costos y buenas prácticas.
+objetivos: Particionar y clusterizar tablas para leer menos datos | Consultar datos anidados con STRUCT, ARRAY y UNNEST | Hacer upserts con MERGE
+autoevaluacion: ¿Qué diferencia hay entre particionar y clusterizar? | ¿Qué hace UNNEST con un array?
 ---
 
 ## Particionar: cortar la tabla en trozos por fecha

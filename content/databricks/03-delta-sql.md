@@ -3,6 +3,8 @@ titulo: Delta Lake en la práctica (SQL de Databricks)
 nivel: Intermedio
 duracion: 40
 resumen: Crear tablas Delta, MERGE, time travel, RESTORE, OPTIMIZE, VACUUM, Liquid Clustering, constraints y Change Data Feed.
+objetivos: Crear tablas Delta y hacer MERGE | Volver atrás con time travel y RESTORE | Mantener tablas con OPTIMIZE, VACUUM y Liquid Clustering
+autoevaluacion: ¿Qué hace VACUUM y qué riesgo tiene para el time travel? | ¿Qué guarda el Change Data Feed?
 ---
 
 :::tip Practícalo en el navegador

@@ -3,6 +3,8 @@ titulo: Airflow + Databricks + dbt: un pipeline real
 nivel: Experto
 duracion: 50
 resumen: Orquestar jobs de Databricks y dbt desde Airflow, sensores, alertas y el diseño de un DAG de producción.
+objetivos: Orquestar jobs de Databricks y dbt desde un DAG | Configurar alertas y reintentos para producción | Diseñar un DAG de producción con una checklist
+autoevaluacion: ¿Qué opciones hay para correr dbt desde Airflow? | ¿Qué debería pasar cuando una tarea falla a las 3 de la mañana?
 ---
 
 En la vida real, un DAG de Airflow casi nunca procesa datos. Lo que hace es **coordinar** a otros sistemas: le dice a Databricks que corra un job, espera a que termine, le dice a dbt que construya los modelos y avisa si algo sale mal. Esta lección arma ese pipeline completo, el que vas a encontrar en muchas empresas que usan Azure, Databricks y dbt.

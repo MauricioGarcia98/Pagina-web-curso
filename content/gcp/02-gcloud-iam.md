@@ -3,6 +3,8 @@ titulo: gcloud, proyectos e IAM
 nivel: Básico
 duracion: 30
 resumen: Instalar y configurar gcloud, autenticarse, elegir proyecto y región, habilitar APIs, formatos de salida y filtros, e IAM con roles y cuentas de servicio.
+objetivos: Configurar gcloud con proyecto y región | Habilitar APIs y filtrar salidas | Asignar roles de IAM y usar cuentas de servicio
+autoevaluacion: ¿Por qué hay que habilitar una API antes de usar un servicio? | ¿Qué es una cuenta de servicio?
 ---
 
 :::analogia En palabras simples

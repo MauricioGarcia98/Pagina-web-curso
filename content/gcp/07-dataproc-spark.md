@@ -3,6 +3,8 @@ titulo: Dataproc, Spark en Google Cloud
 nivel: Avanzado
 duracion: 50
 resumen: Clusters de Dataproc, jobs de PySpark, Dataproc Serverless, el conector de BigQuery, buenas prácticas de costo y ejercicios de PySpark con los casos de negocio.
+objetivos: Correr jobs de PySpark en Dataproc y Dataproc Serverless | Leer y escribir BigQuery desde Spark | Reducir el costo de los clusters
+autoevaluacion: ¿Cuándo elegirías Dataproc Serverless? | ¿Qué hace el conector de BigQuery para Spark?
 ---
 
 Ya sabes escribir PySpark. La pregunta ahora es **dónde corre** cuando los datos están en Google Cloud. La respuesta es **Dataproc**: Spark administrado por Google. En esta lección vas a ver las tres formas de usarlo, cómo se ve un job real de punta a punta, cómo leer y escribir BigQuery desde Spark y, sobre todo, cómo no pagar de más.

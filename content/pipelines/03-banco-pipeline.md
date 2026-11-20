@@ -3,6 +3,8 @@ titulo: "Banco 🏦: el pipeline en PySpark, dbt y Airflow"
 nivel: Avanzado
 duracion: 60
 resumen: La cartera en mora con PySpark, el perfil de gasto de cada cliente, un modelo dbt de mora por segmento y el DAG de cierre diario con una rama de calidad.
+objetivos: Calcular la cartera en mora y el perfil de gasto con PySpark | Modelar la mora por segmento en dbt | Orquestar el cierre diario con una rama de calidad en Airflow
+autoevaluacion: ¿Qué hace la rama de calidad del DAG si los datos no pasan? | ¿Por qué la mora por segmento va en dbt y no en el DAG?
 ---
 
 En la lección anterior programaste las **reglas** del banco en Python (cuota francesa, tramos de mora, conciliación). Ahora esas reglas pasan a formar parte de un **pipeline** que corre todas las noches. Este es el diseño:
