@@ -75,14 +75,19 @@ Un cluster tiene un **driver** y **workers** (¿te acuerdas de la arquitectura d
 
 El **gobierno de datos** centralizado:
 
-```text
-Metastore (por región)
- └── Catálogo (main, dev, prod)
-      └── Esquema (bronze, silver, gold, ventas)
-           ├── Tablas y vistas        → main.ventas.pedidos
-           ├── Volúmenes (archivos)    → /Volumes/main/crudo/archivos/
-           ├── Funciones
-           └── Modelos de ML
+```diagrama
+titulo: Los niveles de Unity Catalog: catálogo.esquema.objeto
+nodo met: Metastore | icono=unity | col=0 | fila=1 | color=gris | sub=uno por región, compartido por los workspaces
+nodo cat: Catálogo | icono=libro | col=1 | fila=1 | color=azul | sub=dev, prod, main: por entorno o área
+nodo esq: Esquema | icono=carpeta | col=2 | fila=1 | color=verde | sub=bronze, silver, gold, ventas: por capa o dominio
+nodo tab: Tablas y vistas | icono=tabla | col=3 | fila=0 | color=naranja | sub=prod.gold.ventas_diarias
+nodo vol: Volúmenes | icono=archivos | col=3 | fila=1 | color=naranja | sub=archivos: /Volumes/prod/crudo/archivos/
+nodo fun: Funciones y modelos | icono=ml | col=3 | fila=2 | color=naranja | sub=funciones SQL/Python, modelos de ML
+flecha met -> cat
+flecha cat -> esq
+flecha esq -> tab
+flecha esq -> vol
+flecha esq -> fun
 ```
 
 Permisos con SQL (`GRANT SELECT ON TABLE ... TO grupo`), linaje automático columna a columna, auditoría, y acceso al almacenamiento mediante **storage credentials** y **external locations**.

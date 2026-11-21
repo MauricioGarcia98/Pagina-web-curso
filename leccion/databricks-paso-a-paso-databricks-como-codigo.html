@@ -89,8 +89,9 @@ databricks bundle deploy -t prod      # lo mismo, en producción (normalmente de
 <h2>Paso 4 — Git en el workspace</h2>
 <p>En Databricks real, <strong>Workspace → Create → Git folder</strong> clona un repositorio (GitHub, Azure DevOps, GitLab) dentro del workspace: editas notebooks ahí, cambias de rama, haces commit y push desde la interfaz, y abres el pull request en GitHub. Los notebooks se guardan como archivos <code>.py</code>/<code>.sql</code> con separadores de celda, que Git compara línea a línea.</p>
 <h2>Paso 5 — El flujo completo</h2>
-<pre><code class="language-text">Git folder (rama feature) → commit → pull request → CI: bundle validate + tests
-   → merge a main → CD: bundle deploy -t prod con OIDC (sin tokens guardados)</code></pre>
+<figure class="diagrama"><figcaption>De un cambio en una rama a producción, sin pasos manuales</figcaption></figure>
+
+
 <pre><code class="language-yaml"># .github/workflows/deploy.yml (resumen)
 - uses: databricks/setup-cli@main
 - run: databricks bundle validate -t prod

@@ -46,11 +46,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>La diferencia se entiende con un dibujo:</p>
-<pre><code class="language-text">repartition(3): TODAS las filas se reparten de nuevo         coalesce(2): se juntan particiones vecinas
- P1 ─┬─► A                                                     P1 ─┐
- P2 ─┼─► B      (shuffle completo: cada fila puede              P2 ─┴─► A     (sin shuffle: P1 y P2
- P3 ─┼─► C       ir a cualquier destino)                        P3 ─┐          se juntan donde están)
- P4 ─┘                                                          P4 ─┴─► B</code></pre>
+<figure class="diagrama"><figcaption>repartition reparte todo de nuevo (shuffle); coalesce junta vecinas (sin shuffle)</figcaption></figure>
+
+
 <ul>
 <li><code>repartition</code> cuesta un shuffle, pero deja particiones <strong>parejas</strong>.</li>
 <li><code>coalesce</code> es casi gratis, pero <strong>solo puede reducir</strong> y puede dejar particiones desparejas.</li>
@@ -70,11 +68,9 @@ print(&quot;Con coalesce(2):       &quot;, pedidos.coalesce(2).rdd.getNumPartiti
 <p>Unir dos tablas distribuidas tiene una dificultad: las filas que tienen que unirse (el pedido y su cliente) pueden estar <strong>en máquinas distintas</strong>. Spark tiene que juntarlas de alguna forma, y elige el algoritmo según el tamaño de las tablas.</p>
 <h3>1. Broadcast hash join: copiar la tabla chica</h3>
 <p>Si una tabla es <strong>chica</strong> (por defecto, menos de 10 MB, configurable con <code>spark.sql.autoBroadcastJoinThreshold</code>), Spark manda <strong>una copia completa a cada executor</strong>. Cada executor une sus particiones de la tabla grande con su copia local. La tabla grande <strong>no se mueve</strong>: ¡no hay shuffle!</p>
-<pre><code class="language-text">        clientes (2.000 filas) ── copia ──► executor 1, executor 2, executor 3
-pedidos (12.000 filas, se quedan donde están)
- executor 1: sus pedidos ⋈ copia de clientes
- executor 2: sus pedidos ⋈ copia de clientes      ← nadie mueve pedidos por la red
- executor 3: sus pedidos ⋈ copia de clientes</code></pre>
+<figure class="diagrama"><figcaption>Broadcast join: la tabla chica viaja a cada executor, la grande no se mueve</figcaption></figure>
+
+
 <pre><code class="language-python">from pyspark.sql import functions as F
 
 pedidos = spark.table(&quot;pedidos&quot;)

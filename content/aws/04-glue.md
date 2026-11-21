@@ -22,13 +22,24 @@ Esa información es **metadato**, y en AWS vive en el **Glue Data Catalog**.
 Los libros (archivos) están en los estantes de S3. El **catálogo** es el fichero que dice qué libro hay, de qué trata y en qué estante está. Athena, Redshift Spectrum, EMR y los jobs de Glue consultan el mismo catálogo, así que **defines la tabla una vez y todos la ven**.
 :::
 
-```text
-Glue Data Catalog
-├── base de datos: lake_bronze
-│   ├── tabla: ventas     → s3://lake-tienda-dev/bronze/ventas/    (csv, particiones: anio, mes)
-│   └── tabla: clientes   → s3://lake-tienda-dev/bronze/clientes/  (csv)
-└── base de datos: lake_silver
-    └── tabla: ventas     → s3://lake-tienda-dev/silver/ventas/    (parquet, particiones: anio, mes)
+```diagrama
+titulo: El Glue Data Catalog: bases de datos, tablas y dónde están sus archivos
+nodo cat: Glue Data Catalog | icono=glue | col=0 | fila=1 | color=violeta
+nodo bb: lake_bronze | icono=base | col=1 | fila=0 | color=naranja | sub=base de datos
+nodo bs: lake_silver | icono=base | col=1 | fila=2 | color=gris | sub=base de datos
+nodo tv: ventas | icono=tabla | col=2 | fila=0 | sub=csv · particiones anio, mes
+nodo tc: clientes | icono=tabla | col=2 | fila=1 | sub=csv
+nodo tsv: ventas | icono=tabla | col=2 | fila=2 | sub=parquet · particiones anio, mes
+nodo s3b: s3://lake-tienda-dev/bronze/… | icono=s3 | col=3 | fila=0 | color=naranja | sub=los archivos
+nodo s3s: s3://lake-tienda-dev/silver/ventas/ | icono=s3 | col=3 | fila=2 | color=naranja | sub=los archivos
+flecha cat -> bb
+flecha cat -> bs
+flecha bb -> tv
+flecha bb -> tc
+flecha bs -> tsv
+flecha tv -> s3b: apunta a | estilo=punteada
+flecha tc -> s3b | estilo=punteada
+flecha tsv -> s3s: apunta a | estilo=punteada
 ```
 
 ## Crawlers: descubrir el esquema solo

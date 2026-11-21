@@ -75,8 +75,9 @@ aws kinesis describe-stream-summary --stream-name transacciones</code></pre>
 
 <h2>Firehose: del stream al lago sin código</h2>
 <p><strong>Amazon Data Firehose</strong> junta eventos en lotes (por tamaño o por tiempo, por ejemplo cada 60 segundos o 64 MB), opcionalmente los convierte a Parquet, y los <strong>escribe en S3</strong>, Redshift u OpenSearch. Es la forma más simple de tener una capa bronze alimentada en casi tiempo real.</p>
-<pre><code class="language-text">app ──► Kinesis Data Stream ──► Firehose (lotes de 60 s, a Parquet) ──► s3://lake/bronze/transacciones/fecha=…/
-                    └─────────► Lambda (regla de fraude en tiempo real) ──► alerta</code></pre>
+<figure class="diagrama"><figcaption>Un stream, dos caminos: el lago en lotes y la alerta en el momento</figcaption></figure>
+
+
 <pre data-norun><code class="language-bash">aws firehose create-delivery-stream --delivery-stream-name tx-a-s3 \
   --delivery-stream-type KinesisStreamAsSource \
   --kinesis-stream-source-configuration KinesisStreamARN=arn:aws:kinesis:us-east-1:123456789012:stream/transacciones,RoleARN=arn:aws:iam::123456789012:role/FirehoseRole \

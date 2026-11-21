@@ -21,6 +21,17 @@ El contexto de filtro es como mirar por unos anteojos de color: si el informe es
 CALCULATE(<expresión>, <filtro1>, <filtro2>, …)
 ```
 
+```diagrama
+titulo: CALCULATE cambia los filtros antes de calcular la medida
+nodo ctx: Contexto del visual | icono=filter | col=0 | fila=0 | color=gris | sub=fila: País = Chile, Año = 2024
+nodo cal: CALCULATE | icono=engranaje | col=1 | fila=0 | color=amarillo | sub=agrega o reemplaza filtros: Canal = "web"
+nodo nuevo: Contexto nuevo | icono=filter | col=2 | fila=0 | color=azul | sub=Chile, 2024 y web
+nodo med: [Ventas] | icono=calculator | col=3 | fila=0 | color=verde | sub=se calcula con el contexto nuevo
+flecha ctx -> cal
+flecha cal -> nuevo
+flecha nuevo -> med
+```
+
 1. Toma el contexto de filtro de la celda (por ejemplo: país = Chile).
 2. Aplica los filtros que le pasas: **reemplazan** los filtros de las mismas columnas y **se agregan** a los demás.
 3. Calcula la expresión con ese contexto nuevo.

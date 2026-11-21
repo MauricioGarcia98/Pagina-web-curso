@@ -14,14 +14,20 @@ Abre el [Databricks de práctica](#/databricks) y usa sus **🎯 Retos**. La ré
 
 ## Cuenta, workspace y planos
 
-```text
-Cuenta de Databricks  (account console: usuarios, workspaces, metastores, facturación)
-├── Metastore de Unity Catalog  (uno por región: el catálogo de todos los datos)
-└── Workspace  (adb-xxxx.azuredatabricks.net: notebooks, jobs, compute, SQL)
-      ├── Plano de control  → lo opera Databricks: la interfaz, los jobs, el catálogo
-      └── Plano de cómputo  → donde corren los datos:
-            · clásico: máquinas en TU suscripción (el grupo de recursos administrado)
-            · serverless: máquinas que administra Databricks, listas en segundos
+```diagrama
+titulo: Cuenta, metastore, workspace y los dos planos
+nodo cta: Cuenta de Databricks | icono=databricks | col=1 | fila=0 | color=rojo | sub=account console: usuarios, workspaces, metastores, facturación
+nodo met: Metastore de Unity Catalog | icono=unity | col=0 | fila=1 | color=violeta | sub=uno por región: el catálogo de todos los datos
+nodo ws: Workspace | icono=web | col=2 | fila=1 | color=azul | sub=adb-xxxx.azuredatabricks.net: notebooks, jobs, compute, SQL
+nodo pc: Plano de control | icono=engranaje | col=1 | fila=2 | color=gris | sub=lo opera Databricks: la interfaz, los jobs, el catálogo
+nodo cl: Cómputo clásico | icono=servidor | col=2 | fila=2 | color=naranja | sub=máquinas en TU suscripción
+nodo sv: Cómputo serverless | icono=nube | col=3 | fila=2 | color=verde | sub=máquinas de Databricks, listas en segundos
+flecha cta -> met
+flecha cta -> ws
+flecha met -> ws: lo usa | estilo=punteada
+flecha ws -> pc
+flecha ws -> cl
+flecha ws -> sv
 ```
 
 - La **cuenta** agrupa todo: usuarios y grupos (sincronizados desde Microsoft Entra ID), workspaces y metastores.

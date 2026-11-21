@@ -20,11 +20,15 @@ Un negocio de suscripciones vive de **retener**: conseguir un usuario cuesta muc
 
 ## El modelo de datos
 
-```text
-streaming_usuarios (usuario_id, pais, fecha_registro, edad, dispositivo_principal)
-  ├── streaming_suscripciones (suscripcion_id, usuario_id, plan, precio_mensual, fecha_inicio, fecha_fin, motivo_baja)
-  └── streaming_reproducciones (repro_id, usuario_id, contenido_id, fecha_hora, segundos_escuchados, dispositivo)
-                                                     └── streaming_contenidos (contenido_id, titulo, tipo, genero, artista, duracion_seg, ...)
+```diagrama
+titulo: El modelo de datos de la plataforma de música
+nodo u: streaming_usuarios | icono=usuario | col=0 | fila=0 | color=azul | sub=usuario_id, pais, fecha_registro, edad, dispositivo_principal
+nodo s: streaming_suscripciones | icono=dinero | col=1 | fila=0 | color=verde | sub=plan, precio_mensual, fecha_inicio, fecha_fin, motivo_baja
+nodo r: streaming_reproducciones | icono=musica | col=1 | fila=1 | color=naranja | sub=contenido_id, fecha_hora, segundos_escuchados, dispositivo
+nodo c: streaming_contenidos | icono=libro | col=2 | fila=1 | color=violeta | sub=titulo, tipo, genero, artista, duracion_seg
+flecha u -> s: 1 → N
+flecha u -> r: 1 → N
+flecha r -> c: N → 1
 ```
 
 ## Glosario de métricas

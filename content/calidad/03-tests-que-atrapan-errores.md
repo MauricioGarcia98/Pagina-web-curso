@@ -22,6 +22,20 @@ assert limpiar_monto("974,07") == 974.07   # pasa
 assert limpiar_monto("16.99") == 16.99     # pasa
 ```
 
+```diagrama
+titulo: Cómo se mide si tus tests sirven (mutation testing)
+nodo t: Tus tests | icono=prueba | col=0 | fila=1 | color=azul
+nodo ok: Versión correcta | icono=check | col=1 | fila=0 | color=verde | sub=los tests deben pasar
+nodo m1: Mutante: sin strip | icono=bug | col=1 | fila=1 | color=rojo | sub=los tests deben fallar
+nodo m2: Mutante: solo cambia la coma | icono=bug | col=1 | fila=2 | color=rojo | sub=los tests deben fallar
+nodo r: Mutantes que sobreviven | icono=alerta | col=2 | fila=1 | color=amarillo | sub== casos que te faltan
+flecha t -> ok
+flecha t -> m1
+flecha t -> m2
+flecha m1 -> r: si pasa
+flecha m2 -> r: si pasa
+```
+
 Los dos tests pasan, pero `limpiar_monto("1.402,97")` explota (o, en SQLite, da `1.402` sin avisar). Los tests eligieron casos fáciles. Este es el problema real de la calidad de los tests: **no detectaron el error** que importaba.
 
 La técnica para medirlo se llama *mutation testing*: se introducen errores a propósito en el código ("mutantes") y se cuenta cuántos detectan tus tests. En esta lección el corrector hace exactamente eso: corre tus tests contra la versión correcta (deben pasar) y contra versiones con errores típicos (deben fallar).

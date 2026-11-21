@@ -134,6 +134,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>La regla general: <strong>4xx es culpa del cliente</strong> (puede corregir y reintentar distinto), <strong>5xx es culpa del servidor</strong> (reintentar igual puede funcionar más tarde).</p>
 <h2>Filtros, orden y paginación</h2>
 <p>Los filtros y la paginación van en la <strong>query</strong> de la URL: <code>GET /pedidos?canal=web&amp;desde=2024-07-01&amp;limite=100</code>.</p>
+<figure class="diagrama"><figcaption>Paginar por cursor: &quot;dame lo que viene después de este&quot;</figcaption></figure>
+
+
 <div class="table-wrap"><table><thead><tr>
 <th>Paginación</th>
 <th>Cómo pide la página siguiente</th>

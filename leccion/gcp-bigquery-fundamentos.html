@@ -18,15 +18,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <a class="cta" href="../index.html#/l/gcp-bigquery-fundamentos">▶ Abrir la lección interactiva (8 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar cómo funciona BigQuery por dentro (columnar, slots, cómputo separado)</li><li>Crear datasets y tablas, y cargar datos con bq</li><li>Estimar el costo de una consulta con dry_run</li></ul>
 <h2>Qué hace especial a BigQuery</h2>
-<pre><code class="language-text">          tu SQL
-            │
-     ┌──────▼──────┐   reparte el trabajo en miles de &quot;slots&quot; (unidades de CPU+memoria)
-     │  Dremel     │──────────────┬──────────────┬──────────────┐
-     └─────────────┘            slot           slot   …        slot
-            │ red Jupiter (petabits/s)
-     ┌──────▼──────────────────────────────────────────────────┐
-     │ Colossus: almacenamiento columnar (Capacitor), comprimido │
-     └─────────────────────────────────────────────────────────┘</code></pre>
+<figure class="diagrama"><figcaption>Por qué BigQuery es tan rápido: cómputo y almacenamiento separados</figcaption></figure>
+
+
 <ul>
 <li><strong>Almacenamiento y cómputo separados</strong>: guardas datos sin pagar cómputo; consultas sin &quot;encender&quot; nada.</li>
 <li><strong>Columnar</strong>: cada columna se guarda aparte. Leer 3 columnas de 100 cuesta ~3 % de leer todas.</li>
@@ -40,12 +34,10 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Proyecto → dataset → tabla</h2>
-<pre><code class="language-text">academia-datos-dev                 ← proyecto (factura las consultas)
-├── tienda_bronze                  ← dataset (como un &quot;esquema&quot;; tiene ubicación: US, EU, southamerica-east1…)
-│   └── ventas                     ← tabla
-└── tienda_gold
-    ├── ventas_por_canal           ← tabla
-    └── v_clientes_activos         ← vista</code></pre>
+<figure class="diagrama"><figcaption>Proyecto → dataset → tabla o vista</figcaption></figure>
+
+
+<p>Un <strong>dataset</strong> es como un esquema en otras bases: agrupa tablas y vistas, y tiene una ubicación fija (US, EU, southamerica-east1…).</p>
 <p>Una tabla se nombra completa así: <code>`academia-datos-dev.tienda_gold.ventas_por_canal`</code> (con <em>backticks</em> si el proyecto tiene guiones).</p>
 <div class="table-wrap"><table><thead><tr>
 <th>Objeto</th>

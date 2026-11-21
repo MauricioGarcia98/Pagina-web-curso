@@ -20,6 +20,21 @@ Para copiar la agenda de alguien puedes fotocopiarla entera cada noche (export c
 | **Incremental por fecha** | Leer los documentos con `actualizado_en` mayor a la última carga | Cuando la app mantiene bien ese campo | **No ve los borrados** |
 | **Flujo de cambios** | Leer el registro de cambios de la base: *change streams* en MongoDB, *change feed* en Cosmos DB, *DynamoDB Streams* | Frescura de minutos, colecciones grandes, borrados | Orden, duplicados y reprocesos |
 
+```diagrama
+titulo: Llevar una colección al lakehouse con su flujo de cambios
+nodo app: App | icono=movil | col=0 | fila=0 | color=gris
+nodo db: Cosmos DB / MongoDB | icono=mongodb | col=1 | fila=0 | color=verde
+nodo cf: Change feed / change streams | icono=stream | col=2 | fila=0 | color=azul | sub=insert, update, delete con marca de tiempo
+nodo br: bronze | icono=capas | col=3 | fila=0 | color=naranja | sub=cada cambio tal cual
+nodo sv: silver | icono=tabla | col=3 | fila=1 | color=gris | sub=última versión por _id (MERGE), borrados aplicados
+nodo pl: Tablas planas | icono=tabla | col=2 | fila=1 | color=amarillo | sub=pedidos + lineas (explode)
+flecha app -> db
+flecha db -> cf
+flecha cf -> br
+flecha br -> sv
+flecha sv -> pl
+```
+
 Los flujos de cambios entregan eventos del tipo `{"operacion": "update", "_id": 101, "documento": {...}, "ts": ...}`. Es la misma idea que el CDC de una base relacional que viste en el proyecto Mercado Vecino ([change streams de MongoDB](https://www.mongodb.com/docs/manual/changestreams/), [DynamoDB Streams](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html)).
 
 :::cuidado Cambios fuera de orden

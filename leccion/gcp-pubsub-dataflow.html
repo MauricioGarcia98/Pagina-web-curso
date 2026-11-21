@@ -19,9 +19,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Usar temas y suscripciones de Pub/Sub, y deduplicar</li><li>Explicar Apache Beam y Dataflow</li><li>Manejar tiempo de evento, ventanas, watermark y datos tardíos</li></ul>
 <h2>Pub/Sub: el correo instantáneo de los eventos</h2>
 <p><strong>Pub/Sub</strong> recibe mensajes de quienes <strong>publican</strong> y los entrega a quienes están <strong>suscritos</strong>. Desacopla a los sistemas: la app que vende no necesita saber quién usa sus eventos.</p>
-<pre><code class="language-text"> app de ventas ──publish──►  TEMA &quot;ventas&quot;  ──► suscripción &quot;ventas-a-bigquery&quot; ──► BigQuery (directo, sin código)
-                                           ├──► suscripción &quot;ventas-fraude&quot;     ──► Dataflow (regla de fraude)
-                                           └──► suscripción &quot;ventas-auditoria&quot;  ──► Cloud Storage (archivo)</code></pre>
+<figure class="diagrama"><figcaption>Un tema, tres suscripciones: cada una recibe todos los mensajes</figcaption></figure>
+
+
 <div class="table-wrap"><table><thead><tr>
 <th>Concepto</th>
 <th>Qué es</th>

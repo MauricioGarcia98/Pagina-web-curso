@@ -30,6 +30,19 @@ Con los tiempos en segundos, la ventana fija de un evento empieza en `ts - ts % 
 
 La **marca de agua** es "el tiempo del evento más tardío que vi, menos el retraso que tolero". Una ventana se puede cerrar (y publicar su resultado definitivo) cuando la marca de agua pasa su final; un evento cuyo tiempo es anterior a la marca de agua llega **demasiado tarde** y se descarta ([marcas de agua en Spark](https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html), [en Databricks](https://docs.databricks.com/aws/en/structured-streaming/watermarks)).
 
+```diagrama
+titulo: La marca de agua decide qué evento llega tarde
+nodo mx: Evento más tardío visto | icono=reloj | col=0 | fila=0 | color=azul | sub=10:07:30
+nodo r: Retraso tolerado | icono=calendario | col=0 | fila=1 | color=gris | sub=2 minutos
+nodo m: Marca de agua | icono=engranaje | col=1 | fila=0 | color=violeta | sub=10:07:30 − 2 min = 10:05:30
+nodo e1: Evento de las 10:06 | icono=check | col=2 | fila=0 | color=verde | sub=posterior a la marca: entra
+nodo e2: Evento de las 10:04 | icono=x | col=2 | fila=1 | color=rojo | sub=anterior a la marca: tardío, se descarta
+flecha mx -> m
+flecha r -> m
+flecha m -> e1
+flecha m -> e2
+```
+
 | Retraso tolerado | Ventaja | Costo |
 |---|---|---|
 | Corto (1 minuto) | Resultados casi en tiempo real; poco estado en memoria | Se descartan más eventos tardíos |

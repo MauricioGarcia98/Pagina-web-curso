@@ -45,14 +45,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h3>Las piezas de un clúster</h3>
-<pre><code class="language-text">                ┌─────────────────────────┐
-                │  MASTER (1 máquina)     │  ← corre el driver de Spark y YARN
-                └───────────┬─────────────┘
-       ┌────────────────────┼────────────────────┐
-┌──────▼──────┐      ┌──────▼──────┐      ┌──────▼──────────────────┐
-│ WORKER 1    │      │ WORKER 2    │      │ SECONDARY WORKERS (spot)│ ← baratos, pueden
-│ (primario)  │      │ (primario)  │      │ ×4, solo cómputo        │   desaparecer
-└─────────────┘      └─────────────┘      └─────────────────────────┘</code></pre>
+<figure class="diagrama"><figcaption>Las piezas de un clúster de Dataproc</figcaption></figure>
+
+
 <ul>
 <li><strong>Master</strong>: coordina. Ahí corre el driver de Spark (lo que viste en &quot;Arquitectura de Spark&quot;).</li>
 <li><strong>Workers primarios</strong>: máquinas normales. Corren executors y además guardan datos intermedios (shuffle) en su disco.</li>

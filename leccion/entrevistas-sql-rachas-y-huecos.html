@@ -25,6 +25,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>El truco: fecha menos número de fila</h2>
 <p>Numera los días de cada cliente en orden (<code>ROW_NUMBER</code>) y réstale ese número a la fecha. Dentro de una racha, la fecha sube de a 1 y el número de fila también, así que <strong>la resta queda fija</strong>. Cuando hay un salto, la fecha sube más que el número de fila y la resta cambia: empieza una isla nueva.</p>
+<figure class="diagrama"><figcaption>Dentro de una racha, fecha − número de fila queda fijo</figcaption></figure>
+
+
 <div class="table-wrap"><table><thead><tr>
 <th>fecha</th>
 <th>ROW_NUMBER</th>

@@ -179,8 +179,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <p>Además hay tablas de <strong>doce empresas más</strong> (banco, música, viajes, clínica, SaaS, aerolínea, logística, telco, seguros, hotelería, energía y delivery) que usarás en el módulo de casos de negocio. Puedes verlas todas, con su diagrama, en <a href="#/datos">Bases de datos</a>.</p>
 <p>La relación entre las tablas principales es esta:</p>
-<pre><code class="language-text">clientes ──&lt; pedidos ──&lt; detalle_pedidos &gt;── productos &gt;── categorias
-   1      N    1      N                  N   1         N   1</code></pre>
+<figure class="diagrama"><figcaption>Las tablas principales y cómo se relacionan (1 = uno, N = muchos)</figcaption></figure>
+
+
 <p>Se lee: &quot;un cliente tiene <strong>muchos</strong> pedidos; un pedido tiene <strong>muchas</strong> líneas de detalle; cada línea apunta a <strong>un</strong> producto; cada producto pertenece a <strong>una</strong> categoría&quot;. Los símbolos <code>&lt;</code> indican el lado &quot;muchos&quot;.</p>
 <h2>Tu primera consulta</h2>
 <pre><code class="language-sql">SELECT * FROM productos;</code></pre>

@@ -14,10 +14,23 @@ En un equipo de datos, GitHub es la torre de control: nada despega a producción
 
 ## Paso 1 — El recorrido de un cambio
 
-```text
-Issue → rama → commits → PR → CI (tests, lint, dbt build en un esquema temporal)
-     → revisión → merge a main → despliegue a dev/staging automático
-     → aprobación manual → despliegue a prod → monitoreo
+```diagrama
+titulo: El recorrido de un cambio, del issue a producción
+nodo is: Issue | icono=documento | col=0 | fila=0 | color=gris
+nodo rm: Rama y commits | icono=git | col=1 | fila=0 | color=azul
+nodo pr: Pull request | icono=github | col=2 | fila=0 | color=violeta
+nodo ci: CI | icono=check | col=3 | fila=0 | color=amarillo | sub=tests, lint, dbt build en un esquema temporal
+nodo rv: Revisión y merge a main | icono=usuario | col=3 | fila=1 | color=violeta
+nodo dv: Despliegue a dev/staging | icono=nube | col=2 | fila=1 | color=cian | sub=automático
+nodo ap: Aprobación manual | icono=candado | col=1 | fila=1 | color=naranja
+nodo pd: Despliegue a prod y monitoreo | icono=monitor | col=0 | fila=1 | color=verde
+flecha is -> rm
+flecha rm -> pr
+flecha pr -> ci
+flecha ci -> rv
+flecha rv -> dv
+flecha dv -> ap
+flecha ap -> pd
 ```
 
 Todo lo que hiciste en el curso es parte de ese recorrido. Lo que agregan los equipos de datos son los pasos de **datos**: construir modelos contra una base real y desplegar jobs.

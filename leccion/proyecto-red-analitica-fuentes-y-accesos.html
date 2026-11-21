@@ -24,6 +24,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 ssh-keygen -t ed25519 -f ~/.ssh/red_analitica -C &quot;equipo-datos&quot;
 red alta-clave ~/.ssh/red_analitica.pub       # IT la autoriza en unos minutos
 red estado</code></pre>
+<figure class="diagrama"><figcaption>Cinco laboratorios, un SFTP y datos de salud que hay que proteger</figcaption></figure>
+
+
 <p>La primera vez, el cliente no conoce al servidor. <strong>Verifica la huella</strong> contra la del correo antes de aceptarla:</p>
 <pre><code class="language-bash">ssh-keyscan -p 2222 sftp.redanalitica.example &gt;&gt; ~/.ssh/known_hosts
 # o, después de comparar la huella que muestra el error:

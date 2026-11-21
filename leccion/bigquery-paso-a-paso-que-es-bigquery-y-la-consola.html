@@ -46,10 +46,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>Paso 2 — La jerarquía</h2>
-<pre><code class="language-text">Proyecto de Google Cloud (tienda-andina-dev)
-└── Dataset (tienda, analitica…)   ← región y permisos
-    ├── Tablas
-    └── Vistas</code></pre>
+<figure class="diagrama"><figcaption>Proyecto → dataset → tablas y vistas</figcaption></figure>
+
+
 <p>El nombre completo de una tabla es <strong><code>proyecto.dataset.tabla</code></strong>, por ejemplo <code>`tienda-andina-dev.tienda.pedidos`</code> (con backticks porque el proyecto tiene guiones). El SQL de BigQuery se llama <strong>GoogleSQL</strong>.</p>
 <h2>Paso 3 — BigQuery Studio</h2>
 <p>Abre el <a href="#/bigquery">BigQuery de práctica</a>:</p>

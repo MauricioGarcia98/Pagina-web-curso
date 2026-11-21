@@ -30,13 +30,32 @@ Para esto existen los **outer joins** (externos): `LEFT`, `RIGHT` y `FULL`.
 
 Imagina dos tablitas:
 
-```text
-clientes            pedidos
-id │ nombre         pedido │ cliente_id
-───┼────────        ───────┼───────────
-1  │ Ana            10     │ 1
-2  │ Beto           11     │ 1
-3  │ Carla          12     │ 4      ← cliente que no existe
+**clientes**
+
+| id | nombre |
+|---|---|
+| 1 | Ana |
+| 2 | Beto |
+| 3 | Carla |
+
+**pedidos**
+
+| pedido | cliente_id |
+|---|---|
+| 10 | 1 |
+| 11 | 1 |
+| 12 | 4 ← un cliente que no existe |
+
+```diagrama
+titulo: Quién tiene pareja y quién no
+nodo p10: Pedido 10 | icono=carrito | col=0 | fila=0 | sub=cliente_id 1
+nodo p11: Pedido 11 | icono=carrito | col=0 | fila=1 | sub=cliente_id 1
+nodo p12: Pedido 12 | icono=carrito | col=0 | fila=2 | color=rojo | sub=cliente_id 4 · no existe
+nodo ana: Ana (1) | icono=usuario | col=1 | fila=0 | color=azul | sub=2 pedidos
+nodo beto: Beto (2) | icono=usuario | col=1 | fila=1 | color=gris | sub=sin pedidos
+nodo carla: Carla (3) | icono=usuario | col=1 | fila=2 | color=gris | sub=sin pedidos
+flecha p10 -> ana
+flecha p11 -> ana
 ```
 
 | Tipo | Filas del resultado | En el ejemplo |

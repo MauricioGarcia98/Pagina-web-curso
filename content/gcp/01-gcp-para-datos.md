@@ -17,12 +17,18 @@ Con BigQuery no compras ni enciendes servidores: es como la electricidad. Enchuf
 
 ## Cómo está organizado Google Cloud
 
-```text
-Organización (tuempresa.com)                 ← la empresa, ligada a su dominio
- └── Carpetas (opcional)  datos/, finanzas/   ← agrupan proyectos por área
-      └── Proyectos  academia-datos-dev        ← EL contenedor clave: recursos, permisos, APIs y facturación
-           └── Recursos                        ← buckets, datasets de BigQuery, temas de Pub/Sub, clusters…
+```diagrama
+titulo: Cómo se organiza Google Cloud, de la empresa a cada recurso
+nodo org: Organización | icono=building-2 | col=0 | fila=0 | color=gris | sub=tuempresa.com: ligada al dominio
+nodo car: Carpetas (opcional) | icono=carpeta | col=1 | fila=0 | color=azul | sub=datos/, finanzas/: agrupan por área
+nodo pro: Proyecto | icono=gcp | col=2 | fila=0 | color=verde | sub=academia-datos-dev · recursos, permisos, APIs y facturación
+nodo rec: Recursos | icono=cubo | col=3 | fila=0 | color=naranja | sub=buckets, datasets, temas de Pub/Sub, clusters
+flecha org -> car: contiene
+flecha car -> pro: contiene
+flecha pro -> rec: contiene
 ```
+
+El **proyecto** es la pieza clave: casi todo (permisos, facturación, APIs activadas) se configura a ese nivel.
 
 - **Proyecto**: todo vive dentro de un proyecto. Tiene un **ID** único en el mundo (`academia-datos-dev`) que usarás en cada comando. Es el equivalente a la *cuenta* de AWS o a la *suscripción + grupo de recursos* de Azure.
 - **Cuenta de facturación**: se vincula a uno o varios proyectos; ahí llega la factura.
@@ -31,13 +37,28 @@ Organización (tuempresa.com)                 ← la empresa, ligada a su domini
 
 ## El mapa de servicios de datos
 
-```text
- FUENTES          INGESTA                    ALMACENAMIENTO            PROCESO                  CONSUMO
- apps, APIs ──►  Pub/Sub (eventos)    ──►    Cloud Storage (lago) ──►  Dataflow (Beam)    ──►   BigQuery (SQL)
- bases      ──►  Datastream (CDC)            BigQuery (warehouse)      Dataproc (Spark)         Looker / Looker Studio
- SaaS       ──►  Data Transfer Service       BigLake (tablas abiertas) Dataform / dbt (SQL)     Agent Platform (ML, antes Vertex AI)
-                       ORQUESTACIÓN: Cloud Composer (Airflow) · Workflows · Cloud Scheduler
-                       GOBIERNO: IAM · Dataplex · Policy tags · Cloud Audit Logs
+```diagrama
+titulo: El mapa de servicios de datos de Google Cloud
+nodo f: Fuentes | icono=base | col=0 | fila=1 | sub=apps, APIs, bases, SaaS
+nodo ps: Pub/Sub | icono=pubsub | col=1 | fila=0 | color=azul | sub=eventos
+nodo ds: Datastream | icono=datastream | col=1 | fila=1 | color=azul | sub=CDC de bases
+nodo dts: Data Transfer Service | icono=transformar | col=1 | fila=2 | color=azul | sub=SaaS y otras nubes
+nodo gcs: Cloud Storage | icono=gcs | col=2 | fila=0 | color=naranja | sub=el lago
+nodo bq: BigQuery | icono=bigquery | col=2 | fila=1 | color=naranja | sub=warehouse · BigLake para tablas abiertas
+nodo df: Dataflow · Dataproc · Dataform | icono=dataflow | col=3 | fila=0 | color=rojo | sub=Beam, Spark, SQL
+nodo con: Looker / Agent Platform | icono=dashboard | col=4 | fila=1 | color=verde | sub=tableros y ML
+nodo orq: Composer · Workflows · Scheduler | icono=composer | col=3 | fila=2 | color=violeta | sub=orquestación
+nodo gob: IAM · Dataplex · policy tags · Audit Logs | icono=candado | col=4 | fila=2 | color=amarillo | sub=gobierno
+flecha f -> ps
+flecha f -> ds
+flecha f -> dts
+flecha ps -> gcs
+flecha ds -> bq
+flecha dts -> bq
+flecha gcs -> df
+flecha df -> bq
+flecha bq -> con
+flecha orq -> df: dispara | estilo=punteada | color=violeta
 ```
 
 | Servicio | Para qué | Analogía |

@@ -24,9 +24,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — El recorrido de un cambio</h2>
-<pre><code class="language-text">Issue → rama → commits → PR → CI (tests, lint, dbt build en un esquema temporal)
-     → revisión → merge a main → despliegue a dev/staging automático
-     → aprobación manual → despliegue a prod → monitoreo</code></pre>
+<figure class="diagrama"><figcaption>El recorrido de un cambio, del issue a producción</figcaption></figure>
+
+
 <p>Todo lo que hiciste en el curso es parte de ese recorrido. Lo que agregan los equipos de datos son los pasos de <strong>datos</strong>: construir modelos contra una base real y desplegar jobs.</p>
 <h2>Paso 2 — CI de un proyecto dbt</h2>
 <p>En cada PR, el CI construye los modelos en un <strong>esquema temporal</strong> (para no tocar las tablas que usa el negocio) y corre los tests de datos:</p>

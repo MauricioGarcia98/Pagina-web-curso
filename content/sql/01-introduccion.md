@@ -96,9 +96,17 @@ Además hay tablas de **doce empresas más** (banco, música, viajes, clínica, 
 
 La relación entre las tablas principales es esta:
 
-```text
-clientes ──< pedidos ──< detalle_pedidos >── productos >── categorias
-   1      N    1      N                  N   1         N   1
+```diagrama
+titulo: Las tablas principales y cómo se relacionan (1 = uno, N = muchos)
+nodo cli: clientes | icono=usuario | col=0 | fila=0 | color=azul | sub=una fila por cliente
+nodo ped: pedidos | icono=carrito | col=1 | fila=0 | color=naranja | sub=una fila por pedido
+nodo det: detalle_pedidos | icono=tabla | col=2 | fila=0 | color=violeta | sub=una fila por producto del pedido
+nodo pro: productos | icono=cubo | col=3 | fila=0 | color=verde | sub=una fila por producto
+nodo cat: categorias | icono=etiqueta | col=3 | fila=1 | color=amarillo | sub=una fila por categoría
+flecha cli -> ped: 1 cliente → N pedidos
+flecha ped -> det: 1 pedido → N líneas
+flecha det -> pro: N líneas → 1 producto
+flecha pro -> cat: N productos → 1 categoría
 ```
 
 Se lee: "un cliente tiene **muchos** pedidos; un pedido tiene **muchas** líneas de detalle; cada línea apunta a **un** producto; cada producto pertenece a **una** categoría". Los símbolos `<` indican el lado "muchos".

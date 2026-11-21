@@ -22,14 +22,21 @@ Una base tradicional es como un auto: el motor y el baúl vienen juntos, y si ne
 
 ## Paso 2 — Los objetos
 
-```text
-Cuenta
-├── Warehouses (cómputo)
-├── Roles y usuarios (seguridad)
-└── Bases de datos
-    └── Esquemas
-        ├── Tablas y vistas
-        └── Stages (archivos para cargar)
+```diagrama
+titulo: Los objetos de Snowflake
+nodo cta: Cuenta | icono=snowflake | col=1 | fila=0 | color=azul
+nodo wh: Warehouses | icono=servidor | col=0 | fila=1 | color=naranja | sub=el cómputo
+nodo ro: Roles y usuarios | icono=candado | col=1 | fila=1 | color=violeta | sub=la seguridad
+nodo db: Bases de datos | icono=base | col=2 | fila=1 | color=verde
+nodo es: Esquemas | icono=carpeta | col=2 | fila=2 | color=verde
+nodo tv: Tablas y vistas | icono=tabla | col=1 | fila=3 | color=gris
+nodo st: Stages | icono=archivos | col=3 | fila=3 | color=gris | sub=archivos para cargar
+flecha cta -> wh
+flecha cta -> ro
+flecha cta -> db
+flecha db -> es
+flecha es -> tv
+flecha es -> st
 ```
 
 El nombre completo de una tabla es **`BASE.ESQUEMA.TABLA`**, por ejemplo `TIENDA_ANDINA.PUBLIC.PEDIDOS`.

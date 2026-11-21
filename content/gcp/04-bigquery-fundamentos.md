@@ -9,16 +9,20 @@ autoevaluacion: ¿Por qué SELECT * cuesta más en BigQuery? | ¿Qué te dice --
 
 ## Qué hace especial a BigQuery
 
-```text
-          tu SQL
-            │
-     ┌──────▼──────┐   reparte el trabajo en miles de "slots" (unidades de CPU+memoria)
-     │  Dremel     │──────────────┬──────────────┬──────────────┐
-     └─────────────┘            slot           slot   …        slot
-            │ red Jupiter (petabits/s)
-     ┌──────▼──────────────────────────────────────────────────┐
-     │ Colossus: almacenamiento columnar (Capacitor), comprimido │
-     └─────────────────────────────────────────────────────────┘
+```diagrama
+titulo: Por qué BigQuery es tan rápido: cómputo y almacenamiento separados
+direccion: abajo
+nodo sql: Tu SQL | icono=codigo | col=0 | fila=1 | color=gris
+nodo dremel: Dremel | icono=engranaje | col=1 | fila=1 | color=azul | sub=planifica y reparte el trabajo
+nodo s1: slot | icono=servidor | col=2 | fila=0 | color=violeta | sub=CPU + memoria
+nodo s2: slot | icono=servidor | col=2 | fila=1 | color=violeta | sub=miles en paralelo
+nodo s3: slot | icono=servidor | col=2 | fila=2 | color=violeta | sub=CPU + memoria
+nodo col: Colossus | icono=base | col=3 | fila=1 | color=naranja | forma=cilindro | sub=almacenamiento columnar comprimido (Capacitor)
+flecha sql -> dremel
+flecha dremel -> s1
+flecha dremel -> s2
+flecha dremel -> s3
+flecha s2 -> col: red Jupiter (petabits/s) | doble
 ```
 
 - **Almacenamiento y cómputo separados**: guardas datos sin pagar cómputo; consultas sin "encender" nada.
@@ -32,14 +36,22 @@ Imagina que cada columna es un tomo separado y que, cuando haces una pregunta, m
 
 ## Proyecto → dataset → tabla
 
-```text
-academia-datos-dev                 ← proyecto (factura las consultas)
-├── tienda_bronze                  ← dataset (como un "esquema"; tiene ubicación: US, EU, southamerica-east1…)
-│   └── ventas                     ← tabla
-└── tienda_gold
-    ├── ventas_por_canal           ← tabla
-    └── v_clientes_activos         ← vista
+```diagrama
+titulo: Proyecto → dataset → tabla o vista
+nodo pro: academia-datos-dev | icono=gcp | col=1 | fila=0 | color=gris | sub=proyecto: factura las consultas
+nodo br: tienda_bronze | icono=carpeta | col=0 | fila=1 | color=naranja | sub=dataset: tiene ubicación (US, EU…)
+nodo go: tienda_gold | icono=carpeta | col=2 | fila=1 | color=amarillo | sub=dataset
+nodo v: ventas | icono=tabla | col=0 | fila=2 | sub=tabla
+nodo vc: ventas_por_canal | icono=tabla | col=2 | fila=2 | sub=tabla
+nodo ca: v_clientes_activos | icono=lupa | col=3 | fila=2 | sub=vista
+flecha pro -> br
+flecha pro -> go
+flecha br -> v
+flecha go -> vc
+flecha go -> ca
 ```
+
+Un **dataset** es como un esquema en otras bases: agrupa tablas y vistas, y tiene una ubicación fija (US, EU, southamerica-east1…).
 
 Una tabla se nombra completa así: `` `academia-datos-dev.tienda_gold.ventas_por_canal` `` (con *backticks* si el proyecto tiene guiones).
 

@@ -38,15 +38,31 @@ La forma más común de organizar datos es una **tabla**, como una hoja de Excel
 
 Una empresa no tiene una sola tabla gigante: tiene varias, cada una sobre un tipo de cosa, conectadas por sus ids. En Tienda Andina, cada pedido dice **qué cliente** lo hizo guardando su `cliente_id`:
 
-```text
-clientes                                        pedidos
-┌────────────┬──────────┬────────────┐        ┌───────────┬────────────┬──────────────┬───────┐
-│ cliente_id │ nombre   │ pais       │        │ pedido_id │ cliente_id │ fecha_pedido │ canal │
-├────────────┼──────────┼────────────┤        ├───────────┼────────────┼──────────────┼───────┤
-│ 528        │ Paula    │ Argentina  │◄───────│ 1         │ 528        │ 2022-01-01   │ app   │
-│ 970        │ Santiago │ Costa Rica │◄───────│ 2         │ 970        │ 2022-01-01   │ web   │
-└────────────┴──────────┴────────────┘   └────│ 42        │ 528        │ 2022-01-06   │ web   │
-                                              └───────────┴────────────┴──────────────┴───────┘
+**clientes**
+
+| cliente_id | nombre | pais |
+|---|---|---|
+| 528 | Paula | Argentina |
+| 970 | Santiago | Costa Rica |
+
+**pedidos**
+
+| pedido_id | cliente_id | fecha_pedido | canal |
+|---|---|---|---|
+| 1 | **528** | 2022-01-01 | app |
+| 2 | **970** | 2022-01-01 | web |
+| 42 | **528** | 2022-01-06 | web |
+
+```diagrama
+titulo: Cada pedido apunta a su cliente con el cliente_id
+nodo p1: Pedido 1 | icono=carrito | col=0 | fila=0 | sub=cliente_id = 528
+nodo p42: Pedido 42 | icono=carrito | col=0 | fila=1 | sub=cliente_id = 528
+nodo p2: Pedido 2 | icono=carrito | col=0 | fila=2 | sub=cliente_id = 970
+nodo paula: Paula | icono=usuario | col=1 | fila=0 | color=azul | sub=cliente_id 528
+nodo santi: Santiago | icono=usuario | col=1 | fila=2 | color=verde | sub=cliente_id 970
+flecha p1 -> paula
+flecha p42 -> paula
+flecha p2 -> santi
 ```
 
 En `pedidos`, la columna `cliente_id` es una **clave foránea** (*foreign key*): apunta a la clave primaria de otra tabla. Así, el pedido no repite el nombre ni el país del cliente. Si Paula se muda a Chile, se cambia **en un solo lugar** y todos sus pedidos quedan bien. A esta forma de separar la información para no repetirla se la llama **normalización**. En SQL vas a volver a unir las tablas con `JOIN`.

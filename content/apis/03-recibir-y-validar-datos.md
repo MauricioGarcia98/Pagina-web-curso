@@ -72,6 +72,19 @@ Si mandan `{"cliente_id": 7, "canal": "fax", "lineas": [{"producto_id": 1, "cant
 
 El cliente manda un `POST /pedidos`, la red se corta **antes** de recibir la respuesta, y reintenta. ¿Se creó el pedido la primera vez? No lo sabe. Si reintenta y se había creado, ahora hay dos.
 
+```diagrama
+titulo: La clave de idempotencia evita el pedido duplicado al reintentar
+nodo c: Cliente | icono=movil | col=0 | fila=0 | color=gris | sub=Idempotency-Key: pedido-abc-1
+nodo api: POST /pedidos | icono=fastapi | col=1 | fila=0 | color=azul
+nodo q: ¿Ya vi esta clave? | icono=lupa | col=2 | fila=0 | color=amarillo | forma=rombo
+nodo cr: Crear el pedido y guardar la respuesta | icono=check | col=3 | fila=0 | color=verde
+nodo re: Devolver la respuesta guardada | icono=archivo | col=3 | fila=1 | color=violeta | sub=sin crear nada
+flecha c -> api: 1.º intento y reintento
+flecha api -> q
+flecha q -> cr: no
+flecha q -> re: sí
+```
+
 La solución estándar: el cliente genera una clave única por operación y la manda en el encabezado `Idempotency-Key`. El servidor guarda la respuesta de cada clave; si vuelve a llegar la misma clave, devuelve la respuesta guardada **sin crear nada**. Así lo documenta, por ejemplo, la [API de Stripe](https://docs.stripe.com/api/idempotent_requests).
 
 ```python norun

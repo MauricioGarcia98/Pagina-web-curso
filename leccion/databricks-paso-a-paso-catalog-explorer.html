@@ -24,10 +24,28 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — El nombre de tres partes</h2>
-<pre><code class="language-text">samples . tienda . pedidos
-   │        │        └─ la tabla (o vista, volumen, función, modelo)
-   │        └─ el esquema: agrupa objetos de un tema o una capa (bronze, silver, gold)
-   └─ el catálogo: el nivel más alto, suele separar entornos o áreas</code></pre>
+<p><code>samples.tienda.pedidos</code>, por partes:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Nivel</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><code>samples</code></td>
+<td>Catálogo</td>
+<td>El nivel más alto; suele separar entornos (dev, prod) o áreas</td>
+</tr>
+<tr>
+<td><code>tienda</code></td>
+<td>Esquema</td>
+<td>Agrupa objetos de un tema o una capa (bronze, silver, gold)</td>
+</tr>
+<tr>
+<td><code>pedidos</code></td>
+<td>Objeto</td>
+<td>La tabla (o vista, volumen, función, modelo)</td>
+</tr>
+</tbody></table></div>
 <p>En SQL se usa completo (<code>SELECT * FROM samples.tienda.pedidos</code>) o se fija un catálogo y esquema por defecto con <code>USE CATALOG main; USE SCHEMA default;</code> y después solo <code>pedidos</code>.</p>
 <h2>Paso 2 — El Catalog Explorer</h2>
 <p>Menú lateral → <strong>Catalog</strong>:</p>

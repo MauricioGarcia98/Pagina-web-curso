@@ -52,9 +52,19 @@ Si todos los eventos usan la misma clave (por ejemplo `"evento"`), todos caen en
 
 **Amazon Data Firehose** junta eventos en lotes (por tamaño o por tiempo, por ejemplo cada 60 segundos o 64 MB), opcionalmente los convierte a Parquet, y los **escribe en S3**, Redshift u OpenSearch. Es la forma más simple de tener una capa bronze alimentada en casi tiempo real.
 
-```text
-app ──► Kinesis Data Stream ──► Firehose (lotes de 60 s, a Parquet) ──► s3://lake/bronze/transacciones/fecha=…/
-                    └─────────► Lambda (regla de fraude en tiempo real) ──► alerta
+```diagrama
+titulo: Un stream, dos caminos: el lago en lotes y la alerta en el momento
+nodo app: App | icono=movil | col=0 | fila=0 | sub=transacciones
+nodo kds: Kinesis Data Stream | icono=kinesis | col=1 | fila=0 | color=azul
+nodo fh: Firehose | icono=firehose | col=2 | fila=0 | color=cian | sub=lotes de 60 s, a Parquet
+nodo s3: S3 bronze | icono=s3 | col=3 | fila=0 | color=naranja | sub=transacciones/fecha=…/
+nodo lam: Lambda | icono=lambdaaws | col=2 | fila=1 | color=rojo | sub=regla de fraude en tiempo real
+nodo al: Alerta | icono=alerta | col=3 | fila=1 | color=rojo
+flecha app -> kds
+flecha kds -> fh
+flecha fh -> s3
+flecha kds -> lam
+flecha lam -> al
 ```
 
 ```bash norun

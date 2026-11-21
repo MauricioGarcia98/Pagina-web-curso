@@ -91,6 +91,9 @@ secrets:
 </tbody></table></div>
 <h2>localhost no es lo que parece</h2>
 <p>Dentro de un contenedor, <code>localhost</code> es <strong>ese mismo contenedor</strong>. Si el pipeline usa <code>DB_HOST=localhost</code>, busca una base dentro de su propio contenedor y no la encuentra. Entre servicios se usa el nombre del servicio (<code>db</code>) y el puerto <strong>interno</strong> (5432); el puerto publicado (5433) es solo para conectarte desde tu computadora (<a href="https://docs.docker.com/compose/how-tos/networking/">redes en Compose</a>).</p>
+<figure class="diagrama"><figcaption>Dentro de la red de Compose, los servicios se llaman por su nombre</figcaption></figure>
+
+
 <h2>Volúmenes y bind mounts</h2>
 <div class="table-wrap"><table><thead><tr>
 <th></th>

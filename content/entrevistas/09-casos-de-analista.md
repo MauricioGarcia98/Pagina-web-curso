@@ -41,6 +41,19 @@ Antes de proponer una teoría sofisticada, pregunta por lo aburrido: ¿cambió l
 
 `ventas = pedidos × ticket promedio`. Si las ventas caen, una de las dos (o las dos) cayó. Saber cuál cambia la conversación: menos pedidos sugiere tráfico o conversión; un ticket más bajo sugiere descuentos, mezcla de productos o clientes distintos.
 
+```diagrama
+titulo: Una caída de ventas siempre es de volumen, de valor o de las dos
+nodo v: Ventas cayeron 33 % | icono=grafico | col=0 | fila=1 | color=rojo
+nodo p: Pedidos | icono=carrito | col=1 | fila=0 | color=azul | sub=¿menos tráfico o menos conversión?
+nodo t: Ticket promedio | icono=dinero | col=1 | fila=2 | color=violeta | sub=¿descuentos o mezcla de productos?
+nodo s1: Segmentar | icono=lupa | col=2 | fila=0 | color=amarillo | sub=por canal, país, dispositivo
+nodo s2: Segmentar | icono=lupa | col=2 | fila=2 | color=amarillo | sub=por categoría, cliente nuevo o recurrente
+flecha v -> p: ventas = pedidos ×
+flecha v -> t: × ticket
+flecha p -> s1
+flecha t -> s2
+```
+
 ## La paradoja de Simpson
 
 En el experimento del checkout (`experimento_checkout`), el total dice que los dos grupos convierten igual: 12,4 % el control y 12,5 % el checkout nuevo. Pero si separas por dispositivo:

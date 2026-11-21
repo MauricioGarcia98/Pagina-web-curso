@@ -24,15 +24,20 @@ Piensa en dos listas de invitados a dos fiestas. `UNION` junta las dos listas en
 
 Los `JOIN` combinan tablas **a lo ancho**: pegan columnas de una tabla al lado de las de otra. Los **operadores de conjuntos** combinan resultados **a lo largo**: apilan las filas de una consulta **debajo** de las de otra.
 
-```text
-JOIN (a lo ancho)                 UNION (a lo largo)
-┌────┬──────┐ + ┌──────┐          ┌──────────┐
-│ id │ col1 │   │ col2 │          │ consulta │
-└────┴──────┘   └──────┘          │    A     │
-        =                         ├──────────┤
-┌────┬──────┬──────┐              │ consulta │
-│ id │ col1 │ col2 │              │    B     │
-└────┴──────┴──────┘              └──────────┘
+```diagrama
+titulo: JOIN pega columnas al costado; UNION apila filas debajo
+nodo ja: Tabla A | icono=tabla | col=0 | fila=0 | color=azul | sub=id, col1
+nodo jb: Tabla B | icono=tabla | col=0 | fila=1 | color=verde | sub=id, col2
+nodo jr: Resultado del JOIN | icono=tabla | col=1 | fila=0 | color=violeta | sub=id, col1, col2 · más columnas
+nodo ua: Consulta A | icono=tabla | col=2 | fila=0 | color=azul | sub=mismas columnas
+nodo ub: Consulta B | icono=tabla | col=2 | fila=1 | color=verde | sub=mismas columnas
+nodo ur: Resultado del UNION | icono=capas | col=3 | fila=0 | color=naranja | sub=filas de A y debajo las de B · más filas
+grupo gj: A lo ancho | nodos=ja,jb,jr | color=violeta
+grupo gu: A lo largo | nodos=ua,ub,ur | color=naranja
+flecha ja -> jr: por id
+flecha jb -> jr
+flecha ua -> ur
+flecha ub -> ur
 ```
 
 Cuándo los necesitas:

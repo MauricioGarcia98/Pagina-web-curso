@@ -106,12 +106,9 @@ dbt test</code></pre>
 </tr>
 </tbody></table></div>
 <h2>El flujo moderno de datos</h2>
-<pre><code class="language-text"> Fuentes ──(EL: Fivetran/ADF/Airbyte/Auto Loader)──▶ Bronze / raw
-                                                       │
-                                     dbt (T): staging ─▶ intermediate ─▶ marts (gold)
-                                                       │
-                                     BI / ML / reverse ETL
- Orquestación de todo: Airflow / Lakeflow Jobs / dbt Cloud</code></pre>
+<figure class="diagrama"><figcaption>El flujo moderno de datos: EL trae, dbt transforma (la T)</figcaption></figure>
+
+
 <h2>Analytics engineering</h2>
 <p>dbt popularizó el rol de <strong>Analytics Engineer</strong>: alguien entre el analista y el ingeniero de datos, que modela los datos con SQL de calidad productiva. Como Data Engineer, vas a escribir y revisar muchos modelos dbt.</p>
 <h2>Sabores de dbt</h2>

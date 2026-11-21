@@ -93,11 +93,13 @@ aws redshift-data get-statement-result --id $ID --query "Records[][0].stringValu
 
 **Amazon EMR** levanta clusters con Spark, Hive, Presto/Trino, Flink o HBase. Te da control total: tipo de máquina, versión, configuración de Spark, librerías nativas.
 
-```text
-Cluster EMR
-├── nodo primario (master)   → coordina, corre el driver de YARN/Spark
-├── nodos core               → ejecutan tareas y guardan HDFS
-└── nodos task (opcionales)  → solo cómputo: ideales para instancias SPOT (baratas, pueden desaparecer)
+```diagrama
+titulo: Las piezas de un clúster EMR
+nodo p: Nodo primario | icono=servidor | col=1 | fila=0 | color=azul | sub=coordina: driver de YARN/Spark
+nodo c: Nodos core | icono=servidor | col=0 | fila=1 | color=verde | sub=ejecutan tareas y guardan HDFS
+nodo t: Nodos task (opcionales) | icono=dinero | col=2 | fila=1 | color=amarillo | sub=solo cómputo: ideales para spot (baratos, pueden desaparecer)
+flecha p -> c
+flecha p -> t
 ```
 
 | Modalidad | Para qué |
@@ -124,15 +126,14 @@ El error más caro con EMR es un cluster encendido sin trabajo. El patrón recom
 
 ## El árbol de decisión
 
-```text
-¿Qué necesitas?
-├─ SQL esporádico sobre el lago ──────────────────────────► Athena
-├─ BI con muchas consultas y SLA de segundos ─────────────► Redshift (Serverless si la carga es irregular)
-├─ ETL Spark, equipo chico, sin administrar ──────────────► Glue
-├─ ETL Spark enorme, control fino, costo con spot ────────► EMR (o EMR Serverless)
-├─ Lakehouse con notebooks y Delta en AWS ────────────────► Databricks on AWS
-└─ Transformaciones SQL versionadas sobre Redshift/Athena ► dbt (dbt-redshift, dbt-athena)
-```
+| ¿Qué necesitas? | Servicio |
+|---|---|
+| SQL esporádico sobre el lago | **Athena** |
+| BI con muchas consultas y respuestas en segundos | **Redshift** (Serverless si la carga es irregular) |
+| ETL con Spark, equipo chico, sin administrar servidores | **Glue** |
+| ETL con Spark enorme, control fino, ahorro con spot | **EMR** (o EMR Serverless) |
+| Lakehouse con notebooks y Delta en AWS | **Databricks on AWS** |
+| Transformaciones SQL versionadas sobre Redshift o Athena | **dbt** (dbt-redshift, dbt-athena) |
 
 ```recorrido
 titulo: Tres pedidos, tres servicios distintos

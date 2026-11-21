@@ -53,19 +53,25 @@ Una persona sola tardaría meses en contar 30 millones de votos. Si repartes las
 
 Supongamos que quieres saber cuántos pedidos hay por país, y los pedidos están repartidos en tres máquinas:
 
-```text
-              Máquina 1              Máquina 2              Máquina 3
-DATOS      Chile, Perú, Chile     Perú, México, Chile    México, México, Perú
-
-MAP        Chile:2  Perú:1        Perú:1 México:1        México:2  Perú:1
-(cada una     (cuenta sus propios datos, sin hablar con nadie)
- cuenta lo suyo)
-                     ─────────  SHUFFLE  ─────────
-              (se envían todos los "Chile" a una máquina, todos los "Perú" a otra…)
-
-REDUCE     Chile: 2+1 = 3         Perú: 1+1+1 = 3        México: 1+2 = 3
-(cada una suma los parciales de su país)
+```diagrama
+titulo: Contar pedidos por país en tres máquinas: MAP, SHUFFLE y REDUCE
+direccion: abajo
+nodo m1: Máquina 1 · MAP | icono=servidor | col=0 | fila=0 | color=azul | sub=Chile, Perú, Chile → Chile 2, Perú 1
+nodo m2: Máquina 2 · MAP | icono=servidor | col=0 | fila=1 | color=azul | sub=Perú, México, Chile → Perú 1, México 1, Chile 1
+nodo m3: Máquina 3 · MAP | icono=servidor | col=0 | fila=2 | color=azul | sub=México, México, Perú → México 2, Perú 1
+nodo rc: REDUCE Chile | icono=calculator | col=1 | fila=0 | color=verde | sub=2 + 1 = 3
+nodo rp: REDUCE Perú | icono=calculator | col=1 | fila=1 | color=verde | sub=1 + 1 + 1 = 3
+nodo rm: REDUCE México | icono=calculator | col=1 | fila=2 | color=verde | sub=1 + 2 = 3
+flecha m1 -> rc: shuffle
+flecha m2 -> rc
+flecha m1 -> rp
+flecha m2 -> rp
+flecha m3 -> rp
+flecha m2 -> rm
+flecha m3 -> rm
 ```
+
+En el **MAP** cada máquina cuenta lo suyo sin hablar con nadie. En el **SHUFFLE** se mandan todos los "Chile" a una máquina, todos los "Perú" a otra… En el **REDUCE** cada una suma los parciales de su país.
 
 <!-- dg:sp01-mapreduce -->
 ```diagrama

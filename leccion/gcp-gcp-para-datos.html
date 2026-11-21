@@ -26,10 +26,10 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Cómo está organizado Google Cloud</h2>
-<pre><code class="language-text">Organización (tuempresa.com)                 ← la empresa, ligada a su dominio
- └── Carpetas (opcional)  datos/, finanzas/   ← agrupan proyectos por área
-      └── Proyectos  academia-datos-dev        ← EL contenedor clave: recursos, permisos, APIs y facturación
-           └── Recursos                        ← buckets, datasets de BigQuery, temas de Pub/Sub, clusters…</code></pre>
+<figure class="diagrama"><figcaption>Cómo se organiza Google Cloud, de la empresa a cada recurso</figcaption></figure>
+
+
+<p>El <strong>proyecto</strong> es la pieza clave: casi todo (permisos, facturación, APIs activadas) se configura a ese nivel.</p>
 <ul>
 <li><strong>Proyecto</strong>: todo vive dentro de un proyecto. Tiene un <strong>ID</strong> único en el mundo (<code>academia-datos-dev</code>) que usarás en cada comando. Es el equivalente a la <em>cuenta</em> de AWS o a la <em>suscripción + grupo de recursos</em> de Azure.</li>
 <li><strong>Cuenta de facturación</strong>: se vincula a uno o varios proyectos; ahí llega la factura.</li>
@@ -37,12 +37,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Región y zona</strong>: <code>us-central1</code> (Iowa), <code>southamerica-east1</code> (São Paulo), <code>southamerica-west1</code> (Santiago), <code>northamerica-south1</code> (México)… BigQuery y Cloud Storage también ofrecen <strong>multirregiones</strong> como <code>US</code> y <code>EU</code>.</li>
 </ul>
 <h2>El mapa de servicios de datos</h2>
-<pre><code class="language-text"> FUENTES          INGESTA                    ALMACENAMIENTO            PROCESO                  CONSUMO
- apps, APIs ──►  Pub/Sub (eventos)    ──►    Cloud Storage (lago) ──►  Dataflow (Beam)    ──►   BigQuery (SQL)
- bases      ──►  Datastream (CDC)            BigQuery (warehouse)      Dataproc (Spark)         Looker / Looker Studio
- SaaS       ──►  Data Transfer Service       BigLake (tablas abiertas) Dataform / dbt (SQL)     Agent Platform (ML, antes Vertex AI)
-                       ORQUESTACIÓN: Cloud Composer (Airflow) · Workflows · Cloud Scheduler
-                       GOBIERNO: IAM · Dataplex · Policy tags · Cloud Audit Logs</code></pre>
+<figure class="diagrama"><figcaption>El mapa de servicios de datos de Google Cloud</figcaption></figure>
+
+
 <div class="table-wrap"><table><thead><tr>
 <th>Servicio</th>
 <th>Para qué</th>

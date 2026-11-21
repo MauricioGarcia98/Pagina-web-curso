@@ -27,16 +27,38 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Que todo sea <strong>reproducible, versionado y barato</strong>.</li>
 </ol>
 <h2>La arquitectura</h2>
-<pre><code class="language-text">                ┌──────────────────────── Azure ────────────────────────────┐
- ERP (SQL) ──ADF──▶ ADLS Gen2 /bronze ──┐                                     │
- API pagos ─Python─▶ ADLS Gen2 /bronze ──┤  Databricks (Unity Catalog)         │
- Clics web ─Event Hubs────────────────── ┤   Auto Loader → bronze (Delta)      │
-                                         │   PySpark     → silver (MERGE)      │
-                                         │   dbt         → gold (estrella)     │
-                                         │   SQL Warehouse → Power BI          │
-                                         └─────────────────────────────────────┘
- Orquestación: Airflow (o Lakeflow Jobs)          Secretos: Key Vault   IaC: Bicep + Declarative Automation Bundles
- CI/CD: GitHub Actions   Calidad: tests dbt + expectations   Observabilidad: alertas + system tables</code></pre>
+<figure class="diagrama"><figcaption>La arquitectura del proyecto final en Azure</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza transversal</th>
+<th>Herramienta</th>
+</tr>
+</thead><tbody><tr>
+<td>Orquestación</td>
+<td>Airflow (o Lakeflow Jobs)</td>
+</tr>
+<tr>
+<td>Secretos</td>
+<td>Key Vault</td>
+</tr>
+<tr>
+<td>Infraestructura como código</td>
+<td>Bicep + Declarative Automation Bundles</td>
+</tr>
+<tr>
+<td>CI/CD</td>
+<td>GitHub Actions</td>
+</tr>
+<tr>
+<td>Calidad</td>
+<td>Tests de dbt + expectations</td>
+</tr>
+<tr>
+<td>Observabilidad</td>
+<td>Alertas + system tables</td>
+</tr>
+</tbody></table></div>
 <div class="recorrido"></div>
 
 

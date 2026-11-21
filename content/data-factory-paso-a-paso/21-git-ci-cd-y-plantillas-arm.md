@@ -16,10 +16,17 @@ El factory de dev es el taller donde se trabaja con Git; qa y prod son sucursale
 
 Sin Git (live mode), todos editan el mismo factory y **Publish all** publica todo, terminado o no. Con Git:
 
-```text
-feature/nueva-fuente ──pull request──▶ main (collaboration branch) ──Publish──▶ adf_publish (plantillas ARM)
-                                                                                     │
-                                                                          CI/CD ─────┴──▶ factory de qa ──▶ factory de prod
+```diagrama
+titulo: Data Factory con Git: de una rama a producción
+nodo ft: feature/nueva-fuente | icono=git | col=0 | fila=0 | color=gris | sub=tu rama
+nodo mn: main | icono=git | col=1 | fila=0 | color=azul | sub=collaboration branch
+nodo ap: adf_publish | icono=documento | col=2 | fila=0 | color=violeta | sub=plantillas ARM
+nodo qa: Factory de qa | icono=adf | col=2 | fila=1 | color=amarillo
+nodo pr: Factory de prod | icono=adf | col=3 | fila=1 | color=verde
+flecha ft -> mn: pull request
+flecha mn -> ap: Publish
+flecha ap -> qa: CI/CD
+flecha qa -> pr: aprobado
 ```
 
 | Pieza | Qué es |

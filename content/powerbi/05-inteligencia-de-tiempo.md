@@ -19,6 +19,15 @@ La inteligencia de tiempo es como tener un calendario que entiende de comparacio
 
 Las funciones de tiempo necesitan una columna de fechas **sin huecos** (todos los días, aunque no haya ventas). Por eso en Power BI se crea una **tabla calendario**:
 
+```diagrama
+titulo: La tabla calendario: una fecha por día, unida a los hechos
+nodo cal: Calendario | icono=calendario | col=0 | fila=0 | color=azul | sub=Date, Año, Mes, Trimestre · marcada como tabla de fechas
+nodo ped: Pedidos | icono=tabla | col=1 | fila=0 | color=naranja | sub=fecha_pedido, monto
+nodo ti: TOTALYTD · SAMEPERIODLASTYEAR · DATEADD | icono=reloj | col=0 | fila=1 | color=violeta | sub=necesitan días completos y continuos
+flecha cal -> ped: 1 → N por fecha
+flecha ti -> cal: usan | estilo=punteada
+```
+
 ```dax
 Calendario = ADDCOLUMNS(
     CALENDAR(DATE(2022, 1, 1), DATE(2024, 12, 31)),

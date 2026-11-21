@@ -18,11 +18,15 @@ La suscripción es la tarjeta con la que se paga; los grupos de recursos son car
 
 ## Paso 1 — La jerarquía de Azure
 
-```text
-Tenant (Microsoft Entra ID: la organización y sus usuarios)
- └── Suscripción (quién paga y un límite de acceso)
-      └── Grupo de recursos (una carpeta de recursos relacionados)
-           └── Recurso (una cuenta de almacenamiento, un key vault, un workspace…)
+```diagrama
+titulo: La jerarquía de Azure, de la organización a cada recurso
+nodo ten: Tenant (Microsoft Entra ID) | icono=entra | col=0 | fila=0 | color=azul | sub=la organización: usuarios, grupos, identidades
+nodo sub: Suscripción | icono=azure | col=1 | fila=0 | color=cian | sub=quién paga y límite de acceso: sub-datos-dev, sub-datos-prod
+nodo rg: Grupo de recursos | icono=carpeta | col=2 | fila=0 | color=verde | sub=carpeta lógica de un proyecto o entorno: rg-datos-dev
+nodo rec: Recursos | icono=cubo | col=3 | fila=0 | color=naranja | sub=cuenta de almacenamiento, Key Vault, workspace de Databricks
+flecha ten -> sub
+flecha sub -> rg
+flecha rg -> rec
 ```
 
 | Nivel | Qué es | Ejemplo en Tienda Andina |

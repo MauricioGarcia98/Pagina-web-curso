@@ -36,6 +36,19 @@ Tres problemas chicos, en fila. Ninguno es difícil por separado.
 | **Agregar** | Resumir muchos en uno | "total", "promedio", "cuántos", "el mayor" |
 | **Ordenar** | Poner en orden y cortar | "los 5 más…", "del más nuevo al más viejo" |
 
+```diagrama
+titulo: Las cinco operaciones que componen casi cualquier problema de datos
+nodo f: Filtrar | icono=lupa | col=0 | fila=0 | color=azul | sub=quedarse con algunas filas
+nodo t: Transformar | icono=transformar | col=1 | fila=0 | color=violeta | sub=calcular columnas nuevas
+nodo g: Agrupar | icono=capas | col=2 | fila=0 | color=amarillo | sub=juntar por una clave
+nodo a: Agregar | icono=calculator | col=3 | fila=0 | color=naranja | sub=sumar, contar, promediar
+nodo o: Ordenar | icono=grafico | col=4 | fila=0 | color=verde | sub=y quizá quedarse con los primeros
+flecha f -> t
+flecha t -> g
+flecha g -> a
+flecha a -> o
+```
+
 Resolver un problema es, casi siempre, decidir **cuáles** de estas necesitas y **en qué orden**.
 
 ## Una función por paso

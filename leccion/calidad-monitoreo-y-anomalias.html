@@ -53,6 +53,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Así lo plantean las herramientas de observabilidad de datos, como el monitoreo de calidad de Databricks Lakehouse Monitoring o los tests de frescura de dbt (<code>dbt source freshness</code>).</p>
 <h2>Comparar con la historia reciente</h2>
 <p>Una regla simple y explicable: &quot;alerta si las filas de hoy son menos de la mitad del promedio de los 7 días anteriores&quot;. Con funciones de ventana:</p>
+<figure class="diagrama"><figcaption>La regla de la caída: el día de hoy contra los 7 anteriores</figcaption></figure>
+
+
 <pre><code class="language-sql">WITH d AS (
   SELECT substr(cargado_en, 1, 10) AS dia, COUNT(*) AS cargas
   FROM bronze_pedidos WHERE archivo &lt;&gt; 'pedidos_qa.json'

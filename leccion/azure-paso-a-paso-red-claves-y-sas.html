@@ -30,9 +30,10 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — Las tres preguntas del acceso</h2>
-<pre><code class="language-text">¿DESDE DÓNDE llega?   →  Red (firewall, redes virtuales, private endpoint)
-¿QUIÉN es?            →  Identidad (Entra) o credencial (clave, SAS)
-¿QUÉ puede hacer?     →  Rol (RBAC) o permisos de la SAS</code></pre>
+<figure class="diagrama"><figcaption>Las tres preguntas que Azure se hace antes de dejar pasar un pedido</figcaption></figure>
+
+
+<p>Si cualquiera de las tres respuestas es &quot;no&quot;, el pedido se rechaza.</p>
 <p>Las tres se cumplen a la vez: un usuario con el rol correcto que llega desde una red bloqueada <strong>no entra</strong>.</p>
 <h2>Paso 2 — El acceso de red</h2>
 <p>En <code>sttiendaandinadev</code>, menú <strong>Networking</strong>:</p>

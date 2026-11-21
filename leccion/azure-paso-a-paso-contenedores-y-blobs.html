@@ -52,8 +52,28 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>La dirección completa de un blob es:</p>
-<pre><code class="language-text">https://sttiendaandinadev.blob.core.windows.net/bronze/pedidos/2026/11/pedidos.csv
-         └──── cuenta ────┘                     └─ contenedor ┘└──── carpeta + archivo ────┘</code></pre>
+<p><code>https://sttiendaandinadev.blob.core.windows.net/bronze/pedidos/2026/11/pedidos.csv</code>, por partes:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><code>sttiendaandinadev</code></td>
+<td>La <strong>cuenta</strong> de almacenamiento (nombre único en todo Azure)</td>
+</tr>
+<tr>
+<td><code>.blob.core.windows.net</code></td>
+<td>El servicio de blobs de Azure</td>
+</tr>
+<tr>
+<td><code>bronze</code></td>
+<td>El <strong>contenedor</strong></td>
+</tr>
+<tr>
+<td><code>pedidos/2026/11/pedidos.csv</code></td>
+<td>La carpeta y el archivo dentro del contenedor</td>
+</tr>
+</tbody></table></div>
 <h2>Paso 2 — Crear los contenedores</h2>
 <p>Abre <code>sttiendaandinadev</code> → menú <strong>Containers</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/azure/b05-contenedores-vacio.webp" alt="Containers vacío - el botón + Container (1)" loading="lazy"><figcaption>Containers vacío - el botón + Container (1)</figcaption></figure>

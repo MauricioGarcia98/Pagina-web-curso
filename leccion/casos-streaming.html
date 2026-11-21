@@ -29,10 +29,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p><strong>Ritmo</strong> es una app de música por suscripción con planes <code>gratis</code>, <code>individual</code>, <code>duo</code> y <code>familiar</code>. La directora de producto quiere entender el <strong>engagement</strong> (cuánto se usa la app) y el <strong>negocio</strong> (cuánto se factura y cuántos se van).</p>
 <h2>El modelo de datos</h2>
-<pre><code class="language-text">streaming_usuarios (usuario_id, pais, fecha_registro, edad, dispositivo_principal)
-  ├── streaming_suscripciones (suscripcion_id, usuario_id, plan, precio_mensual, fecha_inicio, fecha_fin, motivo_baja)
-  └── streaming_reproducciones (repro_id, usuario_id, contenido_id, fecha_hora, segundos_escuchados, dispositivo)
-                                                     └── streaming_contenidos (contenido_id, titulo, tipo, genero, artista, duracion_seg, ...)</code></pre>
+<figure class="diagrama"><figcaption>El modelo de datos de la plataforma de música</figcaption></figure>
+
+
 <h2>Glosario de métricas</h2>
 <div class="table-wrap"><table><thead><tr>
 <th>Métrica</th>

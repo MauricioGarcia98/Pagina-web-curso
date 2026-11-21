@@ -29,13 +29,19 @@ Antes de Unity Catalog, cada workspace de Databricks tenía su propio catálogo 
 | Ocultar datos sensibles | Filtros de filas y máscaras de columnas |
 | Acceso al almacenamiento sin llaves | *Storage credentials* y *external locations* |
 
-```text
-Metastore (uno por región, compartido por los workspaces)
- └── Catálogo        dev, prod, main             ← normalmente por entorno o unidad de negocio
-      └── Esquema    bronze, silver, gold, ventas ← por capa o dominio
-           ├── Tabla / Vista       prod.gold.ventas_diarias
-           ├── Volumen (archivos)  /Volumes/prod/crudo/archivos/
-           └── Función, Modelo
+```diagrama
+titulo: Los niveles de Unity Catalog: catálogo.esquema.objeto
+nodo met: Metastore | icono=unity | col=0 | fila=1 | color=gris | sub=uno por región, compartido por los workspaces
+nodo cat: Catálogo | icono=libro | col=1 | fila=1 | color=azul | sub=dev, prod, main: por entorno o área
+nodo esq: Esquema | icono=carpeta | col=2 | fila=1 | color=verde | sub=bronze, silver, gold, ventas: por capa o dominio
+nodo tab: Tablas y vistas | icono=tabla | col=3 | fila=0 | color=naranja | sub=prod.gold.ventas_diarias
+nodo vol: Volúmenes | icono=archivos | col=3 | fila=1 | color=naranja | sub=archivos: /Volumes/prod/crudo/archivos/
+nodo fun: Funciones y modelos | icono=ml | col=3 | fila=2 | color=naranja | sub=funciones SQL/Python, modelos de ML
+flecha met -> cat
+flecha cat -> esq
+flecha esq -> tab
+flecha esq -> vol
+flecha esq -> fun
 ```
 
 Los permisos se **heredan** hacia abajo: `GRANT SELECT ON SCHEMA prod.gold TO analistas` da lectura sobre todas las tablas del esquema, incluidas las que se creen después. Y para leer una tabla hacen falta tres permisos encadenados: `USE CATALOG` en el catálogo, `USE SCHEMA` en el esquema y `SELECT` en la tabla.

@@ -91,6 +91,9 @@ ORDER BY mes;</code></pre>
 <p>Las diferencias de tiempo se calculan con <code>julianday</code>: <code>(julianday(b) - julianday(a)) * 1440</code> son minutos (un día tiene 1440).</p>
 <h2>Retención por cohorte</h2>
 <p>Una <strong>cohorte</strong> es el grupo de clientes que hicieron su primera compra en el mismo mes. La <strong>retención del mes 1</strong> es qué porcentaje de esa cohorte volvió a comprar en el mes siguiente.</p>
+<figure class="diagrama"><figcaption>Retención del mes 1: de la cohorte, ¿cuántos volvieron el mes siguiente?</figcaption></figure>
+
+
 <pre><code class="language-sql">WITH primero AS (
   SELECT cliente_id, MIN(substr(fecha_pedido, 1, 7)) AS cohorte
   FROM pedidos WHERE estado &lt;&gt; 'cancelado' GROUP BY cliente_id

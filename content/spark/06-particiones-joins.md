@@ -21,12 +21,30 @@ A veces el número de particiones que eligió Spark no te sirve: son muy pocas p
 
 La diferencia se entiende con un dibujo:
 
-```text
-repartition(3): TODAS las filas se reparten de nuevo         coalesce(2): se juntan particiones vecinas
- P1 ─┬─► A                                                     P1 ─┐
- P2 ─┼─► B      (shuffle completo: cada fila puede              P2 ─┴─► A     (sin shuffle: P1 y P2
- P3 ─┼─► C       ir a cualquier destino)                        P3 ─┐          se juntan donde están)
- P4 ─┘                                                          P4 ─┴─► B
+```diagrama
+titulo: repartition reparte todo de nuevo (shuffle); coalesce junta vecinas (sin shuffle)
+nodo a1: P1 | icono=cubo | col=0 | fila=0 | color=azul
+nodo a2: P2 | icono=cubo | col=0 | fila=1 | color=azul
+nodo a3: P3 | icono=cubo | col=0 | fila=2 | color=azul
+nodo ra: A | icono=cubo | col=1 | fila=0 | color=rojo
+nodo rb: B | icono=cubo | col=1 | fila=1 | color=rojo
+nodo rcc: C | icono=cubo | col=1 | fila=2 | color=rojo
+nodo b1: P1 | icono=cubo | col=2 | fila=0 | color=azul
+nodo b2: P2 | icono=cubo | col=2 | fila=1 | color=azul
+nodo b3: P3 | icono=cubo | col=2 | fila=2 | color=azul
+nodo ca: A | icono=cubo | col=3 | fila=0 | color=verde | sub=P1 + P2, donde están
+nodo cb: B | icono=cubo | col=3 | fila=2 | color=verde | sub=P3 + P4, donde están
+grupo gr: repartition(3) · cada fila puede ir a cualquier destino | nodos=a1,a2,a3,ra,rb,rcc | color=rojo
+grupo gc: coalesce(2) · sin mover datos por la red | nodos=b1,b2,b3,ca,cb | color=verde
+flecha a1 -> ra
+flecha a1 -> rb
+flecha a2 -> rcc
+flecha a2 -> ra
+flecha a3 -> rb
+flecha a3 -> rcc
+flecha b1 -> ca
+flecha b2 -> ca
+flecha b3 -> cb
 ```
 
 - `repartition` cuesta un shuffle, pero deja particiones **parejas**.
@@ -53,12 +71,19 @@ Unir dos tablas distribuidas tiene una dificultad: las filas que tienen que unir
 
 Si una tabla es **chica** (por defecto, menos de 10 MB, configurable con `spark.sql.autoBroadcastJoinThreshold`), Spark manda **una copia completa a cada executor**. Cada executor une sus particiones de la tabla grande con su copia local. La tabla grande **no se mueve**: ¡no hay shuffle!
 
-```text
-        clientes (2.000 filas) ── copia ──► executor 1, executor 2, executor 3
-pedidos (12.000 filas, se quedan donde están)
- executor 1: sus pedidos ⋈ copia de clientes
- executor 2: sus pedidos ⋈ copia de clientes      ← nadie mueve pedidos por la red
- executor 3: sus pedidos ⋈ copia de clientes
+```diagrama
+titulo: Broadcast join: la tabla chica viaja a cada executor, la grande no se mueve
+nodo cli: clientes (2.000 filas) | icono=tabla | col=0 | fila=1 | color=azul | sub=chica: se copia entera
+nodo e1: Executor 1 | icono=servidor | col=1 | fila=0 | color=verde | sub=sus pedidos ⋈ copia de clientes
+nodo e2: Executor 2 | icono=servidor | col=1 | fila=1 | color=verde | sub=sus pedidos ⋈ copia de clientes
+nodo e3: Executor 3 | icono=servidor | col=1 | fila=2 | color=verde | sub=sus pedidos ⋈ copia de clientes
+nodo ped: pedidos (12.000 filas) | icono=tabla | col=2 | fila=1 | color=naranja | sub=grande: cada parte se queda donde está
+flecha cli -> e1: copia
+flecha cli -> e2: copia
+flecha cli -> e3: copia
+flecha ped -- e1 | estilo=punteada
+flecha ped -- e2 | estilo=punteada
+flecha ped -- e3 | estilo=punteada
 ```
 
 ```python

@@ -26,10 +26,14 @@ Los contenedores son los cajones grandes del depósito (bronze, silver, gold) y 
 
 La dirección completa de un blob es:
 
-```text
-https://sttiendaandinadev.blob.core.windows.net/bronze/pedidos/2026/11/pedidos.csv
-         └──── cuenta ────┘                     └─ contenedor ┘└──── carpeta + archivo ────┘
-```
+`https://sttiendaandinadev.blob.core.windows.net/bronze/pedidos/2026/11/pedidos.csv`, por partes:
+
+| Parte | Qué es |
+|---|---|
+| `sttiendaandinadev` | La **cuenta** de almacenamiento (nombre único en todo Azure) |
+| `.blob.core.windows.net` | El servicio de blobs de Azure |
+| `bronze` | El **contenedor** |
+| `pedidos/2026/11/pedidos.csv` | La carpeta y el archivo dentro del contenedor |
 
 ## Paso 2 — Crear los contenedores
 

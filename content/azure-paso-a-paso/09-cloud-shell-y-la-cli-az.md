@@ -27,14 +27,16 @@ La primera vez, Cloud Shell pregunta si quieres **Bash** o **PowerShell** y si q
 
 ## Paso 2 — La forma de un comando az
 
-```text
-az  storage  account  list  -g rg-tiendaandina-dev  -o table
-│   │        │        │     └─ parámetros            └─ formato de salida
-│   │        │        └─ acción (list, show, create, delete, update)
-│   │        └─ subgrupo
-│   └─ grupo de servicio
-└─ la CLI
-```
+`az storage account list -g rg-tiendaandina-dev -o table`, por partes:
+
+| Parte | Qué es |
+|---|---|
+| `az` | La CLI de Azure |
+| `storage` | El grupo de servicio (almacenamiento) |
+| `account` | El subgrupo (cuentas de almacenamiento) |
+| `list` | La acción: `list`, `show`, `create`, `delete`, `update` |
+| `-g rg-tiendaandina-dev` | Un parámetro: en qué grupo de recursos |
+| `-o table` | El formato de salida: tabla (también `json`, `tsv`, `yaml`) |
 
 Siempre es **qué** (grupo y subgrupo) + **qué hacer** (acción) + **sobre qué** (parámetros). Con `--help` al final de cualquier parte ves las opciones: `az storage account create --help`.
 

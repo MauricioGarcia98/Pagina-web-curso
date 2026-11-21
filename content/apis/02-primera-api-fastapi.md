@@ -44,6 +44,21 @@ En este curso, FastAPI corre en el navegador con una **versión reducida** que t
 
 FastAPI decide de dónde sale cada parámetro mirando la firma de la función:
 
+```diagrama
+titulo: Qué hace FastAPI con cada pedido antes de llamar a tu función
+nodo req: GET /productos/7?limite=5 | icono=internet | col=0 | fila=1 | color=gris
+nodo ruta: Buscar la ruta | icono=lupa | col=1 | fila=1 | color=azul | sub=si no existe: 404
+nodo val: Validar parámetros | icono=reglas | col=2 | fila=1 | color=violeta | sub=producto_id: int · limite entre 1 y 50
+nodo e422: 422 con el detalle | icono=x | col=2 | fila=2 | color=rojo
+nodo fn: Tu función | icono=python | col=3 | fila=1 | color=verde | sub=recibe producto_id=7, limite=5
+nodo json: Respuesta JSON | icono=documento | col=4 | fila=1 | color=verde
+flecha req -> ruta
+flecha ruta -> val
+flecha val -> e422: inválido
+flecha val -> fn: válido
+flecha fn -> json
+```
+
 ```python norun
 @app.get("/productos/{producto_id}")          # producto_id está en la ruta
 def producto(producto_id: int):               # → parámetro de ruta, convertido a int

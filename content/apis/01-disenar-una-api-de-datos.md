@@ -52,6 +52,19 @@ La regla general: **4xx es culpa del cliente** (puede corregir y reintentar dist
 
 Los filtros y la paginación van en la **query** de la URL: `GET /pedidos?canal=web&desde=2024-07-01&limite=100`.
 
+```diagrama
+titulo: Paginar por cursor: "dame lo que viene después de este"
+nodo c: Cliente | icono=terminal | col=0 | fila=1 | color=gris
+nodo p1: GET /pedidos | icono=web | col=1 | fila=0 | color=azul | sub=datos 1..100 · siguiente = 100
+nodo p2: GET /pedidos?cursor=100 | icono=web | col=1 | fila=1 | color=azul | sub=datos 101..200 · siguiente = 200
+nodo p3: GET /pedidos?cursor=200 | icono=web | col=1 | fila=2 | color=azul | sub=datos 201..230 · siguiente = null
+nodo fin: Fin: tiene todo, sin repetidos | icono=check | col=2 | fila=2 | color=verde
+flecha c -> p1
+flecha p1 -> p2
+flecha p2 -> p3
+flecha p3 -> fin
+```
+
 | Paginación | Cómo pide la página siguiente | Problema |
 |---|---|---|
 | Por número u offset | `?pagina=3` o `?offset=200` | Si entran o se borran filas mientras paginas, **se repiten o se pierden** filas |

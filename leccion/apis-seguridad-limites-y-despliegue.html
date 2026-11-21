@@ -25,6 +25,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Dependencias: el guardia de la entrada</h2>
 <p>Una <strong>dependencia</strong> es una función que FastAPI ejecuta <strong>antes</strong> de tu ruta. Si lanza una excepción, la ruta no se ejecuta. Es el lugar natural para verificar quién llama:</p>
+<figure class="diagrama"><figcaption>Los controles por los que pasa un pedido antes de llegar a los datos</figcaption></figure>
+
+
 <pre data-norun><code class="language-python">from fastapi import Depends, Header, HTTPException
 
 CLAVES = {&quot;clave-finanzas&quot;: &quot;finanzas&quot;, &quot;clave-comercial&quot;: &quot;comercial&quot;}

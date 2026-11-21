@@ -18,11 +18,20 @@ Para leer un dato, Azure pregunta tres cosas: quién eres (identidad y rol), des
 
 ## Paso 1 — Las tres preguntas del acceso
 
-```text
-¿DESDE DÓNDE llega?   →  Red (firewall, redes virtuales, private endpoint)
-¿QUIÉN es?            →  Identidad (Entra) o credencial (clave, SAS)
-¿QUÉ puede hacer?     →  Rol (RBAC) o permisos de la SAS
+```diagrama
+titulo: Las tres preguntas que Azure se hace antes de dejar pasar un pedido
+nodo ped: Un pedido llega | icono=internet | col=0 | fila=0 | color=gris
+nodo red: ¿Desde dónde llega? | icono=red | col=1 | fila=0 | color=azul | sub=red: firewall, redes virtuales, private endpoint
+nodo quien: ¿Quién es? | icono=usuario | col=2 | fila=0 | color=violeta | sub=identidad de Entra o credencial (clave, SAS)
+nodo que: ¿Qué puede hacer? | icono=candado | col=3 | fila=0 | color=verde | sub=rol (RBAC) o permisos de la SAS
+nodo ok: Acceso | icono=check | col=4 | fila=0 | color=verde
+flecha ped -> red
+flecha red -> quien: pasa
+flecha quien -> que: pasa
+flecha que -> ok: pasa
 ```
+
+Si cualquiera de las tres respuestas es "no", el pedido se rechaza.
 
 Las tres se cumplen a la vez: un usuario con el rol correcto que llega desde una red bloqueada **no entra**.
 

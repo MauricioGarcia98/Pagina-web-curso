@@ -102,26 +102,50 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Carpetas: cajas dentro de cajas</h2>
 <p>Una <strong>carpeta</strong> (o <em>directorio</em>, que es lo mismo) es un contenedor de archivos y de <strong>otras carpetas</strong>. Así se arma un árbol:</p>
-<pre data-norun><code class="language-text">/                       ← la raíz: la carpeta que contiene todo
-└── home
-    └── ana             ← tu carpeta personal
-        ├── datos
-        │   ├── clientes.csv
-        │   └── 2024
-        │       └── diciembre
-        │           └── ventas.csv
-        └── informe.md</code></pre>
+<figure class="diagrama"><figcaption>Las carpetas forman un árbol: cada una puede tener archivos y más carpetas</figcaption></figure>
+
+
+<p>Las carpetas están en verde y azul, y los archivos en naranja.</p>
 <p>Cada carpeta puede tener adentro archivos y más carpetas, sin límite. Al principio de todo hay una carpeta que contiene a todas las demás: la <strong>raíz</strong>.</p>
 <h2>Rutas: la dirección de un archivo</h2>
 <p>Una <strong>ruta</strong> (<em>path</em>, en inglés) es la dirección completa para llegar a un archivo, carpeta por carpeta, como la dirección de una casa: país, ciudad, calle, número.</p>
-<pre data-norun><code class="language-text">/home/ana/datos/2024/diciembre/ventas.csv
-│ │    │   │     │    │         └── el archivo
-│ │    │   │     │    └── carpeta &quot;diciembre&quot;
-│ │    │   │     └── carpeta &quot;2024&quot;
-│ │    │   └── carpeta &quot;datos&quot;
-│ │    └── carpeta personal de ana
-│ └── carpeta &quot;home&quot;
-└── la raíz</code></pre>
+<p>La ruta <code>/home/ana/datos/2024/diciembre/ventas.csv</code>, leída parte por parte:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><code>/</code></td>
+<td>La raíz: la carpeta que contiene todo</td>
+</tr>
+<tr>
+<td><code>home/</code></td>
+<td>La carpeta &quot;home&quot;, donde viven las carpetas de las personas</td>
+</tr>
+<tr>
+<td><code>ana/</code></td>
+<td>La carpeta personal de Ana</td>
+</tr>
+<tr>
+<td><code>datos/</code></td>
+<td>Una carpeta dentro de la de Ana</td>
+</tr>
+<tr>
+<td><code>2024/</code></td>
+<td>Una carpeta dentro de &quot;datos&quot;</td>
+</tr>
+<tr>
+<td><code>diciembre/</code></td>
+<td>Una carpeta dentro de &quot;2024&quot;</td>
+</tr>
+<tr>
+<td><code>ventas.csv</code></td>
+<td>El archivo (lo último de la ruta)</td>
+</tr>
+</tbody></table></div>
+<figure class="diagrama"><figcaption>Cada barra / es un paso hacia adentro</figcaption></figure>
+
+
 <p>Cada <code>/</code> separa una carpeta de la siguiente. Se lee de izquierda a derecha: &quot;desde la raíz, entra a <code>home</code>, después a <code>ana</code>, después a <code>datos</code>…&quot;.</p>
 <div class="callout callout-nota"><div class="callout-title">📝 En Windows las rutas se ven distinto</div>
 

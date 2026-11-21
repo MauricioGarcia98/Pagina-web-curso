@@ -30,6 +30,9 @@ COPY pyproject.toml uv.lock ./     # capa 3: solo los archivos de dependencias
 RUN pip install uv &amp;&amp; uv sync --frozen --no-dev   # capa 4: instalar dependencias (lento)
 COPY src/ ./src/                   # capa 5: tu código
 CMD [&quot;uv&quot;, &quot;run&quot;, &quot;python&quot;, &quot;-m&quot;, &quot;src.pipeline&quot;]</code></pre>
+<figure class="diagrama"><figcaption>Las capas de la imagen y qué se reconstruye al cambiar el código</figcaption></figure>
+
+
 <p>Al construir, Docker revisa cada instrucción en orden. La caché de una capa se invalida cuando:</p>
 <div class="table-wrap"><table><thead><tr>
 <th>Instrucción</th>

@@ -17,10 +17,13 @@ Cloud Storage es el depósito de archivos de Google Cloud: guardas cualquier arc
 
 GCS guarda **objetos** (archivos) dentro de **buckets** (contenedores). Funciona igual que S3 en AWS o que los contenedores de ADLS en Azure.
 
-```text
-gs://lake-tienda-dev/bronze/ventas/fecha=2024-12-01/ventas.csv
-     └── bucket ───┘└──────────────── nombre del objeto ─────────┘
-```
+`gs://lake-tienda-dev/bronze/ventas/fecha=2024-12-01/ventas.csv`, por partes:
+
+| Parte | Qué es |
+|---|---|
+| `gs://` | El esquema: dice que es Cloud Storage |
+| `lake-tienda-dev` | El **bucket**: el contenedor (nombre único en todo Google Cloud) |
+| `bronze/ventas/fecha=2024-12-01/ventas.csv` | El **nombre del objeto**: parece una ruta de carpetas, pero es un solo nombre largo con barras |
 
 Tres ideas que hay que tener claras desde el principio:
 

@@ -22,8 +22,19 @@ Power BI es la cocina y el comedor de los datos. En la cocina (**Power BI Deskto
 
 El flujo siempre es el mismo, y este curso lo sigue en ese orden:
 
-```text
-Obtener datos → Transformar (Power Query) → Modelar (relaciones) → Medir (DAX) → Visualizar (informe) → Publicar (servicio)
+```diagrama
+titulo: El flujo de trabajo de Power BI (y el orden de este curso)
+nodo a: Obtener datos | icono=base | col=0 | fila=0 | color=gris
+nodo b: Transformar | icono=transformar | col=1 | fila=0 | color=azul | sub=Power Query
+nodo c: Modelar | icono=red | col=2 | fila=0 | color=violeta | sub=relaciones
+nodo d: Medir | icono=codigo | col=3 | fila=0 | color=amarillo | sub=DAX
+nodo e: Visualizar | icono=grafico | col=4 | fila=0 | color=naranja | sub=informe
+nodo f: Publicar | icono=nube | col=5 | fila=0 | color=verde | sub=servicio
+flecha a -> b
+flecha b -> c
+flecha c -> d
+flecha d -> e
+flecha e -> f
 ```
 
 ## Paso 2 — La pantalla

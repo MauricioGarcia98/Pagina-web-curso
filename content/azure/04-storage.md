@@ -28,11 +28,15 @@ En AWS el lago es S3 y en Google Cloud es Cloud Storage. En Azure es **Azure Dat
 
 La jerarquía es:
 
-```text
-Storage Account  stdatosdev001                      ← la cuenta (un recurso de Azure)
- └── Contenedor (file system)  bronze               ← como un bucket; uno por capa
-      └── Carpetas  ventas/anio=2024/mes=12/        ← carpetas reales
-           └── Archivo  ventas.parquet
+```diagrama
+titulo: De la cuenta de almacenamiento al archivo
+nodo sa: Storage Account | icono=adls | col=0 | fila=0 | color=azul | sub=stdatosdev001 · un recurso de Azure
+nodo co: Contenedor | icono=carpeta | col=1 | fila=0 | color=naranja | sub=bronze · como un bucket, uno por capa
+nodo ca: Carpetas | icono=carpeta | col=2 | fila=0 | color=verde | sub=ventas/anio=2024/mes=12/ · carpetas reales
+nodo ar: Archivo | icono=archivo | col=3 | fila=0 | color=gris | sub=ventas.parquet
+flecha sa -> co
+flecha co -> ca
+flecha ca -> ar
 ```
 
 ## Crear la cuenta

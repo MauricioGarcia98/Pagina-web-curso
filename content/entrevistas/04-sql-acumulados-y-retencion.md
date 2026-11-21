@@ -70,6 +70,19 @@ Las diferencias de tiempo se calculan con `julianday`: `(julianday(b) - julianda
 
 Una **cohorte** es el grupo de clientes que hicieron su primera compra en el mismo mes. La **retención del mes 1** es qué porcentaje de esa cohorte volvió a comprar en el mes siguiente.
 
+```diagrama
+titulo: Retención del mes 1: de la cohorte, ¿cuántos volvieron el mes siguiente?
+nodo pc: Primer pedido de cada cliente | icono=usuario | col=0 | fila=0 | color=azul | sub=define su cohorte: 2023-04
+nodo co: Cohorte 2023-04 | icono=equipo | col=1 | fila=0 | color=violeta | sub=32 clientes
+nodo act: Actividad cliente-mes | icono=calendario | col=1 | fila=1 | color=gris | sub=DISTINCT cliente, mes
+nodo v: Compraron en 2023-05 | icono=carrito | col=2 | fila=0 | color=verde | sub=12 clientes
+nodo r: Retención mes 1 | icono=grafico | col=3 | fila=0 | color=amarillo | sub=12 / 32 = 37,5 %
+flecha pc -> co
+flecha co -> v
+flecha act -> v
+flecha v -> r
+```
+
 ```sql
 WITH primero AS (
   SELECT cliente_id, MIN(substr(fecha_pedido, 1, 7)) AS cohorte

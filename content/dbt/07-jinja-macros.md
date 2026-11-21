@@ -13,9 +13,13 @@ Hasta ahora tus modelos eran SQL casi puro, con algún `{{ ref() }}`. Pero ese `
 
 dbt trabaja en dos pasos:
 
-```text
-models/ventas.sql          ──(1) Jinja compila──►   target/compiled/.../ventas.sql   ──(2) se ejecuta──►  warehouse
-(SQL + {{ }} {% %})                                  (SQL puro, sin nada de Jinja)
+```diagrama
+titulo: dbt trabaja en dos pasos: compilar y ejecutar
+nodo m: models/ventas.sql | icono=codigo | col=0 | fila=0 | color=azul | sub=SQL + {{ }} y {% %}
+nodo c: target/compiled/…/ventas.sql | icono=documento | col=1 | fila=0 | color=amarillo | sub=SQL puro, sin Jinja
+nodo w: Warehouse | icono=almacen | col=2 | fila=0 | color=verde
+flecha m -> c: 1. Jinja compila
+flecha c -> w: 2. se ejecuta
 ```
 
 El warehouse **nunca ve Jinja**: solo recibe el SQL ya compilado. Por eso, cuando algo falla, lo primero es mirar el SQL compilado (`dbt compile`, o el desplegable "Ver SQL compilado" que aparece al ejecutar un ejemplo en este curso). Ahí ves exactamente lo que se ejecutó.

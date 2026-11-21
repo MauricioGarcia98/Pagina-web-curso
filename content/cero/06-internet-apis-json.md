@@ -18,6 +18,14 @@ Abres la documentación del proveedor, copias la dirección de ejemplo y la pega
 
 Internet es, en el fondo, millones de computadoras pidiéndose cosas:
 
+```diagrama
+titulo: Un pedido y su respuesta
+nodo cl: Cliente | icono=monitor | col=0 | fila=0 | color=azul | sub=tu navegador o tu programa
+nodo sv: Servidor | icono=servidor | col=2 | fila=0 | color=verde | sub=api.tiendaandina.dev
+flecha cl -> sv: pedido: GET /v1/productos
+flecha sv -> cl: respuesta: 200 + JSON
+```
+
 - El **cliente** pide. Tu navegador, una app del celular, un programa de Python.
 - El **servidor** responde. Una computadora (casi siempre en la nube) que está siempre encendida esperando pedidos.
 
@@ -29,11 +37,14 @@ Tú (cliente) le pides al mozo un plato del menú. El mozo lleva el pedido a la 
 
 Una **URL** es la dirección de lo que pides:
 
-```text norun
-https://api.tiendaandina.dev/v1/productos?categoria=audio&page=2
-└─┬─┘   └────────┬─────────┘└─────┬────┘└──────────┬──────────┘
-protocolo     dominio           ruta           parámetros
-```
+`https://api.tiendaandina.dev/v1/productos?categoria=audio&page=2`, por partes:
+
+| Parte | Nombre | Qué dice |
+|---|---|---|
+| `https://` | Protocolo | Cómo se habla: HTTP con cifrado |
+| `api.tiendaandina.dev` | Dominio | A qué computadora le pides |
+| `/v1/productos` | Ruta | Qué recurso quieres (versión 1, productos) |
+| `?categoria=audio&page=2` | Parámetros | Filtros y opciones: categoría audio, página 2 |
 
 - **Protocolo** (`https`): cómo se habla. La `s` es de *secure*: la conversación viaja cifrada.
 - **Dominio** (`api.tiendaandina.dev`): qué servidor.

@@ -19,6 +19,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es un cliente y qué es un servidor</li><li>Leer las partes de una URL</li><li>Reconocer los métodos y los códigos de estado de HTTP</li><li>Explicar qué es una API y para qué la usa un ingeniero de datos</li><li>Leer y escribir JSON</li><li>Hacer tu primer pedido a una API desde la terminal y desde Python</li></ul>
 <h2>Cliente y servidor</h2>
 <p>Internet es, en el fondo, millones de computadoras pidiéndose cosas:</p>
+<figure class="diagrama"><figcaption>Un pedido y su respuesta</figcaption></figure>
+
+
 <ul>
 <li>El <strong>cliente</strong> pide. Tu navegador, una app del celular, un programa de Python.</li>
 <li>El <strong>servidor</strong> responde. Una computadora (casi siempre en la nube) que está siempre encendida esperando pedidos.</li>
@@ -31,9 +34,33 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Las partes de una URL</h2>
 <p>Una <strong>URL</strong> es la dirección de lo que pides:</p>
-<pre data-norun><code class="language-text">https://api.tiendaandina.dev/v1/productos?categoria=audio&amp;page=2
-└─┬─┘   └────────┬─────────┘└─────┬────┘└──────────┬──────────┘
-protocolo     dominio           ruta           parámetros</code></pre>
+<p><code>https://api.tiendaandina.dev/v1/productos?categoria=audio&amp;page=2</code>, por partes:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Nombre</th>
+<th>Qué dice</th>
+</tr>
+</thead><tbody><tr>
+<td><code>https://</code></td>
+<td>Protocolo</td>
+<td>Cómo se habla: HTTP con cifrado</td>
+</tr>
+<tr>
+<td><code>api.tiendaandina.dev</code></td>
+<td>Dominio</td>
+<td>A qué computadora le pides</td>
+</tr>
+<tr>
+<td><code>/v1/productos</code></td>
+<td>Ruta</td>
+<td>Qué recurso quieres (versión 1, productos)</td>
+</tr>
+<tr>
+<td><code>?categoria=audio&amp;page=2</code></td>
+<td>Parámetros</td>
+<td>Filtros y opciones: categoría audio, página 2</td>
+</tr>
+</tbody></table></div>
 <ul>
 <li><strong>Protocolo</strong> (<code>https</code>): cómo se habla. La <code>s</code> es de <em>secure</em>: la conversación viaja cifrada.</li>
 <li><strong>Dominio</strong> (<code>api.tiendaandina.dev</code>): qué servidor.</li>

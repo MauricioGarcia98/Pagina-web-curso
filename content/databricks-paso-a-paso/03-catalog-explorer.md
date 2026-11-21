@@ -14,12 +14,13 @@ El catálogo es el plano de un archivo gigante: **catálogo** es el edificio, **
 
 ## Paso 1 — El nombre de tres partes
 
-```text
-samples . tienda . pedidos
-   │        │        └─ la tabla (o vista, volumen, función, modelo)
-   │        └─ el esquema: agrupa objetos de un tema o una capa (bronze, silver, gold)
-   └─ el catálogo: el nivel más alto, suele separar entornos o áreas
-```
+`samples.tienda.pedidos`, por partes:
+
+| Parte | Nivel | Qué es |
+|---|---|---|
+| `samples` | Catálogo | El nivel más alto; suele separar entornos (dev, prod) o áreas |
+| `tienda` | Esquema | Agrupa objetos de un tema o una capa (bronze, silver, gold) |
+| `pedidos` | Objeto | La tabla (o vista, volumen, función, modelo) |
 
 En SQL se usa completo (`SELECT * FROM samples.tienda.pedidos`) o se fija un catálogo y esquema por defecto con `USE CATALOG main; USE SCHEMA default;` y después solo `pedidos`.
 

@@ -25,6 +25,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Qué hace CALCULATE</h2>
 <pre><code class="language-dax">CALCULATE(&lt;expresión&gt;, &lt;filtro1&gt;, &lt;filtro2&gt;, …)</code></pre>
+<figure class="diagrama"><figcaption>CALCULATE cambia los filtros antes de calcular la medida</figcaption></figure>
+
+
 <ol>
 <li>Toma el contexto de filtro de la celda (por ejemplo: país = Chile).</li>
 <li>Aplica los filtros que le pasas: <strong>reemplazan</strong> los filtros de las mismas columnas y <strong>se agregan</strong> a los demás.</li>

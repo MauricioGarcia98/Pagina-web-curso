@@ -164,11 +164,10 @@ GROUP BY 1</code></pre>
 GRANT TO (&quot;group:analistas-cl@empresa.com&quot;)
 FILTER USING (pais = 'Chile');</code></pre>
 <h2>Arquitectura de referencia: el caso streaming en GCP</h2>
-<pre><code class="language-text"> app/players ──► Pub/Sub &quot;reproducciones&quot; ──► suscripción BigQuery ──► streaming_bronze.reproducciones (particionada por día)
-                          └──────────────► Dataflow (ventanas de 1 min: top canciones en vivo) ──► Bigtable/BigQuery ──► pantalla en vivo
- base de suscripciones (Cloud SQL) ──► Datastream (CDC) ──► streaming_bronze.suscripciones
- Composer 03:00 ──► Dataform: silver (dedup, tipos) ──► gold (MAU, churn, MRR, skip rate) ──► assertions ──► Looker
- gobierno: policy tags en email/edad, row-level por país, Dataplex (calidad + linaje) · IaC: Terraform + Cloud Build</code></pre>
+<figure class="diagrama"><figcaption>Arquitectura de referencia: el caso streaming en Google Cloud</figcaption></figure>
+
+
+<p>Gobierno: policy tags en email y edad, seguridad por fila según país, y Dataplex para calidad y linaje. La infraestructura se crea con Terraform y Cloud Build.</p>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Ver el Airflow administrado de Google Cloud</div>
 
 <ol>

@@ -11,11 +11,20 @@ autoevaluacion: ¿Por qué Athena cobra por TB escaneado y cómo lo reduces? | �
 
 **Athena** es un motor de SQL **sin servidor** (por dentro es Trino/Presto) que consulta directamente los archivos de S3 usando las tablas del **Glue Data Catalog**. No hay nada que encender ni apagar: escribes SQL, Athena lee los archivos, y pagas **por TB escaneado** (~USD 5).
 
-```text
-  tu SQL ──► Athena ──► ¿qué es lake_silver.ventas? ──► Glue Data Catalog
-                │                                         (ubicación, columnas, particiones)
-                └──► lee solo los archivos necesarios de S3 ──► resultados en s3://…/athena-results/
+```diagrama
+titulo: Qué pasa cuando le mandas una consulta a Athena
+nodo sql: Tu SQL | icono=codigo | col=0 | fila=0 | color=gris
+nodo ath: Athena | icono=athena | col=1 | fila=0 | color=azul | sub=motor Trino sin servidor
+nodo cat: Glue Data Catalog | icono=glue | col=2 | fila=0 | color=violeta | sub=¿dónde están los archivos? ¿qué columnas y particiones?
+nodo s3: S3 | icono=s3 | col=1 | fila=1 | color=naranja | sub=lee solo los archivos necesarios
+nodo res: s3://…/athena-results/ | icono=archivo | col=2 | fila=1 | color=verde | sub=el resultado
+flecha sql -> ath: 1
+flecha ath -> cat: 2. pregunta
+flecha ath -> s3: 3. lee
+flecha s3 -> res: 4. guarda
 ```
+
+Pagas por los datos **escaneados**: por eso importan las particiones y el formato columnar.
 
 :::analogia Un buscador que cobra por página leída
 Imagina un bibliotecario que cobra por cada página que tiene que hojear. Si le pides "todo lo de 2024", hojea todo. Si los libros están **ordenados por mes** (particiones) y **por tema** (Parquet: columnas separadas), hojea solo lo justo y te cobra centavos.

@@ -54,6 +54,24 @@ Si no revisas el estado, un `404` o un `401` también trae JSON (`{"error": "...
 
 Ninguna API te da todo de una vez. Hay dos estilos y la de práctica tiene los dos.
 
+```diagrama
+titulo: El bucle de extracción: paginar, esperar si hace falta, reintentar
+nodo p: Pedir una página | icono=web | col=0 | fila=1 | color=azul
+nodo r: ¿Respuesta? | icono=lupa | col=1 | fila=1 | color=amarillo | forma=rombo
+nodo ok: Guardar los datos | icono=check | col=2 | fila=0 | color=verde | sub=¿hay siguiente página?
+nodo lim: 429: esperar Retry-After | icono=reloj | col=2 | fila=1 | color=naranja
+nodo err: 5xx: reintentar con backoff | icono=alerta | col=2 | fila=2 | color=rojo | sub=1 s, 2 s, 4 s…
+nodo fin: Fin | icono=check | col=3 | fila=0 | color=verde
+flecha p -> r
+flecha r -> ok: 200
+flecha r -> lim: 429
+flecha r -> err: 500
+flecha ok -> fin: no hay más
+flecha ok -> p: siguiente | estilo=punteada
+flecha lim -> p | estilo=punteada
+flecha err -> p | estilo=punteada
+```
+
 **Por número de página** (`/v1/productos`): pides `page=1`, `page=2`… hasta que la respuesta diga que no hay `siguiente`:
 
 ```python

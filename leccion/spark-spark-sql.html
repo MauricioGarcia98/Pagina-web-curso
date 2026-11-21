@@ -20,9 +20,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Todo lo que aprendiste de SQL funciona en Spark. <strong>Spark SQL</strong> y la API de DataFrames comparten el mismo optimizador: elige el que haga tu código más claro (¡y puedes mezclarlos!).</p>
 <h3>¿SQL o DataFrames? El mismo motor</h3>
 <p>Esta es la idea más tranquilizadora del módulo: una consulta escrita en SQL y la misma lógica escrita con la API de DataFrames <strong>producen exactamente el mismo plan</strong> de ejecución. Ambas pasan por <strong>Catalyst</strong>, el optimizador de Spark:</p>
-<pre><code class="language-text">spark.sql(&quot;SELECT …&quot;)  ─┐
-                         ├─▶  plan lógico  ─▶  Catalyst optimiza  ─▶  plan físico  ─▶  ejecución en el cluster
-df.filter(…).groupBy(…) ─┘</code></pre>
+<figure class="diagrama"><figcaption>SQL y DataFrames terminan en el mismo plan</figcaption></figure>
+
+
 <p>No hay uno &quot;más rápido&quot;. La elección es de <strong>claridad y de equipo</strong>:</p>
 <div class="table-wrap"><table><thead><tr>
 <th>Usa SQL cuando…</th>

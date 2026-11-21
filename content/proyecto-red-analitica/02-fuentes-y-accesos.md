@@ -19,6 +19,22 @@ red alta-clave ~/.ssh/red_analitica.pub       # IT la autoriza en unos minutos
 red estado
 ```
 
+```diagrama
+titulo: Cinco laboratorios, un SFTP y datos de salud que hay que proteger
+nodo lab: 5 laboratorios | icono=hospital | col=0 | fila=0 | color=azul | sub=cada uno con su formato y su horario
+nodo sftp: SFTP /entrantes | icono=servidor | col=1 | fila=0 | color=gris | sub=un archivo por laboratorio por día
+nodo br: bronze | icono=capas | col=2 | fila=0 | color=naranja | sub=tal cual llegó
+nodo seu: Seudonimización | icono=candado | col=3 | fila=0 | color=violeta | sub=el paciente se reemplaza por un código
+nodo sv: silver unificado | icono=tabla | col=4 | fila=0 | color=verde | sub=un formato para los cinco
+nodo olv: Derecho al olvido | icono=x | col=3 | fila=1 | color=rojo | sub=borrar a un paciente en todas las capas
+flecha lab -> sftp
+flecha sftp -> br
+flecha br -> seu
+flecha seu -> sv
+flecha olv -> sv | estilo=punteada | color=rojo
+flecha olv -> br | estilo=punteada | color=rojo
+```
+
 La primera vez, el cliente no conoce al servidor. **Verifica la huella** contra la del correo antes de aceptarla:
 
 ```bash

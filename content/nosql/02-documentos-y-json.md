@@ -21,6 +21,17 @@ En una oficina normalizada, la factura de un cliente está en un archivador, sus
  "estado": "entregado"}
 ```
 
+```diagrama
+titulo: Un pedido como documento: las líneas adentro, el cliente por referencia
+nodo ped: Documento pedido 101 | icono=documento | col=0 | fila=1 | color=azul | sub=estado, fecha
+nodo l1: Línea 1 (embebida) | icono=tabla | col=1 | fila=0 | color=verde | sub=producto 3 · cantidad 2 · precio al comprar
+nodo l2: Línea 2 (embebida) | icono=tabla | col=1 | fila=1 | color=verde | sub=producto 9 · cantidad 1
+nodo cli: Cliente 7 (referencia) | icono=usuario | col=1 | fila=2 | color=naranja | sub=vive en su colección; el pedido guarda solo su id
+flecha ped -> l1: dentro
+flecha ped -> l2: dentro
+flecha ped -> cli: apunta por id | estilo=punteada
+```
+
 Las líneas están **embebidas** en el pedido (se leen siempre juntas). El cliente aparece embebido con solo dos campos; el resto del cliente vive en su propia colección y se **referencia** por `id`.
 
 | Embebe cuando… | Referencia cuando… |

@@ -139,9 +139,23 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h3>Marcas de agua: cuánto esperar a los rezagados</h3>
 <p>Si la ventana de 10:00–10:05 se cierra a las 10:05 en punto, los eventos que llegan tarde quedan afuera. Si esperas para siempre, nunca publicas nada. La <strong>marca de agua</strong> (<em>watermark</em>) es la regla de compromiso: &quot;doy por cerrada una ventana cuando ya vi eventos <strong>N minutos</strong> posteriores a su fin&quot;. Lo que llegue después se descarta (o se manda a una tabla de tardíos).</p>
-<pre><code class="language-text">Marca de agua de 2 minutos:
-evento 10:04:50 llega 10:05:30  → entra en 10:00–10:05 (la ventana sigue abierta)
-evento 10:04:10 llega 10:07:30  → la marca ya pasó 10:07 → la ventana 10:00–10:05 está cerrada → tardío</code></pre>
+<p>Con una marca de agua de 2 minutos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Evento ocurrió</th>
+<th>Llegó</th>
+<th>¿Entra en la ventana 10:00–10:05?</th>
+</tr>
+</thead><tbody><tr>
+<td>10:04:50</td>
+<td>10:05:30</td>
+<td>Sí: la ventana sigue abierta (la marca va por 10:03:30)</td>
+</tr>
+<tr>
+<td>10:04:10</td>
+<td>10:07:30</td>
+<td>No: la marca ya pasó las 10:05, la ventana se cerró. Es un evento <strong>tardío</strong></td>
+</tr>
+</tbody></table></div>
 <p>Más espera = más exactitud pero más demora. Es una decisión de negocio, no técnica.</p>
 <h2>Garantías de entrega</h2>
 <div class="table-wrap"><table><thead><tr>

@@ -49,6 +49,18 @@ La copia de `uv` desde su imagen oficial y el `--no-install-project` (instalar p
 
 La imagen es **la misma** en desarrollo, prueba y producción; lo que cambia se pasa al ejecutar:
 
+```diagrama
+titulo: Una sola imagen para todos los entornos; lo que cambia llega al ejecutar
+nodo img: Imagen tienda-pipeline:1.4.0 | icono=docker | col=0 | fila=1 | color=azul | sub=sin secretos adentro
+nodo dev: Contenedor en dev | icono=servidor | col=1 | fila=0 | color=verde | sub=ENTORNO=dev, DB_HOST=localhost
+nodo prod: Contenedor en prod | icono=servidor | col=1 | fila=2 | color=rojo | sub=ENTORNO=prod, DB_HOST=db.interna
+nodo kv: Gestor de secretos | icono=keyvault | col=2 | fila=1 | color=violeta | sub=contraseñas y tokens
+flecha img -> dev
+flecha img -> prod
+flecha kv -> dev: inyecta al ejecutar | estilo=punteada
+flecha kv -> prod: inyecta al ejecutar | estilo=punteada
+```
+
 ```bash norun
 docker run --rm -e ENTORNO=prod -e DB_HOST=db.interna --env-file secretos.env tienda-pipeline:1.4.0
 ```

@@ -25,6 +25,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Por qué existe la capa bronze</h2>
 <p>En una arquitectura medallón, <strong>bronze</strong> guarda los datos <strong>exactamente como llegaron</strong>, con columnas extra que dicen de dónde vinieron (<code>archivo</code>) y cuándo se cargaron (<code>cargado_en</code>). Todo es texto, porque si declararas <code>fecha</code> como <code>DATE</code>, la fila con <code>&quot;31/10/2024&quot;</code> haría fallar la carga y perderías el dato.</p>
+<figure class="diagrama"><figcaption>Bronze guarda todo tal cual llegó; silver es la versión limpia</figcaption></figure>
+
+
 <p>Tres razones para no limpiar &quot;en la entrada&quot;:</p>
 <ol>
 <li><strong>Si la limpieza tiene un error, se vuelve a correr desde bronze</strong>, sin pedirle a la app que reenvíe nada.</li>

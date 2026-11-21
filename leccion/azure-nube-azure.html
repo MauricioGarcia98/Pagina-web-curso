@@ -62,11 +62,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Los data engineers trabajan casi siempre con <strong>PaaS</strong>: no instalas Spark ni parchas Linux, creas un workspace de Databricks y escribes código.</p>
 <h2>La jerarquía de Azure</h2>
 <p>Todo lo que creas en Azure vive dentro de una jerarquía de cajas. Entenderla es clave, porque los <strong>permisos</strong>, la <strong>facturación</strong> y las <strong>políticas</strong> se asignan en algún nivel y se heredan hacia abajo.</p>
-<pre><code class="language-text">Tenant (tu organización en Microsoft Entra ID: usuarios, grupos, identidades)
- └── Management groups (opcional, para empresas grandes)
-      └── Suscripciones (unidad de facturación y límites)   ← &quot;sub-datos-prod&quot;, &quot;sub-datos-dev&quot;
-           └── Grupos de recursos (contenedores lógicos)    ← &quot;rg-datos-dev&quot;
-                └── Recursos                                ← cuenta de almacenamiento, workspace de Databricks, Key Vault…</code></pre>
+<figure class="diagrama"><figcaption>La jerarquía de Azure: los permisos y políticas se heredan hacia abajo</figcaption></figure>
+
+
 <!-- dg:az01-jerarquia -->
 <figure class="diagrama"><figcaption>La jerarquía de Azure: los permisos y la facturación se heredan hacia abajo</figcaption></figure>
 
@@ -165,10 +163,10 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h3>Cómo encajan en un lakehouse</h3>
 <p>Así se vería la plataforma de datos de Tienda Andina en Azure:</p>
-<pre><code class="language-text">  ERP / web / app ──► Data Factory ──► ADLS Gen2 (bronze) ──► Databricks ──► ADLS (silver, gold) ──► Power BI
-       eventos     ──► Event Hubs  ──┘                         ▲    │
-                                         Key Vault (secretos) ─┘    └─► Azure Monitor (logs y alertas)
-                          Airflow o Data Factory orquestan todo el flujo cada noche</code></pre>
+<figure class="diagrama"><figcaption>La plataforma de datos de Tienda Andina en Azure</figcaption></figure>
+
+
+<p>Airflow o Data Factory orquestan todo el flujo cada noche.</p>
 <h2>Costos (¡importante!)</h2>
 <p>La nube cobra principalmente por tres cosas:</p>
 <ol>

@@ -24,14 +24,41 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Categorías</strong>: &quot;Laptops&quot; está dentro de &quot;Computadoras&quot;, que está dentro de &quot;Tecnología&quot;.</li>
 <li><strong>Cuentas contables</strong>, carpetas de archivos, comentarios con respuestas, rutas entre ciudades.</li>
 </ul>
-<pre><code class="language-text">categorias                                    el árbol que forman
-categoria_id │ nombre       │ padre           Tecnología (1)
-─────────────┼──────────────┼───────          ├── Computadoras (5)
-1            │ Tecnología   │ NULL            │   └── Laptops (8)
-5            │ Computadoras │ 1               ├── Celulares (6)
-6            │ Celulares    │ 1               └── Audio (7)
-7            │ Audio        │ 1
-8            │ Laptops      │ 5</code></pre>
+<p><strong>categorias</strong> (cada fila guarda quién es su padre)</p>
+<div class="table-wrap"><table><thead><tr>
+<th>categoria_id</th>
+<th>nombre</th>
+<th>padre</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Tecnología</td>
+<td>NULL</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Computadoras</td>
+<td>1</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Celulares</td>
+<td>1</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Audio</td>
+<td>1</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Laptops</td>
+<td>5</td>
+</tr>
+</tbody></table></div>
+<figure class="diagrama"><figcaption>El árbol que forman: la columna padre apunta hacia arriba</figcaption></figure>
+
+
 <p>Con un self join (lección 12) subes <strong>un</strong> nivel: &quot;el padre de Laptops es Computadoras&quot;. Pero ¿y si quieres <strong>todos</strong> los niveles, sin saber cuántos hay? Necesitarías un join para cada nivel, y la profundidad cambia. La solución es una <strong>CTE recursiva</strong>: una CTE que se usa <strong>a sí misma</strong> hasta que no hay más que recorrer.</p>
 <h2>La estructura</h2>
 <pre data-norun><code class="language-sql">WITH RECURSIVE nombre AS (

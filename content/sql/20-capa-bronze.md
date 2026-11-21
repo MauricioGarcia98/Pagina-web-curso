@@ -22,6 +22,17 @@ Los datos llegan como la ropa del lavarropas: mezclados, algunos al revés, uno 
 
 En una arquitectura medallón, **bronze** guarda los datos **exactamente como llegaron**, con columnas extra que dicen de dónde vinieron (`archivo`) y cuándo se cargaron (`cargado_en`). Todo es texto, porque si declararas `fecha` como `DATE`, la fila con `"31/10/2024"` haría fallar la carga y perderías el dato.
 
+```diagrama
+titulo: Bronze guarda todo tal cual llegó; silver es la versión limpia
+nodo ar: Archivos de la app | icono=archivos | col=0 | fila=0 | color=gris | sub=reenvíos, fechas en 3 formatos, montos como texto
+nodo br: bronze_pedidos | icono=capas | col=1 | fila=0 | color=naranja | sub=nunca se modifica: se puede reprocesar
+nodo pa: 7 pasos de limpieza | icono=transformar | col=2 | fila=0 | color=violeta | sub=deduplicar, tipar, normalizar
+nodo sv: silver | icono=tabla | col=3 | fila=0 | color=verde | sub=una fila por pedido, tipos correctos
+flecha ar -> br: cargar sin tocar
+flecha br -> pa
+flecha pa -> sv
+```
+
 Tres razones para no limpiar "en la entrada":
 
 1. **Si la limpieza tiene un error, se vuelve a correr desde bronze**, sin pedirle a la app que reenvíe nada.

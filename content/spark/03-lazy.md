@@ -119,10 +119,17 @@ HashAggregate(keys=[canal], functions=[count(1)])
 
 Como Spark ve el plan completo antes de ejecutar, su optimizador **Catalyst** puede reescribirlo para que sea más eficiente. El plan pasa por cuatro etapas:
 
-```text
-Tu código ──► Plan lógico ──► Plan lógico optimizado ──► Planes físicos ──► El más barato se ejecuta
-              (qué pediste)   (reglas de Catalyst)       (cómo hacerlo:      (Tungsten genera
-                                                          qué tipo de join…)  código para la CPU)
+```diagrama
+titulo: Las cuatro etapas del plan en Catalyst
+nodo c: Tu código | icono=codigo | col=0 | fila=0 | color=gris
+nodo pl: Plan lógico | icono=documento | col=1 | fila=0 | color=azul | sub=qué pediste
+nodo po: Plan lógico optimizado | icono=reglas | col=2 | fila=0 | color=violeta | sub=reglas de Catalyst: filtros antes, columnas justas
+nodo pf: Planes físicos | icono=engranaje | col=3 | fila=0 | color=naranja | sub=cómo hacerlo: qué tipo de join…
+nodo ej: El más barato se ejecuta | icono=velocidad | col=4 | fila=0 | color=verde | sub=Tungsten genera código para la CPU
+flecha c -> pl
+flecha pl -> po
+flecha po -> pf
+flecha pf -> ej: elige por costo
 ```
 
 Las optimizaciones más importantes:
@@ -180,12 +187,32 @@ No todas las transformaciones cuestan lo mismo. La pregunta clave es: **¿para c
 | **Narrow** (angostas) | Cada partición de salida depende de **una** partición de entrada | `select`, `filter`, `withColumn`, `union` | Barato: sin mover datos |
 | **Wide** (anchas) | Una partición de salida necesita datos de **muchas** particiones | `groupBy`, `join`, `distinct`, `orderBy`, `repartition` | Caro: requiere **shuffle** |
 
-```text
-NARROW (filter)                         WIDE (groupBy canal)
- P1 ──► P1'                              P1 ─┬─► web
- P2 ──► P2'                              P2 ─┼─► app        cada salida recibe datos
- P3 ──► P3'                              P3 ─┴─► tienda     de TODAS las entradas
- cada una sigue sola                     = shuffle por la red
+```diagrama
+titulo: Narrow: cada partición sigue sola · Wide: cada salida recibe de todas (shuffle)
+nodo n1: P1 | icono=cubo | col=0 | fila=0 | color=azul
+nodo n2: P2 | icono=cubo | col=0 | fila=1 | color=azul
+nodo n3: P3 | icono=cubo | col=0 | fila=2 | color=azul
+nodo o1: P1' | icono=cubo | col=1 | fila=0 | color=verde | sub=filter
+nodo o2: P2' | icono=cubo | col=1 | fila=1 | color=verde | sub=filter
+nodo o3: P3' | icono=cubo | col=1 | fila=2 | color=verde | sub=filter
+nodo w1: P1 | icono=cubo | col=2 | fila=0 | color=azul
+nodo w2: P2 | icono=cubo | col=2 | fila=1 | color=azul
+nodo w3: P3 | icono=cubo | col=2 | fila=2 | color=azul
+nodo sh: Shuffle | icono=red | col=3 | fila=1 | color=naranja | sub=disco + red: todos con todos
+nodo g1: web | icono=etiqueta | col=4 | fila=0 | color=rojo | sub=groupBy canal
+nodo g2: app | icono=etiqueta | col=4 | fila=1 | color=rojo
+nodo g3: tienda | icono=etiqueta | col=4 | fila=2 | color=rojo
+grupo gn: Narrow | nodos=n1,n2,n3,o1,o2,o3 | color=verde
+grupo gw: Wide (shuffle) | nodos=w1,w2,w3,sh,g1,g2,g3 | color=rojo
+flecha n1 -> o1
+flecha n2 -> o2
+flecha n3 -> o3
+flecha w1 -> sh
+flecha w2 -> sh
+flecha w3 -> sh
+flecha sh -> g1
+flecha sh -> g2
+flecha sh -> g3
 ```
 
 Un `filter` puede aplicarse a cada partición por separado: la máquina 1 filtra sus filas sin preguntarle nada a la máquina 2. Pero para contar todos los pedidos "web", hay que **juntar** las filas web de todas las máquinas.

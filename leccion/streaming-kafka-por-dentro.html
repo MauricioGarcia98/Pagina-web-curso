@@ -77,6 +77,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Grupos de consumidores</h2>
 <p>Las particiones de un tópico se reparten entre los consumidores de un grupo: <strong>cada partición la lee un solo consumidor del grupo</strong>. Con 6 particiones y 3 consumidores, cada uno lee 2. Con 8 consumidores, 2 quedan sin trabajo: las particiones son el límite del paralelismo. Si un consumidor se cae, el grupo se <strong>rebalancea</strong> y sus particiones pasan a otro.</p>
+<figure class="diagrama"><figcaption>Un tópico de 6 particiones y dos grupos que lo leen por separado</figcaption></figure>
+
+
 <p>Dos grupos distintos leen el mismo tópico de forma independiente, cada uno con sus offsets: el equipo de silver y el de alertas de fraude pueden consumir <code>pedidos</code> sin molestarse.</p>
 <h2>Retención y compactación</h2>
 <div class="table-wrap"><table><thead><tr>

@@ -35,12 +35,36 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 2 — La forma de un comando az</h2>
-<pre><code class="language-text">az  storage  account  list  -g rg-tiendaandina-dev  -o table
-│   │        │        │     └─ parámetros            └─ formato de salida
-│   │        │        └─ acción (list, show, create, delete, update)
-│   │        └─ subgrupo
-│   └─ grupo de servicio
-└─ la CLI</code></pre>
+<p><code>az storage account list -g rg-tiendaandina-dev -o table</code>, por partes:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><code>az</code></td>
+<td>La CLI de Azure</td>
+</tr>
+<tr>
+<td><code>storage</code></td>
+<td>El grupo de servicio (almacenamiento)</td>
+</tr>
+<tr>
+<td><code>account</code></td>
+<td>El subgrupo (cuentas de almacenamiento)</td>
+</tr>
+<tr>
+<td><code>list</code></td>
+<td>La acción: <code>list</code>, <code>show</code>, <code>create</code>, <code>delete</code>, <code>update</code></td>
+</tr>
+<tr>
+<td><code>-g rg-tiendaandina-dev</code></td>
+<td>Un parámetro: en qué grupo de recursos</td>
+</tr>
+<tr>
+<td><code>-o table</code></td>
+<td>El formato de salida: tabla (también <code>json</code>, <code>tsv</code>, <code>yaml</code>)</td>
+</tr>
+</tbody></table></div>
 <p>Siempre es <strong>qué</strong> (grupo y subgrupo) + <strong>qué hacer</strong> (acción) + <strong>sobre qué</strong> (parámetros). Con <code>--help</code> al final de cualquier parte ves las opciones: <code>az storage account create --help</code>.</p>
 <h2>Paso 3 — Consultar</h2>
 <p>Escribe estos tres comandos:</p>

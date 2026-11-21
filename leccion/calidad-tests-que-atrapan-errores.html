@@ -29,6 +29,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 assert limpiar_monto(&quot;974,07&quot;) == 974.07   # pasa
 assert limpiar_monto(&quot;16.99&quot;) == 16.99     # pasa</code></pre>
+<figure class="diagrama"><figcaption>Cómo se mide si tus tests sirven (mutation testing)</figcaption></figure>
+
+
 <p>Los dos tests pasan, pero <code>limpiar_monto(&quot;1.402,97&quot;)</code> explota (o, en SQLite, da <code>1.402</code> sin avisar). Los tests eligieron casos fáciles. Este es el problema real de la calidad de los tests: <strong>no detectaron el error</strong> que importaba.</p>
 <p>La técnica para medirlo se llama <em>mutation testing</em>: se introducen errores a propósito en el código (&quot;mutantes&quot;) y se cuenta cuántos detectan tus tests. En esta lección el corrector hace exactamente eso: corre tus tests contra la versión correcta (deben pasar) y contra versiones con errores típicos (deben fallar).</p>
 <h2>Qué casos elegir</h2>

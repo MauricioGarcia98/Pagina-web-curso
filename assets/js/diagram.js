@@ -8,15 +8,16 @@
   const NS = 'http://www.w3.org/2000/svg';
   const LIB = window.ICONOS_LIB || { lucide: {}, trazos: {}, alias: {}, marcas: {}, siglas: {} };
 
-  // Paleta de Excalidraw: [trazo, relleno]
+  // Paleta de Excalidraw (Open Color): [trazo, relleno, tono medio para los dibujos]
   const COLORES = {
-    azul: ['#1971c2', '#a5d8ff'], verde: ['#2f9e44', '#b2f2bb'], naranja: ['#e8590c', '#ffd8a8'],
-    rojo: ['#e03131', '#ffc9c9'], violeta: ['#6741d9', '#d0bfff'], amarillo: ['#f08c00', '#ffec99'],
-    gris: ['#868e96', '#dee2e6'], cian: ['#0c8599', '#99e9f2'], rosa: ['#c2255c', '#fcc2d7']
+    azul: ['#1971c2', '#d0ebff', '#74c0fc'], verde: ['#2f9e44', '#d3f9d8', '#69db7c'], naranja: ['#e8590c', '#ffe8cc', '#ffa94d'],
+    rojo: ['#e03131', '#ffe3e3', '#ff8787'], violeta: ['#6741d9', '#e5dbff', '#b197fc'], amarillo: ['#f08c00', '#fff3bf', '#ffd43b'],
+    gris: ['#868e96', '#f1f3f5', '#ced4da'], cian: ['#0c8599', '#c5f6fa', '#66d9e8'], rosa: ['#c2255c', '#ffdeeb', '#f783ac']
   };
+  const DIB = window.Dibujos || { tiene: () => false };
 
   const CELDA_W = 250, CELDA_H = 195, NODO_W = 176, NODO_H = 112, MARGEN = 30, ICONO = 36;
-  const FUENTE = "'Kalam', 'Segoe Print', 'Comic Sans MS', cursive";
+  const FUENTE = "'Shantell Sans', 'Kalam', 'Segoe Print', 'Comic Sans MS', cursive";
   const SANS = "Inter, system-ui, sans-serif";
 
   const luminancia = (hex) => {
@@ -51,15 +52,31 @@
         n.col = c; n.fila = f;
       }
     }
-    const vertical = spec.direccion === 'abajo';
+    let vertical = spec.direccion === 'abajo';
+    // En pantallas angostas (teléfonos), un diagrama más ancho que alto se dibuja traspuesto: el flujo va de
+    // arriba hacia abajo y entra en el ancho de la pantalla, en lugar de quedar cortado y obligar a deslizar.
+    // En pantallas anchas pasa lo mismo con las cuadrículas (2+ filas) que no entran en la columna de la lección
+    // y que traspuestas sí entran; las tuberías de una sola fila se quedan horizontales.
+    {
+      const cols = Math.max(...nodos.map((n) => n.col)) + 1, filas = Math.max(...nodos.map((n) => n.fila)) + 1;
+      const ancho = vertical ? filas : cols, alto = vertical ? cols : filas;
+      const disponible = spec._ancho || 9999, estimado = (k) => k * CELDA_W + 2 * MARGEN;
+      // en escritorio: si achicándolo hasta ~55% entra, se achica (ver más abajo); si no, se traspone
+      const traspone = spec._estrecho
+        ? ancho > 2 && ancho > alto
+        : ancho > alto && estimado(ancho) * 0.72 > disponible && estimado(alto) * 0.72 <= disponible &&
+          (alto >= 2 || estimado(ancho) * 0.55 > disponible);
+      if (traspone) { vertical = !vertical; spec._traspuesto = true; }
+    }
     for (const n of nodos) {
       const w = n.ancho ? Number(n.ancho) : NODO_W;
       const util = n.forma === 'rombo' || n.forma === 'hexagono' || n.forma === 'circulo' ? w * 0.68 : w;
-      n.lineas = envolver(n.label, Math.floor(util / 11));
-      n.sublineas = n.sub ? envolver(n.sub, Math.floor(util / 7.6)) : [];
-      const conIcono = !!resolverIcono(n.icono);
+      n.lineas = envolver(n.label, Math.floor(util / 11.2));
+      n.sublineas = n.sub ? envolver(n.sub, Math.floor(util / 8.4)) : [];
+      const conIcono = !!resolverIcono(n.icono) || DIB.tiene(n.icono);
+      n._dibujo = DIB.tiene(n.icono);
       const extra = n.forma === 'cilindro' ? 14 : n.forma === 'rombo' ? 40 : n.forma === 'documento' ? 10 : n.forma === 'circulo' ? 26 : 0;
-      n.w = w; n.h = Math.max(NODO_H, (conIcono ? 54 : 18) + n.lineas.length * 21 + n.sublineas.length * 17 + 12 + extra);
+      n.w = w; n.h = Math.max(NODO_H, (conIcono ? (n._dibujo ? 70 : 54) : 18) + n.lineas.length * 21 + n.sublineas.length * 17 + 12 + extra);
       n._c = vertical ? n.fila : n.col; n._f = vertical ? n.col : n.fila;
     }
     // alto de cada fila: crece con el nodo más alto, y deja aire extra donde termina un grupo y empieza otro
@@ -83,15 +100,24 @@
   }
 
   // parte un texto en líneas de hasta `max` caracteres, respetando los \n puestos a mano
+  // largo aproximado de un texto en caracteres: las mayúsculas y la W/M ocupan más que una letra común
+  const largo = (t) => t.length + 0.3 * (t.match(/[A-ZÁÉÍÓÚÑWM]/g) || []).length;
   function envolver(str, max) {
     const out = [];
+    // una palabra más larga que la línea (stg_tienda__pedidos, s3://lago/bronze/, df.groupBy(…)) se parte
+    // después de _ / . , ? & = ( : - y, si aun así no entra, en trozos del largo de la línea
+    const partir = (p) => {
+      if (largo(p) <= max) return [p];
+      const trozos = p.split(/(?<=[_/.,?&=(:-])/).flatMap((t) => (largo(t) > max ? t.match(new RegExp('.{1,' + Math.max(3, Math.floor(max / 1.3)) + '}', 'g')) : [t]));
+      return trozos.reduce((acc, t) => { if (acc.length && largo(acc[acc.length - 1] + t) <= max) acc[acc.length - 1] += t; else acc.push(t); return acc; }, []);
+    };
     for (const parrafo of String(str).split('\n')) {
       let linea = '';
-      // una palabra más larga que la línea (stg_tienda__pedidos) se parte en sus guiones bajos
-      const palabras = parrafo.split(' ').flatMap((p) => (p.length > max && p.includes('_') ? p.split(/(?<=_)/).reduce((acc, t) => { if (acc.length && (acc[acc.length - 1] + t).length <= max) acc[acc.length - 1] += t; else acc.push(t); return acc; }, []) : [p]));
-      for (const palabra of palabras) {
-        const sep = linea.endsWith('_') ? '' : ' ';
-        if (linea && (linea + sep + palabra).length > max) { out.push(linea); linea = palabra; } else linea = linea ? linea + sep + palabra : palabra;
+      for (const palabra of parrafo.split(' ')) {
+        partir(palabra).forEach((t, k) => {
+          const sep = k > 0 ? '' : ' ';   // los trozos de una misma palabra van pegados
+          if (linea && largo(linea + sep + t) > max) { out.push(linea); linea = t; } else linea = linea ? linea + sep + t : t;
+        });
       }
       out.push(linea);
     }
@@ -208,10 +234,43 @@
     return l ? { tipo: 'lucide', svg: l } : null;
   }
 
-  function dibujarIcono(g, nombre, x, y, color) {
+  // Íconos de línea (Lucide o trazos propios) pasados por rough.js: mismo trazo a mano que el resto del diagrama
+  function iconoAMano(g, rc, ic, x, y, s, color, semilla) {
+    const k = s / 24, p = el('g', { transform: `translate(${x} ${y}) scale(${k})`, class: 'dg-dibujo' }, g);
+    const op = () => ({ seed: semilla++, roughness: 0.45, bowing: 0.5, stroke: color, strokeWidth: 1.9 / k * (s / 30) });
+    const at = (str, n) => { const m = new RegExp('\\b' + n + '="([^"]*)"').exec(str); return m ? m[1] : null; };
+    const num = (str, n, def = 0) => { const v = at(str, n); return v == null ? def : Number(v); };
+    const elementos = ic.tipo === 'trazo' ? [`<path d="${ic.d}"`] : ic.svg.match(/<\w+[^>]*>/g) || [];
+    for (const e of elementos) {
+      const tag = /<(\w+)/.exec(e)[1];
+      let n = null;
+      if (tag === 'path') {
+        const d = at(e, 'd'), punto = /^M\s*([\d.]+)[ ,]([\d.]+)\s*h\.01$/i.exec(d || '');
+        if (punto) n = el('circle', { cx: punto[1], cy: punto[2], r: 1.15, fill: color });
+        else if (d) {
+          // rough.js no entiende algunos arcos compactos (banderas pegadas): ese trazo va nítido
+          try { n = rc.path(d, op()); } catch (err) { n = el('path', { d, fill: 'none', stroke: color, 'stroke-width': 1.9 * (s / 30) / k, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }); }
+        }
+      } else if (tag === 'circle') n = rc.circle(num(e, 'cx'), num(e, 'cy'), num(e, 'r') * 2, op());
+      else if (tag === 'ellipse') n = rc.ellipse(num(e, 'cx'), num(e, 'cy'), num(e, 'rx') * 2, num(e, 'ry') * 2, op());
+      else if (tag === 'line') n = rc.line(num(e, 'x1'), num(e, 'y1'), num(e, 'x2'), num(e, 'y2'), op());
+      else if (tag === 'rect') {
+        const rx = num(e, 'x'), ry = num(e, 'y'), w = num(e, 'width'), h = num(e, 'height'), r = Math.min(num(e, 'rx'), w / 2, h / 2);
+        n = r ? rc.path(`M${rx + r} ${ry} H${rx + w - r} A${r} ${r} 0 0 1 ${rx + w} ${ry + r} V${ry + h - r} A${r} ${r} 0 0 1 ${rx + w - r} ${ry + h} H${rx + r} A${r} ${r} 0 0 1 ${rx} ${ry + h - r} V${ry + r} A${r} ${r} 0 0 1 ${rx + r} ${ry} Z`, op())
+          : rc.rectangle(rx, ry, w, h, op());
+      } else if (tag === 'polyline' || tag === 'polygon') {
+        const nums = (at(e, 'points') || '').trim().split(/[\s,]+/).map(Number), pts = [];
+        for (let i = 0; i + 1 < nums.length; i += 2) pts.push([nums[i], nums[i + 1]]);
+        n = tag === 'polygon' ? rc.polygon(pts, op()) : rc.linearPath(pts, op());
+      }
+      if (n) p.appendChild(n);
+    }
+  }
+
+  function dibujarIcono(g, nombre, x, y, color, rc, semilla = 1, s = ICONO) {
     const ic = resolverIcono(nombre);
     if (!ic) return;
-    const s = ICONO;
+    if (rc && (ic.tipo === 'lucide' || ic.tipo === 'trazo')) return iconoAMano(g, rc, ic, x, y, s, color, semilla);
     if (ic.tipo === 'marca') {
       // logo dentro de una placa: clara, u oscura si el color de la marca es muy claro
       const clara = luminancia(ic.hex) < 0.72;
@@ -236,6 +295,8 @@
     let spec;
     try { spec = JSON.parse(fig.dataset.spec); } catch (e) { return; }
     fig.dataset.listo = '1';
+    spec._ancho = fig.clientWidth || window.innerWidth;
+    spec._estrecho = spec._ancho < 640;
     const porId = ubicar(spec);
     // grupos: rectángulo que envuelve a sus nodos
     const grupos = spec.grupos.map((g) => {
@@ -260,10 +321,10 @@
 
     const svg = el('svg', { viewBox: `${minX} ${minY} ${W} ${H}`, width: W, role: 'img', 'aria-label': spec.titulo || 'Diagrama', class: 'dg-svg' });
     svg.style.maxWidth = W + 'px';
-    svg.style.minWidth = Math.round(Math.min(W, Math.max(520, W * 0.72))) + 'px';   // muy ancho: se desplaza en vez de achicarse de más
+    svg.style.minWidth = Math.round(Math.min(W, Math.max(spec._estrecho ? 300 : 520, W * (spec._estrecho ? 0.47 : 0.72)))) + 'px';   // muy ancho: se desplaza en vez de achicarse de más
     const rc = rough.svg(svg);
     let semilla = 7;
-    const base = () => ({ seed: semilla++, roughness: 1.1, bowing: 0.9, strokeWidth: 1.6 });
+    const base = () => ({ seed: semilla++, roughness: 1, bowing: 0.8, strokeWidth: 1.8 });
     const capa = (c) => el('g', { class: c }, svg);
     const capaGrupos = capa('dg-capa-grupos'), capaFlechas = capa('dg-capa-flechas'), capaNodos = capa('dg-capa-nodos'), capaEtiquetas = capa('dg-capa-etiquetas');
 
@@ -280,13 +341,13 @@
       const st = f.color ? COLORES[f.color][0] : 'currentColor';
       const gf = el('g', { class: 'dg-f', 'data-i': f.i, 'data-de': f.de, 'data-a': f.a }, capaFlechas);
       const d = trazo(f.pts);
-      const op = { ...base(), stroke: st, strokeWidth: 1.7, roughness: 0.9 };
+      const op = { ...base(), stroke: st, strokeWidth: 2, roughness: 0.9 };
       if (f.estilo === 'punteada') op.strokeLineDash = [6, 6];
       gf.appendChild(rc.path(d, op));
       el('path', { d, class: 'dg-flujo', stroke: f.color ? COLORES[f.color][0] : 'var(--brand, #4f46e5)' }, gf);
       if (f.doble) el('path', { d: trazo([...f.pts].reverse()), class: 'dg-flujo', stroke: f.color ? COLORES[f.color][0] : 'var(--brand, #4f46e5)' }, gf);
       const punta = (from, to) => {
-        const ang = Math.atan2(to.y - from.y, to.x - from.x), L = 13, A = 0.45;
+        const ang = Math.atan2(to.y - from.y, to.x - from.x), L = 15, A = 0.42;
         gf.appendChild(rc.line(to.x, to.y, to.x - L * Math.cos(ang - A), to.y - L * Math.sin(ang - A), { ...op, strokeLineDash: undefined }));
         gf.appendChild(rc.line(to.x, to.y, to.x - L * Math.cos(ang + A), to.y - L * Math.sin(ang + A), { ...op, strokeLineDash: undefined }));
       };
@@ -320,10 +381,10 @@
     }
 
     for (const n of spec.nodos) {
-      const [st, fi] = COLORES[n.color] || ['currentColor', null];
+      const [st, fi, medio] = COLORES[n.color] || ['currentColor', null, '#ced4da'];
       const gn = el('g', { class: 'dg-n', 'data-id': n.id }, capaNodos);
-      const op = { ...base(), stroke: st };
-      if (fi) Object.assign(op, { fill: fi, fillStyle: 'hachure', hachureGap: 7, fillWeight: 1.2, hachureAngle: -41 });
+      const op = { ...base(), stroke: st, strokeWidth: 2 };
+      if (fi) Object.assign(op, { fill: fi, fillStyle: 'solid' });
       const forma = n.forma || 'caja';
       const { x, y, w, h } = n;
       const formas = [];
@@ -352,15 +413,20 @@
       for (const f of formas) {
         gn.appendChild(f);
         // el primer trazo de una figura con relleno es el rayado: se marca para atenuarlo en tema oscuro
-        if (fi && forma !== 'nota') f.querySelector('path')?.classList.add('dg-relleno');
+        if (fi && forma !== 'nota') { const r = f.querySelector('path'); if (r) { r.classList.add('dg-relleno'); r.style.setProperty('--dg-osc', st); } }
       }
-      const tieneIcono = !!resolverIcono(n.icono);
+      const tieneIcono = n._dibujo || !!resolverIcono(n.icono);
       const dy = forma === 'cilindro' ? 16 : forma === 'rombo' ? 18 : forma === 'circulo' ? 12 : 0;
-      if (tieneIcono) dibujarIcono(gn, n.icono, x + w / 2 - ICONO / 2, y + 9 + dy, fi ? st : 'currentColor');
+      const LADO = 56;
+      if (n._dibujo) DIB.dibujar(gn, rc, n.icono, x + w / 2 - LADO / 2, y + 8 + dy, LADO, { tinta: fi ? st : 'currentColor', medio, semilla: semilla += 40 });
+      else if (tieneIcono) {
+        const ic = resolverIcono(n.icono), linea = ic.tipo === 'lucide' || ic.tipo === 'trazo', s2 = linea ? 42 : ICONO;
+        dibujarIcono(gn, n.icono, x + w / 2 - s2 / 2, y + (linea ? 9 : 11) + dy, fi ? st : 'currentColor', rc, semilla += 30, s2);
+      }
       const total = n.lineas.length * 21 + n.sublineas.length * 17;
-      const ty = (tieneIcono ? y + 68 + dy : y + (h - total) / 2 + 16) + (forma === 'cilindro' ? -2 : 0);
-      texto(gn, n.lineas.join('\n'), x + w / 2, ty, { size: 19, bold: true, color: 'currentColor', lh: 1.1 });
-      if (n.sublineas.length) texto(gn, n.sublineas.join('\n'), x + w / 2, ty + n.lineas.length * 21, { size: 15, color: 'currentColor', lh: 1.12 }).setAttribute('class', 'dg-sub');
+      const ty = (tieneIcono ? y + (n._dibujo ? 86 : 68) + dy : y + (h - total) / 2 + 16) + (forma === 'cilindro' ? -2 : 0);
+      texto(gn, n.lineas.join('\n'), x + w / 2, ty, { size: 18, bold: true, color: 'currentColor', lh: 1.15 });
+      if (n.sublineas.length) texto(gn, n.sublineas.join('\n'), x + w / 2, ty + n.lineas.length * 21, { size: 14, color: 'currentColor', lh: 1.18 }).setAttribute('class', 'dg-sub');
     }
 
     // ---------------------------------------------------------------- interacción
@@ -459,6 +525,10 @@
     bPng.addEventListener('click', () => exportar(svg, marco, spec.titulo, 'png'));
     bSvg.addEventListener('click', () => exportar(svg, marco, spec.titulo, 'svg'));
     fig.insertBefore(marco, fig.firstChild);
+    // si se pasa del ancho por poco (en escritorio hasta ~30%), achicarlo en vez de dejar una barra de desplazamiento
+    const cs = getComputedStyle(marco), minimo = parseFloat(svg.style.minWidth) || 0;
+    const visible = marco.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+    if (visible && minimo > visible && minimo < visible * (spec._estrecho ? 1.15 : 1.31)) svg.style.minWidth = visible + 'px';
   }
 
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -477,7 +547,7 @@
     const [vx, vy, vw, vh] = copia.getAttribute('viewBox').split(' ').map(Number);
     copia.setAttribute('xmlns', NS); copia.setAttribute('width', vw); copia.setAttribute('height', vh);
     const estilo = el('style', {});
-    estilo.textContent = `text{paint-order:stroke;stroke:${fondo};stroke-width:4px;stroke-linejoin:round}.dg-sigla{stroke:none}.dg-fondo-etiqueta{fill:${fondo};opacity:.92}.dg-sub{opacity:.8}.dg-relleno{opacity:${oscuro ? 0.3 : 0.75}}.dg-grupo path[fill]:not([fill="none"]){fill-opacity:.22}`;
+    estilo.textContent = `text{paint-order:stroke;stroke:${fondo};stroke-width:4px;stroke-linejoin:round}.dg-sigla{stroke:none}.dg-fondo-etiqueta{fill:${fondo};opacity:.92}.dg-sub{opacity:.8}.dg-relleno{${oscuro ? 'fill:var(--dg-osc);opacity:.2' : 'opacity:1'}}path[fill="#fffffe"]{fill:${oscuro ? '#3a4150' : '#ffffff'}}.dg-grupo path[fill]:not([fill="none"]){fill-opacity:.22}`;
     copia.insertBefore(estilo, copia.firstChild);
     copia.insertBefore(el('rect', { x: vx, y: vy, width: vw, height: vh, fill: fondo }), estilo.nextSibling);
     const generar = (fuente) => {
@@ -501,24 +571,14 @@
     };
   }
 
-  // La letra a mano (Kalam) se incrusta en el archivo exportado para que la imagen se vea igual que en la página.
+  // La letra a mano (Shantell Sans, alojada en el sitio) se incrusta en el archivo exportado para que la imagen
+  // se vea igual que en la página.
   let fuenteCache = null;
   function fuenteIncrustada() {
     if (fuenteCache) return fuenteCache;
     const aBase64 = (buf) => { let b = ''; const u = new Uint8Array(buf); for (let i = 0; i < u.length; i += 0x8000) b += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(b); };
-    fuenteCache = fetch('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap').then((r) => r.text()).then(async (css) => {
-      // de cada peso, el bloque del subconjunto latino (incluye tildes y ñ)
-      const bloques = css.split('@font-face').filter((b) => /latin \*\//.test(b) || /U\+0000-00FF/.test(b));
-      const caras = [];
-      for (const b of bloques) {
-        const url = (b.match(/url\(([^)]+)\)/) || [])[1], peso = (b.match(/font-weight:\s*(\d+)/) || [])[1];
-        if (!url) continue;
-        const datos = aBase64(await (await fetch(url)).arrayBuffer());
-        caras.push(`@font-face{font-family:'Kalam';font-weight:${peso};src:url(data:font/woff2;base64,${datos}) format('woff2')}`);
-      }
-      if (!caras.length) throw new Error('sin fuente');
-      return caras.join('');
-    });
+    fuenteCache = fetch('assets/fonts/shantell-sans-latin.woff2').then((r) => { if (!r.ok) throw new Error('sin fuente'); return r.arrayBuffer(); })
+      .then((buf) => `@font-face{font-family:'Shantell Sans';font-weight:300 800;src:url(data:font/woff2;base64,${aBase64(buf)}) format('woff2')}`);
     fuenteCache.catch(() => { fuenteCache = null; });
     return fuenteCache;
   }

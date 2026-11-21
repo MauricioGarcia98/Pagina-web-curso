@@ -107,9 +107,17 @@ En Databricks real, **Workspace → Create → Git folder** clona un repositorio
 
 ## Paso 5 — El flujo completo
 
-```text
-Git folder (rama feature) → commit → pull request → CI: bundle validate + tests
-   → merge a main → CD: bundle deploy -t prod con OIDC (sin tokens guardados)
+```diagrama
+titulo: De un cambio en una rama a producción, sin pasos manuales
+nodo gf: Git folder | icono=git | col=0 | fila=0 | color=gris | sub=rama feature
+nodo pr: Pull request | icono=github | col=1 | fila=0 | color=azul | sub=revisión de código
+nodo ci: CI | icono=check | col=2 | fila=0 | color=amarillo | sub=bundle validate + tests
+nodo mg: Merge a main | icono=git | col=3 | fila=0 | color=violeta
+nodo cd: CD | icono=databricks | col=4 | fila=0 | color=verde | sub=bundle deploy -t prod con OIDC, sin tokens guardados
+flecha gf -> pr: commit
+flecha pr -> ci
+flecha ci -> mg: aprobado
+flecha mg -> cd
 ```
 
 ```yaml

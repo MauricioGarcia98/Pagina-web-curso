@@ -28,6 +28,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
  &quot;lineas&quot;: [{&quot;producto_id&quot;: 3, &quot;cantidad&quot;: 2, &quot;precio&quot;: 120.0},
             {&quot;producto_id&quot;: 9, &quot;cantidad&quot;: 1, &quot;precio&quot;: 45.0}],
  &quot;estado&quot;: &quot;entregado&quot;}</code></pre>
+<figure class="diagrama"><figcaption>Un pedido como documento: las líneas adentro, el cliente por referencia</figcaption></figure>
+
+
 <p>Las líneas están <strong>embebidas</strong> en el pedido (se leen siempre juntas). El cliente aparece embebido con solo dos campos; el resto del cliente vive en su propia colección y se <strong>referencia</strong> por <code>id</code>.</p>
 <div class="table-wrap"><table><thead><tr>
 <th>Embebe cuando…</th>
