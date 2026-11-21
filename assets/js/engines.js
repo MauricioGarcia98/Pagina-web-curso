@@ -245,6 +245,8 @@ def _env(mode):
             _SAMPLE = json.loads(_TABLES_JSON)
             ps._RAW.update(_SAMPLE)
         ps._CATALOG.clear(); ps._TEMP_VIEWS.clear(); ps._FILES.clear()
+        # cada ejecución empieza sin streams ni checkpoints de la anterior (como un clúster nuevo)
+        getattr(ps, "_CHECKPOINTS", {}).clear(); getattr(ps, "_STREAMS", []).clear()
         ps.SparkSession._active = None
         spark = ps.SparkSession.builder.appName("academia-datos").getOrCreate()
         ns.update(spark=spark, sc=spark.sparkContext, display=_display)

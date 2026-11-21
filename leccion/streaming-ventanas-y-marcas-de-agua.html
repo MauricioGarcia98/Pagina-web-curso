@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ventanas, tiempo del evento y marcas de agua · Academia de Datos</title><meta name="description" content="Contar &quot;pedidos por minuto&quot; en un stream parece trivial hasta que los eventos llegan tarde y desordenados. Implementas a mano ventanas fijas, deslizantes y de sesión, y una marca de agua que decide hasta cuándo esperar a los rezagados. Así entiendes qué hace Spark por dentro con window y withWatermark, y el compromiso de fondo - esperar más da resultados más exactos pero más tarde."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/streaming-ventanas-y-marcas-de-agua.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Ventanas, tiempo del evento y marcas de agua · Academia de Datos"><meta property="og:description" content="Contar &quot;pedidos por minuto&quot; en un stream parece trivial hasta que los eventos llegan tarde y desordenados. Implementas a mano ventanas fijas, deslizantes y de sesión, y una marca de agua que decide hasta cuándo esperar a los rezagados. Así entiendes qué hace Spark por dentro con window y withWatermark, y el compromiso de fondo - esperar más da resultados más exactos pero más tarde."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/streaming-ventanas-y-marcas-de-agua.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#streaming">🌊 Streaming a fondo: Kafka, ventanas y garantías</a> · Experto · 65 min</div>
+<h1>Ventanas, tiempo del evento y marcas de agua</h1><p class="resumen">Contar &quot;pedidos por minuto&quot; en un stream parece trivial hasta que los eventos llegan tarde y desordenados. Implementas a mano ventanas fijas, deslizantes y de sesión, y una marca de agua que decide hasta cuándo esperar a los rezagados. Así entiendes qué hace Spark por dentro con window y withWatermark, y el compromiso de fondo - esperar más da resultados más exactos pero más tarde.</p>
+<a class="cta" href="../index.html#/l/streaming-ventanas-y-marcas-de-agua">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Asignar un evento a su ventana fija y a sus ventanas deslizantes</li><li>Agrupar eventos en sesiones por inactividad</li><li>Calcular una marca de agua y decidir qué eventos llegan demasiado tarde</li><li>Explicar el compromiso entre latencia y exactitud al elegir el retraso tolerado</li><li>Traducir estas ideas a window y withWatermark de Spark</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un profesor recibe exámenes por correo. Puede publicar las notas apenas llega el primero (rápido, pero incompleto) o esperar a que lleguen todos (exacto, pero nunca termina, porque siempre puede faltar alguno). La marca de agua es la regla intermedia: &quot;espero 10 minutos más allá del examen más tardío que vi; lo que llegue después, no entra&quot;.</p>
+</div>
+
+
+<h2>Tiempo del evento y tiempo de llegada</h2>
+<p>Un evento tiene la hora en que <strong>ocurrió</strong> (el teléfono registró la compra a las 10:07) y la hora en que <strong>llegó</strong> al sistema (10:09, porque el teléfono estaba sin señal). Las métricas de negocio se calculan con el tiempo del <strong>evento</strong>; si usaras el de llegada, una caída de la red movería ventas de un minuto a otro.</p>
+<h2>Tres tipos de ventana</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Ventana</th>
+<th>Cómo es</th>
+<th>Un evento cae en…</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Fija</strong> (tumbling)</td>
+<td>Bloques de igual tamaño, sin superponerse</td>
+<td>Exactamente una</td>
+<td>Pedidos por cada 5 minutos</td>
+</tr>
+<tr>
+<td><strong>Deslizante</strong> (sliding)</td>
+<td>Tamaño fijo, avanzan en pasos más chicos</td>
+<td>Varias (tamaño / paso)</td>
+<td>Promedio de los últimos 10 minutos, actualizado cada 5</td>
+</tr>
+<tr>
+<td><strong>Sesión</strong></td>
+<td>Se cierra tras un tiempo sin eventos</td>
+<td>Una, que crece mientras sigan llegando eventos</td>
+<td>Sesiones de navegación con 30 minutos de inactividad</td>
+</tr>
+</tbody></table></div>
+<p>Con los tiempos en segundos, la ventana fija de un evento empieza en <code>ts - ts % tamaño</code>: con ventanas de 300 segundos, un evento en el segundo 1270 cae en la ventana <code>[1200, 1500)</code>.</p>
+<h2>La marca de agua</h2>
+<p>La <strong>marca de agua</strong> es &quot;el tiempo del evento más tardío que vi, menos el retraso que tolero&quot;. Una ventana se puede cerrar (y publicar su resultado definitivo) cuando la marca de agua pasa su final; un evento cuyo tiempo es anterior a la marca de agua llega <strong>demasiado tarde</strong> y se descarta (<a href="https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html">marcas de agua en Spark</a>, <a href="https://docs.databricks.com/aws/en/structured-streaming/watermarks">en Databricks</a>).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Retraso tolerado</th>
+<th>Ventaja</th>
+<th>Costo</th>
+</tr>
+</thead><tbody><tr>
+<td>Corto (1 minuto)</td>
+<td>Resultados casi en tiempo real; poco estado en memoria</td>
+<td>Se descartan más eventos tardíos</td>
+</tr>
+<tr>
+<td>Largo (2 horas)</td>
+<td>Casi nada se descarta</td>
+<td>Resultados finales tarde; mucho estado en memoria</td>
+</tr>
+</tbody></table></div>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+
+por_ventana = (eventos
+    .withWatermark(&quot;ts_evento&quot;, &quot;10 minutes&quot;)
+    .groupBy(F.window(&quot;ts_evento&quot;, &quot;5 minutes&quot;), &quot;canal&quot;)
+    .count())</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Los descartados no desaparecen del negocio</div>
+
+<p>Un evento tardío descartado por el stream sigue siendo una venta real. El patrón habitual: el stream da la cifra rápida (para un tablero en vivo) y un proceso batch al día siguiente recalcula la cifra <strong>oficial</strong> con todos los eventos, incluidos los tardíos. Es la idea detrás de Lambda, que viste en Arquitectura.</p>
+</div>
+
+
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Una marca de agua en acción</div>
+
+<ol>
+<li>Ejecuta: los eventos llegan desordenados; la marca de agua avanza con el evento más tardío visto y descarta los que quedan por detrás.</li>
+<li>Mira qué eventos se descartan con un retraso de 60 segundos.</li>
+<li>Cambia el retraso a 300 segundos: ¿se descarta menos? ¿Qué te cuesta?</li>
+</ol>
+<pre><code class="language-python">def procesar(llegadas, tamano, retraso):
+    conteos, descartados, max_visto = {}, [], None
+    for ts in llegadas:                                  # en orden de llegada
+        marca = None if max_visto is None else max_visto - retraso
+        if marca is not None and ts &lt; marca:
+            descartados.append(ts)
+            continue
+        inicio = ts - ts % tamano
+        conteos[inicio] = conteos.get(inicio, 0) + 1
+        max_visto = ts if max_visto is None else max(max_visto, ts)
+    return conteos, descartados
+
+llegadas = [10, 70, 65, 130, 20, 190, 250, 140, 30]    # segundos del evento, en orden de llegada
+conteos, tarde = procesar(llegadas, tamano=60, retraso=60)
+print(&quot;por ventana:&quot;, dict(sorted(conteos.items())))
+print(&quot;descartados por tardíos:&quot;, tarde)</code></pre>
+<p>Reto: agrega la regla de &quot;cerrar&quot; una ventana: cuando la marca de agua pasa el final de una ventana, imprime su resultado definitivo una sola vez.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html">Ventanas y marcas de agua en Structured Streaming</a> · <a href="https://docs.databricks.com/aws/en/structured-streaming/watermarks">Marcas de agua en Databricks</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Agrupar por tiempo de llegada.</strong> Las métricas se mueven cuando la red falla.</li>
+<li><strong>Agregaciones sin marca de agua.</strong> El estado crece sin límite hasta quedarse sin memoria.</li>
+<li><strong>Un retraso elegido al azar.</strong> Mide cuánto tardan en llegar los eventos (por ejemplo, el percentil 99) y elige a partir de eso.</li>
+<li><strong>Creer que lo descartado no importa.</strong> Recalcula la cifra oficial en batch.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;¿Cómo elegirías el retraso de la marca de agua para el tablero de ventas en vivo?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Mediría la diferencia entre tiempo de llegada y tiempo del evento en los datos históricos: si el 99,5 % llega en menos de 3 minutos, uso 5 minutos de retraso. Así el tablero se actualiza casi en vivo y descarta muy poco. Monitoreo cuántos eventos se descartan y, para la cifra oficial, el batch nocturno recalcula con todos. Si el negocio necesita exactitud total en tiempo real, el retraso tiene que crecer, y eso se discute con ellos porque cuesta latencia y memoria.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/streaming-ventanas-y-marcas-de-agua">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="streaming-offsets-entrega-y-lag.html">← Offsets, garantías de entrega y lag</a><a href="streaming-streaming-en-produccion.html">Streaming en producción - checkpoint, escritura idempotente y operación →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

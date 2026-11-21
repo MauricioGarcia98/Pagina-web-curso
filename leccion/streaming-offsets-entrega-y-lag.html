@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Offsets, garantías de entrega y lag · Academia de Datos</title><meta name="description" content="Que un pipeline de streaming pierda o duplique mensajes depende casi siempre de un detalle - en qué momento confirma el offset. Simulas un consumidor que se cae a mitad de camino y ves cómo &quot;confirmar antes&quot; pierde mensajes y &quot;confirmar después&quot; los repite. Aprendes por qué en la práctica se elige &quot;al menos una vez&quot; con un destino idempotente para lograr el efecto de &quot;exactamente una vez&quot;, y a medir el lag, el indicador número uno de la salud de un stream."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/streaming-offsets-entrega-y-lag.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Offsets, garantías de entrega y lag · Academia de Datos"><meta property="og:description" content="Que un pipeline de streaming pierda o duplique mensajes depende casi siempre de un detalle - en qué momento confirma el offset. Simulas un consumidor que se cae a mitad de camino y ves cómo &quot;confirmar antes&quot; pierde mensajes y &quot;confirmar después&quot; los repite. Aprendes por qué en la práctica se elige &quot;al menos una vez&quot; con un destino idempotente para lograr el efecto de &quot;exactamente una vez&quot;, y a medir el lag, el indicador número uno de la salud de un stream."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/streaming-offsets-entrega-y-lag.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#streaming">🌊 Streaming a fondo: Kafka, ventanas y garantías</a> · Experto · 60 min</div>
+<h1>Offsets, garantías de entrega y lag</h1><p class="resumen">Que un pipeline de streaming pierda o duplique mensajes depende casi siempre de un detalle - en qué momento confirma el offset. Simulas un consumidor que se cae a mitad de camino y ves cómo &quot;confirmar antes&quot; pierde mensajes y &quot;confirmar después&quot; los repite. Aprendes por qué en la práctica se elige &quot;al menos una vez&quot; con un destino idempotente para lograr el efecto de &quot;exactamente una vez&quot;, y a medir el lag, el indicador número uno de la salud de un stream.</p>
+<a class="cta" href="../index.html#/l/streaming-offsets-entrega-y-lag">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué guarda un offset confirmado y para qué sirve al reiniciar</li><li>Predecir pérdidas y duplicados según cuándo se confirma el offset</li><li>Lograr el efecto de &quot;exactamente una vez&quot; con entrega al menos una vez y un destino idempotente</li><li>Calcular el lag por partición y total de un grupo</li><li>Decidir qué hacer cuando el lag crece</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Leer un libro con señalador: si mueves el señalador <strong>antes</strong> de leer la página y te quedas dormido, al despertar te salteas esa página (la perdiste). Si lo mueves <strong>después</strong> de leerla y te dormiste justo antes de moverlo, al despertar la vuelves a leer (la duplicaste). No hay forma de mover el señalador y leer en el mismo instante: por eso lo que se hace es que releer una página no cause daño.</p>
+</div>
+
+
+<h2>El offset confirmado</h2>
+<p>Cada grupo de consumidores guarda en Kafka, por partición, el offset del <strong>próximo</strong> mensaje que tiene que leer. Si el consumidor se reinicia (o se cae y otro toma su partición), sigue desde ahí. Todo depende de cuándo se guarda:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Estrategia</th>
+<th>Orden</th>
+<th>Si se cae en el medio…</th>
+<th>Garantía</th>
+</tr>
+</thead><tbody><tr>
+<td>Confirmar antes</td>
+<td>Confirmar → procesar</td>
+<td>El mensaje confirmado y no procesado <strong>se pierde</strong></td>
+<td>Como máximo una vez</td>
+</tr>
+<tr>
+<td>Confirmar después</td>
+<td>Procesar → confirmar</td>
+<td>El mensaje procesado y no confirmado <strong>se repite</strong></td>
+<td>Al menos una vez</td>
+</tr>
+<tr>
+<td>Transacciones</td>
+<td>Procesar y confirmar juntos</td>
+<td>Ni pérdida ni duplicado (si todo es Kafka o un destino transaccional)</td>
+<td>Exactamente una vez</td>
+</tr>
+</tbody></table></div>
+<p>Kafka tiene transacciones que dan &quot;exactamente una vez&quot; cuando se lee de Kafka y se escribe en Kafka (<a href="https://kafka.apache.org/documentation/#semantics">semántica de entrega</a>). Cuando el destino es otro sistema (una tabla Delta, una base), lo habitual es <strong>al menos una vez + destino idempotente</strong>: los duplicados llegan, pero escribirlos dos veces no cambia el resultado.</p>
+<h2>Destinos idempotentes</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Destino</th>
+<th>Cómo se vuelve idempotente</th>
+</tr>
+</thead><tbody><tr>
+<td>Tabla Delta / base relacional</td>
+<td><code>MERGE</code> por el id del evento: si ya existe, no se inserta de nuevo</td>
+</tr>
+<tr>
+<td>Archivos</td>
+<td>Nombre de archivo determinista por lote (reescribir el mismo lote lo reemplaza)</td>
+</tr>
+<tr>
+<td>API externa</td>
+<td>Clave de idempotencia por evento (lo viste en el módulo APIs)</td>
+</tr>
+<tr>
+<td>Structured Streaming</td>
+<td>El checkpoint registra qué lotes se escribieron; con <code>foreachBatch</code>, usa el <code>batch_id</code> o un <code>MERGE</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ &quot;Exactamente una vez&quot; no es gratis</div>
+
+<p>Que una herramienta prometa &quot;exactly-once&quot; suele querer decir &quot;exactamente una vez <strong>dentro de este sistema</strong>&quot;. En cuanto un efecto sale afuera (un correo, un cobro, una fila en otra base), vuelve a ser tu responsabilidad que repetirlo no cause daño. Diseña cada paso para tolerar duplicados.</p>
+</div>
+
+
+<h2>El lag</h2>
+<p>El <strong>lag</strong> de una partición es la diferencia entre el último offset escrito (el final del registro) y el offset confirmado del grupo: cuántos mensajes están esperando. Es la primera métrica que se monitorea en un stream.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Lo que ves</th>
+<th>Qué significa</th>
+<th>Qué haces</th>
+</tr>
+</thead><tbody><tr>
+<td>Lag estable y bajo</td>
+<td>El consumidor da abasto</td>
+<td>Nada</td>
+</tr>
+<tr>
+<td>Lag que sube en picos y baja</td>
+<td>Ráfagas que se absorben</td>
+<td>Nada, o alertar solo si dura</td>
+</tr>
+<tr>
+<td>Lag que crece sin parar</td>
+<td>Llegan más mensajes de los que se procesan</td>
+<td>Más consumidores (hasta la cantidad de particiones), procesar más rápido, o más particiones</td>
+</tr>
+<tr>
+<td>Lag alto en <strong>una</strong> partición</td>
+<td>Una clave caliente o un consumidor trabado</td>
+<td>Revisar la clave y ese consumidor</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Confirmar antes o después: ver la pérdida y el duplicado</div>
+
+<ol>
+<li>Ejecuta: un consumidor procesa 5 mensajes y &quot;se cae&quot; en el tercero, con cada una de las dos estrategias; después se reinicia desde el offset confirmado.</li>
+<li>Compara las salidas: una pierde un mensaje y la otra repite uno.</li>
+<li>Agrega un destino idempotente (un conjunto de ids ya escritos) a la estrategia &quot;después&quot; y comprueba que el resultado final no tiene duplicados.</li>
+</ol>
+<pre><code class="language-python">def correr(mensajes, caida_en, estrategia):
+    procesados, confirmado = [], 0
+    for i in range(confirmado, len(mensajes)):
+        if estrategia == &quot;antes&quot;:
+            confirmado = i + 1
+            if i == caida_en:
+                break                      # se cayó después de confirmar y antes de procesar
+            procesados.append(mensajes[i])
+        else:
+            procesados.append(mensajes[i])
+            if i == caida_en:
+                break                      # se cayó después de procesar y antes de confirmar
+            confirmado = i + 1
+    for i in range(confirmado, len(mensajes)):   # el reinicio sigue desde el offset confirmado
+        procesados.append(mensajes[i])
+    return procesados
+
+msgs = [&quot;e1&quot;, &quot;e2&quot;, &quot;e3&quot;, &quot;e4&quot;, &quot;e5&quot;]
+print(&quot;confirmar antes:  &quot;, correr(msgs, 2, &quot;antes&quot;))
+print(&quot;confirmar después:&quot;, correr(msgs, 2, &quot;despues&quot;))</code></pre>
+<p>Reto: haz que la caída ocurra varias veces (en los índices 1 y 3) y cuenta cuántos duplicados quedan con cada estrategia.</p>
+<p>Documentación oficial: <a href="https://kafka.apache.org/documentation/#semantics">Semántica de entrega (Kafka)</a> · <a href="https://kafka.apache.org/documentation/#design_consumerposition">Posición del consumidor (Kafka)</a> · <a href="https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html">Guía de Structured Streaming</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Confirmar el offset al recibir y no al terminar.</strong> Si el proceso se cae, esos mensajes se pierden.</li>
+<li><strong>Asumir que no habrá duplicados.</strong> Con &quot;al menos una vez&quot;, siempre puede haber.</li>
+<li><strong>Destinos que no toleran repetidos.</strong> Un <code>INSERT</code> simple duplica; un <code>MERGE</code> por id no.</li>
+<li><strong>No monitorear el lag.</strong> Un stream puede estar &quot;funcionando&quot; con horas de atraso.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;¿Cómo garantizas que cada evento se cuente exactamente una vez en la tabla de silver?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Acepto que la entrega es al menos una vez, porque es lo que puedo garantizar ante caídas, y hago idempotente la escritura: cada evento trae un id único, y en <code>foreachBatch</code> deduplico el lote por ese id y hago <code>MERGE</code> contra silver insertando solo los que no existen. El checkpoint de Structured Streaming evita reprocesar lotes ya confirmados, y el <code>MERGE</code> cubre los reintentos y los duplicados que vengan del productor.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/streaming-offsets-entrega-y-lag">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="streaming-kafka-por-dentro.html">← Kafka por dentro - tópicos, particiones, claves y grupos</a><a href="streaming-ventanas-y-marcas-de-agua.html">Ventanas, tiempo del evento y marcas de agua →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Streaming en producción - checkpoint, escritura idempotente y operación · Academia de Datos</title><meta name="description" content="Llevas lo aprendido a Spark Structured Streaming como se usa en un equipo - una tabla de entrada que recibe datos nuevos, un stream con checkpoint que procesa solo lo nuevo en cada corrida, una escritura con foreachBatch que no duplica aunque el mismo evento llegue en dos lotes, y la decisión de correrlo continuo o por lotes con availableNow. Cierras con lo que se monitorea y cómo se reprocesa cuando algo sale mal."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/streaming-streaming-en-produccion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Streaming en producción - checkpoint, escritura idempotente y operación · Academia de Datos"><meta property="og:description" content="Llevas lo aprendido a Spark Structured Streaming como se usa en un equipo - una tabla de entrada que recibe datos nuevos, un stream con checkpoint que procesa solo lo nuevo en cada corrida, una escritura con foreachBatch que no duplica aunque el mismo evento llegue en dos lotes, y la decisión de correrlo continuo o por lotes con availableNow. Cierras con lo que se monitorea y cómo se reprocesa cuando algo sale mal."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/streaming-streaming-en-produccion.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#streaming">🌊 Streaming a fondo: Kafka, ventanas y garantías</a> · Experto · 70 min</div>
+<h1>Streaming en producción - checkpoint, escritura idempotente y operación</h1><p class="resumen">Llevas lo aprendido a Spark Structured Streaming como se usa en un equipo - una tabla de entrada que recibe datos nuevos, un stream con checkpoint que procesa solo lo nuevo en cada corrida, una escritura con foreachBatch que no duplica aunque el mismo evento llegue en dos lotes, y la decisión de correrlo continuo o por lotes con availableNow. Cierras con lo que se monitorea y cómo se reprocesa cuando algo sale mal.</p>
+<a class="cta" href="../index.html#/l/streaming-streaming-en-produccion">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer una tabla como stream y escribir con checkpoint</li><li>Correr un stream incremental con trigger availableNow</li><li>Escribir de forma idempotente con foreachBatch, deduplicando dentro del lote y contra el destino</li><li>Elegir entre ejecución continua y por lotes según la frescura y el costo</li><li>Planificar el monitoreo y el reprocesamiento de un stream</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>El checkpoint es el cuaderno del cajero que anota &quot;conté hasta el billete 1.540&quot;. Si el cajero se va a almorzar (o el proceso se cae), el siguiente retoma desde ahí sin volver a contar. Escribir de forma idempotente es tener una regla para no anotar dos veces el mismo billete aunque alguien te lo pase de nuevo.</p>
+</div>
+
+
+<h2>Las tres piezas de un stream en producción</h2>
+<pre data-norun><code class="language-python">def escribir_lote(df, batch_id):
+    nuevos = df.dropDuplicates([&quot;evento_id&quot;])
+    nuevos = nuevos.join(spark.table(&quot;silver.eventos&quot;).select(&quot;evento_id&quot;), &quot;evento_id&quot;, &quot;left_anti&quot;)
+    nuevos.write.mode(&quot;append&quot;).saveAsTable(&quot;silver.eventos&quot;)
+
+(spark.readStream.table(&quot;bronze.eventos&quot;)
+      .writeStream
+      .foreachBatch(escribir_lote)
+      .option(&quot;checkpointLocation&quot;, &quot;/checkpoints/silver_eventos&quot;)
+      .trigger(availableNow=True)
+      .start())</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>readStream.table(...)</code></td>
+<td>Lee la tabla de entrada como un flujo: cada corrida ve solo lo que llegó desde la anterior</td>
+</tr>
+<tr>
+<td><code>checkpointLocation</code></td>
+<td>Dónde se guarda el progreso (qué ya se leyó, qué lotes se escribieron)</td>
+</tr>
+<tr>
+<td><code>foreachBatch</code></td>
+<td>Una función que recibe cada micro-lote como un DataFrame normal: puedes deduplicar, hacer joins y <code>MERGE</code></td>
+</tr>
+<tr>
+<td><code>trigger(availableNow=True)</code></td>
+<td>Procesa todo lo disponible en lotes y termina: ideal para correrlo programado cada 15 minutos</td>
+</tr>
+</tbody></table></div>
+<p>En Databricks, en lugar del <code>left_anti</code> + <code>append</code> se usa un <code>MERGE INTO</code> sobre la tabla Delta, que además permite actualizar (<a href="https://docs.databricks.com/aws/en/structured-streaming/foreach">foreachBatch en Databricks</a>).</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Deduplicar solo dentro del lote</div>
+
+<p><code>dropDuplicates</code> dentro de <code>foreachBatch</code> elimina repetidos <strong>de ese lote</strong>. Si el mismo evento llega hoy en un lote y mañana en otro (un reenvío del productor), se escribe dos veces. Hay que comparar también contra lo que ya está en el destino: un <code>left_anti</code> contra silver o un <code>MERGE</code>. Spark también ofrece <code>dropDuplicatesWithinWatermark</code>, que recuerda los ids durante el tiempo de la marca de agua.</p>
+</div>
+
+
+<h2>Continuo o por lotes</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Modo</th>
+<th>Cuándo</th>
+<th>Costo</th>
+</tr>
+</thead><tbody><tr>
+<td>Continuo (<code>processingTime=&quot;1 minute&quot;</code>)</td>
+<td>El negocio necesita segundos o un minuto de frescura (fraude, tarifa dinámica)</td>
+<td>El clúster está prendido siempre</td>
+</tr>
+<tr>
+<td>Por lotes (<code>availableNow=True</code>, programado)</td>
+<td>Alcanza con 15 minutos o una hora de frescura</td>
+<td>Solo pagas mientras corre</td>
+</tr>
+</tbody></table></div>
+<p>La mayoría de los pipelines &quot;en tiempo real&quot; de una empresa en realidad necesitan frescura de minutos, no de segundos: correrlos con <code>availableNow</code> cada 15 minutos da el mismo resultado con una fracción del costo, y el mismo código sirve si mañana hace falta pasar a continuo.</p>
+<h2>Monitorear y reprocesar</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Qué mirar</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td>Lag (o tiempo desde el último dato procesado)</td>
+<td>¿El stream va al día?</td>
+</tr>
+<tr>
+<td>Filas por lote y duración de cada lote</td>
+<td>¿Un lote tarda más que el intervalo? Se acumula atraso</td>
+</tr>
+<tr>
+<td>Eventos descartados por tardíos</td>
+<td>¿La marca de agua está bien elegida?</td>
+</tr>
+<tr>
+<td>Errores de esquema</td>
+<td>Un cambio en el productor puede frenar el stream</td>
+</tr>
+</tbody></table></div>
+<p><strong>Reprocesar</strong>: como el destino es idempotente, reprocesar un período es seguro. Se borra (o se marca) lo calculado de esos días en el destino y se corre un batch sobre bronze para esas fechas; o, si hay que rehacer todo, se crea un checkpoint nuevo y se procesa desde el principio a una tabla nueva, que reemplaza a la vieja cuando está lista.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un stream incremental e idempotente</div>
+
+<ol>
+<li>Ejecuta: se crea una tabla de entrada con un evento repetido, el stream la procesa una vez, llega una segunda carga (con un evento que ya había llegado) y el stream vuelve a correr.</li>
+<li>Comprueba que el destino tiene cada evento una sola vez, aunque el evento 2 llegó en las dos cargas.</li>
+<li>Quita el <code>left_anti</code> de la función y vuelve a ejecutar: el evento 2 queda duplicado.</li>
+</ol>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+esquema = &quot;evento_id INT, cliente STRING, monto DOUBLE&quot;
+spark.createDataFrame([(1, &quot;ana&quot;, 10.0), (2, &quot;luis&quot;, 5.0), (1, &quot;ana&quot;, 10.0)], esquema).write.saveAsTable(&quot;bronze_eventos&quot;)
+spark.createDataFrame([], esquema).write.saveAsTable(&quot;silver_eventos&quot;)
+
+def escribir_lote(df, batch_id):
+    nuevos = (df.dropDuplicates([&quot;evento_id&quot;])
+                .join(spark.table(&quot;silver_eventos&quot;).select(&quot;evento_id&quot;), &quot;evento_id&quot;, &quot;left_anti&quot;))
+    nuevos.write.mode(&quot;append&quot;).saveAsTable(&quot;silver_eventos&quot;)
+
+def correr():
+    q = (spark.readStream.table(&quot;bronze_eventos&quot;).writeStream.foreachBatch(escribir_lote)
+              .option(&quot;checkpointLocation&quot;, &quot;/checkpoints/silver_eventos&quot;)
+              .trigger(availableNow=True).start())
+    q.awaitTermination()
+
+correr()
+spark.createDataFrame([(2, &quot;luis&quot;, 5.0), (3, &quot;sofia&quot;, 7.5)], esquema).write.mode(&quot;append&quot;).saveAsTable(&quot;bronze_eventos&quot;)
+correr()
+spark.table(&quot;silver_eventos&quot;).orderBy(&quot;evento_id&quot;).show()</code></pre>
+<p>Reto: agrega una columna <code>procesado_en_lote</code> con el <code>batch_id</code> de cada escritura, para poder auditar qué lote escribió cada evento.</p>
+<p>Documentación oficial: <a href="https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html">Guía de Structured Streaming</a> · <a href="https://docs.databricks.com/aws/en/structured-streaming/foreach">foreachBatch (Databricks)</a> · <a href="https://docs.databricks.com/aws/en/structured-streaming/watermarks">Marcas de agua (Databricks)</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Compartir un checkpoint entre dos streams.</strong> Cada stream necesita su propia carpeta de checkpoint.</li>
+<li><strong>Borrar el checkpoint &quot;para arreglar&quot;.</strong> El stream vuelve a leer todo desde el principio: si el destino no es idempotente, duplica.</li>
+<li><strong>Deduplicar solo dentro del lote.</strong> Compara también contra el destino.</li>
+<li><strong>Stream continuo para frescura de una hora.</strong> <code>availableNow</code> programado cuesta mucho menos.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;El stream de silver estuvo caído 6 horas. ¿Qué pasa cuando lo vuelves a levantar?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Retoma desde su checkpoint: lee las 6 horas pendientes de bronze en lotes y se pone al día. Si limité el tamaño de cada lote (por ejemplo con <code>maxFilesPerTrigger</code> o <code>maxBytesPerTrigger</code>), recupera de forma controlada sin quedarse sin memoria. Como la escritura es idempotente por <code>evento_id</code>, si algún lote se reprocesa no duplica. Mientras tanto, el tablero muestra la hora del último dato procesado para que nadie confunda el atraso con una caída de ventas.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/streaming-streaming-en-produccion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="streaming-ventanas-y-marcas-de-agua.html">← Ventanas, tiempo del evento y marcas de agua</a><a href="terraform-que-es-iac.html">Infraestructura como código y tu primer terraform apply →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

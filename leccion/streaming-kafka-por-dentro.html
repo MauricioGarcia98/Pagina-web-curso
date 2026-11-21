@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kafka por dentro - tópicos, particiones, claves y grupos · Academia de Datos</title><meta name="description" content="Kafka no es una cola donde cada mensaje se borra al leerse - es un registro de solo agregar, dividido en particiones, que muchos lectores recorren a su ritmo. Aprendes cómo la clave del mensaje decide su partición (y por qué el orden solo está garantizado dentro de una partición), cómo un grupo de consumidores se reparte las particiones, qué hacen la retención y la compactación, y simulas cada pieza en Python para verla funcionar."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/streaming-kafka-por-dentro.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Kafka por dentro - tópicos, particiones, claves y grupos · Academia de Datos"><meta property="og:description" content="Kafka no es una cola donde cada mensaje se borra al leerse - es un registro de solo agregar, dividido en particiones, que muchos lectores recorren a su ritmo. Aprendes cómo la clave del mensaje decide su partición (y por qué el orden solo está garantizado dentro de una partición), cómo un grupo de consumidores se reparte las particiones, qué hacen la retención y la compactación, y simulas cada pieza en Python para verla funcionar."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/streaming-kafka-por-dentro.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#streaming">🌊 Streaming a fondo: Kafka, ventanas y garantías</a> · Avanzado · 60 min</div>
+<h1>Kafka por dentro - tópicos, particiones, claves y grupos</h1><p class="resumen">Kafka no es una cola donde cada mensaje se borra al leerse - es un registro de solo agregar, dividido en particiones, que muchos lectores recorren a su ritmo. Aprendes cómo la clave del mensaje decide su partición (y por qué el orden solo está garantizado dentro de una partición), cómo un grupo de consumidores se reparte las particiones, qué hacen la retención y la compactación, y simulas cada pieza en Python para verla funcionar.</p>
+<a class="cta" href="../index.html#/l/streaming-kafka-por-dentro">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar tópico, partición, offset y la diferencia con una cola tradicional</li><li>Elegir la clave de un mensaje para conservar el orden que importa</li><li>Repartir particiones entre los consumidores de un grupo</li><li>Distinguir retención por tiempo y compactación por clave</li><li>Relacionar Kafka con Azure Event Hubs, Amazon MSK y Google Pub/Sub</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Kafka es como un libro de actas en varios tomos. Cada hecho se escribe al final de un tomo, con un número de renglón, y nunca se borra ni se corrige. Cada lector lleva su propio señalador: uno puede ir por el renglón 50 y otro por el 900, y leer no arranca la hoja. Los tomos son las particiones; el número de renglón es el offset.</p>
+</div>
+
+
+<h2>Las piezas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Qué es</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Tópico</strong></td>
+<td>Un flujo de mensajes con nombre</td>
+<td><code>pedidos</code>, <code>telemetria</code></td>
+</tr>
+<tr>
+<td><strong>Partición</strong></td>
+<td>Un tramo del tópico, ordenado y de solo agregar</td>
+<td><code>pedidos</code> tiene 6 particiones</td>
+</tr>
+<tr>
+<td><strong>Offset</strong></td>
+<td>La posición de un mensaje dentro de su partición</td>
+<td>Partición 2, offset 1540</td>
+</tr>
+<tr>
+<td><strong>Clave</strong></td>
+<td>Decide en qué partición cae el mensaje</td>
+<td><code>pedido_id</code></td>
+</tr>
+<tr>
+<td><strong>Grupo de consumidores</strong></td>
+<td>Lectores que se reparten las particiones de un tópico</td>
+<td><code>grupo-silver</code></td>
+</tr>
+<tr>
+<td><strong>Offset confirmado</strong></td>
+<td>Hasta dónde leyó un grupo, guardado en Kafka</td>
+<td>El grupo va por el 1540 de la partición 2</td>
+</tr>
+</tbody></table></div>
+<h2>La clave decide la partición, y el orden</h2>
+<p>El productor calcula <code>hash(clave) % cantidad_de_particiones</code>. Todos los mensajes con la <strong>misma clave</strong> caen en la <strong>misma partición</strong>, y dentro de una partición el orden se respeta. Entre particiones distintas <strong>no hay orden garantizado</strong>.</p>
+<p>Si los eventos de un pedido (<code>creado</code>, <code>pagado</code>, <code>enviado</code>) usan como clave el <code>pedido_id</code>, llegan en orden. Si no tienen clave (se reparten en turnos), <code>enviado</code> puede procesarse antes que <code>creado</code>.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 El hash real</div>
+
+<p>Kafka usa la función murmur2 sobre los bytes de la clave (<a href="https://kafka.apache.org/documentation/#producerconfigs">documentación del productor</a>). En los ejercicios usamos <code>zlib.crc32</code>, que se comporta igual a los fines de la idea: determinista y repartido.</p>
+</div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Cambiar la cantidad de particiones</div>
+
+<p>Si un tópico pasa de 6 a 12 particiones, <code>hash(clave) % 12</code> ya no da lo mismo que <code>% 6</code>: las claves cambian de partición y, por un rato, mensajes nuevos de un pedido pueden procesarse antes que los viejos que quedaron en la partición anterior. Elige la cantidad de particiones pensando en el crecimiento, y súbela con un plan.</p>
+</div>
+
+
+<h2>Grupos de consumidores</h2>
+<p>Las particiones de un tópico se reparten entre los consumidores de un grupo: <strong>cada partición la lee un solo consumidor del grupo</strong>. Con 6 particiones y 3 consumidores, cada uno lee 2. Con 8 consumidores, 2 quedan sin trabajo: las particiones son el límite del paralelismo. Si un consumidor se cae, el grupo se <strong>rebalancea</strong> y sus particiones pasan a otro.</p>
+<p>Dos grupos distintos leen el mismo tópico de forma independiente, cada uno con sus offsets: el equipo de silver y el de alertas de fraude pueden consumir <code>pedidos</code> sin molestarse.</p>
+<h2>Retención y compactación</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Política</th>
+<th>Qué guarda</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td>Retención por tiempo o tamaño (<code>delete</code>)</td>
+<td>Los mensajes de los últimos N días</td>
+<td>Eventos: clics, telemetría, pedidos</td>
+</tr>
+<tr>
+<td>Compactación (<code>compact</code>)</td>
+<td>Al menos el <strong>último</strong> mensaje de cada clave</td>
+<td>Estados: el precio actual de cada producto, la última dirección de cada cliente</td>
+</tr>
+</tbody></table></div>
+<p>En un tópico compactado, un mensaje con valor nulo (una &quot;lápida&quot;) borra la clave (<a href="https://kafka.apache.org/documentation/#compaction">compactación</a>).</p>
+<h2>Kafka en las nubes</h2>
+<p>Azure Event Hubs habla el protocolo de Kafka (es lo que usa el proyecto Ruta Sur del curso), AWS ofrece Amazon MSK (Kafka administrado) y Kinesis, y Google Cloud ofrece Pub/Sub y Managed Service for Apache Kafka. Los conceptos de esta lección valen para todos (<a href="https://learn.microsoft.com/en-us/azure/event-hubs/azure-event-hubs-apache-kafka-overview">Event Hubs para Kafka</a>).</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un tópico de juguete con particiones y orden</div>
+
+<ol>
+<li>Ejecuta: los eventos de tres pedidos se escriben en un tópico de 3 particiones usando el <code>pedido_id</code> como clave.</li>
+<li>Mira que cada pedido queda entero en una partición y en orden.</li>
+<li>Cambia la clave por el tipo de evento (<code>creado</code>, <code>pagado</code>…) y mira cómo se mezclan los pedidos y se pierde el orden de cada uno.</li>
+</ol>
+<pre><code class="language-python">import zlib
+
+N = 3
+topico = {p: [] for p in range(N)}
+
+def producir(clave, valor):
+    p = zlib.crc32(str(clave).encode()) % N
+    topico[p].append({&quot;offset&quot;: len(topico[p]), &quot;clave&quot;: clave, &quot;valor&quot;: valor})
+
+eventos = [(101, &quot;creado&quot;), (102, &quot;creado&quot;), (101, &quot;pagado&quot;), (103, &quot;creado&quot;), (102, &quot;pagado&quot;), (101, &quot;enviado&quot;)]
+for pedido, tipo in eventos:
+    producir(pedido, f&quot;{pedido}:{tipo}&quot;)
+
+for p, msgs in topico.items():
+    print(f&quot;partición {p}:&quot;, [m[&quot;valor&quot;] for m in msgs])</code></pre>
+<p>Reto: simula un consumidor que lee las tres particiones &quot;en paralelo&quot;, tomando un mensaje de cada una por turno, y comprueba que el orden de cada pedido se mantiene aunque el orden global cambie.</p>
+<p>Documentación oficial: <a href="https://kafka.apache.org/documentation/">Introducción y diseño de Kafka</a> · <a href="https://kafka.apache.org/documentation/#design_consumerposition">Posición del consumidor</a> · <a href="https://kafka.apache.org/documentation/#compaction">Compactación</a> · <a href="https://learn.microsoft.com/en-us/azure/event-hubs/azure-event-hubs-apache-kafka-overview">Event Hubs para Kafka</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Mensajes sin clave cuando el orden importa.</strong> Usa como clave la entidad cuyo orden necesitas.</li>
+<li><strong>Más consumidores que particiones.</strong> Los que sobran no leen nada.</li>
+<li><strong>Tratar Kafka como una cola.</strong> Leer no borra: otro grupo puede leer lo mismo, y tú puedes volver atrás.</li>
+<li><strong>Compactación para eventos.</strong> Compactar deja solo el último por clave: perderías la historia de clics.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;Los eventos de un pedido a veces se procesan desordenados. ¿Por qué y cómo lo arreglas?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Seguramente el productor no usa el <code>pedido_id</code> como clave, entonces los eventos del mismo pedido caen en particiones distintas y Kafka solo ordena dentro de una partición. Usaría <code>pedido_id</code> como clave. Y, como defensa, en el consumidor aplicaría los cambios según una marca de tiempo o un número de versión del evento, descartando los más viejos que el estado actual.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/streaming-kafka-por-dentro">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="nosql-de-nosql-al-lakehouse.html">← Llevar una base NoSQL al lakehouse</a><a href="streaming-offsets-entrega-y-lag.html">Offsets, garantías de entrega y lag →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
