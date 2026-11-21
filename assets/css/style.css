@@ -510,16 +510,22 @@ body.dock-open #main { padding-bottom: 400px; }
 }
 
 /* ========================================================== diagramas (estilo Excalidraw) */
-figure.diagrama { margin: 26px 0; }
+/* Letra a mano de los diagramas: Shantell Sans (SIL Open Font License 1.1, ver assets/fonts/OFL-ShantellSans.txt) */
+@font-face { font-family: 'Shantell Sans'; font-style: normal; font-weight: 300 800; font-display: swap; src: url('../fonts/shantell-sans-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+figure.diagrama { margin: 26px 0; --dg-claro: #ffffff; }
+:root[data-theme="dark"] figure.diagrama, :root[data-theme="dark"] .dg-capa { --dg-claro: #3a4150; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) figure.diagrama, :root:not([data-theme="light"]) .dg-capa { --dg-claro: #3a4150; } }
+.dg-svg path[fill="#fffffe"] { fill: var(--dg-claro, #fff); }
+.dg-capa { --dg-claro: #ffffff; }
 .dg-marco { position: relative; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 8px; overflow-x: auto; color: var(--ink); }
 .dg-svg { display: block; width: 100%; height: auto; margin: 0 auto; }
 .dg-grupo path[fill]:not([fill="none"]) { fill-opacity: .22; }
 .dg-fondo-etiqueta { fill: var(--surface); opacity: .92; }
 .dg-sub { opacity: .8; }
 .dg-svg text { paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
-.dg-relleno { opacity: .75; }
-:root[data-theme="dark"] .dg-relleno { opacity: .3; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .dg-relleno { opacity: .3; } }
+.dg-relleno { opacity: 1; }
+:root[data-theme="dark"] .dg-relleno { fill: var(--dg-osc); opacity: .2; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .dg-relleno { fill: var(--dg-osc); opacity: .2; } }
 figure.diagrama figcaption { text-align: center; font-size: 14px; color: var(--ink-2); margin-top: 8px; }
 .dg-zoom { position: absolute; top: 8px; right: 8px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink-2); border-radius: 8px; width: 32px; height: 32px; cursor: pointer; font-size: 17px; }
 .dg-zoom:hover { color: var(--brand); border-color: var(--brand); }
