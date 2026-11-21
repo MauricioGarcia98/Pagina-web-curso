@@ -58,7 +58,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Normalizar textos</h2>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 limpios = (spark.table(&quot;clientes&quot;)
              .withColumn(&quot;nombre&quot;, F.initcap(F.trim(&quot;nombre&quot;)))
@@ -67,7 +67,7 @@ limpios = (spark.table(&quot;clientes&quot;)
              .withColumn(&quot;telefono&quot;, F.regexp_replace(&quot;telefono&quot;, r&quot;[^0-9+]&quot;, &quot;&quot;)))
 limpios.select(&quot;nombre&quot;, &quot;email&quot;, &quot;telefono&quot;).show(5)</code></pre>
 <h2>Deduplicar</h2>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 df = spark.table(&quot;pedidos&quot;)
@@ -88,7 +88,7 @@ print(ultimo.count())</code></pre>
 
 
 <h2>Nulos</h2>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 c = spark.table(&quot;clientes&quot;)
 # cuántos nulos tiene cada columna
@@ -97,7 +97,7 @@ c.na.fill({&quot;telefono&quot;: &quot;sin dato&quot;, &quot;email&quot;: &quot;
 c.na.drop(subset=[&quot;email&quot;]).count()</code></pre>
 <h2>Convertir tipos sin perder datos (Spark 4)</h2>
 <p>Los datos de bronze suelen llegar como <strong>texto</strong>: un CSV no sabe que <code>&quot;120.50&quot;</code> es un número. Convertirlos al tipo correcto es tarea de silver. Desde Spark 4, el <strong>modo ANSI</strong> está activado por defecto: si un valor no se puede convertir, <code>cast</code> <strong>lanza un error</strong> y el job se detiene. Es a propósito: antes, Spark ponía <code>NULL</code> en silencio y el dato se perdía sin que nadie lo notara.</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 crudos = spark.createDataFrame(
     [(&quot;P1&quot;, &quot;2&quot;, &quot;120.50&quot;), (&quot;P2&quot;, &quot;N/A&quot;, &quot;99.90&quot;), (&quot;P3&quot;, &quot;1&quot;, &quot;precio a confirmar&quot;), (&quot;P4&quot;, &quot;3&quot;, &quot;45&quot;)],
@@ -109,7 +109,7 @@ try:
 except Exception as e:
     print(&quot;Error ANSI:&quot;, str(e)[:90], &quot;...&quot;)</code></pre>
 <p>La salida muestra el error <code>CAST_INVALID_INPUT</code>, con el valor que lo causó (<code>&#39;N/A&#39;</code>). Cuando <strong>sabes</strong> que la columna trae valores inválidos y decides tratarlos, usas <code>try_cast</code>: devuelve <code>NULL</code> solo en esas filas. Y como no queremos perder datos en silencio, <strong>contamos</strong> cuántos fallaron:</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 crudos = spark.createDataFrame(
     [(&quot;P1&quot;, &quot;2&quot;, &quot;120.50&quot;), (&quot;P2&quot;, &quot;N/A&quot;, &quot;99.90&quot;), (&quot;P3&quot;, &quot;1&quot;, &quot;precio a confirmar&quot;), (&quot;P4&quot;, &quot;3&quot;, &quot;45&quot;)],
@@ -141,7 +141,7 @@ tipados.show()</code></pre>
 <li>Puedes <strong>alertar</strong> si la cantidad de inválidas supera un umbral (por ejemplo, más del 1 %): eso suele indicar que el sistema de origen cambió algo.</li>
 </ul>
 <p>La técnica es un <code>F.when</code> encadenado que asigna el <strong>primer</strong> motivo de rechazo (o <code>null</code> si la fila es válida), y después dos filtros:</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 det = spark.table(&quot;detalle_pedidos&quot;)
 reglas = (det.withColumn(&quot;motivo&quot;,
@@ -192,7 +192,7 @@ print(validos.count(), cuarentena.count())</code></pre>
 <li>Deduplica: un mismo <code>pedido_id</code> llega en varios archivos; quédate con la carga más reciente.</li>
 <li>Manda a una tabla de cuarentena las filas cuyo monto no se pudo convertir.</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 # &quot;16.99&quot;, &quot;$47.99&quot; o &quot;1.402,97&quot;: sin el $, y si hay coma decimal se quitan antes los puntos de miles

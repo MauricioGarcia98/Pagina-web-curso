@@ -57,7 +57,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>PostgreSQL</h2>
 <h3>Levantarlo</h3>
-<pre data-norun><code class="language-bash">docker run -d --name pg \
+<pre data-norun tabindex="0"><code class="language-bash">docker run -d --name pg \
   -e POSTGRES_PASSWORD=secreto -e POSTGRES_DB=rapido \
   -p 5432:5432 -v pgdata:/var/lib/postgresql/data \
   postgres:16</code></pre>
@@ -96,10 +96,10 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <p>Los mismos datos, escritos como <strong>URL de conexión</strong> (la usan Python, dbt y casi todo): <code>postgresql://postgres:secreto@localhost:5432/rapido</code>.</p>
 <p><strong>Con psql</strong> (el cliente de terminal; en macOS <code>brew install libpq</code>, en Ubuntu <code>sudo apt install postgresql-client</code>, o desde el contenedor con <code>docker exec -it pg psql -U postgres -d rapido</code>):</p>
-<pre data-norun><code class="language-bash">psql -h localhost -p 5432 -U postgres -d rapido</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">psql -h localhost -p 5432 -U postgres -d rapido</code></pre>
 <p><strong>Con un cliente gráfico</strong>: <strong>DBeaver</strong> (gratis, para todas las bases) o la extensión <strong>SQLTools</strong> de VS Code. Nueva conexión → PostgreSQL → los cinco datos de arriba.</p>
 <h3>Crear una tabla y cargar un CSV</h3>
-<pre data-norun><code class="language-sql">CREATE TABLE clientes (
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE clientes (
   cliente_id INTEGER PRIMARY KEY,
   nombre     VARCHAR(50),
   apellido   VARCHAR(50),
@@ -109,7 +109,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
   segmento   TEXT
 );</code></pre>
 <p><strong><code>\copy</code></strong> carga un archivo de <strong>tu máquina</strong> a una tabla (es un comando de psql, empieza con <code>\</code> y no lleva <code>;</code>):</p>
-<pre><code class="language-text">rapido=# \copy clientes FROM 'datos/clientes.csv' WITH (FORMAT csv, HEADER)
+<pre tabindex="0"><code class="language-text">rapido=# \copy clientes FROM 'datos/clientes.csv' WITH (FORMAT csv, HEADER)
 COPY 300
 rapido=# SELECT pais, COUNT(*) FROM clientes GROUP BY pais ORDER BY 2 DESC LIMIT 3;
    pais   | count
@@ -156,7 +156,7 @@ rapido=# SELECT pais, COUNT(*) FROM clientes GROUP BY pais ORDER BY 2 DESC LIMIT
 <h2>DuckDB</h2>
 <p><strong>Instalar:</strong> <code>brew install duckdb</code> (macOS), o en Linux/WSL el binario de <a href="https://duckdb.org">duckdb.org</a> (<code>curl https://install.duckdb.org | sh</code>). En Python: <code>uv add duckdb</code>.</p>
 <h3>Consultar archivos sin cargarlos</h3>
-<pre><code class="language-text">$ duckdb
+<pre tabindex="0"><code class="language-text">$ duckdb
 D SELECT pais, COUNT(*) AS clientes
   FROM 'datos/clientes.csv'
   GROUP BY pais ORDER BY clientes DESC LIMIT 3;
@@ -169,15 +169,15 @@ D SELECT pais, COUNT(*) AS clientes
 │ Colombia │       47 │
 └──────────┴──────────┘</code></pre>
 <p>El archivo <strong>es</strong> la tabla: DuckDB detecta el separador, la cabecera y los tipos. También: <code>read_csv_auto(&#39;x.csv&#39;)</code>, <code>read_json_auto(&#39;x.json&#39;)</code>, <code>read_parquet(&#39;x.parquet&#39;)</code>, y comodines: <code>FROM &#39;datos/ventas_*.csv&#39;</code>.</p>
-<pre data-norun><code class="language-sql">DESCRIBE SELECT * FROM read_csv_auto('datos/ventas_2024_12.csv');   -- columnas y tipos detectados</code></pre>
+<pre data-norun tabindex="0"><code class="language-sql">DESCRIBE SELECT * FROM read_csv_auto('datos/ventas_2024_12.csv');   -- columnas y tipos detectados</code></pre>
 <h3>Una base persistente y exportar a Parquet</h3>
-<pre data-norun><code class="language-bash">duckdb lago.duckdb                     # crea (o abre) la base en un archivo</code></pre>
-<pre data-norun><code class="language-sql">CREATE TABLE clientes AS SELECT * FROM 'datos/clientes.csv';
+<pre data-norun tabindex="0"><code class="language-bash">duckdb lago.duckdb                     # crea (o abre) la base en un archivo</code></pre>
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE clientes AS SELECT * FROM 'datos/clientes.csv';
 COPY (SELECT pais, COUNT(*) AS n FROM clientes GROUP BY pais)
   TO 'clientes_por_pais.parquet' (FORMAT parquet);</code></pre>
 <p><strong>Parquet</strong> es el formato columnar de los lagos de datos: comprimido, con tipos, y se lee rapidísimo. Convertir CSV a Parquet con DuckDB es una línea.</p>
 <h3>DuckDB desde Python</h3>
-<pre data-norun><code class="language-python">import duckdb
+<pre data-norun tabindex="0"><code class="language-python">import duckdb
 
 con = duckdb.connect(&quot;lago.duckdb&quot;)
 df = con.sql(&quot;&quot;&quot;
@@ -234,7 +234,7 @@ top = duckdb.sql(&quot;SELECT * FROM df ORDER BY clientes DESC LIMIT 5&quot;).df
 <li>DuckDB es analítica en tu propia máquina: lee un CSV directo y agrega millones de filas sin servidor.</li>
 <li>Compara: la misma pregunta, una herramienta para cada trabajo.</li>
 </ol>
-<pre data-norun><code class="language-bash">docker run -d --name pg -e POSTGRES_PASSWORD=secreta -p 5432:5432 postgres:16
+<pre data-norun tabindex="0"><code class="language-bash">docker run -d --name pg -e POSTGRES_PASSWORD=secreta -p 5432:5432 postgres:16
 psql -h localhost -U postgres -c &quot;CREATE TABLE ventas (id INT, canal TEXT, monto NUMERIC);&quot;
 psql -h localhost -U postgres -c &quot;INSERT INTO ventas VALUES (1, 'web', 120), (2, 'app', 80), (3, 'web', 45);&quot;
 psql -h localhost -U postgres -c &quot;SELECT canal, SUM(monto) FROM ventas GROUP BY canal;&quot;

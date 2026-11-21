@@ -63,7 +63,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <p><strong>Siniestralidad = frecuencia × severidad / prima promedio.</strong> Si un ramo pierde, la pregunta es: ¿pasa más seguido (frecuencia) o cuesta más cada vez (severidad)?</p>
 <h2>El modelo de datos</h2>
-<pre><code class="language-text">seguros_clientes   (cliente_id, edad, ciudad, fecha_alta)
+<pre tabindex="0"><code class="language-text">seguros_clientes   (cliente_id, edad, ciudad, fecha_alta)
 seguros_polizas    (poliza_id, cliente_id, ramo, fecha_inicio, fecha_fin, prima_mensual, suma_asegurada, canal, estado)
 seguros_siniestros (siniestro_id, poliza_id, fecha_ocurrencia, fecha_denuncia, tipo, monto_reclamado, monto_pagado, estado, fraude_confirmado)</code></pre>
 <figure class="diagrama"><figcaption>Modelo de Escudo Seguros: los siniestros cuelgan de la póliza, no del cliente</figcaption></figure>
@@ -76,7 +76,7 @@ seguros_siniestros (siniestro_id, poliza_id, fecha_ocurrencia, fecha_denuncia, t
 </ul>
 <h2>Un ejemplo resuelto: la siniestralidad por ramo</h2>
 <p><strong>La trampa:</strong> si unes pólizas con siniestros y sumas <code>prima_mensual</code>, cada póliza con 3 siniestros suma su prima <strong>3 veces</strong>. Hay que agregar cada tabla <strong>por separado</strong> y unir los resultados.</p>
-<pre><code class="language-sql">WITH primas AS (
+<pre tabindex="0"><code class="language-sql">WITH primas AS (
   SELECT ramo, COUNT(*) AS polizas, SUM(prima_mensual * 12) AS primas
   FROM seguros_polizas
   GROUP BY ramo
@@ -171,7 +171,7 @@ ORDER BY siniestralidad_pct DESC;</code></pre>
 <li>Siniestralidad = frecuencia × severidad / prima: si un ramo está alto, mira cuál de las dos lo explica.</li>
 <li>Más de 100 % de siniestralidad significa que el ramo pierde plata.</li>
 </ol>
-<pre data-norun><code class="language-sql">WITH primas AS (
+<pre data-norun tabindex="0"><code class="language-sql">WITH primas AS (
     SELECT ramo, COUNT(*) AS polizas, SUM(prima_mensual * 12) AS prima_anual FROM seguros_polizas GROUP BY ramo
 ),
 siniestros AS (

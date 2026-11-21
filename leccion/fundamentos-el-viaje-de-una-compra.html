@@ -113,7 +113,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Lee el resultado: quién compró, qué productos, cuánto y cómo pagó.</li>
 <li>Cambia el número de pedido y sigue otra compra.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT p.pedido_id, p.fecha_pedido, p.canal, c.nombre AS cliente,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT p.pedido_id, p.fecha_pedido, p.canal, c.nombre AS cliente,
        pr.nombre AS producto, d.cantidad, d.precio_unitario,
        pg.monto AS pagado, pg.estado AS estado_pago
 FROM pedidos p

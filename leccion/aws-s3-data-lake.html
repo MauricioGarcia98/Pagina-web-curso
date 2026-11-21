@@ -49,7 +49,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>De 3 a 63 caracteres, minúsculas, números, puntos y guiones. Sin mayúsculas ni guion bajo.</li>
 </ul>
 <h2>Organizar el lago: capas y particiones</h2>
-<pre><code class="language-text">s3://lake-tienda-dev/
+<pre tabindex="0"><code class="language-text">s3://lake-tienda-dev/
 ├── landing/            ← llega tal cual de la fuente (temporal)
 ├── bronze/             ← copia cruda e inmutable, con fecha de carga
 │   └── ventas/anio=2024/mes=12/ventas_2024_12.csv
@@ -71,7 +71,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Los comandos de <code>aws s3</code></h2>
-<pre data-norun><code class="language-bash">aws s3 mb s3://lake-tienda-dev                       # make bucket: crear
+<pre data-norun tabindex="0"><code class="language-bash">aws s3 mb s3://lake-tienda-dev                       # make bucket: crear
 aws s3 ls                                            # listar buckets
 aws s3 ls s3://lake-tienda-dev/bronze/               # listar un prefijo
 aws s3 ls s3://lake-tienda-dev --recursive --summarize
@@ -85,7 +85,7 @@ aws s3 rb s3://lake-tienda-dev                       # remove bucket (debe estar
 aws s3 presign s3://lake-tienda-dev/gold/reporte.csv --expires-in 3600  # link temporal para compartir</code></pre>
 <h3>Laboratorio: tu primer lago</h3>
 <p>Abre la terminal con el botón <strong>⌨ En la terminal</strong> (es la misma máquina que el laboratorio: los archivos de <code>datos/</code> ya están ahí). Si antes no configuraste credenciales, empieza por <code>aws configure</code>.</p>
-<pre><code class="language-bash">aws configure
+<pre tabindex="0"><code class="language-bash">aws configure
 aws s3 mb s3://lake-tienda-dev
 aws s3 cp datos/ventas_2024_12.csv s3://lake-tienda-dev/bronze/ventas/anio=2024/mes=12/
 aws s3 cp datos/clientes.csv s3://lake-tienda-dev/bronze/clientes/
@@ -96,7 +96,7 @@ aws s3 ls s3://lake-tienda-dev --recursive --summarize</code></pre>
 
 <h2>La API de bajo nivel: <code>aws s3api</code></h2>
 <p><code>aws s3</code> son atajos amigables. <code>aws s3api</code> expone cada operación de la API, con salida JSON y <code>--query</code>:</p>
-<pre data-norun><code class="language-bash">aws s3api list-buckets --query &quot;Buckets[].Name&quot; --output text
+<pre data-norun tabindex="0"><code class="language-bash">aws s3api list-buckets --query &quot;Buckets[].Name&quot; --output text
 aws s3api list-objects-v2 --bucket lake-tienda-dev --prefix bronze/ --query &quot;Contents[].Key&quot;
 aws s3api put-bucket-versioning --bucket lake-tienda-dev --versioning-configuration Status=Enabled
 aws s3api put-public-access-block --bucket lake-tienda-dev \
@@ -131,7 +131,7 @@ aws s3api put-public-access-block --bucket lake-tienda-dev \
 <td>Políticas de IAM por rol y prefijo; políticas de bucket; Lake Formation para tablas</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-json">{
+<pre tabindex="0"><code class="language-json">{
   &quot;Rules&quot;: [
     { &quot;ID&quot;: &quot;limpiar-landing&quot;, &quot;Filter&quot;: { &quot;Prefix&quot;: &quot;landing/&quot; }, &quot;Status&quot;: &quot;Enabled&quot;,
       &quot;Expiration&quot;: { &quot;Days&quot;: 7 } },
@@ -162,7 +162,7 @@ aws s3api put-public-access-block --bucket lake-tienda-dev \
 <li>Lista el lago completo con <code>--recursive --summarize</code>.</li>
 <li>Copia a <code>silver/</code> y borra lo que sobra: en S3 no hay carpetas, solo prefijos en el nombre del objeto.</li>
 </ol>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 aws s3 mb s3://lake-practica-dev
 aws s3 cp datos/clientes.csv s3://lake-practica-dev/bronze/clientes/
 aws s3 cp datos/ventas_2024_12.csv s3://lake-practica-dev/bronze/ventas/anio=2024/mes=12/

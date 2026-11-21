@@ -30,7 +30,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — El error</h2>
-<pre data-norun><code class="language-sql">USE SCHEMA tienda_dev.analitica;
+<pre data-norun tabindex="0"><code class="language-sql">USE SCHEMA tienda_dev.analitica;
 -- ¡sin WHERE! borra todos los pedidos
 DELETE FROM pedidos_actuales;</code></pre>
 <figure class="captura"><img src="assets/img/guias/snowflake/s13-delete.webp" alt="El DELETE sin WHERE (1) - 7 filas borradas - y su Query ID en Query Details (2)" loading="lazy"><figcaption>El DELETE sin WHERE (1) - 7 filas borradas - y su Query ID en Query Details (2)</figcaption></figure>
@@ -38,7 +38,7 @@ DELETE FROM pedidos_actuales;</code></pre>
 
 <p>Copia el <strong>Query ID</strong> del DELETE (de Query Details o de Query History).</p>
 <h2>Paso 2 — Mirar el pasado</h2>
-<pre data-norun><code class="language-sql">SELECT * FROM pedidos_actuales BEFORE(STATEMENT =&gt; '01b0...-0046') ORDER BY pedido_id;</code></pre>
+<pre data-norun tabindex="0"><code class="language-sql">SELECT * FROM pedidos_actuales BEFORE(STATEMENT =&gt; '01b0...-0046') ORDER BY pedido_id;</code></pre>
 <figure class="captura"><img src="assets/img/guias/snowflake/s13-before.webp" alt="BEFORE(STATEMENT =&gt; ...) (1) - los 7 pedidos tal como estaban justo antes del DELETE (2)" loading="lazy"><figcaption>BEFORE(STATEMENT =&gt; ...) (1) - los 7 pedidos tal como estaban justo antes del DELETE (2)</figcaption></figure>
 
 
@@ -60,7 +60,7 @@ DELETE FROM pedidos_actuales;</code></pre>
 </tr>
 </tbody></table></div>
 <h2>Paso 3 — Restaurar</h2>
-<pre data-norun><code class="language-sql">INSERT INTO pedidos_actuales
+<pre data-norun tabindex="0"><code class="language-sql">INSERT INTO pedidos_actuales
 SELECT * FROM pedidos_actuales BEFORE(STATEMENT =&gt; '01b0...-0046');
 
 SELECT COUNT(*) AS recuperados FROM pedidos_actuales;</code></pre>
@@ -84,7 +84,7 @@ SELECT COUNT(*) AS recuperados FROM pedidos_actuales;</code></pre>
 <td>Solo el soporte de Snowflake, para desastres</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-sql">ALTER TABLE pedidos_actuales SET DATA_RETENTION_TIME_IN_DAYS = 7;</code></pre>
+<pre data-norun tabindex="0"><code class="language-sql">ALTER TABLE pedidos_actuales SET DATA_RETENTION_TIME_IN_DAYS = 7;</code></pre>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ No es un backup gratis</div>
 
 <p>Cada versión anterior ocupa almacenamiento mientras dure la retención. Más días de Time Travel = más costo de almacenamiento en tablas que cambian mucho.</p>

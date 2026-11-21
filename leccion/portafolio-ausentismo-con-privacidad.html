@@ -44,7 +44,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Fase 2: puntaje de riesgo y experimento</h2>
 <p>Un puntaje simple (por ejemplo: +2 si la anticipación es mayor a 10 días, +1 si es lunes, +2 si el paciente faltó antes) ordena los turnos de mañana. Los recordatorios van al 30 % con más puntaje. Para saber si <strong>funcionan</strong>, durante un mes se envían a la mitad del grupo de riesgo (al azar) y se compara la ausencia: es un experimento A/B como los del módulo de Análisis.</p>
 <h2>Fase 3: privacidad en Unity Catalog</h2>
-<pre data-norun><code class="language-sql">-- máscara de columna: recepción ve el documento; el resto, solo los últimos 3 dígitos
+<pre data-norun tabindex="0"><code class="language-sql">-- máscara de columna: recepción ve el documento; el resto, solo los últimos 3 dígitos
 CREATE FUNCTION workspace.clinica.mask_documento(doc STRING)
 RETURN CASE WHEN is_account_group_member('recepcion') THEN doc ELSE concat('*****', right(doc, 3)) END;
 ALTER TABLE workspace.clinica.silver_pacientes ALTER COLUMN documento SET MASK workspace.clinica.mask_documento;
@@ -102,7 +102,7 @@ GRANT SELECT ON TABLE workspace.clinica.gold_ausentismo TO `analistas`;</code></
 <li>El último <code>SELECT</code> la muestra vacía, porque tu usuario no está en ese grupo.</li>
 <li>Así el equipo de análisis trabaja con los datos sin ver lo que no necesita (minimización de datos).</li>
 </ol>
-<pre data-norun><code class="language-sql">CREATE SCHEMA IF NOT EXISTS main.clinica_priv;
+<pre data-norun tabindex="0"><code class="language-sql">CREATE SCHEMA IF NOT EXISTS main.clinica_priv;
 CREATE OR REPLACE TABLE main.clinica_priv.pacientes AS SELECT * FROM samples.clinica.clinica_pacientes;
 CREATE OR REPLACE FUNCTION main.clinica_priv.ocultar_fecha(f DATE)
   RETURN CASE WHEN is_account_group_member('medicos') THEN f ELSE NULL END;

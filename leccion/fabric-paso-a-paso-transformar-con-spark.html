@@ -25,14 +25,14 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 1 — Una tabla con Spark SQL</h2>
 <p>En el notebook, <strong>+ Code</strong> y escribe:</p>
-<pre data-norun><code class="language-sql">%%sql
+<pre data-norun tabindex="0"><code class="language-sql">%%sql
 CREATE OR REPLACE TABLE ventas_por_canal AS
 SELECT canal, COUNT(*) AS pedidos
 FROM pedidos
 GROUP BY canal</code></pre>
 <h2>Paso 2 — Una tabla con PySpark</h2>
 <p>Otra celda:</p>
-<pre data-norun><code class="language-python">df = spark.table(&quot;ventas_tiendas&quot;)
+<pre data-norun tabindex="0"><code class="language-python">df = spark.table(&quot;ventas_tiendas&quot;)
 resumen = df.groupBy(&quot;tienda&quot;).sum(&quot;cantidad&quot;)
 resumen.write.mode(&quot;overwrite&quot;).saveAsTable(&quot;unidades_por_tienda&quot;)
 display(resumen)</code></pre>
@@ -68,7 +68,7 @@ display(resumen)</code></pre>
 <td>Mantener una tabla al día sin duplicar</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-sql">%%sql
+<pre data-norun tabindex="0"><code class="language-sql">%%sql
 MERGE INTO clientes AS t
 USING clientes_nuevos AS s
 ON t.cliente_id = s.cliente_id

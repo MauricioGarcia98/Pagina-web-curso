@@ -28,7 +28,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h3>1. Idempotencia: ejecutar dos veces da lo mismo que ejecutar una</h3>
 <p>Una tarea es <strong>idempotente</strong> si correrla dos veces para la misma fecha deja los datos exactamente igual que correrla una vez. Es la regla más importante, porque <strong>en Airflow las tareas se repiten</strong>: por reintentos, porque alguien hace <em>clear</em> o porque corres un backfill.</p>
 <p>Ejemplo con la carga diaria de ventas del 15 de marzo:</p>
-<pre data-norun><code class="language-sql">-- ❌ No idempotente: si la tarea corre dos veces, las ventas del día quedan duplicadas
+<pre data-norun tabindex="0"><code class="language-sql">-- ❌ No idempotente: si la tarea corre dos veces, las ventas del día quedan duplicadas
 INSERT INTO ventas_diarias
 SELECT fecha, SUM(total) FROM pedidos WHERE fecha = '{{ ds }}' GROUP BY fecha;
 
@@ -51,7 +51,7 @@ SELECT fecha, SUM(total) FROM pedidos WHERE fecha = '{{ ds }}' GROUP BY fecha;</
 <p>Si cargas 5 GB en un <code>PythonOperator</code> con pandas, el worker de Airflow se queda sin memoria y tumba también a las otras tareas que corrían en él. Pasa lo mismo con XCom: sirve para <strong>pasar datos chicos</strong> (un conteo, una ruta, un id), nunca un DataFrame entero.</p>
 <h3>4. Nada pesado en el nivel superior del archivo</h3>
 <p>Esta es la causa más común de un Airflow lento. El <strong>scheduler vuelve a leer (parsear) todos los archivos de la carpeta <code>dags/</code> cada 30 segundos</strong> aproximadamente, para detectar cambios. Todo lo que está <strong>fuera de una función</strong> se ejecuta en cada lectura.</p>
-<pre data-norun><code class="language-python"># ❌ Malo: se ejecuta cada vez que el scheduler lee el archivo (¡miles de veces al día!)
+<pre data-norun tabindex="0"><code class="language-python"># ❌ Malo: se ejecuta cada vez que el scheduler lee el archivo (¡miles de veces al día!)
 clientes = requests.get(&quot;https://api/clientes&quot;).json()
 
 # ✅ Bien: se ejecuta solo cuando corre la tarea
@@ -66,7 +66,7 @@ def traer_clientes():
 </ul>
 <h3>6. Reintentos y alertas</h3>
 <p>Las fallas pasajeras (la red, un servidor que reinicia) son normales. Configura reintentos para todas las tareas con <code>default_args</code>, y una alerta que avise solo cuando se agotan:</p>
-<pre data-norun><code class="language-python">def avisar(context):
+<pre data-norun tabindex="0"><code class="language-python">def avisar(context):
     ti = context[&quot;task_instance&quot;]
     enviar_a_slack(f&quot;Falló {ti.dag_id}.{ti.task_id} del {context['ds']}&quot;)
 
@@ -105,7 +105,7 @@ with DAG(&quot;etl_ventas&quot;, default_args=default_args, ...):
 </tr>
 </tbody></table></div>
 <p>Se crean desde la interfaz web, la CLI o variables de entorno con un prefijo especial:</p>
-<pre><code class="language-bash">export AIRFLOW_VAR_ENTORNO=prod                                   # Variable &quot;entorno&quot;
+<pre tabindex="0"><code class="language-bash">export AIRFLOW_VAR_ENTORNO=prod                                   # Variable &quot;entorno&quot;
 export AIRFLOW_CONN_MI_DB='postgresql://usuario:clave@host:5432/ventas'   # Connection &quot;mi_db&quot;</code></pre>
 <div class="callout callout-tip"><div class="callout-title">💡 Prefiere plantillas a Variable.get</div>
 
@@ -115,7 +115,7 @@ export AIRFLOW_CONN_MI_DB='postgresql://usuario:clave@host:5432/ventas'   # Conn
 
 <h2>Probar DAGs antes de subirlos</h2>
 <p>Un DAG con un error de sintaxis no aparece en la interfaz: Airflow lo registra como <strong>import error</strong> y sigue de largo. Para que eso no llegue a producción, los equipos corren tests en CI (por ejemplo, GitHub Actions) en cada pull request:</p>
-<pre data-norun><code class="language-python"># tests/test_dags.py — se corre en CI con pytest
+<pre data-norun tabindex="0"><code class="language-python"># tests/test_dags.py — se corre en CI con pytest
 from airflow.dag_processing.dagbag import DagBag   # en Airflow 2: from airflow.models import DagBag
 
 def test_sin_errores_de_importacion():
@@ -206,7 +206,7 @@ def test_todas_las_tareas_tienen_reintentos():
 <li>Guarda una Variable y lístala.</li>
 <li>Prueba una sola tarea y luego el DAG completo, sin scheduler.</li>
 </ol>
-<pre data-norun><code class="language-bash">airflow dags list
+<pre data-norun tabindex="0"><code class="language-bash">airflow dags list
 airflow dags list-import-errors
 airflow variables set entorno dev
 airflow variables list

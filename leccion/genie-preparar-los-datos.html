@@ -64,7 +64,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>Paso 2: descripciones que ayudan</h2>
 <p>En Unity Catalog, cada tabla y columna puede tener un comentario. Genie lo lee como si fuera la documentación que le das a un analista nuevo:</p>
-<pre data-norun><code class="language-sql">COMMENT ON TABLE ventas.gold.ventas_lineas IS
+<pre data-norun tabindex="0"><code class="language-sql">COMMENT ON TABLE ventas.gold.ventas_lineas IS
   'Una fila por línea de pedido (producto dentro de un pedido). Incluye pedidos de 2022 a 2024 de todos los canales. Para ventas, usar importe_neto y excluir estado = cancelado.';
 
 ALTER TABLE ventas.gold.ventas_lineas ALTER COLUMN importe_neto COMMENT
@@ -87,7 +87,7 @@ ALTER TABLE ventas.gold.ventas_lineas ALTER COLUMN canal COMMENT
 
 <h2>Paso 3: una vista que ya trae los joins</h2>
 <p>Cada join que Genie tiene que adivinar es una oportunidad de error (¿se une por <code>cliente_id</code> o por <code>id</code>?, ¿uno a muchos?). Una <strong>vista desnormalizada</strong> entrega las columnas útiles ya unidas, con nombres claros:</p>
-<pre><code class="language-sql">SELECT d.detalle_id,
+<pre tabindex="0"><code class="language-sql">SELECT d.detalle_id,
        p.pedido_id,
        date(p.fecha_pedido)              AS fecha,
        substr(p.fecha_pedido, 1, 7)      AS mes,
@@ -108,7 +108,7 @@ LIMIT 5;</code></pre>
 <p>En Databricks sería <code>CREATE VIEW ventas.gold.ventas_lineas AS SELECT ...</code> (sin el <code>LIMIT</code>). Con esa vista, la pregunta &quot;¿cuánto vendimos en Chile en marzo?&quot; se responde con una sola tabla, un filtro y una suma: mucho menos margen de error.</p>
 <h2>Paso 4: claves primarias y foráneas</h2>
 <p>Cuando sí hay varias tablas, Unity Catalog permite declarar <strong>claves primarias y foráneas</strong> (son informativas: no impiden insertar datos duplicados, pero documentan la relación). Según la documentación, Genie las lee y las guarda automáticamente como <strong>relaciones de join</strong> del agente:</p>
-<pre data-norun><code class="language-sql">ALTER TABLE ventas.silver.pedidos ADD CONSTRAINT pk_pedidos PRIMARY KEY (pedido_id);
+<pre data-norun tabindex="0"><code class="language-sql">ALTER TABLE ventas.silver.pedidos ADD CONSTRAINT pk_pedidos PRIMARY KEY (pedido_id);
 ALTER TABLE ventas.silver.pedidos ADD CONSTRAINT fk_pedidos_clientes
   FOREIGN KEY (cliente_id) REFERENCES ventas.silver.clientes (cliente_id);</code></pre>
 <h2>Paso 5: vistas de métricas, definir cada indicador una sola vez</h2>
@@ -118,7 +118,7 @@ ALTER TABLE ventas.silver.pedidos ADD CONSTRAINT fk_pedidos_clientes
 <li><strong>Medidas</strong> (<em>measures</em>): los cálculos (ventas netas, pedidos, ticket promedio), definidos una sola vez.</li>
 </ul>
 <p>Quien consulta elige cualquier combinación de campos y el motor calcula bien cada medida. La documentación las describe como la implementación central de la semántica en Unity Catalog, y recomienda especialmente usarlas con Genie porque traen las métricas ya definidas. Se crean con SQL y una definición en YAML:</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE VIEW ventas.gold.metricas_ventas
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE VIEW ventas.gold.metricas_ventas
 WITH METRICS
 LANGUAGE YAML
 AS $$
@@ -159,7 +159,7 @@ $$;</code></pre>
 <li><code>measures</code>: los cálculos. <code>ticket_promedio</code> reutiliza las otras dos con <code>MEASURE(...)</code>: si mañana cambia la definición de ventas netas, el ticket se actualiza solo. Fíjate que es una <strong>razón de sumas</strong> (lección de KPIs del módulo de análisis), no un promedio de promedios.</li>
 </ul>
 <p>Para consultarla se usa <code>MEASURE()</code> y se agrupa por los campos que quieras:</p>
-<pre data-norun><code class="language-sql">SELECT pais, MEASURE(ventas_netas) AS ventas, MEASURE(ticket_promedio) AS ticket
+<pre data-norun tabindex="0"><code class="language-sql">SELECT pais, MEASURE(ventas_netas) AS ventas, MEASURE(ticket_promedio) AS ticket
 FROM ventas.gold.metricas_ventas
 GROUP BY pais
 ORDER BY ventas DESC;</code></pre>
@@ -207,7 +207,7 @@ ORDER BY ventas DESC;</code></pre>
 <li>Abre la vista en <strong>Catalog</strong> y verifica que los comentarios aparecen.</li>
 <li>Usa esta vista (y no las tablas crudas) cuando armes el agente.</li>
 </ol>
-<pre data-norun><code class="language-sql">CREATE SCHEMA IF NOT EXISTS main.genie;
+<pre data-norun tabindex="0"><code class="language-sql">CREATE SCHEMA IF NOT EXISTS main.genie;
 CREATE OR REPLACE VIEW main.genie.ventas COMMENT 'Una fila por línea de pedido entregado, con su importe neto' AS
 SELECT p.pedido_id, p.fecha_pedido AS fecha, p.canal, c.pais, pr.nombre AS producto,
        d.cantidad, ROUND(d.cantidad * d.precio_unitario * (1 - d.descuento), 2) AS importe

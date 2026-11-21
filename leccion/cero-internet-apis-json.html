@@ -158,7 +158,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ol>
 <h2>JSON: el formato de las respuestas</h2>
 <p>Casi todas las APIs responden en <strong>JSON</strong> (<em>JavaScript Object Notation</em>): texto con una estructura de llaves y corchetes, fácil de leer para personas y programas.</p>
-<pre data-norun><code class="language-json">{
+<pre data-norun tabindex="0"><code class="language-json">{
   &quot;id&quot;: 3,
   &quot;nombre&quot;: &quot;Auriculares Pulse&quot;,
   &quot;precio&quot;: 45990,
@@ -180,11 +180,11 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Tu primer pedido a una API</h2>
 <p>En este curso hay una <strong>API de práctica</strong> de Tienda Andina en <code>https://api.tiendaandina.dev/v1</code>, que funciona dentro del sitio (no sale a internet). Se comporta como una API real: tiene paginación, pide token para los pedidos y responde <code>429</code> si te apuras. Pruébala en la terminal con <code>curl</code>, el comando para hacer pedidos HTTP:</p>
-<pre><code class="language-bash">curl https://api.tiendaandina.dev/v1/estado
+<pre tabindex="0"><code class="language-bash">curl https://api.tiendaandina.dev/v1/estado
 curl https://api.tiendaandina.dev/v1/productos/3
 curl &quot;https://api.tiendaandina.dev/v1/productos?page=1&amp;per_page=2&quot;</code></pre>
 <p>Y desde Python, con la librería <code>requests</code>:</p>
-<pre><code class="language-python">import requests
+<pre tabindex="0"><code class="language-python">import requests
 r = requests.get(&quot;https://api.tiendaandina.dev/v1/productos/3&quot;)
 print(r.status_code)        # 200
 producto = r.json()         # convierte el JSON en un diccionario de Python
@@ -211,7 +211,7 @@ print(producto[&quot;nombre&quot;])</code></pre>
 <li>Mira las cabeceras de la respuesta con <code>curl -i</code>.</li>
 <li>Pide una página distinta con el parámetro <code>?page=2</code>.</li>
 </ol>
-<pre><code class="language-bash">curl -s https://api.tiendaandina.dev/v1/productos | head -c 400
+<pre tabindex="0"><code class="language-bash">curl -s https://api.tiendaandina.dev/v1/productos | head -c 400
 curl -i -s https://api.tiendaandina.dev/v1/productos | head -15</code></pre>
 <p>Reto: guarda la respuesta en un archivo con <code>-o productos.json</code> y míralo con <code>cat</code>.</p>
 <p>Documentación oficial: <a href="https://developer.mozilla.org/es/docs/Web/HTTP/Overview">HTTP en MDN</a></p>

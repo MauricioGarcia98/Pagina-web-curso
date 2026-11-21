@@ -77,7 +77,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Además, suelen tener dueños distintos: el equipo de plataforma administra el primero, y el equipo de datos, el segundo.</p>
 <h2>Proyecto 1: la plataforma en Azure</h2>
 <h3>Proveedores y variables</h3>
-<pre><code class="language-hcl"># plataforma/versions.tf
+<pre tabindex="0"><code class="language-hcl"># plataforma/versions.tf
 terraform {
   required_providers {
     azurerm = {
@@ -106,7 +106,7 @@ variable &quot;ubicacion&quot; {
   default = &quot;brazilsouth&quot;
 }</code></pre>
 <h3>Nombres y etiquetas</h3>
-<pre><code class="language-hcl">data &quot;azurerm_client_config&quot; &quot;actual&quot; {}        # quién ejecuta: tenant_id, object_id
+<pre tabindex="0"><code class="language-hcl">data &quot;azurerm_client_config&quot; &quot;actual&quot; {}        # quién ejecuta: tenant_id, object_id
 
 locals {
   nombre = &quot;andina-${var.entorno}&quot;
@@ -119,7 +119,7 @@ locals {
 }</code></pre>
 <p>Un <strong>data source</strong> (<code>data &quot;tipo&quot; &quot;nombre&quot;</code>) <strong>lee</strong> algo que ya existe en lugar de crearlo. <code>azurerm_client_config</code> devuelve los datos de la sesión con la que ejecutas Terraform; el Key Vault necesita el <code>tenant_id</code>.</p>
 <h3>El lago</h3>
-<pre><code class="language-hcl">resource &quot;azurerm_resource_group&quot; &quot;datos&quot; {
+<pre tabindex="0"><code class="language-hcl">resource &quot;azurerm_resource_group&quot; &quot;datos&quot; {
   name     = &quot;rg-${local.nombre}-datos&quot;
   location = var.ubicacion
   tags     = local.etiquetas
@@ -142,7 +142,7 @@ resource &quot;azurerm_storage_data_lake_gen2_filesystem&quot; &quot;capa&quot; 
 }</code></pre>
 <p>Mira las <strong>referencias</strong>: la cuenta usa <code>azurerm_resource_group.datos.name</code>. Así Terraform sabe que primero tiene que crear el grupo. Nunca escribas el nombre del grupo a mano en la cuenta: perderías la dependencia y el orden.</p>
 <h3>Secretos</h3>
-<pre><code class="language-hcl">resource &quot;azurerm_key_vault&quot; &quot;kv&quot; {
+<pre tabindex="0"><code class="language-hcl">resource &quot;azurerm_key_vault&quot; &quot;kv&quot; {
   name                      = &quot;kv-${local.nombre}&quot;
   location                  = azurerm_resource_group.datos.location
   resource_group_name       = azurerm_resource_group.datos.name
@@ -164,7 +164,7 @@ resource &quot;azurerm_key_vault_secret&quot; &quot;sql&quot; {
 }</code></pre>
 <p>La contraseña la <strong>genera</strong> Terraform (<code>random_password</code>) y la guarda en el Key Vault: no aparece en el código ni en el plan (<code>(sensitive value)</code>). Los pipelines la leen del Key Vault, nunca de Terraform.</p>
 <h3>Databricks y su identidad</h3>
-<pre><code class="language-hcl">resource &quot;azurerm_databricks_workspace&quot; &quot;dbw&quot; {
+<pre tabindex="0"><code class="language-hcl">resource &quot;azurerm_databricks_workspace&quot; &quot;dbw&quot; {
   name                = &quot;dbw-${local.nombre}&quot;
   resource_group_name = azurerm_resource_group.datos.name
   location            = azurerm_resource_group.datos.location
@@ -198,7 +198,7 @@ resource &quot;azurerm_data_factory&quot; &quot;adf&quot; {
 }</code></pre>
 <p><code>identity[0].principal_id</code> es el id de la identidad que Azure crea para el connector. El <code>role_assignment</code> le da permiso sobre <strong>solo</strong> esta cuenta (el <code>scope</code>). Ninguna clave de almacenamiento se copia a ningún lado.</p>
 <h3>Outputs</h3>
-<pre><code class="language-hcl">output &quot;databricks_url&quot; {
+<pre tabindex="0"><code class="language-hcl">output &quot;databricks_url&quot; {
   value = &quot;https://${azurerm_databricks_workspace.dbw.workspace_url}&quot;
 }
 
@@ -212,7 +212,7 @@ output &quot;dfs&quot; {
 }</code></pre>
 <h2>Proyecto 2: dentro de Databricks</h2>
 <h3>Conectarse al workspace del proyecto 1</h3>
-<pre><code class="language-hcl"># workspace/main.tf
+<pre tabindex="0"><code class="language-hcl"># workspace/main.tf
 data &quot;terraform_remote_state&quot; &quot;plataforma&quot; {
   backend = &quot;local&quot;                      # en la empresa: &quot;azurerm&quot;, con el mismo contenedor de estados
   config = {
@@ -228,7 +228,7 @@ provider &quot;databricks&quot; {
   host = local.plat.databricks_url        # se autentica con tu sesión (databricks auth login o az login)
 }</code></pre>
 <h3>Unity Catalog</h3>
-<pre><code class="language-hcl">resource &quot;databricks_storage_credential&quot; &quot;lago&quot; {
+<pre tabindex="0"><code class="language-hcl">resource &quot;databricks_storage_credential&quot; &quot;lago&quot; {
   name = &quot;cred-lago&quot;
   azure_managed_identity {
     access_connector_id = local.plat.access_connector_id
@@ -262,7 +262,7 @@ resource &quot;databricks_grants&quot; &quot;gold&quot; {
 }</code></pre>
 <p>La cadena completa: el <strong>access connector</strong> (Azure) tiene permiso sobre el lago → la <strong>storage credential</strong> (Databricks) usa esa identidad → cada <strong>external location</strong> autoriza una ruta <code>abfss://</code> → los <strong>esquemas</strong> y tablas viven ahí → los <strong>grants</strong> dicen quién puede leer qué. Con esto, la pregunta de la auditoría (&quot;¿quién accede a gold?&quot;) se responde leyendo un archivo en Git.</p>
 <h3>Cómputo y un job</h3>
-<pre><code class="language-hcl">data &quot;databricks_spark_version&quot; &quot;lts&quot; {
+<pre tabindex="0"><code class="language-hcl">data &quot;databricks_spark_version&quot; &quot;lts&quot; {
   long_term_support = true
 }
 
@@ -335,11 +335,11 @@ resource &quot;databricks_sql_endpoint&quot; &quot;bi&quot; {
 <h2>Laboratorio</h2>
 <p>La terminal tiene los dos simuladores (Azure y Databricks) conectados con Terraform.</p>
 <p><strong>1. Sesiones:</strong></p>
-<pre data-norun><code class="language-bash">az login
+<pre data-norun tabindex="0"><code class="language-bash">az login
 databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
 mkdir -p ~/infra/plataforma ~/infra/workspace</code></pre>
 <p><strong>2. Proyecto 1.</strong> En <code>~/infra/plataforma</code> escribe un <code>main.tf</code> con todo lo del proyecto 1 (proveedores, variables, locals, recursos y outputs; para el laboratorio puedes omitir <code>required_providers</code>):</p>
-<pre><code class="language-text">$ cd ~/infra/plataforma &amp;&amp; terraform init &amp;&amp; terraform apply -auto-approve
+<pre tabindex="0"><code class="language-text">$ cd ~/infra/plataforma &amp;&amp; terraform init &amp;&amp; terraform apply -auto-approve
 ...
 Plan: 12 to add, 0 to change, 0 to destroy.
 ...
@@ -356,10 +356,10 @@ dfs = {
 }</code></pre>
 <p>Son 12: grupo, cuenta, 3 contenedores, Key Vault, contraseña, secreto, workspace, connector, rol y Data Factory.</p>
 <p><strong>3. Verifica con la CLI de Azure:</strong></p>
-<pre data-norun><code class="language-bash">az storage fs list --account-name stlakeandinadev --auth-mode login -o table
+<pre data-norun tabindex="0"><code class="language-bash">az storage fs list --account-name stlakeandinadev --auth-mode login -o table
 az keyvault secret list --vault-name kv-andina-dev -o table</code></pre>
 <p><strong>4. Proyecto 2.</strong> En <code>~/infra/workspace</code> escribe el <code>main.tf</code> del proyecto 2. Para el laboratorio, cambia el <code>content_base64</code> del notebook por <code>base64encode(&quot;print(&#39;hola&#39;)&quot;)</code> (o crea el archivo <code>notebooks/ingesta_pedidos.py</code>).</p>
-<pre data-norun><code class="language-bash">cd ~/infra/workspace &amp;&amp; terraform init &amp;&amp; terraform apply -auto-approve
+<pre data-norun tabindex="0"><code class="language-bash">cd ~/infra/workspace &amp;&amp; terraform init &amp;&amp; terraform apply -auto-approve
 databricks catalogs list
 databricks schemas list dev
 databricks jobs list</code></pre>
@@ -448,7 +448,7 @@ databricks jobs list</code></pre>
 <li>Aplica: Terraform crea primero el grupo y después la cuenta, porque la cuenta lo referencia.</li>
 <li>Verifica con la CLI de Azure que la cuenta existe y es Data Lake.</li>
 </ol>
-<pre data-norun><code class="language-bash">az login
+<pre data-norun tabindex="0"><code class="language-bash">az login
 mkdir -p ~/infra/az &amp;&amp; cd ~/infra/az
 printf 'resource &quot;azurerm_resource_group&quot; &quot;rg&quot; {\n  name     = &quot;rg-tf-lab&quot;\n  location = &quot;eastus2&quot;\n}\n\nresource &quot;azurerm_storage_account&quot; &quot;lago&quot; {\n  name                     = &quot;sttflab01&quot;\n  resource_group_name      = azurerm_resource_group.rg.name\n  location                 = azurerm_resource_group.rg.location\n  account_tier             = &quot;Standard&quot;\n  account_replication_type = &quot;LRS&quot;\n  is_hns_enabled           = true\n}\n' &gt; main.tf
 terraform init

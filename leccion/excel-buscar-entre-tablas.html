@@ -32,7 +32,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/excel/03-xlookup.webp" alt="XLOOKUP (1) busca el 5 en la columna A y devuelve lo de la columna F (2)" loading="lazy"><figcaption>XLOOKUP (1) busca el 5 en la columna A y devuelve lo de la columna F (2)</figcaption></figure>
 
 
-<pre><code class="language-text">=XLOOKUP(qué_busco, dónde_lo_busco, qué_devuelvo, [si_no_lo_encuentra])</code></pre>
+<pre tabindex="0"><code class="language-text">=XLOOKUP(qué_busco, dónde_lo_busco, qué_devuelvo, [si_no_lo_encuentra])</code></pre>
 <p>Se lee: &quot;busca <strong>5</strong> en <strong>A:A</strong> y devuelve lo que está en la misma fila de <strong>F:F</strong>; si no lo encuentras, pon <em>no está</em>&quot;.</p>
 <h2>Paso 2 — Unir dos tablas: el país del cliente</h2>
 <p>Cada pedido tiene un <strong>cliente_id</strong> (columna B), pero el país está en la tabla <strong>clientes</strong>.</p>
@@ -41,7 +41,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Vuelve a <strong>pedidos</strong>. En <strong>O1</strong> escribe <code>pais_cliente</code>.</li>
 <li>En <strong>O2</strong> escribe:</li>
 </ol>
-<pre><code class="language-text">=XLOOKUP(B2,clientes!A:A,clientes!G:G,&quot;sin cliente&quot;)</code></pre>
+<pre tabindex="0"><code class="language-text">=XLOOKUP(B2,clientes!A:A,clientes!G:G,&quot;sin cliente&quot;)</code></pre>
 <ol start="4">
 <li>Cópiala hacia abajo (selecciona <strong>O2:O8</strong> y Ctrl + D para probar).</li>
 </ol>
@@ -51,7 +51,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-tip"><div class="callout-title">💡 Es un JOIN</div>
 
 <p>Esto es exactamente un <code>LEFT JOIN</code> de SQL: cada pedido busca su cliente; si no lo encuentra, queda &quot;sin cliente&quot;.</p>
-<pre><code class="language-sql">SELECT p.*, c.pais AS pais_cliente
+<pre tabindex="0"><code class="language-sql">SELECT p.*, c.pais AS pais_cliente
 FROM pedidos p LEFT JOIN clientes c ON c.cliente_id = p.cliente_id;</code></pre>
 </div>
 
@@ -64,7 +64,7 @@ FROM pedidos p LEFT JOIN clientes c ON c.cliente_id = p.cliente_id;</code></pre>
 
 <h2>Paso 3 — VLOOKUP, la clásica</h2>
 <p>Vas a encontrar <code>VLOOKUP</code> en casi todos los archivos de las empresas. Hace lo mismo con otra forma:</p>
-<pre><code class="language-text">=VLOOKUP(qué_busco, tabla, número_de_columna, FALSE)
+<pre tabindex="0"><code class="language-text">=VLOOKUP(qué_busco, tabla, número_de_columna, FALSE)
 =VLOOKUP(B2, clientes!A:J, 7, FALSE)</code></pre>
 <ul>
 <li>Busca <strong>siempre en la primera columna</strong> de la tabla (A).</li>
@@ -110,7 +110,7 @@ FROM pedidos p LEFT JOIN clientes c ON c.cliente_id = p.cliente_id;</code></pre>
 
 
 <p><code>#N/A</code> no es un fallo de la fórmula: es la respuesta &quot;<strong>no existe</strong>&quot;. Para mostrar otra cosa:</p>
-<pre><code class="language-text">=IFNA(VLOOKUP(999999,A:F,6,FALSE),&quot;no existe&quot;)</code></pre>
+<pre tabindex="0"><code class="language-text">=IFNA(VLOOKUP(999999,A:F,6,FALSE),&quot;no existe&quot;)</code></pre>
 <p>Prefiere <code>IFNA</code> a <code>IFERROR</code> en búsquedas: IFNA solo tapa el &quot;no encontrado&quot;; IFERROR taparía también un <code>#REF!</code> por una tabla mal escrita.</p>
 <h2>Paso 5 — INDEX con MATCH</h2>
 <p>Antes de XLOOKUP, la forma flexible de buscar era combinar dos funciones:</p>
@@ -118,7 +118,7 @@ FROM pedidos p LEFT JOIN clientes c ON c.cliente_id = p.cliente_id;</code></pre>
 <li><code>MATCH(qué, dónde, 0)</code> devuelve la <strong>posición</strong> (fila) donde está el valor.</li>
 <li><code>INDEX(columna, posición)</code> devuelve el valor de esa posición.</li>
 </ul>
-<pre><code class="language-text">=INDEX(clientes!G:G, MATCH(B2, clientes!A:A, 0))</code></pre>
+<pre tabindex="0"><code class="language-text">=INDEX(clientes!G:G, MATCH(B2, clientes!A:A, 0))</code></pre>
 <p>Da lo mismo que el XLOOKUP del paso 2. Vale la pena reconocerla porque aparece en muchos archivos heredados, y funciona en cualquier versión de Excel.</p>
 <h2>Paso 6 — Verifica la búsqueda</h2>
 <p>Una unión que pierde filas en silencio es un error grave. Después de buscar, controla:</p>

@@ -56,7 +56,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="diagrama"><figcaption>La regla de la caída: el día de hoy contra los 7 anteriores</figcaption></figure>
 
 
-<pre><code class="language-sql">WITH d AS (
+<pre tabindex="0"><code class="language-sql">WITH d AS (
   SELECT substr(cargado_en, 1, 10) AS dia, COUNT(*) AS cargas
   FROM bronze_pedidos WHERE archivo &lt;&gt; 'pedidos_qa.json'
   GROUP BY 1
@@ -83,7 +83,7 @@ ORDER BY dia;</code></pre>
 <li>Busca las filas con alerta: ¿cuál es una caída real y cuáles son el final de la serie?</li>
 <li>Cambia el umbral de <code>0.5</code> a <code>0.7</code> y mira cuántas alertas nuevas aparecen. ¿Valen la pena?</li>
 </ol>
-<pre><code class="language-sql">WITH d AS (
+<pre tabindex="0"><code class="language-sql">WITH d AS (
   SELECT substr(cargado_en, 1, 10) AS dia, COUNT(*) AS cargas
   FROM bronze_pedidos WHERE archivo &lt;&gt; 'pedidos_qa.json'
   GROUP BY 1

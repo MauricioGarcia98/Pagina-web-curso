@@ -26,7 +26,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Paso 1 — Dónde vive un workflow</h2>
 <p>Un workflow es un archivo YAML en <strong><code>.github/workflows/</code></strong> del repositorio. GitHub lee esa carpeta en cada push: no hay que activar nada.</p>
 <p>En tu clon de <code>ventas-app</code> (en <code>main</code> actualizado), crea <code>.github/workflows/tests.yml</code>:</p>
-<pre><code class="language-yaml">name: tests
+<pre tabindex="0"><code class="language-yaml">name: tests
 on:
   push:
     branches: [main]
@@ -83,7 +83,7 @@ jobs:
 
 
 <h2>Paso 3 — Subir y ver la ejecución</h2>
-<pre><code class="language-bash">git add .github/workflows/tests.yml
+<pre tabindex="0"><code class="language-bash">git add .github/workflows/tests.yml
 git commit -m &quot;CI: ruff y pytest en cada push y pull request&quot;
 git push</code></pre>
 <p>Pestaña <strong>Actions</strong>:</p>
@@ -113,14 +113,14 @@ git push</code></pre>
 
 <h2>Paso 5 — Arreglar y ver el verde</h2>
 <p>Quita la línea <code>import csv</code> de <code>resumen.py</code>:</p>
-<pre><code class="language-bash">git commit -am &quot;Quita el import sin usar que marcó ruff (F401)&quot;
+<pre tabindex="0"><code class="language-bash">git commit -am &quot;Quita el import sin usar que marcó ruff (F401)&quot;
 git push</code></pre>
 <figure class="captura"><img src="assets/img/guias/github/g13-actions-verde.webp" alt="La segunda ejecución quedó en verde" loading="lazy"><figcaption>La segunda ejecución quedó en verde</figcaption></figure>
 
 
 <p>Desde ahora, cada PR muestra el check <strong>tests</strong> y el revisor sabe, sin correr nada, si el código pasa.</p>
 <h2>Paso 6 — Desde la terminal</h2>
-<pre><code class="language-bash">gh run list            # últimas ejecuciones
+<pre tabindex="0"><code class="language-bash">gh run list            # últimas ejecuciones
 gh run view            # detalle de la última</code></pre>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
 

@@ -66,14 +66,14 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>Paso 1 · Explorar</h2>
-<pre><code class="language-bash">cuentas accesos
+<pre tabindex="0"><code class="language-bash">cuentas accesos
 curl -s &quot;https://api.contactocrm.example/crm/v3/objects/companies?limit=2&quot; -H &quot;Authorization: Bearer pat-…&quot;
 curl -s &quot;https://api.cobrable.example/v1/events?limit=2&quot; -H &quot;Authorization: Bearer ck_live_…&quot;
 curl -s -u mx_…: &quot;https://api.medidor.example/api/2.0/users&quot; | head -c 300</code></pre>
 <p>Mira un evento de Cobrable completo: trae la suscripción <strong>como quedó</strong> después del cambio. Esa es la clave del MRR histórico.</p>
 <h2>Paso 2 · El CRM</h2>
 <p>Un <code>get</code> con reintento para el 429 (100 pedidos cada 10 segundos) y la paginación con <code>after</code>. Se piden también las <strong>archivadas</strong>: después de la fusión, los duplicados quedan archivados con <code>mergedInto</code>.</p>
-<pre data-norun><code class="language-python">import requests, json, os, time, base64
+<pre data-norun tabindex="0"><code class="language-python">import requests, json, os, time, base64
 from datetime import date, datetime, timedelta, timezone
 CRM, COB, MED = os.environ[&quot;CRM&quot;], os.environ[&quot;COB&quot;], os.environ[&quot;MED&quot;]
 HOY = date.fromisoformat(os.environ[&quot;HOY&quot;]); TZ = timezone(timedelta(hours=-3))
@@ -105,7 +105,7 @@ for e in empresas:
 porId = {e[&quot;id&quot;]: e for e in empresas}</code></pre>
 <h2>Paso 3 · El MRR desde el log de eventos</h2>
 <p><code>/v1/subscriptions</code> es solo el presente. Para el cierre de cada mes se recorre el log de eventos <strong>en orden</strong> y se guarda, por cliente, el último estado visto hasta esa fecha.</p>
-<pre data-norun><code class="language-python">hb = {&quot;Authorization&quot;: &quot;Bearer &quot; + COB}
+<pre data-norun tabindex="0"><code class="language-python">hb = {&quot;Authorization&quot;: &quot;Bearer &quot; + COB}
 def todo(ruta):   # Cobrable lista del más nuevo al más viejo, con starting_after
     out, sa = [], None
     while True:
@@ -146,7 +146,7 @@ for mes in todos:
         e = eventos[i]; estado[e[&quot;data&quot;][&quot;object&quot;][&quot;customer&quot;]] = e[&quot;data&quot;][&quot;object&quot;]; i += 1
     hist[mes] = {k: mrr(v) for k, v in estado.items()}</code></pre>
 <p>Los movimientos comparan cada mes con el anterior. <code>tuvo</code> recuerda quién tuvo MRR alguna vez, para separar <code>nuevo</code> de <code>reactivacion</code>:</p>
-<pre data-norun><code class="language-python">filas, tuvo = [], {}
+<pre data-norun tabindex="0"><code class="language-python">filas, tuvo = [], {}
 for k, mes in enumerate(todos):
     prev, act = (hist[todos[k - 1]] if k else {}), hist[mes]
     for c in set(prev) | set(act):
@@ -164,7 +164,7 @@ with open(&quot;mrr_mensual.csv&quot;, &quot;w&quot;) as f:
     for r in filas: f.write(f&quot;{r[0]},{r[1]},{r[2]:.2f},{r[3]}\n&quot;)</code></pre>
 <h2>Paso 4 · El uso de 30 días</h2>
 <p>El export de Medidor acepta <strong>7 días por pedido</strong>: se recorre la ventana en tramos. Los eventos de antes del login tienen un id anónimo que no está en <code>/users</code>: no cuentan. Y desde que la app renombró <code>factura_emitida</code> a <code>invoice_created</code>, hay que contar los dos.</p>
-<pre data-norun><code class="language-python">basic = {&quot;Authorization&quot;: &quot;Basic &quot; + base64.b64encode((MED + &quot;:&quot;).encode()).decode()}
+<pre data-norun tabindex="0"><code class="language-python">basic = {&quot;Authorization&quot;: &quot;Basic &quot; + base64.b64encode((MED + &quot;:&quot;).encode()).decode()}
 usuarios = get(&quot;https://api.medidor.example/api/2.0/users&quot;, basic).json()[&quot;results&quot;]
 cuentaDe = {u[&quot;user_id&quot;]: u[&quot;billing_customer_id&quot;] for u in usuarios}
 totalU = {}
@@ -183,7 +183,7 @@ while d &lt;= fin:
     d = h + timedelta(days=1)</code></pre>
 <h2>Paso 5 · La vista 360</h2>
 <p>Para cada cliente que hoy paga: primero el id que cargó Ventas en <code>metadata</code> (si la empresa no está archivada); si no, el <strong>dominio</strong> del email normalizado contra la empresa principal.</p>
-<pre data-norun><code class="language-python">actual = {e[&quot;data&quot;][&quot;object&quot;][&quot;customer&quot;]: e[&quot;data&quot;][&quot;object&quot;] for e in eventos}
+<pre data-norun tabindex="0"><code class="language-python">actual = {e[&quot;data&quot;][&quot;object&quot;][&quot;customer&quot;]: e[&quot;data&quot;][&quot;object&quot;] for e in eventos}
 cli = {c[&quot;id&quot;]: c for c in clientes}
 filas360 = []
 for c, o in actual.items():
@@ -202,14 +202,14 @@ with open(&quot;cliente_360.csv&quot;, &quot;w&quot;) as f:
     for r in filas360: f.write(&quot;,&quot;.join(str(x) for x in r) + &quot;\n&quot;)</code></pre>
 <h2>Paso 6 · El reverse ETL</h2>
 <p>Un <code>PATCH</code> por empresa con las tres propiedades. Si llega un 429, se espera lo que dice <code>Retry-After</code> y se reintenta <strong>ese</strong> pedido.</p>
-<pre data-norun><code class="language-python">for c, crm, plan, m, a, fc, health in filas360:
+<pre data-norun tabindex="0"><code class="language-python">for c, crm, plan, m, a, fc, health in filas360:
     if not crm: continue
     while True:
         r = requests.patch(f&quot;https://api.contactocrm.example/crm/v3/objects/companies/{crm}&quot;, headers=hc,
                            json={&quot;properties&quot;: {&quot;health_score&quot;: str(health), &quot;mrr_actual&quot;: f&quot;{m:.2f}&quot;, &quot;plan_actual&quot;: plan}})
         if r.status_code == 429: time.sleep(int(r.headers.get(&quot;retry-after&quot;, &quot;10&quot;))); continue
         r.raise_for_status(); break</code></pre>
-<pre><code class="language-bash">CRM=pat-… COB=ck_live_… MED=mx_… HOY=$(date +%F) python ~/cc.py</code></pre>
+<pre tabindex="0"><code class="language-bash">CRM=pat-… COB=ck_live_… MED=mx_… HOY=$(date +%F) python ~/cc.py</code></pre>
 <div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Por qué el reverse ETL no se rompe con la fusión</div>
 
 <p>Cuando Ventas fusiona los duplicados, la empresa vieja queda archivada y la API rechaza escribirle. Esta solución nunca elige una archivada: si el id de <code>metadata</code> está archivado, cae al dominio, que apunta a la principal. Si tu versión guardaba los ids del CRM &quot;para siempre&quot;, ahí está el error.</p>
@@ -217,13 +217,13 @@ with open(&quot;cliente_360.csv&quot;, &quot;w&quot;) as f:
 
 
 <h2>Paso 7 · Databricks y Key Vault</h2>
-<pre><code class="language-bash">az storage blob upload --account-name stcc -c landing -n gold/mrr_mensual.csv -f ~/mrr_mensual.csv --overwrite
+<pre tabindex="0"><code class="language-bash">az storage blob upload --account-name stcc -c landing -n gold/mrr_mensual.csv -f ~/mrr_mensual.csv --overwrite
 az storage blob upload --account-name stcc -c landing -n gold/cliente_360.csv -f ~/cliente_360.csv --overwrite
 az keyvault secret set --vault-name kv-cc -n crm-token --value 'pat-…' -o none
 az keyvault secret set --vault-name kv-cc -n cobrable-key --value 'ck_live_…' -o none
 az keyvault secret set --vault-name kv-cc -n medidor-secreto --value 'mx_…' -o none</code></pre>
 <p>(El grupo de recursos, la cuenta de almacenamiento con <code>--hns true</code>, el contenedor <code>landing</code>, el permiso para el conector de Unity Catalog y el Key Vault se crean igual que en los otros proyectos.)</p>
-<pre data-norun><code class="language-sql">CREATE CATALOG IF NOT EXISTS cc; CREATE SCHEMA IF NOT EXISTS cc.gold;
+<pre data-norun tabindex="0"><code class="language-sql">CREATE CATALOG IF NOT EXISTS cc; CREATE SCHEMA IF NOT EXISTS cc.gold;
 
 CREATE OR REPLACE TABLE cc.gold.mrr_mensual AS
 SELECT cliente_id, mes, CAST(mrr AS DOUBLE) AS mrr, movimiento
@@ -235,7 +235,7 @@ SELECT billing_customer_id, crm_company_id, plan, CAST(mrr_actual AS DOUBLE) AS 
        CAST(health_score AS INT) AS health_score
 FROM read_files('abfss://landing@stcc.dfs.core.windows.net/gold/cliente_360.csv', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false);</code></pre>
 <p>Las preguntas del tablero salen de estas tablas. Por ejemplo, el MRR de un mes y el churn de MRR:</p>
-<pre data-norun><code class="language-sql">SELECT round(sum(mrr), 2) FROM cc.gold.mrr_mensual WHERE mes = '2026-10' AND movimiento &lt;&gt; 'churn';
+<pre data-norun tabindex="0"><code class="language-sql">SELECT round(sum(mrr), 2) FROM cc.gold.mrr_mensual WHERE mes = '2026-10' AND movimiento &lt;&gt; 'churn';
 
 -- MRR perdido en octubre (el que tenían en septiembre los que hicieron churn) / MRR de septiembre
 SELECT round(100 * sum(a.mrr) / (SELECT sum(mrr) FROM cc.gold.mrr_mensual WHERE mes = '2026-09' AND movimiento &lt;&gt; 'churn'), 1)

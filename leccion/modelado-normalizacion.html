@@ -147,7 +147,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Hazlo con SQL: separar la planilla</h2>
 <p>Así se separa la tabla plana con consultas. Primero, los huéspedes distintos y sus emails, donde aparece la contradicción:</p>
-<pre><code class="language-sql">WITH planilla(reserva, fecha, huesped, email_huesped, hotel, ciudad_hotel, habitacion, noches, tarifa) AS (
+<pre tabindex="0"><code class="language-sql">WITH planilla(reserva, fecha, huesped, email_huesped, hotel, ciudad_hotel, habitacion, noches, tarifa) AS (
     VALUES ('R-101', '2024-03-01', 'Ana Ruiz', 'ana@mail.com',      'Posada Lima Centro', 'Lima',  201, 3, 85),
            ('R-101', '2024-03-01', 'Ana Ruiz', 'ana@mail.com',      'Posada Lima Centro', 'Lima',  202, 3, 85),
            ('R-102', '2024-03-02', 'Luis Paz', 'luis@mail.com',     'Posada Cusco',       'Cusco', 105, 2, 70),
@@ -285,7 +285,7 @@ GROUP BY huesped;</code></pre>
 <li>Las dos consultas siguientes sacan esas repeticiones a sus propias tablas (3FN): cada dato vive en un solo lugar.</li>
 <li>Verifica: la cantidad de clientes distintos de la planilla coincide con las filas de <code>cliente_n</code>.</li>
 </ol>
-<pre data-norun><code class="language-sql">DROP TABLE IF EXISTS planilla;
+<pre data-norun tabindex="0"><code class="language-sql">DROP TABLE IF EXISTS planilla;
 CREATE TABLE planilla AS
 SELECT p.pedido_id, p.fecha_pedido, c.cliente_id, c.nombre AS cliente, c.ciudad,
        pr.producto_id, pr.nombre AS producto, pr.precio, d.cantidad

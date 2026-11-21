@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Qué tiene un contrato</h2>
-<pre data-norun><code class="language-yaml">tabla: silver.pedidos
+<pre data-norun tabindex="0"><code class="language-yaml">tabla: silver.pedidos
 responsable: equipo-datos-ventas
 consumidores: [finanzas, tablero-comercial]
 esquema:
@@ -120,7 +120,7 @@ cambios: &quot;agregar columnas opcionales: aviso de 1 semana; eliminar o cambia
 <li>Mira el reporte: cada violación dice en qué fila, qué columna y por qué.</li>
 <li>Agrega al contrato la regla <code>&quot;minimo&quot;: 0</code> para <code>monto</code> y haz que la función la verifique.</li>
 </ol>
-<pre><code class="language-python">contrato = {
+<pre tabindex="0"><code class="language-python">contrato = {
     &quot;pedido_id&quot;: {&quot;tipo&quot;: int, &quot;nulos&quot;: False},
     &quot;estado&quot;:    {&quot;tipo&quot;: str, &quot;nulos&quot;: False, &quot;valores&quot;: [&quot;entregado&quot;, &quot;enviado&quot;, &quot;pendiente&quot;, &quot;cancelado&quot;, &quot;devuelto&quot;]},
     &quot;monto&quot;:     {&quot;tipo&quot;: float, &quot;nulos&quot;: False},

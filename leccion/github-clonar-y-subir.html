@@ -26,7 +26,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Paso 1 — Abre la terminal de la práctica</h2>
 <p>En <a href="#/github">GitHub de práctica</a>, el botón de terminal de la barra superior abre abajo la terminal conectada a estos repositorios.</p>
 <h2>Paso 2 — Clona y crea una rama</h2>
-<pre><code class="language-bash">cd ~
+<pre tabindex="0"><code class="language-bash">cd ~
 git clone https://github.com/alumno/ventas-app.git
 cd ventas-app
 git checkout -b feature/resumen</code></pre>
@@ -49,7 +49,7 @@ git checkout -b feature/resumen</code></pre>
 </tbody></table></div>
 <h2>Paso 3 — Commit y push</h2>
 <p>Crea un archivo <code>resumen.py</code> (en la práctica, con <code>nano resumen.py</code> o desde <a href="#/vscode">VS Code de práctica</a> con <code>code .</code>) y después:</p>
-<pre><code class="language-bash">git add .
+<pre tabindex="0"><code class="language-bash">git add .
 git commit -m &quot;Agrega el resumen de ventas por canal&quot;
 git push -u origin feature/resumen</code></pre>
 <figure class="captura"><img src="assets/img/guias/github/g05-push.webp" alt="El push de una rama nueva: el servidor responde con el enlace para crear un pull request" loading="lazy"><figcaption>El push de una rama nueva: el servidor responde con el enlace para crear un pull request</figcaption></figure>
@@ -74,7 +74,7 @@ git push -u origin feature/resumen</code></pre>
 </tr>
 </tbody></table></div>
 <h2>Paso 4 — Traer los cambios del equipo</h2>
-<pre><code class="language-bash">git checkout main
+<pre tabindex="0"><code class="language-bash">git checkout main
 git pull</code></pre>
 <p><code>git pull</code> trae los commits nuevos del remoto y los aplica a tu rama. Regla: <strong>antes de empezar algo nuevo, <code>git pull</code> en <code>main</code></strong>, así partes de lo último.</p>
 <div class="table-wrap"><table><thead><tr>
@@ -96,7 +96,7 @@ git pull</code></pre>
 </tbody></table></div>
 <h2>Paso 5 — Iniciar sesión con gh</h2>
 <p>La CLI de GitHub (<code>gh</code>) permite crear repositorios, PRs e issues desde la terminal. La primera vez:</p>
-<pre><code class="language-bash">gh auth login</code></pre>
+<pre tabindex="0"><code class="language-bash">gh auth login</code></pre>
 <p>En la práctica responde sola; en tu computadora te muestra un código y abre el navegador para autorizar (lección 23). Después: <code>gh repo create</code>, <code>gh pr create</code>, <code>gh issue list</code>, <code>gh pr checks</code>…</p>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ GitHub no acepta contraseñas en la terminal</div>
 

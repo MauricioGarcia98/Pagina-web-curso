@@ -92,7 +92,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>¿Por qué es mejor? Porque un <code>NULL</code> silencioso es un <strong>dato perdido que nadie ve</strong>: si 30.000 montos tenían el texto <code>&quot;1.200,50&quot;</code> y Spark los convertía en <code>NULL</code>, la suma de ventas daba de menos y ningún test lo notaba. Con ANSI, el job falla y te obliga a decidir qué hacer con esos datos.</p>
 <h3>Cómo manejar datos sucios a propósito: las funciones <code>try_</code></h3>
 <p>Si <strong>sabes</strong> que una columna trae basura y quieres el comportamiento viejo <strong>solo ahí</strong>, usas las funciones <code>try_</code>, que devuelven <code>NULL</code> en lugar de fallar:</p>
-<pre data-norun><code class="language-sql">SELECT
+<pre data-norun tabindex="0"><code class="language-sql">SELECT
   try_cast(monto_texto AS DECIMAL(12, 2))        AS monto,          -- NULL si no es un número
   try_divide(ingresos, visitas)                  AS ingreso_por_visita, -- NULL si visitas = 0
   try_to_number(precio_texto, '999,999.99')      AS precio,         -- NULL si no respeta el formato
@@ -100,7 +100,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 FROM bronze.ventas_crudas;</code></pre>
 <p>En PySpark es lo mismo: <code>F.try_divide(...)</code>, <code>F.col(&quot;x&quot;).try_cast(&quot;int&quot;)</code> o <code>F.expr(&quot;try_cast(x AS INT)&quot;)</code>.</p>
 <p>La buena práctica es usar <code>try_</code> en la capa <strong>silver</strong> (donde se limpian los datos) y además <strong>contar</strong> cuántos <code>NULL</code> se generaron, para que el problema no quede escondido:</p>
-<pre data-norun><code class="language-sql">SELECT COUNT(*) AS filas,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT COUNT(*) AS filas,
        COUNT(*) FILTER (WHERE monto_texto IS NOT NULL AND try_cast(monto_texto AS DECIMAL(12,2)) IS NULL) AS montos_invalidos
 FROM bronze.ventas_crudas;</code></pre>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Desactivar ANSI no es la solución</div>
@@ -120,7 +120,7 @@ FROM bronze.ventas_crudas;</code></pre>
 <li>El servidor de Spark recibe el plan, lo optimiza y lo ejecuta como siempre en el clúster.</li>
 <li>Los resultados vuelven al cliente en lotes de <strong>Apache Arrow</strong> (un formato columnar muy rápido de transferir).</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import SparkSession
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import SparkSession
 
 # en lugar de arrancar Spark dentro de tu proceso, te conectas a un servidor remoto
 spark = SparkSession.builder.remote(&quot;sc://servidor-spark:15002&quot;).getOrCreate()
@@ -142,7 +142,7 @@ df.groupBy(&quot;canal&quot;).count().show()       # el plan viaja al servidor; 
 <li>Convertirlo a un <strong>STRUCT</strong> con un esquema fijo: rápido, pero si mañana el JSON trae un campo nuevo, hay que cambiar el esquema y las cargas fallan.</li>
 </ul>
 <p>Spark 4 agregó el tipo <strong>VARIANT</strong>: guarda el JSON en un formato binario eficiente, <strong>sin</strong> esquema fijo, y permite consultar sus campos directamente.</p>
-<pre data-norun><code class="language-sql">CREATE TABLE eventos (id BIGINT, datos VARIANT);
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE eventos (id BIGINT, datos VARIANT);
 
 INSERT INTO eventos
 SELECT 1, parse_json('{&quot;tipo&quot;: &quot;compra&quot;, &quot;monto&quot;: 49.9, &quot;items&quot;: [{&quot;sku&quot;: &quot;A1&quot;}, {&quot;sku&quot;: &quot;B7&quot;}]}');
@@ -161,7 +161,7 @@ FROM eventos;</code></pre>
 <p>Úsalo en <strong>bronze</strong> para guardar el JSON tal como llega sin perder nada, y extrae a columnas normales en <strong>silver</strong> los campos que el negocio usa siempre.</p>
 <h2>4. La sintaxis pipe: SQL que se lee de arriba hacia abajo</h2>
 <p>Un <code>SELECT</code> clásico se <strong>escribe</strong> en un orden (<code>SELECT … FROM … WHERE … GROUP BY</code>) pero se <strong>ejecuta</strong> en otro (primero <code>FROM</code>, luego <code>WHERE</code>, luego <code>GROUP BY</code>, y recién al final <code>SELECT</code>). Con varias subconsultas anidadas, leerlo es un ejercicio de paciencia. Spark 4 agregó la <strong>sintaxis pipe</strong> (<code>|&gt;</code>), donde cada línea es un paso aplicado al resultado del anterior, en el orden en que ocurre:</p>
-<pre data-norun><code class="language-sql">-- SQL clásico
+<pre data-norun tabindex="0"><code class="language-sql">-- SQL clásico
 SELECT canal, COUNT(*) AS pedidos, ROUND(SUM(total), 2) AS ventas
 FROM pedidos
 WHERE estado &lt;&gt; 'cancelado'
@@ -186,7 +186,7 @@ FROM pedidos
 <p>Es opcional: la sintaxis clásica sigue funcionando y es la que vas a ver más. Pero para consultas largas de exploración, los pipes se parecen mucho a encadenar métodos de un DataFrame (<code>df.filter(...).groupBy(...).agg(...)</code>).</p>
 <h2>5. Spark Declarative Pipelines: decir qué tablas quieres, no cómo construirlas</h2>
 <p>En un pipeline &quot;imperativo&quot; tú escribes los pasos: leo esto, transformo, escribo en tal tabla, en este orden, y si falla vuelvo a intentar. En un pipeline <strong>declarativo</strong> describes <strong>qué tablas deben existir y de qué consulta salen</strong>, y el motor se ocupa del orden, de las dependencias, de los reintentos y de la ejecución incremental. Spark 4.1 incorporó este enfoque como <strong>Spark Declarative Pipelines (SDP)</strong>; es el mismo modelo que Databricks ofrece como <strong>Lakeflow Declarative Pipelines</strong> (antes Delta Live Tables).</p>
-<pre data-norun><code class="language-python">from pyspark import pipelines as dp
+<pre data-norun tabindex="0"><code class="language-python">from pyspark import pipelines as dp
 from pyspark.sql import functions as F
 
 @dp.table                                   # tabla de streaming: procesa solo lo nuevo
@@ -275,7 +275,7 @@ def ventas_por_dia():
 <li>Cambia a <code>try_cast</code>: el valor inválido queda en NULL y la consulta sigue.</li>
 <li>Desactiva ANSI (<code>spark.sql.ansi.enabled = false</code>) y repite el <code>cast</code> original: así se comportaba Spark 3, sin avisar.</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 montos = spark.createDataFrame([(&quot;120.5&quot;,), (&quot;abc&quot;,), (&quot;80&quot;,)], [&quot;monto&quot;])
 

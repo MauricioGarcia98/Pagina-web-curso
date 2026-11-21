@@ -29,7 +29,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p><strong>Ruta</strong> es una app de viajes que opera en cinco ciudades. Operaciones quiere saber dónde falla el servicio y finanzas quiere entender los ingresos.</p>
 <h2>El modelo de datos</h2>
-<pre><code class="language-text">viajes_pasajeros (pasajero_id, ciudad, fecha_registro)
+<pre tabindex="0"><code class="language-text">viajes_pasajeros (pasajero_id, ciudad, fecha_registro)
 viajes_conductores (conductor_id, nombre, ciudad, fecha_alta, vehiculo)
 viajes_viajes (viaje_id, pasajero_id, conductor_id, ciudad,
                fecha_hora_solicitud, fecha_hora_inicio, fecha_hora_fin,
@@ -104,7 +104,7 @@ viajes_viajes (viaje_id, pasajero_id, conductor_id, ciudad,
 <li><strong>Filtro</strong>: solo viajes <code>completado</code> (los demás no tienen tarifa ni distancia).</li>
 <li><strong>Métricas</strong>: ojo con la tarifa por km: es <code>SUM(tarifa) / SUM(distancia)</code>, <strong>no</strong> el promedio de <code>tarifa / distancia</code> de cada viaje (un viaje de 1 km a precio mínimo distorsionaría ese promedio). Es el famoso &quot;promedio de cocientes vs. cociente de sumas&quot;.</li>
 </ol>
-<pre><code class="language-sql">SELECT c.vehiculo,
+<pre tabindex="0"><code class="language-sql">SELECT c.vehiculo,
        COUNT(*)                                   AS viajes,
        ROUND(AVG(v.distancia_km), 1)              AS km_promedio,
        ROUND(SUM(v.tarifa) / SUM(v.distancia_km), 2) AS tarifa_por_km,
@@ -176,7 +176,7 @@ ORDER BY tarifa_por_km DESC;</code></pre>
 <li>Usa la mediana además del promedio: unas pocas esperas muy largas inflan el promedio.</li>
 <li>¿La ciudad con más &quot;sin conductor&quot; es también la de más espera?</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT ciudad,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT ciudad,
        COUNT(*) AS pedidos,
        ROUND(100.0 * AVG(CASE WHEN estado = 'sin_conductor' THEN 1 ELSE 0 END), 1) AS pct_sin_conductor,
        ROUND(AVG(CASE WHEN estado = 'completado' THEN date_diff('minute', CAST(fecha_hora_solicitud AS TIMESTAMP), CAST(fecha_hora_inicio AS TIMESTAMP)) END), 1) AS espera_prom_min,

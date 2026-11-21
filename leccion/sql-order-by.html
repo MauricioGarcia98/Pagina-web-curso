@@ -20,7 +20,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Las tablas no tienen orden</h2>
 <p>Una idea que sorprende al principio: <strong>las filas de una tabla no tienen un orden garantizado</strong>. Si ejecutas <code>SELECT * FROM productos</code> dos veces, normalmente verás el mismo orden, pero es casualidad: depende de cómo están guardadas en disco, de si se borró o actualizó algo, de si el motor trabaja en paralelo (en Spark o BigQuery el orden cambia de una ejecución a otra). Si el orden <strong>importa</strong> para tu pregunta, tienes que pedirlo explícitamente con <code>ORDER BY</code>.</p>
 <h2>ORDER BY: ordenar el resultado</h2>
-<pre><code class="language-sql">SELECT nombre, precio
+<pre tabindex="0"><code class="language-sql">SELECT nombre, precio
 FROM productos
 ORDER BY precio DESC
 LIMIT 5;</code></pre>
@@ -83,7 +83,7 @@ LIMIT 5;</code></pre>
 
 <h3>Ordenar por varias columnas</h3>
 <p>Puedes ordenar por varias columnas separadas por comas. La segunda solo se usa para <strong>desempatar</strong> cuando la primera es igual, la tercera para desempatar la segunda, y así:</p>
-<pre><code class="language-sql">SELECT pais, ciudad, nombre
+<pre tabindex="0"><code class="language-sql">SELECT pais, ciudad, nombre
 FROM clientes
 ORDER BY pais ASC, ciudad ASC, nombre ASC
 LIMIT 20;</code></pre>
@@ -95,7 +95,7 @@ LIMIT 20;</code></pre>
 
 
 <h3>Ordenar por un cálculo o un alias</h3>
-<pre><code class="language-sql">SELECT nombre, precio - costo AS ganancia
+<pre tabindex="0"><code class="language-sql">SELECT nombre, precio - costo AS ganancia
 FROM productos
 ORDER BY ganancia DESC
 LIMIT 5;</code></pre>
@@ -111,7 +111,7 @@ LIMIT 5;</code></pre>
 
 <h2>LIMIT: el &quot;top N&quot;</h2>
 <p>Combinado con <code>ORDER BY</code>, <code>LIMIT</code> responde preguntas de tipo <strong>ranking</strong>: &quot;los 5 productos más caros&quot;, &quot;los 10 clientes más antiguos&quot;, &quot;el último pedido&quot;.</p>
-<pre><code class="language-sql">-- Los 10 clientes que se registraron primero
+<pre tabindex="0"><code class="language-sql">-- Los 10 clientes que se registraron primero
 SELECT nombre, apellido, fecha_registro
 FROM clientes
 ORDER BY fecha_registro ASC
@@ -134,7 +134,7 @@ LIMIT 10;</code></pre>
 
 <h3>Paginar con OFFSET</h3>
 <p><code>OFFSET n</code> <strong>salta</strong> las primeras <code>n</code> filas. Sirve para mostrar resultados por páginas, como un buscador:</p>
-<pre><code class="language-sql">-- Página 3, con 10 resultados por página: salta 20 y toma 10
+<pre tabindex="0"><code class="language-sql">-- Página 3, con 10 resultados por página: salta 20 y toma 10
 SELECT producto_id, nombre
 FROM productos
 ORDER BY producto_id
@@ -155,12 +155,12 @@ LIMIT 10 OFFSET 20;</code></pre>
 
 <h2>DISTINCT: quitar repetidos</h2>
 <p><code>DISTINCT</code> elimina las filas <strong>repetidas</strong> del resultado. Es la forma más rápida de responder &quot;¿qué valores distintos hay en esta columna?&quot;:</p>
-<pre><code class="language-sql">SELECT DISTINCT pais
+<pre tabindex="0"><code class="language-sql">SELECT DISTINCT pais
 FROM clientes
 ORDER BY pais;</code></pre>
 <p>La tabla tiene 2.000 clientes, pero el resultado son <strong>11</strong> filas, una por país.</p>
 <p><code>DISTINCT</code> se aplica a la <strong>combinación</strong> de todas las columnas del <code>SELECT</code>, no a la primera:</p>
-<pre><code class="language-sql">SELECT DISTINCT pais, segmento
+<pre tabindex="0"><code class="language-sql">SELECT DISTINCT pais, segmento
 FROM clientes
 ORDER BY pais, segmento;</code></pre>
 <p>Devuelve <strong>33</strong> filas: cada combinación país + segmento (11 países × 3 segmentos). Si existe &quot;Chile – Pyme&quot; y &quot;Chile – Consumidor&quot;, aparecen ambas.</p>
@@ -172,7 +172,7 @@ ORDER BY pais, segmento;</code></pre>
 
 <h2>El orden de escritura y el orden real de ejecución</h2>
 <p>Las cláusulas se <strong>escriben</strong> siempre en este orden:</p>
-<pre data-norun><code class="language-sql">SELECT    columnas y cálculos
+<pre data-norun tabindex="0"><code class="language-sql">SELECT    columnas y cálculos
 FROM      tabla
 WHERE     condición sobre filas
 ORDER BY  columnas
@@ -278,7 +278,7 @@ LIMIT     n OFFSET m;</code></pre>
 <li>Cambia a los 5 más baratos.</li>
 <li>Escribe otra consulta con <code>SELECT DISTINCT pais FROM clientes ORDER BY pais</code>.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT nombre, marca, precio
+<pre data-norun tabindex="0"><code class="language-sql">SELECT nombre, marca, precio
 FROM productos
 ORDER BY precio DESC
 LIMIT 5;</code></pre>

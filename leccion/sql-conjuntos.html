@@ -69,7 +69,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Los <strong>nombres</strong> de las columnas del resultado salen de la <strong>primera</strong> consulta.</li>
 <li><code>ORDER BY</code> va <strong>una sola vez, al final</strong>, y ordena el resultado completo.</li>
 </ol>
-<pre><code class="language-sql">-- Directorio de contactos: clientes de Uruguay y empleados de Recursos Humanos
+<pre tabindex="0"><code class="language-sql">-- Directorio de contactos: clientes de Uruguay y empleados de Recursos Humanos
 SELECT nombre, apellido, email, 'cliente' AS tipo FROM clientes  WHERE pais = 'Uruguay'
 UNION ALL
 SELECT nombre, apellido, email, 'empleado'        FROM empleados WHERE departamento_id = 8
@@ -82,7 +82,7 @@ ORDER BY apellido;</code></pre>
 
 
 <h2>UNION vs UNION ALL</h2>
-<pre><code class="language-sql">SELECT (SELECT COUNT(*) FROM (SELECT ciudad FROM clientes UNION     SELECT ciudad FROM departamentos)) AS con_union,
+<pre tabindex="0"><code class="language-sql">SELECT (SELECT COUNT(*) FROM (SELECT ciudad FROM clientes UNION     SELECT ciudad FROM departamentos)) AS con_union,
        (SELECT COUNT(*) FROM (SELECT ciudad FROM clientes UNION ALL SELECT ciudad FROM departamentos)) AS con_union_all;</code></pre>
 <div class="table-wrap"><table><thead><tr>
 <th>con_union</th>
@@ -104,12 +104,12 @@ ORDER BY apellido;</code></pre>
 
 
 <h2>INTERSECT y EXCEPT</h2>
-<pre><code class="language-sql">-- Ciudades donde hay clientes Y alguna oficina de la empresa
+<pre tabindex="0"><code class="language-sql">-- Ciudades donde hay clientes Y alguna oficina de la empresa
 SELECT ciudad FROM clientes
 INTERSECT
 SELECT ciudad FROM departamentos;</code></pre>
 <p>Devuelve 7 ciudades (Bogotá, Buenos Aires, Ciudad de México, Lima, Madrid, Montevideo, Santiago).</p>
-<pre><code class="language-sql">-- Ciudades con clientes pero SIN oficina
+<pre tabindex="0"><code class="language-sql">-- Ciudades con clientes pero SIN oficina
 SELECT ciudad FROM clientes
 EXCEPT
 SELECT ciudad FROM departamentos
@@ -126,7 +126,7 @@ ORDER BY ciudad;</code></pre>
 
 <h2>Apilar y después agregar</h2>
 <p>Para agregar sobre el resultado apilado, envuélvelo en una tabla derivada (o una CTE):</p>
-<pre><code class="language-sql">SELECT tipo, COUNT(*) AS personas
+<pre tabindex="0"><code class="language-sql">SELECT tipo, COUNT(*) AS personas
 FROM (
   SELECT 'cliente'  AS tipo FROM clientes
   UNION ALL
@@ -183,7 +183,7 @@ GROUP BY tipo;</code></pre>
 <li>Cambia <code>UNION</code> por <code>UNION ALL</code>. ¿Qué cambió?</li>
 <li>Con <code>EXCEPT</code>, encuentra los clientes registrados que nunca pidieron.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT pais AS lugar FROM clientes
+<pre data-norun tabindex="0"><code class="language-sql">SELECT pais AS lugar FROM clientes
 UNION
 SELECT ciudad FROM departamentos
 ORDER BY 1;</code></pre>

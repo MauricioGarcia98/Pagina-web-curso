@@ -100,7 +100,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Fuerza bruta:</strong> probar todos los pares (compra, venta). Dos bucles: O(n²).</li>
 <li><strong>Idea:</strong> al recorrer los días, recuerda el <strong>precio más bajo visto hasta ahora</strong>. La mejor venta de hoy es <code>precio_hoy - minimo</code>. Una pasada: O(n) en tiempo y O(1) en memoria.</li>
 </ul>
-<pre><code class="language-python">def mejor_ganancia(precios):
+<pre tabindex="0"><code class="language-python">def mejor_ganancia(precios):
     minimo = float(&quot;inf&quot;)
     mejor = 0
     for p in precios:
@@ -123,7 +123,7 @@ print(mejor_ganancia([7, 6, 4, 3, 1]))     # 0: siempre baja, no conviene operar
 <li>Mira los tiempos impresos: con 2.000 elementos la diferencia ya se nota.</li>
 <li>Duplica <code>n</code> y vuelve a ejecutar: la versión con bucles tarda unas cuatro veces más; la del conjunto, unas dos.</li>
 </ol>
-<pre><code class="language-python">import time
+<pre tabindex="0"><code class="language-python">import time
 
 def hay_duplicados_lento(xs):
     for i in range(len(xs)):

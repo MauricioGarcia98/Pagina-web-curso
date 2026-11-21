@@ -55,7 +55,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Dentro, el esquema <code>silver</code>. En SQL es lo mismo: <code>CREATE CATALOG ventas_dev; CREATE SCHEMA ventas_dev.silver;</code></p>
 <h2>Paso 2 — Permisos</h2>
 <p>Para que alguien lea <code>main.default.ventas_por_canal</code> necesita <strong>tres</strong> cosas, una por nivel:</p>
-<pre><code class="language-text">USE CATALOG  en main
+<pre tabindex="0"><code class="language-text">USE CATALOG  en main
 USE SCHEMA   en main.default
 SELECT       en la tabla (o en el esquema, o en el catálogo: se hereda hacia abajo)</code></pre>
 <p>Pestaña <strong>Permissions</strong> de la tabla → <strong>Grant</strong>:</p>
@@ -66,7 +66,7 @@ SELECT       en la tabla (o en el esquema, o en el catálogo: se hereda hacia ab
 
 
 <p>En SQL:</p>
-<pre data-norun><code class="language-sql">GRANT USE CATALOG ON CATALOG main TO `analistas`;
+<pre data-norun tabindex="0"><code class="language-sql">GRANT USE CATALOG ON CATALOG main TO `analistas`;
 GRANT USE SCHEMA ON SCHEMA main.default TO `analistas`;
 GRANT SELECT ON TABLE main.default.ventas_por_canal TO `analistas`;
 SHOW GRANTS ON TABLE main.default.ventas_por_canal;
@@ -112,13 +112,13 @@ REVOKE SELECT ON TABLE main.default.ventas_por_canal FROM `analistas`;</code></p
 
 <p>El linaje se captura <strong>solo</strong>: cada vez que una consulta, un notebook o un pipeline escribe una tabla a partir de otras, Unity Catalog anota de dónde salió. Sirve para responder &quot;si cambio esta columna, ¿qué se rompe?&quot; y &quot;¿de qué fuente viene este número del tablero?&quot;.</p>
 <h2>Paso 4 — Documentar: comentarios y etiquetas</h2>
-<pre data-norun><code class="language-sql">COMMENT ON TABLE main.default.ventas_por_canal IS 'Pedidos por canal, fuente samples.tienda.pedidos, se recalcula a diario';
+<pre data-norun tabindex="0"><code class="language-sql">COMMENT ON TABLE main.default.ventas_por_canal IS 'Pedidos por canal, fuente samples.tienda.pedidos, se recalcula a diario';
 ALTER TABLE main.default.clientes_demo ALTER COLUMN email COMMENT 'Correo del cliente (dato personal)';
 ALTER TABLE main.default.clientes_demo ALTER COLUMN email SET TAGS ('pii' = 'email');</code></pre>
 <p>Los comentarios aparecen en el Catalog Explorer y los usa el buscador y Genie; las <strong>etiquetas</strong> permiten encontrar todos los datos personales del workspace.</p>
 <h2>Paso 5 — Tablas del sistema</h2>
 <p>El catálogo <code>system</code> responde preguntas sobre el propio workspace:</p>
-<pre data-norun><code class="language-sql">-- qué tablas hay y quién es dueño
+<pre data-norun tabindex="0"><code class="language-sql">-- qué tablas hay y quién es dueño
 SELECT table_catalog, table_schema, table_name, table_owner
 FROM system.information_schema.tables
 WHERE table_catalog = 'main';

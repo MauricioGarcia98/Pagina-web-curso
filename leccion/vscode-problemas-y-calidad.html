@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 1 — Los errores se ven antes de ejecutar</h2>
 <p>Crea <strong>scripts/con_errores.py</strong>:</p>
-<pre data-norun><code class="language-python">import os
+<pre data-norun tabindex="0"><code class="language-python">import os
 
 def total(precios)
     return sum(precios)
@@ -42,7 +42,7 @@ print(totl([1, 2]))</code></pre>
 </ul>
 <h2>Paso 2 — ruff: el linter que usa la industria</h2>
 <p>Corrige los dos puntos (<code>def total(precios):</code>) y guarda. Ahora, en la paleta (<strong>Ctrl + Shift + P</strong>) busca <strong>Python: ejecutar ruff</strong>, o en la terminal:</p>
-<pre><code class="language-bash">ruff check scripts/con_errores.py</code></pre>
+<pre tabindex="0"><code class="language-bash">ruff check scripts/con_errores.py</code></pre>
 <figure class="captura"><img src="assets/img/guias/vscode/v10-ruff.webp" alt="ruff encuentra el import que no se usa (F401) e indica que se puede arreglar solo" loading="lazy"><figcaption>ruff encuentra el import que no se usa (F401) e indica que se puede arreglar solo</figcaption></figure>
 
 
@@ -68,7 +68,7 @@ print(totl([1, 2]))</code></pre>
 </tr>
 </tbody></table></div>
 <h2>Paso 3 — Que se arregle solo</h2>
-<pre><code class="language-bash">ruff check --fix scripts/con_errores.py
+<pre tabindex="0"><code class="language-bash">ruff check --fix scripts/con_errores.py
 ruff format scripts/</code></pre>
 <ul>
 <li><code>--fix</code> corrige lo que es seguro corregir (por ejemplo, borra el <code>import os</code> que sobra). Lo que requiere decidir (como <code>totl</code> → ¿<code>total</code>?) lo tienes que arreglar tú.</li>

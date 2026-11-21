@@ -29,7 +29,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p><strong>Clínica del Sur</strong> atiende en tres sedes. El problema número uno es el <strong>ausentismo</strong> (<em>no-show</em>): pacientes que reservan un turno y no vienen, dejando a un médico sin atender a nadie.</p>
 <h2>El modelo de datos</h2>
-<pre><code class="language-text">clinica_pacientes (paciente_id, sexo, fecha_nacimiento, cobertura, ciudad)
+<pre tabindex="0"><code class="language-text">clinica_pacientes (paciente_id, sexo, fecha_nacimiento, cobertura, ciudad)
 clinica_medicos (medico_id, nombre, especialidad, sede)
 clinica_turnos (turno_id, paciente_id, medico_id, fecha_hora, estado, fecha_reserva)
 clinica_facturas (factura_id, turno_id, monto, monto_cubierto, pagada)</code></pre>
@@ -79,7 +79,7 @@ clinica_facturas (factura_id, turno_id, monto, monto_cubierto, pagada)</code></p
 <li><strong>Grano</strong>: una fila por cobertura. La cobertura es un atributo del <strong>paciente</strong>, así que unimos cada turno con su paciente.</li>
 <li><strong>Métrica</strong>: la tasa de ausentismo con el denominador correcto. Contamos todos los turnos en <code>turnos</code> (como dato de volumen), pero el porcentaje se calcula solo sobre <code>atendido</code> + <code>ausente</code>.</li>
 </ol>
-<pre><code class="language-sql">SELECT p.cobertura,
+<pre tabindex="0"><code class="language-sql">SELECT p.cobertura,
        COUNT(*) AS turnos,
        ROUND(100.0 * SUM(CASE WHEN t.estado = 'ausente' THEN 1 ELSE 0 END)
              / SUM(CASE WHEN t.estado IN ('atendido', 'ausente') THEN 1 ELSE 0 END), 2) AS pct_ausentismo
@@ -149,7 +149,7 @@ ORDER BY pct_ausentismo DESC;</code></pre>
 <li>El porcentaje cubierto dice qué convenios convienen más a la clínica.</li>
 <li>Agrega la cantidad de facturas impagas por cobertura.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT pa.cobertura,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT pa.cobertura,
        COUNT(*) AS facturas,
        ROUND(SUM(f.monto), 2) AS facturado,
        ROUND(SUM(f.monto_cubierto), 2) AS cubierto,

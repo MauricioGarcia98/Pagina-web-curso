@@ -24,13 +24,13 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — El error</h2>
-<pre data-norun><code class="language-sql">-- en BigQuery el WHERE es obligatorio, pero WHERE TRUE borra todo
+<pre data-norun tabindex="0"><code class="language-sql">-- en BigQuery el WHERE es obligatorio, pero WHERE TRUE borra todo
 DELETE FROM analitica.ventas_por_canal WHERE TRUE;</code></pre>
 <figure class="captura"><img src="assets/img/guias/bigquery/q14-delete.webp" alt="El DELETE con WHERE TRUE (1) - 4 filas borradas (2)" loading="lazy"><figcaption>El DELETE con WHERE TRUE (1) - 4 filas borradas (2)</figcaption></figure>
 
 
 <h2>Paso 2 — Mirar el pasado</h2>
-<pre data-norun><code class="language-sql">SELECT *
+<pre data-norun tabindex="0"><code class="language-sql">SELECT *
 FROM analitica.ventas_por_canal
   FOR SYSTEM_TIME AS OF TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 MINUTE);</code></pre>
 <figure class="captura"><img src="assets/img/guias/bigquery/q14-system-time.webp" alt="FOR SYSTEM_TIME AS OF (1) - la tabla como estaba hace un minuto, con sus 4 canales (2)" loading="lazy"><figcaption>FOR SYSTEM_TIME AS OF (1) - la tabla como estaba hace un minuto, con sus 4 canales (2)</figcaption></figure>
@@ -50,7 +50,7 @@ FROM analitica.ventas_por_canal
 </tr>
 </tbody></table></div>
 <h2>Paso 3 — Restaurar</h2>
-<pre data-norun><code class="language-sql">INSERT INTO analitica.ventas_por_canal
+<pre data-norun tabindex="0"><code class="language-sql">INSERT INTO analitica.ventas_por_canal
 SELECT *
 FROM analitica.ventas_por_canal
   FOR SYSTEM_TIME AS OF TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 MINUTE);</code></pre>

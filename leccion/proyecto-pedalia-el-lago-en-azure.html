@@ -38,7 +38,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>En la pestaña <strong>Advanced</strong>, marca <strong>Enable hierarchical namespace</strong>. Sin esto, la cuenta es Blob Storage común y no ADLS Gen2.</li>
 </ul>
 <p><strong>Desde la terminal:</strong></p>
-<pre><code class="language-bash">az login
+<pre tabindex="0"><code class="language-bash">az login
 az group create -n rg-pedalia-dev -l eastus2
 az storage account create -n stpedaliadev -g rg-pedalia-dev -l eastus2 --sku Standard_LRS --hns true
 for capa in landing bronze silver gold; do
@@ -51,7 +51,7 @@ done</code></pre>
 
 
 <h2>2. El data factory</h2>
-<pre><code class="language-bash">az extension add --name datafactory
+<pre tabindex="0"><code class="language-bash">az extension add --name datafactory
 az datafactory create -g rg-pedalia-dev -n adf-pedalia-dev -l eastus2</code></pre>
 <p>Cada data factory tiene una <strong>identidad administrada</strong> con su mismo nombre: es la &quot;cuenta&quot; con la que el servicio entra a otros recursos sin guardar contraseñas.</p>
 <h2>3. Permisos con mínimo privilegio</h2>
@@ -73,7 +73,7 @@ az datafactory create -g rg-pedalia-dev -n adf-pedalia-dev -l eastus2</code></pr
 </tr>
 </tbody></table></div>
 <p>El <strong>alcance</strong> es la cuenta de almacenamiento, no la suscripción ni el grupo de recursos. Primero obtén su identificador:</p>
-<pre><code class="language-bash">ID=$(az storage account show -n stpedaliadev -g rg-pedalia-dev --query id -o tsv)
+<pre tabindex="0"><code class="language-bash">ID=$(az storage account show -n stpedaliadev -g rg-pedalia-dev --query id -o tsv)
 echo $ID
 az role assignment create --assignee adf-pedalia-dev --role &quot;Storage Blob Data Contributor&quot; --scope $ID
 az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID
@@ -93,7 +93,7 @@ az role assignment list --scope $ID -o table</code></pre>
 
 <h2>4. Subir la entrega a landing</h2>
 <p>Simula lo que haría el proceso automático de la app: dejar los archivos del día en <code>landing/pedalia/&lt;fecha&gt;/</code>.</p>
-<pre><code class="language-bash">az storage blob upload-batch --account-name stpedaliadev -d landing/pedalia/2026-11-09 -s ~/pedalia/entrega/2026-11-09
+<pre tabindex="0"><code class="language-bash">az storage blob upload-batch --account-name stpedaliadev -d landing/pedalia/2026-11-09 -s ~/pedalia/entrega/2026-11-09
 az storage blob upload --account-name stpedaliadev -c landing -n pedalia/estaciones/estaciones.json -f ~/pedalia/entrega/estaciones.json
 az storage blob list --account-name stpedaliadev -c landing -o table</code></pre>
 <p>Ábrelo también en el portal: <strong>stpedaliadev → Containers → landing</strong>. Vas a ver la carpeta <code>pedalia/2026-11-09</code> con los dos archivos y <code>pedalia/estaciones</code>.</p>

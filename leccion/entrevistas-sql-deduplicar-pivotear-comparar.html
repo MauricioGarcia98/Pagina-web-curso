@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Deduplicar: la última versión de cada registro</h2>
 <p>Los datos crudos (capa bronze) traen el mismo pedido varias veces porque se reenvió un archivo o porque cambió de estado. La regla de negocio típica: <strong>la carga más reciente gana</strong>.</p>
-<pre><code class="language-sql">WITH versiones AS (
+<pre tabindex="0"><code class="language-sql">WITH versiones AS (
   SELECT pedido_id, estado, monto, cargado_en,
          ROW_NUMBER() OVER (PARTITION BY pedido_id ORDER BY cargado_en DESC, registro_id DESC) AS rn
   FROM bronze_pedidos
@@ -67,7 +67,7 @@ WHERE rn = 1;</code></pre>
 
 <h2>Pivotear con agregación condicional</h2>
 <p><code>PIVOT</code> existe en SQL Server, Snowflake, Databricks, BigQuery y DuckDB, pero con sintaxis distinta en cada uno. La versión que funciona en <strong>todos</strong> es <code>SUM(CASE WHEN ...)</code>:</p>
-<pre><code class="language-sql">SELECT substr(fecha_pedido, 1, 4) AS anio,
+<pre tabindex="0"><code class="language-sql">SELECT substr(fecha_pedido, 1, 4) AS anio,
        SUM(CASE WHEN canal = 'web'      THEN 1 ELSE 0 END) AS web,
        SUM(CASE WHEN canal = 'app'      THEN 1 ELSE 0 END) AS app,
        SUM(CASE WHEN canal = 'tienda'   THEN 1 ELSE 0 END) AS tienda,
@@ -110,7 +110,7 @@ GROUP BY substr(fecha_pedido, 1, 4);</code></pre>
 
 <h2>Self-join: comparar filas de la misma tabla</h2>
 <p>Cuando una tabla se refiere a sí misma (un empleado tiene un <code>jefe_id</code> que es otro empleado), la unes consigo misma con dos alias:</p>
-<pre><code class="language-sql">SELECT e.nombre AS empleado, j.nombre AS jefe
+<pre tabindex="0"><code class="language-sql">SELECT e.nombre AS empleado, j.nombre AS jefe
 FROM empleados e
 JOIN empleados j ON j.empleado_id = e.jefe_id;</code></pre>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Deduplicar y normalizar la capa bronze</div>
@@ -120,7 +120,7 @@ JOIN empleados j ON j.empleado_id = e.jefe_id;</code></pre>
 <li>Lee la segunda consulta: deduplica por <code>pedido_id</code> y normaliza el estado. Ejecuta y compara los conteos.</li>
 <li>Cambia <code>ORDER BY cargado_en DESC</code> por <code>ASC</code> y fíjate qué cambia: te quedarías con la <strong>primera</strong> versión en lugar de la última.</li>
 </ol>
-<pre><code class="language-sql">SELECT COUNT(*) AS filas, COUNT(DISTINCT pedido_id) AS pedidos, COUNT(DISTINCT estado) AS estados_escritos
+<pre tabindex="0"><code class="language-sql">SELECT COUNT(*) AS filas, COUNT(DISTINCT pedido_id) AS pedidos, COUNT(DISTINCT estado) AS estados_escritos
 FROM bronze_pedidos;
 
 WITH versiones AS (

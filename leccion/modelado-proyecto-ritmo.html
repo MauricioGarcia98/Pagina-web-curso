@@ -97,7 +97,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ul>
 <h2>Paso 4: construir las tablas</h2>
 <h3><code>dim_usuario</code></h3>
-<pre><code class="language-sql">SELECT
+<pre tabindex="0"><code class="language-sql">SELECT
     usuario_id,
     pais,
     edad,
@@ -108,7 +108,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 FROM streaming_usuarios
 LIMIT 5;</code></pre>
 <h3><code>fct_reproducciones</code></h3>
-<pre><code class="language-sql">SELECT
+<pre tabindex="0"><code class="language-sql">SELECT
     r.repro_id,
     DATE(r.fecha_hora)                                AS fecha,
     r.usuario_id,
@@ -120,7 +120,7 @@ FROM streaming_reproducciones r
 LIMIT 5;</code></pre>
 <h3><code>fct_suscripciones_mes</code> (el snapshot)</h3>
 <p>La parte más interesante. Hay que &quot;expandir&quot; cada suscripción en una fila por cada mes en que estuvo vigente el día 1. Primero se generan los meses con una CTE recursiva, y después se cruza cada mes con las suscripciones vigentes ese día:</p>
-<pre><code class="language-sql">WITH RECURSIVE meses(mes) AS (
+<pre tabindex="0"><code class="language-sql">WITH RECURSIVE meses(mes) AS (
     SELECT DATE('2024-01-01')
     UNION ALL
     SELECT DATE(mes, '+1 month') FROM meses WHERE mes &lt; '2024-12-01'
@@ -140,7 +140,7 @@ LIMIT 8;</code></pre>
 <p>Fíjate en la condición de vigencia: empezó <strong>en o antes</strong> del día 1 y terminó <strong>después</strong> del día 1 (o no terminó). Es el mismo rango semiabierto de las SCD.</p>
 <h2>Paso 5: validar con las preguntas del negocio</h2>
 <p>Un modelo se valida respondiendo las preguntas para las que se hizo, y comparando contra las tablas de origen. Por ejemplo, el MRR por mes desde el snapshot:</p>
-<pre><code class="language-sql">WITH RECURSIVE meses(mes) AS (
+<pre tabindex="0"><code class="language-sql">WITH RECURSIVE meses(mes) AS (
     SELECT DATE('2024-01-01')
     UNION ALL
     SELECT DATE(mes, '+1 month') FROM meses WHERE mes &lt; '2024-12-01'
@@ -206,7 +206,7 @@ ORDER BY mes;</code></pre>
 <li>Responde la pregunta del negocio: minutos escuchados por plan y género.</li>
 <li>Verifica el grano: la cantidad de filas de la tabla de hechos debe ser igual a la de <code>streaming_reproducciones</code>.</li>
 </ol>
-<pre data-norun><code class="language-sql">DROP TABLE IF EXISTS fct_reproducciones;
+<pre data-norun tabindex="0"><code class="language-sql">DROP TABLE IF EXISTS fct_reproducciones;
 CREATE TABLE fct_reproducciones AS
 SELECT r.repro_id, r.usuario_id, r.contenido_id, r.fecha_hora, r.dispositivo,
        r.segundos_escuchados / 60.0 AS minutos

@@ -62,7 +62,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Crear la cuenta</h2>
-<pre data-norun><code class="language-bash">az storage account create \
+<pre data-norun tabindex="0"><code class="language-bash">az storage account create \
   --name stdatosdev001 \
   --resource-group rg-datos-dev \
   --location eastus2 \
@@ -132,7 +132,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>Contenedores (file systems) y carpetas</h2>
 <p>Un <strong>contenedor</strong> es la división de primer nivel de la cuenta (en ADLS Gen2 también se llama <em>file system</em>). Lo habitual es un contenedor por capa del lakehouse:</p>
-<pre data-norun><code class="language-bash"># Contenedores para las capas del lakehouse
+<pre data-norun tabindex="0"><code class="language-bash"># Contenedores para las capas del lakehouse
 for capa in bronze silver gold; do
   az storage container create --name $capa --account-name stdatosdev001 --auth-mode login
 done
@@ -140,7 +140,7 @@ done
 # En ADLS Gen2 también existe el grupo &quot;fs&quot; (file system), con carpetas reales
 az storage fs directory create --name ventas/2024 --file-system bronze --account-name stdatosdev001 --auth-mode login</code></pre>
 <h2>Subir, listar y descargar</h2>
-<pre data-norun><code class="language-bash">az storage blob upload \
+<pre data-norun tabindex="0"><code class="language-bash">az storage blob upload \
   --account-name stdatosdev001 --container-name bronze \
   --name ventas/2024/ventas_2024-03-15.csv --file ./ventas_2024-03-15.csv \
   --auth-mode login
@@ -190,12 +190,12 @@ az storage blob download --account-name stdatosdev001 --container-name bronze \
 
 
 <h2>Las rutas desde Spark / Databricks</h2>
-<pre><code class="language-text">abfss://&lt;contenedor&gt;@&lt;cuenta&gt;.dfs.core.windows.net/&lt;ruta&gt;
+<pre tabindex="0"><code class="language-text">abfss://&lt;contenedor&gt;@&lt;cuenta&gt;.dfs.core.windows.net/&lt;ruta&gt;
 abfss://bronze@stdatosdev001.dfs.core.windows.net/ventas/2024/</code></pre>
 <p><code>abfss</code> = <em>Azure Blob File System, Secure</em>. Desde PySpark se lee igual que cualquier ruta: <code>spark.read.parquet(&quot;abfss://silver@stdatosdev001.dfs.core.windows.net/pedidos/&quot;)</code>. En Databricks con Unity Catalog se registran como <strong>External Locations</strong> (con una <em>storage credential</em> basada en una identidad administrada) y se accede vía tablas externas o <strong>Volumes</strong>, sin manejar llaves.</p>
 <h2>Laboratorio: tu data lake en Azure</h2>
 <p>Ejecuta en la terminal (crea todo desde cero; si ya existe algo, verás el error real de Azure):</p>
-<pre><code class="language-bash">az login
+<pre tabindex="0"><code class="language-bash">az login
 az group create --name rg-datos-dev --location eastus2
 az storage account create --name stdatosdev001 --resource-group rg-datos-dev --location eastus2 --sku Standard_LRS --kind StorageV2 --hns true --query &quot;{nombre:name, hns:isHnsEnabled}&quot;
 az storage container create --name bronze --account-name stdatosdev001 --auth-mode login
@@ -227,7 +227,7 @@ az storage blob list --account-name stdatosdev001 --container-name bronze --outp
 <li><strong>Review + create</strong> → <strong>Create</strong>. Abre el recurso → <strong>Containers</strong> → <strong>Container</strong> y crea <code>bronze</code>. Entra y sube un archivo con <strong>Upload</strong>.</li>
 <li>En <strong>Cloud Shell</strong>, verifica lo que hiciste.</li>
 </ol>
-<pre data-norun><code class="language-bash">az storage account show -n stlabdatos01 --query isHnsEnabled
+<pre data-norun tabindex="0"><code class="language-bash">az storage account show -n stlabdatos01 --query isHnsEnabled
 az storage container list --account-name stlabdatos01 --auth-mode login -o table
 az storage blob list --account-name stlabdatos01 --container-name bronze --auth-mode login -o table</code></pre>
 <p>Reto: escribe la ruta <code>abfss://</code> con la que Spark leería ese archivo desde Databricks.</p>

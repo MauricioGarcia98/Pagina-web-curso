@@ -155,11 +155,11 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Un warehouse tiene un <strong>tamaño</strong> (2X-Small a 4X-Large: cuánta potencia por clúster) y un <strong>escalado</strong> (mínimo y máximo de clústeres, para atender más consultas a la vez). Si las consultas son <strong>lentas</strong> sube el tamaño; si <strong>se encolan</strong> porque hay muchos usuarios, sube el máximo de clústeres.</p>
 <h2>Cuánto cuesta: DBU</h2>
 <p>Databricks cobra en <strong>DBU</strong> (<em>Databricks Units</em>): una unidad de capacidad de procesamiento por hora. El costo es:</p>
-<pre><code class="language-text">costo = DBU consumidos × precio del DBU según el SKU    (+ VMs de tu nube, si es cómputo clásico)</code></pre>
+<pre tabindex="0"><code class="language-text">costo = DBU consumidos × precio del DBU según el SKU    (+ VMs de tu nube, si es cómputo clásico)</code></pre>
 <p>El precio del DBU cambia según el <strong>SKU</strong>: <em>Jobs Compute</em> es mucho más barato que <em>All-Purpose Compute</em>, y serverless incluye la infraestructura. Por eso el mismo notebook cuesta bastante menos ejecutado como job que en un clúster interactivo.</p>
 <h3>Medir el gasto con las tablas de sistema</h3>
 <p>Las <strong>tablas de sistema</strong> (<code>system.*</code>) son tablas que Databricks llena con datos operativos de tu cuenta: facturación, consultas, jobs, linaje, auditoría. Las de costo son <code>system.billing.usage</code> (cuánto se consumió) y <code>system.billing.list_prices</code> (a qué precio de lista).</p>
-<pre data-norun><code class="language-sql">-- Gasto aproximado de los últimos 30 días por producto, a precio de lista
+<pre data-norun tabindex="0"><code class="language-sql">-- Gasto aproximado de los últimos 30 días por producto, a precio de lista
 SELECT
   u.billing_origin_product                       AS producto,     -- JOBS, SQL, ALL_PURPOSE, DLT, MODEL_SERVING…
   ROUND(SUM(u.usage_quantity), 1)                AS dbu,

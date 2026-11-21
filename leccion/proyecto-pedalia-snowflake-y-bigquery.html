@@ -32,7 +32,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Parte 1 · Snowflake (finanzas)</h2>
 <h3>El token SAS</h3>
 <p>Un token SAS es un permiso firmado con alcance, permisos y vencimiento. Para leer una carpeta, Snowflake necesita <strong>listar</strong> (<code>l</code>) y <strong>leer</strong> (<code>r</code>), nada más:</p>
-<pre><code class="language-bash">az storage container generate-sas --account-name stpedaliadev -n gold \
+<pre tabindex="0"><code class="language-bash">az storage container generate-sas --account-name stpedaliadev -n gold \
   --permissions rl --expiry 2027-01-31T00:00Z -o tsv</code></pre>
 <p>Copia el resultado (empieza con <code>se=</code>). También puedes generarlo en el portal: cuenta → <strong>Shared access signature</strong>, con servicio Blob, tipos Container y Object, y permisos Read y List.</p>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ El token vence</div>
@@ -43,7 +43,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h3>Tabla y stage</h3>
 <p>Abre el <a href="#/snowflake">Snowflake de práctica</a> y ejecuta (reemplaza <code>&lt;TOKEN&gt;</code> por el que generaste):</p>
-<pre data-norun><code class="language-sql">USE ROLE SYSADMIN;
+<pre data-norun tabindex="0"><code class="language-sql">USE ROLE SYSADMIN;
 USE WAREHOUSE COMPUTE_WH;
 CREATE DATABASE IF NOT EXISTS PEDALIA;
 CREATE SCHEMA IF NOT EXISTS PEDALIA.FINANZAS;
@@ -60,7 +60,7 @@ CREATE OR REPLACE STAGE LAGO_GOLD
 LIST @LAGO_GOLD;</code></pre>
 <p><code>LIST</code> tiene que mostrar el <code>part-00000-….csv</code> de <code>ingresos_diarios/</code> y de <code>uso_por_barrio/</code> (el <code>_SUCCESS</code> no aparece: Snowflake no lo considera un dato).</p>
 <h3>La carga idempotente</h3>
-<pre data-norun><code class="language-sql">TRUNCATE TABLE INGRESOS_DIARIOS;
+<pre data-norun tabindex="0"><code class="language-sql">TRUNCATE TABLE INGRESOS_DIARIOS;
 COPY INTO INGRESOS_DIARIOS
   FROM @LAGO_GOLD/ingresos_diarios/
   FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1)
@@ -83,7 +83,7 @@ SELECT FECHA, TIPO_USUARIO, VIAJES, INGRESOS FROM INGRESOS_DIARIOS ORDER BY FECH
 <h2>Parte 2 · BigQuery (marketing)</h2>
 <p>BigQuery puede cargar archivos de Azure Blob Storage con <code>LOAD DATA … FROM FILES</code> y una <strong>conexión</strong> a Azure (en la consola: Add data → Connections to external data sources). La conexión guarda cómo autenticarse; la consulta solo la nombra.</p>
 <p>En el <a href="#/bigquery">BigQuery de práctica</a>:</p>
-<pre data-norun><code class="language-sql">CREATE SCHEMA IF NOT EXISTS pedalia_mkt;
+<pre data-norun tabindex="0"><code class="language-sql">CREATE SCHEMA IF NOT EXISTS pedalia_mkt;
 
 LOAD DATA OVERWRITE pedalia_mkt.uso_por_barrio
 FROM FILES (

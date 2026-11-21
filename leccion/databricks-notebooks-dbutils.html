@@ -97,7 +97,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Atajo de <code>dbutils.fs</code></td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-sql">%sql
+<pre data-norun tabindex="0"><code class="language-sql">%sql
 SELECT canal, COUNT(*) AS pedidos
 FROM main.ventas.pedidos
 GROUP BY canal</code></pre>
@@ -109,16 +109,16 @@ GROUP BY canal</code></pre>
 </ul>
 <h2>display()</h2>
 <p><code>display(df)</code> muestra una tabla interactiva con filtros y gráficos rápidos. En este curso, <code>display(df)</code> también funciona en los ejercicios de PySpark (muestra la tabla en texto).</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 display(spark.table(&quot;pedidos&quot;).groupBy(&quot;canal&quot;).count())</code></pre>
 <h2>Widgets: parámetros del notebook</h2>
-<pre data-norun><code class="language-python">dbutils.widgets.text(&quot;fecha&quot;, &quot;2024-03-15&quot;, &quot;Fecha a procesar&quot;)
+<pre data-norun tabindex="0"><code class="language-python">dbutils.widgets.text(&quot;fecha&quot;, &quot;2024-03-15&quot;, &quot;Fecha a procesar&quot;)
 dbutils.widgets.dropdown(&quot;entorno&quot;, &quot;dev&quot;, [&quot;dev&quot;, &quot;prod&quot;])
 fecha = dbutils.widgets.get(&quot;fecha&quot;)
 df = spark.table(&quot;main.bronze.pedidos&quot;).filter(f&quot;fecha_pedido = '{fecha}'&quot;)</code></pre>
 <p>Cuando el notebook corre en un <strong>job</strong>, los parámetros del job llenan los widgets.</p>
 <p>Desde SQL, los widgets se leen con <strong>marcadores de parámetro</strong> (<code>:nombre</code>), disponibles desde Databricks Runtime 15.2:</p>
-<pre data-norun><code class="language-sql">SELECT *
+<pre data-norun tabindex="0"><code class="language-sql">SELECT *
 FROM main.bronze.pedidos
 WHERE fecha_pedido = :fecha;
 
@@ -128,7 +128,7 @@ SHOW TABLES IN IDENTIFIER(:esquema);   -- IDENTIFIER() convierte el texto en un 
 
 
 <h2>dbutils.fs: archivos</h2>
-<pre data-norun><code class="language-python">dbutils.fs.ls(&quot;/Volumes/main/crudo/archivos/&quot;)
+<pre data-norun tabindex="0"><code class="language-python">dbutils.fs.ls(&quot;/Volumes/main/crudo/archivos/&quot;)
 dbutils.fs.cp(&quot;/Volumes/main/crudo/archivos/ventas.csv&quot;, &quot;/Volumes/main/crudo/respaldo/ventas.csv&quot;)
 dbutils.fs.mkdirs(&quot;/Volumes/main/crudo/archivos/2024/&quot;)
 dbutils.fs.rm(&quot;/Volumes/main/crudo/tmp/&quot;, recurse=True)
@@ -140,7 +140,7 @@ dbutils.fs.head(&quot;/Volumes/main/crudo/archivos/ventas.csv&quot;)</code></pre
 
 
 <h2>dbutils.secrets: nunca escribas contraseñas</h2>
-<pre data-norun><code class="language-python">token = dbutils.secrets.get(scope=&quot;kv-datos&quot;, key=&quot;api-token&quot;)
+<pre data-norun tabindex="0"><code class="language-python">token = dbutils.secrets.get(scope=&quot;kv-datos&quot;, key=&quot;api-token&quot;)
 print(token)   # Databricks muestra [REDACTED]: el valor nunca aparece en el notebook</code></pre>
 <h2>Encadenar notebooks: %run, dbutils.notebook.run y los jobs</h2>
 <p>Cuando un proyecto crece, la lógica se reparte en varios notebooks o archivos. La documentación oficial compara las opciones:</p>
@@ -170,7 +170,7 @@ print(token)   # Databricks muestra [REDACTED]: el valor nunca aparece en el not
 <td>La forma <strong>recomendada</strong> de orquestar en producción</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-python"># notebook &quot;carga&quot;: recibe un parámetro y devuelve un resultado
+<pre data-norun tabindex="0"><code class="language-python"># notebook &quot;carga&quot;: recibe un parámetro y devuelve un resultado
 dbutils.widgets.text(&quot;tabla&quot;, &quot;&quot;)
 tabla = dbutils.widgets.get(&quot;tabla&quot;)
 filas = spark.table(f&quot;main.bronze.{tabla}&quot;).count()
@@ -182,7 +182,7 @@ for t in [&quot;pedidos&quot;, &quot;clientes&quot;, &quot;pagos&quot;]:
     print(t, filas)</code></pre>
 <h3>Pasar valores entre tareas de un job: task values</h3>
 <p>Dentro de un job de varias tareas, una tarea puede dejar un valor para las siguientes con <code>dbutils.jobs.taskValues</code>:</p>
-<pre data-norun><code class="language-python"># tarea &quot;validar&quot;
+<pre data-norun tabindex="0"><code class="language-python"># tarea &quot;validar&quot;
 dbutils.jobs.taskValues.set(key=&quot;filas_validas&quot;, value=11850)
 
 # tarea &quot;publicar&quot; (depende de &quot;validar&quot;)
@@ -227,7 +227,7 @@ filas = dbutils.jobs.taskValues.get(taskKey=&quot;validar&quot;, key=&quot;filas
 <li>Ejecuta todo con <strong>Run all</strong> y mira cómo cada celda usa un lenguaje: Markdown, Python y SQL con <code>%sql</code>.</li>
 <li>Cambia el valor del widget <code>canal</code> arriba del notebook y vuelve a correr la celda 3.</li>
 </ol>
-<pre data-norun><code class="language-python"># Databricks notebook source
+<pre data-norun tabindex="0"><code class="language-python"># Databricks notebook source
 # MAGIC %md
 # MAGIC ## Pedidos por canal
 # MAGIC Notebook de práctica: Python, SQL y widgets.

@@ -115,7 +115,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Ejecuta la segunda consulta: los valores distintos de <code>moneda</code> con su largo. ¿Cuál tiene un espacio?</li>
 <li>Agrega a la primera consulta el rango de <code>cargado_en</code> (<code>MIN</code> y <code>MAX</code>) para saber qué período cubre.</li>
 </ol>
-<pre><code class="language-sql">SELECT COUNT(*) AS filas,
+<pre tabindex="0"><code class="language-sql">SELECT COUNT(*) AS filas,
        COUNT(DISTINCT pedido_id) AS pedidos,
        COUNT(*) - COUNT(DISTINCT pedido_id) AS duplicados,
        COUNT(*) - COUNT(monto) AS montos_nulos,

@@ -27,20 +27,20 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Casi toda pregunta de negocio tiene una fecha adentro: &quot;ventas <strong>por mes</strong>&quot;, &quot;clientes nuevos <strong>este año</strong>&quot;, &quot;días <strong>entre</strong> la compra y la entrega&quot;, &quot;usuarios activos <strong>en los últimos 30 días</strong>&quot;. Y las fechas son traicioneras: meses de distinta cantidad de días, años bisiestos, horas, zonas horarias, formatos distintos según el país (<code>03/04/2024</code>, ¿es 3 de abril o 4 de marzo?). Esta lección te da las herramientas para trabajarlas sin errores.</p>
 <h2>El formato ISO 8601: el único que deberías usar</h2>
 <p>El estándar internacional escribe las fechas de <strong>lo más grande a lo más chico</strong>:</p>
-<pre><code class="language-text">2024-03-15              ← fecha:        año-mes-día
+<pre tabindex="0"><code class="language-text">2024-03-15              ← fecha:        año-mes-día
 2024-03-15 14:30:00     ← fecha y hora: año-mes-día hora:minuto:segundo
 2024-03-15T14:30:00Z    ← con &quot;T&quot; y zona horaria (Z = UTC), típico en APIs y JSON</code></pre>
 <p>Su gran ventaja: <strong>ordenar el texto es lo mismo que ordenar en el tiempo</strong>. Comparando carácter por carácter, <code>&#39;2023-12-31&#39;</code> &lt; <code>&#39;2024-01-01&#39;</code>, exactamente como en el calendario. Con <code>&#39;31/12/2023&#39;</code> y <code>&#39;01/01/2024&#39;</code> no pasa: alfabéticamente <code>&#39;01…&#39;</code> va primero aunque sea posterior.</p>
 <h3>Cómo guarda las fechas SQLite</h3>
 <p>SQLite no tiene un tipo <code>DATE</code> propio: guarda las fechas como <strong>texto ISO</strong>. Por eso en el curso puedes comparar directamente:</p>
-<pre><code class="language-sql">SELECT pedido_id, fecha_pedido
+<pre tabindex="0"><code class="language-sql">SELECT pedido_id, fecha_pedido
 FROM pedidos
 WHERE fecha_pedido &gt;= '2024-12-24' AND fecha_pedido &lt; '2024-12-26'
 ORDER BY fecha_pedido;</code></pre>
 <p>Otros motores (PostgreSQL, BigQuery, Spark, Snowflake) sí tienen tipos <code>DATE</code> y <code>TIMESTAMP</code> de verdad, pero aceptan el mismo texto ISO al comparar: <code>WHERE fecha &gt;= &#39;2024-12-24&#39;</code> funciona en todos.</p>
 <h2>Filtrar periodos: el rango semiabierto</h2>
 <p>La forma profesional de pedir un periodo es: <strong>desde el inicio (incluido) hasta el inicio del periodo siguiente (excluido)</strong>.</p>
-<pre><code class="language-sql">-- Todo diciembre de 2024, con o sin horas en la columna
+<pre tabindex="0"><code class="language-sql">-- Todo diciembre de 2024, con o sin horas en la columna
 SELECT COUNT(*)
 FROM pedidos
 WHERE fecha_pedido &gt;= '2024-12-01' AND fecha_pedido &lt; '2025-01-01';</code></pre>
@@ -141,7 +141,7 @@ WHERE fecha_pedido &gt;= '2024-12-01' AND fecha_pedido &lt; '2025-01-01';</code>
 </tr>
 </tbody></table></div>
 <p>Combinándolos se resuelven preguntas típicas:</p>
-<pre><code class="language-sql">SELECT date('2024-03-15', 'start of month')                     AS primer_dia_mes,   -- 2024-03-01
+<pre tabindex="0"><code class="language-sql">SELECT date('2024-03-15', 'start of month')                     AS primer_dia_mes,   -- 2024-03-01
        date('2024-03-15', 'start of month', '+1 month', '-1 day') AS ultimo_dia_mes,   -- 2024-03-31
        date('2024-03-15', 'start of year')                      AS inicio_anio,      -- 2024-01-01
        date('2024-03-15', '-30 days')                           AS hace_30_dias;     -- 2024-02-14</code></pre>
@@ -200,7 +200,7 @@ WHERE fecha_pedido &gt;= '2024-12-01' AND fecha_pedido &lt; '2025-01-01';</code>
 </tr>
 </tbody></table></div>
 <p><code>strftime</code> <strong>siempre devuelve texto</strong>. Si necesitas un número (para comparar <code>mes &gt; 6</code> o sumar), conviértelo: <code>CAST(strftime(&#39;%m&#39;, fecha) AS INTEGER)</code>.</p>
-<pre><code class="language-sql">SELECT pedido_id,
+<pre tabindex="0"><code class="language-sql">SELECT pedido_id,
        fecha_pedido,
        strftime('%Y', fecha_pedido)               AS anio,
        CAST(strftime('%m', fecha_pedido) AS INT)  AS mes,
@@ -228,7 +228,7 @@ LIMIT 3;</code></pre>
 </tbody></table></div>
 <h3>Diferencias entre fechas: julianday</h3>
 <p><code>julianday</code> convierte una fecha en un número: los días transcurridos desde una fecha muy antigua (el año 4713 a. C.). No importa el número en sí; lo útil es <strong>restar</strong> dos de ellos:</p>
-<pre><code class="language-sql">SELECT julianday('2024-12-25') - julianday('2024-12-01')                    AS dias,      -- 24.0
+<pre tabindex="0"><code class="language-sql">SELECT julianday('2024-12-25') - julianday('2024-12-01')                    AS dias,      -- 24.0
        (julianday('2024-12-25 18:00') - julianday('2024-12-25 06:00')) * 24 AS horas,     -- 12.0
        (julianday('2024-12-25 18:00') - julianday('2024-12-25 06:00')) * 1440 AS minutos; -- 720.0</code></pre>
 <ul>
@@ -356,7 +356,7 @@ LIMIT 3;</code></pre>
 <li>Filtra solo los meses de 2024.</li>
 <li>En DuckDB, prueba lo mismo con <code>date_trunc(&#39;month&#39;, CAST(fecha_pedido AS DATE))</code>.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT SUBSTR(CAST(fecha_pedido AS VARCHAR), 1, 7) AS mes,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT SUBSTR(CAST(fecha_pedido AS VARCHAR), 1, 7) AS mes,
        COUNT(*) AS pedidos
 FROM pedidos
 GROUP BY 1

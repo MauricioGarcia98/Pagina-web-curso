@@ -88,7 +88,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ul>
 <h2>DAX también sirve para mirar datos</h2>
 <p>En Power BI Desktop hay una <strong>vista de consultas DAX</strong> (el ícono <code>&lt;/&gt;</code> de la izquierda). Una consulta DAX siempre empieza con <code>EVALUATE</code> seguida de algo que devuelve una <strong>tabla</strong>:</p>
-<pre><code class="language-dax">EVALUATE categorias                                -- toda la tabla
+<pre tabindex="0"><code class="language-dax">EVALUATE categorias                                -- toda la tabla
 EVALUATE TOPN(10, productos, productos[precio])    -- los 10 productos más caros
 EVALUATE VALUES(pedidos[canal])                    -- los valores distintos de una columna
 EVALUATE ROW(&quot;Pedidos&quot;, COUNTROWS(pedidos))        -- un solo número, como tabla de una fila</code></pre>
@@ -107,7 +107,7 @@ EVALUATE ROW(&quot;Pedidos&quot;, COUNTROWS(pedidos))        -- un solo número,
 <li>Abre la vista <strong>Consultas DAX</strong> (<code>&lt;/&gt;</code> a la izquierda): la consulta de la lección está en la pestaña <em>Práctica</em>. Ejecútala con <strong>F5</strong>.</li>
 <li>Cada <code>EVALUATE</code> devuelve una tabla: la segunda cuenta productos por categoría siguiendo la relación del modelo.</li>
 </ol>
-<pre data-norun><code class="language-dax">EVALUATE TOPN(10, productos, productos[precio], DESC)
+<pre data-norun tabindex="0"><code class="language-dax">EVALUATE TOPN(10, productos, productos[precio], DESC)
 
 EVALUATE
     SUMMARIZECOLUMNS(categorias[nombre], &quot;Productos&quot;, COUNTROWS(productos))</code></pre>

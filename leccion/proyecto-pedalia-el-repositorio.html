@@ -30,7 +30,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>1. La estructura</h2>
-<pre><code class="language-text">pedalia-datos/
+<pre tabindex="0"><code class="language-text">pedalia-datos/
 ├── README.md                    qué es, cómo se corre, a quién preguntar
 ├── docs/
 │   └── contrato.md              reglas de los datos (lección siguiente)
@@ -48,7 +48,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Abre el <a href="#/github">GitHub de práctica</a> y crea un repositorio nuevo llamado <strong><code>pedalia-datos</code></strong> (botón <strong>New</strong>). Déjalo vacío: sin README ni .gitignore.</li>
 <li>En la terminal (botón <strong>⌨</strong> abajo a la derecha):</li>
 </ol>
-<pre><code class="language-bash">mkdir -p ~/pedalia-datos/dags ~/pedalia-datos/sql/databricks ~/pedalia-datos/docs ~/pedalia-datos/.github/workflows
+<pre tabindex="0"><code class="language-bash">mkdir -p ~/pedalia-datos/dags ~/pedalia-datos/sql/databricks ~/pedalia-datos/docs ~/pedalia-datos/.github/workflows
 cd ~/pedalia-datos
 git init -b main
 git config user.name &quot;Tu Nombre&quot;
@@ -56,7 +56,7 @@ git config user.email &quot;tu@correo.com&quot;</code></pre>
 <ol start="3">
 <li>Crea un README mínimo y el primer DAG de prueba (el definitivo llega en la lección de Airflow):</li>
 </ol>
-<pre><code class="language-bash">cat &gt; README.md &lt;&lt; 'EOF'
+<pre tabindex="0"><code class="language-bash">cat &gt; README.md &lt;&lt; 'EOF'
 # pedalia-datos
 Pipelines de datos de Pedalia: ingesta de la app, limpieza en Databricks y cargas a Snowflake y BigQuery.
 Contacto: equipo de datos.
@@ -75,7 +75,7 @@ echo &quot;-- silver de viajes (lección 6)&quot; &gt; sql/databricks/silver_via
 echo &quot;-- gold (lección 7)&quot; &gt; sql/databricks/gold.sql</code></pre>
 <h2>3. El workflow de Actions</h2>
 <p>Este archivo corre <strong>en cada push y en cada pull request</strong>. El job <code>validar</code> revisa que el DAG compile y que el SQL esté en su lugar; el job <code>desplegar</code> copia el DAG a Airflow, pero <strong>solo</strong> cuando el cambio llega a <code>main</code>.</p>
-<pre><code class="language-bash">cat &gt; .github/workflows/ci.yml &lt;&lt; 'EOF'
+<pre tabindex="0"><code class="language-bash">cat &gt; .github/workflows/ci.yml &lt;&lt; 'EOF'
 name: ci
 on:
   push:
@@ -123,7 +123,7 @@ EOF</code></pre>
 <li><p>Sube todo:</p>
 </li>
 </ol>
-<pre><code class="language-bash">git add .
+<pre tabindex="0"><code class="language-bash">git add .
 git commit -m &quot;Estructura del proyecto, DAG inicial y CI&quot;
 git remote add origin https://github.com/alumno/pedalia-datos.git
 git push -u origin main</code></pre>
@@ -137,7 +137,7 @@ git push -u origin main</code></pre>
 <li><strong>Require status checks to pass</strong>, con el check <code>validar</code>.</li>
 </ul>
 <p>Desde ahora nadie empuja directo a <code>main</code>: cada cambio va en una rama, con PR, revisión y CI en verde. Pruébalo:</p>
-<pre><code class="language-bash">git checkout -b docs/contacto
+<pre tabindex="0"><code class="language-bash">git checkout -b docs/contacto
 echo &quot;Guardia: ver canal #datos-pedalia&quot; &gt;&gt; README.md
 git commit -am &quot;Agrega el canal de guardia al README&quot;
 git push -u origin docs/contacto</code></pre>

@@ -79,7 +79,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Escribe tus propias pruebas</h2>
 <p><code>assert condición, &quot;mensaje&quot;</code> no hace nada si la condición es verdadera, y corta el programa con tu mensaje si es falsa. Es la forma más barata de probar.</p>
-<pre><code class="language-python">def promedio(numeros):
+<pre tabindex="0"><code class="language-python">def promedio(numeros):
     if not numeros:
         return None
     return sum(numeros) / len(numeros)
@@ -116,7 +116,7 @@ print(&quot;todas las pruebas pasaron&quot;)</code></pre>
 <p>En SQL la decisión ya está tomada por el motor: <code>SUM</code> y <code>AVG</code> <strong>ignoran</strong> los nulos, <code>COUNT(*)</code> cuenta filas y <code>COUNT(columna)</code> cuenta solo los no nulos. Saberlo te evita sorpresas.</p>
 <h2>Empates: devuelve todos</h2>
 <p>Cuando el enunciado dice &quot;el que más&quot;, pregúntate si puede haber más de uno. La forma segura es en dos pasadas: primero encuentra el valor máximo, después quédate con <strong>todos</strong> los que lo tienen.</p>
-<pre><code class="language-python">ventas = {&quot;Ana&quot;: 300, &quot;Luis&quot;: 300, &quot;Eva&quot;: 120}
+<pre tabindex="0"><code class="language-python">ventas = {&quot;Ana&quot;: 300, &quot;Luis&quot;: 300, &quot;Eva&quot;: 120}
 maximo = max(ventas.values())
 ganadores = [nombre for nombre, v in ventas.items() if v == maximo]
 print(ganadores)  # ['Ana', 'Luis']</code></pre>
@@ -133,7 +133,7 @@ print(ganadores)  # ['Ana', 'Luis']</code></pre>
 <li>Descomenta los casos borde uno por uno: lista vacía, un solo elemento, empates, valores <code>None</code>.</li>
 <li>Arregla la función hasta que todos pasen, decidiendo qué devolver en cada caso raro.</li>
 </ol>
-<pre data-norun><code class="language-python">def mas_vendido(ventas):
+<pre data-norun tabindex="0"><code class="language-python">def mas_vendido(ventas):
     totales = {}
     for p, c in ventas:
         totales[p] = totales.get(p, 0) + c

@@ -67,7 +67,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>Paso 1 · El acceso</h2>
 <p>El SFTP no acepta contraseñas: hay que generar una clave, darla de alta y esperar la aprobación (unos minutos).</p>
-<pre><code class="language-bash">red accesos
+<pre tabindex="0"><code class="language-bash">red accesos
 ssh-keygen -t ed25519 -f ~/.ssh/red_analitica -C equipo
 red alta-clave ~/.ssh/red_analitica.pub     # la pública, nunca la privada
 red estado
@@ -79,7 +79,7 @@ ssh-keyscan -p 2222 sftp.redanalitica.example &gt;&gt; ~/.ssh/known_hosts</code>
 
 
 <h2>Paso 2 · Bajar y mirar</h2>
-<pre><code class="language-bash">printf 'cd /entrantes\nls -l norte\nls -l cerro\n' &gt; ~/ver.txt
+<pre tabindex="0"><code class="language-bash">printf 'cd /entrantes\nls -l norte\nls -l cerro\n' &gt; ~/ver.txt
 sftp -b ~/ver.txt -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example
 
 mkdir -p ~/red/norte ~/red/centro ~/red/sur ~/red/costa ~/red/cerro
@@ -121,7 +121,7 @@ head -5 ~/red/costa/$(ls ~/red/costa | head -1)</code></pre>
 </tr>
 </tbody></table></div>
 <h2>Paso 3 · Al lago y al Key Vault</h2>
-<pre><code class="language-bash">az login
+<pre tabindex="0"><code class="language-bash">az login
 az group create -n rg-red -l eastus2
 az storage account create -n stred -g rg-red -l eastus2 --sku Standard_LRS --hns true
 az storage container create --account-name stred -n landing
@@ -133,7 +133,7 @@ az keyvault secret set --vault-name kv-red -n sftp-clave --value &quot;$(cat ~/.
 az keyvault secret set --vault-name kv-red -n seudonimo-sal --value &quot;s4l-r3d-2026&quot; -o none</code></pre>
 <h2>Paso 4 · Una vista por laboratorio</h2>
 <p>Cada vista traduce <strong>su</strong> formato al mismo esquema: <code>laboratorio, id_muestra, estudio, resultado, fecha_toma, doc</code>. Si un laboratorio cambia, se toca una sola vista.</p>
-<pre data-norun><code class="language-sql">CREATE EXTERNAL LOCATION lago_red URL 'abfss://landing@stred.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
+<pre data-norun tabindex="0"><code class="language-sql">CREATE EXTERNAL LOCATION lago_red URL 'abfss://landing@stred.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
 CREATE CATALOG IF NOT EXISTS red; CREATE SCHEMA IF NOT EXISTS red.silver; CREATE SCHEMA IF NOT EXISTS red.gold;
 
 CREATE OR REPLACE TEMP VIEW v_norte AS
@@ -150,7 +150,7 @@ SELECT 'centro' AS laboratorio, `Nro Muestra` AS id_muestra,
        regexp_replace(CAST(Documento AS STRING), '[^0-9]', '') AS doc
 FROM read_files('abfss://landing@stred.dfs.core.windows.net/red/centro/', format =&gt; 'csv', sep =&gt; ';', header =&gt; true, inferSchema =&gt; false, encoding =&gt; 'ISO-8859-1');</code></pre>
 <p>Sur reenvía archivos corregidos: se guarda el nombre del archivo y, por muestra y estudio, gana el último (<code>_v2</code> ordena después que el original). Y se convierten las unidades:</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TEMP VIEW v_sur_todo AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TEMP VIEW v_sur_todo AS
 SELECT sample, test, CAST(value AS DOUBLE) AS v, taken_at, CAST(patient:doc AS STRING) AS doc, _metadata.file_name AS archivo
 FROM read_files('abfss://landing@stred.dfs.core.windows.net/red/sur/', format =&gt; 'json');
 
@@ -166,7 +166,7 @@ SELECT 'sur' AS laboratorio, sample AS id_muestra,
 FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY sample, test ORDER BY archivo DESC) AS rn FROM v_sur_todo) x
 WHERE rn = 1;</code></pre>
 <p>Costa (Excel): se saltean las 3 filas de título, se descarta la fila de total y la fecha es un número de días desde el 30/12/1899. Cerro: TSV, UTC (se restan 3 horas antes de tomar el día) y <code>DISTINCT</code> para las filas repetidas.</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TEMP VIEW v_costa AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TEMP VIEW v_costa AS
 SELECT 'costa' AS laboratorio, Muestra AS id_muestra,
        CASE Estudio WHEN 'Glucosa en ayunas' THEN 'GLU' WHEN 'Hemoglobina' THEN 'HB' WHEN 'Colesterol total' THEN 'COL' WHEN 'Creatinina' THEN 'CRE' WHEN 'TSH' THEN 'TSH' END AS estudio,
        CAST(Valor AS DOUBLE) AS resultado,
@@ -184,7 +184,7 @@ SELECT DISTINCT 'cerro' AS laboratorio, ID AS id_muestra,
 FROM read_files('abfss://landing@stred.dfs.core.windows.net/red/cerro/', format =&gt; 'csv', sep =&gt; '\t', header =&gt; true, inferSchema =&gt; false);</code></pre>
 <h2>Paso 5 · Silver, seudonimizada</h2>
 <p>El seudónimo es <code>sha2(sal + documento normalizado)</code>: el mismo documento da el mismo <code>paciente_id</code> en los cinco laboratorios, y sin la sal no se puede revertir probando documentos. El documento <strong>no</strong> llega a la tabla.</p>
-<pre data-norun><code class="language-sql">CREATE TABLE IF NOT EXISTS red.silver.olvidos (paciente_id STRING, pedido DATE);
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE IF NOT EXISTS red.silver.olvidos (paciente_id STRING, pedido DATE);
 
 CREATE OR REPLACE TABLE red.silver.resultados AS
 SELECT laboratorio, id_muestra, estudio, round(resultado, 2) AS resultado,
@@ -200,7 +200,7 @@ WHERE sha2(concat('s4l-r3d-2026', doc), 256) NOT IN (SELECT paciente_id FROM red
 
 
 <h2>Paso 6 · Gold y las preguntas</h2>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE red.gold.resultados_diarios AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE red.gold.resultados_diarios AS
 SELECT fecha_toma, laboratorio, estudio, count(*) AS resultados,
        sum(CASE WHEN (estudio = 'GLU' AND (resultado &lt; 70 OR resultado &gt; 100))
                   OR (estudio = 'HB' AND (resultado &lt; 12 OR resultado &gt; 17.5))
@@ -215,7 +215,7 @@ WHERE estudio = 'GLU' AND resultado &gt;= 126 AND fecha_toma BETWEEN '2026-11-16
 <p>La pregunta de quién entrega más tarde no sale de las tablas: sale del <code>ls -l</code> del SFTP (la hora de cada archivo). Y el archivo que falta de Cerro se descubre comparando los días que hay contra los que debería haber.</p>
 <h2>Paso 7 · El derecho al olvido</h2>
 <p>Se guarda el seudónimo del paciente en la tabla de olvidos y se borra de silver; gold se recalcula. Como silver se reconstruye filtrando contra <code>olvidos</code>, la próxima carga no lo trae de vuelta.</p>
-<pre data-norun><code class="language-sql">INSERT INTO red.silver.olvidos VALUES (sha2(concat('s4l-r3d-2026', '30111222'), 256), current_date());
+<pre data-norun tabindex="0"><code class="language-sql">INSERT INTO red.silver.olvidos VALUES (sha2(concat('s4l-r3d-2026', '30111222'), 256), current_date());
 DELETE FROM red.silver.resultados WHERE paciente_id IN (SELECT paciente_id FROM red.silver.olvidos);
 -- y volver a crear red.gold.resultados_diarios</code></pre>
 <p>(El documento exacto lo dice el ticket del delegado de protección de datos.)</p>

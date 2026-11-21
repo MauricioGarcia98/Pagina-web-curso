@@ -25,24 +25,24 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 1 — Abrir el notebook y documentarlo</h2>
 <p>Abre <strong>Workspace → Ventas por canal</strong> (lo creaste en la lección 2). En la primera celda escribe una celda de texto:</p>
-<pre><code class="language-text">%md
+<pre tabindex="0"><code class="language-text">%md
 # Ventas por canal
 Primer análisis sobre `samples.tienda.pedidos`: cuántos pedidos hay por canal y por estado, y una tabla guardada en `main.default`.</code></pre>
 <p>Al ejecutarla (Shift + Enter) se convierte en texto con formato. Un notebook que empieza explicando qué hace se entiende dentro de seis meses.</p>
 <h2>Paso 2 — Pedidos por canal (SQL)</h2>
 <p>En la celda siguiente:</p>
-<pre data-norun><code class="language-sql">%sql
+<pre data-norun tabindex="0"><code class="language-sql">%sql
 SELECT canal, COUNT(*) AS pedidos
 FROM samples.tienda.pedidos
 GROUP BY canal
 ORDER BY pedidos DESC</code></pre>
 <p>Deberías ver <strong>web 5400</strong>, <strong>app 2973</strong>, <strong>tienda 2645</strong>, <strong>telefono 982</strong>. Suma: 12 000 pedidos.</p>
 <h2>Paso 3 — Pedidos por estado (Python)</h2>
-<pre data-norun><code class="language-python">df = spark.table(&quot;samples.tienda.pedidos&quot;)
+<pre data-norun tabindex="0"><code class="language-python">df = spark.table(&quot;samples.tienda.pedidos&quot;)
 display(df.groupBy(&quot;estado&quot;).count().orderBy(&quot;count&quot;, ascending=False))</code></pre>
 <p><code>groupBy(&quot;estado&quot;).count()</code> es el <code>GROUP BY</code> de Spark. Resultado: <strong>entregado 9288</strong>, <strong>cancelado 967</strong>, <strong>enviado 736</strong>, <strong>devuelto 506</strong>, <strong>pendiente 503</strong>. Suma: 12 000 otra vez. Cuando dos caminos distintos dan el mismo total, el número es confiable.</p>
 <h2>Paso 4 — Guardar el resultado como tabla</h2>
-<pre data-norun><code class="language-python">(df.groupBy(&quot;canal&quot;).count()
+<pre data-norun tabindex="0"><code class="language-python">(df.groupBy(&quot;canal&quot;).count()
    .write.mode(&quot;overwrite&quot;)
    .saveAsTable(&quot;main.default.ventas_por_canal&quot;))</code></pre>
 <div class="table-wrap"><table><thead><tr>
@@ -63,7 +63,7 @@ display(df.groupBy(&quot;estado&quot;).count().orderBy(&quot;count&quot;, ascend
 </tr>
 </tbody></table></div>
 <p>Y compruébalo con SQL en la celda siguiente:</p>
-<pre data-norun><code class="language-sql">%sql
+<pre data-norun tabindex="0"><code class="language-sql">%sql
 SELECT * FROM main.default.ventas_por_canal ORDER BY count DESC</code></pre>
 <figure class="captura"><img src="assets/img/guias/databricks/d04-guardar-tabla.webp" alt="La celda que guarda (1) no muestra nada - la consulta siguiente (2) confirma que la tabla existe con los 4 canales" loading="lazy"><figcaption>La celda que guarda (1) no muestra nada - la consulta siguiente (2) confirma que la tabla existe con los 4 canales</figcaption></figure>
 

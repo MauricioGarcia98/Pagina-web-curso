@@ -49,7 +49,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Glue DataBrew</strong>: perfiles de datos y reglas de calidad visuales.</li>
 <li>Técnicas: muestreo, validación de esquema, chequeo de completitud, unicidad, rangos, consistencia entre fuentes, y <strong>sesgo</strong> en muestras.</li>
 </ul>
-<pre data-norun><code class="language-text">Rules = [
+<pre data-norun tabindex="0"><code class="language-text">Rules = [
   RowCount &gt; 1000,
   IsComplete &quot;envio_id&quot;,
   IsUnique &quot;envio_id&quot;,
@@ -71,7 +71,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>AWS Lake Formation</strong>: permisos centralizados sobre el catálogo con <code>GRANT</code> a nivel de <strong>base, tabla, columna, fila y celda</strong> (<em>data filters</em>), y <strong>LF-Tags</strong> (control por etiquetas: <code>confidencialidad=alta</code>) que escalan a miles de tablas. Athena, Redshift Spectrum, EMR y Glue respetan esos permisos. Comparte datos <strong>entre cuentas</strong> sin copiar.</li>
 <li><strong>Redshift</strong>: roles y <code>GRANT</code>, <strong>seguridad de filas</strong> (RLS), <strong>enmascaramiento dinámico</strong> y permisos por columna.</li>
 </ul>
-<pre data-norun><code class="language-sql">-- Redshift: enmascarar el documento para quien no sea del rol &quot;cumplimiento&quot;
+<pre data-norun tabindex="0"><code class="language-sql">-- Redshift: enmascarar el documento para quien no sea del rol &quot;cumplimiento&quot;
 CREATE MASKING POLICY ocultar_dni
 WITH (dni VARCHAR(20))
 USING ('***' || RIGHT(dni, 3));

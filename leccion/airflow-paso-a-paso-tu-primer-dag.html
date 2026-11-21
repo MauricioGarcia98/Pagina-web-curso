@@ -31,11 +31,11 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 1 — Abrir la terminal</h2>
 <p>En la barra izquierda, <strong>Terminal</strong>. Es la misma máquina del curso: los Dags viven en <code>~/airflow/dags</code>.</p>
-<pre data-norun><code class="language-bash">cd ~/airflow/dags
+<pre data-norun tabindex="0"><code class="language-bash">cd ~/airflow/dags
 ls
 nano hola_tienda.py</code></pre>
 <h2>Paso 2 — Escribir el Dag</h2>
-<pre data-norun><code class="language-python">from datetime import datetime
+<pre data-norun tabindex="0"><code class="language-python">from datetime import datetime
 
 from airflow.providers.standard.operators.bash import BashOperator
 from airflow.providers.standard.operators.python import PythonOperator
@@ -113,7 +113,7 @@ with DAG(
 
 
 <h2>Paso 4 — Comprobar que Airflow lo leyó</h2>
-<pre data-norun><code class="language-bash">airflow dags list</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">airflow dags list</code></pre>
 <figure class="captura"><img src="assets/img/guias/airflow/a03-cli.webp" alt="airflow dags list - hola_tienda aparece con su archivo, su dueño y pausado" loading="lazy"><figcaption>airflow dags list - hola_tienda aparece con su archivo, su dueño y pausado</figcaption></figure>
 
 

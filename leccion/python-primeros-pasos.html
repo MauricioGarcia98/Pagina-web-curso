@@ -57,7 +57,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Dónde se ejecuta Python en este curso</h2>
 <p>Normalmente Python se instala en tu computadora. Aquí corre <strong>dentro de tu navegador</strong> gracias a <strong>Pyodide</strong> (Python compilado para la web): es Python 3.14 de verdad, con pandas 3 y numpy 2. La primera vez que ejecutas código tarda unos segundos en cargar; después es instantáneo. No puedes romper nada: cada ejecución es independiente.</p>
 <h2>Tu primer programa</h2>
-<pre><code class="language-python">print(&quot;¡Hola, mundo!&quot;)
+<pre tabindex="0"><code class="language-python">print(&quot;¡Hola, mundo!&quot;)
 print(&quot;Estoy aprendiendo Python&quot;)</code></pre>
 <p>Presiona <strong>▶</strong> y verás dos líneas debajo. Analicemos:</p>
 <div class="table-wrap"><table><thead><tr>
@@ -79,7 +79,7 @@ print(&quot;Estoy aprendiendo Python&quot;)</code></pre>
 </tbody></table></div>
 <p>Cada línea es <strong>una instrucción</strong> y se ejecutan <strong>en orden</strong>: primero aparece &quot;¡Hola, mundo!&quot; y después la segunda frase.</p>
 <p><code>print</code> también puede mostrar números y el resultado de cuentas, y varios valores separados por comas (los separa con un espacio):</p>
-<pre><code class="language-python">print(2 + 3)
+<pre tabindex="0"><code class="language-python">print(2 + 3)
 print(&quot;El doble de 21 es&quot;, 21 * 2)</code></pre>
 <h3>Errores: no te asustes</h3>
 <p>Si escribes <code>print(&quot;Hola&quot;</code> (olvidando el paréntesis final), Python muestra un error como <code>SyntaxError: &#39;(&#39; was never closed</code>. Los errores <strong>no son un fracaso</strong>: son la forma en que Python te dice exactamente qué no entendió y en qué línea. Leerlos con calma es una de las habilidades más importantes que vas a desarrollar. Los errores más comunes al empezar:</p>
@@ -106,13 +106,13 @@ print(&quot;El doble de 21 es&quot;, 21 * 2)</code></pre>
 </tbody></table></div>
 <h2>Comentarios</h2>
 <p>Todo lo que va después de <code>#</code> en una línea es un <strong>comentario</strong>: Python lo ignora. Sirven para explicar <strong>por qué</strong> hiciste algo, a otras personas y a tu yo del futuro.</p>
-<pre><code class="language-python"># Calculamos el precio final con IVA del 21 %
+<pre tabindex="0"><code class="language-python"># Calculamos el precio final con IVA del 21 %
 precio = 100
 print(precio * 1.21)  # también puede ir al final de una línea</code></pre>
 <p>Un buen comentario explica la <strong>intención</strong> (&quot;aplicamos IVA de Argentina&quot;), no repite lo obvio (&quot;multiplico por 1.21&quot;).</p>
 <h2>Variables: guardar valores con un nombre</h2>
 <p>Una <strong>variable</strong> es un nombre que guarda un valor para usarlo después. Se crea con el signo <code>=</code>, que en programación significa <strong>asignar</strong> (&quot;guarda esto aquí&quot;), no &quot;es igual&quot;:</p>
-<pre><code class="language-python">nombre = &quot;Lucía&quot;
+<pre tabindex="0"><code class="language-python">nombre = &quot;Lucía&quot;
 edad = 29
 altura = 1.68
 es_cliente = True
@@ -128,7 +128,7 @@ print(&quot;Nombre:&quot;, nombre, &quot;- Edad:&quot;, edad)</code></pre>
 
 
 <h3>Las variables pueden cambiar</h3>
-<pre><code class="language-python">saldo = 1000
+<pre tabindex="0"><code class="language-python">saldo = 1000
 print(&quot;Saldo inicial:&quot;, saldo)
 saldo = saldo - 250        # a la derecha se usa el valor VIEJO (1000); el resultado se guarda en saldo
 print(&quot;Después de una compra:&quot;, saldo)
@@ -185,7 +185,7 @@ print(&quot;Después de un depósito:&quot;, saldo)</code></pre>
 </tr>
 </tbody></table></div>
 <p>El orden de las operaciones es el de la matemática: primero <code>**</code>, después <code>*</code> <code>/</code> <code>//</code> <code>%</code>, y al final <code>+</code> <code>-</code>. Usa <strong>paréntesis</strong> para cambiarlo o simplemente para que se lea mejor.</p>
-<pre><code class="language-python">precio = 120
+<pre tabindex="0"><code class="language-python">precio = 120
 cantidad = 3
 descuento = 0.1                                   # 10 %
 total = precio * cantidad * (1 - descuento)       # 120 × 3 × 0,9
@@ -259,7 +259,7 @@ print(&quot;Total a pagar:&quot;, total)</code></pre>
 <li>Cambia los valores de <code>producto</code> y <code>precio</code> y vuelve a ejecutar.</li>
 <li>Agrega una variable <code>cantidad</code> y muestra el total.</li>
 </ol>
-<pre data-norun><code class="language-python">producto = &quot;Teclado&quot;
+<pre data-norun tabindex="0"><code class="language-python">producto = &quot;Teclado&quot;
 precio = 45.5
 print(&quot;Producto:&quot;, producto)
 print(f&quot;Precio con IVA: {precio * 1.21:.2f}&quot;)</code></pre>

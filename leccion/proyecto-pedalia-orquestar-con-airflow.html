@@ -31,7 +31,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>1. Las conexiones</h2>
 <p>Cada tarea habla con un servicio distinto. Las credenciales viven en <strong>conexiones</strong> de Airflow (en producción, en un gestor de secretos como Key Vault), nunca en el DAG. En la terminal:</p>
-<pre><code class="language-bash">airflow connections add azure_data_factory_default --conn-type azure_data_factory \
+<pre tabindex="0"><code class="language-bash">airflow connections add azure_data_factory_default --conn-type azure_data_factory \
   --conn-extra '{&quot;resource_group_name&quot;: &quot;rg-pedalia-dev&quot;, &quot;factory_name&quot;: &quot;adf-pedalia-dev&quot;}'
 airflow connections add databricks_default --conn-type databricks \
   --conn-host https://adb-1234567890123456.7.azuredatabricks.net
@@ -48,7 +48,7 @@ airflow connections list</code></pre>
 
 
 <h2>2. El DAG</h2>
-<pre><code class="language-bash">cd ~/pedalia-datos
+<pre tabindex="0"><code class="language-bash">cd ~/pedalia-datos
 git checkout main &amp;&amp; git pull
 git checkout -b dag/pedalia-diario
 cat &gt; dags/pedalia_diario.py &lt;&lt; 'EOF'
@@ -114,13 +114,13 @@ EOF</code></pre>
 <li><strong><code>[finanzas, marketing]</code></strong> corren en paralelo, las dos después de la transformación. Si una falla, la otra igual termina.</li>
 </ul>
 <h2>3. Desplegar con un pull request</h2>
-<pre><code class="language-bash">git add dags/pedalia_diario.py
+<pre tabindex="0"><code class="language-bash">git add dags/pedalia_diario.py
 git commit -m &quot;DAG diario de Pedalia: ADF → Databricks → Snowflake y BigQuery&quot;
 git push -u origin dag/pedalia-diario</code></pre>
 <p>Abre el PR. El job <code>validar</code> revisa que el DAG compile. Al fusionarlo, <code>desplegar</code> lo copia a Airflow: en unos segundos el DAG actualizado aparece en <a href="#/airflow">Airflow</a> con sus cuatro tareas en el <strong>Graph</strong>.</p>
 <h2>4. Ejecutarlo para un día concreto</h2>
 <p>Primero pruébalo completo para el 9 de noviembre, sin esperar al horario:</p>
-<pre><code class="language-bash">airflow dags test pedalia_diario 2026-11-09</code></pre>
+<pre tabindex="0"><code class="language-bash">airflow dags test pedalia_diario 2026-11-09</code></pre>
 <p>O en la interfaz: el DAG → <strong>Trigger</strong> con fecha lógica <code>2026-11-09</code>. Mira cada tarea:</p>
 <ul>
 <li><code>ingesta_adf</code>: el log muestra el <strong>run ID</strong> del pipeline. Búscalo en Data Factory → <strong>Monitor</strong>: es la misma corrida.</li>

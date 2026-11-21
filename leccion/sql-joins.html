@@ -81,7 +81,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Tu primer JOIN</h2>
-<pre><code class="language-sql">SELECT p.pedido_id, p.fecha_pedido, c.nombre, c.apellido, c.pais
+<pre tabindex="0"><code class="language-sql">SELECT p.pedido_id, p.fecha_pedido, c.nombre, c.apellido, c.pais
 FROM pedidos AS p
 JOIN clientes AS c ON c.cliente_id = p.cliente_id
 LIMIT 10;</code></pre>
@@ -165,7 +165,7 @@ LIMIT 10;</code></pre>
 <p>Comprobación con números: <code>pedidos</code> tiene 12.000 filas y todas tienen un cliente válido, así que <code>pedidos JOIN clientes</code> devuelve 12.000 filas. Pero de los 2.000 clientes, solo 1.453 compraron: los otros 547 <strong>no aparecen</strong> en el resultado. Si quisieras incluirlos (por ejemplo, para listar &quot;clientes que nunca compraron&quot;), necesitas un <code>LEFT JOIN</code>, que es la próxima lección.</p>
 <h2>La multiplicación de filas en relaciones uno a muchos</h2>
 <p>Cuando unes el lado &quot;uno&quot; con el lado &quot;muchos&quot;, la fila del &quot;uno&quot; se <strong>repite</strong> por cada pareja:</p>
-<pre><code class="language-sql">SELECT c.nombre, c.apellido, p.pedido_id, p.fecha_pedido, p.estado
+<pre tabindex="0"><code class="language-sql">SELECT c.nombre, c.apellido, p.pedido_id, p.fecha_pedido, p.estado
 FROM clientes c
 JOIN pedidos p ON p.cliente_id = c.cliente_id
 WHERE c.cliente_id = 562
@@ -219,7 +219,7 @@ ORDER BY p.fecha_pedido;</code></pre>
 
 <h2>Unir varias tablas</h2>
 <p>Los joins se encadenan: cada <code>JOIN</code> agrega una tabla más al resultado acumulado.</p>
-<pre><code class="language-sql">SELECT d.pedido_id, p.fecha_pedido, pr.nombre AS producto, d.cantidad, d.precio_unitario
+<pre tabindex="0"><code class="language-sql">SELECT d.pedido_id, p.fecha_pedido, pr.nombre AS producto, d.cantidad, d.precio_unitario
 FROM detalle_pedidos d
 JOIN pedidos   p  ON p.pedido_id    = d.pedido_id
 JOIN productos pr ON pr.producto_id = d.producto_id
@@ -247,7 +247,7 @@ WHERE d.pedido_id = 5;</code></pre>
 </tr>
 </tbody></table></div>
 <p>Y con agregación, la pregunta &quot;¿cuánto se vendió por país y marca?&quot; necesita cuatro tablas:</p>
-<pre><code class="language-sql">SELECT c.pais,
+<pre tabindex="0"><code class="language-sql">SELECT c.pais,
        pr.marca,
        ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas
 FROM detalle_pedidos d
@@ -272,7 +272,7 @@ LIMIT 10;</code></pre>
 
 <h2>USING: atajo cuando la columna se llama igual</h2>
 <p>Si la columna de unión tiene <strong>el mismo nombre</strong> en las dos tablas, puedes escribir <code>USING</code>:</p>
-<pre><code class="language-sql">SELECT pedido_id, nombre, fecha_pedido
+<pre tabindex="0"><code class="language-sql">SELECT pedido_id, nombre, fecha_pedido
 FROM pedidos JOIN clientes USING (cliente_id)
 LIMIT 5;</code></pre>
 <p>Con <code>USING</code>, la columna <code>cliente_id</code> aparece una sola vez en el resultado y ya no es ambigua. Es cómodo, pero <code>ON</code> es más explícito y funciona aunque los nombres sean distintos (por ejemplo <code>empleados.jefe_id = empleados.empleado_id</code>).</p>
@@ -345,7 +345,7 @@ LIMIT 5;</code></pre>
 <li>Suma una tercera tabla: <code>detalle_pedidos</code> para ver los productos de cada pedido.</li>
 <li>Agrupa por país: ¿cuántos pedidos tiene cada uno?</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT p.pedido_id, p.fecha_pedido, c.nombre, c.apellido, c.pais
+<pre data-norun tabindex="0"><code class="language-sql">SELECT p.pedido_id, p.fecha_pedido, c.nombre, c.apellido, c.pais
 FROM pedidos AS p
 JOIN clientes AS c ON c.cliente_id = p.cliente_id
 LIMIT 20;</code></pre>

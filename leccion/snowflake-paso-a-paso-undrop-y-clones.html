@@ -18,7 +18,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <a class="cta" href="../index.html#/l/snowflake-paso-a-paso-undrop-y-clones">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Recuperar una tabla, esquema o base con UNDROP</li><li>Clonar tablas, esquemas y bases</li><li>Explicar el zero-copy clone y su costo</li><li>Usar clones para pruebas y QA</li></ul>
 <h2>Paso 1 — UNDROP</h2>
-<pre data-norun><code class="language-sql">USE SCHEMA tienda_dev.analitica;
+<pre data-norun tabindex="0"><code class="language-sql">USE SCHEMA tienda_dev.analitica;
 DROP TABLE ventas_por_canal;
 UNDROP TABLE ventas_por_canal;
 SELECT * FROM ventas_por_canal;</code></pre>
@@ -27,7 +27,7 @@ SELECT * FROM ventas_por_canal;</code></pre>
 
 <p><code>UNDROP</code> funciona mientras la tabla esté dentro de su retención de Time Travel. También existe <code>UNDROP SCHEMA</code> y <code>UNDROP DATABASE</code>.</p>
 <h2>Paso 2 — Clonar una base</h2>
-<pre data-norun><code class="language-sql">CREATE DATABASE tienda_qa CLONE tienda_dev;
+<pre data-norun tabindex="0"><code class="language-sql">CREATE DATABASE tienda_qa CLONE tienda_dev;
 SHOW SCHEMAS IN DATABASE tienda_qa;</code></pre>
 <figure class="captura"><img src="assets/img/guias/snowflake/s14-clone.webp" alt="TIENDA_QA en el explorador con las mismas tablas (1) y sus esquemas (2)" loading="lazy"><figcaption>TIENDA_QA en el explorador con las mismas tablas (1) y sus esquemas (2)</figcaption></figure>
 

@@ -72,7 +72,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h3>Por qué importa limpiar el texto</h3>
-<pre><code class="language-sql">SELECT '  ana ' = 'ana'        AS sin_limpiar,
+<pre tabindex="0"><code class="language-sql">SELECT '  ana ' = 'ana'        AS sin_limpiar,
        TRIM('  ana ') = 'ana'  AS limpio,
        LENGTH('  ana ')        AS largo;</code></pre>
 <div class="table-wrap"><table><thead><tr>
@@ -89,7 +89,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>(En SQLite, 0 = falso y 1 = verdadero.) Para la base de datos, <code>&#39;  ana &#39;</code> y <code>&#39;ana&#39;</code> son textos <strong>distintos</strong>. Si un sistema guardó un país como <code>&#39;Chile &#39;</code> con un espacio, <code>WHERE pais = &#39;Chile&#39;</code> no lo encuentra. Por eso, en la capa de limpieza de un pipeline (la capa <em>silver</em>, que verás en el curso) es habitual aplicar <code>TRIM</code> y <code>LOWER</code>/<code>UPPER</code> a los campos de texto clave.</p>
 <h3>Ejemplo paso a paso: extraer el dominio de un email</h3>
 <p>Queremos saber qué proveedores de correo usan los clientes. El dominio es lo que viene <strong>después</strong> de la <code>@</code>:</p>
-<pre><code class="language-sql">SELECT email,
+<pre tabindex="0"><code class="language-sql">SELECT email,
        INSTR(email, '@')                      AS posicion_arroba,
        SUBSTR(email, INSTR(email, '@') + 1)   AS dominio
 FROM clientes
@@ -209,7 +209,7 @@ LIMIT 5;</code></pre>
 
 
 <h2>La división entera (otra vez, porque importa)</h2>
-<pre><code class="language-sql">SELECT 7 / 2                AS division_entera,   -- 3
+<pre tabindex="0"><code class="language-sql">SELECT 7 / 2                AS division_entera,   -- 3
        7 / 2.0              AS division_real,     -- 3.5
        CAST(7 AS REAL) / 2  AS con_cast,          -- 3.5
        1.0 * 7 / 2          AS truco_uno_punto_cero;</code></pre>
@@ -219,7 +219,7 @@ LIMIT 5;</code></pre>
 
 <h2>CAST: convertir de un tipo a otro</h2>
 <p>Cada valor tiene un <strong>tipo</strong>: entero (<code>INTEGER</code>), decimal (<code>REAL</code>, <code>DECIMAL</code>, <code>DOUBLE</code>), texto (<code>TEXT</code>, <code>VARCHAR</code>, <code>STRING</code>), fecha (<code>DATE</code>, <code>TIMESTAMP</code>). <code>CAST(valor AS tipo)</code> convierte:</p>
-<pre><code class="language-sql">SELECT CAST('42' AS INTEGER) + 1                      AS numero,       -- 43
+<pre tabindex="0"><code class="language-sql">SELECT CAST('42' AS INTEGER) + 1                      AS numero,       -- 43
        CAST(19.99 AS INTEGER)                         AS truncado,     -- 19
        CAST(producto_id AS TEXT) || '-' || marca      AS codigo
 FROM productos
@@ -240,7 +240,7 @@ LIMIT 3;</code></pre>
 
 
 <h2>Funciones anidadas: leer de adentro hacia afuera</h2>
-<pre><code class="language-sql">SELECT nombre,
+<pre tabindex="0"><code class="language-sql">SELECT nombre,
        UPPER(SUBSTR(TRIM(nombre), 1, 1)) || '.' AS inicial
 FROM clientes
 LIMIT 5;</code></pre>
@@ -255,7 +255,7 @@ LIMIT 5;</code></pre>
 
 
 <h2>Funciones en el WHERE y en el ORDER BY</h2>
-<pre><code class="language-sql">-- Clientes cuyo email es de gmail, sin importar mayúsculas
+<pre tabindex="0"><code class="language-sql">-- Clientes cuyo email es de gmail, sin importar mayúsculas
 SELECT nombre, email
 FROM clientes
 WHERE LOWER(email) LIKE '%@gmail.com'
@@ -321,7 +321,7 @@ LIMIT 10;</code></pre>
 <li>Extrae el dominio del email con <code>SUBSTR</code> e <code>INSTR</code> (en DuckDB también existe <code>split_part</code>).</li>
 <li>Redondea el precio de los productos a la decena con <code>ROUND(precio, -1)</code>.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT UPPER(nombre || ' ' || apellido) AS nombre_completo,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT UPPER(nombre || ' ' || apellido) AS nombre_completo,
        email,
        LENGTH(email) AS largo_email
 FROM clientes

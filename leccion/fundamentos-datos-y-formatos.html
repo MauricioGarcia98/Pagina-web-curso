@@ -101,7 +101,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p>En <code>pedidos</code>, la columna <code>cliente_id</code> es una <strong>clave foránea</strong> (<em>foreign key</em>): apunta a la clave primaria de otra tabla. Así, el pedido no repite el nombre ni el país del cliente. Si Paula se muda a Chile, se cambia <strong>en un solo lugar</strong> y todos sus pedidos quedan bien. A esta forma de separar la información para no repetirla se la llama <strong>normalización</strong>. En SQL vas a volver a unir las tablas con <code>JOIN</code>.</p>
 <p>Prueba a contar cuántos pedidos tiene cada uno de los primeros clientes. Todavía no tienes que entender la consulta, solo mirar el resultado:</p>
-<pre><code class="language-sql">SELECT c.cliente_id, c.nombre, c.pais, COUNT(p.pedido_id) AS pedidos
+<pre tabindex="0"><code class="language-sql">SELECT c.cliente_id, c.nombre, c.pais, COUNT(p.pedido_id) AS pedidos
 FROM clientes c
 JOIN pedidos p ON p.cliente_id = c.cliente_id
 GROUP BY c.cliente_id, c.nombre, c.pais
@@ -158,7 +158,7 @@ LIMIT 5;</code></pre>
 
 
 <p>Puedes preguntarle a la base de qué tipo es cada valor con <code>typeof</code> (una función de SQLite):</p>
-<pre><code class="language-sql">SELECT cliente_id, typeof(cliente_id) AS tipo_id,
+<pre tabindex="0"><code class="language-sql">SELECT cliente_id, typeof(cliente_id) AS tipo_id,
        nombre,     typeof(nombre)     AS tipo_nombre,
        telefono,   typeof(telefono)   AS tipo_telefono
 FROM clientes
@@ -172,7 +172,7 @@ LIMIT 3;</code></pre>
 
 <h2>Datos sucios: lo que llega de verdad</h2>
 <p>En los ejemplos de los libros los datos vienen perfectos. En la vida real, no. La tabla <code>clientes_crudo</code> tiene los clientes <strong>como llegan</strong> del sistema de origen, antes de limpiarlos:</p>
-<pre><code class="language-sql">SELECT registro_id, cliente_id, nombre, email, ciudad, fecha_carga
+<pre tabindex="0"><code class="language-sql">SELECT registro_id, cliente_id, nombre, email, ciudad, fecha_carga
 FROM clientes_crudo
 WHERE cliente_id IN (524, 1638)
 ORDER BY cliente_id, fecha_carga;</code></pre>
@@ -186,11 +186,11 @@ ORDER BY cliente_id, fecha_carga;</code></pre>
 <li>No dice qué <strong>codificación</strong> usa (UTF-8, Latin-1). Si se lee con la equivocada, <code>Perú</code> aparece como <code>PerÃº</code>.</li>
 <li>Es <strong>lento</strong> para grandes volúmenes: para leer una columna hay que leer el archivo entero.</li>
 </ul>
-<pre><code class="language-text">cliente_id,nombre,pais
+<pre tabindex="0"><code class="language-text">cliente_id,nombre,pais
 1,Lucía,España
 2,Mateo,México</code></pre>
 <p><strong>JSON</strong>: texto con estructura anidada (objetos <code>{}</code> y listas <code>[]</code>). Es el idioma de las APIs web. Permite cosas que un CSV no puede, como una <strong>lista</strong> de intereses o un <strong>objeto</strong> dirección dentro de cada cliente:</p>
-<pre><code class="language-json">{&quot;cliente_id&quot;: 1, &quot;nombre&quot;: &quot;Lucía&quot;, &quot;intereses&quot;: [&quot;running&quot;, &quot;tecnología&quot;], &quot;direccion&quot;: {&quot;ciudad&quot;: &quot;Madrid&quot;}}</code></pre>
+<pre tabindex="0"><code class="language-json">{&quot;cliente_id&quot;: 1, &quot;nombre&quot;: &quot;Lucía&quot;, &quot;intereses&quot;: [&quot;running&quot;, &quot;tecnología&quot;], &quot;direccion&quot;: {&quot;ciudad&quot;: &quot;Madrid&quot;}}</code></pre>
 <p>Para analizarlo, casi siempre hay que <strong>aplanarlo</strong> en columnas: <code>direccion.ciudad</code> pasa a ser una columna <code>ciudad</code>, y cada interés, una fila en otra tabla. Lo vas a hacer en Python y PySpark.</p>
 <p><strong>Parquet</strong>: formato <strong>binario y columnar</strong>. Guarda los tipos, comprime muchísimo y permite leer solo las columnas que necesitas. Es el estándar en big data (Spark, Databricks, BigQuery, Athena). No se puede abrir con un editor de texto: se lee con herramientas de datos.</p>
 <p><strong>Delta Lake</strong> (y sus primos <strong>Iceberg</strong> y <strong>Hudi</strong>): Parquet + un registro de transacciones. Agrega actualizaciones seguras (ACID), historial de versiones (<em>time travel</em>) y <code>MERGE</code>. Lo verás en Spark y Databricks.</p>
@@ -352,7 +352,7 @@ ORDER BY cliente_id, fecha_carga;</code></pre>
 <li>Conviértelo a Parquet con DuckDB.</li>
 <li>Compara los tamaños: Parquet guarda por columnas y comprime, por eso suele pesar mucho menos.</li>
 </ol>
-<pre data-norun><code class="language-bash">head -3 datos/ventas_2024_12.csv
+<pre data-norun tabindex="0"><code class="language-bash">head -3 datos/ventas_2024_12.csv
 wc -l datos/ventas_2024_12.csv
 duckdb -c &quot;COPY (SELECT * FROM 'datos/ventas_2024_12.csv') TO 'ventas.parquet' (FORMAT parquet)&quot;
 ls -lh datos/ventas_2024_12.csv ventas.parquet

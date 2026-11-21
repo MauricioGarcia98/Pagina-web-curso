@@ -42,7 +42,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 2 — Traer el resultado a tu computadora</h2>
 <p><code>main</code> cambió en GitHub, pero tu copia local no se entera sola:</p>
-<pre><code class="language-bash">git switch main
+<pre tabindex="0"><code class="language-bash">git switch main
 git pull
 git branch -d feature/resumen</code></pre>
 <h2>Paso 3 — Las tres formas de fusionar</h2>
@@ -80,7 +80,7 @@ git branch -d feature/resumen</code></pre>
 <ol>
 <li>Crea una rama y cambia la primera línea de descripción del README:</li>
 </ol>
-<pre><code class="language-bash">git switch -c feature/readme
+<pre tabindex="0"><code class="language-bash">git switch -c feature/readme
 # edita README.md: cambia &quot;Limpieza y resumen de las ventas de la tienda.&quot; por &quot;Resumen semanal de ventas.&quot;
 git commit -am &quot;README: descripción más corta&quot; &amp;&amp; git push -u origin feature/readme
 gh pr create --fill</code></pre>
@@ -92,7 +92,7 @@ gh pr create --fill</code></pre>
 </ol>
 <h2>Paso 5 — Resolver en la web</h2>
 <p>Haz clic en <strong>Resolve conflicts</strong>. GitHub muestra el archivo con marcas:</p>
-<pre><code class="language-text">&lt;&lt;&lt;&lt;&lt;&lt;&lt; feature/readme
+<pre tabindex="0"><code class="language-text">&lt;&lt;&lt;&lt;&lt;&lt;&lt; feature/readme
 Resumen semanal de ventas.
 =======
 Scripts de ventas de Tienda Andina.
@@ -116,7 +116,7 @@ Scripts de ventas de Tienda Andina.
 </tbody></table></div>
 <p>Deja el texto como debe quedar (puede ser una, la otra o una mezcla), <strong>borra las tres marcas</strong>, haz clic en <strong>Mark as resolved</strong> y <strong>Commit merge</strong>. El PR vuelve a estar verde.</p>
 <h2>Paso 6 — Resolver en la terminal (lo más común en archivos de código)</h2>
-<pre><code class="language-bash">git switch feature/readme
+<pre tabindex="0"><code class="language-bash">git switch feature/readme
 git pull origin main        # trae main a tu rama: aparece el conflicto
 # abre README.md, deja la versión correcta y borra las marcas
 git add README.md

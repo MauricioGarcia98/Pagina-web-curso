@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Series completas: el calendario</h2>
 <p>Si un día no hubo pedidos, <code>GROUP BY fecha</code> simplemente no lo devuelve, y un promedio móvil de “7 filas” deja de ser de 7 días. Por eso se parte de un calendario y se une con <code>LEFT JOIN</code>.</p>
-<pre><code class="language-sql">WITH RECURSIVE cal(dia) AS (
+<pre tabindex="0"><code class="language-sql">WITH RECURSIVE cal(dia) AS (
   SELECT '2024-12-01' UNION ALL SELECT date(dia, '+1 day') FROM cal WHERE dia &lt; '2024-12-31'
 )
 SELECT cal.dia, COUNT(p.pedido_id) AS pedidos
@@ -35,7 +35,7 @@ ORDER BY cal.dia
 LIMIT 7;</code></pre>
 <h2>Tendencia: promedios móviles</h2>
 <p>Un promedio móvil de 7 días suaviza el efecto del día de la semana y deja ver la tendencia:</p>
-<pre><code class="language-sql">-- AVG(pedidos) OVER (ORDER BY dia ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)</code></pre>
+<pre tabindex="0"><code class="language-sql">-- AVG(pedidos) OVER (ORDER BY dia ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)</code></pre>
 <div class="recorrido"></div>
 
 
@@ -64,7 +64,7 @@ LIMIT 7;</code></pre>
 <li>Compara las dos columnas: el promedio móvil quita el ruido diario y deja ver la tendencia.</li>
 <li>Busca días que se alejen mucho del promedio: candidatos a anomalía.</li>
 </ol>
-<pre data-norun><code class="language-sql">WITH diario AS (
+<pre data-norun tabindex="0"><code class="language-sql">WITH diario AS (
     SELECT p.fecha_pedido AS dia,
            SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS ventas
     FROM pedidos p

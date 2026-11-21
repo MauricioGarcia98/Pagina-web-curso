@@ -27,13 +27,13 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>La sintaxis</h2>
-<pre data-norun><code class="language-sql">WITH nombre_del_paso AS (
+<pre data-norun tabindex="0"><code class="language-sql">WITH nombre_del_paso AS (
     SELECT …            -- una consulta cualquiera
 )
 SELECT …
 FROM nombre_del_paso;   -- se usa como si fuera una tabla</code></pre>
 <p>Un ejemplo real: los 10 clientes que más compraron (solo pedidos entregados).</p>
-<pre><code class="language-sql">WITH ventas_por_cliente AS (
+<pre tabindex="0"><code class="language-sql">WITH ventas_por_cliente AS (
     SELECT p.cliente_id,
            SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS total
     FROM pedidos p
@@ -60,7 +60,7 @@ LIMIT 10;</code></pre>
 
 <h2>Varias CTE encadenadas: un pipeline en miniatura</h2>
 <p>Puedes declarar varias CTE separadas <strong>por comas</strong> (con un único <code>WITH</code> al principio). Cada una puede usar las anteriores:</p>
-<pre><code class="language-sql">WITH pedidos_2024 AS (                       -- paso 1: filtrar
+<pre tabindex="0"><code class="language-sql">WITH pedidos_2024 AS (                       -- paso 1: filtrar
     SELECT * FROM pedidos WHERE fecha_pedido &gt;= '2024-01-01'
 ),
 por_cliente AS (                              -- paso 2: contar por cliente
@@ -138,7 +138,7 @@ SELECT * FROM distribucion ORDER BY pedidos;</code></pre>
 </tbody></table></div>
 <h3>El estilo dbt: CTE de importación</h3>
 <p>En proyectos profesionales verás este patrón: las primeras CTE solo &quot;importan&quot; las tablas (sin transformarlas), y después vienen los pasos lógicos.</p>
-<pre><code class="language-sql">WITH src_pedidos AS (
+<pre tabindex="0"><code class="language-sql">WITH src_pedidos AS (
     SELECT * FROM pedidos
 ),
 src_detalle AS (
@@ -159,7 +159,7 @@ LIMIT 5;</code></pre>
 <p>(En dbt las importaciones se escriben <code>pedidos AS (SELECT * FROM {{ ref(&#39;stg_pedidos&#39;) }})</code>; aquí usamos el prefijo <code>src_</code> porque SQLite no permite que una CTE se llame igual que la tabla que lee.) Parece redundante, pero al principio del archivo ves de un vistazo <strong>de qué tablas depende</strong> el modelo, y el <code>SELECT * FROM final</code> del final permite depurar cambiando una sola palabra.</p>
 <h2>CTE con datos escritos a mano</h2>
 <p>Una CTE también puede contener datos literales con <code>VALUES</code>. Lo usamos en varias lecciones para crear tablitas de ejemplo o tablas de parámetros:</p>
-<pre><code class="language-sql">WITH metas(canal, meta_mensual) AS (
+<pre tabindex="0"><code class="language-sql">WITH metas(canal, meta_mensual) AS (
     VALUES ('web', 200), ('app', 110), ('tienda', 100), ('telefono', 40)
 )
 SELECT p.canal, COUNT(*) AS pedidos_dic_2024, m.meta_mensual,
@@ -231,7 +231,7 @@ GROUP BY p.canal, m.meta_mensual;</code></pre>
 <li>Agrega una segunda CTE con los clientes por país y únelas.</li>
 <li>Ponle a cada CTE un nombre que explique qué contiene.</li>
 </ol>
-<pre data-norun><code class="language-sql">WITH totales AS (
+<pre data-norun tabindex="0"><code class="language-sql">WITH totales AS (
   SELECT pedido_id, SUM(cantidad * precio_unitario) AS total
   FROM detalle_pedidos
   GROUP BY pedido_id

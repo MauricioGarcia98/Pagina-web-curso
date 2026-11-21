@@ -20,7 +20,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div></div>
 
 <h2>1. Accesos</h2>
-<pre><code class="language-bash">ruta accesos</code></pre>
+<pre tabindex="0"><code class="language-bash">ruta accesos</code></pre>
 <figure class="diagrama"><figcaption>Los sistemas de Ruta Sur: telemetría en tiempo real y el sistema de transporte</figcaption></figure>
 
 
@@ -49,17 +49,17 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <p>El orden está garantizado <strong>dentro de una partición</strong> y por orden de <strong>llegada</strong>, no de ocurrencia.</p>
 <h3>El mensaje (firmware 1.4)</h3>
-<pre><code class="language-json">{&quot;fw&quot;: &quot;1.4&quot;, &quot;event_id&quot;: &quot;7b47…&quot;, &quot;vehiculo&quot;: &quot;V12&quot;, &quot;evento&quot;: &quot;ping&quot;, &quot;ts_dispositivo&quot;: &quot;2026-11-18T13:21:07.000Z&quot;,
+<pre tabindex="0"><code class="language-json">{&quot;fw&quot;: &quot;1.4&quot;, &quot;event_id&quot;: &quot;7b47…&quot;, &quot;vehiculo&quot;: &quot;V12&quot;, &quot;evento&quot;: &quot;ping&quot;, &quot;ts_dispositivo&quot;: &quot;2026-11-18T13:21:07.000Z&quot;,
  &quot;lat&quot;: -34.8311, &quot;lon&quot;: -56.1575, &quot;velocidad_kmh&quot;: 23}</code></pre>
 <p>Eventos: <code>inicio_jornada</code>, <code>ping</code> (cada 3 minutos), <code>llegada_parada</code>, <code>entrega_completada</code>, <code>entrega_fallida</code> (con <code>motivo</code>), <code>fin_jornada</code>. Los de parada y entrega traen <code>pedido_id</code>.</p>
 <blockquote>
 <p><strong>Nota del proveedor de GPS (hace un mes):</strong> &quot;Estamos preparando el firmware 2.0, con mejor precisión. Más detalles cuando esté disponible.&quot;</p>
 </blockquote>
 <h2>3. Consumir</h2>
-<pre><code class="language-bash">kcat -L
+<pre tabindex="0"><code class="language-bash">kcat -L
 kcat -C -t rutasur.telemetria -p 0 -o -5 -e -f '%p %o %T %k %s\n'
 kcat -G ruta-lago rutasur.telemetria -o beginning -e &gt; telemetria.jsonl</code></pre>
-<pre data-norun><code class="language-sql">-- Databricks: una tabla de streaming lee de Kafka y guarda hasta dónde leyó (checkpoint)
+<pre data-norun tabindex="0"><code class="language-sql">-- Databricks: una tabla de streaming lee de Kafka y guarda hasta dónde leyó (checkpoint)
 CREATE OR REFRESH STREAMING TABLE ruta.bronze.telemetria AS
 SELECT CAST(value AS STRING) AS valor, partition, offset, timestamp AS ts_ingesta
 FROM STREAM read_kafka(
@@ -87,7 +87,7 @@ REFRESH STREAMING TABLE ruta.bronze.telemetria;   -- solo agrega los mensajes nu
 <td>Un pedido</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-bash">curl -s &quot;https://api.rutasur.example/v1/rutas?fecha=2026-11-18&quot; -H &quot;X-Api-Key: $RS_API_KEY&quot; | head -40</code></pre>
+<pre tabindex="0"><code class="language-bash">curl -s &quot;https://api.rutasur.example/v1/rutas?fecha=2026-11-18&quot; -H &quot;X-Api-Key: $RS_API_KEY&quot; | head -40</code></pre>
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

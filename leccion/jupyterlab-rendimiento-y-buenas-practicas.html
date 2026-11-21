@@ -24,11 +24,11 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — Mide antes de optimizar</h2>
-<pre data-norun><code class="language-python">%timeit pedidos[&quot;estado&quot;].value_counts()</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">%timeit pedidos[&quot;estado&quot;].value_counts()</code></pre>
 <p><code>%timeit</code> ejecuta la línea muchas veces y da el promedio (por ejemplo <code>512 µs ± 8 µs per loop</code>). Para medir una celda entera, <code>%%timeit</code> en la primera línea. Optimiza solo lo que medido es lento.</p>
 <h2>Paso 2 — Vectorizar en lugar de recorrer filas</h2>
 <p>Calcular el importe de cada línea del detalle, de dos formas:</p>
-<pre data-norun><code class="language-python">detalle = pd.read_csv(&quot;datos/detalle_pedidos.csv&quot;)
+<pre data-norun tabindex="0"><code class="language-python">detalle = pd.read_csv(&quot;datos/detalle_pedidos.csv&quot;)
 
 def con_bucle(df):
     out = []
@@ -67,15 +67,15 @@ def con_bucle(df):
 
 
 <h2>Paso 3 — Memoria</h2>
-<pre data-norun><code class="language-python">pedidos.memory_usage(deep=True).sum() / 1e6     # megabytes
+<pre data-norun tabindex="0"><code class="language-python">pedidos.memory_usage(deep=True).sum() / 1e6     # megabytes
 pedidos.memory_usage(deep=True)</code></pre>
 <p>Las columnas de texto ocupan mucho. Si tienen pocos valores distintos (canal, estado, método de pago), conviértelas a <code>category</code>:</p>
-<pre data-norun><code class="language-python">for col in [&quot;estado&quot;, &quot;canal&quot;, &quot;metodo_pago&quot;]:
+<pre data-norun tabindex="0"><code class="language-python">for col in [&quot;estado&quot;, &quot;canal&quot;, &quot;metodo_pago&quot;]:
     pedidos[col] = pedidos[col].astype(&quot;category&quot;)
 pedidos.memory_usage(deep=True).sum() / 1e6</code></pre>
 <p>La tabla pasa a ocupar una fracción. Con archivos de millones de filas, es la diferencia entre que el kernel se quede sin memoria o no.</p>
 <h2>Paso 4 — Lee solo lo que necesitas</h2>
-<pre data-norun><code class="language-python">pd.read_csv(&quot;datos/pedidos.csv&quot;, usecols=[&quot;pedido_id&quot;, &quot;fecha_pedido&quot;, &quot;estado&quot;], dtype={&quot;estado&quot;: &quot;category&quot;})</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">pd.read_csv(&quot;datos/pedidos.csv&quot;, usecols=[&quot;pedido_id&quot;, &quot;fecha_pedido&quot;, &quot;estado&quot;], dtype={&quot;estado&quot;: &quot;category&quot;})</code></pre>
 <div class="table-wrap"><table><thead><tr>
 <th>Parámetro</th>
 <th>Para</th>
@@ -102,10 +102,10 @@ pedidos.memory_usage(deep=True).sum() / 1e6</code></pre>
 </tr>
 </tbody></table></div>
 <h2>Paso 5 — La advertencia SettingWithCopy</h2>
-<pre data-norun><code class="language-python">web = pedidos[pedidos[&quot;canal&quot;] == &quot;web&quot;]
+<pre data-norun tabindex="0"><code class="language-python">web = pedidos[pedidos[&quot;canal&quot;] == &quot;web&quot;]
 web[&quot;tipo&quot;] = &quot;online&quot;      # en pandas 2: ⚠ SettingWithCopyWarning</code></pre>
 <p>Con pandas 2 (todavía muy usado en empresas), pandas avisa que <code>web</code> podría ser una &quot;vista&quot; de <code>pedidos</code> y no sabe si querías modificar la original. Las dos formas correctas:</p>
-<pre data-norun><code class="language-python">web = pedidos[pedidos[&quot;canal&quot;] == &quot;web&quot;].copy()   # quiero una tabla nueva
+<pre data-norun tabindex="0"><code class="language-python">web = pedidos[pedidos[&quot;canal&quot;] == &quot;web&quot;].copy()   # quiero una tabla nueva
 web[&quot;tipo&quot;] = &quot;online&quot;
 
 pedidos.loc[pedidos[&quot;canal&quot;] == &quot;web&quot;, &quot;tipo&quot;] = &quot;online&quot;   # quiero modificar la original</code></pre>

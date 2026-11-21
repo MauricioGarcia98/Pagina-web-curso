@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Regla número uno: no romperse con un dato malo</h2>
 <p>En una entrevista, cuando el enunciado dice &quot;procesa este archivo&quot;, pregunta qué hacer con las líneas mal formadas. La respuesta habitual en producción: <strong>contarlas o apartarlas</strong> (cuarentena) y seguir. Un <code>try/except</code> alrededor de cada línea, no alrededor de todo el archivo.</p>
-<pre><code class="language-python">lineas = [
+<pre tabindex="0"><code class="language-python">lineas = [
     &quot;2024-05-01T10:00:01 GET /api/pedidos 200 35&quot;,
     &quot;2024-05-01T10:00:02 GET /api/pedidos 503 1200&quot;,
     &quot;línea cortada&quot;,
@@ -119,7 +119,7 @@ print(&quot;líneas descartadas:&quot;, malas)  # 2</code></pre>
 <li>Agrega una línea nueva con 6 partes y comprueba que se descarta sin romper el programa.</li>
 <li>Calcula, para cada ruta, la <strong>tasa de error</strong> en porcentaje con un decimal.</li>
 </ol>
-<pre><code class="language-python">lineas = [
+<pre tabindex="0"><code class="language-python">lineas = [
     &quot;2024-05-01T10:00:01 GET /api/pedidos 200 35&quot;,
     &quot;2024-05-01T10:00:02 GET /api/pedidos 503 1200&quot;,
     &quot;línea cortada&quot;,

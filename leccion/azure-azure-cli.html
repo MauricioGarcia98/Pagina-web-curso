@@ -54,7 +54,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <p>La CLI también está disponible directamente en el navegador con <strong>Azure Cloud Shell</strong> (el botón <code>&gt;_</code> del portal): una terminal ya autenticada, sin instalar nada.</p>
 <h2>Instalación</h2>
-<pre data-norun><code class="language-bash"># Windows (PowerShell)
+<pre data-norun tabindex="0"><code class="language-bash"># Windows (PowerShell)
 winget install -e --id Microsoft.AzureCLI
 
 # macOS
@@ -65,7 +65,7 @@ curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
 az version</code></pre>
 <h2>Iniciar sesión y elegir la suscripción</h2>
-<pre data-norun><code class="language-bash">az login                                    # abre el navegador para autenticarte
+<pre data-norun tabindex="0"><code class="language-bash">az login                                    # abre el navegador para autenticarte
 az login --use-device-code                  # si no hay navegador (servidores, SSH): te da un código para usar en otro dispositivo
 az account show                             # suscripción activa
 az account list --output table              # todas tus suscripciones
@@ -83,7 +83,7 @@ az account set --subscription &quot;sub-datos-dev&quot;</code></pre>
 
 
 <h2>La estructura de todos los comandos</h2>
-<pre><code class="language-text">az  &lt;grupo&gt;  &lt;subgrupo&gt;  &lt;acción&gt;  --parametros
+<pre tabindex="0"><code class="language-text">az  &lt;grupo&gt;  &lt;subgrupo&gt;  &lt;acción&gt;  --parametros
 az  storage  account     create    --name stdatos --resource-group rg-datos-dev
 az  group                list      --output table
 az  keyvault secret      show      --vault-name kv-datos --name token</code></pre>
@@ -94,20 +94,20 @@ az  keyvault secret      show      --vault-name kv-datos --name token</code></pr
 
 <h2>Ayuda y descubrimiento</h2>
 <p>No hace falta memorizar parámetros:</p>
-<pre data-norun><code class="language-bash">az --help
+<pre data-norun tabindex="0"><code class="language-bash">az --help
 az storage --help
 az storage account create --help            # todos los parámetros, cuáles son obligatorios y ejemplos
 az find &quot;crear cuenta de almacenamiento&quot;    # busca ejemplos reales</code></pre>
 <h2>Extensiones y configuración</h2>
 <p>Algunos servicios (Databricks, Data Factory…) se gestionan con <strong>extensiones</strong>: módulos adicionales de la CLI que se instalan aparte.</p>
-<pre data-norun><code class="language-bash">az extension add --name databricks
+<pre data-norun tabindex="0"><code class="language-bash">az extension add --name databricks
 az extension list --output table
 az config set extension.use_dynamic_install=yes_without_prompt   # instala extensiones automáticamente cuando hacen falta
 az configure --defaults group=rg-datos-dev location=eastus2     # valores por defecto: ya no hace falta escribir -g ni -l
 az upgrade                                                       # actualizar la CLI</code></pre>
 <h2>Pruébalo en la terminal</h2>
 <p>La terminal del curso simula la Azure CLI con estado: lo que creas queda guardado (en tu navegador) y los errores se parecen a los reales.</p>
-<pre><code class="language-bash">az login
+<pre tabindex="0"><code class="language-bash">az login
 az account show
 az account list --output table
 az account set --subscription sub-datos-prod
@@ -137,7 +137,7 @@ az account set --subscription sub-datos-dev</code></pre>
 <li>Ejecuta los comandos: todos siguen la forma <code>az &lt;grupo&gt; &lt;subgrupo&gt; &lt;acción&gt; --parámetros</code>.</li>
 <li>Cambia el formato de salida (<code>-o table</code>, <code>-o json</code>, <code>-o tsv</code>) y compara.</li>
 </ol>
-<pre data-norun><code class="language-bash">az account show -o table
+<pre data-norun tabindex="0"><code class="language-bash">az account show -o table
 az group list -o table
 az group list -o json
 az group list --query &quot;[].name&quot; -o tsv</code></pre>

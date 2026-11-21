@@ -57,7 +57,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Lo que tú definas: pagos antes del pedido, montos negativos…</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-sql">-- relationships: pedidos de bronze cuyo email no corresponde a ningún cliente
+<pre tabindex="0"><code class="language-sql">-- relationships: pedidos de bronze cuyo email no corresponde a ningún cliente
 SELECT b.registro_id, b.cliente_email
 FROM bronze_pedidos b
 WHERE b.cliente_email IS NOT NULL
@@ -104,7 +104,7 @@ WHERE b.cliente_email IS NOT NULL
 <li>Identifica cuáles fallan (más de 0) y decide para cada una si frenaría el pipeline o solo avisaría.</li>
 <li>Cambia la prueba de valores aceptados para que acepte también <code>en_disputa</code> y vuelve a ejecutar.</li>
 </ol>
-<pre><code class="language-sql">SELECT 'unique pedido_id' AS prueba, COUNT(*) AS fallas
+<pre tabindex="0"><code class="language-sql">SELECT 'unique pedido_id' AS prueba, COUNT(*) AS fallas
 FROM (SELECT pedido_id FROM bronze_pedidos GROUP BY pedido_id HAVING COUNT(*) &gt; 1)
 UNION ALL
 SELECT 'not_null monto', COUNT(*) FROM bronze_pedidos WHERE monto IS NULL

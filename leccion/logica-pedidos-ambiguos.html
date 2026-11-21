@@ -82,7 +82,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ol>
 <h2>Si no puedes preguntar: supuestos explícitos</h2>
 <p>A veces no hay a quién preguntar (o estás en una entrevista y te dicen &quot;decide tú&quot;). Entonces <strong>decides, lo escribes y sigues</strong>. Un supuesto bien escrito se puede corregir en un minuto; uno escondido genera números que nadie entiende.</p>
-<pre><code class="language-sql">-- Supuestos:
+<pre tabindex="0"><code class="language-sql">-- Supuestos:
 -- 1. &quot;Ventas&quot; = pedidos con estado 'entregado' (excluye cancelados y devueltos).
 -- 2. Importe = cantidad * precio_unitario, sin descuentos ni impuestos.
 -- 3. &quot;Este año&quot; = año calendario 2024 completo.
@@ -92,7 +92,7 @@ JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
 WHERE p.estado = 'entregado'
   AND p.fecha_pedido &gt;= '2024-01-01' AND p.fecha_pedido &lt; '2025-01-01';</code></pre>
 <p>En Python, los supuestos van en la documentación de la función o en constantes con nombre:</p>
-<pre><code class="language-python">DIAS_ACTIVO = 90   # supuesto: activo = compró en los últimos 90 días
+<pre tabindex="0"><code class="language-python">DIAS_ACTIVO = 90   # supuesto: activo = compró en los últimos 90 días
 
 def es_activo(dias_desde_ultima_compra):
     return dias_desde_ultima_compra &lt;= DIAS_ACTIVO</code></pre>
@@ -134,7 +134,7 @@ def es_activo(dias_desde_ultima_compra):
 <li>Ejecuta: la consulta muestra las cuatro combinaciones lado a lado.</li>
 <li>Escribe la pregunta que le harías a quien pidió el dato y el supuesto que usarías si no puede responder.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT
+<pre data-norun tabindex="0"><code class="language-sql">SELECT
     SUM(CASE WHEN SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 7) = '2024-11' THEN pg.monto END)                             AS por_pedido_todos,
     SUM(CASE WHEN SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 7) = '2024-11' AND p.estado &lt;&gt; 'cancelado' THEN pg.monto END) AS por_pedido_sin_cancelados,
     SUM(CASE WHEN SUBSTR(CAST(pg.fecha_pago AS VARCHAR), 1, 7) = '2024-11' THEN pg.monto END)                              AS por_pago_todos,

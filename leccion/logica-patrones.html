@@ -75,7 +75,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <p>La última columna es la clave de este módulo: <strong>el patrón es el mismo, cambia la sintaxis</strong>. Si sabes pensarlo en Python, lo sabes pensar en SQL y en Spark.</p>
 <h2>Bandera: cortar apenas lo encuentras</h2>
-<pre><code class="language-python">def hay_negativo(numeros):
+<pre tabindex="0"><code class="language-python">def hay_negativo(numeros):
     for n in numeros:
         if n &lt; 0:
             return True   # encontré uno: no hace falta seguir
@@ -87,7 +87,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p>La idea mejor: mientras recorres, guarda lo que ya viste. Para cada número <code>n</code>, el que necesitas es <code>10 - n</code>. Si ya lo viste, terminaste.</p>
-<pre><code class="language-python">def dos_suman(numeros, objetivo):
+<pre tabindex="0"><code class="language-python">def dos_suman(numeros, objetivo):
     vistos = set()
     for n in numeros:
         if objetivo - n in vistos:
@@ -99,7 +99,7 @@ print(dos_suman([3, 8, 1, 7], 10))   # True: 3 + 7</code></pre>
 <p>Buscar en un <code>set</code> o en un <code>dict</code> es casi instantáneo, sin importar el tamaño. Este truco aparece en entrevistas una y otra vez, y es la misma idea que hace rápido a un <code>JOIN</code>.</p>
 <h2>Comparar con el anterior: rachas y cambios</h2>
 <p>Para saber si algo &quot;creció&quot;, &quot;se repitió&quot; o &quot;cuántos días seguidos&quot;, necesitas recordar el elemento anterior.</p>
-<pre><code class="language-python">ventas = [100, 120, 90, 95, 130]
+<pre tabindex="0"><code class="language-python">ventas = [100, 120, 90, 95, 130]
 anterior = None
 for v in ventas:
     if anterior is not None and v &gt; anterior:
@@ -151,7 +151,7 @@ for v in ventas:
 </tbody></table></div>
 <h2>Ventana: los últimos N</h2>
 <p>El promedio móvil de 3 días en la posición <code>i</code> usa los elementos <code>i-2</code>, <code>i-1</code> e <code>i</code>. El borde: en las dos primeras posiciones todavía no hay 3 días.</p>
-<pre><code class="language-python">def movil(valores, n):
+<pre tabindex="0"><code class="language-python">def movil(valores, n):
     salida = []
     for i in range(len(valores)):
         if i + 1 &lt; n:
@@ -176,7 +176,7 @@ print(movil([10, 20, 30, 40], 3))   # [None, None, 20.0, 30.0]</code></pre>
 <li>Ejecuta el segundo: la racha más larga de días con ventas en alza compara cada valor con el anterior.</li>
 <li>Para cada uno, escribe en una línea qué patrón es y en qué otro problema lo usarías.</li>
 </ol>
-<pre data-norun><code class="language-python"># patrón 1: diccionario índice (de O(n²) a O(n))
+<pre data-norun tabindex="0"><code class="language-python"># patrón 1: diccionario índice (de O(n²) a O(n))
 montos = [120, 45, 300, 80, 75]
 objetivo = 155
 vistos = {}

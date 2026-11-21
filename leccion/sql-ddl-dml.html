@@ -70,7 +70,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>CREATE TABLE: diseñar una tabla</h2>
-<pre><code class="language-sql">-- la base del curso ya trae una tabla proveedores: la borramos para recrearla con este diseño
+<pre tabindex="0"><code class="language-sql">-- la base del curso ya trae una tabla proveedores: la borramos para recrearla con este diseño
 DROP TABLE IF EXISTS proveedores;
 
 CREATE TABLE proveedores (
@@ -172,7 +172,7 @@ CREATE TABLE proveedores (
 
 
 <h2>INSERT: agregar filas</h2>
-<pre><code class="language-sql">INSERT INTO proveedores (proveedor_id, nombre, email, calificacion)
+<pre tabindex="0"><code class="language-sql">INSERT INTO proveedores (proveedor_id, nombre, email, calificacion)
 VALUES (1, 'Distribuidora Sur', 'ventas@dsur.com', 5),
        (2, 'TecnoImport',       'hola@tecnoimport.com', 4);
 
@@ -182,7 +182,7 @@ SELECT * FROM proveedores;</code></pre>
 <li>Puedes insertar <strong>varias filas</strong> en una sola instrucción, separadas por comas. Es mucho más rápido que una instrucción por fila.</li>
 </ul>
 <h3>Insertar el resultado de una consulta</h3>
-<pre><code class="language-sql">-- Crear una tabla nueva a partir de una consulta (CTAS: CREATE TABLE AS SELECT)
+<pre tabindex="0"><code class="language-sql">-- Crear una tabla nueva a partir de una consulta (CTAS: CREATE TABLE AS SELECT)
 CREATE TABLE marcas AS SELECT DISTINCT marca FROM productos;
 
 -- Agregar filas a una tabla existente desde una consulta
@@ -195,7 +195,7 @@ FROM marcas;</code></pre>
 
 
 <h2>UPDATE y DELETE: modificar y borrar</h2>
-<pre data-norun><code class="language-sql">-- Subir 10 % el precio de los productos Apple
+<pre data-norun tabindex="0"><code class="language-sql">-- Subir 10 % el precio de los productos Apple
 UPDATE productos
 SET precio = ROUND(precio * 1.10, 2)
 WHERE marca = 'Apple';
@@ -248,21 +248,21 @@ WHERE estado = 'cancelado' AND fecha_pedido &lt; '2022-06-01';</code></pre>
 
 
 <h2>ALTER TABLE: cambiar la estructura</h2>
-<pre data-norun><code class="language-sql">ALTER TABLE proveedores ADD COLUMN telefono TEXT;          -- agregar columna
+<pre data-norun tabindex="0"><code class="language-sql">ALTER TABLE proveedores ADD COLUMN telefono TEXT;          -- agregar columna
 ALTER TABLE proveedores RENAME COLUMN pais TO pais_origen; -- renombrar
 ALTER TABLE proveedores RENAME TO proveedores_v2;          -- renombrar la tabla</code></pre>
 <p>Cambiar la estructura de una tabla que ya usan reportes y procesos es delicado: quien hacía <code>SELECT pais</code> deja de funcionar. Por eso en equipos grandes los cambios de esquema se versionan y se anuncian (<em>migraciones</em>, <em>contratos de datos</em>).</p>
 <h2>UPSERT: insertar o actualizar</h2>
 <p>El problema más común al cargar datos: llega un lote donde algunos registros son <strong>nuevos</strong> y otros son <strong>cambios</strong> de registros existentes. &quot;Si no existe, insértalo; si existe, actualízalo&quot; se llama <strong>upsert</strong> (<em>update</em> + <em>insert</em>).</p>
 <p>En SQLite y PostgreSQL:</p>
-<pre data-norun><code class="language-sql">INSERT INTO proveedores (proveedor_id, nombre, calificacion)
+<pre data-norun tabindex="0"><code class="language-sql">INSERT INTO proveedores (proveedor_id, nombre, calificacion)
 VALUES (1, 'Distribuidora Sur SA', 4)
 ON CONFLICT (proveedor_id) DO UPDATE
    SET nombre = excluded.nombre,
        calificacion = excluded.calificacion;</code></pre>
 <p><code>excluded</code> se refiere a la fila que <strong>intentabas</strong> insertar. Si el <code>proveedor_id</code> 1 ya existe, en vez de dar error, actualiza sus columnas.</p>
 <p>En Databricks, Snowflake, BigQuery, SQL Server y Oracle se usa <code>MERGE</code>, más completo (también puede borrar):</p>
-<pre data-norun><code class="language-sql">MERGE INTO clientes_silver AS d
+<pre data-norun tabindex="0"><code class="language-sql">MERGE INTO clientes_silver AS d
 USING cambios_del_dia AS c
    ON d.cliente_id = c.cliente_id
 WHEN MATCHED AND c.operacion = 'baja' THEN DELETE
@@ -274,7 +274,7 @@ WHEN NOT MATCHED THEN INSERT (cliente_id, email, segmento) VALUES (c.cliente_id,
 
 <h2>Transacciones y ACID</h2>
 <p>Una <strong>transacción</strong> agrupa varias operaciones que deben ocurrir <strong>todas o ninguna</strong>. El ejemplo clásico: una transferencia bancaria. Si se resta de una cuenta y se corta la luz antes de sumar en la otra, el dinero desaparece.</p>
-<pre data-norun><code class="language-sql">BEGIN;                                                  -- empieza la transacción
+<pre data-norun tabindex="0"><code class="language-sql">BEGIN;                                                  -- empieza la transacción
 UPDATE cuentas SET saldo = saldo - 100 WHERE id = 1;
 UPDATE cuentas SET saldo = saldo + 100 WHERE id = 2;
 -- (verificación: SELECT … para comprobar que todo está bien)
@@ -315,7 +315,7 @@ COMMIT;                                                 -- confirma: los cambios
 <p>Durante años los data lakes (archivos en S3 o ADLS) <strong>no</strong> tenían estas garantías: un job que fallaba a la mitad dejaba archivos sueltos. <strong>Delta Lake</strong>, <strong>Apache Iceberg</strong> y <strong>Hudi</strong> llevaron ACID a los archivos del lago: es una de las razones por las que existe el <em>lakehouse</em>.</p>
 <h2>Vistas: consultas guardadas con nombre</h2>
 <p>Una <strong>vista</strong> es una consulta guardada con un nombre. <strong>No guarda datos</strong>: cada vez que la consultas, ejecuta la consulta original sobre los datos actuales.</p>
-<pre><code class="language-sql">CREATE VIEW v_ventas_diarias AS
+<pre tabindex="0"><code class="language-sql">CREATE VIEW v_ventas_diarias AS
 SELECT p.fecha_pedido AS dia,
        ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas
 FROM pedidos p JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
@@ -410,7 +410,7 @@ SELECT * FROM v_ventas_diarias ORDER BY dia DESC LIMIT 5;</code></pre>
 <li>Agrega un <code>UPDATE</code> que cambie la meta de un canal.</li>
 <li>Prueba un <code>DELETE</code> y después <strong>Reiniciar base</strong> para volver a empezar.</li>
 </ol>
-<pre data-norun><code class="language-sql">CREATE TABLE metas_canal (canal TEXT PRIMARY KEY, meta INTEGER);
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE metas_canal (canal TEXT PRIMARY KEY, meta INTEGER);
 INSERT INTO metas_canal VALUES ('web', 500), ('app', 300);
 SELECT * FROM metas_canal;</code></pre>
 <p>Reto: compara los pedidos reales de cada canal con su meta en una sola consulta.</p>

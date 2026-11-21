@@ -59,7 +59,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Las horas con más &quot;sin conductor&quot; son donde subiría la tarifa dinámica.</li>
 <li>Mira el multiplicador promedio en esas horas: ¿el precio ya está reaccionando?</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 v = spark.table(&quot;viajes_viajes&quot;).withColumn(&quot;hora&quot;, F.hour(F.to_timestamp(&quot;fecha_hora_solicitud&quot;)))
 (v.groupBy(&quot;ciudad&quot;, &quot;hora&quot;)

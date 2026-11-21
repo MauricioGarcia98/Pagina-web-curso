@@ -31,7 +31,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Crear tablas: DDL sobre S3</h2>
 <p>Además de los crawlers, puedes declarar la tabla tú mismo. Fíjate en <code>EXTERNAL</code> (los datos no se mueven: la tabla solo <strong>apunta</strong> a S3) y en <code>LOCATION</code>:</p>
-<pre data-norun><code class="language-sql">CREATE EXTERNAL TABLE lake_bronze.ventas (
+<pre data-norun tabindex="0"><code class="language-sql">CREATE EXTERNAL TABLE lake_bronze.ventas (
   pedido_id   BIGINT,
   fecha       DATE,
   cliente_id  BIGINT,
@@ -49,7 +49,7 @@ MSCK REPAIR TABLE lake_bronze.ventas;</code></pre>
 <div class="callout callout-tip"><div class="callout-title">💡 Partition projection: sin MSCK ni crawlers</div>
 
 <p>Con muchas particiones (una por día durante años), registrarlas cuesta. <strong>Partition projection</strong> le dice a Athena la regla (&quot;<code>fecha</code> va de 2020-01-01 a hoy, una carpeta por día&quot;) y Athena calcula las rutas sin consultar el catálogo:</p>
-<pre data-norun><code class="language-sql">TBLPROPERTIES (
+<pre data-norun tabindex="0"><code class="language-sql">TBLPROPERTIES (
   'projection.enabled' = 'true',
   'projection.fecha.type' = 'date',
   'projection.fecha.range' = '2020-01-01,NOW',
@@ -64,7 +64,7 @@ MSCK REPAIR TABLE lake_bronze.ventas;</code></pre>
 
 <h2>CTAS: convertir CSV a Parquet con una consulta</h2>
 <p><code>CREATE TABLE AS SELECT</code> (CTAS) escribe el resultado como archivos nuevos en S3. Es la forma más simple de pasar de bronze (CSV) a silver (Parquet particionado) <strong>sin Spark</strong>:</p>
-<pre data-norun><code class="language-sql">CREATE TABLE lake_silver.ventas
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE lake_silver.ventas
 WITH (
   format = 'PARQUET',
   write_compression = 'SNAPPY',
@@ -76,7 +76,7 @@ FROM lake_bronze.ventas
 WHERE estado &lt;&gt; 'cancelado';</code></pre>
 <h2>Iceberg en Athena: UPDATE, DELETE y MERGE sobre S3</h2>
 <p>Las tablas Hive clásicas solo permiten agregar archivos. Con <strong>Apache Iceberg</strong>, Athena soporta transacciones:</p>
-<pre data-norun><code class="language-sql">CREATE TABLE lake_silver.clientes (cliente_id BIGINT, email STRING, segmento STRING, actualizado TIMESTAMP)
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE lake_silver.clientes (cliente_id BIGINT, email STRING, segmento STRING, actualizado TIMESTAMP)
 LOCATION 's3://lake-tienda-dev/silver/clientes/'
 TBLPROPERTIES ('table_type' = 'ICEBERG');
 
@@ -150,7 +150,7 @@ SELECT * FROM lake_silver.clientes FOR TIMESTAMP AS OF (current_timestamp - inte
 
 <h2>Athena desde la CLI</h2>
 <p>Athena es <strong>asíncrono</strong>: lanzas la consulta, recibes un ID, consultas el estado y luego pides los resultados.</p>
-<pre data-norun><code class="language-bash">QID=$(aws athena start-query-execution \
+<pre data-norun tabindex="0"><code class="language-bash">QID=$(aws athena start-query-execution \
   --query-string &quot;SELECT canal, COUNT(*) AS pedidos FROM lake_bronze.ventas GROUP BY canal&quot; \
   --query-execution-context Database=lake_bronze \
   --result-configuration OutputLocation=s3://lake-tienda-dev/athena-results/ \
@@ -160,7 +160,7 @@ aws athena get-query-execution --query-execution-id $QID --query &quot;QueryExec
 aws athena get-query-results --query-execution-id $QID --output table</code></pre>
 <h3>Laboratorio: consulta lo que catalogaste</h3>
 <p>Si hiciste los laboratorios de S3 y Glue, la tabla <code>lake_bronze.ventas</code> apunta al CSV que subiste. En esta terminal Athena <strong>lee ese archivo de verdad</strong> (incluida la partición <code>mes=12</code> de la ruta):</p>
-<pre><code class="language-bash">QID=$(aws athena start-query-execution --query-string &quot;SELECT canal, COUNT(*) AS pedidos, ROUND(SUM(total), 2) AS total FROM lake_bronze.ventas WHERE mes = 12 GROUP BY canal ORDER BY total DESC&quot; --result-configuration OutputLocation=s3://lake-tienda-dev/athena-results/ --query QueryExecutionId --output text)
+<pre tabindex="0"><code class="language-bash">QID=$(aws athena start-query-execution --query-string &quot;SELECT canal, COUNT(*) AS pedidos, ROUND(SUM(total), 2) AS total FROM lake_bronze.ventas WHERE mes = 12 GROUP BY canal ORDER BY total DESC&quot; --result-configuration OutputLocation=s3://lake-tienda-dev/athena-results/ --query QueryExecutionId --output text)
 echo $QID
 aws athena get-query-execution --query-execution-id $QID --query &quot;QueryExecution.Status.State&quot;
 aws athena get-query-results --query-execution-id $QID --output table</code></pre>
@@ -183,7 +183,7 @@ aws athena get-query-results --query-execution-id $QID --output table</code></pr
 <li>Lanza la consulta: Athena devuelve un id y escribe el resultado en S3.</li>
 <li>Pide el resultado con ese id. Se paga por datos escaneados: con Parquet y particiones se escanea mucho menos.</li>
 </ol>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 aws s3 mb s3://lake-practica-dev
 aws s3 cp datos/clientes.csv s3://lake-practica-dev/bronze/clientes/
 aws glue create-database --database-input '{&quot;Name&quot;: &quot;lake_bronze&quot;}'

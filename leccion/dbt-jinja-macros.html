@@ -59,7 +59,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Una forma de recordarlo: las <strong>llaves dobles</strong> &quot;dicen&quot; algo y el <strong>porcentaje</strong> &quot;hace&quot; algo.</p>
 <h2>Variables y bucles: generar SQL repetitivo</h2>
 <p>Un caso clásico es pivotar: convertir los valores de una columna (los canales) en columnas. En SQL a mano tendrías que escribir un <code>sum(case when ...)</code> por cada canal, y si mañana aparece un canal nuevo, agregar otra línea. Con Jinja escribes la lista <strong>una vez</strong>:</p>
-<pre><code class="language-dbt">{% set canales = ['web', 'app', 'tienda', 'telefono'] %}
+<pre tabindex="0"><code class="language-dbt">{% set canales = ['web', 'app', 'tienda', 'telefono'] %}
 
 select
     strftime('%Y', fecha_pedido) as anio,
@@ -70,7 +70,7 @@ from {{ ref('stg_pedidos') }}
 group by anio
 order by anio</code></pre>
 <p>Ejecútalo y abre <strong>Ver SQL compilado</strong>. Jinja escribió esto por ti:</p>
-<pre data-norun><code class="language-sql">select
+<pre data-norun tabindex="0"><code class="language-sql">select
     strftime('%Y', fecha_pedido) as anio,
     sum(case when canal = 'web' then 1 else 0 end) as pedidos_web,
     sum(case when canal = 'app' then 1 else 0 end) as pedidos_app,
@@ -121,7 +121,7 @@ order by anio</code></pre>
 
 <h2>Condicionales</h2>
 <p><code>{% if %}</code> incluye o saca pedazos de SQL según una condición:</p>
-<pre><code class="language-dbt">{% set incluir_cancelados = false %}
+<pre tabindex="0"><code class="language-dbt">{% set incluir_cancelados = false %}
 
 select estado, count(*) as n
 from {{ ref('stg_pedidos') }}
@@ -131,17 +131,17 @@ where estado &lt;&gt; 'cancelado'
 group by estado</code></pre>
 <p>Cambia <code>false</code> por <code>true</code> y mira cómo desaparece el <code>where</code> del SQL compilado.</p>
 <p>El uso más común en proyectos reales es comparar con el <strong>entorno</strong> en el que corre dbt, <code>target.name</code>. Por ejemplo, para trabajar con menos datos en desarrollo:</p>
-<pre data-norun><code class="language-sql">select * from {{ source('tienda', 'eventos') }}
+<pre data-norun tabindex="0"><code class="language-sql">select * from {{ source('tienda', 'eventos') }}
 {% if target.name == 'dev' %}
 where fecha &gt;= current_date - 3      -- en dev, solo 3 días: más rápido y más barato
 {% endif %}</code></pre>
 <h2>var(): parámetros del proyecto</h2>
 <p>Las <strong>variables de proyecto</strong> son parámetros que defines una vez en <code>dbt_project.yml</code> y lees en cualquier modelo con <code>var()</code>:</p>
-<pre data-norun><code class="language-yaml"># dbt_project.yml
+<pre data-norun tabindex="0"><code class="language-yaml"># dbt_project.yml
 vars:
   fecha_inicio: '2024-01-01'
   paises_activos: ['Chile', 'Perú', 'México']</code></pre>
-<pre data-norun><code class="language-sql">where fecha_pedido &gt;= '{{ var(&quot;fecha_inicio&quot;) }}'
+<pre data-norun tabindex="0"><code class="language-sql">where fecha_pedido &gt;= '{{ var(&quot;fecha_inicio&quot;) }}'
   and pais in ('{{ var(&quot;paises_activos&quot;) | join(&quot;', '&quot;) }}')</code></pre>
 <p>Se pueden sobrescribir al ejecutar, sin tocar código: <code>dbt run --vars &#39;{fecha_inicio: 2024-06-01}&#39;</code>. Así es como Airflow le pasa la fecha del día a dbt (<code>--vars &#39;{fecha: {{ ds }}}&#39;</code>).</p>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ var() vs. set</div>
@@ -153,7 +153,7 @@ vars:
 <h2>Macros: funciones de SQL reutilizables</h2>
 <p>Una <strong>macro</strong> es una función de Jinja que <strong>devuelve SQL</strong>. Se guarda en un archivo dentro de la carpeta <code>macros/</code> y queda disponible en <strong>todos</strong> los modelos del proyecto, sin importar nada.</p>
 <p>¿Cuándo crear una? Cuando la misma fórmula aparece en dos o más modelos. Si mañana cambia la regla (por ejemplo, el importe neto tiene que restar también el impuesto), la cambias en un solo lugar.</p>
-<pre><code class="language-dbt">{% macro importe_neto(cantidad, precio, descuento) -%}
+<pre tabindex="0"><code class="language-dbt">{% macro importe_neto(cantidad, precio, descuento) -%}
     round({{ cantidad }} * {{ precio }} * (1 - {{ descuento }}), 2)
 {%- endmacro %}
 
@@ -169,12 +169,12 @@ limit 5</code></pre>
 </ol>
 <h3>El guion: <code>{%-</code> y <code>-%}</code></h3>
 <p>El <code>-</code> junto al <code>%</code> <strong>borra los espacios y saltos de línea</strong> de ese lado. Sin él, la macro devolvería el SQL con saltos de línea alrededor, y el compilado quedaría desprolijo:</p>
-<pre><code class="language-text">select detalle_id,
+<pre tabindex="0"><code class="language-text">select detalle_id,
     round(cantidad * precio_unitario * (1 - descuento), 2)
  as importe</code></pre>
 <p>No cambia el resultado, pero hace el SQL compilado más difícil de leer. En macros que se usan dentro de una línea, pon siempre <code>-%}</code> y <code>{%-</code>.</p>
 <h3>Parámetros con valor por defecto</h3>
-<pre data-norun><code class="language-sql">{% macro a_moneda(columna, decimales=2) -%}
+<pre data-norun tabindex="0"><code class="language-sql">{% macro a_moneda(columna, decimales=2) -%}
     round({{ columna }}, {{ decimales }})
 {%- endmacro %}
 
@@ -182,7 +182,7 @@ limit 5</code></pre>
 {{ a_moneda('total', 0) }}      -- round(total, 0)</code></pre>
 <h2>Paquetes: macros de la comunidad</h2>
 <p>No tienes que escribir todo desde cero. Los <strong>paquetes</strong> de dbt son proyectos con macros (y tests) listos para usar. Se declaran en <code>packages.yml</code> y se instalan con <code>dbt deps</code>:</p>
-<pre data-norun><code class="language-yaml"># packages.yml
+<pre data-norun tabindex="0"><code class="language-yaml"># packages.yml
 packages:
   - package: dbt-labs/dbt_utils
     version: 1.3.0</code></pre>
@@ -202,15 +202,15 @@ packages:
 <p>Otros paquetes populares son <code>dbt_expectations</code> (tests de calidad al estilo Great Expectations) y <code>codegen</code> (genera el YAML de sources y staging por ti).</p>
 <h2>Laboratorio: una macro de verdad en la terminal</h2>
 <p>Abre la terminal (⌨ Terminal) y crea la macro <strong>en su propio archivo</strong>, como en un proyecto real:</p>
-<pre data-norun><code class="language-bash">cd ~/tienda_dbt
+<pre data-norun tabindex="0"><code class="language-bash">cd ~/tienda_dbt
 mkdir -p macros
 code macros/importe_neto.sql</code></pre>
 <p><code>code</code> abre el editor. Pega la macro (las tres líneas de <code>{% macro importe_neto ... %}</code> hasta <code>{%- endmacro %}</code>) y guarda. Después crea un modelo que la use:</p>
-<pre data-norun><code class="language-bash">code models/staging/stg_importes.sql</code></pre>
-<pre data-norun><code class="language-sql">select detalle_id, {{ importe_neto('cantidad', 'precio_unitario', 'descuento') }} as importe
+<pre data-norun tabindex="0"><code class="language-bash">code models/staging/stg_importes.sql</code></pre>
+<pre data-norun tabindex="0"><code class="language-sql">select detalle_id, {{ importe_neto('cantidad', 'precio_unitario', 'descuento') }} as importe
 from {{ source('tienda', 'detalle_pedidos') }}</code></pre>
 <p>Ahora compila, ejecuta y consulta:</p>
-<pre data-norun><code class="language-bash">dbt compile -s stg_importes      # mira el SQL que generó la macro
+<pre data-norun tabindex="0"><code class="language-bash">dbt compile -s stg_importes      # mira el SQL que generó la macro
 dbt run -s stg_importes
 sqlite3 &quot;SELECT * FROM stg_importes LIMIT 3&quot;</code></pre>
 <p>En <code>dbt compile</code> vas a ver <code>round(cantidad * precio_unitario * (1 - descuento), 2)</code> en lugar de la llamada a la macro. Y el modelo no tuvo que importar nada: dbt lee todas las macros de <code>macros/</code> automáticamente.</p>
@@ -227,7 +227,7 @@ sqlite3 &quot;SELECT * FROM stg_importes LIMIT 3&quot;</code></pre>
 <li>Agrega un canal a la lista y vuelve a ejecutar: no escribiste otra línea de SQL.</li>
 <li>Fíjate en <code>loop.last</code>: evita la coma después de la última columna.</li>
 </ol>
-<pre data-norun><code class="language-sql">{% set canales = ['web', 'app', 'tienda', 'telefono'] %}
+<pre data-norun tabindex="0"><code class="language-sql">{% set canales = ['web', 'app', 'tienda', 'telefono'] %}
 
 select
     cliente_id,

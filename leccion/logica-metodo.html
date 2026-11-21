@@ -86,7 +86,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ul>
 <p>¿Qué hiciste? <strong>Sumaste por vendedor</strong> y después <strong>buscaste el mayor</strong>. Acabas de descubrir el algoritmo sin escribir código.</p>
 <h3>Paso 3 · El plan en palabras</h3>
-<pre><code class="language-text">1. Preparar una tabla vacía: vendedor → total
+<pre tabindex="0"><code class="language-text">1. Preparar una tabla vacía: vendedor → total
 2. Para cada venta:
      sumar el monto al total de ese vendedor
 3. Recorrer la tabla y quedarme con el vendedor de mayor total
@@ -94,7 +94,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Esto se llama <strong>pseudocódigo</strong>. No tiene reglas: es tu plan, escrito para que lo entienda una persona.</p>
 <h3>Paso 4 · Código de a poco</h3>
 <p>Traduce un paso, ejecútalo, mira el resultado. Recién ahí el siguiente.</p>
-<pre><code class="language-python">ventas = [(&quot;Ana&quot;, 100), (&quot;Luis&quot;, 250), (&quot;Ana&quot;, 200)]
+<pre tabindex="0"><code class="language-python">ventas = [(&quot;Ana&quot;, 100), (&quot;Luis&quot;, 250), (&quot;Ana&quot;, 200)]
 
 # pasos 1 y 2: sumar por vendedor
 totales = {}
@@ -102,7 +102,7 @@ for vendedor, monto in ventas:
     totales[vendedor] = totales.get(vendedor, 0) + monto
 print(totales)          # compruebo antes de seguir: {'Ana': 300, 'Luis': 250}</code></pre>
 <p>Ya funciona la primera mitad. Ahora el paso 3:</p>
-<pre><code class="language-python">ventas = [(&quot;Ana&quot;, 100), (&quot;Luis&quot;, 250), (&quot;Ana&quot;, 200)]
+<pre tabindex="0"><code class="language-python">ventas = [(&quot;Ana&quot;, 100), (&quot;Luis&quot;, 250), (&quot;Ana&quot;, 200)]
 totales = {}
 for vendedor, monto in ventas:
     totales[vendedor] = totales.get(vendedor, 0) + monto
@@ -138,7 +138,7 @@ print(mejor)            # Ana</code></pre>
 <p>El código de arriba ya devuelve <code>None</code> con la lista vacía y, en un empate, se queda con el primero que encontró. Lo importante es que <strong>lo sepas y lo hayas decidido</strong>, no que salga así por casualidad.</p>
 <h3>Paso 6 · Revisar</h3>
 <p>Ahora que funciona, se puede mejorar:</p>
-<pre><code class="language-python">def mejor_vendedor(ventas):
+<pre tabindex="0"><code class="language-python">def mejor_vendedor(ventas):
     totales = {}
     for vendedor, monto in ventas:
         totales[vendedor] = totales.get(vendedor, 0) + monto
@@ -201,7 +201,7 @@ print(mejor_vendedor([]))</code></pre>
 <li>Antes de tocar el código: escribe un ejemplo chico y la respuesta esperada a mano.</li>
 <li>Ejecuta: el código sigue los pasos del método (entender, ejemplo, plan, código, verificar).</li>
 </ol>
-<pre data-norun><code class="language-python">ventas = [(&quot;mouse&quot;, 3), (&quot;teclado&quot;, 5), (&quot;mouse&quot;, 4), (&quot;monitor&quot;, 2), (&quot;teclado&quot;, 1)]
+<pre data-norun tabindex="0"><code class="language-python">ventas = [(&quot;mouse&quot;, 3), (&quot;teclado&quot;, 5), (&quot;mouse&quot;, 4), (&quot;monitor&quot;, 2), (&quot;teclado&quot;, 1)]
 
 # plan: 1) sumar por producto  2) ordenar de mayor a menor  3) tomar el segundo
 totales = {}

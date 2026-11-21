@@ -254,7 +254,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Tu primer contacto con código</h2>
 <p>Este bloque es SQL. Presiona <strong>▶ Probar</strong> y mira lo que aparece: son los primeros 5 productos de nuestra tienda ficticia.</p>
-<pre><code class="language-sql">SELECT nombre, marca, precio
+<pre tabindex="0"><code class="language-sql">SELECT nombre, marca, precio
 FROM productos
 LIMIT 5;</code></pre>
 <p>Todavía no hace falta entenderlo, pero intenta adivinar: <code>SELECT</code> elige qué columnas mostrar, <code>FROM</code> dice de qué tabla y <code>LIMIT 5</code> pide solo 5 filas. Cambia el <code>5</code> por un <code>10</code> y vuelve a probar. En unas lecciones vas a poder escribir esto (y cosas mucho más potentes) tú solo.</p>
@@ -276,7 +276,7 @@ LIMIT 5;</code></pre>
 <li>Cambia <code>5</code> por <code>10</code> y vuelve a ejecutar.</li>
 <li>La segunda consulta cuenta cuántos clientes hay por país: eso ya es una pregunta de negocio.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT * FROM clientes LIMIT 5;
+<pre data-norun tabindex="0"><code class="language-sql">SELECT * FROM clientes LIMIT 5;
 
 SELECT pais, COUNT(*) AS clientes
 FROM clientes

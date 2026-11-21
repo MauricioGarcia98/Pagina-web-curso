@@ -26,7 +26,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>La forma general: CASE WHEN</h2>
-<pre><code class="language-sql">SELECT nombre, precio,
+<pre tabindex="0"><code class="language-sql">SELECT nombre, precio,
        CASE
          WHEN precio &lt; 50   THEN 'económico'
          WHEN precio &lt; 300  THEN 'medio'
@@ -99,7 +99,7 @@ LIMIT 5;</code></pre>
 
 <h2>La forma corta: comparar un valor contra opciones</h2>
 <p>Cuando todas las condiciones son &quot;esta columna es igual a…&quot;, hay una sintaxis abreviada:</p>
-<pre><code class="language-sql">SELECT pedido_id, canal,
+<pre tabindex="0"><code class="language-sql">SELECT pedido_id, canal,
        CASE canal
          WHEN 'web' THEN 'Online'
          WHEN 'app' THEN 'Online'
@@ -110,7 +110,7 @@ LIMIT 5;</code></pre>
 <p>Equivale a <code>CASE WHEN canal = &#39;web&#39; THEN … WHEN canal = &#39;app&#39; THEN …</code>. Solo sirve para igualdades; para rangos (<code>&lt;</code>, <code>&gt;</code>) o condiciones combinadas usa la forma general.</p>
 <h2>Usar la clasificación: CASE + GROUP BY</h2>
 <p>Una vez que creas la categoría, puedes agrupar por ella. &quot;¿Cuántos productos hay en cada gama?&quot;:</p>
-<pre><code class="language-sql">SELECT CASE
+<pre tabindex="0"><code class="language-sql">SELECT CASE
          WHEN precio &lt; 50   THEN 'económico'
          WHEN precio &lt; 300  THEN 'medio'
          WHEN precio &lt; 1000 THEN 'premium'
@@ -143,7 +143,7 @@ GROUP BY gama;</code></pre>
 <p>Esto se llama <strong>segmentar</strong> o <strong>&quot;bucketizar&quot;</strong>: convertir un número continuo en tramos. Lo usarás para rangos de edad, tramos de mora, bandas de score crediticio, rangos de anticipación de una reserva…</p>
 <h2>CASE + agregación: la agregación condicional</h2>
 <p>Este es el uso más poderoso de <code>CASE</code>. Si lo pones <strong>dentro</strong> de <code>SUM</code> o <code>COUNT</code>, puedes contar o sumar <strong>solo</strong> lo que cumple una condición, varias veces en la misma consulta:</p>
-<pre><code class="language-sql">SELECT strftime('%Y', fecha_pedido) AS anio,
+<pre tabindex="0"><code class="language-sql">SELECT strftime('%Y', fecha_pedido) AS anio,
        COUNT(*) AS total,
        SUM(CASE WHEN estado = 'cancelado' THEN 1 ELSE 0 END) AS cancelados,
        ROUND(100.0 * SUM(CASE WHEN estado = 'cancelado' THEN 1 ELSE 0 END) / COUNT(*), 2) AS pct_cancelados
@@ -178,7 +178,7 @@ ORDER BY anio;</code></pre>
 <p>Cómo funciona, fila por fila: cada pedido aporta un <code>1</code> a la suma si fue cancelado y un <code>0</code> si no. La suma de esos unos <strong>es</strong> la cantidad de cancelados. Para sumar montos en vez de contar, devuelve el monto en lugar del 1: <code>SUM(CASE WHEN canal = &#39;web&#39; THEN total ELSE 0 END)</code>.</p>
 <h3>Pivotar: de filas a columnas</h3>
 <p>Con varias agregaciones condicionales conviertes valores de una columna en <strong>columnas</strong> del resultado (un <em>pivot</em>, como las tablas dinámicas de Excel):</p>
-<pre><code class="language-sql">SELECT c.segmento,
+<pre tabindex="0"><code class="language-sql">SELECT c.segmento,
        SUM(CASE WHEN p.canal = 'web'      THEN 1 ELSE 0 END) AS web,
        SUM(CASE WHEN p.canal = 'app'      THEN 1 ELSE 0 END) AS app,
        SUM(CASE WHEN p.canal = 'tienda'   THEN 1 ELSE 0 END) AS tienda,
@@ -233,7 +233,7 @@ GROUP BY c.segmento;</code></pre>
 
 <h2>CASE en otros lugares</h2>
 <p><code>CASE</code> es una expresión: va donde iría un valor.</p>
-<pre><code class="language-sql">-- En ORDER BY: un orden personalizado (primero los pendientes, después el resto)
+<pre tabindex="0"><code class="language-sql">-- En ORDER BY: un orden personalizado (primero los pendientes, después el resto)
 SELECT pedido_id, estado
 FROM pedidos
 ORDER BY CASE estado WHEN 'pendiente' THEN 1 WHEN 'enviado' THEN 2 ELSE 3 END, pedido_id
@@ -294,7 +294,7 @@ LIMIT 10;</code></pre>
 <li>Cuenta cuántos productos hay en cada franja (agrupa por la expresión).</li>
 <li>Agrega una franja <code>premium</code> para los de más de 500.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT nombre, precio,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT nombre, precio,
        CASE WHEN precio &lt; 50 THEN 'económico'
             WHEN precio &lt; 200 THEN 'medio'
             ELSE 'alto' END AS franja

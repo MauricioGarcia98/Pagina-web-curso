@@ -66,7 +66,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>Paso 1 · Mirar antes de programar</h2>
-<pre><code class="language-bash">conecta accesos
+<pre tabindex="0"><code class="language-bash">conecta accesos
 mkdir -p ~/conecta/out
 conecta correo descargar
 conecta contratos descargar
@@ -82,7 +82,7 @@ grep -l ADENDA ~/conecta/contratos/*.txt</code></pre>
 <p>Y en los contratos, <code>grep -l ADENDA</code> te muestra cuáles tienen el plazo cambiado.</p>
 <h2>Paso 2 · Leer, limpiar y clasificar</h2>
 <p>Guarda el script en <code>~/conecta/cn.py</code> (con <code>code ~/conecta/cn.py</code> o <code>vim</code>). Primero, una función para pedir con <strong>reintentos</strong>: el 429 (demasiados pedidos) y el 529 (sobrecarga) son normales y traen <code>Retry-After</code>.</p>
-<pre data-norun><code class="language-python">import requests, os, json, re, time, csv, glob, unicodedata
+<pre data-norun tabindex="0"><code class="language-python">import requests, os, json, re, time, csv, glob, unicodedata
 from email import policy
 from email.parser import BytesParser
 from email.utils import parseaddr, parsedate_to_datetime
@@ -108,7 +108,7 @@ def pedir(metodo, url, **kw):
 
 
 <p>Los clientes (para saber quién mandó cada correo) y los tickets, con su paginación:</p>
-<pre data-norun><code class="language-python">clientes, pg = [], 1
+<pre data-norun tabindex="0"><code class="language-python">clientes, pg = [], 1
 while True:
     d = pedir(&quot;GET&quot;, &quot;https://api.mesa.conecta.example/v1/clientes&quot;, headers=hm, params={&quot;pagina&quot;: pg}).json()
     clientes += d[&quot;clientes&quot;]
@@ -128,7 +128,7 @@ for t in tickets:
     if DESDE &lt;= f &lt; HOY:
         inter.append({&quot;id&quot;: t[&quot;id&quot;], &quot;canal&quot;: &quot;ticket&quot;, &quot;cliente_id&quot;: t[&quot;cliente_id&quot;], &quot;fecha&quot;: f.isoformat(), &quot;texto&quot;: t[&quot;descripcion&quot;]})</code></pre>
 <p>Los correos: el módulo <code>email</code> de Python decodifica quoted-printable, base64 y Latin-1 por ti. Deduplicamos por <code>Message-ID</code> y nos quedamos con lo que escribió el cliente: se corta en la línea <code>El … escribió:</code> y se descartan las líneas citadas.</p>
-<pre data-norun><code class="language-python">vistos = set()
+<pre data-norun tabindex="0"><code class="language-python">vistos = set()
 for ruta in sorted(glob.glob(H + &quot;/correo/*/*.eml&quot;)):
     msg = BytesParser(policy=policy.default).parsebytes(open(ruta, &quot;rb&quot;).read())
     mid = msg[&quot;Message-ID&quot;].strip().strip(&quot;&lt;&gt;&quot;)
@@ -152,7 +152,7 @@ for ruta in sorted(glob.glob(H + &quot;/correo/*/*.eml&quot;)):
 <li>Un <strong>prompt</strong> con la lista exacta, qué significa cada categoría, &quot;la intención principal&quot; (para los mensajes con dos temas) y el mensaje <strong>entre etiquetas</strong> aclarando que son datos (contra la inyección).</li>
 <li><strong>Validar</strong> la salida: sacar los <code>```</code>, leer el JSON, normalizar tildes y mayúsculas, y comprobar que sea una categoría que existe.</li>
 </ol>
-<pre data-norun><code class="language-python">def enmascarar(s):
+<pre data-norun tabindex="0"><code class="language-python">def enmascarar(s):
     s = re.sub(r&quot;\b(?:\d{4}[ -]?){3}\d{4}\b&quot;, &quot;[TARJETA]&quot;, s)
     return re.sub(r&quot;\b\d{1,2}\.?\d{3}\.?\d{3}\b&quot;, &quot;[DNI]&quot;, s)
 
@@ -189,7 +189,7 @@ with open(H + &quot;/out/interacciones.csv&quot;, &quot;w&quot;, newline=&quot;&
 
 <h2>Paso 3 · El SLA</h2>
 <p>Los contratos ya están en texto (paso 1). El plazo es el número de &quot;es de N (…)&quot;: si hay adenda, aparece <strong>después</strong> en el texto, así que la última coincidencia es la vigente.</p>
-<pre data-norun><code class="language-python">plazos = {}
+<pre data-norun tabindex="0"><code class="language-python">plazos = {}
 for ruta in glob.glob(H + &quot;/contratos/*.txt&quot;):
     t = open(ruta, encoding=&quot;utf-8&quot;).read()
     plazos[re.search(r&quot;CTR-\d+&quot;, t).group(0)] = int(re.findall(r&quot;es de (\d+) \(&quot;, t)[-1])
@@ -215,7 +215,7 @@ with open(H + &quot;/out/sla_empresas.csv&quot;, &quot;w&quot;, newline=&quot;&q
 
 <h2>Paso 4 · El asistente (RAG)</h2>
 <p>Un embedding por artículo y uno por pregunta, en <strong>un pedido cada uno</strong> (hasta 100 textos por pedido). La similitud es el producto punto porque los vectores vienen normalizados. Al modelo le pasamos solo los 3 artículos más parecidos y le pedimos que, si no está, diga que no sabe.</p>
-<pre data-norun><code class="language-python">arts = pedir(&quot;GET&quot;, &quot;https://api.mesa.conecta.example/v1/kb/articulos&quot;, headers=hm).json()[&quot;articulos&quot;]
+<pre data-norun tabindex="0"><code class="language-python">arts = pedir(&quot;GET&quot;, &quot;https://api.mesa.conecta.example/v1/kb/articulos&quot;, headers=hm).json()[&quot;articulos&quot;]
 preg = pedir(&quot;GET&quot;, &quot;https://api.mesa.conecta.example/v1/kb/evaluacion&quot;, headers=hm).json()[&quot;preguntas&quot;]
 emb = lambda xs: [d[&quot;vector&quot;] for d in pedir(&quot;POST&quot;, &quot;https://api.lumenia.example/v1/embeddings&quot;, headers=hl,
                                             json={&quot;model&quot;: &quot;lumen-embed&quot;, &quot;input&quot;: xs}).json()[&quot;data&quot;]]
@@ -233,17 +233,17 @@ with open(H + &quot;/out/evaluacion_rag.csv&quot;, &quot;w&quot;, newline=&quot;
                          {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: f&quot;Contexto:\n{ctx}\n\nPregunta: {q['pregunta']}&quot;}]})
         w.writerow([q[&quot;id&quot;], &quot;,&quot;.join(arts[i][&quot;id&quot;] for i in top), r.json()[&quot;salida&quot;][&quot;contenido&quot;]])</code></pre>
 <p>Para correrlo (<code>DESDE</code> es dos días antes del arranque, como dice el pedido; <code>HOY</code> es hoy):</p>
-<pre><code class="language-bash">MESA=mz_… LUMEN=lum_… DESDE=2026-11-17 HOY=2026-11-19 python ~/conecta/cn.py
+<pre tabindex="0"><code class="language-bash">MESA=mz_… LUMEN=lum_… DESDE=2026-11-17 HOY=2026-11-19 python ~/conecta/cn.py
 curl -s https://api.lumenia.example/v1/uso -H &quot;Authorization: Bearer lum_…&quot;</code></pre>
 <h2>Paso 5 · Al lago y a Databricks</h2>
-<pre><code class="language-bash">az login
+<pre tabindex="0"><code class="language-bash">az login
 az group create -n rg-cn -l eastus2
 az storage account create -n stcn -g rg-cn -l eastus2 --sku Standard_LRS --hns true
 az storage container create --account-name stcn -n landing
 ID=$(az storage account show -n stcn -g rg-cn --query id -o tsv)
 az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID
 az storage blob upload-batch --account-name stcn -d landing/conecta -s ~/conecta/out</code></pre>
-<pre data-norun><code class="language-sql">CREATE EXTERNAL LOCATION lago_cn URL 'abfss://landing@stcn.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
+<pre data-norun tabindex="0"><code class="language-sql">CREATE EXTERNAL LOCATION lago_cn URL 'abfss://landing@stcn.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
 CREATE CATALOG IF NOT EXISTS conecta;
 CREATE SCHEMA IF NOT EXISTS conecta.silver;
 CREATE SCHEMA IF NOT EXISTS conecta.gold;
@@ -260,10 +260,10 @@ FROM read_files('abfss://landing@stcn.dfs.core.windows.net/conecta/sla_empresas.
 CREATE OR REPLACE TABLE conecta.gold.evaluacion_rag AS
 SELECT * FROM read_files('abfss://landing@stcn.dfs.core.windows.net/conecta/evaluacion_rag.csv', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false, multiLine =&gt; true);</code></pre>
 <p>Las preguntas del tablero salen de acá. Por ejemplo, el peso de facturación de un día:</p>
-<pre data-norun><code class="language-sql">SELECT round(100.0 * sum(CASE WHEN categoria = 'facturacion' THEN 1 ELSE 0 END) / count(*), 1)
+<pre data-norun tabindex="0"><code class="language-sql">SELECT round(100.0 * sum(CASE WHEN categoria = 'facturacion' THEN 1 ELSE 0 END) / count(*), 1)
 FROM conecta.silver.interacciones WHERE fecha = '2026-11-18';</code></pre>
 <h2>Paso 6 · El Key Vault</h2>
-<pre><code class="language-bash">az keyvault create -n kv-cn -g rg-cn -l eastus2
+<pre tabindex="0"><code class="language-bash">az keyvault create -n kv-cn -g rg-cn -l eastus2
 az keyvault secret set --vault-name kv-cn -n mesa-token --value 'mz_…' -o none
 az keyvault secret set --vault-name kv-cn -n lumen-key --value 'lum_…' -o none</code></pre>
 <h2>Paso 7 · El día a día</h2>

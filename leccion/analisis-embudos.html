@@ -19,7 +19,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular un embudo simple y uno ordenado en el tiempo</li><li>Comparar la conversión por segmento</li><li>Medir el tiempo entre pasos</li><li>Construir el embudo de un proceso operativo</li></ul>
 <h2>El embudo simple</h2>
 <p>Para cada paso, cuántos usuarios distintos lo hicieron al menos una vez:</p>
-<pre><code class="language-sql">SELECT COUNT(DISTINCT CASE WHEN tipo_evento = 'vista' THEN cliente_id END) AS vieron,
+<pre tabindex="0"><code class="language-sql">SELECT COUNT(DISTINCT CASE WHEN tipo_evento = 'vista' THEN cliente_id END) AS vieron,
        COUNT(DISTINCT CASE WHEN tipo_evento = 'agregar_carrito' THEN cliente_id END) AS agregaron,
        COUNT(DISTINCT CASE WHEN tipo_evento = 'compra' THEN cliente_id END) AS compraron
 FROM eventos_web
@@ -33,7 +33,7 @@ WHERE cliente_id IS NOT NULL;</code></pre>
 
 <h2>El embudo ordenado</h2>
 <p>El simple no exige orden: alguien que compró en enero y miró un producto en diciembre cuenta en ambos pasos. El embudo <strong>ordenado</strong> exige que cada paso ocurra <strong>después</strong> del anterior.</p>
-<pre><code class="language-sql">WITH primeros AS (
+<pre tabindex="0"><code class="language-sql">WITH primeros AS (
   SELECT cliente_id,
          MIN(CASE WHEN tipo_evento = 'vista' THEN fecha_hora END) AS t_vista,
          MIN(CASE WHEN tipo_evento = 'agregar_carrito' THEN fecha_hora END) AS t_carrito,
@@ -92,7 +92,7 @@ FROM primeros;</code></pre>
 <p><code>COUNT(DISTINCT CASE WHEN … THEN cliente_id END)</code> cuenta personas, no clics. Si un cliente vio 40 productos, cuenta una vez en &quot;vieron&quot;. Es lo correcto para la pregunta &quot;¿cuántas personas avanzan?&quot;. Si la pregunta fuera &quot;¿qué página de producto convierte mejor?&quot;, la unidad sería la visita a cada producto y el embudo cambia de forma.</p>
 <h3>2. Por segmento: el mismo embudo, partido en grupos</h3>
 <p>El rediseño del escenario se probó primero en móvil. Para compararlo, se marca qué pasos hizo cada cliente <strong>dentro de cada dispositivo</strong> y después se suman:</p>
-<pre><code class="language-sql">WITH u AS (
+<pre tabindex="0"><code class="language-sql">WITH u AS (
   SELECT dispositivo, cliente_id,
          MAX(tipo_evento = 'vista') AS vio,
          MAX(tipo_evento = 'agregar_carrito') AS agrego,
@@ -125,7 +125,7 @@ ORDER BY dispositivo;</code></pre>
 
 <h3>3. El tiempo hasta convertir</h3>
 <p>Además de <strong>cuántos</strong> convierten, importa <strong>cuánto tardan</strong>. Se toma la primera vista y la primera compra de cada cliente y se agrupa la diferencia en tramos:</p>
-<pre><code class="language-sql">WITH p AS (
+<pre tabindex="0"><code class="language-sql">WITH p AS (
   SELECT cliente_id,
          MIN(CASE WHEN tipo_evento = 'vista' THEN fecha_hora END) AS t_vista,
          MIN(CASE WHEN tipo_evento = 'compra' THEN fecha_hora END) AS t_compra
@@ -150,7 +150,7 @@ ORDER BY tramo;</code></pre>
 <p>El resultado tiene dos montañas: muchos compran el mismo día y muchos tardan más de un mes. La segunda montaña casi siempre es un artefacto: la &quot;primera vista&quot; fue una visita de hace meses que no tiene nada que ver con la compra. Por eso se usan <strong>ventanas</strong>: &quot;compró dentro de los 7 días de una vista&quot;. Con una ventana, el embudo mide lo que la página puede influir.</p>
 <h3>4. El embudo operativo, en detalle</h3>
 <p>Los procesos internos también son embudos, y son más fáciles: cada etapa es una columna de tiempo de la misma fila.</p>
-<pre><code class="language-sql">SELECT COUNT(*) AS creados,
+<pre tabindex="0"><code class="language-sql">SELECT COUNT(*) AS creados,
        COUNT(aceptado) AS aceptados,
        COUNT(retirado) AS retirados,
        COUNT(entregado) AS entregados,
@@ -237,7 +237,7 @@ FROM delivery_pedidos;</code></pre>
 <li>Calcula la conversión de cada paso contra el anterior.</li>
 <li>¿Dónde se pierde más gente? Esa es la primera pregunta para el equipo de producto.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT COUNT(DISTINCT CASE WHEN tipo_evento = 'vista'           THEN cliente_id END) AS vieron,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT COUNT(DISTINCT CASE WHEN tipo_evento = 'vista'           THEN cliente_id END) AS vieron,
        COUNT(DISTINCT CASE WHEN tipo_evento = 'agregar_carrito' THEN cliente_id END) AS carrito,
        COUNT(DISTINCT CASE WHEN tipo_evento = 'compra'          THEN cliente_id END) AS compraron
 FROM eventos_web;</code></pre>

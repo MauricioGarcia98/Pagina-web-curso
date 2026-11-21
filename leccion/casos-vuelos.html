@@ -29,7 +29,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p><strong>Cóndor Air</strong> opera 20 rutas en Latinoamérica y una a Madrid. Operaciones mide la <strong>puntualidad</strong> y comercial la <strong>ocupación</strong> y el <strong>ingreso</strong>.</p>
 <h2>El modelo de datos</h2>
-<pre><code class="language-text">vuelos_aeropuertos (codigo, ciudad, pais)
+<pre tabindex="0"><code class="language-text">vuelos_aeropuertos (codigo, ciudad, pais)
 vuelos_vuelos (vuelo_id, numero, origen, destino, fecha,
                salida_programada, salida_real, llegada_programada, llegada_real, estado, capacidad)
 vuelos_reservas (reserva_id, vuelo_id, pasajero_id, fecha_reserva, clase, precio, estado)</code></pre>
@@ -53,7 +53,7 @@ vuelos_reservas (reserva_id, vuelo_id, pasajero_id, fecha_reserva, clase, precio
 <li><strong>Filtro</strong>: excluir los cancelados (no tienen <code>salida_real</code>).</li>
 <li><strong>Métrica</strong>: demora promedio en minutos = (salida real − salida programada) × 1.440.</li>
 </ol>
-<pre><code class="language-sql">SELECT strftime('%w', fecha) AS dia_semana,
+<pre tabindex="0"><code class="language-sql">SELECT strftime('%w', fecha) AS dia_semana,
        COUNT(*) AS vuelos,
        ROUND(AVG((julianday(salida_real) - julianday(salida_programada)) * 1440), 1) AS demora_min
 FROM vuelos_vuelos
@@ -117,7 +117,7 @@ ORDER BY dia_semana;</code></pre>
 <li>Excluye los vuelos cancelados al medir puntualidad: no despegaron.</li>
 <li>Una ruta con mucho <em>no show</em> es candidata a sobreventa controlada; una impuntual, a revisar la programación.</li>
 </ol>
-<pre data-norun><code class="language-sql">WITH reservas AS (
+<pre data-norun tabindex="0"><code class="language-sql">WITH reservas AS (
     SELECT vuelo_id,
            SUM(CASE WHEN estado IN ('confirmada', 'no_show') THEN 1 ELSE 0 END) AS debian_volar,
            SUM(CASE WHEN estado = 'no_show' THEN 1 ELSE 0 END) AS no_show

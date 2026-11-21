@@ -111,7 +111,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ul>
 <h2>Construir el tipo 2 desde un registro de cambios</h2>
 <p>Supongamos que tenemos cada &quot;foto&quot; de los atributos del cliente con su fecha (lo que da un CDC o un snapshot diario). El truco es <code>LEAD</code>: el <code>valido_hasta</code> de una versión es el <code>valido_desde</code> de la siguiente.</p>
-<pre><code class="language-sql">WITH cambios(cliente_id, segmento, ciudad, fecha) AS (
+<pre tabindex="0"><code class="language-sql">WITH cambios(cliente_id, segmento, ciudad, fecha) AS (
     VALUES (42, 'Pyme',        'Lima',     '2022-05-10'),
            (42, 'Corporativo', 'Lima',     '2024-03-01'),
            (42, 'Corporativo', 'Santiago', '2024-09-15'),
@@ -127,7 +127,7 @@ FROM cambios
 ORDER BY cliente_id, valido_desde;</code></pre>
 <h3>Colapsar versiones repetidas</h3>
 <p>Las fotos diarias repiten los mismos valores muchos días seguidos. Si las conviertes directamente en versiones, la dimensión tiene una fila por día y por cliente, con &quot;cambios&quot; que no cambiaron nada. Antes de calcular las vigencias, hay que quedarse solo con las fotos donde <strong>algo cambió</strong> respecto a la anterior:</p>
-<pre><code class="language-sql">WITH fotos(cliente_id, segmento, fecha) AS (
+<pre tabindex="0"><code class="language-sql">WITH fotos(cliente_id, segmento, fecha) AS (
     VALUES (42, 'Pyme', '2024-02-27'), (42, 'Pyme', '2024-02-28'), (42, 'Pyme', '2024-02-29'),
            (42, 'Corporativo', '2024-03-01'), (42, 'Corporativo', '2024-03-02'),
            (42, 'Pyme', '2024-03-03')
@@ -143,7 +143,7 @@ ORDER BY fecha;</code></pre>
 <p>De 6 fotos quedan 3 versiones reales: Pyme, Corporativo y de nuevo Pyme. Fíjate que la tercera <strong>no</strong> se fusiona con la primera aunque tengan el mismo valor: son períodos distintos.</p>
 <h2>Unir hechos con la versión correcta (point-in-time)</h2>
 <p>La respuesta a la pregunta de Valentina: cada venta se une con la versión del cliente <strong>vigente en la fecha de la venta</strong>:</p>
-<pre data-norun><code class="language-sql">SELECT d.segmento, SUM(f.importe_neto) AS ventas
+<pre data-norun tabindex="0"><code class="language-sql">SELECT d.segmento, SUM(f.importe_neto) AS ventas
 FROM fct_ventas f
 JOIN dim_cliente d
   ON d.cliente_id = f.cliente_id
@@ -208,7 +208,7 @@ GROUP BY d.segmento;</code></pre>
 <li><code>valido_desde</code> / <code>valido_hasta</code> arman el historial; la versión actual tiene <code>valido_hasta</code> nulo.</li>
 <li>Busca un cliente que cambió de ciudad y mira sus versiones. Fíjate en <code>lima</code> y <code>Lima</code>: la fuente cambió solo las mayúsculas y eso creó una versión que no es un cambio real. Antes de historizar, normaliza (<code>INITCAP(TRIM(ciudad))</code>) para no inflar la dimensión.</li>
 </ol>
-<pre data-norun><code class="language-sql">WITH versiones AS (
+<pre data-norun tabindex="0"><code class="language-sql">WITH versiones AS (
     SELECT cliente_id, ciudad, fecha_carga AS valido_desde,
            LEAD(fecha_carga) OVER (PARTITION BY cliente_id ORDER BY fecha_carga) AS valido_hasta
     FROM clientes_crudo

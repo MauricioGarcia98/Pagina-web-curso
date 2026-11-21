@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Una <strong>vista</strong> guarda solo la <strong>consulta</strong>. Cada vez que alguien la lee, la base ejecuta el <code>SELECT</code> en ese momento. Siempre está al día, pero cada lectura cuesta lo mismo que ejecutar la consulta.</li>
 </ul>
 <p>Puedes ver la diferencia en la base del curso: <code>stg_pedidos</code> es una vista. Su &quot;contenido&quot; es una consulta:</p>
-<pre><code class="language-sql">SELECT name, type, substr(sql, 1, 80) AS empieza_con
+<pre tabindex="0"><code class="language-sql">SELECT name, type, substr(sql, 1, 80) AS empieza_con
 FROM sqlite_master
 WHERE name IN ('stg_pedidos', 'pedidos');</code></pre>
 <p><code>pedidos</code> es de tipo <code>table</code> y su definición solo dice qué columnas tiene; <code>stg_pedidos</code> es de tipo <code>view</code> y su definición es un <code>SELECT</code>.</p>
@@ -93,14 +93,14 @@ WHERE name IN ('stg_pedidos', 'pedidos');</code></pre>
 </tr>
 </tbody></table></div>
 <p>Se configura en <code>dbt_project.yml</code> para una carpeta entera (el <code>+</code> indica que es una configuración que se hereda hacia adentro):</p>
-<pre data-norun><code class="language-yaml">models:
+<pre data-norun tabindex="0"><code class="language-yaml">models:
   tienda_dbt:
     staging:
       +materialized: view
     marts:
       +materialized: table</code></pre>
 <p>o en el propio modelo con <code>config()</code>, que tiene prioridad sobre lo del proyecto:</p>
-<pre><code class="language-dbt">{{ config(materialized='table') }}
+<pre tabindex="0"><code class="language-dbt">{{ config(materialized='table') }}
 
 select canal, count(*) as pedidos
 from {{ ref('stg_pedidos') }}
@@ -112,7 +112,7 @@ group by canal</code></pre>
 
 
 <h3>Pruébalo en la terminal</h3>
-<pre><code class="language-bash">cd tienda_dbt
+<pre tabindex="0"><code class="language-bash">cd tienda_dbt
 cat dbt_project.yml                 # mira +materialized por carpeta
 dbt run
 dbt compile -s top_clientes         # el SELECT que dbt envuelve</code></pre>
@@ -123,7 +123,7 @@ dbt compile -s top_clientes         # el SELECT que dbt envuelve</code></pre>
 <li><code>is_incremental()</code>: una función que vale <strong>verdadero</strong> solo si la tabla ya existe, es incremental y no pediste <code>--full-refresh</code>. La primera vez vale <strong>falso</strong>.</li>
 <li><code>{{ this }}</code>: el nombre de <strong>la propia tabla</strong> del modelo tal como está ahora en la base. Sirve para preguntar &quot;¿hasta dónde ya cargué?&quot;.</li>
 </ul>
-<pre data-norun><code class="language-dbt">{{ config(
+<pre data-norun tabindex="0"><code class="language-dbt">{{ config(
     materialized='incremental',
     unique_key='evento_id',
     incremental_strategy='merge'
@@ -225,13 +225,13 @@ from {{ source('tienda', 'eventos_web') }}
 <h2>Datos que llegan tarde</h2>
 <p><code>where fecha_hora &gt; max(fecha_hora)</code> tiene un problema: si un evento de ayer llega hoy con atraso (un celular sin señal que sincroniza después), su fecha es <strong>menor</strong> que el máximo y el filtro lo deja afuera <strong>para siempre</strong>.</p>
 <p>La solución habitual es reprocesar una <strong>ventana</strong>: los últimos días, siempre, con una estrategia que no duplique (<code>merge</code>, <code>delete+insert</code> o <code>insert_overwrite</code>).</p>
-<pre data-norun><code class="language-dbt">{% if is_incremental() %}
+<pre data-norun tabindex="0"><code class="language-dbt">{% if is_incremental() %}
   where fecha_hora &gt;= (select datetime(max(fecha_hora), '-3 days') from {{ this }})
 {% endif %}</code></pre>
 <p>Así, cada día se vuelven a leer los últimos 3 días: lo que llegó tarde entra, y lo que ya estaba se actualiza sin duplicarse gracias a la <code>unique_key</code>.</p>
 <h3>Microbatch: la ventana hecha configuración</h3>
 <p>Desde dbt 1.9, la estrategia <code>microbatch</code> resuelve esto sin <code>is_incremental()</code>. Le dices qué columna es el tiempo del evento y el tamaño de cada lote, y dbt arma un filtro por cada lote:</p>
-<pre data-norun><code class="language-dbt">{{ config(
+<pre data-norun tabindex="0"><code class="language-dbt">{{ config(
     materialized='incremental',
     incremental_strategy='microbatch',
     event_time='fecha_hora',      -- la columna de tiempo
@@ -351,7 +351,7 @@ from {{ ref('stg_eventos') }}</code></pre>
 <li>Lee el bloque <code>{% if is_incremental() %}</code>: en las corridas siguientes dbt agrega ese <code>where</code> y solo procesa lo nuevo.</li>
 <li>Piensa qué pasa con un pedido que cambia de estado días después: por eso hay <code>unique_key</code> (dbt lo actualiza en vez de duplicarlo).</li>
 </ol>
-<pre data-norun><code class="language-sql">{{ config(materialized='incremental', unique_key='pedido_id') }}
+<pre data-norun tabindex="0"><code class="language-sql">{{ config(materialized='incremental', unique_key='pedido_id') }}
 
 select
     pedido_id,

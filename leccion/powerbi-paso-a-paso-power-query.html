@@ -101,7 +101,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/powerbi/b05-editor-avanzado.webp" alt="La consulta completa - let con un paso por línea, in con el resultado" loading="lazy"><figcaption>La consulta completa - let con un paso por línea, in con el resultado</figcaption></figure>
 
 
-<pre><code class="language-text">let
+<pre tabindex="0"><code class="language-text">let
     Origen = Sqlite.Database(File.Contents(&quot;curso.db&quot;)),
     #&quot;Navegación&quot; = Origen{[Name=&quot;clientes&quot;]}[Data],
     #&quot;Columnas quitadas&quot; = Table.RemoveColumns(#&quot;Navegación&quot;, {&quot;telefono&quot;})

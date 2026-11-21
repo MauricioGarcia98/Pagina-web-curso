@@ -50,22 +50,22 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>uv: la herramienta recomendada</h2>
 <p><strong>uv</strong> (de Astral, los creadores de ruff) reemplaza a <code>pip</code>, <code>venv</code>, <code>pip-tools</code> y <code>pyenv</code> con un solo programa, y es 10 a 100 veces más rápido.</p>
 <p><strong>Instalar uv:</strong></p>
-<pre data-norun><code class="language-bash"># Linux, WSL y macOS
+<pre data-norun tabindex="0"><code class="language-bash"># Linux, WSL y macOS
 curl -LsSf https://astral.sh/uv/install.sh | sh
 # o en macOS
 brew install uv
 
 uv --version</code></pre>
 <p><strong>Instalar Python</strong> (uv descarga la versión que pidas, sin tocar la del sistema):</p>
-<pre data-norun><code class="language-bash">uv python install 3.12</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">uv python install 3.12</code></pre>
 <h3>Un proyecto nuevo, paso a paso</h3>
-<pre data-norun><code class="language-bash">uv init ingesta-rapido            # crea la carpeta con pyproject.toml, main.py, .python-version
+<pre data-norun tabindex="0"><code class="language-bash">uv init ingesta-rapido            # crea la carpeta con pyproject.toml, main.py, .python-version
 cd ingesta-rapido
 uv add pandas duckdb requests     # dependencias del proyecto (crea .venv y uv.lock)
 uv add --dev ruff pytest          # herramientas solo para desarrollar
 uv run python main.py             # ejecuta dentro del entorno, sin activarlo</code></pre>
 <p>Así queda el <code>pyproject.toml</code>:</p>
-<pre><code class="language-toml">[project]
+<pre tabindex="0"><code class="language-toml">[project]
 name = &quot;ingesta-rapido&quot;
 version = &quot;0.1.0&quot;
 requires-python = &quot;&gt;=3.12&quot;
@@ -112,7 +112,7 @@ dev = [
 <p>Cuando clones el proyecto en otra computadora: <code>git clone …</code>, <code>cd</code>, <code>uv sync</code>, y listo.</p>
 <h2>El camino clásico: venv y pip</h2>
 <p>Lo vas a encontrar en muchos proyectos (y en entrevistas). Es lo mismo, paso a paso:</p>
-<pre data-norun><code class="language-bash">python3 -m venv .venv                 # crea el entorno
+<pre data-norun tabindex="0"><code class="language-bash">python3 -m venv .venv                 # crea el entorno
 source .venv/bin/activate             # lo activa (Linux, WSL, macOS)
 pip install pandas duckdb             # instala dentro del entorno
 pip freeze &gt; requirements.txt         # &quot;bloquea&quot; las versiones
@@ -150,7 +150,7 @@ deactivate                            # sale del entorno</code></pre>
 </tr>
 </tbody></table></div>
 <h2>La estructura de un proyecto de datos</h2>
-<pre><code class="language-text">ingesta-rapido/
+<pre tabindex="0"><code class="language-text">ingesta-rapido/
 ├── pyproject.toml
 ├── uv.lock
 ├── .python-version
@@ -165,10 +165,10 @@ deactivate                            # sale del entorno</code></pre>
 └── tests/
     └── test_reglas.py</code></pre>
 <h3>Los secretos van en <code>.env</code>, nunca en el código</h3>
-<pre><code class="language-text"># .env  (NO va a Git)
+<pre tabindex="0"><code class="language-text"># .env  (NO va a Git)
 POSTGRES_URL=postgresql://rapido:clave-local@localhost:5432/operaciones
 API_TOKEN=abc123</code></pre>
-<pre data-norun><code class="language-python">import os
+<pre data-norun tabindex="0"><code class="language-python">import os
 from dotenv import load_dotenv   # uv add python-dotenv
 
 load_dotenv()                    # lee .env y lo pone en las variables de entorno
@@ -176,11 +176,11 @@ url = os.environ[&quot;POSTGRES_URL&quot;] # falla con un error claro si falta</
 <p>En producción no hay <code>.env</code>: las mismas variables las pone la plataforma (Airflow, el contenedor, la CI) leyéndolas de un gestor de secretos. El código no cambia.</p>
 <h2>ruff y pytest: código revisado y probado</h2>
 <p><strong>ruff</strong> encuentra errores y aplica el formato estándar:</p>
-<pre data-norun><code class="language-bash">uv run ruff check .          # errores y malas prácticas (import sin usar, variable indefinida…)
+<pre data-norun tabindex="0"><code class="language-bash">uv run ruff check .          # errores y malas prácticas (import sin usar, variable indefinida…)
 uv run ruff check . --fix    # corrige lo que puede
 uv run ruff format .         # formato estándar (como black)</code></pre>
 <p><strong>pytest</strong> corre las pruebas: archivos <code>test_*.py</code> con funciones <code>test_*</code> que usan <code>assert</code>.</p>
-<pre data-norun><code class="language-python"># tests/test_reglas.py
+<pre data-norun tabindex="0"><code class="language-python"># tests/test_reglas.py
 from ingesta_rapido.reglas import validar_pedido
 
 def test_pedido_correcto_no_tiene_errores():
@@ -192,7 +192,7 @@ def test_tiempos_desordenados():
     p = {&quot;estado&quot;: &quot;entregado&quot;, &quot;subtotal&quot;: 20, &quot;creado&quot;: &quot;2024-08-14 20:00:00&quot;,
          &quot;aceptado&quot;: &quot;2024-08-14 20:25:00&quot;, &quot;retirado&quot;: &quot;2024-08-14 20:22:00&quot;, &quot;entregado&quot;: &quot;2024-08-14 20:40:00&quot;}
     assert validar_pedido(p) == [&quot;tiempos_desordenados&quot;]</code></pre>
-<pre><code class="language-text">$ uv run pytest -q
+<pre tabindex="0"><code class="language-text">$ uv run pytest -q
 ..                                                                   [100%]
 2 passed in 0.03s</code></pre>
 <p><strong>En VS Code</strong>: <code>Ctrl+Shift+P</code> → &quot;Python: Select Interpreter&quot; → elige <code>.venv</code>. Desde ahí, el editor usa los paquetes del proyecto y la pestaña Testing muestra las pruebas.</p>
@@ -238,7 +238,7 @@ def test_tiempos_desordenados():
 <li>Agrega pandas como dependencia y ruff/pytest como dependencias de desarrollo.</li>
 <li>Corre el linter y un script dentro del entorno con <code>uv run</code>: nunca instalas nada en el Python del sistema.</li>
 </ol>
-<pre data-norun><code class="language-bash">cd ~ &amp;&amp; uv init analisis-ventas &amp;&amp; cd analisis-ventas
+<pre data-norun tabindex="0"><code class="language-bash">cd ~ &amp;&amp; uv init analisis-ventas &amp;&amp; cd analisis-ventas
 uv add pandas
 uv add --dev ruff pytest
 cat pyproject.toml

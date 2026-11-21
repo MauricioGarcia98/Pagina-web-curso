@@ -27,7 +27,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Definir y llamar una función</h2>
-<pre><code class="language-python">def precio_final(precio, descuento=0.0, iva=0.21):
+<pre tabindex="0"><code class="language-python">def precio_final(precio, descuento=0.0, iva=0.21):
     &quot;&quot;&quot;Devuelve el precio con descuento e IVA, redondeado a 2 decimales.&quot;&quot;&quot;
     con_descuento = precio * (1 - descuento)
     return round(con_descuento * (1 + iva), 2)
@@ -78,7 +78,7 @@ print(precio_final(100, iva=0.0))          # argumentos por nombre       → 100
 
 <h3>Salir temprano: cláusulas de guarda</h3>
 <p>Un <code>return</code> dentro de un <code>if</code> permite resolver los casos especiales al principio y dejar el caso normal sin anidar:</p>
-<pre><code class="language-python">def tasa_conversion(compras, visitas):
+<pre tabindex="0"><code class="language-python">def tasa_conversion(compras, visitas):
     if not visitas:              # guarda: evita dividir por cero
         return None
     return round(100 * compras / visitas, 2)
@@ -88,7 +88,7 @@ print(tasa_conversion(5, 200), tasa_conversion(5, 0))</code></pre>
 
 
 <h2>Devolver varios valores</h2>
-<pre><code class="language-python">def estadisticas(numeros):
+<pre tabindex="0"><code class="language-python">def estadisticas(numeros):
     return min(numeros), max(numeros), sum(numeros) / len(numeros)
 
 minimo, maximo, promedio = estadisticas([4, 8, 15, 16, 23, 42])
@@ -96,7 +96,7 @@ print(minimo, maximo, promedio)</code></pre>
 <p>En realidad devuelve <strong>una tupla</strong> <code>(4, 42, 18.0)</code>, que se desempaqueta en tres variables.</p>
 <h2>Alcance (scope): qué variables ve cada parte</h2>
 <p>Las variables creadas <strong>dentro</strong> de una función son <strong>locales</strong>: nacen cuando la función se ejecuta y desaparecen cuando termina. No existen afuera.</p>
-<pre><code class="language-python">def f():
+<pre tabindex="0"><code class="language-python">def f():
     x = 10           # x es local de f
     return x * 2
 
@@ -104,7 +104,7 @@ print(f())
 # print(x)  -&gt; NameError: name 'x' is not defined</code></pre>
 <p>Esto es una ventaja: cada función es una caja cerrada, y dos funciones pueden usar una variable <code>total</code> sin pisarse. Una función <strong>puede leer</strong> variables definidas afuera (globales), pero depender de ellas hace el código frágil. La regla de oro: <strong>todo lo que una función necesita, que entre por parámetros; todo lo que produce, que salga por <code>return</code></strong>. Esas funciones se llaman <strong>puras</strong>, y son las más fáciles de probar y reutilizar (en el módulo de casos de punta a punta verás por qué importan tanto).</p>
 <h2>Parámetros flexibles: *args y **kwargs</h2>
-<pre><code class="language-python">def total(*montos):                  # cualquier cantidad de argumentos → llegan en una tupla
+<pre tabindex="0"><code class="language-python">def total(*montos):                  # cualquier cantidad de argumentos → llegan en una tupla
     return sum(montos)
 
 def ficha(**datos):                  # cualquier argumento por nombre → llega en un diccionario
@@ -121,13 +121,13 @@ print(ficha(nombre=&quot;Eva&quot;, pais=&quot;Perú&quot;))</code></pre>
 
 <h2>lambda: funciones de una línea</h2>
 <p>Una <code>lambda</code> es una función pequeña, sin nombre, que se escribe en una línea. Se usa sobre todo como <strong>argumento</strong> de otra función, por ejemplo para indicar por qué ordenar:</p>
-<pre><code class="language-python">productos = [(&quot;Mouse&quot;, 25), (&quot;Monitor&quot;, 210), (&quot;Cable&quot;, 4.5)]
+<pre tabindex="0"><code class="language-python">productos = [(&quot;Mouse&quot;, 25), (&quot;Monitor&quot;, 210), (&quot;Cable&quot;, 4.5)]
 print(sorted(productos, key=lambda p: p[1]))              # por precio
 print(sorted(productos, key=lambda p: p[1], reverse=True))</code></pre>
 <p><code>lambda p: p[1]</code> equivale a <code>def f(p): return p[1]</code>. Si la lógica no entra cómoda en una línea, usa un <code>def</code> normal.</p>
 <h2>Type hints: documentar los tipos</h2>
 <p>Python no obliga a declarar tipos, pero puedes <strong>anotarlos</strong>. No cambian cómo se ejecuta el código; documentan y permiten que tu editor y herramientas como <code>mypy</code> detecten errores antes de ejecutar:</p>
-<pre><code class="language-python">def iva(precio: float, tasa: float = 0.21) -&gt; float:
+<pre tabindex="0"><code class="language-python">def iva(precio: float, tasa: float = 0.21) -&gt; float:
     return precio * tasa
 
 print(iva(100))</code></pre>
@@ -207,7 +207,7 @@ print(iva(100))</code></pre>
 <li>Agrega un parámetro <code>iva</code> con valor por defecto <code>0.21</code>.</li>
 <li>Llama la función con argumentos por nombre.</li>
 </ol>
-<pre data-norun><code class="language-python">def precio_final(precio, descuento=0.0):
+<pre data-norun tabindex="0"><code class="language-python">def precio_final(precio, descuento=0.0):
     &quot;&quot;&quot;Devuelve el precio con el descuento aplicado.&quot;&quot;&quot;
     return round(precio * (1 - descuento), 2)
 

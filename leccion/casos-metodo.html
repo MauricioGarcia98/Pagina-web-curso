@@ -109,7 +109,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>El denominador son <strong>todas</strong> las solicitudes. Si filtraras <code>WHERE estado = &#39;completado&#39;</code>, perderías justamente lo que quieres medir.</p>
 <p><strong>4. Las tablas.</strong> Todo está en <code>viajes_viajes</code>: una fila por solicitud, con su <code>estado</code> y la <code>fecha_hora_solicitud</code>. No hace falta ningún JOIN, así que no hay riesgo de multiplicar filas.</p>
 <p><strong>5. Resolver en pasos.</strong> Una CTE extrae la hora, otra asigna la franja y la consulta final calcula las métricas con <code>CASE</code> <strong>dentro</strong> de la agregación:</p>
-<pre><code class="language-sql">WITH solicitudes AS (
+<pre tabindex="0"><code class="language-sql">WITH solicitudes AS (
     SELECT
         viaje_id,
         estado,
@@ -212,7 +212,7 @@ ORDER BY franja;</code></pre>
 <li>Ejecuta: capa 1 = ventas por categoría y año; capa 2 = las dos columnas lado a lado; capa 3 = el crecimiento.</li>
 <li>Revisa la trampa: una categoría chica puede crecer 200 % y sumar poco. Mira también la diferencia absoluta.</li>
 </ol>
-<pre data-norun><code class="language-sql">WITH ventas AS (
+<pre data-norun tabindex="0"><code class="language-sql">WITH ventas AS (
     SELECT c.nombre AS categoria, SUBSTR(CAST(p.fecha_pedido AS VARCHAR), 1, 4) AS anio,
            SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS ventas
     FROM pedidos p

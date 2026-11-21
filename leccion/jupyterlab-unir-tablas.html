@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — Tu primer merge</h2>
-<pre data-norun><code class="language-python">clientes = pd.read_csv(&quot;datos/clientes.csv&quot;)
+<pre data-norun tabindex="0"><code class="language-python">clientes = pd.read_csv(&quot;datos/clientes.csv&quot;)
 unido = pedidos.merge(clientes[[&quot;cliente_id&quot;, &quot;pais&quot;, &quot;segmento&quot;]], on=&quot;cliente_id&quot;, how=&quot;left&quot;)
 unido.shape</code></pre>
 <p>Da <code>(12000, 9)</code>: las mismas 12.000 filas de pedidos, con dos columnas más.</p>
@@ -68,7 +68,7 @@ unido.shape</code></pre>
 
 
 <h2>Paso 3 — Verifica la unión con indicator</h2>
-<pre data-norun><code class="language-python">unido = pedidos.merge(clientes[[&quot;cliente_id&quot;, &quot;pais&quot;]], on=&quot;cliente_id&quot;, how=&quot;left&quot;, indicator=True)
+<pre data-norun tabindex="0"><code class="language-python">unido = pedidos.merge(clientes[[&quot;cliente_id&quot;, &quot;pais&quot;]], on=&quot;cliente_id&quot;, how=&quot;left&quot;, indicator=True)
 unido[&quot;_merge&quot;].value_counts()</code></pre>
 <figure class="captura"><img src="assets/img/guias/jupyter/e13-merge.webp" alt="indicator=True agrega _merge: los 12.000 pedidos encontraron a su cliente (both)" loading="lazy"><figcaption>indicator=True agrega _merge: los 12.000 pedidos encontraron a su cliente (both)</figcaption></figure>
 
@@ -92,14 +92,14 @@ unido[&quot;_merge&quot;].value_counts()</code></pre>
 </tbody></table></div>
 <h2>Paso 4 — Lo que no tiene pareja: anti-join</h2>
 <p>¿Qué clientes <strong>nunca</strong> hicieron un pedido?</p>
-<pre data-norun><code class="language-python">todos = clientes.merge(pedidos[[&quot;cliente_id&quot;]].drop_duplicates(), on=&quot;cliente_id&quot;, how=&quot;left&quot;, indicator=True)
+<pre data-norun tabindex="0"><code class="language-python">todos = clientes.merge(pedidos[[&quot;cliente_id&quot;]].drop_duplicates(), on=&quot;cliente_id&quot;, how=&quot;left&quot;, indicator=True)
 sin_pedidos = todos[todos[&quot;_merge&quot;] == &quot;left_only&quot;]
 len(sin_pedidos)</code></pre>
 <p>Da <strong>547</strong>: más de una cuarta parte de los clientes registrados no compró nunca. Un hallazgo de negocio que sale de una unión.</p>
 <p>Forma corta: <code>clientes[~clientes[&quot;cliente_id&quot;].isin(pedidos[&quot;cliente_id&quot;])]</code>.</p>
 <h2>Paso 5 — Trampa 1: claves duplicadas</h2>
 <p>Si la tabla de la derecha tiene la clave <strong>repetida</strong>, cada fila de la izquierda se duplica. Protégete con <code>validate</code>:</p>
-<pre data-norun><code class="language-python">pedidos.merge(clientes, on=&quot;cliente_id&quot;, how=&quot;left&quot;, validate=&quot;many_to_one&quot;)</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">pedidos.merge(clientes, on=&quot;cliente_id&quot;, how=&quot;left&quot;, validate=&quot;many_to_one&quot;)</code></pre>
 <p><code>many_to_one</code> = &quot;muchos pedidos por cliente, pero un solo registro por cliente&quot;. Si <code>clientes</code> tuviera un id repetido, pandas lanza un error <strong>antes</strong> de que el análisis quede mal. Compara siempre la cantidad de filas antes y después del merge.</p>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ El JOIN que infla las ventas</div>
 
@@ -110,7 +110,7 @@ len(sin_pedidos)</code></pre>
 <h2>Paso 6 — Trampa 2: tipos distintos</h2>
 <p>Si la clave es número en una tabla y texto en la otra (<code>528</code> contra <code>&quot;528&quot;</code>), merge da error o no encuentra parejas. Revisa con <code>df[&quot;clave&quot;].dtype</code> y convierte: <code>df[&quot;cliente_id&quot;] = df[&quot;cliente_id&quot;].astype(int)</code>.</p>
 <h2>Paso 7 — Claves con distinto nombre y varias tablas</h2>
-<pre data-norun><code class="language-python">detalle = pd.read_csv(&quot;datos/detalle_pedidos.csv&quot;)
+<pre data-norun tabindex="0"><code class="language-python">detalle = pd.read_csv(&quot;datos/detalle_pedidos.csv&quot;)
 productos = pd.read_csv(&quot;datos/productos.csv&quot;)
 categorias = pd.read_csv(&quot;datos/categorias.csv&quot;)
 lineas = (detalle

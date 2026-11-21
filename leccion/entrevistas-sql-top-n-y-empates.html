@@ -84,7 +84,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>La plantilla de top-N por grupo</h2>
 <p>Las funciones de ventana se calculan <strong>después</strong> del <code>WHERE</code>, así que no puedes escribir <code>WHERE RANK() OVER (...) &lt;= 3</code>. La solución es siempre la misma: calcular la posición en una capa y filtrar en la siguiente.</p>
-<pre><code class="language-sql">WITH ranking AS (
+<pre tabindex="0"><code class="language-sql">WITH ranking AS (
   SELECT d.nombre AS departamento,
          e.nombre || ' ' || e.apellido AS empleado,
          e.salario,
@@ -126,7 +126,7 @@ ORDER BY departamento, pos;</code></pre>
 
 <h2>Desempate determinista</h2>
 <p>&quot;El primer pedido de cada cliente&quot; parece fácil, pero un cliente puede tener <strong>dos pedidos el mismo día</strong>. Si ordenas solo por <code>fecha_pedido</code>, <code>ROW_NUMBER</code> elige uno al azar y la consulta puede dar resultados distintos cada vez que corre. Agrega una columna que nunca se repite:</p>
-<pre data-norun><code class="language-sql">ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha_pedido, pedido_id)</code></pre>
+<pre data-norun tabindex="0"><code class="language-sql">ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha_pedido, pedido_id)</code></pre>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Resultados que cambian entre ejecuciones</div>
 
 <p>Un <code>ROW_NUMBER</code> con empates en el <code>ORDER BY</code> es <strong>no determinista</strong>: en Spark o en un warehouse distribuido, dos ejecuciones pueden quedarse con filas distintas. En producción eso rompe pruebas y conciliaciones. Siempre termina el <code>ORDER BY</code> con la clave primaria.</p>
@@ -142,7 +142,7 @@ ORDER BY departamento, pos;</code></pre>
 <li>Busca dos filas con el mismo salario y compara las tres columnas.</li>
 <li>Cambia <code>departamento_id = 2</code> por <code>4</code> y predice, <strong>antes</strong> de ejecutar, dónde va a saltar <code>RANK</code>.</li>
 </ol>
-<pre><code class="language-sql">SELECT nombre, salario,
+<pre tabindex="0"><code class="language-sql">SELECT nombre, salario,
        ROW_NUMBER() OVER (ORDER BY salario DESC, empleado_id) AS fila,
        RANK()       OVER (ORDER BY salario DESC) AS rank,
        DENSE_RANK() OVER (ORDER BY salario DESC) AS dense_rank

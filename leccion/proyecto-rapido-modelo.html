@@ -114,7 +114,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Ese es el grano de la tabla gold del proyecto: lo defines antes de escribir el pipeline.</li>
 <li>Verifica que no hay días repetidos por ciudad.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT ciudad,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT ciudad,
        CAST(creado AS DATE) AS dia,
        COUNT(*) AS pedidos,
        SUM(CASE WHEN estado = 'entregado' THEN 1 ELSE 0 END) AS entregados,
@@ -135,7 +135,7 @@ LIMIT 15;</code></pre>
 
 <h2>Paso 4: gold — la tabla de hechos con etapas</h2>
 <p><code>fct_rapido_pedidos</code> tiene <strong>una fila por pedido</strong> con sus claves, sus importes y la duración de cada etapa ya calculada. En Kimball se llama <strong>accumulating snapshot</strong>: una fila que se va completando a medida que el proceso avanza (creado → aceptado → retirado → entregado). Calcular las duraciones una sola vez aquí evita que cada analista las calcule distinto.</p>
-<pre><code class="language-text">fct_rapido_pedidos
+<pre tabindex="0"><code class="language-text">fct_rapido_pedidos
   pedido_id, fecha, ciudad, restaurante_id, cliente_id, estado
   min_aceptacion, min_preparacion, min_viaje, min_total     ← NULL si la etapa no ocurrió
   gmv (subtotal si se entregó, 0 si no), comision, costo_envio, descuento_cupon
@@ -145,7 +145,7 @@ LIMIT 15;</code></pre>
 
 <h2>Paso 5: el mart diario, con medidas aditivas</h2>
 <p>El tablero muestra promedios y porcentajes, pero el mart <strong>no</strong> los guarda: guarda <strong>sumas y conteos</strong> (medidas <strong>aditivas</strong>), y el tablero divide. ¿Por qué? Porque el usuario va a querer ver la semana, el mes o &quot;todas las ciudades&quot;, y <strong>el promedio de los promedios diarios no es el promedio del mes</strong>: un día con 10 pedidos pesaría igual que uno con 500.</p>
-<pre><code class="language-text">mart_operaciones_diario (ciudad, fecha,
+<pre tabindex="0"><code class="language-text">mart_operaciones_diario (ciudad, fecha,
   pedidos, entregados, sin_repartidor, tarde,
   suma_min_total, suma_min_preparacion, suma_min_viaje,       ← para promediar: suma / entregados
   gmv, comision, envios, cupones)                              ← take rate = (comision + envios − cupones) / gmv</code></pre>

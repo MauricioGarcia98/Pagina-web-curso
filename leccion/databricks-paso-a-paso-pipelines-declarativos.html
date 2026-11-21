@@ -33,7 +33,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/databricks/d14-pipeline.webp" alt="El archivo de transformaciones (1), el grafo que Databricks deduce del código (2), Run pipeline (3) y Dry run (4)" loading="lazy"><figcaption>El archivo de transformaciones (1), el grafo que Databricks deduce del código (2), Run pipeline (3) y Dry run (4)</figcaption></figure>
 
 
-<pre data-norun><code class="language-sql">-- Bronze: tabla de streaming (incremental: en cada actualización procesa solo lo nuevo)
+<pre data-norun tabindex="0"><code class="language-sql">-- Bronze: tabla de streaming (incremental: en cada actualización procesa solo lo nuevo)
 CREATE OR REFRESH STREAMING TABLE pedidos_bronze
 COMMENT 'Pedidos tal como llegan'
 AS SELECT * FROM STREAM(samples.tienda.pedidos);

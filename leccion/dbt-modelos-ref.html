@@ -33,12 +33,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ul>
 <p>Antes de enviar la consulta a la base, dbt <strong>compila</strong> el archivo: ejecuta el Jinja y obtiene SQL puro. Ese SQL queda guardado en <code>target/compiled/</code> para que lo leas. Cuando algo falla, siempre conviene mirar el compilado: es lo que la base recibió de verdad.</p>
 <p>Lo que escribes en <code>models/marts/ventas_por_canal.sql</code>:</p>
-<pre data-norun><code class="language-sql">from {{ ref('stg_pedidos') }} as p</code></pre>
+<pre data-norun tabindex="0"><code class="language-sql">from {{ ref('stg_pedidos') }} as p</code></pre>
 <p>Lo que dbt compila en <code>target/compiled/.../ventas_por_canal.sql</code> y manda a la base:</p>
-<pre data-norun><code class="language-sql">from main.stg_pedidos as p</code></pre>
+<pre data-norun tabindex="0"><code class="language-sql">from main.stg_pedidos as p</code></pre>
 <h2>ref(): la función más importante</h2>
 <p>En lugar de escribir el nombre de la tabla, referencias otros modelos con <code>{{ ref(&#39;nombre_modelo&#39;) }}</code>:</p>
-<pre><code class="language-dbt">-- models/marts/ventas_por_canal.sql
+<pre tabindex="0"><code class="language-dbt">-- models/marts/ventas_por_canal.sql
 select
     p.canal,
     count(distinct p.pedido_id) as pedidos,
@@ -124,13 +124,13 @@ group by p.canal</code></pre>
 
 
 <p>Pruébalo con el proyecto de la terminal:</p>
-<pre><code class="language-bash">cd tienda_dbt
+<pre tabindex="0"><code class="language-bash">cd tienda_dbt
 dbt ls -s +ventas_por_canal
 dbt run -s ventas_por_canal
 dbt run -s +top_clientes</code></pre>
 <h2>El estilo de dbt: CTEs de importación</h2>
 <p>La guía de estilo de dbt Labs recomienda empezar cada modelo <strong>importando</strong> sus dependencias en CTEs, y luego transformarlas en pasos con nombre:</p>
-<pre><code class="language-dbt">with pedidos as (
+<pre tabindex="0"><code class="language-dbt">with pedidos as (
     select * from {{ ref('stg_pedidos') }}
 ),
 
@@ -206,7 +206,7 @@ select * from final</code></pre>
 <li>Cambia el <code>limit</code> y agrega la fecha de la última compra (<code>max(p.fecha_pedido)</code>).</li>
 <li>Mira el compilado: cada <code>ref</code> se convirtió en <code>main.&lt;modelo&gt;</code>. Por esas referencias dbt sabe el orden del DAG.</li>
 </ol>
-<pre data-norun><code class="language-sql">-- gasto por cliente, a partir de los modelos de staging
+<pre data-norun tabindex="0"><code class="language-sql">-- gasto por cliente, a partir de los modelos de staging
 with pedidos as (
     select * from {{ ref('stg_pedidos') }}
     where estado &lt;&gt; 'cancelado'

@@ -30,7 +30,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p>Es una <strong>vista SQL</strong> de las mismas tablas Delta: no hay copia ni sincronización que configurar.</p>
 <h2>Paso 2 — Consultar</h2>
-<pre data-norun><code class="language-sql">SELECT canal, COUNT(*) AS pedidos
+<pre data-norun tabindex="0"><code class="language-sql">SELECT canal, COUNT(*) AS pedidos
 FROM dbo.pedidos
 GROUP BY canal
 ORDER BY pedidos DESC;</code></pre>
@@ -40,7 +40,7 @@ ORDER BY pedidos DESC;</code></pre>
 
 <h2>Paso 3 — Solo lectura</h2>
 <p>Prueba:</p>
-<pre data-norun><code class="language-sql">DELETE FROM dbo.pedidos WHERE estado = 'cancelado';</code></pre>
+<pre data-norun tabindex="0"><code class="language-sql">DELETE FROM dbo.pedidos WHERE estado = 'cancelado';</code></pre>
 <figure class="captura"><img src="assets/img/guias/fabric/b06-solo-lectura.webp" alt="&quot;The data manipulation language (DML) statement 'DELETE FROM' is not supported&quot; - el endpoint es de solo lectura" loading="lazy"><figcaption>&quot;The data manipulation language (DML) statement 'DELETE FROM' is not supported&quot; - el endpoint es de solo lectura</figcaption></figure>
 
 

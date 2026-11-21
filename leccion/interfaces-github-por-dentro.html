@@ -164,7 +164,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Si tu rama y <code>main</code> cambiaron <strong>las mismas líneas</strong>, GitHub muestra <em>This branch has conflicts</em>. Dos caminos: <strong>Resolve conflicts</strong> en la web (editas el archivo y borras las marcas <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code>, <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>), o en la terminal <code>git pull origin main</code>, resuelves, <code>git add</code>, <code>git commit</code> y <code>git push</code>. <strong>HEAD</strong> es lo que hay en la base; lo de abajo de <code>=======</code> viene de tu rama.</p>
 <h2>GitHub Actions: pruebas automáticas</h2>
 <p>Un <strong>workflow</strong> es un archivo YAML en <code>.github/workflows/</code>. Ejemplo de un equipo de datos:</p>
-<pre><code class="language-yaml">name: CI
+<pre tabindex="0"><code class="language-yaml">name: CI
 on:
   pull_request:
     branches: [ main ]
@@ -319,7 +319,7 @@ jobs:
 <li>Crea un <em>issue</em> que describa un cambio chico (por ejemplo, &quot;agregar un README&quot;).</li>
 <li>Haz el cambio en una rama, abre un <em>pull request</em> que cierre el issue (<code>Closes #1</code>) y revisa la pestaña <strong>Files changed</strong>.</li>
 </ol>
-<pre data-norun><code class="language-text">Closes #1</code></pre>
+<pre data-norun tabindex="0"><code class="language-text">Closes #1</code></pre>
 <p>Reto: en <strong>Settings → Branches</strong>, protege <code>main</code> para que exija una revisión antes de hacer <em>merge</em>.</p>
 <p>Documentación oficial: <a href="https://docs.github.com/es/repositories/creating-and-managing-repositories/about-repositories">repositorios</a> · <a href="https://docs.github.com/es/pull-requests">pull requests</a></p>
 </div>

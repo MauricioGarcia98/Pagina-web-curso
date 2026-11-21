@@ -61,7 +61,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>Paso 1 · El lago, el Key Vault y el webhook</h2>
-<pre><code class="language-bash">mercado accesos
+<pre tabindex="0"><code class="language-bash">mercado accesos
 az login
 az group create -n rg-mercado -l eastus2
 az storage account create -n stmercado -g rg-mercado -l eastus2 --sku Standard_LRS --hns true
@@ -76,7 +76,7 @@ pagoya webhooks configurar --cuenta stmercado</code></pre>
 <p>El webhook se configura <strong>el primer día</strong>: PagoYa solo manda lo que pasa desde ese momento. Lo de antes se recupera por la API (paso 4).</p>
 <h2>Paso 2 · El snapshot y el CDC</h2>
 <p>La réplica de lectura es un PostgreSQL de verdad, con un usuario que no puede escribir:</p>
-<pre><code class="language-bash">export PGPASSWORD='…'
+<pre tabindex="0"><code class="language-bash">export PGPASSWORD='…'
 psql &quot;postgresql://lector_datos@mv-prod-replica.postgres.database.azure.com:5432/mercado?sslmode=require&quot; -c &quot;SELECT estado, count(*) FROM pedidos GROUP BY 1 ORDER BY 1&quot;
 psql -h mv-prod-replica.postgres.database.azure.com -U lector_datos -d mercado -c &quot;\d pedidos&quot;
 
@@ -85,13 +85,13 @@ psql -h mv-prod-replica.postgres.database.azure.com -U lector_datos -d mercado -
 psql -h mv-prod-replica.postgres.database.azure.com -U lector_datos -d mercado -c &quot;\copy clientes TO 'mv/snap/clientes.csv' CSV HEADER&quot;
 az storage blob upload-batch --account-name stmercado -d landing/snap -s ~/mv/snap</code></pre>
 <p>Y el CDC en Kafka: una configuración en <code>~/.config/kcat.conf</code> evita repetir las credenciales en cada comando.</p>
-<pre><code class="language-bash">mkdir -p ~/.config &amp;&amp; printf 'bootstrap.servers=mv-eventos.servicebus.windows.net:9093\nsecurity.protocol=SASL_SSL\nsasl.mechanisms=PLAIN\nsasl.username=$ConnectionString\nsasl.password=Endpoint=sb://…\n' &gt; ~/.config/kcat.conf
+<pre tabindex="0"><code class="language-bash">mkdir -p ~/.config &amp;&amp; printf 'bootstrap.servers=mv-eventos.servicebus.windows.net:9093\nsecurity.protocol=SASL_SSL\nsasl.mechanisms=PLAIN\nsasl.username=$ConnectionString\nsasl.password=Endpoint=sb://…\n' &gt; ~/.config/kcat.conf
 kcat -L | head -5
 kcat -C -t mv_prod.public.pedidos -o beginning -e -c 1</code></pre>
 <p>Cada mensaje trae <code>op</code> (<code>c</code> alta, <code>u</code> cambio, <code>d</code> baja, <code>r</code> lectura inicial), <code>before</code>, <code>after</code> y <code>source.lsn</code>: la posición del cambio en el log de la base. Ese número es el que ordena todo.</p>
 <h2>Paso 3 · Silver: snapshot + MERGE</h2>
 <p>Primero el snapshot, con <code>_lsn = 0</code>:</p>
-<pre data-norun><code class="language-sql">CREATE EXTERNAL LOCATION lago_mercado URL 'abfss://landing@stmercado.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
+<pre data-norun tabindex="0"><code class="language-sql">CREATE EXTERNAL LOCATION lago_mercado URL 'abfss://landing@stmercado.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
 CREATE CATALOG IF NOT EXISTS mercado;
 CREATE SCHEMA IF NOT EXISTS mercado.bronze; CREATE SCHEMA IF NOT EXISTS mercado.silver; CREATE SCHEMA IF NOT EXISTS mercado.gold;
 
@@ -102,7 +102,7 @@ SELECT CAST(id AS BIGINT) AS pedido_id, CAST(cliente_id AS BIGINT) AS cliente_id
        CAST(0 AS BIGINT) AS _lsn
 FROM read_files('abfss://landing@stmercado.dfs.core.windows.net/snap/pedidos.csv', format =&gt; 'csv', header =&gt; true);</code></pre>
 <p>El CDC a bronze, tal cual llega:</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE mercado.bronze.cdc_pedidos AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE mercado.bronze.cdc_pedidos AS
 SELECT CAST(value AS STRING) AS v, offset
 FROM read_kafka(bootstrapServers =&gt; 'mv-eventos.servicebus.windows.net:9093', subscribe =&gt; 'mv_prod.public.pedidos',
   startingOffsets =&gt; 'earliest', `kafka.security.protocol` =&gt; 'SASL_SSL', `kafka.sasl.mechanism` =&gt; 'PLAIN',
@@ -113,7 +113,7 @@ FROM read_kafka(bootstrapServers =&gt; 'mv-eventos.servicebus.windows.net:9093',
 <li>Se actualiza solo si el cambio es <strong>más nuevo</strong> que lo que ya hay (<code>s.lsn &gt; t._lsn</code>). Así, reprocesar el tópico entero no rompe nada, y un cambio viejo nunca pisa a uno nuevo.</li>
 <li>Las bajas (<code>op = &#39;d&#39;</code>) borran.</li>
 </ol>
-<pre data-norun><code class="language-sql">MERGE INTO mercado.silver.pedidos t USING (
+<pre data-norun tabindex="0"><code class="language-sql">MERGE INTO mercado.silver.pedidos t USING (
   SELECT * FROM (
     SELECT CAST(coalesce(v:after.id, v:before.id) AS BIGINT) AS id, v:op AS op, CAST(v:source.lsn AS BIGINT) AS lsn,
            CAST(v:after.cliente_id AS BIGINT) AS cliente_id, v:after.estado AS estado,
@@ -139,9 +139,9 @@ WHEN NOT MATCHED AND s.op &lt;&gt; 'd' THEN INSERT (pedido_id, cliente_id, estad
 <p><code>mercado.silver.clientes</code> se arma igual (snapshot + MERGE sobre <code>cdc_clientes</code>). Cuando un cliente pide el borrado, la base pone su email en NULL y ese cambio viaja por el CDC.</p>
 <h2>Paso 4 · PagoYa en Python</h2>
 <p>La API recupera <strong>todo</strong> lo que pasó (también antes del webhook). Los webhooks se verifican: la firma es un HMAC-SHA256 de <code>t.cuerpo</code> con el secreto. Durante la rotación del secreto llegan dos firmas <code>v1</code>, así que se aceptan los dos secretos. Y una entrega cuya marca <code>t</code> está a más de 5 minutos de cuando llegó es una repetición vieja (o un ataque): se descarta.</p>
-<pre><code class="language-bash">az storage blob download-batch --account-name stmercado -d ~/mv/webhooks -s landing --pattern &quot;pagoya/webhooks/*&quot;</code></pre>
+<pre tabindex="0"><code class="language-bash">az storage blob download-batch --account-name stmercado -d ~/mv/webhooks -s landing --pattern &quot;pagoya/webhooks/*&quot;</code></pre>
 <p>Guárdalo como <code>~/mv/pagoya.py</code>:</p>
-<pre data-norun><code class="language-python">import requests, json, hmac, hashlib, os, glob, time
+<pre data-norun tabindex="0"><code class="language-python">import requests, json, hmac, hashlib, os, glob, time
 from datetime import datetime
 SK = os.environ[&quot;PAGOYA_SK&quot;]; SECRETOS = [x for x in os.environ[&quot;PAGOYA_WH&quot;].split(&quot;,&quot;) if x]
 H = {&quot;Authorization&quot;: &quot;Bearer &quot; + SK}
@@ -184,7 +184,7 @@ filas = []
 for l in get(&quot;https://api.pagoya.example/v1/liquidaciones&quot;).json()[&quot;datos&quot;]:
     filas += get(&quot;https://api.pagoya.example&quot; + l[&quot;reporte&quot;]).text.strip().split(&quot;\n&quot;)[1:]
 open(&quot;mv/liquidaciones.csv&quot;, &quot;w&quot;).write(&quot;fecha_liquidacion,tipo,pago_id,pedido_id,bruto,comision,neto,moneda\n&quot; + &quot;\n&quot;.join(filas) + &quot;\n&quot;)</code></pre>
-<pre><code class="language-bash">PAGOYA_SK=sk_… PAGOYA_WH=whsec_nuevo,whsec_viejo python ~/mv/pagoya.py
+<pre tabindex="0"><code class="language-bash">PAGOYA_SK=sk_… PAGOYA_WH=whsec_nuevo,whsec_viejo python ~/mv/pagoya.py
 az storage blob upload --account-name stmercado -c landing -n pagoya/eventos/eventos.jsonl -f ~/mv/eventos.jsonl --overwrite
 az storage blob upload --account-name stmercado -c landing -n pagoya/liquidaciones/liquidaciones.csv -f ~/mv/liquidaciones.csv --overwrite</code></pre>
 <div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 hmac.compare_digest, no ==</div>
@@ -194,7 +194,7 @@ az storage blob upload --account-name stmercado -c landing -n pagoya/liquidacion
 
 
 <h2>Paso 5 · La conciliación</h2>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE mercado.silver.pagoya_eventos AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE mercado.silver.pagoya_eventos AS
 SELECT evento_id, tipo, CAST(creado AS BIGINT) AS creado, pago_id, CAST(pedido_id AS BIGINT) AS pedido_id,
        CAST(monto AS DECIMAL(12,2)) AS monto, estado
 FROM read_files('abfss://landing@stmercado.dfs.core.windows.net/pagoya/eventos/eventos.jsonl', format =&gt; 'json');
@@ -202,7 +202,7 @@ FROM read_files('abfss://landing@stmercado.dfs.core.windows.net/pagoya/eventos/e
 CREATE OR REPLACE TABLE mercado.silver.liquidaciones AS
 SELECT * FROM read_files('abfss://landing@stmercado.dfs.core.windows.net/pagoya/liquidaciones/liquidaciones.csv', format =&gt; 'csv', header =&gt; true);</code></pre>
 <p>Un pago aprobado por fila, con una categoría que sigue un orden de prioridad (un contracargo pesa más que un reembolso, y así). Solo días cerrados (hora de la tienda): el día de hoy todavía puede cambiar.</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE mercado.gold.conciliacion AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE mercado.gold.conciliacion AS
 WITH ap AS (SELECT pago_id, pedido_id, monto, to_date(from_unixtime(creado - 10800)) AS fecha FROM mercado.silver.pagoya_eventos WHERE tipo = 'pago.aprobado'),
 hoy AS (SELECT to_date(from_unixtime(unix_timestamp() - 10800)) AS d),
 re AS (SELECT DISTINCT pago_id FROM mercado.silver.pagoya_eventos WHERE tipo = 'reembolso.creado'),
@@ -233,12 +233,12 @@ SELECT CAST(fecha_liquidacion AS DATE) AS fecha_liquidacion,
        SUM(CAST(comision AS DECIMAL(14,2))) AS comisiones, SUM(CAST(neto AS DECIMAL(14,2))) AS neto
 FROM mercado.silver.liquidaciones GROUP BY fecha_liquidacion;</code></pre>
 <p>Para que Finanzas lo lea desde Snowflake, se exporta al lago:</p>
-<pre data-norun><code class="language-sql">INSERT OVERWRITE DIRECTORY 'abfss://landing@stmercado.dfs.core.windows.net/gold/conciliacion_diaria'
+<pre data-norun tabindex="0"><code class="language-sql">INSERT OVERWRITE DIRECTORY 'abfss://landing@stmercado.dfs.core.windows.net/gold/conciliacion_diaria'
 USING CSV OPTIONS ('header' = 'true')
 SELECT * FROM mercado.gold.conciliacion_diaria;</code></pre>
 <h2>Paso 6 · Automatizar</h2>
 <p>Un job de Databricks con el MERGE y la conciliación, disparado cada hora por un DAG:</p>
-<pre data-norun><code class="language-python">from datetime import datetime
+<pre data-norun tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import DAG
 from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
 

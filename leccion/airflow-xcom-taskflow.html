@@ -19,7 +19,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Pasar datos pequeños entre tareas con XCom</li><li>Escribir DAGs con la TaskFlow API (@dag y @task)</li><li>Generar tareas dinámicamente con expand()</li></ul>
 <h2>XCom: mensajes entre tareas</h2>
 <p>Las tareas pueden correr en máquinas distintas, así que no comparten variables. Para pasar <strong>datos pequeños</strong> (un nombre de archivo, un conteo, una fecha) se usa <strong>XCom</strong> (<em>cross-communication</em>), que los guarda en la base de metadatos.</p>
-<pre><code class="language-python">from datetime import datetime
+<pre tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 
@@ -60,7 +60,7 @@ dag.test()</code></pre>
 
 <h2>TaskFlow API: Airflow “pythónico”</h2>
 <p>Desde Airflow 2, los decoradores <code>@dag</code> y <code>@task</code> convierten funciones comunes en DAGs y tareas. Lo que una tarea <strong>devuelve</strong> pasa automáticamente por XCom a la siguiente, y las <strong>dependencias se infieren</strong> de cómo pasas los valores:</p>
-<pre><code class="language-python">from datetime import datetime
+<pre tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import dag, task
 
 @dag(schedule=&quot;@daily&quot;, start_date=datetime(2024, 1, 1), catchup=False, tags=[&quot;taskflow&quot;])
@@ -102,7 +102,7 @@ dag_etl.test()</code></pre>
 </tbody></table></div>
 <p>Por dentro es <strong>exactamente lo mismo</strong>: TaskFlow usa XCom. Por eso las mismas reglas aplican: lo que devuelves debe ser <strong>chico</strong> y <strong>serializable a JSON</strong> (números, textos, listas, diccionarios; no un DataFrame de pandas ni una conexión a una base).</p>
 <h3>multiple_outputs</h3>
-<pre><code class="language-python">from datetime import datetime
+<pre tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import dag, task
 
 @dag(schedule=None, start_date=datetime(2024, 1, 1))
@@ -121,7 +121,7 @@ def resumen():
 resumen().test()</code></pre>
 <h2>Leer la fecha y otros datos de la ejecución en TaskFlow</h2>
 <p>En un <code>PythonOperator</code> recibías <code>ti</code> declarando un parámetro con ese nombre. En TaskFlow hay dos formas de acceder al <strong>contexto</strong> (la fecha lógica, los parámetros, la task instance):</p>
-<pre><code class="language-python">from datetime import datetime
+<pre tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import dag, task, get_current_context
 
 @dag(schedule=None, start_date=datetime(2024, 1, 1))
@@ -146,7 +146,7 @@ contexto().test()</code></pre>
 </ul>
 <h2>Mezclar operadores clásicos y TaskFlow</h2>
 <p>En un DAG real conviven los dos estilos: un operador de un <em>provider</em> (Databricks, SQL) y funciones <code>@task</code>. Para pasar el resultado de un operador clásico a una tarea <code>@task</code> se usa <code>.output</code>, que representa su XCom <code>return_value</code>:</p>
-<pre><code class="language-python">from datetime import datetime
+<pre tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import dag, task
 from airflow.providers.standard.operators.bash import BashOperator
 
@@ -163,7 +163,7 @@ def mixto():
 mixto().test()</code></pre>
 <h2>Mapeo dinámico: una tarea por cada elemento</h2>
 <p>A veces no sabes <strong>cuántas</strong> tareas vas a necesitar hasta que el DAG corre: hoy llegaron 3 archivos, mañana 12. Escribir un <code>for</code> al nivel superior del archivo no sirve (se evalúa al <strong>leer</strong> el archivo, no al ejecutar). Para eso existe el <strong>mapeo dinámico de tareas</strong> (<em>dynamic task mapping</em>): <code>.expand()</code> crea, en tiempo de ejecución, una copia de la tarea por cada elemento de una lista.</p>
-<pre><code class="language-python">from datetime import datetime
+<pre tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import dag, task
 
 @dag(schedule=None, start_date=datetime(2024, 1, 1))
@@ -236,7 +236,7 @@ cargar_archivos().test()</code></pre>
 <li>Mira el mapeo dinámico: <code>expand</code> crea una tarea por cada archivo.</li>
 <li>Agrega un archivo a la lista y vuelve a ejecutar: aparece una instancia más.</li>
 </ol>
-<pre data-norun><code class="language-python">from datetime import datetime
+<pre data-norun tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import dag, task
 
 @dag(start_date=datetime(2024, 1, 1), schedule=&quot;@daily&quot;, catchup=False)

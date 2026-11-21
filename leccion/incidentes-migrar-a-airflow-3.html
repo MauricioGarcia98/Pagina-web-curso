@@ -30,7 +30,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Limpiar y respaldar</strong> la base de metadatos (<code>airflow db clean</code> para recortar historia vieja, y un respaldo antes de tocar nada).</li>
 <li><strong>Revisar los DAGs</strong> con <code>ruff</code>, un analizador de código de Python que tiene reglas específicas de Airflow:</li>
 </ol>
-<pre data-norun><code class="language-bash">pip install &quot;ruff&gt;=0.13.1&quot;
+<pre data-norun tabindex="0"><code class="language-bash">pip install &quot;ruff&gt;=0.13.1&quot;
 ruff check dags/ --select AIR301              # cambios que ROMPEN en Airflow 3
 ruff check dags/ --select AIR301 --show-fixes # qué corregiría
 ruff check dags/ --select AIR301 --fix        # corrige lo seguro

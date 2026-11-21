@@ -57,7 +57,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>Instalar dbt Core, paso a paso</h2>
-<pre data-norun><code class="language-bash">python -m venv .venv               # 1. crea el entorno virtual en la carpeta .venv
+<pre data-norun tabindex="0"><code class="language-bash">python -m venv .venv               # 1. crea el entorno virtual en la carpeta .venv
 source .venv/bin/activate          # 2. lo activa (en Windows: .venv\Scripts\activate)
 pip install dbt-databricks         # 3. instala dbt-core + el adaptador de Databricks
 dbt --version                      # 4. comprueba qué se instaló</code></pre>
@@ -68,7 +68,7 @@ dbt --version                      # 4. comprueba qué se instaló</code></pre>
 <li><code>dbt --version</code> muestra la versión de <code>dbt-core</code> y de cada adaptador (<em>plugin</em>).</li>
 </ol>
 <h2>Crear el proyecto</h2>
-<pre data-norun><code class="language-bash">dbt init tienda_andina            # pregunta el adaptador y los datos de conexión
+<pre data-norun tabindex="0"><code class="language-bash">dbt init tienda_andina            # pregunta el adaptador y los datos de conexión
 cd tienda_andina
 dbt debug                         # verifica la conexión y la configuración</code></pre>
 <ul>
@@ -104,7 +104,7 @@ dbt debug                         # verifica la conexión y la configuración</c
 
 
 <h2>Estructura de carpetas</h2>
-<pre><code class="language-text">tienda_andina/
+<pre tabindex="0"><code class="language-text">tienda_andina/
 ├── dbt_project.yml          # configuración del proyecto
 ├── models/
 │   ├── staging/             # 1 modelo por tabla de origen: renombrar, tipar, limpiar
@@ -153,7 +153,7 @@ dbt debug                         # verifica la conexión y la configuración</c
 
 
 <h2>dbt_project.yml</h2>
-<pre data-norun><code class="language-yaml">name: tienda_andina
+<pre data-norun tabindex="0"><code class="language-yaml">name: tienda_andina
 version: &quot;1.0.0&quot;
 profile: tienda_andina          # qué conexión de profiles.yml usar
 
@@ -168,7 +168,7 @@ models:
 <p>Los <code>+</code> delante de <code>materialized</code> y <code>schema</code> indican que es una configuración que se <strong>aplica a toda la carpeta</strong> (y sus subcarpetas). Un modelo puede sobrescribirla individualmente con <code>{{ config(materialized=&#39;table&#39;) }}</code> al principio del archivo.</p>
 <h2>profiles.yml: la conexión (¡fuera del repo!)</h2>
 <p>Vive en <code>~/.dbt/profiles.yml</code> porque tiene credenciales:</p>
-<pre data-norun><code class="language-yaml">tienda_andina:
+<pre data-norun tabindex="0"><code class="language-yaml">tienda_andina:
   target: dev
   outputs:
     dev:
@@ -192,7 +192,7 @@ models:
 
 
 <h2>Recorre el proyecto en la terminal</h2>
-<pre><code class="language-bash">cd tienda_dbt
+<pre tabindex="0"><code class="language-bash">cd tienda_dbt
 ls
 cat dbt_project.yml
 ls models/staging models/marts
@@ -264,7 +264,7 @@ cat models/schema.yml</code></pre>
 <li>Recorre lo que creó: <code>dbt_project.yml</code>, la carpeta <code>models</code> y las carpetas vacías (<code>seeds</code>, <code>snapshots</code>, <code>tests</code>, <code>macros</code>).</li>
 <li>Ejecuta el modelo de ejemplo con <code>dbt run</code>.</li>
 </ol>
-<pre data-norun><code class="language-bash">dbt init mi_tienda
+<pre data-norun tabindex="0"><code class="language-bash">dbt init mi_tienda
 cd ~/mi_tienda
 find . -type f
 cat dbt_project.yml

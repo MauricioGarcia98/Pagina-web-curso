@@ -19,7 +19,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Particionar y clusterizar tablas para leer menos datos</li><li>Consultar datos anidados con STRUCT, ARRAY y UNNEST</li><li>Hacer upserts con MERGE</li></ul>
 <h2>Particionar: cortar la tabla en trozos por fecha</h2>
 <p>Una tabla <strong>particionada</strong> se divide internamente, por ejemplo una partición por día. Si filtras por la columna de partición, BigQuery <strong>solo lee esas particiones</strong> (y solo te cobra esas).</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE tienda_silver.pedidos
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE tienda_silver.pedidos
 PARTITION BY fecha_pedido                 -- una partición por día (DATE)
 CLUSTER BY canal, cliente_id              -- dentro de cada partición, ordenado por estas columnas
 OPTIONS (partition_expiration_days = 730, require_partition_filter = TRUE)
@@ -61,7 +61,7 @@ FROM tienda_bronze.pedidos;</code></pre>
 
 <h3>Laboratorio: mide cuánto ahorras</h3>
 <p>En esta terminal, <code>--dry_run</code> estima los bytes y tiene en cuenta la poda de particiones:</p>
-<pre><code class="language-bash">bq mk --dataset tienda_silver
+<pre tabindex="0"><code class="language-bash">bq mk --dataset tienda_silver
 bq query --use_legacy_sql=false 'CREATE OR REPLACE TABLE tienda_silver.pedidos PARTITION BY fecha_pedido CLUSTER BY canal AS SELECT pedido_id, cliente_id, date(fecha_pedido) AS fecha_pedido, canal, estado FROM tienda.pedidos'
 bq show tienda_silver.pedidos
 bq query --use_legacy_sql=false --dry_run 'SELECT canal, COUNT(*) FROM tienda_silver.pedidos GROUP BY canal'
@@ -71,7 +71,7 @@ bq query --use_legacy_sql=false --dry_run &quot;SELECT canal, COUNT(*) FROM tien
 
 <h2>Datos anidados: STRUCT y ARRAY</h2>
 <p>BigQuery permite columnas que son <strong>registros</strong> (<code>STRUCT</code>) y <strong>listas</strong> (<code>ARRAY</code>). Así se evitan joins costosos: un pedido puede llevar adentro sus líneas.</p>
-<pre data-norun><code class="language-sql">CREATE TABLE tienda_gold.pedidos_anidados AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE tienda_gold.pedidos_anidados AS
 SELECT p.pedido_id, p.cliente_id, p.fecha_pedido,
        ARRAY_AGG(STRUCT(d.producto_id, d.cantidad, d.precio_unitario)) AS lineas
 FROM tienda_silver.pedidos p JOIN tienda_silver.detalle_pedidos d USING (pedido_id)
@@ -88,7 +88,7 @@ WHERE l.cantidad &gt;= 3;</code></pre>
 
 
 <h2>MERGE: altas, cambios y bajas en un solo paso</h2>
-<pre data-norun><code class="language-sql">MERGE tienda_silver.clientes AS t
+<pre data-norun tabindex="0"><code class="language-sql">MERGE tienda_silver.clientes AS t
 USING tienda_bronze.clientes_cambios AS c
 ON t.cliente_id = c.cliente_id
 WHEN MATCHED AND c.operacion = 'BAJA' THEN DELETE
@@ -125,7 +125,7 @@ WHEN NOT MATCHED AND c.operacion &lt;&gt; 'BAJA' THEN
 <td>Quién consultó qué y cuántos bytes: auditoría de costos</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-sql">-- las 10 consultas más caras de la última semana
+<pre data-norun tabindex="0"><code class="language-sql">-- las 10 consultas más caras de la última semana
 SELECT user_email, total_bytes_billed / POW(1024, 4) AS tb, LEFT(query, 80) AS consulta
 FROM `region-us`.INFORMATION_SCHEMA.JOBS
 WHERE creation_time &gt; TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 7 DAY)
@@ -148,7 +148,7 @@ ORDER BY total_bytes_billed DESC LIMIT 10;</code></pre>
 <li>La consulta se abre en el editor: anota los bytes estimados (arriba a la derecha). Después comenta la primera y descomenta la segunda, con el filtro por fecha: BigQuery solo lee esa partición y la estimación baja.</li>
 <li>Agrega también <code>canal = &#39;web&#39;</code>: el clustering reduce un poco más.</li>
 </ol>
-<pre data-norun><code class="language-sql">-- sin filtro de partición: lee toda la tabla
+<pre data-norun tabindex="0"><code class="language-sql">-- sin filtro de partición: lee toda la tabla
 SELECT canal, COUNT(*) AS pedidos
 FROM `tienda-andina-dev.tienda.pedidos`
 GROUP BY canal;

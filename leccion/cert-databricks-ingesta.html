@@ -76,7 +76,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Auto Loader a fondo</h2>
 <p><strong>Auto Loader</strong> es una fuente de Structured Streaming (<code>format(&quot;cloudFiles&quot;)</code>) que detecta y procesa <strong>solo los archivos nuevos</strong> de una ruta. Recuerda qué archivos ya procesó en el <strong>checkpoint</strong> (un almacén clave-valor RocksDB dentro de la carpeta de checkpoint), por eso garantiza que cada archivo se procesa <strong>exactamente una vez</strong>, aunque el job se caiga y se reinicie.</p>
-<pre data-norun><code class="language-python">(spark.readStream
+<pre data-norun tabindex="0"><code class="language-python">(spark.readStream
    .format(&quot;cloudFiles&quot;)
    .option(&quot;cloudFiles.format&quot;, &quot;json&quot;)                                   # formato de los archivos
    .option(&quot;cloudFiles.schemaLocation&quot;, &quot;/Volumes/prod/bronze/_chk/pedidos_esquema&quot;)  # dónde guarda el esquema inferido
@@ -148,7 +148,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h3>Auto Loader en SQL</h3>
 <p>En SQL se usa <code>read_files</code> dentro de una <em>streaming table</em> (lo verás a fondo en Declarative Pipelines):</p>
-<pre data-norun><code class="language-sql">CREATE OR REFRESH STREAMING TABLE prod.bronze.pedidos
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REFRESH STREAMING TABLE prod.bronze.pedidos
 AS SELECT *, _metadata.file_path AS _archivo
 FROM STREAM read_files(
   '/Volumes/prod/bronze/aterrizaje/pedidos/',
@@ -158,7 +158,7 @@ FROM STREAM read_files(
 <p><code>STREAM read_files(...)</code> usa Auto Loader por debajo: incremental y con checkpoint administrado.</p>
 <h2>COPY INTO</h2>
 <p><code>COPY INTO</code> carga archivos a una tabla Delta <strong>desde SQL</strong> y es <strong>idempotente</strong>: guarda en los metadatos de la tabla qué archivos ya cargó y los saltea si vuelves a ejecutar el comando.</p>
-<pre data-norun><code class="language-sql">CREATE TABLE IF NOT EXISTS prod.bronze.tarifas;     -- tabla vacía, sin esquema: COPY INTO lo infiere
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE IF NOT EXISTS prod.bronze.tarifas;     -- tabla vacía, sin esquema: COPY INTO lo infiere
 
 COPY INTO prod.bronze.tarifas
 FROM '/Volumes/prod/bronze/aterrizaje/tarifas/'
@@ -204,7 +204,7 @@ COPY_OPTIONS ('mergeSchema' = 'true');               -- acepta columnas nuevas</
 
 <h2>read_files: leer sin estado</h2>
 <p><code>read_files</code> es una función de tabla que lee archivos <strong>una vez</strong>, sin recordar nada. Sirve para explorar o para crear una tabla con CTAS:</p>
-<pre data-norun><code class="language-sql">SELECT * FROM read_files('/Volumes/prod/bronze/aterrizaje/pedidos/', format =&gt; 'json') LIMIT 10;
+<pre data-norun tabindex="0"><code class="language-sql">SELECT * FROM read_files('/Volumes/prod/bronze/aterrizaje/pedidos/', format =&gt; 'json') LIMIT 10;
 
 CREATE OR REPLACE TABLE prod.bronze.pedidos_snapshot AS
 SELECT * FROM read_files('/Volumes/prod/bronze/aterrizaje/pedidos/2026-10-01/', format =&gt; 'json');</code></pre>
@@ -219,7 +219,7 @@ SELECT * FROM read_files('/Volumes/prod/bronze/aterrizaje/pedidos/2026-10-01/', 
 <p>Se pagan como cómputo serverless de pipelines. La ventaja frente a escribir un extractor propio es que no mantienes el código de la API del proveedor, los límites de cuota ni la lógica de CDC.</p>
 <h2>Lakehouse Federation: consultar sin copiar</h2>
 <p><strong>Lakehouse Federation</strong> registra una base externa (PostgreSQL, MySQL, SQL Server, Snowflake, BigQuery, Redshift, otras) como un <strong>catálogo foráneo</strong> de Unity Catalog. Las consultas se envían al origen (con <em>pushdown</em> de filtros) y los permisos se manejan con Unity Catalog.</p>
-<pre data-norun><code class="language-sql">CREATE CONNECTION pg_ventas TYPE postgresql
+<pre data-norun tabindex="0"><code class="language-sql">CREATE CONNECTION pg_ventas TYPE postgresql
 OPTIONS (host 'pg.interna', port '5432', user secret('pg', 'usuario'), password secret('pg', 'clave'));
 
 CREATE FOREIGN CATALOG ventas_pg USING CONNECTION pg_ventas OPTIONS (database 'ventas');
@@ -228,14 +228,14 @@ SELECT * FROM ventas_pg.public.facturas WHERE fecha = current_date();</code></pr
 <p>Úsala para consultas puntuales, pruebas de concepto o datos que no justifican un pipeline. Para cargas grandes y frecuentes, ingesta a Delta.</p>
 <h2>Datos semiestructurados: JSON y VARIANT</h2>
 <p>Si una columna <code>raw</code> guarda el JSON como texto, Databricks SQL permite navegarlo con <strong>dos puntos</strong>:</p>
-<pre data-norun><code class="language-sql">SELECT
+<pre data-norun tabindex="0"><code class="language-sql">SELECT
   raw:pedido_id::BIGINT              AS pedido_id,     -- :: convierte el tipo
   raw:cliente.ciudad::STRING         AS ciudad,        -- . entra a un objeto anidado
   raw:items[0].producto::STRING      AS primer_item    -- [n] entra a una lista
 FROM prod.bronze.pedidos_texto;</code></pre>
 <p>Para estructuras fijas, <code>from_json(raw, &#39;pedido_id BIGINT, items ARRAY&lt;STRUCT&lt;producto STRING, cantidad INT&gt;&gt;&#39;)</code> convierte el texto en columnas tipadas, y <code>schema_of_json</code> ayuda a escribir ese esquema.</p>
 <p>El tipo <strong><code>VARIANT</code></strong> guarda datos semiestructurados en un formato binario eficiente: más rápido que el texto JSON y flexible ante cambios de forma.</p>
-<pre data-norun><code class="language-sql">CREATE TABLE prod.bronze.eventos (evento VARIANT);
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE prod.bronze.eventos (evento VARIANT);
 INSERT INTO prod.bronze.eventos SELECT parse_json(raw) FROM prod.bronze.eventos_texto;
 
 SELECT evento:tipo::STRING AS tipo, evento:propiedades.monto::DECIMAL(12,2) AS monto

@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 1 — QUALIFY</h2>
 <p>El último pedido de cada cliente:</p>
-<pre data-norun><code class="language-sql">SELECT cliente_id, pedido_id, fecha_pedido, canal
+<pre data-norun tabindex="0"><code class="language-sql">SELECT cliente_id, pedido_id, fecha_pedido, canal
 FROM pedidos
 QUALIFY ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha_pedido DESC, pedido_id DESC) = 1
 ORDER BY cliente_id
@@ -35,7 +35,7 @@ LIMIT 10;</code></pre>
 
 <p><strong>QUALIFY</strong> es a las funciones de ventana lo que <code>HAVING</code> es a <code>GROUP BY</code>: filtra después de calcularlas. Sin QUALIFY habría que envolver la consulta en una subconsulta y filtrar afuera.</p>
 <h2>Paso 2 — Ventanas: variación mensual</h2>
-<pre data-norun><code class="language-sql">WITH mensual AS (
+<pre data-norun tabindex="0"><code class="language-sql">WITH mensual AS (
   SELECT DATE_TRUNC('month', fecha_pedido) AS mes, COUNT(*) AS pedidos
   FROM pedidos
   GROUP BY 1
@@ -70,7 +70,7 @@ LIMIT 12;</code></pre>
 </tr>
 </tbody></table></div>
 <h2>Paso 3 — Muestreo y funciones útiles</h2>
-<pre data-norun><code class="language-sql">-- 10 % de las filas, al azar: para explorar sin leer toda la tabla
+<pre data-norun tabindex="0"><code class="language-sql">-- 10 % de las filas, al azar: para explorar sin leer toda la tabla
 SELECT * FROM pedidos SAMPLE (10);</code></pre>
 <div class="table-wrap"><table><thead><tr>
 <th>Función</th>

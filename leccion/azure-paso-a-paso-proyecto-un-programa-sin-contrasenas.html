@@ -89,7 +89,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Cómo lo usa el programa</h2>
 <p>El servidor de ventas recibe el tenant ID y el client ID como configuración, y el secreto desde el vault o desde una variable de entorno que carga el equipo de infraestructura. Con la CLI, entrar como la aplicación es:</p>
-<pre><code class="language-bash">az login --service-principal -u &lt;client-id&gt; --tenant &lt;tenant-id&gt; -p &quot;$SECRETO_DESDE_EL_VAULT&quot;
+<pre tabindex="0"><code class="language-bash">az login --service-principal -u &lt;client-id&gt; --tenant &lt;tenant-id&gt; -p &quot;$SECRETO_DESDE_EL_VAULT&quot;
 az storage blob upload --account-name sttiendaandinadev -c bronze -n pedidos/2026/11/16/pedidos.csv -f pedidos.csv --auth-mode login</code></pre>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
 

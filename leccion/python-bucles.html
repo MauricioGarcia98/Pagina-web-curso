@@ -43,7 +43,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>for: recorrer una colección</h2>
-<pre><code class="language-python">paises = [&quot;Argentina&quot;, &quot;Chile&quot;, &quot;México&quot;]
+<pre tabindex="0"><code class="language-python">paises = [&quot;Argentina&quot;, &quot;Chile&quot;, &quot;México&quot;]
 for pais in paises:
     print(&quot;Procesando&quot;, pais)
 print(&quot;Listo&quot;)</code></pre>
@@ -79,7 +79,7 @@ print(&quot;Listo&quot;)</code></pre>
 <li>Igual que con <code>if</code>: dos puntos al final y bloque con sangría.</li>
 </ul>
 <p>Con <code>for</code> puedes recorrer cualquier cosa &quot;recorrible&quot; (<em>iterable</em>): listas, textos (letra por letra), diccionarios, líneas de un archivo, filas de una consulta.</p>
-<pre><code class="language-python">for letra in &quot;SQL&quot;:
+<pre tabindex="0"><code class="language-python">for letra in &quot;SQL&quot;:
     print(letra)</code></pre>
 <h2>range: repetir un número de veces</h2>
 <p><code>range</code> genera una secuencia de números sin tener que escribirla:</p>
@@ -109,14 +109,14 @@ print(&quot;Listo&quot;)</code></pre>
 <td>Cuenta regresiva</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-python">for i in range(5):
+<pre tabindex="0"><code class="language-python">for i in range(5):
     print(&quot;Intento&quot;, i)
 
 for i in range(1, 11, 2):
     print(i, end=&quot; &quot;)       # end=&quot; &quot; imprime en la misma línea, separado por espacios</code></pre>
 <h2>El patrón acumulador</h2>
 <p>Es <strong>el</strong> patrón más común en procesamiento de datos. Una variable empieza en un valor inicial (antes del bucle) y en cada vuelta se actualiza:</p>
-<pre><code class="language-python">ventas = [120, 340, 90, 560, 210]
+<pre tabindex="0"><code class="language-python">ventas = [120, 340, 90, 560, 210]
 total = 0              # 1) inicializar ANTES del bucle
 mayores_a_200 = 0
 for v in ventas:
@@ -175,7 +175,7 @@ print(&quot;Total:&quot;, total, &quot;| Ventas &gt; 200:&quot;, mayores_a_200) 
 
 
 <p>El mismo patrón sirve para contar, buscar el máximo, armar una lista nueva:</p>
-<pre><code class="language-python">precios = [25.0, 120.5, 8.9, 64.0]
+<pre tabindex="0"><code class="language-python">precios = [25.0, 120.5, 8.9, 64.0]
 maximo = precios[0]
 baratos = []
 for p in precios:
@@ -189,7 +189,7 @@ print(maximo, baratos)</code></pre>
 
 
 <h2>while: repetir mientras se cumpla una condición</h2>
-<pre><code class="language-python">saldo = 1000
+<pre tabindex="0"><code class="language-python">saldo = 1000
 meses = 0
 while saldo &lt; 2000:
     saldo = saldo * 1.05   # 5 % de interés mensual
@@ -217,7 +217,7 @@ print(f&quot;Se duplica en {meses} meses (saldo: {saldo:.2f})&quot;)</code></pre
 <td>Abandona la vuelta actual y pasa a la <strong>siguiente</strong></td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-python">lecturas = [22, 23, -999, 24, 25, None, 26]
+<pre tabindex="0"><code class="language-python">lecturas = [22, 23, -999, 24, 25, None, 26]
 for x in lecturas:
     if x is None:          # marca de fin de datos
         print(&quot;Fin de datos&quot;)
@@ -228,7 +228,7 @@ for x in lecturas:
 <p>Resultado: 22, 23, (salta el −999), 24, 25, &quot;Fin de datos&quot; (el 26 nunca se procesa). <code>continue</code> es ideal para <strong>descartar</strong> registros inválidos sin anidar todo el resto en un <code>if</code>.</p>
 <h2>enumerate y zip</h2>
 <p>Dos ayudantes que evitan manejar índices a mano:</p>
-<pre><code class="language-python">productos = [&quot;Mouse&quot;, &quot;Teclado&quot;, &quot;Monitor&quot;]
+<pre tabindex="0"><code class="language-python">productos = [&quot;Mouse&quot;, &quot;Teclado&quot;, &quot;Monitor&quot;]
 precios = [25, 49, 210]
 
 # enumerate: el elemento y su posición
@@ -294,7 +294,7 @@ for p, precio in zip(productos, precios):
 <li>Cuenta cuántos días superaron 1.000.</li>
 <li>Usa <code>enumerate</code> para imprimir el número de día.</li>
 </ol>
-<pre data-norun><code class="language-python">ventas = [820, 1340, 990, 1510, 760, 2100, 430]
+<pre data-norun tabindex="0"><code class="language-python">ventas = [820, 1340, 990, 1510, 760, 2100, 430]
 total = 0
 for v in ventas:
     total += v

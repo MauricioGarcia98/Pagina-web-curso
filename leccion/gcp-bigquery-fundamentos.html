@@ -65,7 +65,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>La CLI <code>bq</code></h2>
-<pre data-norun><code class="language-bash">bq mk --dataset --location=US academia-datos-dev:tienda_bronze      # crear dataset
+<pre data-norun tabindex="0"><code class="language-bash">bq mk --dataset --location=US academia-datos-dev:tienda_bronze      # crear dataset
 bq ls                                                               # datasets del proyecto
 bq ls tienda_bronze                                                 # tablas del dataset
 bq load --source_format=CSV --autodetect --skip_leading_rows=1 \
@@ -83,7 +83,7 @@ bq rm -t tienda_bronze.ventas_vieja                                 # borrar tab
 
 <h3>Laboratorio: del archivo a la consulta</h3>
 <p>Esta terminal carga el CSV <strong>de verdad</strong> y la consulta se ejecuta sobre esos datos:</p>
-<pre><code class="language-bash">gcloud config set project academia-datos-dev
+<pre tabindex="0"><code class="language-bash">gcloud config set project academia-datos-dev
 gcloud storage buckets create gs://lake-tienda-dev --location=US
 gcloud storage cp datos/ventas_2024_12.csv gs://lake-tienda-dev/bronze/ventas/
 bq mk --dataset tienda_bronze
@@ -174,7 +174,7 @@ bq query --use_legacy_sql=false 'SELECT canal, COUNT(*) AS pedidos, ROUND(SUM(to
 <li>Pega la consulta en el editor y, <strong>antes de ejecutar</strong>, lee arriba a la derecha cuántos bytes va a procesar.</li>
 <li>Ejecuta y compara con <code>SELECT *</code>: en BigQuery pagas por columnas leídas, no por filas devueltas.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT ciudad, COUNT(*) AS clientes
+<pre data-norun tabindex="0"><code class="language-sql">SELECT ciudad, COUNT(*) AS clientes
 FROM `tienda-andina-dev.tienda.clientes`
 GROUP BY ciudad
 ORDER BY clientes DESC

@@ -69,7 +69,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Quedarse</strong> con las filas numeradas 1.</li>
 </ol>
 <p>Aprovecha el mismo paso para limpiar (<code>TRIM</code>, <code>LOWER</code>): deduplicar y normalizar van juntos.</p>
-<pre><code class="language-sql">WITH numerados AS (
+<pre tabindex="0"><code class="language-sql">WITH numerados AS (
     SELECT *,
            ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha_carga DESC) AS rn
     FROM clientes_crudo
@@ -113,7 +113,7 @@ LIMIT 10;</code></pre>
 <td>2024-01-16</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-sql">WITH marcados AS (
+<pre tabindex="0"><code class="language-sql">WITH marcados AS (
     SELECT cliente_id, fecha,
            date(fecha, '-' || ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha) || ' days') AS grupo
     FROM logins
@@ -135,7 +135,7 @@ SELECT * FROM rachas WHERE cliente_id = 1 ORDER BY desde;</code></pre>
 <li>Si fueron más de 30 (o es el primer evento), marca un <strong>corte</strong>: <code>1</code>; si no, <code>0</code>.</li>
 <li>La <strong>suma acumulada</strong> de los cortes numera las sesiones: 1, 1, 1, 2, 2, 3… Cada corte incrementa el contador.</li>
 </ol>
-<pre><code class="language-sql">WITH e AS (
+<pre tabindex="0"><code class="language-sql">WITH e AS (
     SELECT cliente_id, fecha_hora, pagina,
            (julianday(fecha_hora) - julianday(LAG(fecha_hora) OVER (PARTITION BY cliente_id ORDER BY fecha_hora))) * 24 * 60 AS min_desde_anterior
     FROM eventos_web
@@ -154,7 +154,7 @@ ORDER BY fecha_hora;</code></pre>
 <p>Un <strong>embudo</strong> (<em>funnel</em>) mide cuántas personas llegan a cada paso de un proceso: ver un producto → agregar al carrito → iniciar el pago → confirmar. Siempre se &quot;angosta&quot; hacia abajo, y la pregunta del negocio es <strong>dónde se pierde más gente</strong> (la conversión entre pasos).</p>
 <p>Se calcula en una sola pasada contando <strong>personas distintas</strong> que pasaron por cada paso (no eventos: alguien que vio 10 productos cuenta una vez). La técnica es <code>COUNT(DISTINCT CASE WHEN condición THEN cliente_id END)</code>: el <code>CASE</code> sin <code>ELSE</code> devuelve <code>NULL</code> para los demás, y <code>COUNT(DISTINCT …)</code> ignora los <code>NULL</code>.</p>
 <p>¿Cuántos visitantes vieron un producto, cuántos agregaron al carrito y cuántos compraron?</p>
-<pre><code class="language-sql">SELECT COUNT(DISTINCT CASE WHEN pagina = 'producto'     THEN cliente_id END) AS vieron_producto,
+<pre tabindex="0"><code class="language-sql">SELECT COUNT(DISTINCT CASE WHEN pagina = 'producto'     THEN cliente_id END) AS vieron_producto,
        COUNT(DISTINCT CASE WHEN pagina = 'carrito'      THEN cliente_id END) AS agregaron_carrito,
        COUNT(DISTINCT CASE WHEN pagina = 'checkout'     THEN cliente_id END) AS checkout,
        COUNT(DISTINCT CASE WHEN pagina = 'confirmacion' THEN cliente_id END) AS compraron
@@ -169,7 +169,7 @@ WHERE cliente_id IS NOT NULL;</code></pre>
 <li><strong>Pivotar</strong>: para cada cohorte, cuántos clientes distintos compraron en el mes 0, 1, 2, 3… Dividiendo por el mes 0 obtienes el <strong>% de retención</strong>.</li>
 </ol>
 <p>El resultado es la famosa tabla triangular de retención: cada fila es una cohorte y cada columna, un mes desde el inicio.</p>
-<pre><code class="language-sql">WITH primera AS (
+<pre tabindex="0"><code class="language-sql">WITH primera AS (
     SELECT cliente_id, MIN(date(fecha_pedido, 'start of month')) AS cohorte FROM pedidos GROUP BY cliente_id
 ),
 actividad AS (
@@ -190,7 +190,7 @@ ORDER BY cohorte;</code></pre>
 <h2>6. Último valor conocido (forward fill)</h2>
 <p>Muchos datos de referencia solo existen en <strong>algunas</strong> fechas: el tipo de cambio no se publica los fines de semana, un precio cambia de vez en cuando, el estado de un cliente se actualiza solo cuando algo cambia. Para cada evento necesitas <strong>el último valor vigente en ese momento</strong>: ni el de hoy, ni uno posterior (eso sería &quot;ver el futuro&quot;, un error grave en análisis financieros y en modelos de machine learning).</p>
 <p><code>tipos_cambio</code> no tiene sábados ni domingos. Para convertir un pedido del sábado, usamos la última cotización <strong>anterior o igual</strong> a esa fecha:</p>
-<pre><code class="language-sql">SELECT p.pedido_id, p.fecha_pedido,
+<pre tabindex="0"><code class="language-sql">SELECT p.pedido_id, p.fecha_pedido,
        (SELECT t.valor_usd FROM tipos_cambio t
          WHERE t.moneda = 'MXN' AND t.fecha &lt;= p.fecha_pedido
          ORDER BY t.fecha DESC LIMIT 1) AS mxn_por_usd
@@ -254,7 +254,7 @@ LIMIT 10;</code></pre>
 <li>Une con todos sus pedidos y cuenta clientes activos por cohorte y mes.</li>
 <li>Convierte el conteo en porcentaje del tamaño de la cohorte.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT cliente_id,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT cliente_id,
        MIN(SUBSTR(CAST(fecha_pedido AS VARCHAR), 1, 7)) AS cohorte
 FROM pedidos
 GROUP BY cliente_id

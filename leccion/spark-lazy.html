@@ -45,14 +45,14 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>¿Por qué ganó el DataFrame? Con un RDD le dices a Spark <strong>cómo</strong> hacer cada paso, con funciones de Python que Spark no puede &quot;leer por dentro&quot;:</p>
-<pre data-norun><code class="language-python"># RDD: Spark solo ve &quot;una función de Python&quot;. No sabe qué hace, así que no puede optimizarla.
+<pre data-norun tabindex="0"><code class="language-python"># RDD: Spark solo ve &quot;una función de Python&quot;. No sabe qué hace, así que no puede optimizarla.
 rdd.filter(lambda p: p[&quot;estado&quot;] == &quot;entregado&quot;).map(lambda p: (p[&quot;canal&quot;], 1)).reduceByKey(lambda a, b: a + b)</code></pre>
 <p>Con un DataFrame le dices <strong>qué</strong> quieres, con expresiones que Spark entiende:</p>
-<pre data-norun><code class="language-python"># DataFrame: Spark sabe que es un filtro sobre la columna estado y un conteo por canal.
+<pre data-norun tabindex="0"><code class="language-python"># DataFrame: Spark sabe que es un filtro sobre la columna estado y un conteo por canal.
 df.filter(df.estado == &quot;entregado&quot;).groupBy(&quot;canal&quot;).count()</code></pre>
 <p>Como entiende cada expresión, Spark puede reordenarlas, leer menos datos y generar código rápido. El resultado es el mismo, pero el DataFrame suele ser varias veces más rápido, sobre todo en Python.</p>
 <p>En PySpark trabajarás con <strong>DataFrames</strong> y <strong>Spark SQL</strong>, que son dos caras de lo mismo: ambos generan <strong>el mismo plan optimizado</strong>. Estas dos líneas son equivalentes:</p>
-<pre data-norun><code class="language-python">df.filter(df.estado == &quot;entregado&quot;).groupBy(&quot;canal&quot;).count()
+<pre data-norun tabindex="0"><code class="language-python">df.filter(df.estado == &quot;entregado&quot;).groupBy(&quot;canal&quot;).count()
 spark.sql(&quot;SELECT canal, count(*) FROM pedidos WHERE estado = 'entregado' GROUP BY canal&quot;)</code></pre>
 <h2>Evaluación perezosa (lazy evaluation)</h2>
 <p>Las operaciones de Spark se dividen en dos tipos:</p>
@@ -60,7 +60,7 @@ spark.sql(&quot;SELECT canal, count(*) FROM pedidos WHERE estado = 'entregado' G
 <li><strong>Transformaciones</strong>: describen un DataFrame nuevo a partir de otro (<code>select</code>, <code>filter</code>, <code>withColumn</code>, <code>join</code>, <code>groupBy</code>…). <strong>No ejecutan nada</strong>: solo agregan un paso al plan, y por eso responden al instante aunque la tabla tenga mil millones de filas.</li>
 <li><strong>Acciones</strong>: piden un resultado (<code>show</code>, <code>count</code>, <code>collect</code>, <code>write</code>, <code>take</code>…). <strong>Recién ahí</strong> Spark ejecuta todo el plan.</li>
 </ul>
-<pre data-norun><code class="language-python">df = spark.read.parquet(&quot;/datos/pedidos&quot;)          # nada se lee todavía (solo mira el esquema)
+<pre data-norun tabindex="0"><code class="language-python">df = spark.read.parquet(&quot;/datos/pedidos&quot;)          # nada se lee todavía (solo mira el esquema)
 df2 = df.filter(df.estado == &quot;entregado&quot;)          # nada
 df3 = df2.groupBy(&quot;canal&quot;).count()                 # nada
 df3.show()                                         # ¡ACCIÓN! Ahora sí se ejecuta todo</code></pre>
@@ -127,7 +127,7 @@ df3.show()                                         # ¡ACCIÓN! Ahora sí se eje
 <p>Después, el motor <strong>Tungsten</strong> genera código optimizado para la CPU. Por eso un DataFrame casi siempre le gana a un RDD escrito a mano.</p>
 <h3>Ver el plan: explain()</h3>
 <p><code>df.explain()</code> muestra el plan físico sin ejecutar nada. En Spark real, para un filtro + conteo por canal verías algo así:</p>
-<pre><code class="language-text">== Physical Plan ==
+<pre tabindex="0"><code class="language-text">== Physical Plan ==
 AdaptiveSparkPlan
 +- HashAggregate(keys=[canal], functions=[count(1)])                       ← reduce: suma los parciales
    +- Exchange hashpartitioning(canal, 200)                                ← ¡SHUFFLE!
@@ -142,7 +142,7 @@ AdaptiveSparkPlan
 <li><strong><code>BroadcastHashJoin</code></strong> o <strong><code>SortMergeJoin</code></strong>: qué estrategia de join eligió.</li>
 </ul>
 <p>Pruébalo con los datos del curso. El mini-Spark del curso arma el plan con las mismas reglas de Catalyst: verás el filtro empujado a la lectura (<code>PushedFilters</code>), solo las columnas que usas en <code>ReadSchema</code>, el par <code>HashAggregate</code> parcial → <code>Exchange</code> → <code>HashAggregate</code> final y el <code>Exchange rangepartitioning</code> del <code>orderBy</code>. Los números de <code>plan_id</code> y algunos detalles (como <code>WholeStageCodegen</code>) cambian en un clúster real; la forma del plan es la misma:</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 pedidos = spark.table(&quot;pedidos&quot;)
 por_canal = (pedidos
@@ -207,7 +207,7 @@ por_canal.show()        # ACCIÓN: ejecuta</code></pre>
 <li>Mira el plan extendido: en el plan <strong>analizado</strong> el filtro está arriba del <code>select</code>; en el <strong>optimizado</strong> Catalyst lo bajó hasta la lectura.</li>
 <li>Fíjate en <code>ReadSchema</code>: Spark lee solo las 2 columnas que usas, aunque la tabla tenga 7.</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 pedidos = spark.table(&quot;pedidos&quot;)
 web = pedidos.select(&quot;canal&quot;, &quot;estado&quot;).filter(F.col(&quot;canal&quot;) == &quot;web&quot;)   # nada se ejecutó todavía

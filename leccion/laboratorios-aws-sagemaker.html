@@ -63,7 +63,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Prepara el bucket del laboratorio.</li>
 <li>Limpia y verifica que no quedó ningún endpoint ni bucket.</li>
 </ol>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 aws sagemaker list-endpoints
 aws s3 mb s3://ml-demoras-lab
 aws s3 cp datos/ventas_2024_12.csv s3://ml-demoras-lab/entrenamiento/
@@ -112,7 +112,7 @@ aws sagemaker list-endpoints</code></pre>
 <li>El script de entrenamiento lee los datos de <code>/opt/ml/input/data/train/</code> y escribe el modelo en <code>/opt/ml/model/</code>. Con la imagen integrada de XGBoost alcanza con pasar un canal <code>train</code> con un CSV sin encabezado y la etiqueta en la primera columna.</li>
 <li>El endpoint tarda de 5 a 10 minutos en quedar <code>InService</code>: <code>aws sagemaker wait endpoint-in-service --endpoint-name demoras</code>.</li>
 </ul>
-<pre data-norun><code class="language-python">import sagemaker
+<pre data-norun tabindex="0"><code class="language-python">import sagemaker
 from sagemaker.estimator import Estimator
 
 sesion = sagemaker.Session()
@@ -138,7 +138,7 @@ pred.delete_endpoint()  # ¡no te olvides!</code></pre>
 <div class="exercise-slot"></div>
 
 
-<pre data-norun><code class="language-bash">aws s3 rb s3://ml-demoras-lab --force</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">aws s3 rb s3://ml-demoras-lab --force</code></pre>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
 
 <ul>

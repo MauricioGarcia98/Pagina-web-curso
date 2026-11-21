@@ -34,7 +34,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Leer un traceback</h2>
-<pre><code class="language-text">Traceback (most recent call last):
+<pre tabindex="0"><code class="language-text">Traceback (most recent call last):
   File &quot;ventas.py&quot;, line 12, in &lt;module&gt;
     print(total_por_pais(ventas))
   File &quot;ventas.py&quot;, line 6, in total_por_pais
@@ -102,7 +102,7 @@ KeyError: 'Chile'</code></pre>
 <li>Cuenta filas antes y después de cada paso.</li>
 <li>Revisa la lista de casos borde: duplicados, nulos, empates.</li>
 </ul>
-<pre data-norun><code class="language-python">def total(ventas):
+<pre data-norun tabindex="0"><code class="language-python">def total(ventas):
     t = 0
     for v in ventas:
         t = v[&quot;monto&quot;]      # error silencioso: debería ser t += v[&quot;monto&quot;]
@@ -123,7 +123,7 @@ assert total([{&quot;monto&quot;: 1}, {&quot;monto&quot;: 2}]) == 3, f&quot;espe
 <li>Aplica el método: reproduce con datos chicos, aísla (imprime valores intermedios), formula una hipótesis y pruébala.</li>
 <li>Arréglalo y deja un <code>assert</code> que lo habría detectado.</li>
 </ol>
-<pre data-norun><code class="language-python">montos = [&quot;120&quot;, &quot;80&quot;, &quot;100&quot;]       # llegan como texto desde un CSV
+<pre data-norun tabindex="0"><code class="language-python">montos = [&quot;120&quot;, &quot;80&quot;, &quot;100&quot;]       # llegan como texto desde un CSV
 
 total = 0
 for m in montos:

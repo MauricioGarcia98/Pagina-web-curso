@@ -35,7 +35,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <details><summary>💡 Pista</summary>
 
 <p>En el <code>print</code> del encabezado agrega <code>{&#39;ticket&#39;:&gt;12}</code> y en el del <code>for</code>:</p>
-<pre data-norun><code class="language-python">ticket = totales[canal] / pedidos[canal]
+<pre data-norun tabindex="0"><code class="language-python">ticket = totales[canal] / pedidos[canal]
 print(f&quot;{canal:&lt;10}{pedidos[canal]:&gt;10}{totales[canal]:&gt;14,.2f}{ticket:&gt;12,.2f}&quot;)</code></pre>
 </details>
 
@@ -43,7 +43,7 @@ print(f&quot;{canal:&lt;10}{pedidos[canal]:&gt;10}{totales[canal]:&gt;14,.2f}{ti
 <p>Después del <code>for</code>, imprime una fila <code>TOTAL</code> con la suma de pedidos, la suma de ventas y el ticket promedio <strong>general</strong> (ventas totales / pedidos totales, no el promedio de los tickets).</p>
 <details><summary>💡 Pista</summary>
 
-<pre data-norun><code class="language-python">total_pedidos = sum(pedidos.values())
+<pre data-norun tabindex="0"><code class="language-python">total_pedidos = sum(pedidos.values())
 total_ventas = sum(totales.values())
 print(f&quot;{'TOTAL':&lt;10}{total_pedidos:&gt;10}{total_ventas:&gt;14,.2f}{total_ventas / total_pedidos:&gt;12,.2f}&quot;)</code></pre>
 </details>

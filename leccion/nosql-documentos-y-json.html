@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Embeber o referenciar</h2>
-<pre><code class="language-json">{&quot;_id&quot;: 101, &quot;cliente&quot;: {&quot;id&quot;: 7, &quot;nombre&quot;: &quot;Lucía&quot;},
+<pre tabindex="0"><code class="language-json">{&quot;_id&quot;: 101, &quot;cliente&quot;: {&quot;id&quot;: 7, &quot;nombre&quot;: &quot;Lucía&quot;},
  &quot;lineas&quot;: [{&quot;producto_id&quot;: 3, &quot;cantidad&quot;: 2, &quot;precio&quot;: 120.0},
             {&quot;producto_id&quot;: 9, &quot;cantidad&quot;: 1, &quot;precio&quot;: 45.0}],
  &quot;estado&quot;: &quot;entregado&quot;}</code></pre>
@@ -80,7 +80,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>Quien lee tiene que conocer las dos formas. Con SQL se unifican con <code>COALESCE</code>, que devuelve el primer valor no nulo:</p>
-<pre><code class="language-sql">WITH validos AS (SELECT evento_id, payload FROM bronze_eventos_app WHERE json_valid(payload))
+<pre tabindex="0"><code class="language-sql">WITH validos AS (SELECT evento_id, payload FROM bronze_eventos_app WHERE json_valid(payload))
 SELECT evento_id,
        json_extract(payload, '$.v') AS v,
        COALESCE(json_extract(payload, '$.tipo'), json_extract(payload, '$.evento.tipo')) AS tipo,
@@ -95,7 +95,7 @@ LIMIT 10;</code></pre>
 
 <h2>Explotar listas en filas</h2>
 <p>Para analizar las líneas de un pedido, cada elemento de la lista tiene que ser una fila. En SQLite, <code>json_each</code> convierte una lista JSON en filas (en Spark es <code>explode</code>, en BigQuery <code>UNNEST</code>):</p>
-<pre><code class="language-sql">SELECT json_each.value FROM json_each('[{&quot;p&quot;: 1}, {&quot;p&quot;: 2}]');</code></pre>
+<pre tabindex="0"><code class="language-sql">SELECT json_each.value FROM json_each('[{&quot;p&quot;: 1}, {&quot;p&quot;: 2}]');</code></pre>
 <p>Con una tabla, se combina en el <code>FROM</code>: <code>FROM pedidos_doc d, json_each(d.doc, &#39;$.lineas&#39;) l</code>, y cada <code>l.value</code> es una línea.</p>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Unificar las dos versiones de los eventos de la app</div>
 
@@ -104,7 +104,7 @@ LIMIT 10;</code></pre>
 <li>Comprueba la cuenta por versión: los JSON cortados quedan fuera por el filtro <code>json_valid</code>.</li>
 <li>Agrega la columna <code>producto_id</code>: ojo, en la versión 2 <code>$.producto</code> es un objeto, así que hay que buscar primero <code>$.producto.id</code>.</li>
 </ol>
-<pre><code class="language-sql">WITH validos AS (SELECT evento_id, payload FROM bronze_eventos_app WHERE json_valid(payload)),
+<pre tabindex="0"><code class="language-sql">WITH validos AS (SELECT evento_id, payload FROM bronze_eventos_app WHERE json_valid(payload)),
 unificado AS (
   SELECT evento_id,
          json_extract(payload, '$.v') AS v,

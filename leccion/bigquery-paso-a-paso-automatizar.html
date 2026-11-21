@@ -34,7 +34,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p>En la consola, desde el editor: <strong>Schedule</strong> → nombre, frecuencia (por ejemplo, todos los días a las 06:00), dataset y tabla de destino y si <strong>sobrescribe</strong> o <strong>agrega</strong>. Usa los parámetros de la ejecución:</p>
-<pre data-norun><code class="language-sql">-- se ejecuta cada día y carga solo el día anterior en la partición correspondiente
+<pre data-norun tabindex="0"><code class="language-sql">-- se ejecuta cada día y carga solo el día anterior en la partición correspondiente
 SELECT fecha_pedido AS fecha, canal, COUNT(*) AS pedidos
 FROM tienda.pedidos
 WHERE fecha_pedido = DATE_SUB(@run_date, INTERVAL 1 DAY)
@@ -60,7 +60,7 @@ GROUP BY fecha, canal;</code></pre>
 <figure class="captura"><img src="assets/img/guias/bigquery/q18-dataform.webp" alt="Dataform - transformaciones en SQLX con dependencias, pruebas y Git (no simulado en la práctica)" loading="lazy"><figcaption>Dataform - transformaciones en SQLX con dependencias, pruebas y Git (no simulado en la práctica)</figcaption></figure>
 
 
-<pre data-norun><code class="language-sql">-- definitions/hechos_ventas.sqlx
+<pre data-norun tabindex="0"><code class="language-sql">-- definitions/hechos_ventas.sqlx
 config {
   type: &quot;incremental&quot;,
   bigquery: { partitionBy: &quot;fecha&quot;, clusterBy: [&quot;canal&quot;, &quot;pais&quot;] },

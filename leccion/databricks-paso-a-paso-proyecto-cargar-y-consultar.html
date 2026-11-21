@@ -45,7 +45,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>En el editor SQL, calcula el monto total y la cantidad de devoluciones <strong>por categoría</strong> y <strong>por canal</strong>, ordenados de mayor a menor monto.</p>
 <details><summary>💡 Pista</summary>
 
-<pre data-norun><code class="language-sql">SELECT categoria, COUNT(*) AS devoluciones, ROUND(SUM(monto), 2) AS monto
+<pre data-norun tabindex="0"><code class="language-sql">SELECT categoria, COUNT(*) AS devoluciones, ROUND(SUM(monto), 2) AS monto
 FROM main.atencion.devoluciones
 GROUP BY categoria
 ORDER BY monto DESC;</code></pre>

@@ -82,7 +82,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>Tu primer archivo de Terraform</h2>
 <p>Un archivo <code>.tf</code> está escrito en <strong>HCL</strong> (HashiCorp Configuration Language). Este crea un bucket de S3 para la capa bronze del lago:</p>
-<pre><code class="language-hcl"># main.tf
+<pre tabindex="0"><code class="language-hcl"># main.tf
 provider &quot;aws&quot; {
   region = &quot;us-east-1&quot;
 }
@@ -149,12 +149,12 @@ output &quot;arn_bronze&quot; {
 <h2>Laboratorio: tu primer lago con Terraform</h2>
 <p>La terminal del curso tiene un <strong>Terraform simulado</strong> que lee tus archivos de verdad y crea los recursos en las nubes simuladas. Abre la terminal (⌨ Terminal) y sigue los pasos.</p>
 <p><strong>1. Prepara la carpeta y las credenciales.</strong> Terraform usa las mismas credenciales que la CLI de AWS:</p>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 mkdir -p ~/infra/lake &amp;&amp; cd ~/infra/lake
 code main.tf</code></pre>
 <p>Pega en el editor el archivo <code>main.tf</code> de arriba y guarda.</p>
 <p><strong>2. Inicializa:</strong></p>
-<pre><code class="language-text">$ terraform init
+<pre tabindex="0"><code class="language-text">$ terraform init
 Initializing the backend...
 Initializing provider plugins...
 - Finding hashicorp/aws versions matching &quot;latest&quot;...
@@ -164,7 +164,7 @@ Terraform has created a lock file .terraform.lock.hcl ...
 Terraform has been successfully initialized!</code></pre>
 <p>Se crearon dos cosas: la carpeta <code>.terraform/</code> (los proveedores descargados; no va a Git) y el archivo <code>.terraform.lock.hcl</code> (las versiones exactas de los proveedores; <strong>sí</strong> va a Git, para que todo el equipo use las mismas).</p>
 <p><strong>3. Mira el plan:</strong></p>
-<pre><code class="language-text">$ terraform plan
+<pre tabindex="0"><code class="language-text">$ terraform plan
   # aws_s3_bucket.bronze will be created
   + resource &quot;aws_s3_bucket&quot; &quot;bronze&quot; {
       + arn                = (known after apply)
@@ -179,17 +179,17 @@ Terraform has been successfully initialized!</code></pre>
 Plan: 1 to add, 0 to change, 0 to destroy.</code></pre>
 <p>El <code>+</code> significa &quot;se va a crear&quot;. <code>(known after apply)</code> son valores que recién se conocen cuando AWS crea el recurso, como el ARN. <strong>Leer el plan con atención es la habilidad más importante de Terraform</strong>: es tu última oportunidad de ver un error antes de que ocurra.</p>
 <p><strong>4. Aplica y verifica:</strong></p>
-<pre data-norun><code class="language-bash">terraform apply          # confirma con yes (el simulador confirma solo)
+<pre data-norun tabindex="0"><code class="language-bash">terraform apply          # confirma con yes (el simulador confirma solo)
 aws s3 ls                # el bucket existe de verdad
 terraform output         # el ARN</code></pre>
 <p><strong>5. Ejecuta <code>terraform plan</code> otra vez.</strong> Vas a ver <code>No changes. Your infrastructure matches the configuration.</code> Terraform compara lo que pediste con lo que existe, y ya coincide: eso es lo declarativo.</p>
 <p><strong>6. Cambia algo.</strong> Agrega una etiqueta <code>entorno = &quot;dev&quot;</code> en <code>tags</code> y ejecuta <code>terraform plan</code>. Ahora el símbolo es <code>~</code> (<em>update in-place</em>): se modifica sin recrear. Aplica el cambio.</p>
 <p><strong>7. Limpia:</strong></p>
-<pre data-norun><code class="language-bash">terraform destroy
+<pre data-norun tabindex="0"><code class="language-bash">terraform destroy
 aws s3 ls                # el bucket ya no existe</code></pre>
 <h2>El archivo de estado</h2>
 <p>Después del <code>apply</code> apareció <code>terraform.tfstate</code>. Es un JSON con todo lo que Terraform creó y sus atributos. Con él, Terraform sabe que <code>aws_s3_bucket.bronze</code> en tu código corresponde al bucket <code>tienda-lake-bronze</code> en AWS.</p>
-<pre data-norun><code class="language-bash">terraform state list                         # qué recursos administra
+<pre data-norun tabindex="0"><code class="language-bash">terraform state list                         # qué recursos administra
 terraform state show aws_s3_bucket.bronze    # sus atributos</code></pre>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Tres reglas del estado</div>
 
@@ -250,7 +250,7 @@ terraform state show aws_s3_bucket.bronze    # sus atributos</code></pre>
 <li><code>init</code> descarga el provider, <code>plan</code> muestra qué va a crear, <code>apply</code> lo crea.</li>
 <li>Verifica con <code>state list</code> y destruye todo con <code>destroy</code>.</li>
 </ol>
-<pre data-norun><code class="language-bash">mkdir -p ~/infra/hola &amp;&amp; cd ~/infra/hola
+<pre data-norun tabindex="0"><code class="language-bash">mkdir -p ~/infra/hola &amp;&amp; cd ~/infra/hola
 printf 'resource &quot;local_file&quot; &quot;hola&quot; {\n  filename = &quot;hola.txt&quot;\n  content  = &quot;hola terraform&quot;\n}\n' &gt; main.tf
 cat main.tf
 terraform init

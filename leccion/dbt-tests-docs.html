@@ -40,7 +40,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ul>
 <p>Esto parece al revés la primera vez: uno esperaría que el test &quot;devuelva lo bueno&quot;. Pero buscar lo malo tiene una ventaja enorme: cuando falla, <strong>las filas devueltas son exactamente los casos a investigar</strong>.</p>
 <p>Por ejemplo, para afirmar &quot;<code>pedido_id</code> es único&quot;, dbt busca los duplicados:</p>
-<pre><code class="language-sql">select pedido_id
+<pre tabindex="0"><code class="language-sql">select pedido_id
 from stg_pedidos
 where pedido_id is not null
 group by pedido_id
@@ -77,7 +77,7 @@ having count(*) &gt; 1</code></pre>
 <p>La recomendación oficial es que los genéricos sean la <strong>mayoría</strong> de tus tests, porque se reutilizan sin escribir SQL.</p>
 <h2>Los cuatro tests genéricos que trae dbt</h2>
 <p>dbt incluye cuatro tests listos para usar. Se declaran en un archivo YAML (un formato de texto para configuración, donde la <strong>sangría</strong> —los espacios al comienzo de la línea— indica qué está dentro de qué).</p>
-<pre data-norun><code class="language-yaml"># models/marts/_marts.yml
+<pre data-norun tabindex="0"><code class="language-yaml"># models/marts/_marts.yml
 version: 2
 models:
   - name: fct_pedidos                 # el modelo (archivo fct_pedidos.sql)
@@ -135,7 +135,7 @@ models:
 </tr>
 </tbody></table></div>
 <p><code>relationships</code>, por ejemplo, se traduce en algo así:</p>
-<pre><code class="language-sql">select p.cliente_id
+<pre tabindex="0"><code class="language-sql">select p.cliente_id
 from stg_pedidos p
 left join stg_clientes c on c.cliente_id = p.cliente_id
 where p.cliente_id is not null
@@ -144,7 +144,7 @@ where p.cliente_id is not null
 <p>Para más tests genéricos existen <strong>paquetes</strong> (librerías de dbt que se instalan con <code>dbt deps</code>): <code>dbt_utils</code> agrega, por ejemplo, <code>unique_combination_of_columns</code> y <code>expression_is_true</code>; <code>dbt_expectations</code> trae decenas inspirados en Great Expectations.</p>
 <h2>Tests singulares: tu propia regla en SQL</h2>
 <p>Cuando la regla es específica de tu negocio, escribes la consulta completa en un archivo de la carpeta <code>tests/</code>. El nombre del archivo es el nombre del test.</p>
-<pre data-norun><code class="language-sql">-- tests/assert_pagos_no_superan_total.sql
+<pre data-norun tabindex="0"><code class="language-sql">-- tests/assert_pagos_no_superan_total.sql
 -- Falla si algún pago aprobado supera el total del pedido en más de 1 centavo
 with totales as (
     select pedido_id, sum(cantidad * precio_unitario * (1 - descuento)) as total
@@ -164,7 +164,7 @@ where p.estado = 'aprobado'
 </ol>
 <h2>Pruébalo en la terminal</h2>
 <p>La terminal del curso ejecuta los cuatro tests genéricos y los singulares sobre la base de la tienda. Ábrela con <strong>⌨ En la terminal</strong>:</p>
-<pre><code class="language-bash">cd tienda_dbt
+<pre tabindex="0"><code class="language-bash">cd tienda_dbt
 cat models/schema.yml          # los tests declarados
 dbt run                        # construye los modelos
 dbt test                       # corre todos los tests
@@ -201,7 +201,7 @@ dbt test -s top_clientes       # solo los tests de un modelo</code></pre>
 <li>Si <code>severity: warn</code>, dbt <strong>ignora</strong> <code>error_if</code> y solo mira <code>warn_if</code>: ese test nunca puede dar error.</li>
 </ol>
 <p>Entonces, para &quot;avisar desde 10 fallas y frenar desde 100&quot;:</p>
-<pre data-norun><code class="language-yaml">      - name: email
+<pre data-norun tabindex="0"><code class="language-yaml">      - name: email
         data_tests:
           - not_null:
               config:
@@ -227,7 +227,7 @@ dbt test -s top_clientes       # solo los tests de un modelo</code></pre>
 <p>Esa regla es lo que impide que un dato roto llegue al tablero: si <code>stg_pedidos</code> tiene duplicados, <code>fct_ventas</code> ni siquiera se construye y el tablero sigue mostrando la versión anterior, que estaba bien. En producción casi siempre se usa <code>dbt build</code>. Pruébalo: pon un <code>accepted_values</code> que falle sobre <code>stg_ventas</code> y ejecuta <code>dbt build</code>; verás los <code>SKIP</code> de los modelos de abajo.</p>
 <h2>Unit tests: probar la lógica, no los datos</h2>
 <p>Los tests de datos revisan los datos <strong>reales</strong> cada vez que corren. Pero a veces lo que quieres probar es tu <strong>lógica</strong>: &quot;si el pedido tiene descuento del 100 %, el importe debe dar 0&quot;. Esperar a que aparezca ese caso en los datos reales no sirve. Para eso, dbt (desde la versión 1.8) tiene <strong>unit tests</strong>: le das filas de entrada inventadas y la salida que esperas.</p>
-<pre data-norun><code class="language-yaml">unit_tests:
+<pre data-norun tabindex="0"><code class="language-yaml">unit_tests:
   - name: importe_con_descuento_total
     model: stg_detalle_pedidos         # el modelo cuya lógica pruebas
     given:                             # datos de entrada inventados
@@ -243,7 +243,7 @@ dbt test -s top_clientes       # solo los tests de un modelo</code></pre>
 <p>Como sus entradas son fijas, la recomendación es correrlos en desarrollo y en CI (las pruebas automáticas de cada <em>pull request</em>), <strong>no</strong> en cada ejecución de producción: <code>dbt test --select &quot;test_type:unit&quot;</code> corre solo los unit tests y <code>test_type:data</code> solo los de datos.</p>
 <h2>Contratos: prometer la forma de la tabla</h2>
 <p>Un <strong>contrato</strong> es una promesa sobre las <strong>columnas y sus tipos</strong>. Si otro equipo consume tu tabla <code>dim_clientes</code>, un cambio pequeño (que <code>cliente_id</code> pase de número a texto) puede romper sus consultas. Con el contrato activado, dbt compara el resultado del modelo con lo declarado <strong>antes</strong> de crear la tabla, y si no coincide, falla:</p>
-<pre data-norun><code class="language-yaml">models:
+<pre data-norun tabindex="0"><code class="language-yaml">models:
   - name: dim_clientes
     config:
       materialized: table
@@ -259,7 +259,7 @@ dbt test -s top_clientes       # solo los tests de un modelo</code></pre>
 <p>Diferencia clave: un <strong>test</strong> revisa los <strong>valores</strong> después de construir; un <strong>contrato</strong> revisa la <strong>forma</strong> (nombres y tipos de columnas) antes de construir.</p>
 <h2>Documentación: que cualquiera entienda tus tablas</h2>
 <p>Las mismas <code>description:</code> del YAML se convierten en un sitio web de documentación:</p>
-<pre><code class="language-bash">dbt docs generate   # crea target/manifest.json y target/catalog.json
+<pre tabindex="0"><code class="language-bash">dbt docs generate   # crea target/manifest.json y target/catalog.json
 dbt docs serve      # abre el sitio en el navegador</code></pre>
 <ul>
 <li><code>manifest.json</code> describe el proyecto: modelos, tests, descripciones y dependencias.</li>
@@ -344,7 +344,7 @@ dbt docs serve      # abre el sitio en el navegador</code></pre>
 <li>Crea un test singular: un <code>SELECT</code> que devuelve las filas que violan la regla (si devuelve 0 filas, pasa).</li>
 <li>Corre solo los tests del modelo con <code>-s</code>.</li>
 </ol>
-<pre data-norun><code class="language-bash">cd ~/tienda_dbt
+<pre data-norun tabindex="0"><code class="language-bash">cd ~/tienda_dbt
 cat models/schema.yml
 dbt run
 dbt test

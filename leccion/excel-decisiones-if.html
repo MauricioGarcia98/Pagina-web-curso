@@ -82,7 +82,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 2 — Tu primer IF</h2>
 <p>Queremos una columna <strong>tipo</strong> que diga si el pedido fue <em>online</em> o <em>presencial</em>. Usaremos la columna <strong>N</strong> (deja I a M libres: las usamos en las próximas lecciones).</p>
-<pre><code class="language-text">=IF(prueba_lógica, valor_si_verdadero, valor_si_falso)</code></pre>
+<pre tabindex="0"><code class="language-text">=IF(prueba_lógica, valor_si_verdadero, valor_si_falso)</code></pre>
 <ol>
 <li>En <strong>N1</strong> escribe <code>tipo</code>.</li>
 <li>En <strong>N2</strong> escribe <code>=IF(F2=&quot;tienda&quot;,&quot;presencial&quot;,&quot;online&quot;)</code> y Enter.</li>
@@ -97,7 +97,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Pero hay un problema: los pedidos por <strong>teléfono</strong> quedaron como <em>online</em>. Hace falta más de una condición.</p>
 <h2>Paso 3 — Varias condiciones: IF dentro de IF</h2>
 <p>Reemplaza N2 por:</p>
-<pre><code class="language-text">=IF(F2=&quot;web&quot;,&quot;online&quot;,IF(F2=&quot;app&quot;,&quot;online&quot;,&quot;presencial&quot;))</code></pre>
+<pre tabindex="0"><code class="language-text">=IF(F2=&quot;web&quot;,&quot;online&quot;,IF(F2=&quot;app&quot;,&quot;online&quot;,&quot;presencial&quot;))</code></pre>
 <p>El segundo IF está en el lugar del &quot;si no&quot;: si no es web, pregunta si es app; si tampoco, es presencial (tienda o teléfono).</p>
 <figure class="captura"><img src="assets/img/guias/excel/e09-if.webp" alt="El IF anidado en la barra de fórmulas (1) y su resultado (2)" loading="lazy"><figcaption>El IF anidado en la barra de fórmulas (1) y su resultado (2)</figcaption></figure>
 
@@ -126,13 +126,13 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>La misma clasificación, más fácil de leer:</p>
-<pre><code class="language-text">=IF(OR(F2=&quot;web&quot;,F2=&quot;app&quot;),&quot;online&quot;,&quot;presencial&quot;)</code></pre>
+<pre tabindex="0"><code class="language-text">=IF(OR(F2=&quot;web&quot;,F2=&quot;app&quot;),&quot;online&quot;,&quot;presencial&quot;)</code></pre>
 <p>Y una con AND: marcar los pedidos web que se perdieron.</p>
-<pre><code class="language-text">=IF(AND(F2=&quot;web&quot;,E2=&quot;cancelado&quot;),&quot;revisar&quot;,&quot;&quot;)</code></pre>
+<pre tabindex="0"><code class="language-text">=IF(AND(F2=&quot;web&quot;,E2=&quot;cancelado&quot;),&quot;revisar&quot;,&quot;&quot;)</code></pre>
 <p><code>&quot;&quot;</code> (dos comillas juntas) es un texto vacío: la celda queda en blanco.</p>
 <h2>Paso 5 — Tres o más grupos: IFS</h2>
 <p>Para clasificar el estado en tres grupos, IFS evita anidar:</p>
-<pre><code class="language-text">=IFS(E2=&quot;entregado&quot;,&quot;cerrado&quot;,OR(E2=&quot;cancelado&quot;,E2=&quot;devuelto&quot;),&quot;perdido&quot;,TRUE,&quot;en curso&quot;)</code></pre>
+<pre tabindex="0"><code class="language-text">=IFS(E2=&quot;entregado&quot;,&quot;cerrado&quot;,OR(E2=&quot;cancelado&quot;,E2=&quot;devuelto&quot;),&quot;perdido&quot;,TRUE,&quot;en curso&quot;)</code></pre>
 <p>IFS recibe pares <strong>condición, resultado</strong> y devuelve el primero que se cumple. El último par <code>TRUE,&quot;en curso&quot;</code> es el &quot;en cualquier otro caso&quot;.</p>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ El orden importa</div>
 
@@ -142,7 +142,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 6 — Atajar errores: IFERROR</h2>
 <p>Cuando una cuenta puede fallar (dividir por cero, buscar algo que no existe), IFERROR muestra otra cosa en lugar del error:</p>
-<pre><code class="language-text">=IFERROR(C2/B2, 0)
+<pre tabindex="0"><code class="language-text">=IFERROR(C2/B2, 0)
 =IFERROR(C2/B2, &quot;sin datos&quot;)</code></pre>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ No escondas errores que importan</div>
 

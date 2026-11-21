@@ -35,7 +35,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 2 — Crear e insertar</h2>
-<pre data-norun><code class="language-sql">CREATE TABLE dbo.metas_tienda (
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE dbo.metas_tienda (
   tienda VARCHAR(50),
   mes DATE,
   meta_unidades INT
@@ -51,7 +51,7 @@ INSERT INTO dbo.metas_tienda VALUES
 <p>A diferencia del endpoint SQL del lakehouse, el warehouse acepta <strong>CREATE TABLE, INSERT, UPDATE, DELETE, MERGE</strong> y transacciones.</p>
 <h2>Paso 3 — Consultar entre ítems</h2>
 <p>Desde el warehouse se leen las tablas de un lakehouse del mismo workspace con <strong>tres partes</strong>: <code>ítem.esquema.tabla</code>:</p>
-<pre data-norun><code class="language-sql">SELECT m.tienda, m.meta_unidades, u.unidades
+<pre data-norun tabindex="0"><code class="language-sql">SELECT m.tienda, m.meta_unidades, u.unidades
 FROM dbo.metas_tienda AS m
 JOIN (SELECT tienda, SUM(cantidad) AS unidades
       FROM lh_ventas.dbo.ventas_tiendas GROUP BY tienda) AS u

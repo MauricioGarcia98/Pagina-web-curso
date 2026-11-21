@@ -242,7 +242,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <p>Cuando migres una consulta de un motor a otro, compara <strong>resultados</strong> (conteos y totales), no solo que &quot;ejecute sin error&quot;.</p>
 <h2>Particularidades de Spark SQL / Databricks que vas a usar</h2>
-<pre data-norun><code class="language-sql">-- Leer archivos directamente, sin crear una tabla
+<pre data-norun tabindex="0"><code class="language-sql">-- Leer archivos directamente, sin crear una tabla
 SELECT * FROM parquet.`/mnt/datos/pedidos/`;
 SELECT * FROM read_files('/Volumes/main/crudo/archivos/', format =&gt; 'csv', header =&gt; true);
 
@@ -392,7 +392,7 @@ SELECT * FROM main.ventas.pedidos TIMESTAMP AS OF '2024-06-01';</code></pre>
 <li>Cambia el motor a PostgreSQL: <code>QUALIFY</code> no existe. Reescríbela con una subconsulta.</li>
 <li>Cambia a SQL Server y usa <code>TOP</code> en lugar de <code>LIMIT</code> en otra consulta.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT categoria_id, nombre, precio
+<pre data-norun tabindex="0"><code class="language-sql">SELECT categoria_id, nombre, precio
 FROM productos
 QUALIFY ROW_NUMBER() OVER (PARTITION BY categoria_id ORDER BY precio DESC) &lt;= 3;</code></pre>
 <p>Reto: anota las tres diferencias de dialecto que más te costaron.</p>

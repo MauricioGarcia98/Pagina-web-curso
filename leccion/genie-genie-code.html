@@ -100,11 +100,11 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Cómo pedir bien</h2>
 <p>Genie Code usa la metadata de Unity Catalog (nombres, descripciones, tablas populares) para dar respuestas personalizadas. Igual que con Genie Agents, <strong>cuanto mejor documentadas tus tablas, mejores respuestas</strong>. Algunos ejemplos de pedidos concretos:</p>
-<pre><code class="language-text">Lee main.default.pedidos_crudos, convierte fecha_pedido a timestamp con try_cast,
+<pre tabindex="0"><code class="language-text">Lee main.default.pedidos_crudos, convierte fecha_pedido a timestamp con try_cast,
 descarta las filas sin pedido_id y quédate con la carga más reciente de cada pedido
 (columna cargado_en). Guarda el resultado en main.default.pedidos_silver.</code></pre>
-<pre><code class="language-text">/explain explica línea por línea y menciona qué pasa con los valores nulos</code></pre>
-<pre><code class="language-text">Esta consulta tarda 4 minutos sobre una tabla de 200 millones de filas. /optimize</code></pre>
+<pre tabindex="0"><code class="language-text">/explain explica línea por línea y menciona qué pasa con los valores nulos</code></pre>
+<pre tabindex="0"><code class="language-text">Esta consulta tarda 4 minutos sobre una tabla de 200 millones de filas. /optimize</code></pre>
 <p>Un pedido concreto (qué tabla, qué columnas, qué regla, dónde guardar) da mucho mejor resultado que &quot;limpia los datos&quot;.</p>
 <h2>Instrucciones personales y del workspace</h2>
 <p>Puedes darle a Genie Code instrucciones <strong>permanentes</strong>, que aplica en todas sus respuestas:</p>
@@ -114,7 +114,7 @@ descarta las filas sin pedido_id y quédate con la carga más reciente de cada p
 <li>Además, lee los archivos <strong><code>AGENTS.md</code></strong> y <strong><code>CLAUDE.md</code></strong> que encuentre en las carpetas del workspace, subiendo desde el notebook o archivo abierto.</li>
 </ul>
 <p>Un ejemplo de instrucciones personales útiles:</p>
-<pre><code class="language-markdown">- Escribo en PySpark; usa la API de DataFrames, nunca RDDs.
+<pre tabindex="0"><code class="language-markdown">- Escribo en PySpark; usa la API de DataFrames, nunca RDDs.
 - Para convertir tipos usa try_cast y cuenta los valores inválidos.
 - Nombres de tablas siempre con tres partes: catalogo.esquema.tabla.
 - Explica en español y de forma breve.
@@ -180,7 +180,7 @@ descarta las filas sin pedido_id y quédate con la carga más reciente de cada p
 <li>Fíjate en el pedido: dice la tabla, el grano, el filtro y el formato de salida. Un pedido vago produce código vago.</li>
 <li>Ejecuta la celda 2 y <strong>verifícala</strong> antes de usarla: ¿excluye cancelados? ¿el total coincide con otra forma de calcularlo?</li>
 </ol>
-<pre data-norun><code class="language-python"># Databricks notebook source
+<pre data-norun tabindex="0"><code class="language-python"># Databricks notebook source
 # MAGIC %md
 # MAGIC ### Pedido al asistente (plantilla)
 # MAGIC &quot;Con `samples.tienda.pedidos` y `samples.tienda.detalle_pedidos`, calcula las ventas netas por mes de 2024

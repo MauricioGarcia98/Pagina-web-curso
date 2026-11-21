@@ -26,7 +26,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Paso 1 — El contexto de filtro</h2>
 <p>En la tabla del paso anterior (canal, Ventas), la celda de <strong>app</strong> vale 3 780 449,86 porque su contexto es <code>pedidos[canal] = &quot;app&quot;</code>: el filtro viaja por la relación de <code>pedidos</code> a <code>detalle_pedidos</code> y SUMX recorre solo esas líneas. La fila <strong>Total</strong> no tiene filtro de canal: 14 878 014,07. Agrega una segmentación y su selección se suma al contexto de todas las celdas.</p>
 <h2>Paso 2 — CALCULATE con una condición</h2>
-<pre><code class="language-text">Ventas web = CALCULATE([Ventas], pedidos[canal] = &quot;web&quot;)
+<pre tabindex="0"><code class="language-text">Ventas web = CALCULATE([Ventas], pedidos[canal] = &quot;web&quot;)
 % del total = DIVIDE([Ventas], CALCULATE([Ventas], ALL(pedidos)))</code></pre>
 <figure class="captura"><img src="assets/img/guias/powerbi/b10-calculate.webp" alt="Ventas, Ventas web y % del total por canal - Ventas web vale 6,8 M en todas las filas" loading="lazy"><figcaption>Ventas, Ventas web y % del total por canal - Ventas web vale 6,8 M en todas las filas</figcaption></figure>
 
@@ -57,7 +57,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 3 — La vista de consultas DAX</h2>
 <p>La cuarta vista de la barra izquierda permite probar una medida sin armar un visual:</p>
-<pre><code class="language-text">EVALUATE
+<pre tabindex="0"><code class="language-text">EVALUATE
     SUMMARIZECOLUMNS(
         pedidos[canal],
         &quot;Ventas&quot;, [Ventas],

@@ -72,7 +72,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Ingeniería de prompts</h2>
 <p>Un buen prompt de sistema para el asistente:</p>
-<pre><code class="language-text">Eres el asistente de soporte de Rápido para restaurantes socios.
+<pre tabindex="0"><code class="language-text">Eres el asistente de soporte de Rápido para restaurantes socios.
 Responde SOLO con la información de los &lt;documentos&gt; y de las herramientas.
 Si la respuesta no está ahí, di &quot;No tengo esa información&quot; y sugiere escribir a socios@rapido.pe.
 Responde en español, en menos de 120 palabras, y cita la sección del manual entre corchetes.
@@ -99,7 +99,7 @@ Respuesta: Los pagos se acreditan cada lunes por las ventas de la semana anterio
 
 <h3>1. Parsear</h3>
 <p>Convertir PDFs, Word o HTML en texto <strong>conservando la estructura</strong> (títulos, tablas, listas). En Databricks, <code>ai_parse_document</code> extrae texto y elementos de documentos desde SQL; también se usan librerías como <code>pypdf</code> o <code>unstructured</code>. Se guarda el texto junto con <strong>metadatos</strong>: archivo, página, sección, fecha de vigencia.</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE prod.ia.manual_parseado AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE prod.ia.manual_parseado AS
 SELECT path, ai_parse_document(content) AS doc
 FROM read_files('/Volumes/prod/ia/manuales/', format =&gt; 'binaryFile');</code></pre>
 <h3>2. Dividir en chunks</h3>
@@ -165,7 +165,7 @@ FROM read_files('/Volumes/prod/ia/manuales/', format =&gt; 'binaryFile');</code>
 <td><em>Triggered</em> (cuando la pides, más barato) o <em>continuous</em> (casi en tiempo real)</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-python">from databricks.vector_search.client import VectorSearchClient
+<pre data-norun tabindex="0"><code class="language-python">from databricks.vector_search.client import VectorSearchClient
 
 vsc = VectorSearchClient()
 vsc.create_endpoint(name=&quot;rapido-vs&quot;, endpoint_type=&quot;STANDARD&quot;)

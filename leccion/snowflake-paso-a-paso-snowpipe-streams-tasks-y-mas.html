@@ -33,7 +33,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — Snowpipe: carga continua</h2>
-<pre data-norun><code class="language-sql">CREATE PIPE raw.pipe_pedidos AUTO_INGEST = TRUE AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE PIPE raw.pipe_pedidos AUTO_INGEST = TRUE AS
 COPY INTO raw.pedidos_staging FROM @ventas_s3 FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1);</code></pre>
 <div class="table-wrap"><table><thead><tr>
 <th>COPY INTO</th>
@@ -56,7 +56,7 @@ COPY INTO raw.pedidos_staging FROM @ventas_s3 FILE_FORMAT = (TYPE = CSV SKIP_HEA
 
 
 <h2>Paso 2 — Streams y tasks</h2>
-<pre data-norun><code class="language-sql">-- un stream registra qué filas se insertaron, actualizaron o borraron desde la última vez que se leyó
+<pre data-norun tabindex="0"><code class="language-sql">-- un stream registra qué filas se insertaron, actualizaron o borraron desde la última vez que se leyó
 CREATE STREAM raw.cambios_pedidos ON TABLE raw.pedidos_staging;
 
 -- una task ejecuta SQL con un horario; solo corre si el stream tiene datos
@@ -73,7 +73,7 @@ AS
 
 ALTER TASK analitica.aplicar_pedidos RESUME;   -- las tasks se crean suspendidas</code></pre>
 <h2>Paso 3 — Dynamic tables</h2>
-<pre data-norun><code class="language-sql">CREATE DYNAMIC TABLE analitica.ventas_diarias
+<pre data-norun tabindex="0"><code class="language-sql">CREATE DYNAMIC TABLE analitica.ventas_diarias
   TARGET_LAG = '1 hour'
   WAREHOUSE = analisis_wh
 AS

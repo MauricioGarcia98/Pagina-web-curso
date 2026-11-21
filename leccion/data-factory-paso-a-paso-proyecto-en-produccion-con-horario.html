@@ -48,7 +48,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>La nota de operación</h2>
 <p>Escribe algo así y guárdalo junto al pipeline (en Git, en la wiki del equipo):</p>
-<pre><code class="language-text">pl_ingesta_diaria
+<pre tabindex="0"><code class="language-text">pl_ingesta_diaria
 - Qué hace: copia raw/ventas/*.csv a bronze/ventas y genera ventas_AAAAMMDD.csv.
 - Cuándo: tr_diario_0600, todos los días 6:00 (hora del negocio).
 - Si falla: ver Monitor → Triggered → error de la actividad; relanzar con Rerun.

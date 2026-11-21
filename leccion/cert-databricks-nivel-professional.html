@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Structured Streaming con estado</h2>
 <p>Una consulta de streaming es <strong>sin estado</strong> si cada fila se procesa sola (filtrar, convertir tipos). Es <strong>con estado</strong> si necesita recordar algo entre micro-lotes: agregaciones, deduplicación, joins entre streams. Ese estado vive en el <strong>state store</strong> (en Databricks, RocksDB) dentro del checkpoint, y <strong>crece</strong> si no le dices cuándo puede olvidar.</p>
-<pre data-norun><code class="language-python">ventas_5m = (spark.readStream.table(&quot;prod.silver.pedidos&quot;)
+<pre data-norun tabindex="0"><code class="language-python">ventas_5m = (spark.readStream.table(&quot;prod.silver.pedidos&quot;)
   .withWatermark(&quot;creado&quot;, &quot;15 minutes&quot;)                    # tolera hasta 15 min de atraso
   .groupBy(F.window(&quot;creado&quot;, &quot;5 minutes&quot;), &quot;ciudad&quot;)
   .agg(F.sum(&quot;total&quot;).alias(&quot;ventas&quot;)))
@@ -50,7 +50,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>foreachBatch: MERGE desde un stream</h2>
 <p>Un stream no puede hacer <code>MERGE</code> directamente. Con <strong><code>foreachBatch</code></strong> recibes cada micro-lote como un DataFrame batch y haces lo que quieras con él, incluido un <code>MERGE</code>:</p>
-<pre data-norun><code class="language-python">from delta.tables import DeltaTable
+<pre data-norun tabindex="0"><code class="language-python">from delta.tables import DeltaTable
 
 def upsert_clientes(lote, batch_id):
     ultimos = (lote.withColumn(&quot;rn&quot;, F.row_number().over(
@@ -88,11 +88,11 @@ def upsert_clientes(lote, batch_id):
 <td>Cuándo se confirmó</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-sql">ALTER TABLE prod.silver.clientes SET TBLPROPERTIES (delta.enableChangeDataFeed = true);
+<pre data-norun tabindex="0"><code class="language-sql">ALTER TABLE prod.silver.clientes SET TBLPROPERTIES (delta.enableChangeDataFeed = true);
 
 -- Cambios entre dos versiones (batch)
 SELECT * FROM table_changes('prod.silver.clientes', 120, 125) WHERE _change_type &lt;&gt; 'update_preimage';</code></pre>
-<pre data-norun><code class="language-python"># Como stream: alimentar gold solo con lo que cambió en silver
+<pre data-norun tabindex="0"><code class="language-python"># Como stream: alimentar gold solo con lo que cambió en silver
 cambios = (spark.readStream.option(&quot;readChangeFeed&quot;, &quot;true&quot;).table(&quot;prod.silver.clientes&quot;))</code></pre>
 <div class="table-wrap"><table><thead><tr>
 <th></th>
@@ -119,7 +119,7 @@ cambios = (spark.readStream.option(&quot;readChangeFeed&quot;, &quot;true&quot;)
 
 
 <h2>Modelado en el lakehouse</h2>
-<pre data-norun><code class="language-sql">CREATE TABLE prod.gold.dim_cliente (
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE prod.gold.dim_cliente (
   cliente_sk      BIGINT GENERATED ALWAYS AS IDENTITY,           -- clave subrogada automática
   cliente_id      BIGINT NOT NULL,
   nombre          STRING,
@@ -140,7 +140,7 @@ CLUSTER BY (cliente_id);</code></pre>
 </ul>
 <h2>VARIANT y funciones de IA en SQL</h2>
 <p>El Professional de octubre de 2026 incorpora el tipo <strong><code>VARIANT</code></strong> (lección de ingesta) y las <strong>funciones de IA</strong>, que llaman a modelos desde SQL:</p>
-<pre data-norun><code class="language-sql">SELECT
+<pre data-norun tabindex="0"><code class="language-sql">SELECT
   resena_id,
   ai_analyze_sentiment(texto)                                  AS sentimiento,   -- positive, negative, neutral, mixed
   ai_classify(texto, ARRAY('demora', 'producto frío', 'repartidor', 'otro')) AS motivo,
@@ -181,7 +181,7 @@ FROM prod.silver.resenas;</code></pre>
 </tr>
 </tbody></table></div>
 <h2>Código de producción: módulos, pruebas y depuración</h2>
-<pre data-norun><code class="language-python"># src/rapido/transform.py
+<pre data-norun tabindex="0"><code class="language-python"># src/rapido/transform.py
 def limpiar_pedidos(df):
     return (df.filter(F.col(&quot;pedido_id&quot;).isNotNull())
               .withColumn(&quot;ciudad&quot;, F.initcap(F.trim(&quot;ciudad&quot;))))

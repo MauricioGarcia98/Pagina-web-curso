@@ -21,7 +21,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>1. Python: ¿cuántos pasajes vender? (sobreventa)</h2>
 <p>En el caso, alrededor del <strong>5 %</strong> de los pasajeros con reserva no se presenta (<em>no-show</em>). Si un avión de 160 asientos vende exactamente 160 pasajes, en promedio despega con 8 asientos vacíos. Por eso las aerolíneas <strong>sobrevenden</strong>: venden algunos pasajes más que asientos, aceptando un pequeño riesgo de que se presenten más pasajeros que asientos (y haya que compensar a alguien).</p>
 <p>¿Cuál es ese riesgo? Si cada pasajero se presenta con probabilidad <code>p</code> de forma independiente, la cantidad que se presenta de <code>n</code> vendidos sigue una distribución <strong>binomial</strong>:</p>
-<pre><code class="language-text">P(se presentan exactamente k) = C(n, k) · p^k · (1 − p)^(n − k)        C(n, k) = combinaciones = math.comb(n, k)
+<pre tabindex="0"><code class="language-text">P(se presentan exactamente k) = C(n, k) · p^k · (1 − p)^(n − k)        C(n, k) = combinaciones = math.comb(n, k)
 P(sobreventa) = P(se presentan más de C) = suma de P(k) para k = C+1 … n</code></pre>
 <div class="callout callout-analogia"><div class="callout-title">🧠 Tirar monedas cargadas</div>
 
@@ -36,7 +36,7 @@ P(sobreventa) = P(se presentan más de C) = suma de P(k) para k = C+1 … n</cod
 <li>Mira la salida: cada instancia calcula la demora de su aeropuerto y la última tarea junta los resultados.</li>
 <li>Agrega un aeropuerto a la lista: aparece una instancia más.</li>
 </ol>
-<pre data-norun><code class="language-python">from datetime import datetime
+<pre data-norun tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import dag, task
 
 @dag(start_date=datetime(2024, 1, 1), schedule=&quot;@daily&quot;, catchup=False)
