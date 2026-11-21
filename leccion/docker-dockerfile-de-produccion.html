@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Un Dockerfile de producción para un proyecto de datos · Academia de Datos</title><meta name="description" content="Escribes, paso a paso, la imagen de un pipeline de Python como la pide un equipo en producción - versión fija de la base, dependencias con uv y su lockfile, build en dos etapas, usuario sin privilegios, configuración por variables de entorno, secretos que nunca quedan en la imagen y un comando en forma de lista para que el contenedor se detenga bien. El corrector revisa tu Dockerfile contra esa lista de requisitos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/docker-dockerfile-de-produccion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Un Dockerfile de producción para un proyecto de datos · Academia de Datos"><meta property="og:description" content="Escribes, paso a paso, la imagen de un pipeline de Python como la pide un equipo en producción - versión fija de la base, dependencias con uv y su lockfile, build en dos etapas, usuario sin privilegios, configuración por variables de entorno, secretos que nunca quedan en la imagen y un comando en forma de lista para que el contenedor se detenga bien. El corrector revisa tu Dockerfile contra esa lista de requisitos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/docker-dockerfile-de-produccion.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#docker">🐳 Docker a fondo para datos</a> · Avanzado · 60 min</div>
+<h1>Un Dockerfile de producción para un proyecto de datos</h1><p class="resumen">Escribes, paso a paso, la imagen de un pipeline de Python como la pide un equipo en producción - versión fija de la base, dependencias con uv y su lockfile, build en dos etapas, usuario sin privilegios, configuración por variables de entorno, secretos que nunca quedan en la imagen y un comando en forma de lista para que el contenedor se detenga bien. El corrector revisa tu Dockerfile contra esa lista de requisitos.</p>
+<a class="cta" href="../index.html#/l/docker-dockerfile-de-produccion">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Instalar dependencias de Python con uv y el lockfile de forma reproducible</li><li>Ejecutar el contenedor con un usuario sin privilegios</li><li>Configurar el pipeline con variables de entorno leídas al arrancar</li><li>Usar secretos de build y de ejecución sin dejarlos en ninguna capa</li><li>Escribir CMD en forma de lista y explicar por qué importa para detener el contenedor</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un Dockerfile de producción es una receta escrita para que cualquiera la cocine igual, en cualquier cocina, sin acceso a tu alacena privada: ingredientes con marca y fecha (versiones fijas), pasos en orden (caché), sin la llave de la caja fuerte pegada en la receta (secretos) y con un cocinero que no tiene la llave de todo el edificio (usuario sin privilegios).</p>
+</div>
+
+
+<h2>La lista de requisitos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Requisito</th>
+<th>Cómo se cumple</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td>Base con versión fija</td>
+<td><code>FROM python:3.13-slim</code></td>
+<td>Builds reproducibles</td>
+</tr>
+<tr>
+<td>Dependencias reproducibles</td>
+<td><code>COPY pyproject.toml uv.lock ./</code> y <code>uv sync --frozen --no-dev</code></td>
+<td><code>--frozen</code> instala exactamente el lockfile y falla si no coincide</td>
+</tr>
+<tr>
+<td>Caché aprovechada</td>
+<td>Dependencias antes que el código</td>
+<td>Cambiar código no reinstala todo</td>
+</tr>
+<tr>
+<td>Imagen final chica</td>
+<td>Dos etapas: construir y ejecutar</td>
+<td>Sin herramientas de build en producción</td>
+</tr>
+<tr>
+<td>Sin privilegios</td>
+<td><code>RUN useradd ...</code> y <code>USER app</code></td>
+<td>Si alguien explota el proceso, no es root del contenedor</td>
+</tr>
+<tr>
+<td>Configuración externa</td>
+<td><code>ENV</code> solo con valores no secretos; el resto al ejecutar</td>
+<td>La misma imagen sirve en desarrollo y producción</td>
+</tr>
+<tr>
+<td>Detención limpia</td>
+<td><code>CMD [&quot;python&quot;, &quot;-m&quot;, &quot;pipeline&quot;]</code></td>
+<td>El proceso recibe la señal de parada directamente</td>
+</tr>
+</tbody></table></div>
+<pre data-norun><code class="language-dockerfile"># syntax=docker/dockerfile:1
+FROM python:3.13-slim AS construir
+COPY --from=ghcr.io/astral-sh/uv:0.9.5 /uv /bin/uv
+WORKDIR /app
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
+COPY src/ ./src/
+RUN uv sync --frozen --no-dev
+
+FROM python:3.13-slim
+RUN useradd --create-home --uid 1000 app
+WORKDIR /app
+COPY --from=construir --chown=app:app /app /app
+ENV PATH=&quot;/app/.venv/bin:$PATH&quot; PYTHONUNBUFFERED=1
+USER app
+CMD [&quot;python&quot;, &quot;-m&quot;, &quot;pipeline&quot;]</code></pre>
+<p>La copia de <code>uv</code> desde su imagen oficial y el <code>--no-install-project</code> (instalar primero solo las dependencias, y el proyecto después) son los que recomienda la <a href="https://docs.astral.sh/uv/guides/integration/docker/">guía oficial de uv con Docker</a>. <code>PYTHONUNBUFFERED=1</code> hace que los <code>print</code> y los registros salgan enseguida en <code>docker logs</code>.</p>
+<h2>Configuración y secretos</h2>
+<p>La imagen es <strong>la misma</strong> en desarrollo, prueba y producción; lo que cambia se pasa al ejecutar:</p>
+<pre data-norun><code class="language-bash">docker run --rm -e ENTORNO=prod -e DB_HOST=db.interna --env-file secretos.env tienda-pipeline:1.4.0</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Dato</th>
+<th>Dónde va</th>
+</tr>
+</thead><tbody><tr>
+<td>Nivel de registro, nombre del entorno</td>
+<td><code>ENV</code> en el Dockerfile (con valor por defecto) o <code>-e</code> al ejecutar</td>
+</tr>
+<tr>
+<td>Host de la base, rutas</td>
+<td><code>-e</code> al ejecutar</td>
+</tr>
+<tr>
+<td>Contraseñas, tokens, claves</td>
+<td>Un gestor de secretos (Key Vault, Secrets Manager) o variables inyectadas al ejecutar; <strong>nunca</strong> en el Dockerfile</td>
+</tr>
+<tr>
+<td>Un token que hace falta <strong>durante el build</strong> (instalar desde un repositorio privado)</td>
+<td>Un secreto de build: <code>RUN --mount=type=secret,id=token ...</code>, que no queda en ninguna capa</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ ARG y ENV dejan rastro</div>
+
+<p>Un <code>ARG TOKEN=...</code> o un <code>ENV DB_PASSWORD=...</code> queda guardado en la imagen: cualquiera con la imagen lo ve con <code>docker history</code> o <code>docker inspect</code>. Borrarlo en una capa posterior no sirve, porque la capa anterior sigue existiendo. Para el build, usa secretos de build (<a href="https://docs.docker.com/build/building/secrets/">documentación</a>); para ejecutar, inyéctalos desde afuera.</p>
+</div>
+
+
+<h2>CMD en forma de lista</h2>
+<p><code>CMD python -m pipeline</code> (forma &quot;shell&quot;) arranca un <code>sh</code> que a su vez arranca Python. Cuando Docker manda la señal de parada (<code>SIGTERM</code>), la recibe el <code>sh</code>, no tu programa, y a los 10 segundos Docker lo mata a la fuerza: tu pipeline no alcanza a cerrar conexiones ni a terminar de escribir. <code>CMD [&quot;python&quot;, &quot;-m&quot;, &quot;pipeline&quot;]</code> (forma &quot;exec&quot;) ejecuta Python directamente y recibe la señal (<a href="https://docs.docker.com/reference/dockerfile/#cmd">referencia del Dockerfile</a>).</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Una configuración que falla rápido y con claridad</div>
+
+<ol>
+<li>Ejecuta: la función lee la configuración del pipeline desde un diccionario de variables de entorno, con valores por defecto y variables obligatorias.</li>
+<li>Mira qué pasa si falta <code>DB_HOST</code>: el error dice exactamente qué falta, en lugar de fallar más tarde con un error confuso.</li>
+<li>Agrega la variable <code>LOTE</code> (entero, por defecto 500) y valida que sea mayor que 0.</li>
+</ol>
+<pre><code class="language-python">import os
+
+def cargar_config(env):
+    faltan = [v for v in (&quot;DB_HOST&quot;, &quot;DB_PASSWORD&quot;) if not env.get(v)]
+    if faltan:
+        raise RuntimeError(f&quot;Faltan variables de entorno: {', '.join(faltan)}&quot;)
+    return {
+        &quot;entorno&quot;: env.get(&quot;ENTORNO&quot;, &quot;dev&quot;),
+        &quot;db_host&quot;: env[&quot;DB_HOST&quot;],
+        &quot;db_password&quot;: env[&quot;DB_PASSWORD&quot;],
+        &quot;nivel_log&quot;: env.get(&quot;NIVEL_LOG&quot;, &quot;INFO&quot;).upper(),
+    }
+
+print(cargar_config({&quot;DB_HOST&quot;: &quot;localhost&quot;, &quot;DB_PASSWORD&quot;: &quot;x&quot;, &quot;NIVEL_LOG&quot;: &quot;debug&quot;}))
+try:
+    cargar_config({&quot;ENTORNO&quot;: &quot;prod&quot;})
+except RuntimeError as e:
+    print(&quot;error:&quot;, e)
+# en el contenedor real: cargar_config(os.environ)</code></pre>
+<p>Reto: haz que la configuración nunca imprima la contraseña (por ejemplo, con un <code>__repr__</code> que la muestre como <code>***</code>).</p>
+<p>Documentación oficial: <a href="https://docs.astral.sh/uv/guides/integration/docker/">uv con Docker</a> · <a href="https://docs.docker.com/build/building/secrets/">Secretos de build</a> · <a href="https://docs.docker.com/reference/dockerfile/">Referencia del Dockerfile</a> · <a href="https://docs.docker.com/build/building/best-practices/">Buenas prácticas</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>uv sync</code> o <code>pip install</code> sin lockfile.</strong> Cada build puede instalar versiones distintas.</li>
+<li><strong>Correr como root.</strong> Agrega un usuario y <code>USER</code>.</li>
+<li><strong>Secretos en <code>ARG</code> o <code>ENV</code>.</strong> Quedan en la imagen para siempre.</li>
+<li><strong><code>CMD</code> en forma shell.</strong> El proceso no recibe la señal de parada.</li>
+<li><strong>Una imagen por entorno.</strong> Construye una sola y configúrala al ejecutar.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;¿Cómo le pasas la contraseña de la base al contenedor del pipeline en producción?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Nunca dentro de la imagen. El orquestador la inyecta al ejecutar: en Kubernetes, desde un Secret montado o, mejor, desde el gestor de secretos de la nube con identidad administrada, para que ni siquiera haya una contraseña si la base acepta autenticación por identidad. El programa la lee de una variable de entorno o de un archivo montado y falla al arrancar si falta. Así la misma imagen corre en todos los entornos.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/docker-dockerfile-de-produccion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="docker-capas-y-cache.html">← Capas, caché y el orden del Dockerfile</a><a href="docker-compose-stack-de-datos.html">Un stack de datos con Compose que arranca en orden y no pierde datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

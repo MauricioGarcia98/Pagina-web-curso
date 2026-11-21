@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capas, caché y el orden del Dockerfile · Academia de Datos</title><meta name="description" content="Una imagen de Docker es una pila de capas, una por instrucción del Dockerfile, y Docker reutiliza las capas que no cambiaron. Entender esa caché es la diferencia entre un build de 10 segundos y uno de 10 minutos en cada cambio de código. Aprendes a predecir qué capas se reconstruyen, a ordenar el Dockerfile para aprovechar la caché, a achicar imágenes con builds de varias etapas y a revisar un Dockerfile contra las buenas prácticas oficiales."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/docker-capas-y-cache.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Capas, caché y el orden del Dockerfile · Academia de Datos"><meta property="og:description" content="Una imagen de Docker es una pila de capas, una por instrucción del Dockerfile, y Docker reutiliza las capas que no cambiaron. Entender esa caché es la diferencia entre un build de 10 segundos y uno de 10 minutos en cada cambio de código. Aprendes a predecir qué capas se reconstruyen, a ordenar el Dockerfile para aprovechar la caché, a achicar imágenes con builds de varias etapas y a revisar un Dockerfile contra las buenas prácticas oficiales."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/docker-capas-y-cache.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#docker">🐳 Docker a fondo para datos</a> · Avanzado · 55 min</div>
+<h1>Capas, caché y el orden del Dockerfile</h1><p class="resumen">Una imagen de Docker es una pila de capas, una por instrucción del Dockerfile, y Docker reutiliza las capas que no cambiaron. Entender esa caché es la diferencia entre un build de 10 segundos y uno de 10 minutos en cada cambio de código. Aprendes a predecir qué capas se reconstruyen, a ordenar el Dockerfile para aprovechar la caché, a achicar imágenes con builds de varias etapas y a revisar un Dockerfile contra las buenas prácticas oficiales.</p>
+<a class="cta" href="../index.html#/l/docker-capas-y-cache">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es una capa y qué invalida su caché</li><li>Predecir qué instrucciones se vuelven a ejecutar cuando cambia un archivo</li><li>Ordenar un Dockerfile de Python para que cambiar el código no reinstale las dependencias</li><li>Achicar la imagen final con un build multi-etapa</li><li>Revisar un Dockerfile y encontrar los problemas más comunes</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Armar una imagen es como cocinar una torta en capas, anotando cada capa. Si cambias la crema del medio, tienes que rehacer la crema <strong>y todo lo que va encima</strong>, pero el bizcochuelo de abajo sirve. Por eso conviene poner abajo lo que casi nunca cambia (el sistema y las dependencias) y arriba lo que cambias todos los días (tu código).</p>
+</div>
+
+
+<h2>Una capa por instrucción</h2>
+<pre data-norun><code class="language-dockerfile">FROM python:3.13-slim              # capa 1: la imagen base
+WORKDIR /app                       # capa 2
+COPY pyproject.toml uv.lock ./     # capa 3: solo los archivos de dependencias
+RUN pip install uv &amp;&amp; uv sync --frozen --no-dev   # capa 4: instalar dependencias (lento)
+COPY src/ ./src/                   # capa 5: tu código
+CMD [&quot;uv&quot;, &quot;run&quot;, &quot;python&quot;, &quot;-m&quot;, &quot;src.pipeline&quot;]</code></pre>
+<p>Al construir, Docker revisa cada instrucción en orden. La caché de una capa se invalida cuando:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Instrucción</th>
+<th>Se invalida si…</th>
+</tr>
+</thead><tbody><tr>
+<td><code>FROM</code></td>
+<td>Cambia la imagen base (otra etiqueta o un digest nuevo)</td>
+</tr>
+<tr>
+<td><code>COPY</code> / <code>ADD</code></td>
+<td>Cambia el contenido de <strong>alguno</strong> de los archivos copiados</td>
+</tr>
+<tr>
+<td><code>RUN</code></td>
+<td>Cambia el texto del comando</td>
+</tr>
+<tr>
+<td><strong>Cualquiera</strong></td>
+<td><strong>Se invalidó una capa anterior</strong>: desde ahí se reconstruye todo</td>
+</tr>
+</tbody></table></div>
+<p>La última regla es la clave. Con el orden de arriba, cambiar un archivo de <code>src/</code> reconstruye solo la capa 5: las dependencias quedan en caché. Si en cambio copiaras todo con <code>COPY . .</code> antes del <code>RUN uv sync</code>, cualquier cambio de código reinstalaría todas las dependencias. Así lo explica la <a href="https://docs.docker.com/build/cache/">documentación de la caché de Docker</a>.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 El archivo .dockerignore</div>
+
+<p><code>COPY . .</code> copia <strong>todo</strong> el contexto de build: también <code>.git</code>, <code>.venv</code>, datos de prueba y archivos <code>.env</code>. Además de hacer el build lento, invalida la caché cada vez que cambia cualquiera de ellos y puede meter secretos en la imagen. Un <code>.dockerignore</code> (como <code>.gitignore</code>) los deja afuera.</p>
+</div>
+
+
+<h2>Imágenes más chicas: build multi-etapa</h2>
+<p>Las herramientas para compilar o instalar (compiladores, cachés de pip) no hacen falta para <strong>ejecutar</strong>. Un build multi-etapa instala en una etapa y copia a la final solo lo necesario:</p>
+<pre data-norun><code class="language-dockerfile">FROM python:3.13-slim AS construir
+WORKDIR /app
+RUN pip install uv
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
+COPY src/ ./src/
+
+FROM python:3.13-slim
+WORKDIR /app
+COPY --from=construir /app /app
+RUN useradd --create-home app
+USER app
+ENV PATH=&quot;/app/.venv/bin:$PATH&quot;
+CMD [&quot;python&quot;, &quot;-m&quot;, &quot;src.pipeline&quot;]</code></pre>
+<p>La imagen final no tiene <code>uv</code> ni las cachés de instalación: solo Python, el entorno virtual y tu código (<a href="https://docs.docker.com/build/building/multi-stage/">documentación de builds multi-etapa</a>).</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La etiqueta latest</div>
+
+<p><code>FROM python:latest</code> significa &quot;la versión más nueva que exista el día del build&quot;. El mismo Dockerfile construido en marzo y en septiembre da imágenes distintas, y un pipeline que andaba se rompe sin que nadie haya tocado nada. Fija la versión (<code>python:3.13-slim</code>) y, para máxima reproducibilidad, el digest (<code>python:3.13-slim@sha256:...</code>).</p>
+</div>
+
+
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Simular la caché con dos órdenes distintos</div>
+
+<ol>
+<li>Ejecuta: la función recorre las instrucciones y marca cuáles se reconstruyen cuando cambia un archivo.</li>
+<li>Compara los dos Dockerfiles: el que copia todo primero reinstala dependencias por un cambio en <code>src/pipeline.py</code>; el ordenado no.</li>
+<li>Cambia el archivo modificado a <code>uv.lock</code> y mira qué pasa en cada uno.</li>
+</ol>
+<pre><code class="language-python">def reconstruidas(instrucciones, cambiados):
+    invalido, res = False, []
+    for i, ins in enumerate(instrucciones):
+        partes = ins.split()
+        if partes[0] in (&quot;COPY&quot;, &quot;ADD&quot;):
+            fuentes = partes[1:-1]
+            if any(f == &quot;.&quot; or c == f or c.startswith(f.rstrip(&quot;/&quot;) + &quot;/&quot;) for f in fuentes for c in cambiados):
+                invalido = True
+        if invalido:
+            res.append(i)
+    return res
+
+malo = [&quot;FROM python:3.13-slim&quot;, &quot;WORKDIR /app&quot;, &quot;COPY . .&quot;, &quot;RUN pip install uv &amp;&amp; uv sync&quot;, &quot;CMD python -m src.pipeline&quot;]
+bueno = [&quot;FROM python:3.13-slim&quot;, &quot;WORKDIR /app&quot;, &quot;COPY pyproject.toml uv.lock ./&quot;, &quot;RUN pip install uv &amp;&amp; uv sync&quot;,
+         &quot;COPY src/ ./src/&quot;, &quot;CMD python -m src.pipeline&quot;]
+
+for nombre, df in ((&quot;todo primero&quot;, malo), (&quot;ordenado&quot;, bueno)):
+    r = reconstruidas(df, {&quot;src/pipeline.py&quot;})
+    print(f&quot;{nombre:13}&quot;, [df[i] for i in r])</code></pre>
+<p>Reto: agrega la regla de que un <code>RUN</code> también se invalida si cambia su texto (pasa una lista de instrucciones &quot;anteriores&quot; y compara).</p>
+<p>Documentación oficial: <a href="https://docs.docker.com/build/cache/">Caché de build</a> · <a href="https://docs.docker.com/build/building/multi-stage/">Builds multi-etapa</a> · <a href="https://docs.docker.com/build/building/best-practices/">Buenas prácticas</a> · <a href="https://docs.docker.com/build/concepts/context/">Contexto de build y .dockerignore</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>COPY . .</code> antes de instalar dependencias.</strong> Cada cambio de código reinstala todo.</li>
+<li><strong>Sin <code>.dockerignore</code>.</strong> El contexto arrastra <code>.git</code>, <code>.venv</code> y quizás un <code>.env</code> con secretos.</li>
+<li><strong><code>FROM ...:latest</code>.</strong> El build deja de ser reproducible.</li>
+<li><strong>Una sola etapa con todo.</strong> La imagen final carga compiladores y cachés que no usa.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;El build de nuestra imagen tarda 8 minutos aunque solo cambiamos una línea de código. ¿Qué miras?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;El orden del Dockerfile: seguramente se copia todo el proyecto antes de instalar las dependencias, así que cualquier cambio invalida la capa del <code>pip install</code>. Copiaría primero solo <code>pyproject.toml</code> y el lockfile, instalaría, y recién después copiaría el código. Agregaría un <code>.dockerignore</code> y, en CI, usaría la caché del registro (<code>--cache-from</code>) para que los runners nuevos no empiecen de cero.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/docker-capas-y-cache">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="local-proyecto-local.html">← Proyecto: el pipeline de Rápido completo en tu computadora</a><a href="docker-dockerfile-de-produccion.html">Un Dockerfile de producción para un proyecto de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
