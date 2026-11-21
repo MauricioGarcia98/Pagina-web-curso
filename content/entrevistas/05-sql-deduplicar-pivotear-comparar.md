@@ -34,7 +34,8 @@ Y casi siempre hay que **normalizar** al mismo tiempo: estados escritos de varia
 | Mayúsculas mezcladas | `LOWER(estado)` |
 | Sinónimos en otro idioma | `CASE LOWER(estado) WHEN 'delivered' THEN 'entregado' ... ELSE LOWER(estado) END` |
 | Espacios sobrantes | `TRIM(nombre)` |
-| `974,07` o `$47.99` | `CAST(REPLACE(REPLACE(monto, '$', ''), ',', '.') AS REAL)` |
+| `1.402,97` (miles con punto, decimales con coma) | `CASE WHEN monto LIKE '%,%' THEN REPLACE(REPLACE(monto, '.', ''), ',', '.') END`: primero quitas los puntos de miles, después cambias la coma |
+| `$47.99` | `REPLACE(monto, '$', '')` |
 
 :::cuidado Normalizar antes o después de deduplicar
 Si la clave de deduplicación es un texto sucio (un email con mayúsculas), **normaliza primero**: `PARTITION BY LOWER(TRIM(email))`. Si no, `Ana@x.com` y `ana@x.com` quedan como dos clientes distintos.
@@ -132,7 +133,7 @@ Documentación oficial: [PIVOT (DuckDB)](https://duckdb.org/docs/current/sql/sta
 :::
 
 :::ejercicio sql dificultad=Experto titulo="La última versión de cada pedido, normalizada"
-Deduplica `bronze_pedidos` quedándote con la **carga más reciente** de cada `pedido_id` (desempata por `registro_id` mayor). Normaliza `estado` a minúsculas en castellano (`delivered`→`entregado`, `shipped`→`enviado`, `pending`→`pendiente`, `canceled`→`cancelado`, `returned`→`devuelto`; el resto, en minúsculas) y `monto` a número (quita `$` y cambia la coma decimal por punto). Columnas: `pedido_id`, `estado`, `monto`.
+Deduplica `bronze_pedidos` quedándote con la **carga más reciente** de cada `pedido_id` (desempata por `registro_id` mayor). Normaliza `estado` a minúsculas en castellano (`delivered`→`entregado`, `shipped`→`enviado`, `pending`→`pendiente`, `canceled`→`cancelado`, `returned`→`devuelto`; el resto, en minúsculas) y `monto` a número: quita el `$` y, si el monto usa coma decimal (`1.402,97`), quita primero los puntos de miles y después cambia la coma por punto. Columnas: `pedido_id`, `estado`, `monto`.
 ```sql solucion
 WITH r AS (
   SELECT pedido_id, estado, monto,
@@ -144,14 +145,15 @@ SELECT pedido_id,
          WHEN 'delivered' THEN 'entregado' WHEN 'shipped' THEN 'enviado'
          WHEN 'pending' THEN 'pendiente' WHEN 'canceled' THEN 'cancelado'
          WHEN 'returned' THEN 'devuelto' ELSE LOWER(estado) END AS estado,
-       CAST(REPLACE(REPLACE(monto, '$', ''), ',', '.') AS REAL) AS monto
+       CAST(CASE WHEN monto LIKE '%,%' THEN REPLACE(REPLACE(monto, '.', ''), ',', '.')
+                 ELSE REPLACE(monto, '$', '') END AS REAL) AS monto
 FROM r WHERE rn = 1;
 ```
 ```pista
 Deduplica con `ROW_NUMBER() OVER (PARTITION BY pedido_id ORDER BY cargado_en DESC, registro_id DESC)` y quédate con `rn = 1`.
 ```
 ```pista
-El estado se normaliza con `CASE LOWER(estado) WHEN 'delivered' THEN 'entregado' ... ELSE LOWER(estado) END`; el monto con `CAST(REPLACE(REPLACE(monto, '$', ''), ',', '.') AS REAL)`.
+El estado se normaliza con `CASE LOWER(estado) WHEN 'delivered' THEN 'entregado' ... ELSE LOWER(estado) END`; el monto con `CAST(CASE WHEN monto LIKE '%,%' THEN REPLACE(REPLACE(monto, '.', ''), ',', '.') ELSE REPLACE(monto, '$', '') END AS REAL)`. Ojo: si solo cambias la coma por punto, `1.402,97` queda `1.402.97` y SQLite lo convierte en `1.402` sin avisar.
 ```
 :::
 

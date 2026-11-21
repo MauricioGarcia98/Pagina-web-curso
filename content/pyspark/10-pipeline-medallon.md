@@ -163,9 +163,15 @@ Si la capa silver se escribe con `mode("append")`, correr dos veces el mismo dí
 ```python norun
 from pyspark.sql import DataFrame, functions as F
 
+# "16.99", "$47.99" o "1.402,97": sin el $, y si hay coma decimal se quitan antes los puntos de miles
+def monto_a_numero(c):
+    sin_signo = F.regexp_replace(c, r"\$", "")
+    con_punto = F.when(sin_signo.contains(","), F.regexp_replace(F.regexp_replace(sin_signo, r"\.", ""), ",", "."))
+    return con_punto.otherwise(sin_signo).try_cast("double")
+
 def a_silver(df: DataFrame) -> DataFrame:
     return (df.withColumn("estado", F.lower(F.trim("estado")))
-              .withColumn("monto", F.regexp_replace("monto", ",", ".").try_cast("double"))
+              .withColumn("monto", monto_a_numero("monto"))
               .dropDuplicates(["pedido_id"])
               .filter(F.col("monto").isNotNull()))
 

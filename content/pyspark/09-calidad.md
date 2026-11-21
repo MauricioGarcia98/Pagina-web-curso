@@ -225,7 +225,7 @@ No los descarto en silencio. En silver aplico reglas de validación con `when` e
 :::
 
 :::practica pyspark Limpiar la capa bronze de pedidos
-1. Ejecuta: normaliza el estado (`ENTREGADO`, `Entregado` → `entregado`) y convierte el monto que a veces trae coma decimal.
+1. Ejecuta: normaliza el estado (`ENTREGADO`, `Entregado` → `entregado`) y convierte el monto, que llega como `16.99`, `$47.99` o `1.402,97` (miles con punto y decimales con coma: hay que quitar los puntos antes de cambiar la coma).
 2. Deduplica: un mismo `pedido_id` llega en varios archivos; quédate con la carga más reciente.
 3. Manda a una tabla de cuarentena las filas cuyo monto no se pudo convertir.
 
@@ -233,10 +233,16 @@ No los descarto en silencio. En silver aplico reglas de validación con `when` e
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
+# "16.99", "$47.99" o "1.402,97": sin el $, y si hay coma decimal se quitan antes los puntos de miles
+def monto_a_numero(c):
+    sin_signo = F.regexp_replace(c, r"\$", "")
+    con_punto = F.when(sin_signo.contains(","), F.regexp_replace(F.regexp_replace(sin_signo, r"\.", ""), ",", "."))
+    return con_punto.otherwise(sin_signo).try_cast("double")
+
 bronze = spark.table("bronze_pedidos")
 limpio = (bronze
     .withColumn("estado", F.lower(F.trim("estado")))
-    .withColumn("monto_num", F.regexp_replace("monto", ",", ".").try_cast("double")))
+    .withColumn("monto_num", monto_a_numero("monto")))
 
 w = Window.partitionBy("pedido_id").orderBy(F.desc("cargado_en"))
 unico = limpio.withColumn("rn", F.row_number().over(w)).filter("rn = 1").drop("rn")

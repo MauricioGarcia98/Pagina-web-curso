@@ -141,9 +141,15 @@ print(&quot;✔ test OK&quot;)</code></pre>
 </ol>
 <pre data-norun><code class="language-python">from pyspark.sql import DataFrame, functions as F
 
+# &quot;16.99&quot;, &quot;$47.99&quot; o &quot;1.402,97&quot;: sin el $, y si hay coma decimal se quitan antes los puntos de miles
+def monto_a_numero(c):
+    sin_signo = F.regexp_replace(c, r&quot;\$&quot;, &quot;&quot;)
+    con_punto = F.when(sin_signo.contains(&quot;,&quot;), F.regexp_replace(F.regexp_replace(sin_signo, r&quot;\.&quot;, &quot;&quot;), &quot;,&quot;, &quot;.&quot;))
+    return con_punto.otherwise(sin_signo).try_cast(&quot;double&quot;)
+
 def a_silver(df: DataFrame) -&gt; DataFrame:
     return (df.withColumn(&quot;estado&quot;, F.lower(F.trim(&quot;estado&quot;)))
-              .withColumn(&quot;monto&quot;, F.regexp_replace(&quot;monto&quot;, &quot;,&quot;, &quot;.&quot;).try_cast(&quot;double&quot;))
+              .withColumn(&quot;monto&quot;, monto_a_numero(&quot;monto&quot;))
               .dropDuplicates([&quot;pedido_id&quot;])
               .filter(F.col(&quot;monto&quot;).isNotNull()))
 

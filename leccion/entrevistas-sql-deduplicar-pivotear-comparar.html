@@ -51,8 +51,12 @@ WHERE rn = 1;</code></pre>
 <td><code>TRIM(nombre)</code></td>
 </tr>
 <tr>
-<td><code>974,07</code> o <code>$47.99</code></td>
-<td><code>CAST(REPLACE(REPLACE(monto, &#39;$&#39;, &#39;&#39;), &#39;,&#39;, &#39;.&#39;) AS REAL)</code></td>
+<td><code>1.402,97</code> (miles con punto, decimales con coma)</td>
+<td><code>CASE WHEN monto LIKE &#39;%,%&#39; THEN REPLACE(REPLACE(monto, &#39;.&#39;, &#39;&#39;), &#39;,&#39;, &#39;.&#39;) END</code>: primero quitas los puntos de miles, después cambias la coma</td>
+</tr>
+<tr>
+<td><code>$47.99</code></td>
+<td><code>REPLACE(monto, &#39;$&#39;, &#39;&#39;)</code></td>
 </tr>
 </tbody></table></div>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Normalizar antes o después de deduplicar</div>
