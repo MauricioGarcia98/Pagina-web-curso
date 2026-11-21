@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perfilar una tabla antes de usarla · Academia de Datos</title><meta name="description" content="Antes de transformar una tabla nueva, la perfilas - cuántas filas y cuántas claves distintas tiene, qué columnas traen nulos, qué valores aparecen escritos de varias formas, en cuántos formatos llegan las fechas y desde cuándo cambió el esquema. Cada hallazgo del perfil se convierte después en una regla de calidad. Practicas sobre la capa bronze real de la tienda."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/calidad-perfilar-una-tabla.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Perfilar una tabla antes de usarla · Academia de Datos"><meta property="og:description" content="Antes de transformar una tabla nueva, la perfilas - cuántas filas y cuántas claves distintas tiene, qué columnas traen nulos, qué valores aparecen escritos de varias formas, en cuántos formatos llegan las fechas y desde cuándo cambió el esquema. Cada hallazgo del perfil se convierte después en una regla de calidad. Practicas sobre la capa bronze real de la tienda."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/calidad-perfilar-una-tabla.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#calidad">🧪 Calidad y pruebas de datos: taller</a> · Intermedio · 50 min</div>
+<h1>Perfilar una tabla antes de usarla</h1><p class="resumen">Antes de transformar una tabla nueva, la perfilas - cuántas filas y cuántas claves distintas tiene, qué columnas traen nulos, qué valores aparecen escritos de varias formas, en cuántos formatos llegan las fechas y desde cuándo cambió el esquema. Cada hallazgo del perfil se convierte después en una regla de calidad. Practicas sobre la capa bronze real de la tienda.</p>
+<a class="cta" href="../index.html#/l/calidad-perfilar-una-tabla">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Medir filas, claves distintas, duplicados y nulos de una tabla en una sola consulta</li><li>Listar los valores distintos de una columna para encontrar variantes de escritura</li><li>Clasificar formatos de fecha y JSON inválidos con GLOB y json_valid</li><li>Fechar un cambio de esquema buscando la primera aparición de una columna o un valor</li><li>Convertir cada hallazgo del perfil en una regla escrita</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Antes de cocinar con ingredientes que te mandó un proveedor nuevo, abres las cajas y miras: cuántos hay, si alguno está roto, si las etiquetas coinciden con lo pedido. Perfilar es eso con una tabla: mirar <strong>antes</strong> de usar, en lugar de descubrir los problemas cuando el tablero ya muestra un número raro.</p>
+</div>
+
+
+<h2>Los cinco números de cualquier tabla nueva</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Número</th>
+<th>Consulta</th>
+<th>Qué te dice</th>
+</tr>
+</thead><tbody><tr>
+<td>Filas</td>
+<td><code>COUNT(*)</code></td>
+<td>El tamaño, y si coincide con lo que dice el origen</td>
+</tr>
+<tr>
+<td>Claves distintas</td>
+<td><code>COUNT(DISTINCT clave)</code></td>
+<td>Si la clave es realmente única</td>
+</tr>
+<tr>
+<td>Duplicados</td>
+<td><code>COUNT(*) - COUNT(DISTINCT clave)</code></td>
+<td>Cuántas filas sobran</td>
+</tr>
+<tr>
+<td>Nulos por columna</td>
+<td><code>SUM(CASE WHEN col IS NULL THEN 1 ELSE 0 END)</code></td>
+<td>Qué columnas no son confiables</td>
+</tr>
+<tr>
+<td>Rango</td>
+<td><code>MIN(col)</code>, <code>MAX(col)</code></td>
+<td>Fechas imposibles, montos negativos, el período que cubre</td>
+</tr>
+</tbody></table></div>
+<p><code>COUNT(col)</code> cuenta los valores <strong>no nulos</strong>, así que <code>COUNT(*) - COUNT(col)</code> también da los nulos.</p>
+<h2>Valores distintos: las variantes de escritura</h2>
+<p>Para una columna con pocos valores posibles (estado, moneda, canal), lista los distintos con su conteo. Las variantes aparecen solas: <code>USD</code>, <code>usd</code>, <code> USD</code> (con un espacio adelante). Para verlas, ayuda mostrar el largo: <code>LENGTH(moneda)</code> delata los espacios.</p>
+<h2>Formatos y estructuras</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Problema</th>
+<th>Cómo detectarlo en SQLite</th>
+</tr>
+</thead><tbody><tr>
+<td>Fechas en varios formatos</td>
+<td><code>fecha GLOB &#39;[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]&#39;</code> y patrones parecidos</td>
+</tr>
+<tr>
+<td>JSON cortado o inválido</td>
+<td><code>json_valid(payload) = 0</code></td>
+</tr>
+<tr>
+<td>Números guardados como texto</td>
+<td><code>monto GLOB &#39;*[^0-9.]*&#39;</code> (tiene algo que no es dígito ni punto)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ json_extract sobre un JSON roto</div>
+
+<p>En SQLite, <code>json_extract</code> sobre un texto que no es JSON válido <strong>lanza un error y frena toda la consulta</strong>. Protégelo: <code>CASE WHEN json_valid(payload) THEN json_extract(payload, &#39;$.v&#39;) END</code>. En Spark, <code>from_json</code> en modo <code>PERMISSIVE</code> devuelve nulos en lugar de fallar, que es lo mismo pensado de otra forma.</p>
+</div>
+
+
+<h2>Del perfil a las reglas</h2>
+<p>El perfil no es el entregable: lo son las <strong>reglas</strong> que salen de él. Cada hallazgo se escribe como una regla verificable, que en la lección siguiente se convierte en una prueba.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Hallazgo del perfil</th>
+<th>Regla</th>
+</tr>
+</thead><tbody><tr>
+<td>106 filas con <code>pedido_id</code> repetido</td>
+<td>&quot;En silver, <code>pedido_id</code> es único: la carga más reciente gana&quot;</td>
+</tr>
+<tr>
+<td>3 variantes de <code>moneda</code></td>
+<td>&quot;<code>moneda</code> se normaliza con <code>UPPER(TRIM())</code> y debe ser <code>USD</code>&quot;</td>
+</tr>
+<tr>
+<td>82 montos nulos</td>
+<td>&quot;Monto nulo va a cuarentena, no a silver&quot;</td>
+</tr>
+<tr>
+<td>Fechas en 3 formatos</td>
+<td>&quot;Toda fecha se convierte a <code>AAAA-MM-DD</code>; la que no se pueda convertir, a cuarentena&quot;</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El perfil completo de bronze_pedidos</div>
+
+<ol>
+<li>Ejecuta: verás los cinco números de la tabla en una sola fila.</li>
+<li>Ejecuta la segunda consulta: los valores distintos de <code>moneda</code> con su largo. ¿Cuál tiene un espacio?</li>
+<li>Agrega a la primera consulta el rango de <code>cargado_en</code> (<code>MIN</code> y <code>MAX</code>) para saber qué período cubre.</li>
+</ol>
+<pre><code class="language-sql">SELECT COUNT(*) AS filas,
+       COUNT(DISTINCT pedido_id) AS pedidos,
+       COUNT(*) - COUNT(DISTINCT pedido_id) AS duplicados,
+       COUNT(*) - COUNT(monto) AS montos_nulos,
+       COUNT(*) - COUNT(cliente_email) AS emails_nulos
+FROM bronze_pedidos;
+
+SELECT moneda, LENGTH(moneda) AS largo, COUNT(*) AS filas
+FROM bronze_pedidos
+GROUP BY moneda
+ORDER BY filas DESC;</code></pre>
+<p>Reto: haz lo mismo con <code>estado</code> y cuenta cuántas formas distintas hay de escribir &quot;entregado&quot;.</p>
+<p>Documentación oficial: <a href="https://www.sqlite.org/lang_aggfunc.html">Funciones de agregación (SQLite)</a> · <a href="https://www.sqlite.org/json1.html">Funciones JSON (SQLite)</a> · <a href="https://www.sqlite.org/lang_expr.html#the_like_glob_regexp_match_and_extract_operators">GLOB (SQLite)</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Perfilar con una muestra de 10 filas.</strong> Los problemas raros (el 1 %) no aparecen en las primeras filas.</li>
+<li><strong>Confundir <code>COUNT(*)</code> con <code>COUNT(col)</code>.</strong> El segundo no cuenta nulos.</li>
+<li><strong>No guardar el perfil.</strong> El perfil de hoy es la línea base para detectar cambios mañana.</li>
+<li><strong>Arreglar sin anotar la regla.</strong> Si el arreglo no queda escrito como regla y prueba, el problema vuelve.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;Te dan acceso a una tabla que nunca viste y te piden un número para mañana. ¿Qué haces?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Antes de calcular, la perfilo en diez minutos: filas, si la clave es única, nulos de las columnas que voy a usar, rango de fechas y valores distintos de las columnas de filtro. Si encuentro duplicados o variantes, lo digo junto con el número y explico qué supuesto usé. Un número con sus supuestos escritos vale más que un número limpio que nadie puede verificar.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/calidad-perfilar-una-tabla">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="airflow-airflow-databricks-dbt.html">← Airflow + Databricks + dbt: un pipeline real</a><a href="calidad-pruebas-que-devuelven-filas.html">Pruebas de datos que devuelven las filas culpables →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

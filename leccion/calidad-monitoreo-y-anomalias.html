@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monitoreo de datos y detección de anomalías · Academia de Datos</title><meta name="description" content="Las pruebas revisan reglas que conoces; el monitoreo detecta lo que no esperabas - un día con la mitad de las cargas, una tasa de nulos que se triplica, un canal que de repente pesa el doble. Comparas cada día con su historia reciente, mides cambios de distribución, calculas el cumplimiento de un acuerdo de frescura y cuentas violaciones por regla en PySpark, y aprendes a no ahogar al equipo en falsas alarmas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/calidad-monitoreo-y-anomalias.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Monitoreo de datos y detección de anomalías · Academia de Datos"><meta property="og:description" content="Las pruebas revisan reglas que conoces; el monitoreo detecta lo que no esperabas - un día con la mitad de las cargas, una tasa de nulos que se triplica, un canal que de repente pesa el doble. Comparas cada día con su historia reciente, mides cambios de distribución, calculas el cumplimiento de un acuerdo de frescura y cuentas violaciones por regla en PySpark, y aprendes a no ahogar al equipo en falsas alarmas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/calidad-monitoreo-y-anomalias.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#calidad">🧪 Calidad y pruebas de datos: taller</a> · Experto · 65 min</div>
+<h1>Monitoreo de datos y detección de anomalías</h1><p class="resumen">Las pruebas revisan reglas que conoces; el monitoreo detecta lo que no esperabas - un día con la mitad de las cargas, una tasa de nulos que se triplica, un canal que de repente pesa el doble. Comparas cada día con su historia reciente, mides cambios de distribución, calculas el cumplimiento de un acuerdo de frescura y cuentas violaciones por regla en PySpark, y aprendes a no ahogar al equipo en falsas alarmas.</p>
+<a class="cta" href="../index.html#/l/calidad-monitoreo-y-anomalias">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Comparar el volumen de cada día con el promedio de los días anteriores</li><li>Medir la tasa de nulos y su evolución en el tiempo</li><li>Detectar cambios de distribución entre un período base y el actual</li><li>Implementar un detector de anomalías simple y explicable en Python</li><li>Contar violaciones por regla en PySpark para un tablero de calidad</li><li>Reducir falsas alarmas con umbrales, ventanas y contexto de negocio</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Tu médico no te dice &quot;tu pulso es 90&quot; sin más: lo compara con tu pulso habitual. 90 es normal para alguien y alarmante para otro. El monitoreo de datos compara cada número con <strong>su propia historia reciente</strong>, no con un valor fijo inventado.</p>
+</div>
+
+
+<h2>Las cuatro señales que se monitorean siempre</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Señal</th>
+<th>Pregunta</th>
+<th>Ejemplo en la tienda</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Volumen</strong></td>
+<td>¿Llegó la cantidad de filas de siempre?</td>
+<td>El 17 de julio llegaron 4 cargas contra 16,6 de promedio</td>
+</tr>
+<tr>
+<td><strong>Frescura</strong></td>
+<td>¿El último dato es de cuando debería?</td>
+<td>La última carga tiene 32 horas a las 08:00 del 6 de enero</td>
+</tr>
+<tr>
+<td><strong>Completitud</strong></td>
+<td>¿Subió la tasa de nulos de alguna columna?</td>
+<td>Montos nulos: 1,2 % en septiembre, 4,8 % en octubre</td>
+</tr>
+<tr>
+<td><strong>Distribución</strong></td>
+<td>¿Cambió la mezcla de valores?</td>
+<td>El peso de cada canal en diciembre contra 2023</td>
+</tr>
+</tbody></table></div>
+<p>Así lo plantean las herramientas de observabilidad de datos, como el monitoreo de calidad de Databricks Lakehouse Monitoring o los tests de frescura de dbt (<code>dbt source freshness</code>).</p>
+<h2>Comparar con la historia reciente</h2>
+<p>Una regla simple y explicable: &quot;alerta si las filas de hoy son menos de la mitad del promedio de los 7 días anteriores&quot;. Con funciones de ventana:</p>
+<pre><code class="language-sql">WITH d AS (
+  SELECT substr(cargado_en, 1, 10) AS dia, COUNT(*) AS cargas
+  FROM bronze_pedidos WHERE archivo &lt;&gt; 'pedidos_qa.json'
+  GROUP BY 1
+)
+SELECT dia, cargas,
+       ROUND(AVG(cargas) OVER (ORDER BY dia ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING), 1) AS prom_7d
+FROM d
+ORDER BY dia;</code></pre>
+<p>El marco <code>ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING</code> excluye el día actual: si lo incluyeras, la caída se diluiría en su propio promedio.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Falsos positivos al final de la serie</div>
+
+<p>Esa regla marca el 17 de julio (una caída real) y también el 2, 3 y 5 de enero de 2025. Esos días no son una caída: es el final de los datos, donde solo llegan reenvíos atrasados. Antes de alertar, piensa qué días son <strong>normalmente</strong> bajos: fines de semana, feriados, el último día parcial. Una alerta que suena por cosas esperables se termina ignorando.</p>
+</div>
+
+
+<h2>Cambios de distribución</h2>
+<p>Que el total no cambie no quiere decir que todo esté igual. Compara el <strong>porcentaje</strong> de cada valor entre un período base y el actual; una diferencia grande en puntos porcentuales indica un cambio de mezcla (o un problema de carga en un canal).</p>
+<h2>Un detector explicable</h2>
+<p>Los métodos sofisticados existen, pero en la mayoría de los equipos lo que funciona es una regla que cualquiera entiende: &quot;el valor se aleja más de X % del promedio de las últimas N observaciones&quot;. Es fácil de explicar en una alerta (&quot;hoy 4, lo normal es 17&quot;) y fácil de ajustar.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El tablero de volumen diario con alerta</div>
+
+<ol>
+<li>Ejecuta: verás las cargas de cada día, el promedio de los 7 días anteriores y una columna <code>alerta</code>.</li>
+<li>Busca las filas con alerta: ¿cuál es una caída real y cuáles son el final de la serie?</li>
+<li>Cambia el umbral de <code>0.5</code> a <code>0.7</code> y mira cuántas alertas nuevas aparecen. ¿Valen la pena?</li>
+</ol>
+<pre><code class="language-sql">WITH d AS (
+  SELECT substr(cargado_en, 1, 10) AS dia, COUNT(*) AS cargas
+  FROM bronze_pedidos WHERE archivo &lt;&gt; 'pedidos_qa.json'
+  GROUP BY 1
+),
+m AS (
+  SELECT dia, cargas,
+         AVG(cargas) OVER (ORDER BY dia ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING) AS prom_7d
+  FROM d
+)
+SELECT dia, cargas, ROUND(prom_7d, 1) AS prom_7d,
+       CASE WHEN prom_7d IS NOT NULL AND cargas &lt; 0.5 * prom_7d THEN '⚠ caída' ELSE '' END AS alerta
+FROM m
+ORDER BY dia;</code></pre>
+<p>Reto: agrega la regla opuesta, &quot;pico&quot;: más del doble del promedio. ¿Aparece el día de recuperación después de la caída?</p>
+<p>Documentación oficial: <a href="https://www.sqlite.org/windowfunctions.html#frame_specifications">Marcos de ventana (SQLite)</a> · <a href="https://docs.getdbt.com/reference/resource-properties/freshness">Frescura de fuentes (dbt)</a> · <a href="https://docs.databricks.com/aws/en/lakehouse-monitoring/">Lakehouse Monitoring (Databricks)</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Umbrales fijos inventados.</strong> &quot;Alerta si hay menos de 100 filas&quot; deja de servir cuando el negocio crece. Compara con la historia.</li>
+<li><strong>Incluir el día actual en su propio promedio.</strong> Suaviza la anomalía que quieres ver.</li>
+<li><strong>Alertar por todo.</strong> Pocas alertas, accionables y con contexto (&quot;hoy 4, lo normal es 17&quot;).</li>
+<li><strong>Monitorear solo el volumen.</strong> Un día puede tener las filas de siempre y la mitad de los montos nulos.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;¿Cómo te enteras de que un pipeline cargó datos malos si no falló?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Con monitoreo de cuatro señales sobre la salida: volumen comparado con los días anteriores, frescura contra el SLA, tasa de nulos por columna y distribución de las columnas clave contra un período base. Cada señal tiene un umbral relativo, y las alertas dicen el valor actual y el esperado. Reviso las alertas que fueron falsas para ajustar: si una alerta suena seguido y nadie actúa, está mal calibrada.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/calidad-monitoreo-y-anomalias">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="calidad-contratos-y-esquemas.html">← Contratos de datos y cambios de esquema que no rompen a nadie</a><a href="azure-nube-azure.html">La nube y Azure en 20 minutos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

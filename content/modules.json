@@ -172,6 +172,21 @@
     ]
   },
   {
+    "id": "calidad",
+    "titulo": "Calidad y pruebas de datos: taller",
+    "icono": "🧪",
+    "color": "#14b8a6",
+    "descripcion": "Un taller práctico sobre los datos sucios de la tienda: perfilar una tabla antes de usarla, escribir pruebas que devuelven las filas culpables, conciliar dos sistemas con tolerancia, probar transformaciones con tests que atrapan errores de verdad, validar contratos y cambios de esquema, y detectar anomalías de volumen y de distribución antes que los usuarios.",
+    "objetivos": [
+      "Perfilar una tabla nueva y convertir lo que encuentras en reglas",
+      "Escribir pruebas de datos en SQL que devuelvan las filas que fallan",
+      "Conciliar dos fuentes con una tolerancia explícita y explicar cada diferencia",
+      "Escribir tests de Python que fallen con un código equivocado, no solo que pasen con el correcto",
+      "Validar registros contra un contrato y decidir si un cambio de esquema rompe a los consumidores",
+      "Detectar anomalías de volumen, frescura y distribución con reglas simples y explicables"
+    ]
+  },
+  {
     "id": "azure",
     "titulo": "Azure y Azure CLI",
     "icono": "☁️",
