@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Los tipos de bases NoSQL y cuándo conviene cada una · Academia de Datos</title><meta name="description" content="&quot;NoSQL&quot; no es una base de datos sino una familia - documentos, clave-valor, columnas anchas, grafos, búsqueda y vectores. Cada una está optimizada para un patrón de acceso distinto y renuncia a algo que una base relacional sí da. Aprendes a elegir con criterio, qué significa consistencia eventual, y por qué en ingeniería de datos casi siempre te toca leer de estas bases para llevar sus datos a un lakehouse."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/nosql-tipos-y-cuando-usarlas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Los tipos de bases NoSQL y cuándo conviene cada una · Academia de Datos"><meta property="og:description" content="&quot;NoSQL&quot; no es una base de datos sino una familia - documentos, clave-valor, columnas anchas, grafos, búsqueda y vectores. Cada una está optimizada para un patrón de acceso distinto y renuncia a algo que una base relacional sí da. Aprendes a elegir con criterio, qué significa consistencia eventual, y por qué en ingeniería de datos casi siempre te toca leer de estas bases para llevar sus datos a un lakehouse."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/nosql-tipos-y-cuando-usarlas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#nosql">🗄️ Bases NoSQL para ingenieros de datos</a> · Intermedio · 50 min</div>
+<h1>Los tipos de bases NoSQL y cuándo conviene cada una</h1><p class="resumen">&quot;NoSQL&quot; no es una base de datos sino una familia - documentos, clave-valor, columnas anchas, grafos, búsqueda y vectores. Cada una está optimizada para un patrón de acceso distinto y renuncia a algo que una base relacional sí da. Aprendes a elegir con criterio, qué significa consistencia eventual, y por qué en ingeniería de datos casi siempre te toca leer de estas bases para llevar sus datos a un lakehouse.</p>
+<a class="cta" href="../index.html#/l/nosql-tipos-y-cuando-usarlas">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Distinguir los seis tipos de bases NoSQL y un caso de uso real de cada uno</li><li>Elegir entre relacional y NoSQL a partir del patrón de acceso</li><li>Explicar consistencia fuerte y eventual con un ejemplo</li><li>Implementar un almacén clave-valor con vencimiento, como Redis</li><li>Ubicar el rol de estas bases en una arquitectura de datos</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una base relacional es una biblioteca con fichas perfectamente ordenadas: sirve para cualquier pregunta, pero cada pregunta nueva exige cruzar fichas. Las bases NoSQL son herramientas especializadas: un pastillero con un compartimento por día (clave-valor), una carpeta por cliente con todos sus papeles juntos (documentos), un índice al final del libro (búsqueda). Son rapidísimas para lo que fueron hechas y torpes para lo demás.</p>
+</div>
+
+
+<h2>Los seis tipos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Cómo guarda</th>
+<th>Ejemplos</th>
+<th>Ideal para</th>
+<th>Malo para</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Documentos</strong></td>
+<td>Objetos JSON con forma flexible</td>
+<td>MongoDB, Azure Cosmos DB, Firestore</td>
+<td>Perfiles, catálogos, contenido que cambia de forma</td>
+<td>Uniones entre muchas colecciones</td>
+</tr>
+<tr>
+<td><strong>Clave-valor</strong></td>
+<td>Un valor por clave</td>
+<td>Redis, Amazon DynamoDB</td>
+<td>Sesiones, carritos, caché, contadores</td>
+<td>Preguntas que no conocen la clave</td>
+</tr>
+<tr>
+<td><strong>Columnas anchas</strong></td>
+<td>Filas con muchas columnas, agrupadas por clave de partición</td>
+<td>Apache Cassandra, Google Bigtable</td>
+<td>Series de tiempo, IoT, escrituras masivas</td>
+<td>Consultas que no usan la clave de partición</td>
+</tr>
+<tr>
+<td><strong>Grafos</strong></td>
+<td>Nodos y relaciones</td>
+<td>Neo4j, Amazon Neptune</td>
+<td>Redes, recomendaciones, fraude</td>
+<td>Agregaciones sobre todo el conjunto</td>
+</tr>
+<tr>
+<td><strong>Búsqueda</strong></td>
+<td>Índice invertido de texto</td>
+<td>Elasticsearch, OpenSearch</td>
+<td>Buscador, logs</td>
+<td>Ser la fuente de verdad</td>
+</tr>
+<tr>
+<td><strong>Vectores</strong></td>
+<td>Vectores numéricos (embeddings)</td>
+<td>pgvector, Databricks Vector Search</td>
+<td>Búsqueda por significado, RAG</td>
+<td>Filtros exactos complejos</td>
+</tr>
+</tbody></table></div>
+<h2>Qué renuncias</h2>
+<p>Las bases relacionales dan, de fábrica, uniones entre tablas, transacciones sobre varias filas, un esquema que se valida al escribir y cualquier consulta que se te ocurra. La mayoría de las NoSQL renuncian a parte de eso a cambio de <strong>escalar horizontalmente</strong> (repartir los datos en muchas máquinas) y responder en milisegundos para un patrón de acceso conocido.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 La pregunta que decide</div>
+
+<p>&quot;¿Cómo se va a leer este dato?&quot; Si la respuesta es &quot;siempre por su clave y lo necesito en 5 milisegundos&quot;, NoSQL. Si es &quot;no sé todavía, el negocio va a hacer preguntas nuevas&quot;, relacional o lakehouse.</p>
+</div>
+
+
+<h2>Consistencia fuerte y eventual</h2>
+<p>Con varias copias de los datos en distintas máquinas, una escritura tarda un poco en llegar a todas. Si lees de una copia que todavía no la recibió:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Modelo</th>
+<th>Qué garantiza</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Fuerte</strong></td>
+<td>Toda lectura ve la última escritura</td>
+<td>El saldo de una cuenta bancaria</td>
+</tr>
+<tr>
+<td><strong>Eventual</strong></td>
+<td>Si dejan de llegar escrituras, todas las copias terminan iguales</td>
+<td>El contador de &quot;me gusta&quot; de una publicación</td>
+</tr>
+</tbody></table></div>
+<p>Muchas bases dejan elegir por consulta: DynamoDB tiene lecturas &quot;eventualmente consistentes&quot; (más baratas) y &quot;fuertemente consistentes&quot; (<a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html">documentación</a>); Cosmos DB ofrece cinco niveles intermedios.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Consultar la base de la app para analítica</div>
+
+<p>La base NoSQL de una app está optimizada para las consultas de la app. Una consulta analítica (recorrer todos los pedidos del año) le roba capacidad y puede frenar la app de los clientes. En ingeniería de datos, esos datos se <strong>copian</strong> al lakehouse (con un export o con CDC, lección 4) y la analítica se hace allí.</p>
+</div>
+
+
+<h2>Dónde aparecen en tu trabajo</h2>
+<ol>
+<li><strong>Como fuente</strong>: la app guarda pedidos en MongoDB o en Cosmos DB y tú los llevas a bronze.</li>
+<li><strong>Como destino de servicio</strong>: después de calcular una métrica o una recomendación en el lakehouse, la publicas en Redis o DynamoDB para que la app la lea en milisegundos (es el <em>reverse ETL</em> que viste en el proyecto Cuentas Claras).</li>
+<li><strong>Como índice</strong>: los textos de soporte se indexan en un buscador o en una base de vectores para un asistente con RAG (proyecto Conecta).</li>
+</ol>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un almacén clave-valor con vencimiento</div>
+
+<ol>
+<li>Ejecuta: la clase imita lo básico de Redis, con <code>set</code>, <code>get</code> y un vencimiento (TTL). El tiempo se pasa como parámetro para poder probarla.</li>
+<li>Mira cómo la sesión vence a los 30 segundos y <code>get</code> devuelve <code>None</code>.</li>
+<li>Agrega un método <code>incr(clave, ahora)</code> que sume 1 a un contador (y lo cree en 0 si no existe), como <code>INCR</code> de Redis.</li>
+</ol>
+<pre><code class="language-python">class MiniRedis:
+    def __init__(self):
+        self.datos = {}          # clave -&gt; (valor, vence_en o None)
+
+    def set(self, clave, valor, ahora, ttl=None):
+        self.datos[clave] = (valor, ahora + ttl if ttl else None)
+
+    def get(self, clave, ahora):
+        if clave not in self.datos:
+            return None
+        valor, vence = self.datos[clave]
+        if vence is not None and ahora &gt;= vence:
+            del self.datos[clave]      # vencida: se borra al leerla
+            return None
+        return valor
+
+r = MiniRedis()
+r.set(&quot;sesion:ana&quot;, {&quot;carrito&quot;: [3, 7]}, ahora=0, ttl=30)
+r.set(&quot;config:tema&quot;, &quot;oscuro&quot;, ahora=0)
+for t in (10, 29, 30, 100):
+    print(t, r.get(&quot;sesion:ana&quot;, t), r.get(&quot;config:tema&quot;, t))</code></pre>
+<p>Reto: agrega <code>ttl(clave, ahora)</code> que devuelva los segundos que le quedan a una clave, <code>-1</code> si no vence y <code>-2</code> si no existe, igual que el comando <code>TTL</code> de Redis.</p>
+<p>Documentación oficial: <a href="https://redis.io/docs/latest/commands/set/">Redis: comandos SET y EXPIRE</a> · <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html">DynamoDB: consistencia de lectura</a> · <a href="https://www.mongodb.com/docs/manual/core/document/">MongoDB: modelo de documentos</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Elegir NoSQL &quot;porque escala&quot;.</strong> Si no sabes cómo se va a leer el dato, una base relacional o un lakehouse te dan más flexibilidad.</li>
+<li><strong>Hacer analítica sobre la base de la app.</strong> Copia los datos al lakehouse.</li>
+<li><strong>Usar un buscador como fuente de verdad.</strong> Un índice se reconstruye desde la fuente; no al revés.</li>
+<li><strong>Ignorar la consistencia eventual.</strong> Leer justo después de escribir puede devolver el valor viejo.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;¿Cuándo usarías MongoDB en lugar de PostgreSQL?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Cuando los registros cambian de forma seguido y se leen casi siempre completos por su id, por ejemplo un catálogo con atributos distintos por categoría, y el equipo necesita escalar escrituras horizontalmente. Si hay muchas relaciones entre entidades o transacciones sobre varias tablas, prefiero PostgreSQL, que además ya maneja JSON con <code>jsonb</code> para la parte flexible. Y para analítica, ninguna de las dos: copio los datos al lakehouse.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/nosql-tipos-y-cuando-usarlas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="arquitectura-referencias-entrevista.html">← Arquitecturas de referencia y la entrevista de diseño</a><a href="nosql-documentos-y-json.html">Documentos - qué embeber, qué referenciar y cómo consultarlos con SQL →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

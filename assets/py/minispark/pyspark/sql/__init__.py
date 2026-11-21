@@ -893,6 +893,10 @@ class DataFrame:
                 types.append(self._types[i] if self._types and not aliased else None)
                 vecs.append([r[i] for r in self._rows])
             elif c.kw.get("explode"):
+                if c.kw.get("pos"):
+                    fields.append(_Field("pos"))
+                    types.append(None)
+                    vecs.append([None] * len(self._rows))
                 fields.append(_Field(c.kw.get("alias", "col")))
                 types.append(None)
                 vecs.append(c.children[0]._eval(self))
@@ -903,8 +907,11 @@ class DataFrame:
         n = len(self._rows)
         rows = [tuple(v[i] for v in vecs) for i in range(n)]
         if explode_cols:
-            pos = [k for k, c in enumerate(cols) if c.kw.get("explode")][0]
-            outer = cols[pos].kw.get("outer")
+            k = [k for k, c in enumerate(cols) if c.kw.get("explode")][0]
+            ec = cols[k]
+            outer, con_pos = ec.kw.get("outer"), ec.kw.get("pos")
+            # posición de la columna explotada en la fila (las columnas anteriores con pos ocupan dos lugares)
+            pos = k + sum(1 for c in cols[:k] if c.kw.get("explode") and c.kw.get("pos")) + (1 if con_pos else 0)
             new_rows = []
             for r in rows:
                 arr = r[pos]
@@ -912,10 +919,10 @@ class DataFrame:
                     arr = list(arr.items())
                 if not arr:
                     if outer:
-                        new_rows.append(r[:pos] + (None,) + r[pos + 1:])
+                        new_rows.append(r[:pos - (1 if con_pos else 0)] + ((None, None) if con_pos else (None,)) + r[pos + 1:])
                     continue
-                for x in arr:
-                    new_rows.append(r[:pos] + (x,) + r[pos + 1:])
+                for i, x in enumerate(arr):
+                    new_rows.append(r[:pos - (1 if con_pos else 0)] + ((i, x) if con_pos else (x,)) + r[pos + 1:])
             rows = new_rows
         return self._new(fields, rows, types)
 

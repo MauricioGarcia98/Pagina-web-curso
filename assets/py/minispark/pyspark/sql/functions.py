@@ -723,7 +723,14 @@ def explode_outer(c):
 
 
 def posexplode(c):
-    raise NotImplementedError("posexplode no está disponible en el simulador; usa explode")
+    # como Spark: dos columnas, pos (desde 0) y col
+    cc = _c(c)
+    return Column("fn", "col", [cc], None, explode=True, pos=True)
+
+
+def posexplode_outer(c):
+    cc = _c(c)
+    return Column("fn", "col", [cc], None, explode=True, outer=True, pos=True)
 
 
 def struct(*cols):
