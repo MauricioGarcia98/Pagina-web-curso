@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Un stack de datos con Compose que arranca en orden y no pierde datos · Academia de Datos</title><meta name="description" content="Un entorno local de datos suele tener varias piezas - una base PostgreSQL, un almacenamiento compatible con S3, un orquestador y tu pipeline. Con Docker Compose las describes en un archivo y las levantas con un comando. Aprendes cómo se conectan entre sí por nombre de servicio (y por qué localhost no funciona adentro), cómo los volúmenes evitan perder la base al recrear un contenedor, y cómo los healthchecks hacen que cada servicio espere a que el anterior esté realmente listo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/docker-compose-stack-de-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Un stack de datos con Compose que arranca en orden y no pierde datos · Academia de Datos"><meta property="og:description" content="Un entorno local de datos suele tener varias piezas - una base PostgreSQL, un almacenamiento compatible con S3, un orquestador y tu pipeline. Con Docker Compose las describes en un archivo y las levantas con un comando. Aprendes cómo se conectan entre sí por nombre de servicio (y por qué localhost no funciona adentro), cómo los volúmenes evitan perder la base al recrear un contenedor, y cómo los healthchecks hacen que cada servicio espere a que el anterior esté realmente listo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/docker-compose-stack-de-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#docker">🐳 Docker a fondo para datos</a> · Avanzado · 60 min</div>
+<h1>Un stack de datos con Compose que arranca en orden y no pierde datos</h1><p class="resumen">Un entorno local de datos suele tener varias piezas - una base PostgreSQL, un almacenamiento compatible con S3, un orquestador y tu pipeline. Con Docker Compose las describes en un archivo y las levantas con un comando. Aprendes cómo se conectan entre sí por nombre de servicio (y por qué localhost no funciona adentro), cómo los volúmenes evitan perder la base al recrear un contenedor, y cómo los healthchecks hacen que cada servicio espere a que el anterior esté realmente listo.</p>
+<a class="cta" href="../index.html#/l/docker-compose-stack-de-datos">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Describir un stack de varios servicios en un compose.yaml</li><li>Conectar servicios por nombre en la red interna en lugar de localhost</li><li>Persistir datos con volúmenes y distinguirlos de los bind mounts</li><li>Ordenar el arranque con depends_on y healthchecks</li><li>Detectar los errores más comunes de un archivo de Compose</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Compose es el plano de una oficina: dice qué escritorios hay (servicios), cómo se llaman (para que se hablen por nombre), qué armarios con llave tiene cada uno (volúmenes) y quién no puede empezar a trabajar hasta que el otro abrió (dependencias). Con un <code>docker compose up</code>, la oficina se arma entera.</p>
+</div>
+
+
+<h2>Un stack de datos local</h2>
+<pre data-norun><code class="language-yaml">services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: tienda
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      POSTGRES_DB: tienda
+    volumes:
+      - datos_db:/var/lib/postgresql/data
+    ports:
+      - &quot;5433:5432&quot;
+    healthcheck:
+      test: [&quot;CMD-SHELL&quot;, &quot;pg_isready -U tienda -d tienda&quot;]
+      interval: 5s
+      retries: 10
+    secrets: [db_password]
+
+  pipeline:
+    build: .
+    environment:
+      DB_HOST: db
+      DB_PORT: &quot;5432&quot;
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  datos_db:
+
+secrets:
+  db_password:
+    file: ./secretos/db_password.txt</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>services</code></td>
+<td>Cada contenedor del stack, con su imagen o su <code>build</code></td>
+</tr>
+<tr>
+<td><code>DB_HOST: db</code></td>
+<td>Dentro de la red de Compose, cada servicio se encuentra <strong>por su nombre</strong></td>
+</tr>
+<tr>
+<td><code>volumes: datos_db:/var/lib/...</code></td>
+<td>Los datos de la base viven en un volumen con nombre, fuera del contenedor</td>
+</tr>
+<tr>
+<td><code>ports: &quot;5433:5432&quot;</code></td>
+<td>El puerto 5432 del contenedor se publica en el <strong>5433 de tu computadora</strong> (para conectarte desde DBeaver o psql)</td>
+</tr>
+<tr>
+<td><code>healthcheck</code></td>
+<td>Cómo saber si la base ya acepta conexiones</td>
+</tr>
+<tr>
+<td><code>depends_on ... service_healthy</code></td>
+<td>El pipeline arranca recién cuando la base pasa el healthcheck</td>
+</tr>
+<tr>
+<td><code>secrets</code></td>
+<td>La contraseña llega como archivo montado, no como variable visible en <code>docker inspect</code></td>
+</tr>
+</tbody></table></div>
+<h2>localhost no es lo que parece</h2>
+<p>Dentro de un contenedor, <code>localhost</code> es <strong>ese mismo contenedor</strong>. Si el pipeline usa <code>DB_HOST=localhost</code>, busca una base dentro de su propio contenedor y no la encuentra. Entre servicios se usa el nombre del servicio (<code>db</code>) y el puerto <strong>interno</strong> (5432); el puerto publicado (5433) es solo para conectarte desde tu computadora (<a href="https://docs.docker.com/compose/how-tos/networking/">redes en Compose</a>).</p>
+<h2>Volúmenes y bind mounts</h2>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Volumen con nombre</th>
+<th>Bind mount</th>
+</tr>
+</thead><tbody><tr>
+<td>Ejemplo</td>
+<td><code>datos_db:/var/lib/postgresql/data</code></td>
+<td><code>./src:/app/src</code></td>
+</tr>
+<tr>
+<td>Lo administra</td>
+<td>Docker</td>
+<td>Tú (una carpeta de tu computadora)</td>
+</tr>
+<tr>
+<td>Ideal para</td>
+<td>Datos de bases y servicios</td>
+<td>Código que editas y quieres ver al instante</td>
+</tr>
+<tr>
+<td>Se borra con</td>
+<td><code>docker compose down -v</code></td>
+<td>Nunca lo borra Docker</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La base sin volumen</div>
+
+<p>Si Postgres no tiene un volumen, sus datos viven en la capa escribible del contenedor. Un <code>docker compose down</code> (o recrear el contenedor al cambiar la imagen) <strong>borra todo</strong>. Y <code>down -v</code> borra también los volúmenes: úsalo solo cuando quieres empezar de cero a propósito (<a href="https://docs.docker.com/engine/storage/volumes/">volúmenes</a>).</p>
+</div>
+
+
+<h2>Arrancar en orden</h2>
+<p><code>depends_on: [db]</code> solo garantiza que el contenedor <code>db</code> <strong>se inició</strong>, no que Postgres ya acepte conexiones (tarda unos segundos en estar listo). Con <code>condition: service_healthy</code>, Compose espera a que el healthcheck pase. Aun así, tu programa debería reintentar la conexión unas veces: en producción no hay Compose que espere por ti (<a href="https://docs.docker.com/compose/how-tos/startup-order/">orden de arranque</a>).</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Calcular el orden de arranque de un stack</div>
+
+<ol>
+<li>Ejecuta: a partir de las dependencias de cada servicio, la función calcula en qué orden arrancan (un ordenamiento topológico).</li>
+<li>Agrega un servicio <code>tablero</code> que dependa de <code>pipeline</code> y vuelve a ejecutar.</li>
+<li>Crea un ciclo (<code>db</code> depende de <code>pipeline</code>) y mira el error.</li>
+</ol>
+<pre><code class="language-python">def orden_arranque(dependencias):
+    pendientes = {s: set(d) for s, d in dependencias.items()}
+    orden = []
+    while pendientes:
+        listos = sorted(s for s, d in pendientes.items() if not d)
+        if not listos:
+            raise ValueError(f&quot;Hay un ciclo entre: {sorted(pendientes)}&quot;)
+        for s in listos:
+            orden.append(s)
+            del pendientes[s]
+        for d in pendientes.values():
+            d.difference_update(listos)
+    return orden
+
+stack = {
+    &quot;db&quot;: [],
+    &quot;minio&quot;: [],
+    &quot;airflow&quot;: [&quot;db&quot;],
+    &quot;pipeline&quot;: [&quot;db&quot;, &quot;minio&quot;],
+}
+print(orden_arranque(stack))</code></pre>
+<p>Reto: devuelve también las &quot;olas&quot; de arranque (los servicios que pueden arrancar en paralelo en cada paso).</p>
+<p>Documentación oficial: <a href="https://docs.docker.com/reference/compose-file/services/">Referencia de servicios de Compose</a> · <a href="https://docs.docker.com/compose/how-tos/networking/">Redes</a> · <a href="https://docs.docker.com/compose/how-tos/startup-order/">Orden de arranque</a> · <a href="https://docs.docker.com/engine/storage/volumes/">Volúmenes</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>localhost</code> entre servicios.</strong> Usa el nombre del servicio.</li>
+<li><strong>Bases sin volumen.</strong> Un <code>down</code> y los datos desaparecen.</li>
+<li><strong><code>depends_on</code> sin healthcheck.</strong> El servicio arranca antes de que la base esté lista.</li>
+<li><strong>Dos servicios publicando el mismo puerto de tu computadora.</strong> El segundo no arranca.</li>
+<li><strong>Contraseñas escritas en el compose.yaml que se sube al repositorio.</strong> Usa <code>secrets</code> o un <code>.env</code> que esté en <code>.gitignore</code>.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;Tu pipeline en Compose falla al arrancar con &#39;connection refused&#39;, pero si lo reinicias a mano funciona. ¿Qué pasa?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;El pipeline arranca antes de que Postgres esté listo para aceptar conexiones: <code>depends_on</code> sin condición solo espera a que el contenedor exista. Agregaría un healthcheck con <code>pg_isready</code> a la base y <code>condition: service_healthy</code> en el pipeline. Y además pondría reintentos con espera en la conexión del pipeline, porque en producción la base también puede reiniciarse.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/docker-compose-stack-de-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="docker-dockerfile-de-produccion.html">← Un Dockerfile de producción para un proyecto de datos</a><a href="docker-imagenes-en-ci-y-la-nube.html">Imágenes en CI, registros y contenedores en la nube →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

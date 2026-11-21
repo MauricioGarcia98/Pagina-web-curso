@@ -495,6 +495,20 @@
     ]
   },
   {
+    "id": "docker",
+    "titulo": "Docker a fondo para datos",
+    "icono": "🐳",
+    "color": "#2563eb",
+    "descripcion": "Más allá de levantar un contenedor: cómo funcionan las capas y la caché de construcción, cómo escribir un Dockerfile de producción para un proyecto de datos (versiones fijas, multi-etapa, usuario sin privilegios, secretos), cómo armar un stack de datos con Compose que arranca en orden y no pierde datos, y cómo llevar imágenes a CI y a la nube.",
+    "objetivos": [
+      "Predecir qué capas se reconstruyen cuando cambia un archivo y ordenar el Dockerfile para aprovechar la caché",
+      "Escribir un Dockerfile de producción para Python con uv, multi-etapa y usuario sin privilegios",
+      "Manejar secretos sin dejarlos en la imagen",
+      "Armar con Compose un stack de datos con volúmenes, red interna y arranque ordenado por healthchecks",
+      "Etiquetar, escanear y publicar imágenes desde CI"
+    ]
+  },
+  {
     "id": "apis",
     "titulo": "APIs para datos: construir con FastAPI",
     "icono": "🔌",

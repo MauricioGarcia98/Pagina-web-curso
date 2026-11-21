@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Imágenes en CI, registros y contenedores en la nube · Academia de Datos</title><meta name="description" content="En un equipo, nadie construye la imagen de producción en su computadora - la construye el CI en cada cambio, la etiqueta de forma que se sepa exactamente qué código tiene, la escanea en busca de vulnerabilidades, la publica en un registro y la nube la ejecuta como un trabajo programado. Aprendes a etiquetar con versión y commit, a frenar el pipeline ante vulnerabilidades críticas con arreglo disponible, a limitar memoria y CPU, y dónde se ejecutan los contenedores de datos en Azure, AWS y Google Cloud."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/docker-imagenes-en-ci-y-la-nube.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Imágenes en CI, registros y contenedores en la nube · Academia de Datos"><meta property="og:description" content="En un equipo, nadie construye la imagen de producción en su computadora - la construye el CI en cada cambio, la etiqueta de forma que se sepa exactamente qué código tiene, la escanea en busca de vulnerabilidades, la publica en un registro y la nube la ejecuta como un trabajo programado. Aprendes a etiquetar con versión y commit, a frenar el pipeline ante vulnerabilidades críticas con arreglo disponible, a limitar memoria y CPU, y dónde se ejecutan los contenedores de datos en Azure, AWS y Google Cloud."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/docker-imagenes-en-ci-y-la-nube.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#docker">🐳 Docker a fondo para datos</a> · Experto · 55 min</div>
+<h1>Imágenes en CI, registros y contenedores en la nube</h1><p class="resumen">En un equipo, nadie construye la imagen de producción en su computadora - la construye el CI en cada cambio, la etiqueta de forma que se sepa exactamente qué código tiene, la escanea en busca de vulnerabilidades, la publica en un registro y la nube la ejecuta como un trabajo programado. Aprendes a etiquetar con versión y commit, a frenar el pipeline ante vulnerabilidades críticas con arreglo disponible, a limitar memoria y CPU, y dónde se ejecutan los contenedores de datos en Azure, AWS y Google Cloud.</p>
+<a class="cta" href="../index.html#/l/docker-imagenes-en-ci-y-la-nube">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Etiquetar imágenes de forma inmutable con versión y commit</li><li>Publicar imágenes en un registro desde GitHub Actions con caché</li><li>Decidir qué vulnerabilidades del escaneo frenan una publicación</li><li>Limitar memoria y CPU de un contenedor y entender qué pasa cuando se pasa</li><li>Elegir dónde ejecutar un contenedor de datos en cada nube</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una imagen publicada es como un lote de medicamentos: lleva un número de lote que dice exactamente cuándo y con qué se fabricó, pasa un control de calidad antes de salir, y nunca se reemplaza un lote por otro con el mismo número. Si algo falla en producción, con el número de lote sabes qué versión del código estaba corriendo.</p>
+</div>
+
+
+<h2>Etiquetas inmutables</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Etiqueta</th>
+<th>¿Para desplegar?</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>latest</code></td>
+<td>No</td>
+<td>Se mueve: hoy es una versión y mañana otra</td>
+</tr>
+<tr>
+<td><code>1.4.0</code> (versión)</td>
+<td>Sí, si nunca se reescribe</td>
+<td>Legible para personas</td>
+</tr>
+<tr>
+<td><code>sha-3f9c2ab</code> (commit)</td>
+<td>Sí</td>
+<td>Dice exactamente qué código tiene</td>
+</tr>
+<tr>
+<td><code>@sha256:…</code> (digest)</td>
+<td>La más segura</td>
+<td>Identifica el contenido exacto; no se puede reescribir</td>
+</tr>
+</tbody></table></div>
+<p>Una práctica común: cada build de <code>main</code> publica <code>sha-&lt;commit&gt;</code> y, si es una versión, también <code>1.4.0</code>. Las ramas de prueba publican <code>&lt;rama&gt;-sha-&lt;commit&gt;</code>. Las etiquetas de Docker solo admiten letras, números, <code>_</code>, <code>.</code> y <code>-</code>, y hasta 128 caracteres: una rama <code>feature/Nuevo-Lote</code> hay que convertirla a <code>feature-nuevo-lote</code>.</p>
+<h2>Construir y publicar en GitHub Actions</h2>
+<pre data-norun><code class="language-yaml">name: imagen
+on:
+  push:
+    branches: [main]
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: ghcr.io/${{ github.repository }}/pipeline:sha-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max</code></pre>
+<p>La caché <code>type=gha</code> guarda las capas entre ejecuciones del CI, para que un runner nuevo no reconstruya todo desde cero (<a href="https://docs.docker.com/build/ci/github-actions/">documentación oficial</a>). El token lo provee GitHub para cada ejecución: no hay que guardar una contraseña (<a href="https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry">registro de contenedores de GitHub</a>).</p>
+<h2>Escanear antes de publicar</h2>
+<p>Herramientas como Docker Scout o Trivy listan las vulnerabilidades conocidas (CVE) de los paquetes de la imagen, con su severidad y la versión que las corrige. Frenar por <strong>todas</strong> las vulnerabilidades altas paraliza al equipo (muchas no tienen arreglo todavía); la regla habitual es: <strong>frenar si hay alguna crítica o alta que ya tiene versión corregida</strong>, porque esa se arregla actualizando.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La imagen que nadie actualiza</div>
+
+<p>Una imagen que pasó el escaneo hace seis meses hoy puede tener vulnerabilidades nuevas, aunque nadie haya cambiado el código. Reconstruye periódicamente (por ejemplo, una vez por semana) para tomar los parches de la imagen base, y vuelve a escanear.</p>
+</div>
+
+
+<h2>Límites de recursos</h2>
+<p>Sin límites, un contenedor puede usar toda la memoria de la máquina. Con <code>--memory=2g</code> (o <code>deploy.resources.limits</code> en Compose, o los límites del servicio en la nube), si el proceso se pasa, el sistema lo mata: verás el código de salida <strong>137</strong> (OOMKilled). En un pipeline de datos, eso suele significar que se cargó todo un archivo en memoria cuando había que procesarlo por partes (<a href="https://docs.docker.com/engine/containers/resource_constraints/">límites de recursos</a>).</p>
+<h2>Dónde corre un contenedor de datos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Nube</th>
+<th>Para un trabajo que corre y termina (batch)</th>
+<th>Para un servicio siempre encendido (una API)</th>
+</tr>
+</thead><tbody><tr>
+<td>Azure</td>
+<td>Container Apps Jobs</td>
+<td>Container Apps</td>
+</tr>
+<tr>
+<td>AWS</td>
+<td>ECS con Fargate (tareas programadas) o AWS Batch</td>
+<td>ECS / App Runner</td>
+</tr>
+<tr>
+<td>Google Cloud</td>
+<td>Cloud Run Jobs</td>
+<td>Cloud Run</td>
+</tr>
+</tbody></table></div>
+<p>Un orquestador (Airflow, Lakeflow Jobs, Data Factory) dispara el trabajo, le pasa la configuración por variables de entorno y los secretos desde el gestor de secretos (<a href="https://learn.microsoft.com/en-us/azure/container-apps/jobs">Container Apps Jobs</a>, <a href="https://cloud.google.com/run/docs/create-jobs">Cloud Run Jobs</a>).</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: La puerta de calidad del escaneo</div>
+
+<ol>
+<li>Ejecuta: un reporte de escaneo de ejemplo pasa por la regla &quot;frenar si hay críticas o altas con arreglo disponible&quot;.</li>
+<li>Mira por qué la vulnerabilidad alta de <code>libssl</code> sin arreglo no frena, y la de <code>requests</code> sí.</li>
+<li>Cambia el umbral a <code>&quot;MEDIA&quot;</code> y mira qué pasa.</li>
+</ol>
+<pre><code class="language-python">ORDEN = {&quot;BAJA&quot;: 1, &quot;MEDIA&quot;: 2, &quot;ALTA&quot;: 3, &quot;CRITICA&quot;: 4}
+
+reporte = [
+    {&quot;id&quot;: &quot;CVE-2025-1111&quot;, &quot;paquete&quot;: &quot;requests&quot;, &quot;severidad&quot;: &quot;ALTA&quot;, &quot;corregida_en&quot;: &quot;2.32.4&quot;},
+    {&quot;id&quot;: &quot;CVE-2025-2222&quot;, &quot;paquete&quot;: &quot;libssl3&quot;, &quot;severidad&quot;: &quot;ALTA&quot;, &quot;corregida_en&quot;: None},
+    {&quot;id&quot;: &quot;CVE-2025-3333&quot;, &quot;paquete&quot;: &quot;urllib3&quot;, &quot;severidad&quot;: &quot;MEDIA&quot;, &quot;corregida_en&quot;: &quot;2.5.0&quot;},
+    {&quot;id&quot;: &quot;CVE-2025-4444&quot;, &quot;paquete&quot;: &quot;zlib&quot;, &quot;severidad&quot;: &quot;BAJA&quot;, &quot;corregida_en&quot;: &quot;1.3.1&quot;},
+]
+
+def bloqueantes(reporte, umbral=&quot;ALTA&quot;):
+    return sorted(v[&quot;id&quot;] for v in reporte if ORDEN[v[&quot;severidad&quot;]] &gt;= ORDEN[umbral] and v[&quot;corregida_en&quot;])
+
+b = bloqueantes(reporte)
+print(&quot;¿Se publica?&quot;, &quot;no&quot; if b else &quot;sí&quot;, b)</code></pre>
+<p>Reto: agrega una lista de excepciones aceptadas (por ejemplo, un CVE que el equipo de seguridad revisó y aceptó por 30 días) que no frene la publicación.</p>
+<p>Documentación oficial: <a href="https://docs.docker.com/build/ci/github-actions/">Docker en GitHub Actions</a> · <a href="https://docs.docker.com/scout/">Docker Scout</a> · <a href="https://trivy.dev/latest/docs/">Trivy</a> · <a href="https://docs.docker.com/engine/containers/resource_constraints/">Límites de recursos</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Desplegar con <code>latest</code>.</strong> No sabes qué código está corriendo ni puedes volver atrás con seguridad.</li>
+<li><strong>Reescribir una etiqueta de versión.</strong> Rompe la reproducibilidad: publica una versión nueva.</li>
+<li><strong>Frenar por cualquier vulnerabilidad.</strong> Frena por las graves que tienen arreglo; registra el resto.</li>
+<li><strong>Contenedores sin límite de memoria.</strong> Uno se come la máquina y tira a los demás.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;El trabajo de ingesta en Cloud Run Jobs termina a veces con código 137. ¿Qué pasa y qué haces?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;137 es que el sistema mató el proceso por pasarse del límite de memoria (OOMKilled). Primero miro cuánta memoria usa y si hay días con archivos más grandes. La solución de fondo es procesar por partes (leer el archivo en lotes o en streaming) en lugar de cargarlo entero; subir el límite es un parche temporal. Y agrego una alarma sobre los reinicios del trabajo.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/docker-imagenes-en-ci-y-la-nube">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="docker-compose-stack-de-datos.html">← Un stack de datos con Compose que arranca en orden y no pierde datos</a><a href="apis-disenar-una-api-de-datos.html">Diseñar una API de datos - recursos, códigos y paginación →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
