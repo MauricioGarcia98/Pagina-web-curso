@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tests de transformaciones que atrapan errores de verdad · Academia de Datos</title><meta name="description" content="Un test que pasa con el código correcto no prueba nada si también pasa con un código equivocado. En esta lección escribes tú los tests, y el corrector los prueba contra versiones con errores típicos - si tus tests no los detectan, no alcanzan. Aprendes a elegir casos que importan (bordes, formatos raros, empates), a escribir tablas de casos y a probar propiedades como la idempotencia."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/calidad-tests-que-atrapan-errores.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Tests de transformaciones que atrapan errores de verdad · Academia de Datos"><meta property="og:description" content="Un test que pasa con el código correcto no prueba nada si también pasa con un código equivocado. En esta lección escribes tú los tests, y el corrector los prueba contra versiones con errores típicos - si tus tests no los detectan, no alcanzan. Aprendes a elegir casos que importan (bordes, formatos raros, empates), a escribir tablas de casos y a probar propiedades como la idempotencia."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/calidad-tests-que-atrapan-errores.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#calidad">🧪 Calidad y pruebas de datos: taller</a> · Avanzado · 60 min</div>
+<h1>Tests de transformaciones que atrapan errores de verdad</h1><p class="resumen">Un test que pasa con el código correcto no prueba nada si también pasa con un código equivocado. En esta lección escribes tú los tests, y el corrector los prueba contra versiones con errores típicos - si tus tests no los detectan, no alcanzan. Aprendes a elegir casos que importan (bordes, formatos raros, empates), a escribir tablas de casos y a probar propiedades como la idempotencia.</p>
+<a class="cta" href="../index.html#/l/calidad-tests-que-atrapan-errores">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir funciones puras fáciles de probar</li><li>Elegir casos de prueba que distingan una implementación correcta de una con errores típicos</li><li>Organizar los casos en una tabla de entrada y salida esperada</li><li>Probar propiedades generales como la idempotencia</li><li>Pasar de un test que falla a un código que lo cumple (TDD)</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una alarma de incendio que nunca suena no prueba que no haya incendios: quizá está desconectada. Para saber si funciona, alguien la prueba con humo. Con los tests pasa igual: para saber si sirven, hay que ver que <strong>fallen</strong> cuando el código está mal.</p>
+</div>
+
+
+<h2>Un test verde no alcanza</h2>
+<pre><code class="language-python">def limpiar_monto(texto):
+    return float(texto.replace(&quot;,&quot;, &quot;.&quot;))   # parece bien…
+
+assert limpiar_monto(&quot;974,07&quot;) == 974.07   # pasa
+assert limpiar_monto(&quot;16.99&quot;) == 16.99     # pasa</code></pre>
+<p>Los dos tests pasan, pero <code>limpiar_monto(&quot;1.402,97&quot;)</code> explota (o, en SQLite, da <code>1.402</code> sin avisar). Los tests eligieron casos fáciles. Este es el problema real de la calidad de los tests: <strong>no detectaron el error</strong> que importaba.</p>
+<p>La técnica para medirlo se llama <em>mutation testing</em>: se introducen errores a propósito en el código (&quot;mutantes&quot;) y se cuenta cuántos detectan tus tests. En esta lección el corrector hace exactamente eso: corre tus tests contra la versión correcta (deben pasar) y contra versiones con errores típicos (deben fallar).</p>
+<h2>Qué casos elegir</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo de caso</th>
+<th>Ejemplos para una función de limpieza</th>
+</tr>
+</thead><tbody><tr>
+<td>El caso feliz</td>
+<td><code>&quot;16.99&quot;</code></td>
+</tr>
+<tr>
+<td>Cada formato que llega de verdad</td>
+<td><code>&quot;974,07&quot;</code>, <code>&quot;$47.99&quot;</code>, <code>&quot;1.402,97&quot;</code></td>
+</tr>
+<tr>
+<td>Vacíos y nulos</td>
+<td><code>None</code>, <code>&quot;&quot;</code>, <code>&quot;   &quot;</code></td>
+</tr>
+<tr>
+<td>Bordes</td>
+<td><code>&quot;0&quot;</code>, un solo carácter, el valor más grande posible</td>
+</tr>
+<tr>
+<td>Lo que <strong>no</strong> debe pasar</td>
+<td>Que <code>&quot;abc&quot;</code> devuelva un número</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Saca los casos del perfil</div>
+
+<p>Los formatos raros no se inventan: salen del perfil de la tabla (lección 1). Cada variante que encontraste (<code>&#39; USD&#39;</code>, <code>usd</code>, <code>1.402,97</code>) es un caso de prueba.</p>
+</div>
+
+
+<h2>Tablas de casos</h2>
+<p>En lugar de diez <code>assert</code> sueltos, una lista de <code>(entrada, esperado)</code> se lee como una especificación y es fácil de ampliar. Es la idea de <code>@pytest.mark.parametrize</code> (<a href="https://docs.pytest.org/en/stable/how-to/parametrize.html">documentación de pytest</a>):</p>
+<pre data-norun><code class="language-python">CASOS = [
+    (&quot;16.99&quot;, 16.99),
+    (&quot;974,07&quot;, 974.07),
+    (&quot;$47.99&quot;, 47.99),
+    (&quot;1.402,97&quot;, 1402.97),
+    (None, None),
+]
+for entrada, esperado in CASOS:
+    assert limpiar(entrada) == esperado, f&quot;limpiar({entrada!r}) dio {limpiar(entrada)!r}, se esperaba {esperado!r}&quot;</code></pre>
+<h2>Propiedades: la idempotencia</h2>
+<p>Algunas reglas valen para <strong>cualquier</strong> entrada. La más importante en datos es la <strong>idempotencia</strong>: aplicar la transformación dos veces da lo mismo que una (<code>f(f(x)) == f(x)</code>). Normalizar un email ya normalizado no debe cambiarlo; reprocesar un día ya cargado no debe duplicarlo. Un pipeline idempotente se puede reintentar sin miedo.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Tests que dependen de lo que no controlas</div>
+
+<p>Un test que usa la fecha de hoy, un orden de un <code>set</code> o una llamada a una API real pasa hoy y falla mañana. Pasa la fecha como parámetro, ordena antes de comparar y reemplaza lo externo por datos fijos.</p>
+</div>
+
+
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Medir tus tests contra mutantes</div>
+
+<ol>
+<li>Ejecuta: hay una función correcta, tres versiones con errores y un conjunto de tests. El programa dice qué mutantes sobreviven (no fueron detectados).</li>
+<li>Agrega casos a <code>CASOS</code> hasta que no sobreviva ningún mutante.</li>
+<li>Inventa un cuarto mutante (por ejemplo, que no quite espacios a los costados) y comprueba si tus casos lo detectan.</li>
+</ol>
+<pre><code class="language-python">def correcta(estado):
+    mapa = {&quot;delivered&quot;: &quot;entregado&quot;, &quot;shipped&quot;: &quot;enviado&quot;, &quot;canceled&quot;: &quot;cancelado&quot;}
+    e = estado.strip().lower()
+    return mapa.get(e, e)
+
+def mutante_sin_strip(estado):
+    mapa = {&quot;delivered&quot;: &quot;entregado&quot;, &quot;shipped&quot;: &quot;enviado&quot;, &quot;canceled&quot;: &quot;cancelado&quot;}
+    e = estado.lower()
+    return mapa.get(e, e)
+
+def mutante_sin_lower(estado):
+    mapa = {&quot;delivered&quot;: &quot;entregado&quot;, &quot;shipped&quot;: &quot;enviado&quot;, &quot;canceled&quot;: &quot;cancelado&quot;}
+    e = estado.strip()
+    return mapa.get(e, e)
+
+def mutante_sin_traducir(estado):
+    return estado.strip().lower()
+
+CASOS = [(&quot;entregado&quot;, &quot;entregado&quot;)]   # ← agrega casos aquí
+
+def pasa(f):
+    return all(f(entrada) == esperado for entrada, esperado in CASOS)
+
+assert pasa(correcta), &quot;Tus casos tienen que pasar con la versión correcta&quot;
+for m in (mutante_sin_strip, mutante_sin_lower, mutante_sin_traducir):
+    print(f&quot;{m.__name__:22}&quot;, &quot;detectado ✓&quot; if not pasa(m) else &quot;SOBREVIVE ✗&quot;)</code></pre>
+<p>Reto: escribe la misma idea para <code>limpiar_monto</code> con un mutante que solo cambie la coma por punto.</p>
+<p>Documentación oficial: <a href="https://docs.pytest.org/en/stable/how-to/parametrize.html">pytest: parametrize</a> · <a href="https://docs.pytest.org/en/stable/getting-started.html">pytest: primeros pasos</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Probar solo el caso feliz.</strong> Los errores viven en los bordes y en los formatos raros.</li>
+<li><strong>Copiar el resultado del código como &quot;esperado&quot;.</strong> Si el código está mal, el test queda mal. Calcula el esperado a mano.</li>
+<li><strong>Un test gigante que prueba todo.</strong> Cuando falla no sabes qué se rompió.</li>
+<li><strong>Tests que dependen del día o de internet.</strong> Pasa esos valores como parámetros.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;¿Cómo pruebas un pipeline de datos?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;En tres niveles. Tests unitarios de cada transformación como función pura, con casos sacados del perfil de los datos reales, incluidos los formatos raros. Pruebas de datos sobre la salida (unicidad, nulos, relaciones, rangos) que corren en cada ejecución. Y una prueba de punta a punta con un conjunto chico y fijo de entrada cuya salida conozco. Además verifico que el pipeline sea idempotente: correrlo dos veces sobre el mismo día no debe cambiar el resultado.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/calidad-tests-que-atrapan-errores">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="calidad-pruebas-que-devuelven-filas.html">← Pruebas de datos que devuelven las filas culpables</a><a href="calidad-contratos-y-esquemas.html">Contratos de datos y cambios de esquema que no rompen a nadie →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

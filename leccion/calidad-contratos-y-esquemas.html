@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contratos de datos y cambios de esquema que no rompen a nadie · Academia de Datos</title><meta name="description" content="Un contrato de datos es la promesa escrita entre quien produce una tabla y quien la usa - columnas, tipos, qué puede ser nulo, valores permitidos, frescura y a quién avisar. Validas registros contra un contrato, detectas qué cambió entre dos versiones de un esquema y decides si el cambio es compatible o rompe a los consumidores, como hace un registro de esquemas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/calidad-contratos-y-esquemas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Contratos de datos y cambios de esquema que no rompen a nadie · Academia de Datos"><meta property="og:description" content="Un contrato de datos es la promesa escrita entre quien produce una tabla y quien la usa - columnas, tipos, qué puede ser nulo, valores permitidos, frescura y a quién avisar. Validas registros contra un contrato, detectas qué cambió entre dos versiones de un esquema y decides si el cambio es compatible o rompe a los consumidores, como hace un registro de esquemas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/calidad-contratos-y-esquemas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#calidad">🧪 Calidad y pruebas de datos: taller</a> · Avanzado · 60 min</div>
+<h1>Contratos de datos y cambios de esquema que no rompen a nadie</h1><p class="resumen">Un contrato de datos es la promesa escrita entre quien produce una tabla y quien la usa - columnas, tipos, qué puede ser nulo, valores permitidos, frescura y a quién avisar. Validas registros contra un contrato, detectas qué cambió entre dos versiones de un esquema y decides si el cambio es compatible o rompe a los consumidores, como hace un registro de esquemas.</p>
+<a class="cta" href="../index.html#/l/calidad-contratos-y-esquemas">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir un contrato con esquema, reglas, frescura y responsables</li><li>Validar registros contra un contrato y reportar cada violación con su motivo</li><li>Comparar dos versiones de un esquema y listar columnas agregadas, eliminadas y con tipo cambiado</li><li>Clasificar un cambio de esquema como compatible o incompatible para los consumidores</li><li>Explicar qué hacen Delta Lake y un registro de esquemas cuando el esquema cambia</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un contrato de alquiler dice qué entrega el dueño, qué paga el inquilino y qué pasa si alguien no cumple. Un contrato de datos dice qué columnas entrega el equipo que produce la tabla, con qué tipos y frescura, y qué pasa si cambia algo: avisar <strong>antes</strong>, no cuando el tablero del otro equipo ya se rompió.</p>
+</div>
+
+
+<h2>Qué tiene un contrato</h2>
+<pre data-norun><code class="language-yaml">tabla: silver.pedidos
+responsable: equipo-datos-ventas
+consumidores: [finanzas, tablero-comercial]
+esquema:
+  pedido_id:  {tipo: int,    nulos: false, unico: true}
+  fecha:      {tipo: date,   nulos: false}
+  estado:     {tipo: string, nulos: false, valores: [entregado, enviado, pendiente, cancelado, devuelto]}
+  monto:      {tipo: double, nulos: false, minimo: 0}
+  cupon:      {tipo: string, nulos: true}
+frescura: &quot;datos de ayer disponibles a las 06:00&quot;
+cambios: &quot;agregar columnas opcionales: aviso de 1 semana; eliminar o cambiar tipos: versión nueva de la tabla&quot;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Sección</th>
+<th>Para qué sirve</th>
+</tr>
+</thead><tbody><tr>
+<td>Esquema y tipos</td>
+<td>Que los consumidores sepan qué leer</td>
+</tr>
+<tr>
+<td>Nulos, únicos, valores, rangos</td>
+<td>Reglas que se convierten en pruebas (lección 2)</td>
+</tr>
+<tr>
+<td>Frescura</td>
+<td>El acuerdo de servicio (SLA)</td>
+</tr>
+<tr>
+<td>Responsable y consumidores</td>
+<td>A quién avisar cuando algo cambia o falla</td>
+</tr>
+<tr>
+<td>Política de cambios</td>
+<td>Qué cambios se pueden hacer sin romper</td>
+</tr>
+</tbody></table></div>
+<p>Herramientas como los contratos de dbt (<code>contract: enforced: true</code>) o las expectativas de Lakeflow aplican partes de esto automáticamente; el resto es acuerdo entre equipos.</p>
+<h2>Cambios compatibles e incompatibles</h2>
+<p>La pregunta clave ante un cambio de esquema: <strong>¿los consumidores que leen con el esquema viejo siguen funcionando?</strong></p>
+<div class="table-wrap"><table><thead><tr>
+<th>Cambio</th>
+<th>¿Rompe?</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td>Agregar una columna que puede ser nula</td>
+<td>No</td>
+<td>Quien no la conoce, la ignora</td>
+</tr>
+<tr>
+<td>Eliminar una columna</td>
+<td><strong>Sí</strong></td>
+<td>Las consultas que la usan fallan</td>
+</tr>
+<tr>
+<td>Renombrar una columna</td>
+<td><strong>Sí</strong></td>
+<td>Es eliminar una y agregar otra</td>
+</tr>
+<tr>
+<td>Ensanchar un tipo (<code>int</code> → <code>long</code>, <code>int</code> → <code>double</code>)</td>
+<td>En general no</td>
+<td>Todo valor viejo entra en el tipo nuevo</td>
+</tr>
+<tr>
+<td>Achicar un tipo (<code>double</code> → <code>int</code>) o cambiar a otro (<code>int</code> → <code>string</code>)</td>
+<td><strong>Sí</strong></td>
+<td>Se pierden datos o fallan los cálculos</td>
+</tr>
+<tr>
+<td>Agregar un valor nuevo a una lista cerrada (<code>en_disputa</code>)</td>
+<td>Depende</td>
+<td>Las pruebas de valores aceptados fallan; los <code>CASE</code> sin <code>ELSE</code> dan nulos</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El valor nuevo que nadie anunció</div>
+
+<p>El estado <code>en_disputa</code> apareció en bronze en octubre sin aviso (lo encontraste en la lección 1). No cambió ninguna columna, así que ningún control de esquema lo detectó, pero rompe un <code>CASE</code> que solo conoce cinco estados y sesga cualquier métrica de &quot;entregados&quot;. Los valores permitidos también son parte del contrato.</p>
+</div>
+
+
+<h2>Qué hacen las plataformas</h2>
+<ul>
+<li><strong>Delta Lake</strong> aplica <em>schema enforcement</em>: si escribes una columna que la tabla no tiene, la escritura falla, salvo que habilites <code>mergeSchema</code> para que la agregue (<a href="https://docs.delta.io/latest/delta-batch.html">documentación</a>).</li>
+<li>Un <strong>registro de esquemas</strong> (como el de Confluent para Kafka) guarda cada versión del esquema de un tópico y rechaza las versiones nuevas que no cumplen la regla de compatibilidad configurada (<a href="https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html">documentación de evolución de esquemas</a>).</li>
+</ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Validar registros contra un contrato</div>
+
+<ol>
+<li>Ejecuta: el contrato es un diccionario y la función revisa tipo, nulos y valores permitidos de cada registro.</li>
+<li>Mira el reporte: cada violación dice en qué fila, qué columna y por qué.</li>
+<li>Agrega al contrato la regla <code>&quot;minimo&quot;: 0</code> para <code>monto</code> y haz que la función la verifique.</li>
+</ol>
+<pre><code class="language-python">contrato = {
+    &quot;pedido_id&quot;: {&quot;tipo&quot;: int, &quot;nulos&quot;: False},
+    &quot;estado&quot;:    {&quot;tipo&quot;: str, &quot;nulos&quot;: False, &quot;valores&quot;: [&quot;entregado&quot;, &quot;enviado&quot;, &quot;pendiente&quot;, &quot;cancelado&quot;, &quot;devuelto&quot;]},
+    &quot;monto&quot;:     {&quot;tipo&quot;: float, &quot;nulos&quot;: False},
+    &quot;cupon&quot;:     {&quot;tipo&quot;: str, &quot;nulos&quot;: True},
+}
+
+filas = [
+    {&quot;pedido_id&quot;: 1, &quot;estado&quot;: &quot;entregado&quot;, &quot;monto&quot;: 10.5, &quot;cupon&quot;: None},
+    {&quot;pedido_id&quot;: &quot;2&quot;, &quot;estado&quot;: &quot;enviado&quot;, &quot;monto&quot;: 3.0, &quot;cupon&quot;: &quot;VERANO10&quot;},
+    {&quot;pedido_id&quot;: 3, &quot;estado&quot;: &quot;en_disputa&quot;, &quot;monto&quot;: 7.0, &quot;cupon&quot;: None},
+    {&quot;pedido_id&quot;: 4, &quot;estado&quot;: &quot;pendiente&quot;, &quot;monto&quot;: None, &quot;cupon&quot;: None},
+]
+
+for i, fila in enumerate(filas):
+    for col, regla in contrato.items():
+        v = fila.get(col)
+        if v is None:
+            if not regla[&quot;nulos&quot;]:
+                print(f&quot;fila {i}: {col} es nulo&quot;)
+        elif not isinstance(v, regla[&quot;tipo&quot;]):
+            print(f&quot;fila {i}: {col} debería ser {regla['tipo'].__name__} y es {type(v).__name__}&quot;)
+        elif &quot;valores&quot; in regla and v not in regla[&quot;valores&quot;]:
+            print(f&quot;fila {i}: {col}={v!r} no está entre los valores permitidos&quot;)</code></pre>
+<p>Reto: convierte el bucle en una función <code>validar(filas, contrato)</code> que devuelva la lista de violaciones en lugar de imprimirlas.</p>
+<p>Documentación oficial: <a href="https://docs.delta.io/latest/delta-batch.html">Validación de esquema en Delta Lake</a> · <a href="https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html">Evolución de esquemas (Confluent)</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Contratos que nadie verifica.</strong> Si no se convierten en pruebas automáticas, son documentación que envejece.</li>
+<li><strong>Renombrar &quot;porque queda más lindo&quot;.</strong> Para los consumidores es eliminar una columna.</li>
+<li><strong>Olvidar los valores permitidos.</strong> Un estado nuevo rompe tanto como una columna nueva.</li>
+<li><strong>Cambiar sin versión.</strong> Un cambio incompatible se publica como tabla o vista nueva (<code>pedidos_v2</code>) y la vieja convive un tiempo.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;El equipo de la app quiere cambiar <code>monto</code> de número a texto con el símbolo de moneda. ¿Qué haces?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Es un cambio incompatible: todos los que suman <code>monto</code> se rompen. Propondría mantener <code>monto</code> numérico y agregar una columna nueva <code>moneda</code>, que es compatible. Si igual necesitan el cambio, se publica como versión nueva del contrato con fecha de retiro de la vieja, se avisa a los consumidores registrados y se deja una vista de compatibilidad durante la transición.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/calidad-contratos-y-esquemas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="calidad-tests-que-atrapan-errores.html">← Tests de transformaciones que atrapan errores de verdad</a><a href="calidad-monitoreo-y-anomalias.html">Monitoreo de datos y detección de anomalías →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
