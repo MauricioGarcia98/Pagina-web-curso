@@ -63,8 +63,24 @@ jobs:
 
       - name: Prueba de humo en navegador
         run: |
-          npm install --no-save playwright@1.56.1
+          # axe-core (accesibilidad) va en la misma instalación: otro npm install --no-save quitaría Playwright
+          npm install --no-save playwright@1.56.1 axe-core@4.10.2
           npx playwright install --with-deps chromium
           python3 -m http.server 8000 >/dev/null 2>&1 &
           sleep 2
           node tools/humo.mjs http://localhost:8000/
+
+      - name: Ejercicios corregidos en el navegador (DuckDB-WASM y Pyodide)
+        run: |
+          curl -s -o /dev/null http://localhost:8000/ || { python3 -m http.server 8000 >/dev/null 2>&1 & sleep 2; }
+          node tools/ejercicios-navegador.mjs http://localhost:8000/
+
+      - name: Diagramas en teléfono y escritorio
+        run: |
+          curl -s -o /dev/null http://localhost:8000/ || { python3 -m http.server 8000 >/dev/null 2>&1 & sleep 2; }
+          node tools/diagramas.mjs http://localhost:8000/
+
+      - name: Accesibilidad (axe-core, tema claro y oscuro)
+        run: |
+          curl -s -o /dev/null http://localhost:8000/ || { python3 -m http.server 8000 >/dev/null 2>&1 & sleep 2; }
+          node tools/accesibilidad.mjs http://localhost:8000/
