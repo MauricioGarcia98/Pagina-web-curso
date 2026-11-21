@@ -72,6 +72,8 @@ function parseDiagrama(src, file) {
   }
   const ids = new Set(spec.nodos.map((n) => n.id));
   for (const f of spec.flechas) for (const k of [f.de, f.a]) if (!ids.has(k)) throw new Error(`Diagrama en ${file}: la flecha usa el nodo "${k}", que no existe`);
+  // "flecha a -> b: estilo=punteada" deja la opción como texto de la etiqueta; sin etiqueta va "flecha a -> b | estilo=…"
+  for (const f of spec.flechas) if (/^\w+=/.test(f.label)) throw new Error(`Diagrama en ${file}: la etiqueta de la flecha ${f.de} -> ${f.a} es "${f.label}"; si no lleva texto, escribe "flecha ${f.de} -> ${f.a} | ${f.label}"`);
   for (const g of spec.grupos) for (const k of g.nodos) if (!ids.has(k)) throw new Error(`Diagrama en ${file}: el grupo "${g.id}" usa el nodo "${k}", que no existe`);
   return spec;
 }

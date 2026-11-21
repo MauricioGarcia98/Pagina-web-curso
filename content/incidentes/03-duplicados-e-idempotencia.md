@@ -27,9 +27,9 @@ nodo r: Intento 2 | icono=airflow | col=1 | fila=1 | sub=INSERT otra vez
 nodo d: 36.864 filas | icono=tabla | col=2 | fila=1 | color=rojo | sub=el doble
 flecha af -> db: INSERT + COMMIT | paso=1 | explica=El INSERT termina y el servidor aplica el COMMIT.
 flecha db -> af: confirmación perdida | estilo=punteada | paso=2 | explica=La conexión se corta antes de que la confirmación llegue al worker. Airflow no sabe que el COMMIT se aplicó.
-flecha af -> t: paso=3 | explica=El worker se queda esperando hasta el execution_timeout y la tarea se marca para reintentar.
-flecha t -> r: paso=4 | explica=El reintento ejecuta el mismo INSERT, que es un append: no sabe que esas filas ya están.
-flecha r -> d: paso=5 | explica=Resultado: cada pedido del día aparece dos veces.
+flecha af -> t | paso=3 | explica=El worker se queda esperando hasta el execution_timeout y la tarea se marca para reintentar.
+flecha t -> r | paso=4 | explica=El reintento ejecuta el mismo INSERT, que es un append: no sabe que esas filas ya están.
+flecha r -> d | paso=5 | explica=Resultado: cada pedido del día aparece dos veces.
 ```
 
 El problema no es el reintento: es que la carga es un **append** (`INSERT INTO … SELECT …`). Un append solo es seguro si el mismo lote nunca puede llegar dos veces, y en sistemas distribuidos eso no se puede garantizar.

@@ -24,9 +24,9 @@ nodo v43: v42-43 VACUUM 0 h | icono=x | col=2 | fila=0 | sub=borra 3.120 archivo
 nodo r: RESTORE a v40 | icono=x | col=3 | fila=0 | sub=DELTA_FILE_NOT_FOUND | color=rojo
 nodo b: Reconstruir desde bronze | icono=capas | col=2 | fila=1 | color=verde | sub=o desde un clon/backup
 flecha v40 -> v41: modo overwrite por error | paso=1 | explica=Un lote correctivo manual se lanzó con modo=overwrite: la tabla quedó con 1.412 filas. Las versiones anteriores siguen disponibles por time travel.
-flecha v41 -> v43: paso=2 | explica=Alguien corrió VACUUM con retención 0 y el chequeo de seguridad desactivado: se borraron los archivos que ya no usa la versión actual, que eran justamente los de las versiones anteriores.
-flecha v43 -> r: paso=3 | explica=El RESTORE a la versión 40 necesita esos archivos, que ya no existen.
-flecha r -> b: estilo=punteada | paso=4 | explica=La salida es reconstruir la tabla desde la capa cruda (bronze) o desde un clon o backup, si existen.
+flecha v41 -> v43 | paso=2 | explica=Alguien corrió VACUUM con retención 0 y el chequeo de seguridad desactivado: se borraron los archivos que ya no usa la versión actual, que eran justamente los de las versiones anteriores.
+flecha v43 -> r | paso=3 | explica=El RESTORE a la versión 40 necesita esos archivos, que ya no existen.
+flecha r -> b | estilo=punteada | paso=4 | explica=La salida es reconstruir la tabla desde la capa cruda (bronze) o desde un clon o backup, si existen.
 ```
 
 ## Las operaciones y lo que hacen con los archivos

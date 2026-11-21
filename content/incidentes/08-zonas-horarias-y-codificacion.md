@@ -38,8 +38,8 @@ nodo e: Misma hora local, dos instantes | icono=alerta | col=2 | fila=1 | color=
 flecha a -> b
 flecha b -> c
 flecha c -> d
-flecha b -> e: estilo=punteada
-flecha d -> e: estilo=punteada
+flecha b -> e | estilo=punteada
+flecha d -> e | estilo=punteada
 ```
 
 - Cuando el reloj **se atrasa** (fin del horario de verano), una hora local ocurre **dos veces** y ese día tiene **25 horas**. Una clave primaria `(sensor_id, ts_local)` choca, y un `ON CONFLICT DO NOTHING` descarta en silencio la segunda lectura.
