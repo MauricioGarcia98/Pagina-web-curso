@@ -466,6 +466,20 @@
     ]
   },
   {
+    "id": "streaming",
+    "titulo": "Streaming a fondo: Kafka, ventanas y garantías",
+    "icono": "🌊",
+    "color": "#0891b2",
+    "descripcion": "Lo que hay que entender para que un pipeline en tiempo real no pierda ni duplique datos: cómo Kafka reparte los mensajes en particiones y por qué el orden solo vale dentro de una, cómo los grupos de consumidores se reparten el trabajo, qué significan los offsets y el lag, cómo se cuentan eventos en ventanas con marcas de agua y eventos tardíos, y cómo se escribe de forma idempotente con Structured Streaming.",
+    "objetivos": [
+      "Explicar particiones, claves, offsets, retención y compactación en Kafka",
+      "Repartir particiones entre consumidores y medir el lag de un grupo",
+      "Distinguir entrega como máximo una vez, al menos una vez y exactamente una vez según cuándo se confirma el offset",
+      "Contar eventos en ventanas fijas, deslizantes y de sesión con marca de agua",
+      "Escribir un stream idempotente con checkpoint y foreachBatch"
+    ]
+  },
+  {
     "id": "terraform",
     "titulo": "Terraform: infraestructura como código",
     "icono": "🏗️",
