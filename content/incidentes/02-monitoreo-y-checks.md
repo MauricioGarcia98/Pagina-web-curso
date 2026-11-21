@@ -35,7 +35,7 @@ nodo w: Write | icono=tabla | col=0 | fila=0 | sub=carga en una tabla de staging
 nodo a: Audit | icono=check | col=1 | fila=0 | sub=corren los checks | color=amarillo
 nodo p: Publish | icono=dashboard | col=2 | fila=0 | sub=swap o MERGE a producción | color=verde
 nodo q: Cuarentena | icono=alerta | col=1 | fila=1 | sub=falla: se alerta y no se publica | color=rojo
-flecha w -> a: paso=1 | explica=La carga escribe en una tabla o rama aislada que nadie consulta.
+flecha w -> a | paso=1 | explica=La carga escribe en una tabla o rama aislada que nadie consulta.
 flecha a -> p: pasa | paso=2 | explica=Si todos los checks bloqueantes pasan, se publica de forma atómica (un swap de tablas, un MERGE o un commit de una rama de Iceberg/Nessie).
 flecha a -> q: falla | paso=3 | explica=Si un check bloqueante falla, la tabla de producción queda con los datos de ayer, que son viejos pero correctos, y la alerta trae el detalle.
 ```

@@ -33,13 +33,13 @@ nodo e: 5. Diagnosticar | icono=lupa | col=3 | fila=1 | sub=logs, datos, qué ca
 nodo f: 6. Reparar | icono=engranaje | col=2 | fila=1 | sub=idempotente, anotado
 nodo g: 7. Verificar | icono=check | col=1 | fila=1 | sub=los datos, no el color de la tarea | color=verde
 nodo h: 8. Postmortem | icono=documento | col=0 | fila=1 | sub=sin culpables, con acciones | color=violeta
-flecha a -> b: paso=1 | explica=Reconocer la alerta (ack) avisa al resto que alguien la tomó y frena la escalada automática.
-flecha b -> c: paso=2 | explica=El primer mensaje sale en los primeros 5–10 minutos, aunque todavía no sepas la causa.
-flecha c -> d: paso=3 | explica=Con el impacto claro decides qué tan urgente es y qué mitigar.
-flecha d -> e: paso=4 | explica=Mitigar es frenar el daño: pausar lo que propaga datos malos, avisar en el tablero, volver a una versión anterior.
-flecha e -> f: paso=5 | explica=Diagnosticar es responder qué cambió, dónde se rompió y desde cuándo.
-flecha f -> g: paso=6 | explica=Reparar de forma idempotente: si lo corres dos veces, el resultado es el mismo.
-flecha g -> h: paso=7 | explica=Verificar mirando los datos (filas, totales, duplicados), no solo que la tarea esté verde.
+flecha a -> b | paso=1 | explica=Reconocer la alerta (ack) avisa al resto que alguien la tomó y frena la escalada automática.
+flecha b -> c | paso=2 | explica=El primer mensaje sale en los primeros 5–10 minutos, aunque todavía no sepas la causa.
+flecha c -> d | paso=3 | explica=Con el impacto claro decides qué tan urgente es y qué mitigar.
+flecha d -> e | paso=4 | explica=Mitigar es frenar el daño: pausar lo que propaga datos malos, avisar en el tablero, volver a una versión anterior.
+flecha e -> f | paso=5 | explica=Diagnosticar es responder qué cambió, dónde se rompió y desde cuándo.
+flecha f -> g | paso=6 | explica=Reparar de forma idempotente: si lo corres dos veces, el resultado es el mismo.
+flecha g -> h | paso=7 | explica=Verificar mirando los datos (filas, totales, duplicados), no solo que la tarea esté verde.
 ```
 
 1. **Reconocer (ack)**: tomas la alerta en la herramienta (PagerDuty, Opsgenie, el canal de Slack). Así nadie más pierde tiempo y la alerta no escala al siguiente nivel.

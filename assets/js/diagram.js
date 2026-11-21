@@ -84,15 +84,37 @@
     const grupoDe = {};
     for (const g of spec.grupos || []) for (const id of g.nodos) grupoDe[id] = g.id;
     const altoFila = Array.from({ length: filas }, (_, f) => Math.max(CELDA_H, ...nodos.filter((n) => n._f === f).map((n) => n.h + 80)));
+    // una flecha vertical con etiqueta entre dos filas vecinas agranda ese hueco si la etiqueta no entra
+    const extraFila = {};
+    for (const fl of spec.flechas || []) {
+      const a = porId[fl.de], b = porId[fl.a];
+      if (!fl.label || !a || !b || a._c !== b._c || Math.abs(a._f - b._f) !== 1) continue;
+      const lineas = envolver(String(fl.label), 16, false).length, f = Math.min(a._f, b._f);
+      const hueco = Math.min(...[a, b].map((n) => (altoFila[n._f] - n.h) / 2)) * 2;
+      extraFila[f] = Math.max(extraFila[f] || 0, lineas * 18 + 30 - hueco);
+    }
     const y0 = [MARGEN + 24];
     for (let f = 1; f < filas; f++) {
       const arriba = new Set(nodos.filter((n) => n._f === f - 1).map((n) => grupoDe[n.id]).filter(Boolean));
       const abajo = new Set(nodos.filter((n) => n._f === f).map((n) => grupoDe[n.id]).filter(Boolean));
       const cambiaGrupo = [...abajo].some((g) => !arriba.has(g)) && arriba.size > 0;
-      y0[f] = y0[f - 1] + altoFila[f - 1] + (cambiaGrupo ? 40 : 0);
+      y0[f] = y0[f - 1] + altoFila[f - 1] + (cambiaGrupo ? 40 : 0) + Math.max(0, extraFila[f - 1] || 0);
     }
+    // una flecha horizontal con etiqueta entre dos columnas vecinas ensancha ese hueco lo necesario
+    // para que la etiqueta entre en dos líneas sin pisar los nodos
+    const extra = {};
+    for (const f of spec.flechas || []) {
+      const a = porId[f.de], b = porId[f.a];
+      if (!f.label || !a || !b || a._f !== b._f || Math.abs(a._c - b._c) !== 1) continue;
+      const linea = Math.max(...String(f.label).split('\n').map(largo)) * 9;
+      const palabra = Math.max(...String(f.label).split(/\s+/).map(largo)) * 9;   // una palabra no se parte
+      const necesario = Math.min(Math.max(palabra, linea > 100 ? linea / 2 + 12 : linea), 200) + 24, c = Math.min(a._c, b._c);
+      const hueco = CELDA_W - (a.w + b.w) / 2;
+      extra[c] = Math.max(extra[c] || 0, necesario - hueco);
+    }
+    const corrX = (c) => { let t = 0; for (let k = 0; k < c; k++) t += Math.max(0, extra[k] || 0); return t; };
     for (const n of nodos) {
-      n.x = MARGEN + n._c * CELDA_W + (CELDA_W - n.w) / 2;
+      n.x = MARGEN + n._c * CELDA_W + corrX(n._c) + (CELDA_W - n.w) / 2;
       n.y = y0[n._f] + (altoFila[n._f] - n.h) / 2;
       n.cx = n.x + n.w / 2; n.cy = n.y + n.h / 2;
     }
@@ -102,12 +124,12 @@
   // parte un texto en líneas de hasta `max` caracteres, respetando los \n puestos a mano
   // largo aproximado de un texto en caracteres: las mayúsculas y la W/M ocupan más que una letra común
   const largo = (t) => t.length + 0.3 * (t.match(/[A-ZÁÉÍÓÚÑWM]/g) || []).length;
-  function envolver(str, max) {
+  function envolver(str, max, partirPalabras = true) {
     const out = [];
     // una palabra más larga que la línea (stg_tienda__pedidos, s3://lago/bronze/, df.groupBy(…)) se parte
     // después de _ / . , ? & = ( : - y, si aun así no entra, en trozos del largo de la línea
     const partir = (p) => {
-      if (largo(p) <= max) return [p];
+      if (!partirPalabras || largo(p) <= max) return [p];
       const trozos = p.split(/(?<=[_/.,?&=(:-])/).flatMap((t) => (largo(t) > max ? t.match(new RegExp('.{1,' + Math.max(3, Math.floor(max / 1.3)) + '}', 'g')) : [t]));
       return trozos.reduce((acc, t) => { if (acc.length && largo(acc[acc.length - 1] + t) <= max) acc[acc.length - 1] += t; else acc.push(t); return acc; }, []);
     };
@@ -337,6 +359,8 @@
     }
 
     // flechas, con su recorrido animable
+    const ocupadas = [];   // cajas de etiquetas ya ubicadas, para que no se pisen entre sí
+    const tramosDe = flechas.flatMap((fl) => fl.pts.slice(1).map((q, j) => ({ i: fl.i, x1: fl.pts[j].x, y1: fl.pts[j].y, x2: q.x, y2: q.y })));
     for (const f of flechas) {
       const st = f.color ? COLORES[f.color][0] : 'currentColor';
       const gf = el('g', { class: 'dg-f', 'data-i': f.i, 'data-de': f.de, 'data-a': f.a }, capaFlechas);
@@ -369,12 +393,39 @@
       }
       if (f.label) {
         let etiqueta = f.label;
+        const CH = 9;   // ancho medio de un carácter de la etiqueta (16px)
         const hueco = horizontal ? Math.abs(p2.x - p1.x) : 150;
-        if (Math.max(...etiqueta.split('\n').map((l) => l.length)) * 8.4 + 14 > hueco + 16) etiqueta = envolver(etiqueta, Math.max(5, Math.floor((hueco + 2) / 8.4))).join('\n');
+        // las etiquetas nunca parten palabras: si el hueco es angosto, se envuelve en líneas de al menos 9 caracteres
+        if (Math.max(...etiqueta.split('\n').map(largo)) * CH + 14 > hueco + 16) etiqueta = envolver(etiqueta, Math.max(9, Math.floor((hueco + 2) / CH)), false).join('\n');
         const lineas = etiqueta.split('\n');
-        const ancho = Math.max(...lineas.map((l) => l.length)) * 8.4 + 14, alto = lineas.length * 18 + 6;
-        // horizontal: la etiqueta va arriba de la línea; vertical: a la derecha
-        const cx = horizontal ? mx : mx + ancho / 2 + 8 + corrimiento, cy = horizontal ? my - alto / 2 - 6 - corrimiento : my;
+        const ancho = Math.max(...lineas.map(largo)) * CH + 14, alto = lineas.length * 18 + 6;
+        // Se prueban lugares a lo largo de cada tramo de la flecha (al medio, a 30% y a 70%), a ambos lados de la
+        // línea, y se elige el que no pisa nodos ni otras etiquetas; a igualdad, el más cercano al medio del tramo
+        // más largo
+        const pisa = (cx, cy) => {
+          const a = { x: cx - ancho / 2, y: cy - alto / 2, w: ancho, h: alto };
+          const area = (lista) => lista.reduce((t, b) => {
+            const ix = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x), iy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+            return t + (ix > 0 && iy > 0 ? ix * iy : 0);
+          }, 0);
+          // cruzar la línea de otra flecha también cuenta (la etiqueta la taparía)
+          const cruces = tramosDe.filter((t) => t.i !== f.i && Math.max(t.x1, t.x2) > a.x && Math.min(t.x1, t.x2) < a.x + a.w && Math.max(t.y1, t.y2) > a.y && Math.min(t.y1, t.y2) < a.y + a.h).length;
+          return area(spec.nodos) * 4 + area(ocupadas) * 3 + cruces * 600;
+        };
+        const lugares = [];
+        for (let j = 0; j < n - 1; j++) {
+          const q1 = f.pts[j], q2 = f.pts[j + 1], hor = Math.abs(q2.y - q1.y) < 0.5;
+          if (Math.abs(q2.x - q1.x) + Math.abs(q2.y - q1.y) < 30) continue;
+          for (const t of [0.5, 0.3, 0.7, 0.15, 0.85, 0.06, 0.94]) {
+            const px = q1.x + (q2.x - q1.x) * t, py = q1.y + (q2.y - q1.y) * t;
+            const lados = hor ? [[px, py - alto / 2 - 6 - corrimiento], [px, py + alto / 2 + 6 + corrimiento]]
+              : [[px + ancho / 2 + 8 + corrimiento, py], [px - ancho / 2 - 8 - corrimiento, py]];
+            for (const l of lados) lugares.push([l, pisa(...l) + Math.hypot(l[0] - mx, l[1] - my) * 0.08 + (j === k ? 0 : 12)]);
+          }
+        }
+        if (!lugares.length) lugares.push([horizontal ? [mx, my - alto / 2 - 6] : [mx + ancho / 2 + 8, my], 0]);
+        const [cx, cy] = lugares.reduce((m, x) => (x[1] < m[1] ? x : m))[0];
+        ocupadas.push({ x: cx - ancho / 2, y: cy - alto / 2, w: ancho, h: alto });
         el('rect', { x: cx - ancho / 2, y: cy - alto / 2, width: ancho, height: alto, rx: 6, class: 'dg-fondo-etiqueta' }, ge);
         texto(ge, etiqueta, cx, cy - alto / 2 + 16, { size: 16, color: st, lh: 1.1 });
       }

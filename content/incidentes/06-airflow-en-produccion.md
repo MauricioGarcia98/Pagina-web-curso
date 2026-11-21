@@ -22,9 +22,9 @@ nodo sch: Scheduler | icono=orquestador | col=2 | fila=0 | sub=crea ejecuciones,
 nodo db: Base de metadatos | icono=postgres | col=2 | fila=1 | forma=cilindro | sub=dag_run, task_instance
 nodo w: Workers | icono=servidor | col=3 | fila=0 | sub=ejecutan las tareas
 nodo tr: Triggerer | icono=reloj | col=3 | fila=1 | sub=esperas asíncronas
-flecha dags -> dp: paso=1 | explica=El DAG processor importa cada archivo de la carpeta dags/. Si el import falla, el DAG no se registra.
-flecha dp -> db: paso=2 | explica=Los DAGs que se importaron bien quedan serializados en la base de metadatos.
-flecha sch -> db: paso=3 | explica=El scheduler lee la base, crea las ejecuciones (dag_run) y decide qué tareas están listas.
+flecha dags -> dp | paso=1 | explica=El DAG processor importa cada archivo de la carpeta dags/. Si el import falla, el DAG no se registra.
+flecha dp -> db | paso=2 | explica=Los DAGs que se importaron bien quedan serializados en la base de metadatos.
+flecha sch -> db | paso=3 | explica=El scheduler lee la base, crea las ejecuciones (dag_run) y decide qué tareas están listas.
 flecha sch -> w: encola | paso=4 | explica=Las tareas listas se encolan y un worker las toma, si hay slots libres en su pool.
 flecha w -> db: heartbeat | estilo=punteada | paso=5 | explica=Mientras corre, la tarea manda señales de vida (heartbeats). Si dejan de llegar, el scheduler la declara zombie.
 flecha sch -> tr: sensores diferidos | estilo=punteada | paso=6 | explica=Los sensores deferrable esperan en el triggerer sin ocupar workers.

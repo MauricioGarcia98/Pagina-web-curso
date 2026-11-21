@@ -50,10 +50,10 @@ nodo c: Consumidor | icono=engranaje | col=1 | fila=0
 nodo db: Base de datos | icono=postgres | col=2 | fila=0 | forma=cilindro
 nodo d: Topic pedidos.dlq | icono=cola | col=1 | fila=1 | color=naranja | sub=payload + error + offset
 nodo r: Reproceso controlado | icono=lupa | col=2 | fila=1 | sub=después de corregir
-flecha t -> c: paso=1 | explica=El consumidor lee un lote de mensajes.
+flecha t -> c | paso=1 | explica=El consumidor lee un lote de mensajes.
 flecha c -> db: los buenos | paso=2 | explica=Los mensajes que se procesan bien se escriben en el destino.
 flecha c -> d: tras N fallos | paso=3 | explica=Un mensaje que falla N veces se publica en la DLQ con el error, el topic, la partición y el offset original, y se confirma el offset: la partición sigue avanzando.
-flecha d -> r: estilo=punteada | paso=4 | explica=Cuando se corrige la causa (un productor que mandaba otro formato, un esquema nuevo), los mensajes de la DLQ se reprocesan de forma controlada.
+flecha d -> r | estilo=punteada | paso=4 | explica=Cuando se corrige la causa (un productor que mandaba otro formato, un esquema nuevo), los mensajes de la DLQ se reprocesan de forma controlada.
 ```
 
 Una DLQ sin alerta ni dueño es un basurero: hay que medir cuántos mensajes llegan, por qué tipo de error, y tener un proceso para reprocesarlos.

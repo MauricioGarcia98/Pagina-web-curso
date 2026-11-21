@@ -40,8 +40,8 @@ nodo b: 15:00 carga | icono=engranaje | col=1 | fila=0 | sub=max(evento_ts) = 14
 nodo c: 20:00 carga | icono=engranaje | col=2 | fila=0 | sub=lee evento_ts > 19:57
 nodo d: Evento perdido | icono=x | col=3 | fila=0 | color=rojo | sub=14:05 < 19:57: nunca se lee
 flecha a -> b: todavía no llegó | estilo=punteada | paso=1 | explica=A las 15:00 el clic de las 14:05 todavía no está en staging.
-flecha b -> c: paso=2 | explica=Cada carga mueve la marca de agua al evento más nuevo cargado.
-flecha c -> d: paso=3 | explica=El clic llega a las 19:41 con evento_ts 14:05. La carga de las 20:00 solo lee eventos posteriores a 19:57, así que el clic queda afuera. Para siempre, y sin ningún error.
+flecha b -> c | paso=2 | explica=Cada carga mueve la marca de agua al evento más nuevo cargado.
+flecha c -> d | paso=3 | explica=El clic llega a las 19:41 con evento_ts 14:05. La carga de las 20:00 solo lee eventos posteriores a 19:57, así que el clic queda afuera. Para siempre, y sin ningún error.
 ```
 
 Las correcciones, de menor a mayor robustez:
