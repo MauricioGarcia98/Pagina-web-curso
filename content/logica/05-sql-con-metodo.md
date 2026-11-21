@@ -90,6 +90,10 @@ Unir `pedidos` con `detalle_pedidos` da **una fila por línea de detalle**, no p
 
 Regla práctica: **agrega antes de unir** cuando juntas dos tablas que tienen muchas filas por la misma clave.
 
+:::cuidado Contar después de un JOIN sin revisar el grano
+Si unes `pedidos` con `detalle_pedidos` y después haces `COUNT(*)`, cuentas **líneas**, no pedidos: un pedido con 4 productos se cuenta 4 veces. Después de cada JOIN pregúntate "¿una fila por qué?" y usa `COUNT(DISTINCT pedido_id)` cuando corresponda.
+:::
+
 :::practica sql Construir por capas y contar filas en cada una
 1. Pregunta: "clientes que compraron en los 4 canales". Grano final: una fila por cliente.
 2. Ejecuta: cada CTE es una capa y la consulta final cuenta filas en cada una: si un número no tiene sentido, el error está en esa capa.

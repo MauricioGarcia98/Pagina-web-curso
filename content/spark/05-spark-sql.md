@@ -141,6 +141,10 @@ FROM ...
 - **Nombres de tabla sin catálogo y esquema.** En un entorno compartido, puede leer otra tabla con el mismo nombre.
 :::
 
+:::cuidado Las vistas temporales mueren con la sesión
+`createOrReplaceTempView("ventas")` existe solo mientras vive tu `SparkSession`: otro notebook, otro job o un reinicio no la ven. Si otros tienen que consultarla, guárdala como tabla (`saveAsTable`) en el catálogo. Las *global temp views* se leen como `global_temp.nombre` y también desaparecen al terminar la aplicación.
+:::
+
 :::practica pyspark De DataFrame a SQL y vuelta
 1. Ejecuta: registra una vista temporal y consúltala con `spark.sql`.
 2. Mira el catálogo con `spark.catalog.listTables()`: la vista temporal aparece junto a las tablas.

@@ -126,6 +126,12 @@ checkpoint:  &quot;leí hasta e3&quot;   &quot;leí hasta e5&quot;     &quot;le�
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El checkpoint es la memoria del stream</div>
+
+<p>Si borras el directorio de checkpoint, el stream vuelve a leer todo desde el principio y duplica datos en el destino. Y no todos los cambios en la consulta son compatibles con un checkpoint existente (por ejemplo, cambiar las columnas de una agregación con estado): antes de cambiar una consulta en producción, revisa la guía de cambios permitidos de Structured Streaming.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un stream con checkpoint que procesa solo lo nuevo</div>
 
 <ol>

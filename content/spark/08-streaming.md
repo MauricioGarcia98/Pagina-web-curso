@@ -127,6 +127,10 @@ Databricks ofrece una forma **declarativa** de construir pipelines batch y strea
 - **Agregaciones sin watermark.** El estado crece sin límite esperando datos tardíos.
 :::
 
+:::cuidado El checkpoint es la memoria del stream
+Si borras el directorio de checkpoint, el stream vuelve a leer todo desde el principio y duplica datos en el destino. Y no todos los cambios en la consulta son compatibles con un checkpoint existente (por ejemplo, cambiar las columnas de una agregación con estado): antes de cambiar una consulta en producción, revisa la guía de cambios permitidos de Structured Streaming.
+:::
+
 :::practica pyspark Un stream con checkpoint que procesa solo lo nuevo
 1. Ejecuta: llega un primer lote de archivos JSON, el stream lo procesa y guarda en el checkpoint qué leyó.
 2. Descomenta el segundo lote y ejecuta de nuevo: solo se procesan las filas nuevas.

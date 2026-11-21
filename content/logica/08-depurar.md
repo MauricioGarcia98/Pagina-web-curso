@@ -69,6 +69,10 @@ assert total([{"monto": 1}, {"monto": 2}]) == 3, f"esperaba 3, dio {total([{'mon
 
 El `assert` con un caso chico convierte un error silencioso en uno que grita.
 
+:::cuidado Cambiar varias cosas a la vez
+Si cambias tres líneas y el error desaparece, no sabes cuál lo arregló (ni si alguna rompió otra cosa). Cambia una sola cosa por vez, vuelve a ejecutar y observa. Es más lento en el momento y mucho más rápido en total.
+:::
+
 :::practica python Encontrar el error que no da error
 1. Ejecuta: el programa corre sin fallar, pero el promedio está mal.
 2. Aplica el método: reproduce con datos chicos, aísla (imprime valores intermedios), formula una hipótesis y pruébala.

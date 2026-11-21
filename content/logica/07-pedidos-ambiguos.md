@@ -86,6 +86,10 @@ Algunas preguntas de entrevista no tienen datos a propósito: "¿cuántos litros
 
 Dilo en voz alta, anota cada supuesto y termina con un chequeo de sentido común ("¿600.000 litros es razonable? Son unas 30 cisternas de camión: plausible").
 
+:::cuidado Suponer en silencio
+Elegir una interpretación sin decirlo es el error más caro: el número puede ser correcto para tu definición e incorrecto para la de quien preguntó. Si no puedes preguntar, escribe el supuesto junto al resultado ("ventas = pedidos entregados, por fecha de pedido") para que cualquiera pueda detectar la diferencia.
+:::
+
 :::practica sql Dos lecturas de "las ventas del mes"
 1. Pedido ambiguo: "las ventas de noviembre". ¿Por fecha del pedido o del pago? ¿Con o sin cancelados?
 2. Ejecuta: la consulta muestra las cuatro combinaciones lado a lado.

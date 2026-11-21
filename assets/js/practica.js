@@ -42,8 +42,30 @@
   const estaHecha = (leccion, i) => (hechas()[leccion] || []).includes(i);
 
   // ------------------------------------------------------------------ en la lección
+  // cursos paso a paso de cada herramienta: la práctica se arma sola con los pasos de la lección
+  const AUTO = { excel: 'excel', jupyterlab: 'jupyter', vscode: 'vscode', github: 'github', 'databricks-paso-a-paso': 'databricks', 'powerbi-paso-a-paso': 'powerbi', 'azure-paso-a-paso': 'azure', 'data-factory-paso-a-paso': 'adf', 'fabric-paso-a-paso': 'fabric', 'airflow-paso-a-paso': 'airflow', 'snowflake-paso-a-paso': 'snowflake', 'bigquery-paso-a-paso': 'bigquery' };
+  function practicaAutomatica(root, leccion) {
+    const mod = leccion && leccion.modulo && leccion.modulo.id; const app = AUTO[mod];
+    if (!app || root.querySelector('.callout-practica')) return;
+    const h2 = [...root.querySelectorAll('h2')];
+    let pasos = h2.filter((h) => /^(Paso|Tarea)\s+\d+/i.test(h.textContent.trim()));
+    if (!pasos.length) pasos = h2.filter((h) => /^(✅\s*)?(Requisitos|Rúbrica|Entregable|Lo que tienes que lograr|Tu entrega|Cómo verificar|Lista de verificación|Criterio de aceptación)/i.test(h.textContent.trim())); // proyectos de cada nivel y finales
+    if (!pasos.length) return;
+    const div = document.createElement('div'); div.className = 'callout callout-practica'; div.dataset.app = app; div.dataset.titulo = String(leccion.titulo || '').split(' - ')[0];
+    let html = `<div class="callout-title">🛠️ Practícalo en la herramienta: sigue los pasos con ${esc(APPS[app].nombre)} abierto</div><p>Abre la herramienta: los pasos de esta lección quedan en un panel al costado, para seguirlos sin cambiar de pestaña.</p>`;
+    for (const h of pasos) {
+      html += `<h4>${esc(h.textContent.trim())}</h4>`;
+      let listas = 0, primerP = null;
+      for (let n = h.nextElementSibling; n && n.tagName !== 'H2'; n = n.nextElementSibling) {
+        if (n.tagName === 'OL' || n.tagName === 'UL') { html += n.outerHTML; listas++; } else if (!primerP && n.tagName === 'P') primerP = n;
+      }
+      if (!listas && primerP) html += primerP.outerHTML; // tareas escritas en un párrafo
+    }
+    div.innerHTML = html; pasos[0].before(div);
+  }
   function montarLeccion(root, store, leccion, opts = {}) {
     Store = store; toast = opts.toast || toast;
+    practicaAutomatica(root, leccion);
     const bloques = [...root.querySelectorAll('.callout-practica')];
     bloques.forEach((b, i) => {
       if (b.dataset.montado) return; b.dataset.montado = '1';

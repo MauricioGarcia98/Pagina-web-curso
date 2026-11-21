@@ -140,6 +140,10 @@ def primer_repetido(ids):
     return None
 ```
 
+:::cuidado Optimizar antes de que funcione
+En un desafío, primero escribe la versión más simple que dé el resultado correcto y pruébala con un caso chico (y con la lista vacía). Recién después optimiza. Una solución rápida que falla en un caso borde vale menos que una lenta y correcta, y en una entrevista se nota cuál camino tomaste.
+:::
+
 :::practica python Un desafío con reloj
 1. Lee el pedido de abajo y resuélvelo sin mirar soluciones: 15 minutos.
 2. Pedido: "dada una lista de ventas (cliente, monto), devuelve los 3 clientes que más gastaron, con su total".

@@ -78,6 +78,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Resolver con un for lo que hace una ventana</div>
+
+<p>Traer los datos con <code>collect()</code> y recorrerlos en Python funciona con 100 filas y se cae con 100 millones. Si el problema dice &quot;anterior&quot;, &quot;acumulado&quot;, &quot;top por grupo&quot; o &quot;racha&quot;, casi siempre es una función de ventana (<code>lag</code>, <code>sum().over</code>, <code>row_number</code>) que Spark reparte entre los nodos.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Desafío con reloj: top 3 por categoría</div>
 
 <ol>

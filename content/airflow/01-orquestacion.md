@@ -127,6 +127,10 @@ flecha api <-> meta
 flecha w -> ext: dispara trabajo
 ```
 
+:::cuidado Airflow orquesta, no procesa
+Las tareas de Airflow deberían **mandar** el trabajo pesado a quien lo hace (Spark, el warehouse, dbt), no procesar millones de filas en el propio worker. Y el código de nivel superior del archivo del DAG se ejecuta cada vez que el scheduler lee el archivo (cada pocos segundos): nada de consultas a bases ni llamadas a APIs fuera de las tareas.
+:::
+
 :::practica airflow-lab Un DAG con ramas que se separan y se juntan
 1. Ejecuta: el DAG extrae dos fuentes en paralelo y recién después las junta.
 2. Mira el orden de ejecución en la salida: `ventas` y `clientes` no dependen entre sí.

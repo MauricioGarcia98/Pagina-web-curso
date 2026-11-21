@@ -185,6 +185,12 @@ ventas.groupBy(&quot;pais&quot;).sum(&quot;total&quot;).write.parquet(&quot;s3:/
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Spark no siempre es la respuesta</div>
+
+<p>Con datos que entran en una máquina (unos pocos GB), pandas, Polars o DuckDB suelen ser más rápidos y más simples que Spark: no hay clúster que arrancar ni shuffle que pagar. Spark empieza a valer la pena cuando los datos o el procesamiento ya no entran en una sola computadora.</p>
+</div>
+
+
 <h2>Resumen</h2>
 <ul>
 <li>Big data = datos que no caben o no se procesan a tiempo en una sola máquina.</li>

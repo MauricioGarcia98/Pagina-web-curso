@@ -101,6 +101,10 @@ Un criterio simple: un día es anómalo si se aleja de la media más de 2 desvia
 “Anómalo” no existe sin una regla. Escribe cuál usaste (2 desviaciones, ventana de 28 días, excluyendo feriados…) y qué hiciste con los datos atípicos.
 :::
 
+:::cuidado Los días sin datos desaparecen
+Si un día no hubo ventas, `GROUP BY fecha` no devuelve esa fila, y un promedio móvil de "7 filas" termina abarcando 8 o 9 días. Antes de calcular tendencias, une contra una tabla calendario (todos los días) y completa los huecos con 0.
+:::
+
 :::practica sql Promedio móvil de 7 días
 1. Ejecuta: ventas por día y su promedio móvil de los últimos 7 días.
 2. Compara las dos columnas: el promedio móvil quita el ruido diario y deja ver la tendencia.

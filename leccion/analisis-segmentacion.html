@@ -101,6 +101,12 @@ LIMIT 5;</code></pre>
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Los quintiles se mueven solos</div>
+
+<p><code>NTILE(5)</code> reparte a los clientes según la población del momento: si el mes que viene entran muchos clientes nuevos, un cliente que no cambió nada puede bajar de quintil. Para seguir segmentos en el tiempo, fija los cortes (por ejemplo, &quot;más de 10 compras&quot;) o guarda los umbrales usados en cada fecha.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Segmentación RFM con NTILE</div>
 
 <ol>

@@ -83,6 +83,10 @@ w = Window.partitionBy("categoria_id").orderBy(F.desc("precio"), "nombre")
 | ¿Cómo se ven los datos? | `df.show(5)` |
 | ¿Qué columnas y tipos tengo? | `df.printSchema()` |
 
+:::cuidado Pensar en filas en vez de en columnas
+Traducir un `for` de Python a Spark línea por línea lleva a `collect()` y a UDFs lentas. En Spark se piensa en transformaciones sobre columnas enteras: filtrar, agregar, unir y ventanas. Si tu solución necesita recorrer filas una por una, busca la función nativa que lo hace.
+:::
+
 :::practica pyspark El mismo plan, en PySpark
 1. El plan es el mismo que en SQL: filtrar → agrupar → rankear → quedarse con el top.
 2. Ejecuta: cada paso es una línea; no hay `for`, Spark recorre por ti.

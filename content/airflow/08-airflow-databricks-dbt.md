@@ -180,6 +180,10 @@ Supón que el notebook de silver falla porque llegó una columna nueva:
 
 ## Ejercicio integrador
 
+:::cuidado Tokens en el código del DAG
+Nunca escribas un token de Databricks o una contraseña en el archivo del DAG: queda en Git y en los logs. Usa una **Connection** de Airflow (`databricks_conn_id`) o un backend de secretos (Key Vault, Secrets Manager), y referencia solo su nombre desde el código.
+:::
+
 :::practica airflow-lab Orquestar Databricks y dbt desde un DAG
 1. Ejecuta: el DAG lanza un job de Databricks y después corre dbt.
 2. Mira en la salida qué parámetros recibió cada operador (el simulador los registra en vez de llamar a la nube).

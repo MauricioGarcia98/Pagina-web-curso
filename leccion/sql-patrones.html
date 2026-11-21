@@ -241,6 +241,12 @@ LIMIT 10;</code></pre>
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Top N con empates</div>
+
+<p>Con <code>ROW_NUMBER()</code> dos productos con el mismo total reciben puestos distintos al azar, y uno queda afuera del top 3 sin que nadie lo note. Si el negocio quiere &quot;los 3 mejores, con empates&quot;, usa <code>RANK()</code> (deja huecos: 1, 1, 3) o <code>DENSE_RANK()</code> (no deja huecos: 1, 1, 2), y dilo en la respuesta.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Retención por cohorte</div>
 
 <ol>

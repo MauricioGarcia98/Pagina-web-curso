@@ -126,6 +126,12 @@ dbt test</code></pre>
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ dbt no mueve datos</div>
+
+<p>dbt no extrae datos de las fuentes ni los carga en el warehouse: solo genera y ejecuta <code>SELECT</code> dentro del warehouse que ya tiene los datos. La extracción y la carga las hace otra herramienta (Fivetran, Airbyte, Data Factory, un script de Python). Ese es el sentido de la &quot;T&quot; en ELT.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tu primer dbt build</div>
 
 <ol>

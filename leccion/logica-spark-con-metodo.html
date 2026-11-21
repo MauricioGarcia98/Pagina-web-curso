@@ -125,6 +125,12 @@ w = Window.partitionBy(&quot;categoria_id&quot;).orderBy(F.desc(&quot;precio&quo
 <td><code>df.printSchema()</code></td>
 </tr>
 </tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Pensar en filas en vez de en columnas</div>
+
+<p>Traducir un <code>for</code> de Python a Spark línea por línea lleva a <code>collect()</code> y a UDFs lentas. En Spark se piensa en transformaciones sobre columnas enteras: filtrar, agregar, unir y ventanas. Si tu solución necesita recorrer filas una por una, busca la función nativa que lo hace.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El mismo plan, en PySpark</div>
 
 <ol>

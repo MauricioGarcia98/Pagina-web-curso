@@ -350,6 +350,12 @@ print(df.assign(total_con_iva=pd.col(&quot;total&quot;) * 1.21))         # nuevo
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Asignación encadenada en pandas</div>
+
+<p><code>df[df[&quot;canal&quot;] == &quot;web&quot;][&quot;monto&quot;] = 0</code> puede no modificar <code>df</code> (cambia una copia temporal) y pandas avisa con <code>SettingWithCopyWarning</code>. Selecciona y asigna en un solo paso con <code>.loc</code>: <code>df.loc[df[&quot;canal&quot;] == &quot;web&quot;, &quot;monto&quot;] = 0</code>.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un mini pipeline con pandas</div>
 
 <ol>

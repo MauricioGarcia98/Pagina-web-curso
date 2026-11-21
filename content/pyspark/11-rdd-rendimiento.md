@@ -133,6 +133,10 @@ for fila in df.collect():
 - **`cache()` en todo.** Ocupa memoria; úsalo solo en lo que se reutiliza.
 :::
 
+:::cuidado collect() trae todo al driver
+`df.collect()` copia todas las filas a la memoria de la máquina que coordina (el driver). Con millones de filas, el driver se queda sin memoria y el job muere. Para mirar datos usa `show()`, `take(10)` o `limit()`; para resultados grandes, escríbelos a una tabla o archivo.
+:::
+
 :::practica pyspark Leer el plan: broadcast, shuffle y sort-merge
 1. Ejecuta y lee el plan de abajo hacia arriba: `FileScan` (lee solo las columnas que usas), `BroadcastExchange` y `BroadcastHashJoin`. Spark eligió broadcast solo, porque `productos` pesa menos que `spark.sql.autoBroadcastJoinThreshold` (10 MB).
 2. Descomenta la línea del `conf.set(... -1)` y vuelve a ejecutar: ahora el plan es `SortMergeJoin`, con un `Exchange hashpartitioning` (shuffle) y un `Sort` en cada lado. Ese shuffle es lo que cuesta caro con datos grandes.

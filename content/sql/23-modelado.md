@@ -172,6 +172,10 @@ Es una pregunta habitual en entrevistas de data engineer (una app de viajes, un 
 - Las SCD tipo 2 se implementan con los **snapshots** de dbt o con `MERGE` en Delta Lake. Las vas a construir en esos módulos.
 :::
 
+:::cuidado La clave sustituta no reemplaza a la natural
+Agregar un `id` autoincremental no evita los duplicados: si el mismo cliente llega dos veces, tendrás dos `id` distintos para la misma persona. Mantén una restricción `UNIQUE` sobre la clave de negocio (por ejemplo, el documento o el email normalizado) además de la clave sustituta.
+:::
+
 :::practica sql Una tabla de hechos y sus dimensiones
 1. Ejecuta: la tabla de hechos de ventas (una fila por línea de pedido).
 2. Agrega la dimensión fecha (año y mes) y la dimensión producto (categoría).

@@ -260,6 +260,10 @@ Esto se llama **as-of join** o *point-in-time join*. Con volúmenes grandes, la 
 - Cuando el volumen es muy grande (miles de millones de eventos), la sesionización se hace en Spark con las mismas ventanas que aprendiste aquí: el SQL se traslada casi palabra por palabra.
 :::
 
+:::cuidado Top N con empates
+Con `ROW_NUMBER()` dos productos con el mismo total reciben puestos distintos al azar, y uno queda afuera del top 3 sin que nadie lo note. Si el negocio quiere "los 3 mejores, con empates", usa `RANK()` (deja huecos: 1, 1, 3) o `DENSE_RANK()` (no deja huecos: 1, 1, 2), y dilo en la respuesta.
+:::
+
 :::practica sql Retención por cohorte
 1. Ejecuta: el mes del primer pedido de cada cliente (su cohorte).
 2. Une con todos sus pedidos y cuenta clientes activos por cohorte y mes.

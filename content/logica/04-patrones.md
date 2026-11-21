@@ -101,6 +101,10 @@ print(movil([10, 20, 30, 40], 3))   # [None, None, 20.0, 30.0]
 
 En SQL lo mismo es `AVG(x) OVER (ORDER BY fecha ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)`. SQL no pone `None` en los bordes: promedia los que haya. Es una diferencia que conviene saber, no un error.
 
+:::cuidado Forzar un patrón que no aplica
+Reconocer patrones acelera, pero no todo problema con "pares" es un diccionario índice ni todo "anterior" es una ventana. Verifica primero con un ejemplo chico que el patrón da la respuesta correcta; si tienes que torcerlo mucho para que encaje, probablemente es otro problema.
+:::
+
 :::practica python Dos patrones: diccionario índice y racha
 1. Ejecuta el primero: encontrar dos montos que sumen un objetivo pasa de dos bucles a uno con un diccionario.
 2. Ejecuta el segundo: la racha más larga de días con ventas en alza compara cada valor con el anterior.

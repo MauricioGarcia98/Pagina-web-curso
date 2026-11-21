@@ -235,6 +235,10 @@ Esa lógica vive en una macro llamada `generate_schema_name`. Si en producción 
 `dbt_project.yml` define qué se construye y cómo: nombre del proyecto, carpetas y configuraciones por defecto como la materialización; se versiona en Git. `profiles.yml` define dónde se construye: la conexión a la base y las credenciales para cada entorno (dev, prod); vive fuera del repositorio porque tiene secretos. El campo `profile:` del primero dice qué perfil del segundo usar, y `--target` elige el entorno.
 :::
 
+:::cuidado profiles.yml con contraseñas en el repositorio
+`profiles.yml` guarda cómo conectarse al warehouse: no lo subas al repositorio con usuario y contraseña. Déjalo en `~/.dbt/` o lee los secretos con `{{ env_var("DBT_PASSWORD") }}`, y en CI usa los secretos del repositorio. Si una clave llegó a Git, cámbiala: borrar el archivo no la saca del historial.
+:::
+
 :::practica terminal Crear un proyecto dbt desde cero
 1. Crea un proyecto nuevo con `dbt init`.
 2. Recorre lo que creó: `dbt_project.yml`, la carpeta `models` y las carpetas vacías (`seeds`, `snapshots`, `tests`, `macros`).

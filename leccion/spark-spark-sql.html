@@ -125,6 +125,12 @@ FROM ...</code></pre>
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las vistas temporales mueren con la sesión</div>
+
+<p><code>createOrReplaceTempView(&quot;ventas&quot;)</code> existe solo mientras vive tu <code>SparkSession</code>: otro notebook, otro job o un reinicio no la ven. Si otros tienen que consultarla, guárdala como tabla (<code>saveAsTable</code>) en el catálogo. Las <em>global temp views</em> se leen como <code>global_temp.nombre</code> y también desaparecen al terminar la aplicación.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: De DataFrame a SQL y vuelta</div>
 
 <ol>

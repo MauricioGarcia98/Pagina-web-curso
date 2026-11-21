@@ -240,6 +240,12 @@ extraer_clientes ┘</code></pre>
 <figure class="diagrama"><figcaption>Los componentes de Airflow 3 y cómo se comunican</figcaption></figure>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Airflow orquesta, no procesa</div>
+
+<p>Las tareas de Airflow deberían <strong>mandar</strong> el trabajo pesado a quien lo hace (Spark, el warehouse, dbt), no procesar millones de filas en el propio worker. Y el código de nivel superior del archivo del DAG se ejecuta cada vez que el scheduler lee el archivo (cada pocos segundos): nada de consultas a bases ni llamadas a APIs fuera de las tareas.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un DAG con ramas que se separan y se juntan</div>
 
 <ol>

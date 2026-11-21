@@ -251,6 +251,12 @@ cat models/schema.yml</code></pre>
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ profiles.yml con contraseñas en el repositorio</div>
+
+<p><code>profiles.yml</code> guarda cómo conectarse al warehouse: no lo subas al repositorio con usuario y contraseña. Déjalo en <code>~/.dbt/</code> o lee los secretos con <code>{{ env_var(&quot;DBT_PASSWORD&quot;) }}</code>, y en CI usa los secretos del repositorio. Si una clave llegó a Git, cámbiala: borrar el archivo no la saca del historial.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Crear un proyecto dbt desde cero</div>
 
 <ol>

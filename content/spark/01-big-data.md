@@ -161,6 +161,10 @@ Sirve para:
 No siempre. Si tus datos entran cómodamente en una máquina (pocos GB), pandas, Polars, DuckDB o un buen data warehouse pueden ser más simples y más baratos. Spark brilla cuando el volumen es grande o crece sin límite, y cuando necesitas una plataforma unificada (Databricks). Coordinar un clúster tiene un costo fijo: para 50 MB, Spark es **más lento** que pandas.
 :::
 
+:::cuidado Spark no siempre es la respuesta
+Con datos que entran en una máquina (unos pocos GB), pandas, Polars o DuckDB suelen ser más rápidos y más simples que Spark: no hay clúster que arrancar ni shuffle que pagar. Spark empieza a valer la pena cuando los datos o el procesamiento ya no entran en una sola computadora.
+:::
+
 ## Resumen
 
 - Big data = datos que no caben o no se procesan a tiempo en una sola máquina.

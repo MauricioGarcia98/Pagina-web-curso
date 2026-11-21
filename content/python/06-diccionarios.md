@@ -208,6 +208,10 @@ Diccionarios y conjuntos usan una **tabla hash**: calculan una "dirección" a pa
 - Los conjuntos (`set`) son la forma más rápida de comparar listas grandes de ids: "qué clientes están en el CRM pero no en la base de pedidos". Es una tarea de conciliación muy común.
 :::
 
+:::cuidado KeyError y modificar mientras recorres
+`ventas["marzo"]` lanza `KeyError` si esa clave no existe; usa `ventas.get("marzo", 0)` cuando la ausencia es normal. Y no agregues ni borres claves mientras recorres el diccionario con `for`: Python lanza `RuntimeError: dictionary changed size during iteration`. Recorre una copia: `for k in list(ventas):`.
+:::
+
 ## Resumen
 
 - `dict`: pares clave → valor; acceso instantáneo por clave. `d[k]` falla si no existe; `d.get(k, defecto)` no.

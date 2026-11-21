@@ -224,6 +224,10 @@ Los `NULL` marcan "todos". (Si tus datos ya tenían nulos en esas columnas, `F.g
 Agrupar en un cluster obliga a **mover** datos: todas las filas de "Chile" tienen que terminar en la misma máquina para sumarlas. Ese movimiento se llama **shuffle** y es la operación más cara de Spark (lo viste en el módulo de Spark). Spark lo hace en dos fases: primero agrega parcialmente en cada máquina y recién después mueve esos resultados parciales, mucho más chicos. Por eso agrupar suele ser eficiente, salvo con `collect_list` sobre grupos enormes o claves muy desbalanceadas (*skew*).
 :::
 
+:::cuidado count(columna) no cuenta los nulos
+`F.count("email")` cuenta solo las filas donde `email` no es nulo; `F.count("*")` cuenta todas. Lo mismo `F.avg` y `F.sum`: ignoran los nulos, y el promedio de una columna con muchos nulos puede verse bien siendo engañoso. Si los nulos significan "cero", conviértelos antes con `F.coalesce(col, F.lit(0))`.
+:::
+
 ## Resumen
 
 - `groupBy(cols).agg(F.func(...).alias(...), …)`: una fila por grupo, una columna por métrica.

@@ -154,6 +154,10 @@ En una entrevista y en el trabajo, resolver en silencio vale la mitad. Acostúmb
 3. **Cómo lo resuelvo** ("sumo por vendedor y busco el máximo").
 4. **Qué probé** ("lista vacía, un solo vendedor y un empate").
 
+:::cuidado Escribir código antes de entender
+El error más común en una entrevista es empezar a teclear en el primer minuto. Si no puedes resolver a mano un ejemplo chico, todavía no entendiste el problema, y el código va a reflejar esa confusión. Dos minutos de ejemplo y plan ahorran diez de depuración.
+:::
+
 :::practica python El método en un problema nuevo
 1. Problema: "dada una lista de ventas (producto, cantidad), devuelve el **segundo** producto más vendido".
 2. Antes de tocar el código: escribe un ejemplo chico y la respuesta esperada a mano.

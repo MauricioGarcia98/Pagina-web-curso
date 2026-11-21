@@ -205,6 +205,10 @@ En Databricks, **Photon** es un motor de ejecución vectorizado escrito en C++ q
 - **`repartition` antes de cada escritura.** Fuerza un shuffle; `coalesce` reduce particiones sin shuffle completo.
 :::
 
+:::cuidado cache() no hace nada hasta la próxima acción
+`df.cache()` solo marca el DataFrame: se guarda en memoria la primera vez que una acción lo calcula. Y ocupa memoria de los executors hasta que lo liberes con `unpersist()`. Cachea solo lo que reutilizas varias veces en la misma aplicación; cachear todo "por las dudas" suele hacer el job más lento.
+:::
+
 :::practica pyspark Medir antes de optimizar: UDF contra función nativa
 1. Ejecuta: el mismo cálculo con una UDF de Python y con funciones nativas.
 2. Compara los tiempos. En un clúster la diferencia es mayor: la UDF saca cada fila de la JVM a Python y la vuelve a meter.

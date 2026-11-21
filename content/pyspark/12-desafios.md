@@ -105,6 +105,10 @@ cliente_id | sesiones
 - **No probar con datos chicos.** Arma 5 filas y verifica a mano.
 :::
 
+:::cuidado Resolver con un for lo que hace una ventana
+Traer los datos con `collect()` y recorrerlos en Python funciona con 100 filas y se cae con 100 millones. Si el problema dice "anterior", "acumulado", "top por grupo" o "racha", casi siempre es una función de ventana (`lag`, `sum().over`, `row_number`) que Spark reparte entre los nodos.
+:::
+
 :::practica pyspark Desafío con reloj: top 3 por categoría
 1. Pedido: "los 3 productos con más ingresos en cada categoría, con su ingreso y su puesto". 20 minutos.
 2. Antes de escribir código, anota: tabla de grano, joins, agregación y ventana.

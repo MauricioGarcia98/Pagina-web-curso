@@ -130,6 +130,10 @@ dbt popularizó el rol de **Analytics Engineer**: alguien entre el analista y el
 Los ejercicios de dbt compilan tus modelos con **Jinja real** (la misma librería que usa dbt) y ejecutan el SQL resultante en la base SQLite del curso. Ya existen los modelos de staging `stg_clientes`, `stg_productos`, `stg_pedidos`, `stg_detalle_pedidos` (con la columna `importe`) y `stg_pagos`, y las fuentes de la tienda: `source('tienda', 'pedidos')` apunta a la tabla `pedidos` (se compila como `main.pedidos`), etc. Siempre verás el **SQL compilado**.
 :::
 
+:::cuidado dbt no mueve datos
+dbt no extrae datos de las fuentes ni los carga en el warehouse: solo genera y ejecuta `SELECT` dentro del warehouse que ya tiene los datos. La extracción y la carga las hace otra herramienta (Fivetran, Airbyte, Data Factory, un script de Python). Ese es el sentido de la "T" en ELT.
+:::
+
 :::practica terminal Tu primer dbt build
 1. Entra al proyecto y mira un modelo: es un `SELECT` con `{{ ref(...) }}`.
 2. Compílalo: dbt reemplaza `ref` por el nombre real de la tabla. Eso es todo lo que hace con tu SQL.

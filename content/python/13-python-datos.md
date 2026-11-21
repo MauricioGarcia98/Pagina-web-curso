@@ -351,6 +351,10 @@ La regla práctica: empieza por lo más simple que alcance. Usar Spark para 50 M
 Menciona: autenticación con un token desde un gestor de secretos; extracción incremental (pedir solo lo nuevo desde la última fecha cargada); paginación hasta que no haya más resultados; reintentos con espera exponencial ante `429` y `5xx`; timeout en cada llamada; guardar la respuesta cruda en el lake antes de transformar; y que todo sea idempotente, para poder volver a correr un día sin duplicar.
 :::
 
+:::cuidado Asignación encadenada en pandas
+`df[df["canal"] == "web"]["monto"] = 0` puede no modificar `df` (cambia una copia temporal) y pandas avisa con `SettingWithCopyWarning`. Selecciona y asigna en un solo paso con `.loc`: `df.loc[df["canal"] == "web", "monto"] = 0`.
+:::
+
 :::practica python Un mini pipeline con pandas
 1. Ejecuta: crea un DataFrame, limpia y agrupa.
 2. Agrega una columna `mes` desde la fecha.

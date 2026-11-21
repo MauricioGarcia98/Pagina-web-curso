@@ -210,6 +210,12 @@ df.withColumn(&quot;dominio&quot;, dominio_vec(&quot;email&quot;))</code></pre>
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ cache() no hace nada hasta la próxima acción</div>
+
+<p><code>df.cache()</code> solo marca el DataFrame: se guarda en memoria la primera vez que una acción lo calcula. Y ocupa memoria de los executors hasta que lo liberes con <code>unpersist()</code>. Cachea solo lo que reutilizas varias veces en la misma aplicación; cachear todo &quot;por las dudas&quot; suele hacer el job más lento.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Medir antes de optimizar: UDF contra función nativa</div>
 
 <ol>
