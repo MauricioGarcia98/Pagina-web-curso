@@ -107,6 +107,17 @@ Si tienes visitantes de la Unión Europea, el Reino Unido o Suiza, Google exige 
 
 ## Pruebas automáticas
 
-Cada push a `main` y cada pull request corre `.github/workflows/pruebas.yml` en GitHub Actions: revisa la sintaxis del JavaScript, comprueba que los archivos generados estén al día con `node tools/build.mjs`, ejecuta el validador de los ~2.500 ejercicios (`node tools/validate.mjs`) y abre las páginas principales en Chromium (`node tools/humo.mjs`). Si algo falla, el pull request lo muestra en rojo antes de hacer merge.
+Cada push a `main` y cada pull request corre `.github/workflows/pruebas.yml` en GitHub Actions. Si algo falla, el pull request lo muestra en rojo antes de hacer merge:
 
-Para correr lo mismo en tu computadora: `npm ci`, `pip install -r requirements-ci.txt`, `node tools/validate.mjs`; y con el sitio servido (`npm run serve`), `node tools/humo.mjs`.
+| Paso | Herramienta | Qué comprueba |
+|---|---|---|
+| Sintaxis | `node --check` | que todo el JavaScript sea válido |
+| Generados al día | `node tools/build.mjs` | que el contenido generado coincida con el que está en el repositorio |
+| Validador | `node tools/validate.mjs` | que la solución de cada ejercicio (más de 4.000) pase su corrección |
+| DuckDB | `node tools/duckdb.mjs` | que cada solución SQL corra en DuckDB, el motor del curso |
+| Humo | `node tools/humo.mjs` | que las páginas principales y las réplicas abran sin errores |
+| Ejercicios en el navegador | `node tools/ejercicios-navegador.mjs` | que cada solución de SQL, Python y PySpark pase también con los motores del navegador (DuckDB-WASM, SQLite y Pyodide) |
+| Diagramas | `node tools/diagramas.mjs` | que cada diagrama se dibuje en teléfono y escritorio, sin texto fuera de su caja ni etiquetas encimadas |
+| Accesibilidad | `node tools/accesibilidad.mjs` | auditoría axe-core (WCAG 2.1 A y AA) de las páginas del curso en tema claro y oscuro |
+
+Para correr lo mismo en tu computadora: `npm ci`, `pip install -r requirements-ci.txt`, `node tools/validate.mjs`; y con el sitio servido (`npm run serve`), `node tools/humo.mjs`, `node tools/ejercicios-navegador.mjs`, `node tools/diagramas.mjs` y, después de `npm install --no-save axe-core`, `node tools/accesibilidad.mjs`. `ejercicios-navegador.mjs` y `diagramas.mjs` aceptan una lista para revisar solo una parte (módulos o lecciones; por ejemplo `node tools/ejercicios-navegador.mjs http://localhost:8000/ sql,python`).
