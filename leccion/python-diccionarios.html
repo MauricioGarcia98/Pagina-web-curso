@@ -233,6 +233,12 @@ print(len(set([&quot;a&quot;, &quot;b&quot;, &quot;a&quot;, &quot;c&quot;])))   
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ KeyError y modificar mientras recorres</div>
+
+<p><code>ventas[&quot;marzo&quot;]</code> lanza <code>KeyError</code> si esa clave no existe; usa <code>ventas.get(&quot;marzo&quot;, 0)</code> cuando la ausencia es normal. Y no agregues ni borres claves mientras recorres el diccionario con <code>for</code>: Python lanza <code>RuntimeError: dictionary changed size during iteration</code>. Recorre una copia: <code>for k in list(ventas):</code>.</p>
+</div>
+
+
 <h2>Resumen</h2>
 <ul>
 <li><code>dict</code>: pares clave → valor; acceso instantáneo por clave. <code>d[k]</code> falla si no existe; <code>d.get(k, defecto)</code> no.</li>

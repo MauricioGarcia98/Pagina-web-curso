@@ -120,6 +120,12 @@ print(&quot;todas las pruebas pasaron&quot;)</code></pre>
 maximo = max(ventas.values())
 ganadores = [nombre for nombre, v in ventas.items() if v == maximo]
 print(ganadores)  # ['Ana', 'Luis']</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Probar solo el caso feliz</div>
+
+<p>Que el código funcione con el ejemplo del enunciado no prueba nada: el ejemplo suele ser el caso más fácil. Antes de decir &quot;listo&quot;, prueba al menos la lista vacía, un solo elemento, empates y un valor faltante. Son los cuatro casos que más rompen soluciones en entrevistas.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Romper tu propia solución</div>
 
 <ol>

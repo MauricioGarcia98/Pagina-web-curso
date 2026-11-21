@@ -96,6 +96,10 @@ La traza muestra exactamente dónde el programa hace algo distinto de lo que ima
 
 Regla práctica: **filtra lo antes posible**, agrupa después, ordena al final.
 
+:::cuidado Funciones que hacen dos cosas
+Una función que limpia los datos **y** calcula el total es difícil de probar y de reutilizar: si falla, no sabes cuál de las dos partes falló. Si para describir la función necesitas la palabra "y", probablemente son dos funciones.
+:::
+
 :::practica python Una función por paso y una tabla de traza
 1. Ejecuta: el problema "ticket promedio por cliente" está partido en funciones chicas.
 2. Sigue el programa a mano con la tabla de traza (anota el valor de cada variable en cada vuelta).

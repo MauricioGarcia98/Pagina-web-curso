@@ -205,6 +205,10 @@ with transaccion("carga_diaria"):
 - Los decoradores están en todas las herramientas de datos: `@task` y `@dag` en Airflow, `@pytest.fixture` en tests, `@F.udf` en PySpark, `@retry` de tenacity.
 :::
 
+:::cuidado Un generador se usa una sola vez
+Después de recorrer un generador, queda vacío: un segundo `for` no hace nada y `sum()` devuelve 0, sin error. Si necesitas los datos dos veces, guárdalos en una lista (`list(gen)`) o vuelve a crear el generador llamando de nuevo a la función.
+:::
+
 :::practica python Leer de a pedazos con un generador
 1. Ejecuta: un generador que entrega lotes de 3.
 2. Cambia el tamaño del lote.

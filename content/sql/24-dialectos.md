@@ -259,6 +259,10 @@ Ordenas por una columna con NULL de forma ascendente. ¿Dónde quedan los NULL?
 - [ ] Se descartan del resultado
 :::
 
+:::cuidado La misma consulta, resultados distintos
+`SELECT 5 / 2` da `2` en PostgreSQL y SQL Server (división entera entre enteros) y `2.5` en DuckDB y MySQL. Concatenar es `||` en PostgreSQL y DuckDB, pero `+` o `CONCAT()` en SQL Server. Antes de llevar una consulta a otro motor, revisa divisiones, concatenaciones, fechas y `LIMIT`/`TOP`.
+:::
+
 :::practica sql La misma consulta en varios motores
 1. Ejecuta en DuckDB: el top 3 por categoría con `QUALIFY`.
 2. Cambia el motor a PostgreSQL: `QUALIFY` no existe. Reescríbela con una subconsulta.

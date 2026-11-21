@@ -51,6 +51,12 @@ LIMIT 7;</code></pre>
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Los días sin datos desaparecen</div>
+
+<p>Si un día no hubo ventas, <code>GROUP BY fecha</code> no devuelve esa fila, y un promedio móvil de &quot;7 filas&quot; termina abarcando 8 o 9 días. Antes de calcular tendencias, une contra una tabla calendario (todos los días) y completa los huecos con 0.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Promedio móvil de 7 días</div>
 
 <ol>

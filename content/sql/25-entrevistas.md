@@ -284,6 +284,10 @@ WHERE c22 = 1 AND c23 = 0 AND c24 = 1;
 ```
 :::
 
+:::cuidado NOT IN con un NULL no devuelve nada
+`WHERE cliente_id NOT IN (SELECT cliente_id FROM pedidos)` devuelve **cero filas** si la subconsulta trae un solo `NULL`, porque cualquier comparación con `NULL` es desconocida. En una entrevista (y en producción) usa `NOT EXISTS` o un `LEFT JOIN … WHERE p.cliente_id IS NULL`, que se comportan bien con nulos.
+:::
+
 :::practica sql Un desafío con reloj
 1. Lee el pedido de abajo y escribe la consulta sin mirar soluciones: 20 minutos.
 2. Pedido: "el segundo producto más vendido (en unidades) de cada categoría".

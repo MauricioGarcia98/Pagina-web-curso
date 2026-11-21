@@ -208,6 +208,10 @@ Usa **▶ Ejecutar** las veces que quieras para probar sin que se califique, y *
 - Los nombres de variables importan muchísimo: el código se lee muchas más veces de las que se escribe. `precio_con_descuento` se entiende solo; `p2` obliga a leer todo el programa.
 :::
 
+:::cuidado Mayúsculas y sangría importan
+`Print("hola")` da `NameError`: la función se llama `print`, en minúsculas. Y la sangría no es estética: después de `if`, `for` o `def` el bloque debe estar corrido con el mismo número de espacios (usa 4). Mezclar tabulaciones y espacios produce `IndentationError` aunque a simple vista se vea bien.
+:::
+
 ## Resumen
 
 - Un programa es una lista de instrucciones que se ejecutan en orden, de arriba hacia abajo.

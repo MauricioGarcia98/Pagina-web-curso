@@ -140,6 +140,12 @@ FROM pedidos;</code></pre>
 </tr>
 </tbody></table></div>
 <p>Regla práctica: <strong>agrega antes de unir</strong> cuando juntas dos tablas que tienen muchas filas por la misma clave.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Contar después de un JOIN sin revisar el grano</div>
+
+<p>Si unes <code>pedidos</code> con <code>detalle_pedidos</code> y después haces <code>COUNT(*)</code>, cuentas <strong>líneas</strong>, no pedidos: un pedido con 4 productos se cuenta 4 veces. Después de cada JOIN pregúntate &quot;¿una fila por qué?&quot; y usa <code>COUNT(DISTINCT pedido_id)</code> cuando corresponda.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Construir por capas y contar filas en cada una</div>
 
 <ol>

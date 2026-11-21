@@ -150,6 +150,10 @@ print("✔ test OK")
 - **Pipeline que no es idempotente.** Correrlo dos veces debe dar lo mismo.
 :::
 
+:::cuidado Un pipeline que duplica al reejecutarse
+Si la capa silver se escribe con `mode("append")`, correr dos veces el mismo día duplica todo. Un pipeline de producción tiene que ser **idempotente**: reescribe la partición del día (`overwrite` dinámico) o usa `MERGE` por clave, para que reprocesar dé el mismo resultado.
+:::
+
 :::practica pyspark Bronze → silver → gold con funciones
 1. Ejecuta: cada capa es una función que recibe y devuelve un DataFrame.
 2. Agrega a `a_silver` el descarte de pedidos `cancelado`.

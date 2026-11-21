@@ -201,6 +201,10 @@ Una buena respuesta es un método: 1) ¿Cambió el volumen de datos o la consult
 - **Optimizar sin mirar el plan.** `EXPLAIN` dice qué hace el motor; adivinar lleva a cambios inútiles.
 :::
 
+:::cuidado Una función sobre la columna anula el índice o la partición
+`WHERE YEAR(fecha_pedido) = 2024` obliga al motor a calcular `YEAR()` en cada fila: no puede usar el índice ni saltar particiones. Escribe el rango sobre la columna sin tocarla: `WHERE fecha_pedido >= '2024-01-01' AND fecha_pedido < '2025-01-01'`. Lo mismo con `LOWER(email) = …` o `CAST(id AS TEXT) = …`.
+:::
+
 :::practica sql Leer un plan de ejecución
 1. Ejecuta `EXPLAIN` sobre la consulta y mira cómo une las tablas.
 2. Cambia `EXPLAIN` por `EXPLAIN ANALYZE` (en DuckDB) para ver tiempos reales.

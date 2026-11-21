@@ -178,6 +178,10 @@ overwrite → reemplaza (idempotente)
 ignore    → no hace nada si existe
 ```
 
+:::cuidado overwrite con particiones borra todo
+Por defecto, `df.write.mode("overwrite").partitionBy("fecha")` reemplaza **la tabla entera**, no solo las particiones que trae el DataFrame. Para reemplazar solo esas, configura `spark.sql.sources.partitionOverwriteMode = dynamic` (o en Delta usa `replaceWhere`). Y `inferSchema` lee el archivo dos veces y puede adivinar mal los tipos: en producción, pasa el esquema explícito.
+:::
+
 ## Resumen
 
 - `spark.read.format(…).option(…).schema(…).load(…)`; atajos `.csv`, `.json`, `.parquet`, `.table`.

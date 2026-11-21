@@ -203,6 +203,12 @@ GROUP BY c.pais;</code></pre>
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Una función sobre la columna anula el índice o la partición</div>
+
+<p><code>WHERE YEAR(fecha_pedido) = 2024</code> obliga al motor a calcular <code>YEAR()</code> en cada fila: no puede usar el índice ni saltar particiones. Escribe el rango sobre la columna sin tocarla: <code>WHERE fecha_pedido &gt;= &#39;2024-01-01&#39; AND fecha_pedido &lt; &#39;2025-01-01&#39;</code>. Lo mismo con <code>LOWER(email) = …</code> o <code>CAST(id AS TEXT) = …</code>.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Leer un plan de ejecución</div>
 
 <ol>

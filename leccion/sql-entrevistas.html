@@ -201,6 +201,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="exercise-slot"></div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ NOT IN con un NULL no devuelve nada</div>
+
+<p><code>WHERE cliente_id NOT IN (SELECT cliente_id FROM pedidos)</code> devuelve <strong>cero filas</strong> si la subconsulta trae un solo <code>NULL</code>, porque cualquier comparación con <code>NULL</code> es desconocida. En una entrevista (y en producción) usa <code>NOT EXISTS</code> o un <code>LEFT JOIN … WHERE p.cliente_id IS NULL</code>, que se comportan bien con nulos.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un desafío con reloj</div>
 
 <ol>

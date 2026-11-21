@@ -379,6 +379,12 @@ SELECT * FROM main.ventas.pedidos TIMESTAMP AS OF '2024-06-01';</code></pre>
 <div class="exercise-slot"></div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La misma consulta, resultados distintos</div>
+
+<p><code>SELECT 5 / 2</code> da <code>2</code> en PostgreSQL y SQL Server (división entera entre enteros) y <code>2.5</code> en DuckDB y MySQL. Concatenar es <code>||</code> en PostgreSQL y DuckDB, pero <code>+</code> o <code>CONCAT()</code> en SQL Server. Antes de llevar una consulta a otro motor, revisa divisiones, concatenaciones, fechas y <code>LIMIT</code>/<code>TOP</code>.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: La misma consulta en varios motores</div>
 
 <ol>

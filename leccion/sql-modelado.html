@@ -251,6 +251,12 @@ ORDER BY dp.categoria, anio;</code></pre>
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La clave sustituta no reemplaza a la natural</div>
+
+<p>Agregar un <code>id</code> autoincremental no evita los duplicados: si el mismo cliente llega dos veces, tendrás dos <code>id</code> distintos para la misma persona. Mantén una restricción <code>UNIQUE</code> sobre la clave de negocio (por ejemplo, el documento o el email normalizado) además de la clave sustituta.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Una tabla de hechos y sus dimensiones</div>
 
 <ol>

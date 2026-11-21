@@ -261,6 +261,12 @@ print((carpeta / &quot;a.txt&quot;).exists(), (carpeta / &quot;a.txt&quot;).suff
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Codificación y carpeta actual</div>
+
+<p><code>open(&quot;datos.csv&quot;)</code> sin <code>encoding</code> usa la codificación del sistema: en Windows suele ser <code>cp1252</code> y las tildes salen rotas o el programa falla. Escribe siempre <code>open(&quot;datos.csv&quot;, encoding=&quot;utf-8&quot;)</code>. Y una ruta relativa se busca desde la carpeta donde <strong>ejecutaste</strong> el programa, no desde donde está el archivo <code>.py</code>.</p>
+</div>
+
+
 <h2>Resumen</h2>
 <ul>
 <li><code>import modulo</code> / <code>from modulo import nombre</code>: biblioteca estándar, paquetes con <code>pip</code>, y tus propios archivos.</li>

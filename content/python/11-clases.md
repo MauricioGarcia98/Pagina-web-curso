@@ -242,6 +242,10 @@ print(t.celsius, t.fahrenheit)
 - Leer código de librerías (Airflow, PySpark, dbt) exige entender clases: un operador de Airflow es una clase que hereda de `BaseOperator` y define `execute`. Si algún día escribes un operador propio, es exactamente lo que vas a hacer.
 :::
 
+:::cuidado Una lista como valor por defecto se comparte
+`def __init__(self, lineas=[]):` crea **una sola** lista que comparten todos los objetos: si agregas una línea a un pedido, aparece en todos. Usa `lineas=None` y adentro `self.lineas = lineas if lineas is not None else []`. Con `dataclasses` se escribe `field(default_factory=list)`.
+:::
+
 ## Resumen
 
 - Clase = molde; objeto = instancia concreta. `__init__` prepara los atributos; `self` es "este objeto".

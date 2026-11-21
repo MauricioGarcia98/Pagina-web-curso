@@ -206,6 +206,12 @@ df.repartition(&quot;anio&quot;, &quot;mes&quot;).write.partitionBy(&quot;anio&q
 <div class="recorrido"></div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ overwrite con particiones borra todo</div>
+
+<p>Por defecto, <code>df.write.mode(&quot;overwrite&quot;).partitionBy(&quot;fecha&quot;)</code> reemplaza <strong>la tabla entera</strong>, no solo las particiones que trae el DataFrame. Para reemplazar solo esas, configura <code>spark.sql.sources.partitionOverwriteMode = dynamic</code> (o en Delta usa <code>replaceWhere</code>). Y <code>inferSchema</code> lee el archivo dos veces y puede adivinar mal los tipos: en producción, pasa el esquema explícito.</p>
+</div>
+
+
 <h2>Resumen</h2>
 <ul>
 <li><code>spark.read.format(…).option(…).schema(…).load(…)</code>; atajos <code>.csv</code>, <code>.json</code>, <code>.parquet</code>, <code>.table</code>.</li>

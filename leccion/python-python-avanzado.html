@@ -195,6 +195,12 @@ with transaccion(&quot;carga_diaria&quot;):
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Un generador se usa una sola vez</div>
+
+<p>Después de recorrer un generador, queda vacío: un segundo <code>for</code> no hace nada y <code>sum()</code> devuelve 0, sin error. Si necesitas los datos dos veces, guárdalos en una lista (<code>list(gen)</code>) o vuelve a crear el generador llamando de nuevo a la función.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Leer de a pedazos con un generador</div>
 
 <ol>

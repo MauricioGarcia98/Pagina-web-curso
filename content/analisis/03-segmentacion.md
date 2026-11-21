@@ -136,6 +136,10 @@ LIMIT 5;
 `NTILE(4) OVER (ORDER BY recencia DESC)` da 4 a los de recencia más baja (los que compraron hace poco). Elige el orden para que **4 siempre sea “lo mejor”**: así el puntaje se lee fácil.
 :::
 
+:::cuidado Los quintiles se mueven solos
+`NTILE(5)` reparte a los clientes según la población del momento: si el mes que viene entran muchos clientes nuevos, un cliente que no cambió nada puede bajar de quintil. Para seguir segmentos en el tiempo, fija los cortes (por ejemplo, "más de 10 compras") o guarda los umbrales usados en cada fecha.
+:::
+
 :::practica sql Segmentación RFM con NTILE
 1. Ejecuta: para cada cliente se calcula recencia (días desde la última compra), frecuencia (pedidos) y monto.
 2. `NTILE(5)` reparte a los clientes en quintiles: 5 es el mejor.

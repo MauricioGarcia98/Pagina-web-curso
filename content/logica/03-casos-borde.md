@@ -74,6 +74,10 @@ ganadores = [nombre for nombre, v in ventas.items() if v == maximo]
 print(ganadores)  # ['Ana', 'Luis']
 ```
 
+:::cuidado Probar solo el caso feliz
+Que el código funcione con el ejemplo del enunciado no prueba nada: el ejemplo suele ser el caso más fácil. Antes de decir "listo", prueba al menos la lista vacía, un solo elemento, empates y un valor faltante. Son los cuatro casos que más rompen soluciones en entrevistas.
+:::
+
 :::practica python Romper tu propia solución
 1. Ejecuta: la función pasa el caso normal.
 2. Descomenta los casos borde uno por uno: lista vacía, un solo elemento, empates, valores `None`.

@@ -116,6 +116,12 @@ for fila in df.collect():
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ collect() trae todo al driver</div>
+
+<p><code>df.collect()</code> copia todas las filas a la memoria de la máquina que coordina (el driver). Con millones de filas, el driver se queda sin memoria y el job muere. Para mirar datos usa <code>show()</code>, <code>take(10)</code> o <code>limit()</code>; para resultados grandes, escríbelos a una tabla o archivo.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Leer el plan: broadcast, shuffle y sort-merge</div>
 
 <ol>

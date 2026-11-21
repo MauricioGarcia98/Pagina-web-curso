@@ -160,6 +160,12 @@ for v in ventas:
 
 print(movil([10, 20, 30, 40], 3))   # [None, None, 20.0, 30.0]</code></pre>
 <p>En SQL lo mismo es <code>AVG(x) OVER (ORDER BY fecha ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)</code>. SQL no pone <code>None</code> en los bordes: promedia los que haya. Es una diferencia que conviene saber, no un error.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Forzar un patrón que no aplica</div>
+
+<p>Reconocer patrones acelera, pero no todo problema con &quot;pares&quot; es un diccionario índice ni todo &quot;anterior&quot; es una ventana. Verifica primero con un ejemplo chico que el patrón da la respuesta correcta; si tienes que torcerlo mucho para que encaje, probablemente es otro problema.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Dos patrones: diccionario índice y racha</div>
 
 <ol>

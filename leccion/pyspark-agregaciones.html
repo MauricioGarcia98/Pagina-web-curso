@@ -190,6 +190,12 @@ spark.table(&quot;productos&quot;).agg(F.max(&quot;precio&quot;), F.min(&quot;pr
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ count(columna) no cuenta los nulos</div>
+
+<p><code>F.count(&quot;email&quot;)</code> cuenta solo las filas donde <code>email</code> no es nulo; <code>F.count(&quot;*&quot;)</code> cuenta todas. Lo mismo <code>F.avg</code> y <code>F.sum</code>: ignoran los nulos, y el promedio de una columna con muchos nulos puede verse bien siendo engañoso. Si los nulos significan &quot;cero&quot;, conviértelos antes con <code>F.coalesce(col, F.lit(0))</code>.</p>
+</div>
+
+
 <h2>Resumen</h2>
 <ul>
 <li><code>groupBy(cols).agg(F.func(...).alias(...), …)</code>: una fila por grupo, una columna por métrica.</li>

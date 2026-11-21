@@ -240,6 +240,10 @@ Es la forma moderna de trabajar con archivos y carpetas: procesar todos los CSV 
 - Las fechas se guardan en UTC y en formato ISO. Las conversiones a hora local se hacen solo al mostrar.
 :::
 
+:::cuidado Codificación y carpeta actual
+`open("datos.csv")` sin `encoding` usa la codificación del sistema: en Windows suele ser `cp1252` y las tildes salen rotas o el programa falla. Escribe siempre `open("datos.csv", encoding="utf-8")`. Y una ruta relativa se busca desde la carpeta donde **ejecutaste** el programa, no desde donde está el archivo `.py`.
+:::
+
 ## Resumen
 
 - `import modulo` / `from modulo import nombre`: biblioteca estándar, paquetes con `pip`, y tus propios archivos.

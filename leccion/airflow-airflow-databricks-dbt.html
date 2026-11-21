@@ -199,6 +199,12 @@ default_args = {&quot;on_failure_callback&quot;: avisar_falla, &quot;retries&quo
 <li><input disabled="" type="checkbox"> Tests de importación en CI y despliegue automático de la carpeta <code>dags/</code>.</li>
 </ul>
 <h2>Ejercicio integrador</h2>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Tokens en el código del DAG</div>
+
+<p>Nunca escribas un token de Databricks o una contraseña en el archivo del DAG: queda en Git y en los logs. Usa una <strong>Connection</strong> de Airflow (<code>databricks_conn_id</code>) o un backend de secretos (Key Vault, Secrets Manager), y referencia solo su nombre desde el código.</p>
+</div>
+
+
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Orquestar Databricks y dbt desde un DAG</div>
 
 <ol>

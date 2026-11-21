@@ -261,6 +261,10 @@ Y en el repositorio: un `pyproject.toml` (o `requirements.txt`) con las dependen
 - Los logs de los pipelines terminan en sistemas centralizados (CloudWatch, Azure Monitor, Datadog), donde se buscan y se configuran alertas. Un buen mensaje de log incluye siempre **cuántas filas** se procesaron.
 :::
 
+:::cuidado Instalar en el Python del sistema
+`pip install` fuera de un entorno virtual mezcla las dependencias de todos tus proyectos y puede romper herramientas del sistema operativo. Crea un entorno por proyecto (`uv venv` o `python -m venv .venv`) y fija versiones en `pyproject.toml` o `requirements.txt`. Las contraseñas y claves nunca van en el código: van en variables de entorno o en un gestor de secretos.
+:::
+
 :::practica terminal Un proyecto Python como en el trabajo
 1. Crea la carpeta del proyecto y un entorno virtual.
 2. Escribe una función y su test.

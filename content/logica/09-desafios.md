@@ -27,6 +27,10 @@ Hasta acá practicaste cada técnica por separado, como un músico que practica 
 Vuelve al paso 1 y resuelve el problema **a mano** con 4 datos inventados. Lo que hiciste con la cabeza es el algoritmo; solo falta escribirlo.
 :::
 
+:::cuidado Quedarse en silencio en la entrevista
+Quien evalúa no ve lo que piensas, solo lo que dices y escribes. Si te trabas, di en voz alta qué intentaste y qué piensas probar: muchas veces el entrevistador da una pista. Resolver bien pero en silencio suele puntuar peor que resolver a medias explicando el razonamiento.
+:::
+
 :::practica python Desafío de entrevista con reloj: sesiones
 1. Pedido (25 minutos): "dado un registro de eventos (usuario, minuto), agrupa en sesiones: una sesión se corta si pasan más de 30 minutos sin eventos. Devuelve cuántas sesiones tiene cada usuario".
 2. Aplica el método completo: ejemplo a mano, plan, código, casos borde.

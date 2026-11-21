@@ -248,6 +248,12 @@ print(t.celsius, t.fahrenheit)</code></pre>
 </div>
 
 
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Una lista como valor por defecto se comparte</div>
+
+<p><code>def __init__(self, lineas=[]):</code> crea <strong>una sola</strong> lista que comparten todos los objetos: si agregas una línea a un pedido, aparece en todos. Usa <code>lineas=None</code> y adentro <code>self.lineas = lineas if lineas is not None else []</code>. Con <code>dataclasses</code> se escribe <code>field(default_factory=list)</code>.</p>
+</div>
+
+
 <h2>Resumen</h2>
 <ul>
 <li>Clase = molde; objeto = instancia concreta. <code>__init__</code> prepara los atributos; <code>self</code> es &quot;este objeto&quot;.</li>
