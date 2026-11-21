@@ -128,7 +128,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Cuando llega una pregunta parecida, Genie usa ese ejemplo como guía. Con <strong>Usage guidance</strong> puedes aclarar cuándo aplica.</p>
 <h3>Consultas con parámetros: respuestas verificadas</h3>
 <p>Una consulta de ejemplo puede tener <strong>parámetros</strong>, que se escriben con dos puntos (<code>:pais</code>) o con el botón <strong>Add parameter</strong>. Cada parámetro tiene tipo (texto, fecha, fecha y hora, decimal o entero) y un comentario que explica los valores posibles:</p>
-<pre data-norun><code class="language-sql">-- Pregunta: &quot;¿Cuánto vendimos en &lt;país&gt; en &lt;mes&gt;?&quot;
+<pre data-norun tabindex="0"><code class="language-sql">-- Pregunta: &quot;¿Cuánto vendimos en &lt;país&gt; en &lt;mes&gt;?&quot;
 SELECT ROUND(SUM(importe_neto), 2) AS ventas_netas,
        COUNT(DISTINCT pedido_id)   AS pedidos
 FROM ventas.gold.ventas_lineas
@@ -140,7 +140,7 @@ WHERE estado &lt;&gt; 'cancelado'
 <p>Cuando la lógica no cabe en una consulta fija (por ejemplo, comisiones por tramos con reglas que dependen del vendedor), se registra una <strong>función SQL</strong> en Unity Catalog y se agrega al agente. Genie la llama con los valores de la pregunta. Los usuarios necesitan permiso <code>EXECUTE</code> sobre la función.</p>
 <h2>4. Instrucciones de texto (último recurso)</h2>
 <p>En <strong>Configure → Instructions → Text</strong> van las reglas que no se pueden escribir en SQL. Pocas y concretas:</p>
-<pre><code class="language-text">- El año fiscal empieza el 1 de febrero: el FY2025 va del 1/2/2025 al 31/1/2026.
+<pre tabindex="0"><code class="language-text">- El año fiscal empieza el 1 de febrero: el FY2025 va del 1/2/2025 al 31/1/2026.
 - Redondea los importes a 2 decimales.
 - Si preguntan por ventas sin decir el período, pregunta primero:
   &quot;¿De qué período quieres las ventas? Por ejemplo: marzo de 2024 o todo 2024.&quot;
@@ -198,7 +198,7 @@ Instructions you must follow when providing summaries
 <li>En <strong>SQL queries</strong>, agrega una consulta de ejemplo verificada para &quot;ventas por canal&quot;: Genie la reutiliza para preguntas parecidas.</li>
 <li>Vuelve a <strong>Chat</strong> y repite una pregunta que antes salió mal.</li>
 </ol>
-<pre data-norun><code class="language-text">- &quot;ventas&quot; o &quot;facturación&quot; = SUM(cantidad * precio_unitario * (1 - descuento)) de pedidos entregados.
+<pre data-norun tabindex="0"><code class="language-text">- &quot;ventas&quot; o &quot;facturación&quot; = SUM(cantidad * precio_unitario * (1 - descuento)) de pedidos entregados.
 - Los pedidos cancelados y devueltos nunca cuentan como venta.
 - &quot;el mes pasado&quot; = el último mes completo, no los últimos 30 días.
 - Los montos están en la moneda local de cada país: no los sumes entre países sin aclararlo.</code></pre>

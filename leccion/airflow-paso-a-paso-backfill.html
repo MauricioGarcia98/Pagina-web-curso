@@ -69,7 +69,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p>En Airflow 3 el backfill lo ejecuta el <strong>scheduler</strong>, igual que las corridas normales: respeta <code>max_active_runs</code>, se ve en la interfaz y se puede pausar o cancelar.</p>
 <h2>Paso 3 — Desde la CLI</h2>
-<pre data-norun><code class="language-bash">airflow backfill create --dag-id carga_ventas_tienda \
+<pre data-norun tabindex="0"><code class="language-bash">airflow backfill create --dag-id carga_ventas_tienda \
   --from-date 2026-11-08 --to-date 2026-11-14 \
   --reprocess-behavior failed</code></pre>
 <h2>Paso 4 — ¿Backfill o Clear?</h2>

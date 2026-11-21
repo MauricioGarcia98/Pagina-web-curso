@@ -63,7 +63,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>Ejemplo para la app de delivery: 2 millones de pedidos por día y, por cada pedido, unos 200 eventos (clics, búsquedas, posiciones del repartidor):</p>
-<pre><code class="language-text">Eventos por día:     2.000.000 × 200          = 400 millones
+<pre tabindex="0"><code class="language-text">Eventos por día:     2.000.000 × 200          = 400 millones
 Volumen crudo/día:   400 M × 1 KB             ≈ 400 GB en JSON
 En Parquet:          400 GB ÷ 8               ≈ 50 GB por día
 Por año:             50 GB × 365              ≈ 18 TB por año (más el crudo si se guarda)
@@ -223,7 +223,7 @@ Eventos por segundo: 400 M ÷ 100.000 s        ≈ 4.000 por segundo (picos de 3
 <li>Cambia los supuestos (más usuarios, eventos más grandes) y mira qué número cambia más.</li>
 <li>En la entrevista, di los supuestos en voz alta antes de dar los números.</li>
 </ol>
-<pre data-norun><code class="language-python">usuarios_activos = 2_000_000
+<pre data-norun tabindex="0"><code class="language-python">usuarios_activos = 2_000_000
 eventos_por_usuario_dia = 40
 bytes_por_evento = 500
 compresion_parquet = 0.2     # Parquet suele ocupar ~20 % del JSON

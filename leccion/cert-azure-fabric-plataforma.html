@@ -192,7 +192,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h3>Permisos de ítem</h3>
 <p>Se puede compartir <strong>un ítem</strong> sin dar acceso al workspace, con permisos como <strong>Read</strong> (ver el ítem), <strong>ReadData</strong> (consultar con SQL), <strong>ReadAll</strong> (leer los archivos de OneLake con Spark) y <strong>Build</strong> (crear informes sobre un modelo semántico). <strong>OneLake security</strong> define roles de acceso a carpetas y tablas dentro de un lakehouse.</p>
 <h3>Seguridad dentro del warehouse (T-SQL)</h3>
-<pre data-norun><code class="language-sql">-- Nivel de objeto: el grupo de marketing solo lee la tabla de ventas
+<pre data-norun tabindex="0"><code class="language-sql">-- Nivel de objeto: el grupo de marketing solo lee la tabla de ventas
 GRANT SELECT ON dbo.ventas TO [grp-marketing];
 
 -- Nivel de columna: no ve el costo

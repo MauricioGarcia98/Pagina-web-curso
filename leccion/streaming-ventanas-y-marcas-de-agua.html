@@ -73,7 +73,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Resultados finales tarde; mucho estado en memoria</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 por_ventana = (eventos
     .withWatermark(&quot;ts_evento&quot;, &quot;10 minutes&quot;)
@@ -92,7 +92,7 @@ por_ventana = (eventos
 <li>Mira qué eventos se descartan con un retraso de 60 segundos.</li>
 <li>Cambia el retraso a 300 segundos: ¿se descarta menos? ¿Qué te cuesta?</li>
 </ol>
-<pre><code class="language-python">def procesar(llegadas, tamano, retraso):
+<pre tabindex="0"><code class="language-python">def procesar(llegadas, tamano, retraso):
     conteos, descartados, max_visto = {}, [], None
     for ts in llegadas:                                  # en orden de llegada
         marca = None if max_visto is None else max_visto - retraso

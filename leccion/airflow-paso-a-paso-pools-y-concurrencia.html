@@ -39,7 +39,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p>Un <strong>pool</strong> es un cupo compartido: cada tarea del pool ocupa un lugar mientras corre. Si no hay lugar, espera en <strong>queued</strong>. Desde la CLI: <code>airflow pools set api_tienda 2 &quot;API de la tienda&quot;</code>.</p>
 <h2>Paso 2 — Usarlo</h2>
-<pre data-norun><code class="language-python">with DAG(
+<pre data-norun tabindex="0"><code class="language-python">with DAG(
     dag_id=&quot;catalogo_api&quot;,
     schedule=&quot;0 4 * * *&quot;,
     start_date=datetime(2026, 11, 1),

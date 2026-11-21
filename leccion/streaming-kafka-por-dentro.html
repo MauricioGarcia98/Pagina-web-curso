@@ -108,7 +108,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Mira que cada pedido queda entero en una partición y en orden.</li>
 <li>Cambia la clave por el tipo de evento (<code>creado</code>, <code>pagado</code>…) y mira cómo se mezclan los pedidos y se pierde el orden de cada uno.</li>
 </ol>
-<pre><code class="language-python">import zlib
+<pre tabindex="0"><code class="language-python">import zlib
 
 N = 3
 topico = {p: [] for p in range(N)}

@@ -37,7 +37,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Los datos</h2>
 <p><a href="#/generador?esc=banco&n=1500&semilla=7&desde=2024-01-01&hasta=2024-12-31&duplicados=1&nulos=2&formatos=2&tardios=4">🏭 Generar los datos del proyecto</a> · Escenario <strong>Banco digital</strong>: <code>clientes</code>, <code>cuentas</code>, <code>transacciones</code> (con <code>es_fraude</code>) y <code>prestamos</code>. El fraude sembrado tiene patrones reales: montos de 8 a 40 veces el gasto habitual del cliente, muchas veces en otro país y de madrugada.</p>
-<pre><code class="language-bash">generar-datos banco --filas 300 --semilla 7
+<pre tabindex="0"><code class="language-bash">generar-datos banco --filas 300 --semilla 7
 duckdb -c &quot;SELECT es_fraude, COUNT(*), ROUND(AVG(ABS(monto)),2) FROM '~/datos/generados/banco/transacciones.csv' GROUP BY es_fraude&quot;</code></pre>
 <h2>Arquitectura</h2>
 <figure class="diagrama"><figcaption>Fraude en tiempo casi real</figcaption></figure>
@@ -45,7 +45,7 @@ duckdb -c &quot;SELECT es_fraude, COUNT(*), ROUND(AVG(ABS(monto)),2) FROM '~/dat
 
 <h2>Fase 1: las reglas, con datos (local)</h2>
 <p>Antes de pensar en streaming, se diseñan las reglas en batch y se <strong>miden</strong>. En DuckDB:</p>
-<pre data-norun><code class="language-sql">CREATE TABLE tx AS SELECT * FROM read_csv_auto('data/raw/transacciones.csv');
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE tx AS SELECT * FROM read_csv_auto('data/raw/transacciones.csv');
 
 -- señales con ventanas: gasto habitual (mediana de los 30 días previos) y ráfagas
 CREATE TABLE senales AS
@@ -65,13 +65,13 @@ FROM (SELECT *, (abs(monto) &gt; 8 * monto_habitual AND (hora &lt; 6 OR pais_tx 
 <p>Itera: cambia el multiplicador, agrega el país o la ráfaga, y registra cada versión en una tabla de resultados (versión, recall, precisión, alertas por día). Esa tabla <strong>es</strong> el corazón del README.</p>
 <h2>Fase 2: streaming simulado (local)</h2>
 <p>Un script escribe las transacciones en archivos de un minuto en <code>data/stream/</code>, y otro proceso las lee por micro-lotes, calcula señales con el estado de las últimas horas y escribe alertas. Con Spark local:</p>
-<pre data-norun><code class="language-python">df = (spark.readStream.schema(esquema).json(&quot;data/stream/&quot;)
+<pre data-norun tabindex="0"><code class="language-python">df = (spark.readStream.schema(esquema).json(&quot;data/stream/&quot;)
         .withWatermark(&quot;ts&quot;, &quot;10 minutes&quot;))
 alertas = df.join(habitual, &quot;cuenta_id&quot;).where(&quot;abs(monto) &gt; 8 * monto_habitual&quot;)
 (alertas.writeStream.format(&quot;delta&quot;).option(&quot;checkpointLocation&quot;, &quot;chk/alertas&quot;)
         .trigger(processingTime=&quot;30 seconds&quot;).start(&quot;lake/alertas&quot;))</code></pre>
 <h2>Fase 3: Lakeflow Declarative Pipelines en Databricks</h2>
-<pre data-norun><code class="language-sql">CREATE OR REFRESH STREAMING TABLE bronze_tx AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REFRESH STREAMING TABLE bronze_tx AS
 SELECT *, current_timestamp() AS _ingesta
 FROM STREAM read_files('/Volumes/workspace/fraude/llegada/', format =&gt; 'json');
 
@@ -129,7 +129,7 @@ WHERE abs(s.monto) &gt; 8 * h.monto_habitual AND (hour(s.ts) &lt; 6 OR s.pais_tx
 <li>Una transacción 5 veces mayor que lo habitual dispara la regla.</li>
 <li>Compara con la etiqueta real (<code>es_fraude</code>): cuántas alertas eran fraude de verdad (precisión) y cuántos fraudes se escaparon.</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 tx = spark.table(&quot;banco_transacciones&quot;)

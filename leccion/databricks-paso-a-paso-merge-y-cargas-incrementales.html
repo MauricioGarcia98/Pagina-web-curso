@@ -47,7 +47,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>Paso 2 — MERGE INTO</h2>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE main.default.productos_precio AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE main.default.productos_precio AS
 SELECT producto_id, nombre, precio FROM samples.tienda.productos LIMIT 20;
 
 MERGE INTO main.default.productos_precio AS destino
@@ -90,7 +90,7 @@ WHEN NOT MATCHED THEN INSERT *;</code></pre>
 
 <h2>Paso 3 — COPY INTO: solo los archivos nuevos</h2>
 <p>Para archivos que van llegando a un volumen:</p>
-<pre data-norun><code class="language-sql">CREATE TABLE IF NOT EXISTS main.default.devoluciones_raw
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE IF NOT EXISTS main.default.devoluciones_raw
   (pedido_id INT, fecha DATE, categoria STRING, canal STRING, motivo STRING, monto DOUBLE);
 
 COPY INTO main.default.devoluciones_raw

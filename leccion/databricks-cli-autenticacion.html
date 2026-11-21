@@ -34,7 +34,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>La interfaz web de Databricks es excelente para explorar y desarrollar. La CLI es para todo lo que tiene que ser <strong>repetible</strong>: subir archivos de un proceso, crear secretos en un script de instalación, reiniciar un cluster desde un job de monitoreo y, sobre todo, <strong>desplegar</strong> notebooks y jobs desde Git hacia dev y prod con CI/CD (Declarative Automation Bundles, lección 7). Es exactamente la misma idea que <code>az</code>, <code>aws</code> o <code>gcloud</code>, pero para el workspace de Databricks.</p>
 <p>La CLI habla con la <strong>API REST</strong> de Databricks: cada comando es una llamada HTTPS autenticada a tu workspace. Por eso lo primero es decirle <strong>a qué workspace</strong> hablar (el <em>host</em>) y <strong>con qué credencial</strong>.</p>
 <h2>Instalación</h2>
-<pre data-norun><code class="language-bash"># macOS / Linux con Homebrew (desde Homebrew 6 hay que &quot;confiar&quot; en el repositorio de terceros)
+<pre data-norun tabindex="0"><code class="language-bash"># macOS / Linux con Homebrew (desde Homebrew 6 hay que &quot;confiar&quot; en el repositorio de terceros)
 brew tap databricks/tap
 brew trust databricks/tap
 brew install databricks
@@ -75,14 +75,14 @@ databricks -v                     # o: databricks version</code></pre>
 </tr>
 </tbody></table></div>
 <p>La configuración queda en <code>~/.databrickscfg</code>, con <strong>perfiles</strong>:</p>
-<pre data-norun><code class="language-ini">[DEFAULT]
+<pre data-norun tabindex="0"><code class="language-ini">[DEFAULT]
 host = https://adb-1111111111111111.1.azuredatabricks.net
 auth_type = databricks-cli
 
 [prod]
 host = https://adb-2222222222222222.2.azuredatabricks.net
 auth_type = databricks-cli</code></pre>
-<pre data-norun><code class="language-bash">databricks auth login --host https://adb-2222222222222222.2.azuredatabricks.net --profile prod
+<pre data-norun tabindex="0"><code class="language-bash">databricks auth login --host https://adb-2222222222222222.2.azuredatabricks.net --profile prod
 databricks auth profiles                  # lista los perfiles y si son válidos
 databricks current-user me                # ¿quién soy?
 databricks clusters list --profile prod   # usar otro perfil (-p prod)</code></pre>
@@ -103,7 +103,7 @@ databricks clusters list --profile prod   # usar otro perfil (-p prod)</code></p
 
 
 <h2>Pruébalo en la terminal</h2>
-<pre><code class="language-bash">databricks current-user me
+<pre tabindex="0"><code class="language-bash">databricks current-user me
 databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
 databricks auth profiles
 databricks current-user me
@@ -145,7 +145,7 @@ databricks catalogs list</code></pre>
 <li>Mira los perfiles guardados y con quién estás conectado.</li>
 <li>Lista clusters y catálogos: es la misma información que ves en la interfaz web.</li>
 </ol>
-<pre data-norun><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+<pre data-norun tabindex="0"><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
 databricks auth profiles
 databricks current-user me
 databricks clusters list

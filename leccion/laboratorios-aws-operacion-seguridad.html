@@ -57,7 +57,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Programa la carga nocturna con EventBridge.</li>
 <li>Limpia todo en orden inverso y verifica.</li>
 </ol>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 aws dynamodb create-table --table-name envios-lab --attribute-definitions AttributeName=envio_id,AttributeType=S --key-schema AttributeName=envio_id,KeyType=HASH --billing-mode PAY_PER_REQUEST
 aws sns create-topic --name alertas-datos-lab
 aws events put-rule --name carga-nocturna-lab --schedule-expression &quot;cron(0 3 * * ? *)&quot;
@@ -119,13 +119,13 @@ aws dynamodb list-tables</code></pre>
 <li><strong>Permisos de destino</strong>: para que EventBridge publique en SNS, el tópico necesita una política que permita <code>events.amazonaws.com</code>. Con <code>put-targets</code> apuntando a un job de Glue o a Step Functions, la regla usa un rol.</li>
 <li><strong>Rotación de secretos</strong>: para RDS, la consola crea la Lambda de rotación por ti; por CLI, <code>aws secretsmanager rotate-secret --rotation-lambda-arn … --rotation-rules AutomaticallyAfterDays=30</code>.</li>
 </ul>
-<pre data-norun><code class="language-python">import json, boto3
+<pre data-norun tabindex="0"><code class="language-python">import json, boto3
 
 sm = boto3.client(&quot;secretsmanager&quot;)
 cred = json.loads(sm.get_secret_value(SecretId=&quot;lab/rds/ventas&quot;)[&quot;SecretString&quot;])
 # conecta con cred[&quot;usuario&quot;] y cred[&quot;clave&quot;]; nunca imprimas la clave en los logs</code></pre>
 <h2>Limpieza</h2>
-<pre data-norun><code class="language-bash">aws dynamodb delete-table --table-name envios-lab
+<pre data-norun tabindex="0"><code class="language-bash">aws dynamodb delete-table --table-name envios-lab
 aws events remove-targets --rule carga-nocturna-lab --ids 1
 aws events delete-rule --name carga-nocturna-lab
 aws cloudwatch delete-alarms --alarm-names glue-job-fallido-lab

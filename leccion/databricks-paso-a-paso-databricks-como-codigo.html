@@ -28,7 +28,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/databricks/d22-view-as-code.webp" alt="El mismo job como YAML de bundle y como JSON de la API" loading="lazy"><figcaption>El mismo job como YAML de bundle y como JSON de la API</figcaption></figure>
 
 
-<pre><code class="language-yaml">resources:
+<pre tabindex="0"><code class="language-yaml">resources:
   jobs:
     ventas_diarias:
       name: ventas_diarias
@@ -47,7 +47,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Todo lo que configuraste en el formulario está ahí: tareas, dependencias, cómputo, horario. Ese texto se guarda en un repositorio y se despliega.</p>
 <h2>Paso 2 — La CLI</h2>
 <p>La terminal del curso tiene la CLI <code>databricks</code>, conectada al mismo estado que la práctica:</p>
-<pre><code class="language-bash">databricks auth login --host https://adb-123.azuredatabricks.net   # en real: abre el navegador
+<pre tabindex="0"><code class="language-bash">databricks auth login --host https://adb-123.azuredatabricks.net   # en real: abre el navegador
 databricks clusters list
 databricks jobs list
 databricks jobs run-now --job-id 505991137319
@@ -57,7 +57,7 @@ databricks workspace export /Workspace/Users/alumno@academia.dev/Ventas\ por\ ca
 <p>Lo que creas con la CLI aparece en la interfaz y al revés. El curso de <a href="#/m/databricks">Databricks y Databricks CLI</a> la cubre a fondo.</p>
 <h2>Paso 3 — Bundles</h2>
 <p>Un <strong>Declarative Automation Bundle</strong> (antes <em>Asset Bundle</em>) es una carpeta con:</p>
-<pre><code class="language-text">mi-proyecto/
+<pre tabindex="0"><code class="language-text">mi-proyecto/
 ├── databricks.yml          # nombre del bundle, targets (dev, prod) y a qué workspace va cada uno
 ├── resources/
 │   ├── ventas_diarias.job.yml
@@ -65,7 +65,7 @@ databricks workspace export /Workspace/Users/alumno@academia.dev/Ventas\ por\ ca
 └── src/
     ├── ventas_por_canal.py  # los notebooks como archivos fuente
     └── pipeline.sql</code></pre>
-<pre><code class="language-yaml"># databricks.yml
+<pre tabindex="0"><code class="language-yaml"># databricks.yml
 bundle:
   name: ventas
 
@@ -81,7 +81,7 @@ targets:
       host: https://adb-prod.azuredatabricks.net
     run_as:
       service_principal_name: sp-datos-prod</code></pre>
-<pre><code class="language-bash">databricks bundle validate            # ¿está bien escrito?
+<pre tabindex="0"><code class="language-bash">databricks bundle validate            # ¿está bien escrito?
 databricks bundle deploy -t dev       # crea o actualiza jobs, pipelines y notebooks en dev
 databricks bundle run ventas_diarias  # lo ejecuta
 databricks bundle deploy -t prod      # lo mismo, en producción (normalmente desde CI/CD)</code></pre>
@@ -92,7 +92,7 @@ databricks bundle deploy -t prod      # lo mismo, en producción (normalmente de
 <figure class="diagrama"><figcaption>De un cambio en una rama a producción, sin pasos manuales</figcaption></figure>
 
 
-<pre><code class="language-yaml"># .github/workflows/deploy.yml (resumen)
+<pre tabindex="0"><code class="language-yaml"># .github/workflows/deploy.yml (resumen)
 - uses: databricks/setup-cli@main
 - run: databricks bundle validate -t prod
 - run: databricks bundle deploy -t prod

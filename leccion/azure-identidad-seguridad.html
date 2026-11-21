@@ -101,7 +101,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>El <strong>alcance</strong> puede ser una suscripción, un grupo de recursos o un recurso concreto. Se hereda hacia abajo. Aplica el <strong>principio de mínimo privilegio</strong>: el rol más chico en el alcance más chico.</p>
-<pre data-norun><code class="language-bash"># Service principal para el pipeline de CI, con Contributor solo sobre un grupo de recursos
+<pre data-norun tabindex="0"><code class="language-bash"># Service principal para el pipeline de CI, con Contributor solo sobre un grupo de recursos
 az ad sp create-for-rbac --name sp-ci-datos --role Contributor \
   --scopes /subscriptions/$SUB_ID/resourceGroups/rg-datos-dev
 
@@ -114,7 +114,7 @@ az role assignment list --scope $ST_ID -o table</code></pre>
 <h3>Cómo se lee un role assignment</h3>
 <p><code>az role assignment create --assignee equipo-datos@empresa.com --role &quot;Storage Blob Data Contributor&quot; --scope $ST_ID</code> se lee: &quot;el grupo <strong>equipo-datos</strong> puede <strong>leer y escribir datos</strong> en <strong>esta cuenta de almacenamiento</strong> (y en todo lo que contiene)&quot;. Las tres partes son obligatorias, y equivocarse en el alcance es el error más peligroso: el mismo rol con <code>--scope /subscriptions/$SUB_ID</code> daría acceso a <strong>todas</strong> las cuentas de la suscripción.</p>
 <h2>Key Vault: el lugar de los secretos</h2>
-<pre data-norun><code class="language-bash">az keyvault create --name kv-datos-dev --resource-group rg-datos-dev --location eastus2
+<pre data-norun tabindex="0"><code class="language-bash">az keyvault create --name kv-datos-dev --resource-group rg-datos-dev --location eastus2
 az keyvault secret set --vault-name kv-datos-dev --name sql-password --value &quot;S3cr3t0!&quot;
 az keyvault secret show --vault-name kv-datos-dev --name sql-password --query value -o tsv
 az keyvault secret list --vault-name kv-datos-dev -o table</code></pre>
@@ -123,7 +123,7 @@ az keyvault secret list --vault-name kv-datos-dev -o table</code></pre>
 
 
 <h2>Pruébalo en la terminal</h2>
-<pre><code class="language-bash">az login
+<pre tabindex="0"><code class="language-bash">az login
 az group create --name rg-datos-dev --location eastus2
 az keyvault create --name kv-datos-dev --resource-group rg-datos-dev --location eastus2
 az keyvault secret set --vault-name kv-datos-dev --name databricks-token --value dapi-ejemplo-123
@@ -148,7 +148,7 @@ az keyvault secret show --vault-name kv-datos-dev --name databricks-token --quer
 <li>Abre <strong>Access control (IAM)</strong> → <strong>Add role assignment</strong> y da el rol <strong>Key Vault Secrets User</strong> a una identidad: puede leer secretos, no administrarlos (mínimo privilegio).</li>
 <li>Verifica en <strong>Cloud Shell</strong>.</li>
 </ol>
-<pre data-norun><code class="language-bash">az keyvault secret list --vault-name kv-lab-datos01 -o table
+<pre data-norun tabindex="0"><code class="language-bash">az keyvault secret list --vault-name kv-lab-datos01 -o table
 az role assignment list -g rg-lab-datos -o table</code></pre>
 <p>Reto: explica por qué una identidad administrada (<em>managed identity</em>) es mejor que guardar una clave de la cuenta de almacenamiento en un notebook.</p>
 <p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/azure/key-vault/general/overview">Key Vault</a> · <a href="https://learn.microsoft.com/es-es/azure/role-based-access-control/role-assignments-portal">asignar roles en el portal</a></p>

@@ -66,7 +66,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>Este ejemplo agrupa una secuencia en <strong>lotes</strong> de 4 (por ejemplo, para insertar en una base de a 1.000 filas, o enviar a una API de a 500 registros):</p>
-<pre><code class="language-python">def leer_en_lotes(datos, tamanio):
+<pre tabindex="0"><code class="language-python">def leer_en_lotes(datos, tamanio):
     lote = []
     for d in datos:
         lote.append(d)
@@ -96,11 +96,11 @@ for lote in leer_en_lotes(range(1, 11), 4):
 
 <h2>Iteradores</h2>
 <p>Todo lo que puedes recorrer con <code>for</code> es <strong>iterable</strong>. <code>iter()</code> crea un iterador y <code>next()</code> pide el siguiente valor:</p>
-<pre><code class="language-python">it = iter([&quot;a&quot;, &quot;b&quot;])
+<pre tabindex="0"><code class="language-python">it = iter([&quot;a&quot;, &quot;b&quot;])
 print(next(it), next(it))
 # next(it) -&gt; StopIteration: no quedan más</code></pre>
 <p>El módulo <code>itertools</code> tiene herramientas muy útiles:</p>
-<pre><code class="language-python">from itertools import islice, groupby, chain
+<pre tabindex="0"><code class="language-python">from itertools import islice, groupby, chain
 print(list(islice(range(100), 5)))                       # los primeros 5
 datos = [(&quot;web&quot;, 1), (&quot;web&quot;, 2), (&quot;app&quot;, 3)]
 for canal, grupo in groupby(datos, key=lambda x: x[0]):   # agrupa consecutivos (¡ordena antes!)
@@ -114,7 +114,7 @@ for canal, grupo in groupby(datos, key=lambda x: x[0]):   # agrupa consecutivos 
 
 
 <p><code>@medir_tiempo</code> encima de <code>def suma_lenta</code> es exactamente lo mismo que escribir <code>suma_lenta = medir_tiempo(suma_lenta)</code> después de definirla. La función <code>envoltura</code> recibe cualquier argumento (<code>*args, **kwargs</code>), hace algo antes, llama a la original, hace algo después y devuelve el resultado. <code>functools.wraps</code> conserva el nombre y la documentación de la función original.</p>
-<pre><code class="language-python">import time
+<pre tabindex="0"><code class="language-python">import time
 import functools
 
 def medir_tiempo(func):
@@ -132,7 +132,7 @@ def suma_lenta(n):
 
 print(suma_lenta(1_000_000))</code></pre>
 <p>En Airflow escribirás <code>@task</code> y <code>@dag</code>; en Python verás <code>@property</code>, <code>@dataclass</code>, <code>@functools.lru_cache</code>…</p>
-<pre><code class="language-python">def reintentar(veces):
+<pre tabindex="0"><code class="language-python">def reintentar(veces):
     &quot;&quot;&quot;Decorador con parámetros: reintenta la función si falla.&quot;&quot;&quot;
     def decorador(func):
         @functools.wraps(func)
@@ -148,7 +148,7 @@ print(suma_lenta(1_000_000))</code></pre>
 <h2>Context managers: with</h2>
 <p>Muchos recursos deben <strong>abrirse y cerrarse</strong>: archivos, conexiones a bases de datos, sesiones, transacciones. Si el programa falla en el medio y nadie cierra el recurso, quedan conexiones colgadas o archivos a medio escribir. <code>with</code> garantiza que el &quot;cierre&quot; ocurra <strong>siempre</strong>, haya error o no. Ya lo usaste con <code>open</code>.</p>
 <p>Un objeto que funciona con <code>with</code> se llama <strong>context manager</strong>. Puedes crear los tuyos con <code>contextlib.contextmanager</code>: lo que va antes del <code>yield</code> se ejecuta al <strong>entrar</strong> al bloque <code>with</code>, y lo que va después, al <strong>salir</strong>. Este ejemplo simula una transacción: confirma si todo salió bien y &quot;deshace&quot; si hubo un error:</p>
-<pre><code class="language-python">from contextlib import contextmanager
+<pre tabindex="0"><code class="language-python">from contextlib import contextmanager
 
 @contextmanager
 def transaccion(nombre):
@@ -208,7 +208,7 @@ with transaccion(&quot;carga_diaria&quot;):
 <li>Cambia el tamaño del lote.</li>
 <li>Escribe un decorador que mida cuánto tarda una función.</li>
 </ol>
-<pre data-norun><code class="language-python">def lotes(datos, tam):
+<pre data-norun tabindex="0"><code class="language-python">def lotes(datos, tam):
     for i in range(0, len(datos), tam):
         yield datos[i:i + tam]
 

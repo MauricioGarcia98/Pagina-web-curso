@@ -59,7 +59,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>El error te dice <strong>el valor</strong> que lo causó (<code>&#39;sin lectura&#39;</code>). Ese es el punto de partida para investigar: buscar en bronze cuántas filas traen valores así y desde cuándo.</p>
 <h2>Encontrar y medir antes de corregir</h2>
 <p>Antes de cambiar el código, se mide el tamaño del problema con <code>try_cast</code>, que nunca falla:</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 bronze = spark.createDataFrame(
     [(&quot;M1&quot;, &quot;12.5&quot;, &quot;2&quot;), (&quot;M2&quot;, &quot;sin lectura&quot;, &quot;1&quot;), (&quot;M3&quot;, &quot;8&quot;, &quot;0&quot;), (&quot;M4&quot;, &quot;N/A&quot;, &quot;4&quot;), (&quot;M5&quot;, &quot;3.25&quot;, &quot;1&quot;)],

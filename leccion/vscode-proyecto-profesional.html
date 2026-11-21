@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — La estructura</h2>
-<pre><code class="language-text">ventas_app/
+<pre tabindex="0"><code class="language-text">ventas_app/
 ├── README.md              ← de cero a ejecutar
 ├── pyproject.toml         ← dependencias y configuración de herramientas
 ├── .gitignore
@@ -63,12 +63,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>Paso 2 — El entorno virtual</h2>
 <p>En la terminal integrada, en la raíz del proyecto:</p>
-<pre><code class="language-bash">python -m venv .venv
+<pre tabindex="0"><code class="language-bash">python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install pandas pytest ruff</code></pre>
 <p>El prompt muestra <code>(.venv)</code>: las bibliotecas se instalan <strong>solo</strong> para este proyecto. VS Code real detecta el <code>.venv</code> y ofrece usarlo como intérprete. <code>deactivate</code> sale del entorno.</p>
 <h2>Paso 3 — pyproject.toml: un solo archivo de configuración</h2>
-<pre><code class="language-toml">[project]
+<pre tabindex="0"><code class="language-toml">[project]
 name = &quot;ventas_app&quot;
 version = &quot;0.1.0&quot;
 requires-python = &quot;&gt;=3.11&quot;
@@ -87,7 +87,7 @@ select = [&quot;E&quot;, &quot;F&quot;, &quot;I&quot;]
 testpaths = [&quot;tests&quot;]</code></pre>
 <p><code>pip install -e &quot;.[dev]&quot;</code> instala el proyecto y las herramientas de desarrollo. Alternativa más simple y muy usada: <code>requirements.txt</code> (<code>pip freeze &gt; requirements.txt</code>). Herramientas modernas como <strong>uv</strong> hacen todo esto más rápido (<code>uv init</code>, <code>uv add pandas</code>).</p>
 <h2>Paso 4 — La carpeta .vscode para el equipo</h2>
-<pre><code class="language-json">// .vscode/settings.json
+<pre tabindex="0"><code class="language-json">// .vscode/settings.json
 {
   &quot;python.defaultInterpreterPath&quot;: &quot;.venv/bin/python&quot;,
   &quot;editor.formatOnSave&quot;: true,
@@ -96,14 +96,14 @@ testpaths = [&quot;tests&quot;]</code></pre>
 }</code></pre>
 <p>Junto con <code>extensions.json</code> (lección 18) y <code>tasks.json</code> (lección 19), quien clona el repositorio tiene el mismo entorno que tú en VS Code.</p>
 <h2>Paso 5 — Secretos: variables de entorno</h2>
-<pre><code class="language-text"># .env  (en .gitignore, nunca en Git)
+<pre tabindex="0"><code class="language-text"># .env  (en .gitignore, nunca en Git)
 DB_PASSWORD=la-clave-real
 
 # .env.example  (sí va a Git: dice qué hace falta)
 DB_PASSWORD=</code></pre>
 <p>El código lee <code>os.environ[&quot;DB_PASSWORD&quot;]</code> (o usa <code>python-dotenv</code> para cargar el <code>.env</code>). Así la clave nunca queda en el código ni en la historia de Git.</p>
 <h2>Paso 6 — El README que lleva de cero a ejecutar</h2>
-<pre><code class="language-text"># ventas_app
+<pre tabindex="0"><code class="language-text"># ventas_app
 Limpia y resume las ventas de la tienda.
 
 ## Requisitos

@@ -61,12 +61,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>Paso 1 · El ERP y la foto diaria</h2>
-<pre><code class="language-bash">sol accesos
+<pre tabindex="0"><code class="language-bash">sol accesos
 mkdir -p ~/sol/erp ~/sol/pos ~/sol/metas
 psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot; -c &quot;\dt&quot;
 psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot; -c &quot;SELECT sku, nombre, categoria, precio, costo, ult_modif FROM productos ORDER BY sku LIMIT 5&quot;</code></pre>
 <p>El ERP solo muestra el presente. La foto es la tabla completa, con la <strong>fecha en el nombre del archivo</strong> (de ahí sale <code>valido_desde</code>):</p>
-<pre><code class="language-bash">HOY=$(date +%F)
+<pre tabindex="0"><code class="language-bash">HOY=$(date +%F)
 psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot; \
   -c &quot;\copy (SELECT sku, nombre, categoria, precio, costo FROM productos ORDER BY sku) TO '~/sol/erp/productos_$HOY.csv' WITH CSV HEADER&quot;</code></pre>
 <div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Foto completa, no incremental</div>
@@ -78,7 +78,7 @@ psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quo
 <h2>Paso 2 · Los tickets de las cajas</h2>
 <p>Un archivo por día (los archivos de la terminal tienen un límite de tamaño, y además así queda particionado como en un lago de verdad). La API pagina de a 200 y responde 404 si el cierre de caja todavía no llegó: eso se anota, no se corta todo.
 Guárdalo como <code>~/sol.py</code>.</p>
-<pre data-norun><code class="language-python">import requests, os, csv
+<pre data-norun tabindex="0"><code class="language-python">import requests, os, csv
 from datetime import date, timedelta
 KEY = os.environ[&quot;POS&quot;]; DESDE = date.fromisoformat(os.environ[&quot;DESDE&quot;]); HOY = date.fromisoformat(os.environ[&quot;HOY&quot;])
 h = {&quot;X-Api-Key&quot;: KEY}
@@ -102,14 +102,14 @@ while d &lt; HOY:
                 pag += 1
     d += timedelta(days=1)
 print(&quot;sin cierre todavía:&quot;, faltan)</code></pre>
-<pre><code class="language-bash">POS=pos_… DESDE=2026-11-09 HOY=$(date +%F) python ~/sol.py</code></pre>
+<pre tabindex="0"><code class="language-bash">POS=pos_… DESDE=2026-11-09 HOY=$(date +%F) python ~/sol.py</code></pre>
 <p><code>DESDE</code> arranca el lunes de la semana pasada: hace falta la semana completa para el cumplimiento de metas.</p>
 <h2>Paso 3 · La planilla</h2>
-<pre><code class="language-bash">sol metas descargar -o ~/sol/metas/metas.csv
+<pre tabindex="0"><code class="language-bash">sol metas descargar -o ~/sol/metas/metas.csv
 head -5 ~/sol/metas/metas.csv</code></pre>
 <p>Antes de la reorganización, la planilla tenía títulos, <code>;</code> y montos con <code>$</code> y puntos: había que saltear filas y limpiar. Después quedó en formato largo (una fila por sucursal y semana) con <code>codigo_sucursal</code>. Se une <strong>por código</strong>, nunca por nombre: el nombre de Centro cambió.</p>
 <h2>Paso 4 · Al lago</h2>
-<pre><code class="language-bash">az login
+<pre tabindex="0"><code class="language-bash">az login
 az group create -n rg-sol -l eastus2
 az storage account create -n stsol -g rg-sol -l eastus2 --sku Standard_LRS --hns true
 az storage container create --account-name stsol -n landing
@@ -118,7 +118,7 @@ az role assignment create --assignee unity-catalog-access-connector --role &quot
 az storage blob upload-batch --account-name stsol -d landing/sol -s ~/sol</code></pre>
 <h2>Paso 5 · Databricks</h2>
 <p>Las fotos, con la fecha sacada del nombre del archivo (<code>productos_2026-11-16.csv</code> → posición 11, 10 caracteres):</p>
-<pre data-norun><code class="language-sql">CREATE EXTERNAL LOCATION lago_sol URL 'abfss://landing@stsol.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
+<pre data-norun tabindex="0"><code class="language-sql">CREATE EXTERNAL LOCATION lago_sol URL 'abfss://landing@stsol.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
 CREATE CATALOG IF NOT EXISTS sol; CREATE SCHEMA IF NOT EXISTS sol.silver; CREATE SCHEMA IF NOT EXISTS sol.gold;
 
 CREATE OR REPLACE TEMP VIEW fotos AS
@@ -126,7 +126,7 @@ SELECT sku, nombre, categoria, CAST(precio AS DOUBLE) AS precio, CAST(costo AS D
        substr(_metadata.file_name, 11, 10) AS fecha
 FROM read_files('abfss://landing@stsol.dfs.core.windows.net/sol/erp/', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false);</code></pre>
 <p>La SCD2: con <code>LAG</code> se compara cada foto con la anterior del mismo producto. Una versión nueva empieza cuando cambia precio, costo <strong>o categoría</strong>. Después, <code>LEAD</code> cierra cada versión con el inicio de la siguiente.</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TEMP VIEW versiones AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TEMP VIEW versiones AS
 SELECT * FROM (
   SELECT *, concat_ws('|', categoria, CAST(precio AS STRING), CAST(costo AS STRING)) AS v,
          LAG(concat_ws('|', categoria, CAST(precio AS STRING), CAST(costo AS STRING))) OVER (PARTITION BY sku ORDER BY fecha) AS ant
@@ -140,7 +140,7 @@ SELECT sku, nombre, categoria, precio, costo,
        LEAD(fecha) OVER (PARTITION BY sku ORDER BY fecha) IS NULL AS vigente
 FROM versiones;</code></pre>
 <p>Los tickets: <code>SELECT DISTINCT</code> elimina las líneas repetidas que Villa Sol reenvió al reconectarse (son copias exactas), y los anulados se filtran.</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TEMP VIEW lineas AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TEMP VIEW lineas AS
 SELECT DISTINCT * FROM read_files('abfss://landing@stsol.dfs.core.windows.net/sol/pos/', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false);
 
 CREATE OR REPLACE TEMP VIEW lineas_ok AS
@@ -149,7 +149,7 @@ SELECT ticket_id, sucursal, fecha, medio_pago, sku,
        CAST(cantidad AS INT) AS cantidad
 FROM lineas WHERE anulado = 'False';</code></pre>
 <p>Las ventas diarias: el margen usa el costo de la versión <strong>vigente el día de la venta</strong> (unión por rango), y solo desde el día de la primera foto (antes no hay costos).</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE sol.gold.ventas_diarias AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE sol.gold.ventas_diarias AS
 SELECT CAST(l.fecha AS DATE) AS fecha, l.sucursal,
        count(DISTINCT l.ticket_id) AS tickets,
        round(sum(l.neta), 2) AS ventas_netas,
@@ -161,7 +161,7 @@ JOIN sol.silver.dim_producto d
 WHERE l.fecha &gt;= '2026-11-16'   -- el día de tu primera foto
 GROUP BY l.fecha, l.sucursal;</code></pre>
 <p>Las metas, con la planilla en formato largo:</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TEMP VIEW metas AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TEMP VIEW metas AS
 SELECT codigo_sucursal AS sucursal, semana_desde, CAST(meta_ventas AS DOUBLE) AS meta
 FROM read_files('abfss://landing@stsol.dfs.core.windows.net/sol/metas/metas.csv', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false);
 
@@ -173,16 +173,16 @@ JOIN metas m ON m.sucursal = l.sucursal AND l.fecha &gt;= m.semana_desde
             AND l.fecha &lt; CAST(date_add(CAST(m.semana_desde AS DATE), 7) AS STRING)
 GROUP BY m.semana_desde, m.sucursal, m.meta;</code></pre>
 <p>Y las preguntas del tablero, por ejemplo el margen de Bebidas de un día (con el costo de ese día):</p>
-<pre data-norun><code class="language-sql">SELECT round(sum(l.neta - l.cantidad * d.costo) / sum(l.neta) * 100, 1)
+<pre data-norun tabindex="0"><code class="language-sql">SELECT round(sum(l.neta - l.cantidad * d.costo) / sum(l.neta) * 100, 1)
 FROM lineas_ok l
 JOIN sol.silver.dim_producto d ON d.sku = l.sku AND CAST(l.fecha AS DATE) &gt;= d.valido_desde
  AND (d.valido_hasta IS NULL OR CAST(l.fecha AS DATE) &lt; d.valido_hasta)
 WHERE l.fecha = '2026-11-18' AND d.categoria = 'BEB';</code></pre>
 <h2>Paso 6 · Key Vault y el DAG</h2>
-<pre><code class="language-bash">az keyvault create -n kv-sol -g rg-sol -l eastus2
+<pre tabindex="0"><code class="language-bash">az keyvault create -n kv-sol -g rg-sol -l eastus2
 az keyvault secret set --vault-name kv-sol -n erp-clave --value 'Sol…' -o none
 az keyvault secret set --vault-name kv-sol -n pos-key --value 'pos_…' -o none</code></pre>
-<pre data-norun><code class="language-python">from datetime import datetime
+<pre data-norun tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import DAG
 from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
 

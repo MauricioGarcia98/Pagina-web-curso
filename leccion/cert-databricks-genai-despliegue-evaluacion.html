@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Registrar el agente en Unity Catalog</h2>
-<pre data-norun><code class="language-python">import mlflow
+<pre data-norun tabindex="0"><code class="language-python">import mlflow
 from mlflow.models.resources import (DatabricksServingEndpoint, DatabricksVectorSearchIndex,
                                      DatabricksFunction, DatabricksGenieSpace)
 
@@ -49,7 +49,7 @@ with mlflow.start_run():
 <li><strong>Autenticación</strong>: por defecto el agente accede a los recursos con su propia identidad; con <strong>autenticación en nombre del usuario</strong> (<em>on-behalf-of-user</em>), accede con los permisos de quien pregunta, así cada usuario ve solo lo que puede ver.</li>
 </ul>
 <h2>Desplegar</h2>
-<pre data-norun><code class="language-python">from databricks import agents
+<pre data-norun tabindex="0"><code class="language-python">from databricks import agents
 agents.deploy(&quot;prod.ia.agente_soporte&quot;, info.registered_model_version)</code></pre>
 <p><code>agents.deploy</code> crea un <strong>endpoint de Model Serving</strong> para el agente y, además, la <strong>aplicación de revisión</strong> (para que expertos prueben y califiquen respuestas), las <strong>tablas de inferencia</strong> y el <strong>monitoreo</strong>. También puedes crear el endpoint con la API o desde un bundle.</p>
 <h2>Model Serving: cómo se sirve cada modelo</h2>
@@ -84,7 +84,7 @@ agents.deploy(&quot;prod.ia.agente_soporte&quot;, info.registered_model_version)
 <td>Procesar miles o millones de filas (clasificar reseñas, extraer campos)</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-sql">SELECT pedido_id,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT pedido_id,
        ai_query('databricks-meta-llama-3-3-70b-instruct',
                 concat('Clasifica el reclamo como demora, producto o pago: ', texto)) AS categoria
 FROM prod.silver.reclamos
@@ -138,7 +138,7 @@ WHERE dia = current_date() - 1;</code></pre>
 </ul>
 <h2>Evaluar con MLflow 3</h2>
 <p>Evaluar es <strong>medir</strong> la calidad con un conjunto de preguntas y criterios, antes de desplegar y después de cada cambio.</p>
-<pre data-norun><code class="language-python">import mlflow
+<pre data-norun tabindex="0"><code class="language-python">import mlflow
 from mlflow.genai.scorers import Correctness, RelevanceToQuery, RetrievalGroundedness, Safety, Guidelines
 
 datos = [

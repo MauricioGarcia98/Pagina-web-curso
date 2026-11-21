@@ -52,24 +52,24 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="diagrama"><figcaption>El flujo de trabajo en equipo con ramas</figcaption></figure>
 
 
-<pre data-norun><code class="language-bash">git switch -c feature/colombia      # crea la rama y te cambia a ella
+<pre data-norun tabindex="0"><code class="language-bash">git switch -c feature/colombia      # crea la rama y te cambia a ella
 # ... editas, pruebas ...
 git add pipelines/etl.py
 git commit -m &quot;Agrega Colombia a los países del ETL&quot;
 git push -u origin feature/colombia # sube la rama (-u: la próxima vez alcanza con git push)</code></pre>
 <p>Nombres típicos: <code>feature/…</code> (algo nuevo), <code>fix/…</code> (un arreglo), <code>chore/…</code> (mantenimiento). La rama aísla tu trabajo: <code>main</code> sigue funcionando mientras tú pruebas.</p>
 <h2>Push rechazado: traer primero, subir después</h2>
-<pre data-norun><code class="language-text"> ! [rejected]        main -&gt; main (fetch first)
+<pre data-norun tabindex="0"><code class="language-text"> ! [rejected]        main -&gt; main (fetch first)
 ayuda: Las actualizaciones fueron rechazadas porque el remoto contiene trabajo que
 ayuda: no tienes localmente.</code></pre>
 <p>Git no te deja pisar el trabajo de otra persona. La solución es siempre la misma: <strong>traer los cambios (<code>git pull</code>), integrarlos y volver a subir</strong>. Si las dos personas tocaron partes distintas, Git los junta solo. Si tocaron <strong>las mismas líneas</strong>, hay un conflicto.</p>
 <h2>Anatomía de un conflicto</h2>
-<pre data-norun><code class="language-text">$ git pull
+<pre data-norun tabindex="0"><code class="language-text">$ git pull
 Auto-fusionando pipelines/etl.py
 CONFLICTO (contenido): Conflicto de fusión en pipelines/etl.py
 Fusión automática falló; arregla los conflictos y luego haz commit del resultado.</code></pre>
 <p>Git escribió en el archivo <strong>las dos versiones</strong>, separadas por marcas:</p>
-<pre data-norun><code class="language-text">FECHA_INICIO = &quot;2024-01-01&quot;
+<pre data-norun tabindex="0"><code class="language-text">FECHA_INICIO = &quot;2024-01-01&quot;
 &lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
 PAISES = [&quot;Chile&quot;, &quot;Perú&quot;, &quot;Colombia&quot;]
 =======
@@ -80,8 +80,8 @@ PAISES = [&quot;Chile&quot;, &quot;Perú&quot;, &quot;México&quot;]
 <li>Entre <code>=======</code> y <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main</code>: la versión <strong>que llegó</strong> (la de Camila).</li>
 </ul>
 <p>Resolver es <strong>decidir qué queda</strong> (a veces una, a veces la otra, casi siempre una combinación), <strong>borrar las tres marcas</strong> y avisarle a Git:</p>
-<pre data-norun><code class="language-text">PAISES = [&quot;Chile&quot;, &quot;Perú&quot;, &quot;México&quot;, &quot;Colombia&quot;]</code></pre>
-<pre data-norun><code class="language-bash">git add pipelines/etl.py      # &quot;este archivo ya está resuelto&quot;
+<pre data-norun tabindex="0"><code class="language-text">PAISES = [&quot;Chile&quot;, &quot;Perú&quot;, &quot;México&quot;, &quot;Colombia&quot;]</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">git add pipelines/etl.py      # &quot;este archivo ya está resuelto&quot;
 git commit -m &quot;Une Colombia (marketing) y México (Camila)&quot;
 git push</code></pre>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Las marcas no se van solas</div>
@@ -98,7 +98,7 @@ git push</code></pre>
 
 <h2>stash: guardar algo a medias</h2>
 <p>Estás a mitad de un cambio y te piden algo urgente en otra rama. Git no te deja cambiar de rama con cambios que se pisarían, y no quieres hacer commit de algo incompleto. <code>git stash</code> guarda tus cambios en un cajón y deja el árbol limpio:</p>
-<pre data-norun><code class="language-bash">git stash                     # guarda y limpia
+<pre data-norun tabindex="0"><code class="language-bash">git stash                     # guarda y limpia
 git switch main               # haces lo urgente…
 git switch feature/colombia
 git stash pop                 # recuperas lo que tenías</code></pre>
@@ -139,7 +139,7 @@ git stash pop                 # recuperas lo que tenías</code></pre>
 <li><strong>Checks automáticos</strong>: GitHub Actions corre los tests, el linter, <code>dbt build</code>… Si algo falla, el PR no se fusiona.</li>
 <li><strong>Historia</strong>: el PR queda como registro de <strong>por qué</strong> cambió algo.</li>
 </ol>
-<pre data-norun><code class="language-bash">gh pr create --title &quot;Agrega Colombia al ETL&quot; --body &quot;Pedido de marketing (ticket DATA-142). Probado con datos de octubre: +312 filas.&quot;
+<pre data-norun tabindex="0"><code class="language-bash">gh pr create --title &quot;Agrega Colombia al ETL&quot; --body &quot;Pedido de marketing (ticket DATA-142). Probado con datos de octubre: +312 filas.&quot;
 gh pr view 1        # estado, checks y si se puede fusionar
 gh pr merge 1 --squash
 git switch main &amp;&amp; git pull</code></pre>
@@ -184,7 +184,7 @@ git switch main &amp;&amp; git pull</code></pre>
 <li>Cambia la misma línea en dos ramas distintas y haz commit en cada una.</li>
 <li>Haz el merge, abre el archivo, deja los dos cambios y termina el merge.</li>
 </ol>
-<pre><code class="language-bash">mkdir -p ~/equipo &amp;&amp; cd ~/equipo &amp;&amp; git init
+<pre tabindex="0"><code class="language-bash">mkdir -p ~/equipo &amp;&amp; cd ~/equipo &amp;&amp; git init
 echo 'PAISES = [&quot;Chile&quot;, &quot;Perú&quot;]' &gt; etl.py
 git add etl.py &amp;&amp; git commit -m &quot;ETL inicial&quot;
 git switch -c colombia

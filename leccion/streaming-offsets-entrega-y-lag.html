@@ -117,7 +117,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Compara las salidas: una pierde un mensaje y la otra repite uno.</li>
 <li>Agrega un destino idempotente (un conjunto de ids ya escritos) a la estrategia &quot;después&quot; y comprueba que el resultado final no tiene duplicados.</li>
 </ol>
-<pre><code class="language-python">def correr(mensajes, caida_en, estrategia):
+<pre tabindex="0"><code class="language-python">def correr(mensajes, caida_en, estrategia):
     procesados, confirmado = [], 0
     for i in range(confirmado, len(mensajes)):
         if estrategia == &quot;antes&quot;:

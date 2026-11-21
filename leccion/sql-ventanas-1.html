@@ -51,7 +51,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>La sintaxis</h2>
-<pre data-norun><code class="language-sql">funcion(...) OVER (
+<pre data-norun tabindex="0"><code class="language-sql">funcion(...) OVER (
     PARTITION BY columnas   -- opcional: los &quot;vagones&quot; (grupos). Sin él, toda la tabla es un solo grupo
     ORDER BY columnas       -- opcional: el orden dentro de cada grupo
     ROWS BETWEEN …          -- opcional: el &quot;marco&quot; de filas (lección siguiente)
@@ -59,7 +59,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>La palabra clave es <strong><code>OVER</code></strong>: lo que va antes es la función, lo que va adentro de los paréntesis define <strong>la ventana</strong>, es decir, qué filas mira cada fila.</p>
 <h2>Agregaciones como ventana</h2>
 <p>Cualquier agregación (<code>SUM</code>, <code>AVG</code>, <code>COUNT</code>, <code>MIN</code>, <code>MAX</code>) se convierte en función de ventana si le agregas <code>OVER</code>:</p>
-<pre><code class="language-sql">SELECT nombre, categoria_id, precio,
+<pre tabindex="0"><code class="language-sql">SELECT nombre, categoria_id, precio,
        ROUND(AVG(precio) OVER (PARTITION BY categoria_id), 2)         AS promedio_categoria,
        ROUND(precio - AVG(precio) OVER (PARTITION BY categoria_id), 2) AS diferencia,
        COUNT(*) OVER ()                                                AS total_productos
@@ -117,7 +117,7 @@ LIMIT 10;</code></pre>
 
 <h2>Rankings: ROW_NUMBER, RANK y DENSE_RANK</h2>
 <p>Con <code>ORDER BY</code> dentro del <code>OVER</code>, puedes <strong>numerar</strong> las filas de cada grupo. Hay tres funciones, y la diferencia está en cómo tratan los <strong>empates</strong>:</p>
-<pre><code class="language-sql">WITH notas(alumno, puntaje) AS (VALUES ('Ana', 100), ('Beto', 90), ('Carla', 90), ('Dani', 80))
+<pre tabindex="0"><code class="language-sql">WITH notas(alumno, puntaje) AS (VALUES ('Ana', 100), ('Beto', 90), ('Carla', 90), ('Dani', 80))
 SELECT alumno, puntaje,
        ROW_NUMBER() OVER (ORDER BY puntaje DESC) AS row_number,
        RANK()       OVER (ORDER BY puntaje DESC) AS rank,
@@ -188,7 +188,7 @@ FROM notas;</code></pre>
 
 <h3>Rankings dentro de cada grupo</h3>
 <p>Con <code>PARTITION BY</code>, la numeración <strong>vuelve a empezar en 1</strong> en cada grupo:</p>
-<pre><code class="language-sql">SELECT nombre, marca, precio,
+<pre tabindex="0"><code class="language-sql">SELECT nombre, marca, precio,
        ROW_NUMBER() OVER (PARTITION BY marca ORDER BY precio DESC) AS puesto_en_marca
 FROM productos
 WHERE marca IN ('Apple', 'Sony')
@@ -196,7 +196,7 @@ ORDER BY marca, precio DESC;</code></pre>
 <p>Los productos Apple se numeran 1, 2, 3… del más caro al más barato; al llegar a Sony, el contador vuelve a 1.</p>
 <h2>El patrón estrella: el top-N por grupo</h2>
 <p>&quot;Los 3 productos más caros <strong>de cada marca</strong>&quot;, &quot;el último pedido <strong>de cada cliente</strong>&quot;, &quot;la canción más escuchada <strong>en cada país</strong>&quot;: es probablemente el patrón más pedido en entrevistas y en el trabajo real. Como no se puede filtrar una ventana en el <code>WHERE</code>, se hace en dos pasos con una CTE:</p>
-<pre><code class="language-sql">WITH ranking AS (                                  -- paso 1: numerar dentro de cada marca
+<pre tabindex="0"><code class="language-sql">WITH ranking AS (                                  -- paso 1: numerar dentro de cada marca
     SELECT nombre, marca, precio,
            ROW_NUMBER() OVER (PARTITION BY marca ORDER BY precio DESC, producto_id) AS rn
     FROM productos
@@ -215,7 +215,7 @@ ORDER BY marca, rn;</code></pre>
 <div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Encuentra el segundo salario más alto&quot;</div>
 
 <p>Una de las preguntas más clásicas. Con ventanas:</p>
-<pre><code class="language-sql">WITH r AS (SELECT nombre, salario, DENSE_RANK() OVER (ORDER BY salario DESC) AS dr FROM empleados)
+<pre tabindex="0"><code class="language-sql">WITH r AS (SELECT nombre, salario, DENSE_RANK() OVER (ORDER BY salario DESC) AS dr FROM empleados)
 SELECT nombre, salario FROM r WHERE dr = 2;</code></pre>
 <p>¿Por qué <code>DENSE_RANK</code> y no <code>ROW_NUMBER</code>? Si dos personas empatan en el sueldo más alto, el &quot;segundo salario&quot; es el <strong>siguiente valor distinto</strong>. <code>ROW_NUMBER</code> devolvería a una de las empatadas; <code>RANK</code> saltaría al 3. Explicar esa diferencia es lo que el entrevistador quiere escuchar.</p>
 </div>
@@ -227,7 +227,7 @@ SELECT nombre, salario FROM r WHERE dr = 2;</code></pre>
 
 <h2>NTILE: repartir en grupos iguales</h2>
 <p><code>NTILE(n)</code> divide las filas ordenadas en <code>n</code> grupos de tamaño parecido y devuelve el número de grupo. Sirve para cuartiles, deciles o segmentos (&quot;el 25 % de clientes que más compra&quot;):</p>
-<pre><code class="language-sql">SELECT nombre, precio,
+<pre tabindex="0"><code class="language-sql">SELECT nombre, precio,
        NTILE(4) OVER (ORDER BY precio) AS cuartil_precio
 FROM productos
 LIMIT 10;</code></pre>
@@ -281,7 +281,7 @@ LIMIT 10;</code></pre>
 <li>Cambia <code>RANK</code> por <code>ROW_NUMBER</code> y por <code>DENSE_RANK</code>: ¿dónde difieren?</li>
 <li>Filtra el top 3 de cada categoría (en DuckDB, prueba <code>QUALIFY</code>).</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT categoria_id, nombre, precio,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT categoria_id, nombre, precio,
        RANK() OVER (PARTITION BY categoria_id ORDER BY precio DESC) AS puesto
 FROM productos
 ORDER BY categoria_id, puesto;</code></pre>

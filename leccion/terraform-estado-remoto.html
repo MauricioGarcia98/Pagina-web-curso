@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Qué guarda el estado y por qué importa</h2>
 <p>El estado es la <strong>tabla de correspondencias</strong> entre tu código y la nube: &quot;<code>aws_s3_bucket.bronze</code> es el bucket <code>andina-prod-bronze</code>, con estos atributos&quot;. Sin él, Terraform no sabe qué creó.</p>
-<pre><code class="language-text">$ terraform state pull | jq '.resources[0]'
+<pre tabindex="0"><code class="language-text">$ terraform state pull | jq '.resources[0]'
 {
   &quot;mode&quot;: &quot;managed&quot;,
   &quot;type&quot;: &quot;aws_s3_bucket&quot;,
@@ -61,7 +61,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Versionado</strong>: el bucket guarda cada versión del estado; si algo sale mal, se recupera la anterior.</li>
 </ul>
 <h3>Los tres backends de nube</h3>
-<pre><code class="language-hcl"># AWS: S3 (desde Terraform 1.10 el bloqueo usa un archivo .tflock en el mismo bucket)
+<pre tabindex="0"><code class="language-hcl"># AWS: S3 (desde Terraform 1.10 el bloqueo usa un archivo .tflock en el mismo bucket)
 terraform {
   backend &quot;s3&quot; {
     bucket       = &quot;andina-tfstate&quot;
@@ -71,14 +71,14 @@ terraform {
     use_lockfile = true
   }
 }</code></pre>
-<pre><code class="language-hcl"># Google Cloud: GCS (el bloqueo viene incluido)
+<pre tabindex="0"><code class="language-hcl"># Google Cloud: GCS (el bloqueo viene incluido)
 terraform {
   backend &quot;gcs&quot; {
     bucket = &quot;andina-tfstate&quot;
     prefix = &quot;plataforma/lago&quot;
   }
 }</code></pre>
-<pre><code class="language-hcl"># Azure: un contenedor de una cuenta de Storage (bloqueo con un lease del blob)
+<pre tabindex="0"><code class="language-hcl"># Azure: un contenedor de una cuenta de Storage (bloqueo con un lease del blob)
 terraform {
   backend &quot;azurerm&quot; {
     resource_group_name  = &quot;rg-tfstate&quot;
@@ -102,11 +102,11 @@ terraform {
 <h2>Laboratorio: mover el estado a S3</h2>
 <p>Abre la terminal y sigue los pasos.</p>
 <p><strong>1. Crea el bucket del estado</strong> (una vez, con la CLI) y actívale el versionado:</p>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 aws s3 mb s3://andina-tfstate
 aws s3api put-bucket-versioning --bucket andina-tfstate --versioning-configuration Status=Enabled</code></pre>
 <p><strong>2. El proyecto.</strong> En <code>~/infra/lago</code>, un <code>main.tf</code> con el bloque <code>backend &quot;s3&quot;</code> de arriba, el proveedor y un bucket cuyo nombre usa el workspace:</p>
-<pre><code class="language-hcl">locals {
+<pre tabindex="0"><code class="language-hcl">locals {
   prefijo = &quot;andina-${terraform.workspace}&quot;
 }
 
@@ -114,7 +114,7 @@ resource &quot;aws_s3_bucket&quot; &quot;bronze&quot; {
   bucket = &quot;${local.prefijo}-bronze&quot;
 }</code></pre>
 <p><strong>3. Inicializa y aplica:</strong></p>
-<pre><code class="language-text">$ terraform init
+<pre tabindex="0"><code class="language-text">$ terraform init
 Initializing the backend...
 Successfully configured the backend &quot;s3&quot;! Terraform will automatically
 use this backend unless the backend configuration changes.
@@ -129,7 +129,7 @@ $ aws s3 ls s3://andina-tfstate --recursive
 <p>Ya viste en la lección anterior que aplicar <code>prod</code> sobre el estado de <code>dev</code> quiere <strong>reemplazar</strong> todo. Cada entorno necesita su propio estado. Hay dos formas.</p>
 <h3>Opción 1: workspaces</h3>
 <p>Un <strong>workspace</strong> es un estado con nombre dentro del mismo backend. El código es el mismo; <code>terraform.workspace</code> te dice en cuál estás.</p>
-<pre><code class="language-text">$ terraform workspace new prod
+<pre tabindex="0"><code class="language-text">$ terraform workspace new prod
 Created and switched to workspace &quot;prod&quot;!
 $ terraform workspace list
   default
@@ -140,7 +140,7 @@ $ aws s3 ls s3://andina-tfstate --recursive
 2026-10-24 10:15:02       1317 plataforma/lago.tfstate</code></pre>
 <p>Cada backend guarda los workspaces a su manera: S3 en <code>env:/&lt;workspace&gt;/&lt;key&gt;</code>, GCS en <code>&lt;prefix&gt;/&lt;workspace&gt;.tfstate</code>, Azure en <code>&lt;key&gt;env:&lt;workspace&gt;</code>.</p>
 <h3>Opción 2: una carpeta (o una clave) por entorno</h3>
-<pre><code class="language-text">infra/
+<pre tabindex="0"><code class="language-text">infra/
 ├── modules/lago/          ← el código reutilizable (lección de módulos)
 └── envs/
     ├── dev/   main.tf  backend key = &quot;dev/lago.tfstate&quot;   terraform.tfvars
@@ -179,12 +179,12 @@ $ aws s3 ls s3://andina-tfstate --recursive
 </tbody></table></div>
 <h2>Operar el estado sin romper nada</h2>
 <h3>Ver: list, show, pull</h3>
-<pre data-norun><code class="language-bash">terraform state list                         # todas las direcciones
+<pre data-norun tabindex="0"><code class="language-bash">terraform state list                         # todas las direcciones
 terraform state show aws_s3_bucket.bronze    # los atributos de una
 terraform state pull | jq .serial            # el JSON completo (serial = cuántas veces se escribió)</code></pre>
 <h3>Renombrar en el código: moved</h3>
 <p>Si cambias el nombre local <code>aws_s3_bucket.bronze</code> a <code>aws_s3_bucket.landing</code>, Terraform entiende que borraste uno y creaste otro: <strong>destruye</strong> el bucket y crea uno nuevo. Para decirle que es el mismo:</p>
-<pre><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;landing&quot; {
+<pre tabindex="0"><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;landing&quot; {
   bucket = &quot;andina-bronze&quot;
 }
 
@@ -192,13 +192,13 @@ moved {
   from = aws_s3_bucket.bronze
   to   = aws_s3_bucket.landing
 }</code></pre>
-<pre><code class="language-text">$ terraform plan
+<pre tabindex="0"><code class="language-text">$ terraform plan
   # aws_s3_bucket.bronze has moved to aws_s3_bucket.landing
 Plan: 0 to add, 0 to change, 0 to destroy.</code></pre>
 <p>El bloque <code>moved</code> queda en el código (es documentación y sirve para los demás entornos). La alternativa por comando es <code>terraform state mv aws_s3_bucket.bronze aws_s3_bucket.landing</code>, pero hay que ejecutarla a mano en cada entorno; <code>moved</code> viaja por el pull request.</p>
 <h3>Traer lo que se creó a mano: import</h3>
 <p>Un bucket que alguien creó en la consola no está en el estado. Para administrarlo con Terraform: escribe el bloque <code>resource</code> y <strong>impórtalo</strong>:</p>
-<pre><code class="language-text">$ terraform import aws_s3_bucket.manual creado-a-mano
+<pre tabindex="0"><code class="language-text">$ terraform import aws_s3_bucket.manual creado-a-mano
 aws_s3_bucket.manual: Importing from ID &quot;creado-a-mano&quot;...
 Import successful!
 $ terraform plan
@@ -207,7 +207,7 @@ No changes. Your infrastructure matches the configuration.</code></pre>
 <h3>Dejar de administrar: state rm</h3>
 <p><code>terraform state rm aws_s3_bucket.viejo</code> saca el recurso del estado <strong>sin borrarlo</strong> de la nube. Se usa para pasar un recurso a otro proyecto (rm en uno, import en el otro).</p>
 <h2>lifecycle: reglas de protección</h2>
-<pre><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;bronze&quot; {
+<pre tabindex="0"><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;bronze&quot; {
   bucket = &quot;andina-prod-bronze&quot;
   tags   = local.etiquetas
 
@@ -238,7 +238,7 @@ No changes. Your infrastructure matches the configuration.</code></pre>
 </tr>
 </tbody></table></div>
 <p>Con <code>prevent_destroy</code>, un <code>terraform destroy</code> o un cambio de nombre se frena así:</p>
-<pre><code class="language-text">│ Error: Instance cannot be destroyed
+<pre tabindex="0"><code class="language-text">│ Error: Instance cannot be destroyed
 │
 │   on main.tf line 4:
 │
@@ -264,7 +264,7 @@ No changes. Your infrastructure matches the configuration.</code></pre>
 </tbody></table></div>
 <h2>Leer las salidas de otro proyecto</h2>
 <p>En una empresa no hay un único proyecto de Terraform: está la <strong>red</strong> (de un equipo), la <strong>plataforma de datos</strong> (de otro), cada uno con su estado. Para que la plataforma use la red que creó otro equipo, lee sus outputs:</p>
-<pre><code class="language-hcl">data &quot;terraform_remote_state&quot; &quot;red&quot; {
+<pre tabindex="0"><code class="language-hcl">data &quot;terraform_remote_state&quot; &quot;red&quot; {
   backend = &quot;s3&quot;
   config = {
     bucket = &quot;andina-tfstate&quot;
@@ -367,7 +367,7 @@ No changes. Your infrastructure matches the configuration.</code></pre>
 <li>Crea el workspace <code>prod</code>: tiene su propio estado, vacío. Planifica ahí.</li>
 <li>Vuelve a <code>default</code>. En equipo, el estado vive en un backend remoto (S3, Azure Storage, GCS) con bloqueo.</li>
 </ol>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 mkdir -p ~/infra/estado &amp;&amp; cd ~/infra/estado
 printf 'variable &quot;entorno&quot; {\n  default = &quot;dev&quot;\n}\n\nresource &quot;aws_s3_bucket&quot; &quot;bronze&quot; {\n  bucket = &quot;estado-${var.entorno}-bronze&quot;\n}\n' &gt; main.tf
 terraform init

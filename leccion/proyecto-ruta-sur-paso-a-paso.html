@@ -61,7 +61,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>Paso 1 · El lago, el Key Vault y el tópico</h2>
-<pre><code class="language-bash">ruta accesos
+<pre tabindex="0"><code class="language-bash">ruta accesos
 az login
 az group create -n rg-ruta -l eastus2
 az storage account create -n strutasur -g rg-ruta -l eastus2 --sku Standard_LRS --hns true
@@ -72,7 +72,7 @@ az keyvault create -n kv-ruta -g rg-ruta -l eastus2
 az keyvault secret set --vault-name kv-ruta -n eh --value 'Endpoint=sb://…' -o none
 az keyvault secret set --vault-name kv-ruta -n tms --value '…' -o none</code></pre>
 <p>Antes de escribir una línea de SQL, mira el tópico con <code>kcat</code>: particiones, offsets y cómo es un mensaje.</p>
-<pre><code class="language-bash">kcat -b rutasur-telemetria.servicebus.windows.net:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=PLAIN \
+<pre tabindex="0"><code class="language-bash">kcat -b rutasur-telemetria.servicebus.windows.net:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=PLAIN \
   -X 'sasl.username=$ConnectionString' -X 'sasl.password=Endpoint=sb://…' -L
 kcat -b rutasur-telemetria.servicebus.windows.net:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=PLAIN \
   -X 'sasl.username=$ConnectionString' -X 'sasl.password=Endpoint=sb://…' \
@@ -80,7 +80,7 @@ kcat -b rutasur-telemetria.servicebus.windows.net:9093 -X security.protocol=SASL
 <p>(El broker y la cadena exactos te los da <code>ruta accesos</code>.) Vas a ver que la clave del mensaje es el vehículo, que hay eventos repetidos (el mismo <code>event_id</code>) y, desde el cambio de firmware, mensajes con <code>fw: &quot;2.0&quot;</code>, <code>speed_mps</code> y <code>ts</code> en milisegundos.</p>
 <h2>Paso 2 · El plan del TMS</h2>
 <p>El plan de cada día se publica la tarde anterior y puede sumar pedidos urgentes. Se baja una ventana de días hacia atrás. Guárdalo como <code>~/plan.py</code>:</p>
-<pre data-norun><code class="language-python">import requests, json, os
+<pre data-norun tabindex="0"><code class="language-python">import requests, json, os
 from datetime import date, timedelta
 H = {&quot;X-Api-Key&quot;: os.environ[&quot;RS_KEY&quot;]}
 hoy = date.fromisoformat(os.environ[&quot;HOY&quot;])
@@ -95,11 +95,11 @@ with open(&quot;plan.jsonl&quot;, &quot;w&quot;) as out:
             for p in ruta[&quot;pedidos&quot;]:
                 out.write(json.dumps({&quot;fecha&quot;: f, &quot;vehiculo&quot;: ruta[&quot;vehiculo&quot;], **p}) + &quot;\n&quot;); n += 1
 print(n, &quot;pedidos&quot;)</code></pre>
-<pre><code class="language-bash">RS_KEY=… HOY=$(date +%F) python ~/plan.py
+<pre tabindex="0"><code class="language-bash">RS_KEY=… HOY=$(date +%F) python ~/plan.py
 az storage blob upload --account-name strutasur -c landing -n tms/plan.jsonl -f ~/plan.jsonl --overwrite</code></pre>
 <h2>Paso 3 · Bronze: la streaming table</h2>
 <p>Una <strong>streaming table</strong> lee Kafka y guarda en el checkpoint hasta qué offset leyó en cada partición. Cada <code>REFRESH</code> trae solo lo nuevo. La primera vez se crea con <code>startingOffsets =&gt; &#39;earliest&#39;</code>: el tópico guarda 3 días, así que hay que crearla <strong>el primer día</strong> (lo que se va del tópico no vuelve).</p>
-<pre data-norun><code class="language-sql">CREATE EXTERNAL LOCATION lago_ruta URL 'abfss://landing@strutasur.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
+<pre data-norun tabindex="0"><code class="language-sql">CREATE EXTERNAL LOCATION lago_ruta URL 'abfss://landing@strutasur.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
 CREATE CATALOG IF NOT EXISTS ruta;
 CREATE SCHEMA IF NOT EXISTS ruta.bronze; CREATE SCHEMA IF NOT EXISTS ruta.silver; CREATE SCHEMA IF NOT EXISTS ruta.gold;
 
@@ -123,7 +123,7 @@ REFRESH STREAMING TABLE ruta.bronze.telemetria;</code></pre>
 
 <h2>Paso 4 · Silver: un formato, un evento por fila</h2>
 <p>Dos firmwares conviven: se elige el campo según <code>fw</code>. Y como hay reintentos, se deduplica por <code>event_id</code> quedándose con la primera llegada.</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE ruta.silver.telemetria AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE ruta.silver.telemetria AS
 SELECT event_id, vehiculo, tipo, ts_evento, ts_ingesta, lat, lon, velocidad_kmh, pedido_id FROM (
   SELECT valor:event_id AS event_id,
          coalesce(valor:vehiculo, valor:vehicle) AS vehiculo,
@@ -140,7 +140,7 @@ SELECT event_id, vehiculo, tipo, ts_evento, ts_ingesta, lat, lon, velocidad_kmh,
 WHERE rn = 1;</code></pre>
 <h2>Paso 5 · Gold: cada pedido del plan</h2>
 <p>El reloj de V13 se adelantó 2 horas (es la pregunta del ticket &quot;V13 entrega en el futuro&quot;). Un evento no puede ocurrir <strong>después</strong> de haber llegado: si <code>ts_evento</code> supera a <code>ts_ingesta</code> por más de unos minutos, ese reloj está mal. Se corrige al usar el evento.</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TEMP VIEW plan AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TEMP VIEW plan AS
 SELECT * FROM read_files('abfss://landing@strutasur.dfs.core.windows.net/tms/plan.jsonl', format =&gt; 'json');
 
 CREATE OR REPLACE TEMP VIEW ent AS
@@ -150,7 +150,7 @@ SELECT pedido_id, tipo,
 FROM ruta.silver.telemetria
 WHERE tipo IN ('entrega_completada', 'entrega_fallida');</code></pre>
 <p>El plan va a la <strong>izquierda</strong>: un pedido sin ningún evento también es un resultado (<code>sin_evento</code>), y es justo el que más le importa a Dirección.</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE ruta.gold.entregas AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE ruta.gold.entregas AS
 SELECT p.pedido_id, p.vehiculo, p.fecha, p.zona, p.ventana_inicio, p.ventana_fin,
        CASE WHEN e.tipo = 'entrega_completada' THEN 'completada'
             WHEN e.tipo = 'entrega_fallida' THEN 'fallida' ELSE 'sin_evento' END AS estado,
@@ -165,7 +165,7 @@ SELECT fecha, zona, count(*) AS pedidos,
        sum(CASE WHEN estado = 'fallida' THEN 1 ELSE 0 END) AS fallidas
 FROM ruta.gold.entregas GROUP BY fecha, zona;</code></pre>
 <p>Las preguntas del tablero salen de estas tablas:</p>
-<pre data-norun><code class="language-sql">-- % a tiempo de un día
+<pre data-norun tabindex="0"><code class="language-sql">-- % a tiempo de un día
 SELECT round(100.0 * sum(CASE WHEN a_tiempo THEN 1 ELSE 0 END) / count(*), 1)
 FROM ruta.gold.entregas WHERE fecha = '2026-11-18';
 

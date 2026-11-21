@@ -81,7 +81,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 2: crear las tablas</h2>
 <p>Abre el <strong>SQL Editor</strong> y ejecuta (la función <code>read_files</code> lee archivos de un volumen e infiere los tipos de las columnas):</p>
-<pre data-norun><code class="language-sql">USE CATALOG &lt;catalogo&gt;;
+<pre data-norun tabindex="0"><code class="language-sql">USE CATALOG &lt;catalogo&gt;;
 USE SCHEMA default;
 
 CREATE OR REPLACE TABLE clientes AS
@@ -102,7 +102,7 @@ SELECT COUNT(*) AS lineas FROM detalle_pedidos;</code></pre>
 
 <h2>Paso 3: la vista que verá Genie</h2>
 <p>Una sola vista, una fila por línea de pedido, con los joins hechos, sin cancelados y con nombres claros:</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE VIEW ventas_lineas
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE VIEW ventas_lineas
 COMMENT 'Una fila por línea de pedido (producto dentro de un pedido) de Tienda Andina. Excluye pedidos cancelados. Para &quot;ventas&quot; usar importe_neto. Para contar pedidos usar COUNT(DISTINCT pedido_id).'
 AS
 SELECT d.detalle_id,
@@ -123,7 +123,7 @@ JOIN clientes c   ON c.cliente_id = p.cliente_id
 JOIN productos pr ON pr.producto_id = d.producto_id
 WHERE p.estado &lt;&gt; 'cancelado';</code></pre>
 <p>Ahora las descripciones de las columnas que más importan:</p>
-<pre data-norun><code class="language-sql">ALTER VIEW ventas_lineas ALTER COLUMN importe_neto COMMENT
+<pre data-norun tabindex="0"><code class="language-sql">ALTER VIEW ventas_lineas ALTER COLUMN importe_neto COMMENT
   'Importe de la línea en USD después del descuento. Es la medida de ventas del negocio.';
 ALTER VIEW ventas_lineas ALTER COLUMN canal COMMENT
   'Canal de venta: web, app, tienda (el local físico) o telefono.';
@@ -136,7 +136,7 @@ ALTER VIEW ventas_lineas ALTER COLUMN mes COMMENT
 
 <h2>Paso 4: la vista de métricas</h2>
 <p>Las tres métricas que más pregunta la gerencia, definidas una sola vez:</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE VIEW metricas_ventas
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE VIEW metricas_ventas
 WITH METRICS
 LANGUAGE YAML
 AS $$
@@ -258,7 +258,7 @@ ORDER BY ventas DESC;</code></pre>
 <li><strong>Field</strong> &quot;Trimestre fiscal&quot;: <code>CASE WHEN month(fecha) IN (2,3,4) THEN &#39;Q1&#39; WHEN month(fecha) IN (5,6,7) THEN &#39;Q2&#39; WHEN month(fecha) IN (8,9,10) THEN &#39;Q3&#39; ELSE &#39;Q4&#39; END</code>. Sinónimos: <code>trimestre</code>. Instrucciones: <code>El año fiscal empieza el 1 de febrero.</code></li>
 </ul>
 <p><strong>7.3 Una consulta de ejemplo para &quot;pedidos grandes&quot;</strong>. Como la vista tiene una fila por línea, &quot;pedido grande&quot; necesita sumar por pedido antes de filtrar: es lógica de varios pasos, y para eso la documentación recomienda una consulta de ejemplo (Configure → Examples → Add → query). Pregunta: &quot;¿Cuántos pedidos grandes hubo en 2024?&quot;:</p>
-<pre data-norun><code class="language-sql">-- Un pedido es grande si sus ventas netas superan 3.000 USD
+<pre data-norun tabindex="0"><code class="language-sql">-- Un pedido es grande si sus ventas netas superan 3.000 USD
 WITH pedido_neto AS (
   SELECT pedido_id, SUM(importe_neto) AS neto
   FROM &lt;catalogo&gt;.default.ventas_lineas
@@ -269,14 +269,14 @@ SELECT COUNT(*) AS pedidos_grandes
 FROM pedido_neto
 WHERE neto &gt; 3000</code></pre>
 <p><strong>7.4 Una consulta de ejemplo con parámetros</strong> (Configure → Examples → Add → query). Pregunta: &quot;¿Cuánto vendimos en un país en un mes?&quot;:</p>
-<pre data-norun><code class="language-sql">SELECT ROUND(SUM(importe_neto), 2) AS ventas_netas,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT ROUND(SUM(importe_neto), 2) AS ventas_netas,
        COUNT(DISTINCT pedido_id)   AS pedidos
 FROM &lt;catalogo&gt;.default.ventas_lineas
 WHERE pais = :pais
   AND mes = :mes</code></pre>
 <p>Configura <code>:pais</code> como texto (comentario: &quot;nombre del país, por ejemplo Chile&quot;) y <code>:mes</code> como texto (comentario: &quot;formato AAAA-MM&quot;). Es un <strong>trusted asset</strong>: cuando Genie la use, la respuesta saldrá como verificada.</p>
 <p><strong>7.5 Instrucciones de texto, pocas</strong> (Configure → Instructions → Text):</p>
-<pre><code class="language-text">- El año fiscal empieza el 1 de febrero: el FY2024 va del 1/2/2024 al 31/1/2025.
+<pre tabindex="0"><code class="language-text">- El año fiscal empieza el 1 de febrero: el FY2024 va del 1/2/2024 al 31/1/2025.
 - Redondea los importes a 2 decimales.
 - Si preguntan por ventas sin decir el período, pregunta: &quot;¿De qué período? Por ejemplo, marzo de 2024 o todo 2024.&quot;
 
@@ -294,7 +294,7 @@ Instructions you must follow when providing summaries
 <li>&quot;¿Cuánto vendió la sucursal física en marzo del 24?&quot;</li>
 </ul>
 <p>Todas con el mismo SQL Answer:</p>
-<pre data-norun><code class="language-sql">SELECT ROUND(SUM(importe_neto), 2) AS ventas_netas
+<pre data-norun tabindex="0"><code class="language-sql">SELECT ROUND(SUM(importe_neto), 2) AS ventas_netas
 FROM &lt;catalogo&gt;.default.ventas_lineas
 WHERE canal = 'tienda' AND mes = '2024-03'</code></pre>
 <p>Corre <strong>Run benchmarks</strong> y anota la exactitud.</p>
@@ -334,7 +334,7 @@ WHERE canal = 'tienda' AND mes = '2024-03'</code></pre>
 
 <h2>Paso 10: preguntarle desde un notebook</h2>
 <p>Copia el identificador del agente: es la última parte de la dirección (URL) cuando tienes el agente abierto, una cadena larga de letras y números. Luego, en un notebook nuevo:</p>
-<pre data-norun><code class="language-python">from databricks.sdk import WorkspaceClient
+<pre data-norun tabindex="0"><code class="language-python">from databricks.sdk import WorkspaceClient
 
 w = WorkspaceClient()
 space_id = &quot;&lt;id_del_agente&gt;&quot;
@@ -402,7 +402,7 @@ for pregunta in [&quot;¿Cuánto vendimos en 2024?&quot;, &quot;Ventas del local
 <li>Verifica los números base que usarás para evaluar al agente (pedidos y ventas totales de 2024).</li>
 <li>Sigue con los pasos de la lección: crear el agente con estas tablas, instrucciones, ejemplos y preguntas de prueba.</li>
 </ol>
-<pre data-norun><code class="language-sql">CREATE SCHEMA IF NOT EXISTS main.tienda_andina COMMENT 'Asistente de ventas de Tienda Andina';
+<pre data-norun tabindex="0"><code class="language-sql">CREATE SCHEMA IF NOT EXISTS main.tienda_andina COMMENT 'Asistente de ventas de Tienda Andina';
 CREATE OR REPLACE TABLE main.tienda_andina.pedidos AS SELECT * FROM samples.tienda.pedidos;
 CREATE OR REPLACE TABLE main.tienda_andina.detalle_pedidos AS SELECT * FROM samples.tienda.detalle_pedidos;
 COMMENT ON TABLE main.tienda_andina.pedidos IS 'Un pedido por fila, con canal, estado y fecha';

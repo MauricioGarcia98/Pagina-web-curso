@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Un test verde no alcanza</h2>
-<pre><code class="language-python">def limpiar_monto(texto):
+<pre tabindex="0"><code class="language-python">def limpiar_monto(texto):
     return float(texto.replace(&quot;,&quot;, &quot;.&quot;))   # parece bien…
 
 assert limpiar_monto(&quot;974,07&quot;) == 974.07   # pasa
@@ -68,7 +68,7 @@ assert limpiar_monto(&quot;16.99&quot;) == 16.99     # pasa</code></pre>
 
 <h2>Tablas de casos</h2>
 <p>En lugar de diez <code>assert</code> sueltos, una lista de <code>(entrada, esperado)</code> se lee como una especificación y es fácil de ampliar. Es la idea de <code>@pytest.mark.parametrize</code> (<a href="https://docs.pytest.org/en/stable/how-to/parametrize.html">documentación de pytest</a>):</p>
-<pre data-norun><code class="language-python">CASOS = [
+<pre data-norun tabindex="0"><code class="language-python">CASOS = [
     (&quot;16.99&quot;, 16.99),
     (&quot;974,07&quot;, 974.07),
     (&quot;$47.99&quot;, 47.99),
@@ -92,7 +92,7 @@ for entrada, esperado in CASOS:
 <li>Agrega casos a <code>CASOS</code> hasta que no sobreviva ningún mutante.</li>
 <li>Inventa un cuarto mutante (por ejemplo, que no quite espacios a los costados) y comprueba si tus casos lo detectan.</li>
 </ol>
-<pre><code class="language-python">def correcta(estado):
+<pre tabindex="0"><code class="language-python">def correcta(estado):
     mapa = {&quot;delivered&quot;: &quot;entregado&quot;, &quot;shipped&quot;: &quot;enviado&quot;, &quot;canceled&quot;: &quot;cancelado&quot;}
     e = estado.strip().lower()
     return mapa.get(e, e)

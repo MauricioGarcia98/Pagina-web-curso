@@ -29,7 +29,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Tamaño de los grupos</strong> (<em>sample ratio mismatch</em>): si debía ser 50/50 y da 60/40, algo falló en la asignación.</li>
 <li><strong>Composición</strong>: los grupos deberían tener la misma mezcla de dispositivos, países, clientes nuevos, etc.</li>
 </ol>
-<pre><code class="language-sql">SELECT grupo, COUNT(*) AS clientes,
+<pre tabindex="0"><code class="language-sql">SELECT grupo, COUNT(*) AS clientes,
        ROUND(100.0 * AVG(CASE WHEN dispositivo = 'movil' THEN 1 ELSE 0 END), 1) AS pct_movil
 FROM experimento_checkout
 GROUP BY grupo;</code></pre>
@@ -82,7 +82,7 @@ GROUP BY grupo;</code></pre>
 <li>Con estos datos el valor p es muy alto: <strong>no hay evidencia</strong> de que el checkout nuevo convierta mejor. Esa también es una respuesta valiosa (y la más común en experimentos reales).</li>
 <li>Mira también el tamaño del efecto: aunque algo sea significativo, puede ser demasiado chico para importar.</li>
 </ol>
-<pre data-norun><code class="language-python">from math import sqrt, erf
+<pre data-norun tabindex="0"><code class="language-python">from math import sqrt, erf
 
 # conversiones reales de experimento_checkout (contadas con SQL, ver el reto)
 n_a, conv_a = 1014, 126   # control

@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Las tres piezas de un stream en producción</h2>
-<pre data-norun><code class="language-python">def escribir_lote(df, batch_id):
+<pre data-norun tabindex="0"><code class="language-python">def escribir_lote(df, batch_id):
     nuevos = df.dropDuplicates([&quot;evento_id&quot;])
     nuevos = nuevos.join(spark.table(&quot;silver.eventos&quot;).select(&quot;evento_id&quot;), &quot;evento_id&quot;, &quot;left_anti&quot;)
     nuevos.write.mode(&quot;append&quot;).saveAsTable(&quot;silver.eventos&quot;)
@@ -114,7 +114,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Comprueba que el destino tiene cada evento una sola vez, aunque el evento 2 llegó en las dos cargas.</li>
 <li>Quita el <code>left_anti</code> de la función y vuelve a ejecutar: el evento 2 queda duplicado.</li>
 </ol>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 esquema = &quot;evento_id INT, cliente STRING, monto DOUBLE&quot;
 spark.createDataFrame([(1, &quot;ana&quot;, 10.0), (2, &quot;luis&quot;, 5.0), (1, &quot;ana&quot;, 10.0)], esquema).write.saveAsTable(&quot;bronze_eventos&quot;)

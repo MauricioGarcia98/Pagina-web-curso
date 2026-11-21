@@ -24,12 +24,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — La tabla destino</h2>
-<pre data-norun><code class="language-sql">USE SCHEMA tienda_dev.analitica;
+<pre data-norun tabindex="0"><code class="language-sql">USE SCHEMA tienda_dev.analitica;
 CREATE TABLE pedidos_actuales AS
 SELECT * FROM tienda_dev.raw.pedidos_staging;</code></pre>
 <h2>Paso 2 — El MERGE</h2>
 <p>Llega una corrección del pedido 90002 (el total era 95, no 80) y un pedido nuevo, el 90006:</p>
-<pre data-norun><code class="language-sql">MERGE INTO pedidos_actuales t
+<pre data-norun tabindex="0"><code class="language-sql">MERGE INTO pedidos_actuales t
 USING (SELECT 90002 AS pedido_id, 8 AS cliente_id, '2026-11-14'::date AS fecha, 'app' AS canal, 95.00 AS total
        UNION ALL
        SELECT 90006, 33, '2026-11-15'::date, 'web', 150.00) s
@@ -69,7 +69,7 @@ WHEN NOT MATCHED THEN INSERT (pedido_id, cliente_id, fecha, canal, total)
 
 
 <h2>Paso 3 — Más cláusulas</h2>
-<pre data-norun><code class="language-sql">WHEN MATCHED AND s.estado = 'cancelado' THEN DELETE
+<pre data-norun tabindex="0"><code class="language-sql">WHEN MATCHED AND s.estado = 'cancelado' THEN DELETE
 WHEN MATCHED AND t.total &lt;&gt; s.total THEN UPDATE SET total = s.total
 WHEN NOT MATCHED THEN INSERT ...</code></pre>
 <p>Para cada fila se aplica <strong>la primera cláusula que se cumple</strong>. <code>AND t.total &lt;&gt; s.total</code> evita reescribir filas que no cambiaron.</p>

@@ -20,7 +20,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>El problema</h2>
 <p>Tu laptop procesa sin problema un archivo de 100 MB: lo abres con pandas y en un segundo tienes el resultado. ¿Y uno de 10 TB?</p>
 <p>Hagamos la cuenta. Un buen disco lee unos 500 MB por segundo:</p>
-<pre><code class="language-text">10 TB = 10.000.000 MB
+<pre tabindex="0"><code class="language-text">10 TB = 10.000.000 MB
 10.000.000 MB ÷ 500 MB/s = 20.000 segundos ≈ 5,5 horas   ← solo para LEER el archivo una vez</code></pre>
 <p>Y eso suponiendo que los 10 TB entren en tu disco (no entran) y que no necesites tenerlos en memoria (tu laptop tiene 16 GB de RAM, unas 600 veces menos). Ese es el mundo del <strong>big data</strong>: volúmenes que <strong>no caben</strong> o <strong>no se pueden procesar a tiempo</strong> en una sola computadora.</p>
 <p>Se suele describir con las &quot;V&quot;:</p>
@@ -88,7 +88,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Reduce</strong>: cada máquina combina lo que recibió y produce el resultado final.</li>
 </ol>
 <p>Puedes simular la idea en Python puro:</p>
-<pre><code class="language-python">from collections import Counter
+<pre tabindex="0"><code class="language-python">from collections import Counter
 
 # Los datos ya vienen repartidos en 3 &quot;máquinas&quot; (particiones)
 particiones = [
@@ -140,7 +140,7 @@ print(&quot;Total:&quot;, dict(total))</code></pre>
 <p>¿Por qué Spark le ganó a Hadoop MapReduce? Porque MapReduce <strong>escribía en disco después de cada paso</strong>. Un proceso de 10 pasos leía y escribía el disco 10 veces. Spark mantiene los datos intermedios <strong>en memoria</strong> siempre que puede, y es mucho más fácil de programar: lo que en MapReduce eran 100 líneas de Java, en Spark es una línea de SQL o de Python.</p>
 <h2>¿Qué es Apache Spark?</h2>
 <p><strong>Spark</strong> es un <strong>motor de procesamiento distribuido</strong>. Tú escribes <strong>qué</strong> quieres hacer con los datos (en SQL, Python, Scala, Java o R) y Spark se encarga del <strong>cómo</strong>: reparte el trabajo entre las máquinas del clúster, mueve los datos entre ellas y se recupera si una falla.</p>
-<pre data-norun><code class="language-python"># Esto es todo lo que escribes. Spark decide cómo repartirlo en 100 máquinas.
+<pre data-norun tabindex="0"><code class="language-python"># Esto es todo lo que escribes. Spark decide cómo repartirlo en 100 máquinas.
 ventas = spark.read.parquet(&quot;s3://lake/ventas/&quot;)              # 10 TB
 ventas.groupBy(&quot;pais&quot;).sum(&quot;total&quot;).write.parquet(&quot;s3://lake/gold/ventas_por_pais/&quot;)</code></pre>
 <p>Se compone de varias librerías sobre un mismo motor:</p>
@@ -209,7 +209,7 @@ ventas.groupBy(&quot;pais&quot;).sum(&quot;total&quot;).write.parquet(&quot;s3:/
 <li>Cambia a <code>repartition(4)</code> y vuelve a contar: cada partición la procesa una tarea, en paralelo.</li>
 <li>Piensa: si tuvieras 1.000 millones de filas en una sola máquina, ¿qué parte de este código cambia en un clúster? (Respuesta: ninguna; cambia dónde corre cada partición.)</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 pedidos = spark.table(&quot;pedidos&quot;)
 print(&quot;particiones:&quot;, pedidos.rdd.getNumPartitions())

@@ -27,7 +27,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Los datos de Pedalia se generan para ti: otra persona que haga el proyecto recibe otros números. Puedes descargarlos acá, pero lo realista es exportarlos desde &quot;el sistema de la app&quot; en la terminal.</p>
 <div></div>
 
-<pre><code class="language-bash">pedalia exportar --dia 1
+<pre tabindex="0"><code class="language-bash">pedalia exportar --dia 1
 pedalia estado
 ls -R ~/pedalia/entrega
 cat ~/pedalia/entrega/LEEME.md</code></pre>
@@ -38,17 +38,17 @@ cat ~/pedalia/entrega/LEEME.md</code></pre>
 </div>
 
 
-<pre><code class="language-bash">cd ~/pedalia/entrega/2026-11-09
+<pre tabindex="0"><code class="language-bash">cd ~/pedalia/entrega/2026-11-09
 head -5 viajes_2026-11-09.csv            # columnas y formato
 wc -l viajes_2026-11-09.csv              # filas (incluye el encabezado)</code></pre>
 <p><strong>¿Hay viajes repetidos?</strong> El LEEME avisa que el sistema reintenta y puede repetir filas:</p>
-<pre><code class="language-bash">cut -d, -f1 viajes_2026-11-09.csv | sort | uniq -d | wc -l      # cuántos viaje_id aparecen más de una vez</code></pre>
+<pre tabindex="0"><code class="language-bash">cut -d, -f1 viajes_2026-11-09.csv | sort | uniq -d | wc -l      # cuántos viaje_id aparecen más de una vez</code></pre>
 <p><strong>¿Viajes sin cerrar?</strong> Fin vacío (columna 6):</p>
-<pre><code class="language-bash">awk -F, 'NR &gt; 1 &amp;&amp; $6 == &quot;&quot;' viajes_2026-11-09.csv | wc -l</code></pre>
+<pre tabindex="0"><code class="language-bash">awk -F, 'NR &gt; 1 &amp;&amp; $6 == &quot;&quot;' viajes_2026-11-09.csv | wc -l</code></pre>
 <p><strong>¿Bicis fuera de estación?</strong> Destino 99:</p>
-<pre><code class="language-bash">awk -F, 'NR &gt; 1 &amp;&amp; $4 == 99' viajes_2026-11-09.csv | wc -l</code></pre>
+<pre tabindex="0"><code class="language-bash">awk -F, 'NR &gt; 1 &amp;&amp; $4 == 99' viajes_2026-11-09.csv | wc -l</code></pre>
 <p><strong>Lo que nadie avisó con precisión:</strong> &quot;la estación 13 tuvo problemas de reloj&quot;. ¿Qué significa en los datos? Busca viajes que terminan antes de empezar. Como las fechas tienen formato <code>AAAA-MM-DD HH:MM:SS</code>, se pueden comparar como texto:</p>
-<pre><code class="language-bash">awk -F, 'NR &gt; 1 &amp;&amp; $6 != &quot;&quot; &amp;&amp; $6 &lt; $5 {print $3}' viajes_2026-11-09.csv | sort | uniq -c</code></pre>
+<pre tabindex="0"><code class="language-bash">awk -F, 'NR &gt; 1 &amp;&amp; $6 != &quot;&quot; &amp;&amp; $6 &lt; $5 {print $3}' viajes_2026-11-09.csv | sort | uniq -c</code></pre>
 <p>Todos salen de la estación 13. Ahora ya sabes <strong>qué</strong> problema causa el reloj: viajes con duración negativa.</p>
 <div class="callout callout-tip"><div class="callout-title">💡 Anota los números</div>
 
@@ -58,7 +58,7 @@ wc -l viajes_2026-11-09.csv              # filas (incluye el encabezado)</code><
 
 <h2>3. El contrato de datos</h2>
 <p>El contrato es el documento que dice <strong>qué se espera de la fuente y qué se hace con cada problema</strong>. Lo firman (en sentido figurado) quien produce los datos y quien los usa. Va al repositorio, con historial, porque las reglas cambian y hay que saber desde cuándo.</p>
-<pre><code class="language-bash">cd ~/pedalia-datos
+<pre tabindex="0"><code class="language-bash">cd ~/pedalia-datos
 git checkout -b docs/contrato
 cat &gt; docs/contrato.md &lt;&lt; 'EOF'
 # Contrato de datos · viajes de Pedalia (v1)

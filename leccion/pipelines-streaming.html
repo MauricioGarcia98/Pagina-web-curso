@@ -59,7 +59,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Esas columnas son las <em>features</em> que usa un modelo de churn.</li>
 <li>Mira los usuarios con más de 30 días sin escuchar: son los candidatos a abandonar.</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 r = spark.table(&quot;streaming_reproducciones&quot;).withColumn(&quot;dia&quot;, F.to_date(&quot;fecha_hora&quot;))
 corte = r.agg(F.max(&quot;dia&quot;)).first()[0]

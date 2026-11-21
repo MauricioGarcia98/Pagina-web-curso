@@ -90,7 +90,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Volumen</strong>: ¿cuántas filas llegaron, comparado con lo normal para ese día de la semana?</li>
 </ul>
 <p>Consulta de frescura sobre los datos del curso (el último pedido de cada canal):</p>
-<pre><code class="language-sql">SELECT
+<pre tabindex="0"><code class="language-sql">SELECT
     canal,
     MAX(fecha_pedido)                                        AS ultimo_pedido,
     CAST(julianday('2024-12-31') - julianday(MAX(fecha_pedido)) AS INTEGER) AS dias_de_atraso
@@ -99,7 +99,7 @@ GROUP BY canal
 ORDER BY dias_de_atraso DESC;</code></pre>
 <p>En producción, <code>&#39;2024-12-31&#39;</code> sería la fecha de hoy, y una alerta se dispara si <code>dias_de_atraso</code> supera el SLA.</p>
 <p>Y una consulta de volumen que compara cada día con el promedio de los 7 anteriores, para detectar caídas como la de México:</p>
-<pre><code class="language-sql">WITH por_dia AS (
+<pre tabindex="0"><code class="language-sql">WITH por_dia AS (
     SELECT fecha_pedido AS dia, COUNT(*) AS pedidos
     FROM pedidos
     WHERE fecha_pedido BETWEEN '2024-11-01' AND '2024-12-31'
@@ -177,7 +177,7 @@ LIMIT 5;</code></pre>
 </tr>
 </tbody></table></div>
 <p>Así se ve el enmascaramiento con SQL simple (en Databricks, BigQuery o Snowflake se define una vez como política y se aplica sola):</p>
-<pre><code class="language-sql">SELECT
+<pre tabindex="0"><code class="language-sql">SELECT
     cliente_id,
     pais,
     '****' || SUBSTR(email, INSTR(email, '@')) AS email_enmascarado
@@ -234,7 +234,7 @@ LIMIT 5;</code></pre>
 <li>Un control que falla no siempre corta el pipeline: decide cuáles bloquean (unicidad del id) y cuáles solo avisan.</li>
 <li>Mira cuántos duplicados y montos inválidos trae la capa bronze.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT 'emails nulos' AS control, COUNT(*) AS fallas FROM bronze_pedidos WHERE cliente_email IS NULL
+<pre data-norun tabindex="0"><code class="language-sql">SELECT 'emails nulos' AS control, COUNT(*) AS fallas FROM bronze_pedidos WHERE cliente_email IS NULL
 UNION ALL
 SELECT 'pedidos duplicados', COUNT(*) - COUNT(DISTINCT pedido_id) FROM bronze_pedidos
 UNION ALL

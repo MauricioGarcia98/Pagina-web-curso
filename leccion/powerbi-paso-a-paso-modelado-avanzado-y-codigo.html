@@ -28,7 +28,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/powerbi/b22-grupo-calculo.webp" alt="Nombre del grupo y de la columna, plantillas y los elementos de cálculo con SELECTEDMEASURE()" loading="lazy"><figcaption>Nombre del grupo y de la columna, plantillas y los elementos de cálculo con SELECTEDMEASURE()</figcaption></figure>
 
 
-<pre><code class="language-text">Actual          = SELECTEDMEASURE()
+<pre tabindex="0"><code class="language-text">Actual          = SELECTEDMEASURE()
 Año anterior    = CALCULATE(SELECTEDMEASURE(), SAMEPERIODLASTYEAR(Calendario[Date]))
 Acumulado       = TOTALYTD(SELECTEDMEASURE(), Calendario[Date])
 Variación %     = VAR a = CALCULATE(SELECTEDMEASURE(), SAMEPERIODLASTYEAR(Calendario[Date]))
@@ -57,7 +57,7 @@ Variación %     = VAR a = CALCULATE(SELECTEDMEASURE(), SAMEPERIODLASTYEAR(Calen
 <figure class="captura"><img src="assets/img/guias/powerbi/b22-tmdl.webp" alt="El modelo como texto (1) - tablas, medidas, relaciones y roles; Aplicar (2) ejecuta los cambios con createOrReplace" loading="lazy"><figcaption>El modelo como texto (1) - tablas, medidas, relaciones y roles; Aplicar (2) ejecuta los cambios con createOrReplace</figcaption></figure>
 
 
-<pre><code class="language-text">table _Medidas
+<pre tabindex="0"><code class="language-text">table _Medidas
     measure Ventas = SUMX(detalle_pedidos, detalle_pedidos[cantidad] * detalle_pedidos[precio_unitario])
         formatString: #,##0.00
     measure 'Ticket promedio' = DIVIDE([Ventas], [Pedidos])</code></pre>

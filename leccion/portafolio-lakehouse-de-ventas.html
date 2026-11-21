@@ -49,7 +49,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Los datos</h2>
 <p><a href="#/generador?esc=ecommerce&n=2000&semilla=42&desde=2024-01-01&hasta=2024-12-31&duplicados=2&nulos=4&formatos=5&atipicos=1&huerfanos=1&tardios=3&mojibake=1">🏭 Generar los datos del proyecto</a> · Escenario <strong>Tienda online</strong>, 2.000 clientes, semilla 42, problemas &quot;realista&quot;. Seis tablas: <code>clientes</code>, <code>productos</code>, <code>pedidos</code>, <code>detalle_pedidos</code>, <code>pagos</code> y <code>eventos_web</code>.</p>
 <p>En la terminal del curso puedes explorarlos ya mismo:</p>
-<pre><code class="language-bash">generar-datos ecommerce --filas 500 --semilla 42 --problemas realista
+<pre tabindex="0"><code class="language-bash">generar-datos ecommerce --filas 500 --semilla 42 --problemas realista
 duckdb -c &quot;SELECT canal, COUNT(*) FROM '~/datos/generados/ecommerce/pedidos.csv' GROUP BY canal&quot;</code></pre>
 <p>Vas a ver <code>web</code>, <code>WEB</code> y <code>  web</code>: el primer problema de calidad. Anótalo para la sección &quot;Calidad de datos&quot; del README.</p>
 <h2>Arquitectura</h2>
@@ -58,14 +58,14 @@ duckdb -c &quot;SELECT canal, COUNT(*) FROM '~/datos/generados/ecommerce/pedidos
 
 <h2>Fase 1: en tu computadora (gratis)</h2>
 <h3>1. El proyecto</h3>
-<pre><code class="language-bash">mkdir ventas-lakehouse &amp;&amp; cd ventas-lakehouse &amp;&amp; git init
+<pre tabindex="0"><code class="language-bash">mkdir ventas-lakehouse &amp;&amp; cd ventas-lakehouse &amp;&amp; git init
 uv init --python 3.12
 uv add dbt-duckdb duckdb pandas streamlit
 uv run dbt init transform        # elige duckdb
 mkdir -p data/raw &amp;&amp; echo &quot;data/&quot; &gt;&gt; .gitignore
 cp ~/datos/generados/ecommerce/*.csv data/raw/   # los CSV del generador (o descomprime acá el .zip que bajaste)</code></pre>
 <p><code>transform/profiles.yml</code> (o <code>~/.dbt/profiles.yml</code>):</p>
-<pre><code class="language-yaml">transform:
+<pre tabindex="0"><code class="language-yaml">transform:
   target: dev
   outputs:
     dev:
@@ -74,7 +74,7 @@ cp ~/datos/generados/ecommerce/*.csv data/raw/   # los CSV del generador (o desc
       threads: 4</code></pre>
 <h3>2. Bronze: las fuentes tal cual</h3>
 <p>En <code>models/sources.yml</code> declara las fuentes leyendo los CSV directamente (dbt-duckdb lo permite con <code>external_location</code>):</p>
-<pre><code class="language-yaml">version: 2
+<pre tabindex="0"><code class="language-yaml">version: 2
 sources:
   - name: crudo
     meta:
@@ -88,7 +88,7 @@ sources:
 <p><code>all_varchar=true</code> lee todo como texto: las fechas con formatos mezclados y los números raros no rompen la carga. El tipado se hace en silver, a propósito.</p>
 <h3>3. Silver: limpiar con reglas explícitas</h3>
 <p><code>models/staging/stg_pedidos.sql</code>:</p>
-<pre data-norun><code class="language-sql">with fuente as (
+<pre data-norun tabindex="0"><code class="language-sql">with fuente as (
     select * from {{ source('crudo', 'pedidos') }}
 ),
 tipado as (
@@ -109,7 +109,7 @@ dedup as (
 )
 select * exclude (rn) from dedup where rn = 1</code></pre>
 <p><code>models/staging/stg_clientes.sql</code> (fechas con dos formatos y textos con mojibake):</p>
-<pre data-norun><code class="language-sql">select
+<pre data-norun tabindex="0"><code class="language-sql">select
     cast(cliente_id as integer) as cliente_id,
     trim(nombre)                as nombre,
     lower(trim(email))          as email,
@@ -152,7 +152,7 @@ qualify row_number() over (partition by cliente_id order by fecha_registro) = 1<
 </tr>
 </tbody></table></div>
 <p><code>models/marts/fct_ventas.sql</code>:</p>
-<pre data-norun><code class="language-sql">select
+<pre data-norun tabindex="0"><code class="language-sql">select
     p.fecha_pedido::date                                   as fecha,
     p.pedido_id, p.cliente_id, d.producto_id, p.canal,
     d.cantidad,
@@ -163,7 +163,7 @@ join {{ ref('stg_detalle_pedidos') }} d using (pedido_id)
 join {{ ref('stg_productos') }} pr using (producto_id)
 where p.estado in ('entregado', 'enviado')</code></pre>
 <h3>5. Tests: la definición de &quot;confiable&quot;</h3>
-<pre><code class="language-yaml">models:
+<pre tabindex="0"><code class="language-yaml">models:
   - name: stg_pedidos
     columns:
       - name: pedido_id
@@ -178,9 +178,9 @@ where p.estado in ('entregado', 'enviado')</code></pre>
     tests:
       - dbt_utils.expression_is_true: { expression: &quot;venta_neta &gt;= 0&quot; }</code></pre>
 <p>Los huérfanos (<code>cliente_id</code> que no existe) quedan como <strong>warn</strong>: se reportan en el README con su cantidad y la decisión que tomaste (excluirlos, o asignarlos a un cliente &quot;desconocido&quot;).</p>
-<pre><code class="language-bash">cd transform &amp;&amp; uv run dbt build          # corre modelos y tests en orden</code></pre>
+<pre tabindex="0"><code class="language-bash">cd transform &amp;&amp; uv run dbt build          # corre modelos y tests en orden</code></pre>
 <h3>6. Un tablero rápido</h3>
-<pre data-norun><code class="language-python"># app.py  →  uv run streamlit run app.py
+<pre data-norun tabindex="0"><code class="language-python"># app.py  →  uv run streamlit run app.py
 import duckdb, streamlit as st
 con = duckdb.connect(&quot;data/ventas.duckdb&quot;, read_only=True)
 df = con.sql(&quot;select fecha, canal, sum(venta_neta) as ventas from fct_ventas group by all order by fecha&quot;).df()
@@ -188,12 +188,12 @@ st.title(&quot;Ventas diarias&quot;)
 st.line_chart(df, x=&quot;fecha&quot;, y=&quot;ventas&quot;, color=&quot;canal&quot;)</code></pre>
 <h2>Fase 2: en Databricks Free Edition</h2>
 <ol>
-<li><strong>Catálogo y volumen</strong>: en Free Edition el catálogo por defecto es <code>workspace</code>. Crea el esquema y un volumen para los archivos crudos:<pre><code class="language-sql">CREATE SCHEMA IF NOT EXISTS workspace.ventas;
+<li><strong>Catálogo y volumen</strong>: en Free Edition el catálogo por defecto es <code>workspace</code>. Crea el esquema y un volumen para los archivos crudos:<pre tabindex="0"><code class="language-sql">CREATE SCHEMA IF NOT EXISTS workspace.ventas;
 CREATE VOLUME IF NOT EXISTS workspace.ventas.crudo;</code></pre>
 </li>
-<li><strong>Subir los CSV</strong> desde tu computadora con la CLI (o arrastrando en la interfaz del volumen):<pre><code class="language-bash">databricks fs cp -r data/raw dbfs:/Volumes/workspace/ventas/crudo/</code></pre>
+<li><strong>Subir los CSV</strong> desde tu computadora con la CLI (o arrastrando en la interfaz del volumen):<pre tabindex="0"><code class="language-bash">databricks fs cp -r data/raw dbfs:/Volumes/workspace/ventas/crudo/</code></pre>
 </li>
-<li><strong>Bronze</strong> con <code>read_files</code> (lee CSV, JSON o Parquet de un volumen):<pre><code class="language-sql">CREATE OR REPLACE TABLE workspace.ventas.bronze_pedidos AS
+<li><strong>Bronze</strong> con <code>read_files</code> (lee CSV, JSON o Parquet de un volumen):<pre tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE workspace.ventas.bronze_pedidos AS
 SELECT *, current_timestamp() AS _cargado_en, _metadata.file_path AS _archivo
 FROM read_files('/Volumes/workspace/ventas/crudo/pedidos.csv', format =&gt; 'csv', header =&gt; true);</code></pre>
 </li>
@@ -241,7 +241,7 @@ FROM read_files('/Volumes/workspace/ventas/crudo/pedidos.csv', format =&gt; 'csv
 <li>Consulta el resultado con DuckDB como lo haría un analista.</li>
 <li>Genera la documentación: el linaje (qué modelo sale de cuál) es parte del entregable.</li>
 </ol>
-<pre data-norun><code class="language-bash">cd ~/tienda_dbt
+<pre data-norun tabindex="0"><code class="language-bash">cd ~/tienda_dbt
 dbt build
 dbt docs generate
 dbt ls -s +ventas_por_canal

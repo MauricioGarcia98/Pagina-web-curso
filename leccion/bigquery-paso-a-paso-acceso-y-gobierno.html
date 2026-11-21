@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — Una vista para comercial</h2>
-<pre data-norun><code class="language-sql">CREATE SCHEMA IF NOT EXISTS reportes;
+<pre data-norun tabindex="0"><code class="language-sql">CREATE SCHEMA IF NOT EXISTS reportes;
 
 -- solo lo que comercial necesita: sin email ni teléfono
 CREATE OR REPLACE VIEW reportes.v_clientes_por_pais AS
@@ -69,7 +69,7 @@ GROUP BY pais, segmento;</code></pre>
 </tbody></table></div>
 <p>Los permisos se dan a <strong>grupos</strong> (<code>grp-comercial@tienda.example</code>) y al nivel más chico posible: el dataset, no todo el proyecto.</p>
 <h2>Paso 3 — Seguridad fina</h2>
-<pre data-norun><code class="language-sql">-- cada gerente ve solo las filas de su país
+<pre data-norun tabindex="0"><code class="language-sql">-- cada gerente ve solo las filas de su país
 CREATE ROW ACCESS POLICY solo_peru
 ON analitica.hechos_ventas
 GRANT TO (&quot;group:gerencia-pe@tienda.example&quot;)

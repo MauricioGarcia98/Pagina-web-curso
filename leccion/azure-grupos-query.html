@@ -33,7 +33,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Grupos de recursos</h2>
 <p>Un grupo de recursos es la carpeta donde viven los recursos de un proyecto y un entorno. Su ciclo de vida completo se maneja con cinco comandos:</p>
-<pre data-norun><code class="language-bash">az group create --name rg-datos-dev --location eastus2 --tags proyecto=tienda entorno=dev
+<pre data-norun tabindex="0"><code class="language-bash">az group create --name rg-datos-dev --location eastus2 --tags proyecto=tienda entorno=dev
 az group list --output table
 az group show --name rg-datos-dev
 az resource list --resource-group rg-datos-dev --output table      # qué hay adentro
@@ -45,7 +45,7 @@ az group delete --name rg-datos-dev --yes --no-wait                 # ¡borra TO
 <li><code>--tags</code>: etiquetas <code>clave=valor</code> separadas por espacios. Sirven para filtrar costos y recursos después.</li>
 </ul>
 <p>Al crearlo, <code>az</code> responde con un <strong>JSON</strong> que describe el recurso creado:</p>
-<pre><code class="language-json">{
+<pre tabindex="0"><code class="language-json">{
   &quot;id&quot;: &quot;/subscriptions/1111aaaa-1111-4111-8111-111111111111/resourceGroups/rg-datos-dev&quot;,
   &quot;location&quot;: &quot;eastus2&quot;,
   &quot;name&quot;: &quot;rg-datos-dev&quot;,
@@ -62,7 +62,7 @@ az group delete --name rg-datos-dev --yes --no-wait                 # ¡borra TO
 
 <h2>Formatos de salida: --output / -o</h2>
 <p>El mismo dato se puede pedir en distintos formatos. Crea un segundo grupo (<code>az group create -n rg-datos-prod -l brazilsouth</code>) y compara:</p>
-<pre><code class="language-text">$ az group list -o table
+<pre tabindex="0"><code class="language-text">$ az group list -o table
 Location     Name
 -----------  -------------
 eastus2      rg-datos-dev
@@ -111,7 +111,7 @@ rg-datos-prod</code></pre>
 <h2>--query: filtrar y transformar con JMESPath</h2>
 <p>Todas las respuestas de <code>az</code> son JSON, y <code>--query</code> aplica sobre ellas una consulta <strong>JMESPath</strong>. Es como un mini-SQL para JSON: eliges qué campos quieres (como un <code>SELECT</code>) y qué elementos (como un <code>WHERE</code>). Lo bueno es que el filtro se aplica <strong>antes</strong> de formatear, así que funciona con cualquier <code>-o</code>.</p>
 <p>Piensa en <code>az group list</code> como una <strong>lista de objetos</strong>:</p>
-<pre><code class="language-json">[
+<pre tabindex="0"><code class="language-json">[
   { &quot;name&quot;: &quot;rg-datos-dev&quot;,  &quot;location&quot;: &quot;eastus2&quot;,     &quot;tags&quot;: { &quot;proyecto&quot;: &quot;tienda&quot;, &quot;entorno&quot;: &quot;dev&quot; } },
   { &quot;name&quot;: &quot;rg-datos-prod&quot;, &quot;location&quot;: &quot;brazilsouth&quot;, &quot;tags&quot;: {} }
 ]</code></pre>
@@ -158,7 +158,7 @@ rg-datos-prod</code></pre>
 </tr>
 </tbody></table></div>
 <p>Y en comandos completos:</p>
-<pre data-norun><code class="language-bash"># Solo el nombre de la suscripción activa
+<pre data-norun tabindex="0"><code class="language-bash"># Solo el nombre de la suscripción activa
 az account show --query name -o tsv
 
 # Nombres de todos los grupos de recursos
@@ -213,13 +213,13 @@ az resource list --query &quot;[?type=='Microsoft.Storage/storageAccounts'].name
 
 <h2>Usar resultados en scripts</h2>
 <p>Lo que hace útil a <code>--query</code> + <code>-o tsv</code> es guardar un valor en una <strong>variable de shell</strong> con <code>$( ... )</code> y usarlo en el siguiente comando:</p>
-<pre data-norun><code class="language-bash">SUB_ID=$(az account show --query id -o tsv)
+<pre data-norun tabindex="0"><code class="language-bash">SUB_ID=$(az account show --query id -o tsv)
 RG_ID=$(az group show --name rg-datos-dev --query id -o tsv)
 echo &quot;Suscripción: $SUB_ID&quot;
 echo &quot;Grupo: $RG_ID&quot;</code></pre>
 <p><code>$( ... )</code> ejecuta el comando de adentro y lo reemplaza por lo que imprimió. Así <code>SUB_ID</code> queda con <code>1111aaaa-1111-4111-8111-111111111111</code>, sin comillas.</p>
 <p>Un script real recorre una lista con un bucle:</p>
-<pre data-norun><code class="language-bash"># Imprime cuántos recursos tiene cada grupo
+<pre data-norun tabindex="0"><code class="language-bash"># Imprime cuántos recursos tiene cada grupo
 for rg in $(az group list --query &quot;[].name&quot; -o tsv); do
   n=$(az resource list -g &quot;$rg&quot; --query &quot;length(@)&quot;)
   echo &quot;$rg: $n recursos&quot;
@@ -248,7 +248,7 @@ done</code></pre>
 <li><strong>Review + create</strong> → <strong>Create</strong>.</li>
 <li>Abre <strong>Cloud Shell</strong> y verifica con la CLI: el filtro de JMESPath encuentra el grupo por su etiqueta.</li>
 </ol>
-<pre data-norun><code class="language-bash">az group show -n rg-lab-datos -o table
+<pre data-norun tabindex="0"><code class="language-bash">az group show -n rg-lab-datos -o table
 az group list --query &quot;[?tags.proyecto=='lab'].name&quot; -o tsv
 az group show -n rg-lab-datos --query tags</code></pre>
 <p>Reto: crea un segundo grupo con la etiqueta <code>proyecto</code> = <code>prod</code> y arma una consulta que liste ambos con su etiqueta.</p>

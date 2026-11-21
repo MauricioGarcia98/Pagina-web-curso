@@ -124,7 +124,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>Un caso real, paso a paso</h2>
 <p>El job nocturno <code>ventas_por_cliente</code> tarda <strong>90 minutos</strong>:</p>
-<pre data-norun><code class="language-python">pedidos  = spark.read.json(&quot;/lake/bronze/pedidos/&quot;)             # 800 GB de JSON
+<pre data-norun tabindex="0"><code class="language-python">pedidos  = spark.read.json(&quot;/lake/bronze/pedidos/&quot;)             # 800 GB de JSON
 clientes = spark.read.parquet(&quot;/lake/silver/clientes/&quot;)         # 40 MB
 r = (pedidos.join(clientes, &quot;cliente_id&quot;)
             .filter(F.col(&quot;fecha&quot;) &gt;= &quot;2024-01-01&quot;)
@@ -138,7 +138,7 @@ r.write.mode(&quot;overwrite&quot;).parquet(&quot;/lake/gold/ventas_por_cliente/
 <li>El plan muestra <code>SortMergeJoin</code> con un shuffle de 30 GB, porque Spark no sabía que <code>clientes</code> era chica. → <strong><code>F.broadcast(clientes)</code></strong>: desaparece el shuffle de pedidos, 12 → 6 min.</li>
 <li>En el stage del <code>groupBy</code>, una tarea tarda 4 minutos y las demás 10 segundos: <code>cliente_id = NULL</code> (compras sin cuenta) tiene el 30 % de las filas. → <strong>Filtrar los NULL</strong> antes (no sirven en un inner join): 6 → 2 min.</li>
 </ol>
-<pre data-norun><code class="language-python">pedidos  = (spark.table(&quot;silver.pedidos&quot;)
+<pre data-norun tabindex="0"><code class="language-python">pedidos  = (spark.table(&quot;silver.pedidos&quot;)
               .filter(F.col(&quot;fecha&quot;) &gt;= &quot;2024-01-01&quot;)           # pruning + pushdown
               .filter(F.col(&quot;cliente_id&quot;).isNotNull())          # adiós skew
               .select(&quot;cliente_id&quot;, &quot;total&quot;))                   # solo lo necesario
@@ -152,7 +152,7 @@ r.write.mode(&quot;overwrite&quot;).saveAsTable(&quot;gold.ventas_por_cliente&qu
 
 <h2>Caché: cuándo sí y cuándo no</h2>
 <p><code>cache()</code> guarda un DataFrame en la memoria de los executors la primera vez que se calcula, y las acciones siguientes lo reutilizan en vez de recalcularlo desde el principio.</p>
-<pre data-norun><code class="language-python">clientes_activos = (spark.table(&quot;silver.clientes&quot;)
+<pre data-norun tabindex="0"><code class="language-python">clientes_activos = (spark.table(&quot;silver.clientes&quot;)
                       .filter(&quot;activo = true&quot;)
                       .cache())                  # perezoso: se materializa con la primera acción
 clientes_activos.count()                         # ahora sí queda en memoria
@@ -167,7 +167,7 @@ clientes_activos.unpersist()</code></pre>
 </ul>
 <h2>UDFs: el último recurso</h2>
 <p>Una <strong>UDF</strong> (<em>user-defined function</em>) es una función de Python que aplicas a una columna. Parece cómodo, pero es lento: Spark corre en la JVM (Java), así que cada fila tiene que <strong>convertirse, viajar a un proceso de Python, procesarse y volver</strong>. Además, Catalyst no puede ver qué hace la función, así que no puede optimizarla.</p>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F, types as T
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F, types as T
 
 # ❌ UDF de Python: cada fila viaja a un proceso Python y vuelve (lento)
 @F.udf(T.StringType())
@@ -178,7 +178,7 @@ def dominio(email):
 df.withColumn(&quot;dominio&quot;, F.split(&quot;email&quot;, &quot;@&quot;).getItem(1))</code></pre>
 <p>Antes de escribir una UDF, busca en <code>pyspark.sql.functions</code>: tiene más de 300 funciones (textos, fechas, arreglos, JSON, expresiones regulares). Casi todo se puede hacer con ellas.</p>
 <p>Si de verdad necesitas Python (por ejemplo, una librería de geolocalización), usa una <strong>pandas UDF</strong>. Procesa <strong>lotes</strong> de miles de filas a la vez como una <code>pd.Series</code>, usando Apache Arrow, y suele ser de 10 a 100 veces más rápida que una UDF común:</p>
-<pre data-norun><code class="language-python">import pandas as pd
+<pre data-norun tabindex="0"><code class="language-python">import pandas as pd
 
 @F.pandas_udf(&quot;string&quot;)
 def dominio_vec(emails: pd.Series) -&gt; pd.Series:
@@ -223,7 +223,7 @@ df.withColumn(&quot;dominio&quot;, dominio_vec(&quot;email&quot;))</code></pre>
 <li>Compara los tiempos. En un clúster la diferencia es mayor: la UDF saca cada fila de la JVM a Python y la vuelve a meter.</li>
 <li>Usa <code>cache()</code> solo si reutilizas el resultado: mira <code>InMemoryTableScan</code> en el plan.</li>
 </ol>
-<pre data-norun><code class="language-python">import time
+<pre data-norun tabindex="0"><code class="language-python">import time
 from pyspark.sql import functions as F
 from pyspark.sql.types import StringType
 

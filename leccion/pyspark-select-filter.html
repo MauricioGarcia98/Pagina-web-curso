@@ -56,10 +56,10 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>F: el módulo de funciones</h2>
 <p>Casi todo el código PySpark empieza con esta línea:</p>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F</code></pre>
 <p><code>pyspark.sql.functions</code> tiene cientos de funciones (<code>F.col</code>, <code>F.round</code>, <code>F.upper</code>, <code>F.sum</code>, <code>F.when</code>…). Importarlo como <code>F</code> es una convención universal: cuando veas <code>F.algo</code> en cualquier proyecto, sabrás de dónde viene.</p>
 <h2>Tres formas de referirse a una columna</h2>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 df = spark.table(&quot;productos&quot;)
 df.select(&quot;nombre&quot;, &quot;precio&quot;).show(3)                 # 1) por nombre, como texto
@@ -77,7 +77,7 @@ df.select(df.nombre, df[&quot;precio&quot;]).show(3)            # 3) como atribu
 
 
 <h2>select: elegir y calcular columnas</h2>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 (spark.table(&quot;productos&quot;)
    .select(
@@ -87,7 +87,7 @@ df.select(df.nombre, df[&quot;precio&quot;]).show(3)            # 3) como atribu
        F.round((F.col(&quot;precio&quot;) - F.col(&quot;costo&quot;)) / F.col(&quot;precio&quot;) * 100, 1).alias(&quot;margen_pct&quot;),
    )
    .show(5))</code></pre>
-<pre><code class="language-text">+--------------------+-------+------------------+----------+
+<pre tabindex="0"><code class="language-text">+--------------------+-------+------------------+----------+
 |              nombre| precio|          ganancia|margen_pct|
 +--------------------+-------+------------------+----------+
 |Smartphone Apple ...| 484.99|174.57999999999998|      36.0|
@@ -102,7 +102,7 @@ df.select(df.nombre, df[&quot;precio&quot;]).show(3)            # 3) como atribu
 </ul>
 <h2>filter / where: elegir filas</h2>
 <p><code>filter</code> y <code>where</code> son <strong>sinónimos</strong>. La condición puede ser una expresión de columnas o un texto con sintaxis SQL:</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 p = spark.table(&quot;productos&quot;)
 p.filter(F.col(&quot;precio&quot;) &gt; 1000).show(3)
@@ -158,7 +158,7 @@ p.filter(F.col(&quot;precio&quot;).isNotNull()).show(3)                         
 <p>Los <code>NULL</code> se comportan igual que en SQL: <code>F.col(&quot;email&quot;) == &quot;x&quot;</code> es nulo (no verdadero) cuando <code>email</code> es nulo, y la fila se descarta. Para incluirlos, pídelo: <code>(F.col(&quot;email&quot;) != &quot;x&quot;) | F.col(&quot;email&quot;).isNull()</code>.</p>
 <h2>withColumn: agregar o reemplazar una columna</h2>
 <p><code>select</code> devuelve <strong>solo</strong> las columnas que nombras. <code>withColumn</code> en cambio <strong>conserva todas</strong> y agrega (o reemplaza) <strong>una</strong>:</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 df = (spark.table(&quot;detalle_pedidos&quot;)
         .withColumn(&quot;importe&quot;, F.col(&quot;cantidad&quot;) * F.col(&quot;precio_unitario&quot;) * (1 - F.col(&quot;descuento&quot;)))
@@ -181,7 +181,7 @@ df.show(5)</code></pre>
 
 
 <h2>Renombrar, borrar y convertir tipos</h2>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 df = (spark.table(&quot;clientes&quot;)
         .withColumnRenamed(&quot;pais&quot;, &quot;country&quot;)                  # renombrar
@@ -190,7 +190,7 @@ df = (spark.table(&quot;clientes&quot;)
 df.printSchema()</code></pre>
 <p><code>.cast(&quot;tipo&quot;)</code> convierte una columna: <code>&quot;int&quot;</code>, <code>&quot;double&quot;</code>, <code>&quot;string&quot;</code>, <code>&quot;date&quot;</code>, <code>&quot;timestamp&quot;</code>, <code>&quot;decimal(10,2)&quot;</code>. A diferencia de Python puro, si un valor no se puede convertir (por ejemplo <code>&quot;abc&quot;</code> a <code>int</code>), Spark devuelve <strong><code>null</code></strong> en lugar de fallar: después de un <code>cast</code> sobre datos crudos, <strong>cuenta los nulos</strong> para detectar problemas.</p>
 <h2>distinct, orderBy y limit</h2>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 spark.table(&quot;clientes&quot;).select(&quot;pais&quot;).distinct().orderBy(&quot;pais&quot;).show()      # valores únicos
 spark.table(&quot;productos&quot;).orderBy(F.col(&quot;precio&quot;).desc(), &quot;nombre&quot;).limit(5).show()
@@ -226,7 +226,7 @@ print(spark.table(&quot;pedidos&quot;).dropDuplicates([&quot;cliente_id&quot;]).
 <li>Agrega una columna <code>margen_pct</code> = margen / precio × 100, redondeada a 1 decimal.</li>
 <li>Renombra <code>nombre</code> a <code>producto</code> con <code>withColumnRenamed</code>.</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 productos = spark.table(&quot;productos&quot;)
 (productos

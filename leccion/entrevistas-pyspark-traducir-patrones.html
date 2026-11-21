@@ -67,7 +67,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>Top-N por grupo y deduplicación</h2>
 <p>En PySpark no hace falta una &quot;capa externa&quot;: agregas la columna con <code>withColumn</code> y filtras en el paso siguiente.</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 # el último evento de cada cliente: el mismo patrón que &quot;la última versión de cada registro&quot;
@@ -125,7 +125,7 @@ print(ultimos.count(), &quot;clientes con eventos&quot;)</code></pre>
 <li>Busca en el plan la línea <code>Exchange hashpartitioning(categoria_id...)</code>: es el shuffle que agrupa cada categoría en una partición para la ventana.</li>
 <li>Cambia <code>dense_rank</code> por <code>row_number</code> y compara cuántas filas devuelve.</li>
 </ol>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 w = Window.partitionBy(&quot;categoria_id&quot;).orderBy(F.desc(&quot;precio&quot;))

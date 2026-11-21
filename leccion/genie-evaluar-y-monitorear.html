@@ -174,7 +174,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Corre el SQL en el <strong>SQL Editor</strong> y anota el número esperado.</li>
 <li>Haz la misma pregunta en <strong>Chat</strong> y compara: si no coincide, ajusta instrucciones o ejemplos y vuelve a probar todas (las benchmarks del producto automatizan esto).</li>
 </ol>
-<pre data-norun><code class="language-sql">-- Pregunta: ¿cuántos pedidos entregados hubo en diciembre de 2024?
+<pre data-norun tabindex="0"><code class="language-sql">-- Pregunta: ¿cuántos pedidos entregados hubo en diciembre de 2024?
 SELECT COUNT(*) FROM samples.tienda.pedidos
 WHERE estado = 'entregado' AND fecha_pedido BETWEEN '2024-12-01' AND '2024-12-31';
 

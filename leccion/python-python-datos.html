@@ -26,7 +26,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Un mini ETL en Python puro</h2>
 <p>Este es un archivo de pedidos tal como podría llegar de un sistema viejo. Míralo con ojo de data engineer antes de leer el código: ¿qué problemas ves?</p>
-<pre><code class="language-text">pedido_id,fecha,cliente,pais,monto
+<pre tabindex="0"><code class="language-text">pedido_id,fecha,cliente,pais,monto
 1,2024-03-01,  ana ,chile,120.50
 2,2024-03-01,LUIS,Perú,80
 3,2024-03-02,Eva,Chile,              ← monto vacío
@@ -34,7 +34,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 4,2024-03-02,ana,Chile,99.90         ← pedido duplicado
 5,2024-13-02,Tom,México,40           ← mes 13: fecha imposible</code></pre>
 <p>Hay espacios y mayúsculas mezcladas, un monto vacío, un duplicado y una fecha inválida. Es un archivo <strong>normal</strong>: así llegan los datos casi siempre. El pipeline tiene que limpiarlo sin perder información en silencio.</p>
-<pre><code class="language-python">import csv, io, json
+<pre tabindex="0"><code class="language-python">import csv, io, json
 from datetime import date
 from collections import defaultdict
 
@@ -111,7 +111,7 @@ print(json.dumps(agregar(filas), ensure_ascii=False))</code></pre>
 
 <h3>Del ejercicio al trabajo real: no tirar los rechazos</h3>
 <p>En el ejemplo, las filas inválidas solo se cuentan. En producción se <strong>guardan aparte</strong>, con el motivo, en una tabla de &quot;cuarentena&quot;. Así alguien puede revisarlas, corregir el origen y reprocesarlas. Una versión mejorada de <code>limpiar</code> devuelve el motivo:</p>
-<pre><code class="language-python">from datetime import date
+<pre tabindex="0"><code class="language-python">from datetime import date
 
 def validar(fila):
     &quot;&quot;&quot;Devuelve (fila_limpia, None) o (None, motivo).&quot;&quot;&quot;
@@ -144,7 +144,7 @@ print(&quot;Cuarentena:&quot;, cuarentena)</code></pre>
 
 <h2>Consumir una API (para tu computadora)</h2>
 <p>Muchos datos no llegan en archivos: se piden a una <strong>API</strong>, un servicio web que responde en JSON. En tu máquina usarás la librería <code>requests</code> (<code>pip install requests</code>). Así se ve una extracción profesional (la practicas de verdad, contra la API de práctica del curso, en la lección siguiente: <strong>Extraer datos de una API</strong>):</p>
-<pre data-norun><code class="language-python">import time
+<pre data-norun tabindex="0"><code class="language-python">import time
 import requests
 
 def traer_pedidos(desde, token):
@@ -198,7 +198,7 @@ def traer_pedidos(desde, token):
 <h2>pandas: el Excel de los programadores</h2>
 <p><strong>pandas</strong> es la librería más usada para analizar datos que caben en la memoria de una computadora (hasta unos pocos GB). Su objeto central es el <strong>DataFrame</strong>: una tabla con columnas con nombre y tipo, como una tabla de SQL o una hoja de Excel.</p>
 <p>En este sitio pandas funciona de verdad (la primera vez tarda unos segundos en cargar). Este ejemplo hace el mismo ETL de arriba, pero con pandas:</p>
-<pre><code class="language-python">import io
+<pre tabindex="0"><code class="language-python">import io
 import pandas as pd
 
 CRUDO = &quot;&quot;&quot;pedido_id,fecha,cliente,pais,monto,estado
@@ -280,20 +280,20 @@ print(resumen.to_string(index=False))</code></pre>
 <h3>pandas 3: lo que cambió en 2026</h3>
 <p>pandas 3.0 salió el 21 de enero de 2026 y, según sus notas de versión oficiales, trae tres cambios que vas a notar enseguida. Los ejercicios de este sitio ya corren con <strong>pandas 3</strong> dentro del navegador (Pyodide 314, con Python 3.14), así que puedes probar cada cambio en el editor. Igual conviene escribir código que funcione en las dos versiones, porque muchos proyectos siguen en pandas 2: las recomendaciones de abajo lo hacen.</p>
 <p><strong>1. Un tipo de dato propio para el texto.</strong> Antes, una columna de textos tenía el tipo genérico <code>object</code> (que acepta cualquier cosa). En pandas 3 se infiere el tipo <code>str</code>:</p>
-<pre><code class="language-python">import pandas as pd
+<pre tabindex="0"><code class="language-python">import pandas as pd
 s = pd.Series([&quot;Lima&quot;, &quot;Quito&quot;])
 print(pd.__version__, s.dtype)     # pandas 2: object   ·   pandas 3: str
 print(pd.api.types.is_string_dtype(s))</code></pre>
 <p>Consecuencia: un código que pregunta <code>if df[&quot;ciudad&quot;].dtype == object:</code> deja de funcionar. Para saber si una columna es de texto, usa <code>pd.api.types.is_string_dtype(df[&quot;ciudad&quot;])</code>, que funciona en ambas versiones. Además, una columna <code>str</code> solo acepta textos o valores faltantes: asignarle un número da error.</p>
 <p><strong>2. Copy-on-Write: todo resultado se comporta como una copia.</strong> Cualquier selección (<code>df[df.total &gt; 100]</code>, <code>df[&quot;total&quot;]</code>) se comporta como una copia <strong>independiente</strong> del original. La regla es simple: para cambiar un DataFrame, se lo cambia <strong>directamente</strong>, en una sola operación.</p>
-<pre data-norun><code class="language-python"># pandas 3: NO cambia df (el filtro devuelve una copia y se modifica esa copia); avisa con ChainedAssignmentError
+<pre data-norun tabindex="0"><code class="language-python"># pandas 3: NO cambia df (el filtro devuelve una copia y se modifica esa copia); avisa con ChainedAssignmentError
 df[df[&quot;pais&quot;] == &quot;Chile&quot;][&quot;total&quot;] = 0
 
 # en las dos versiones: una sola operación sobre df
 df.loc[df[&quot;pais&quot;] == &quot;Chile&quot;, &quot;total&quot;] = 0</code></pre>
 <p>Por eso desaparece el famoso aviso <code>SettingWithCopyWarning</code> y ya no hacen falta los <code>.copy()</code> &quot;por las dudas&quot;. Por dentro pandas evita copiar hasta que hace falta, así que además es más rápido.</p>
 <p><strong>3. <code>pd.col()</code> para escribir expresiones sin <code>lambda</code>.</strong></p>
-<pre><code class="language-python">import pandas as pd
+<pre tabindex="0"><code class="language-python">import pandas as pd
 df = pd.DataFrame({&quot;total&quot;: [100.0, 250.0]})
 print(df.assign(total_con_iva=lambda d: d[&quot;total&quot;] * 1.21))   # pandas 2 y 3
 print(df.assign(total_con_iva=pd.col(&quot;total&quot;) * 1.21))         # nuevo en pandas 3</code></pre>
@@ -363,7 +363,7 @@ print(df.assign(total_con_iva=pd.col(&quot;total&quot;) * 1.21))         # nuevo
 <li>Agrega una columna <code>mes</code> desde la fecha.</li>
 <li>Ordena el resultado de mayor a menor venta.</li>
 </ol>
-<pre data-norun><code class="language-python">import pandas as pd
+<pre data-norun tabindex="0"><code class="language-python">import pandas as pd
 df = pd.DataFrame({&quot;fecha&quot;: [&quot;2024-01-05&quot;, &quot;2024-01-20&quot;, &quot;2024-02-03&quot;], &quot;canal&quot;: [&quot;web&quot;, &quot;app&quot;, &quot;web&quot;], &quot;monto&quot;: [120, 80, 200]})
 df[&quot;fecha&quot;] = pd.to_datetime(df[&quot;fecha&quot;])
 print(df.groupby(&quot;canal&quot;)[&quot;monto&quot;].sum())</code></pre>

@@ -198,7 +198,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Las columnas con varios ✔ (fecha, cliente, producto) son las dimensiones que <strong>hay que conformar primero</strong>: las comparten varios procesos. La matriz también es un plan de trabajo: cada fila es un entregable.</p>
 <h2>La dimensión de fecha</h2>
 <p>Casi todo análisis corta por tiempo, y las funciones de fecha de cada motor son distintas y lentas de escribir. Por eso se construye <strong>una tabla con una fila por día</strong> y todos los atributos útiles ya calculados:</p>
-<pre><code class="language-sql">WITH RECURSIVE dias(fecha) AS (
+<pre tabindex="0"><code class="language-sql">WITH RECURSIVE dias(fecha) AS (
     SELECT DATE('2024-12-20')
     UNION ALL
     SELECT DATE(fecha, '+1 day') FROM dias WHERE fecha &lt; '2025-01-05'
@@ -217,7 +217,7 @@ FROM dias;</code></pre>
 <p>En producción se genera para muchos años (en dbt, con <code>dbt_utils.date_spine</code>) y se le agregan feriados de cada país, semanas fiscales y temporadas comerciales. La clave <code>fecha_key</code> (<code>20241225</code>) es un entero legible: la usan las tablas de hechos.</p>
 <h2>Construir la tabla de hechos con SQL</h2>
 <p>Este es el núcleo de <code>fct_ventas</code>, al grano de línea de pedido, con las medidas calculadas:</p>
-<pre><code class="language-sql">SELECT
+<pre tabindex="0"><code class="language-sql">SELECT
     d.detalle_id                                           AS venta_id,
     d.pedido_id,                                           -- dimensión degenerada
     CAST(strftime('%Y%m%d', p.fecha_pedido) AS INTEGER)    AS fecha_key,
@@ -285,7 +285,7 @@ LIMIT 10;</code></pre>
 <li>Ejecuta: se crean dos dimensiones y la tabla de hechos con sus claves y medidas.</li>
 <li>La última consulta responde una pregunta de negocio con el modelo: hechos al centro, dimensiones alrededor.</li>
 </ol>
-<pre data-norun><code class="language-sql">DROP TABLE IF EXISTS dim_producto;
+<pre data-norun tabindex="0"><code class="language-sql">DROP TABLE IF EXISTS dim_producto;
 CREATE TABLE dim_producto AS
 SELECT p.producto_id, p.nombre AS producto, p.marca, c.nombre AS categoria
 FROM productos p JOIN categorias c ON c.categoria_id = p.categoria_id;

@@ -46,7 +46,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Una tarea hace <strong>una cosa</strong> que se puede reintentar sola. &quot;Descargar, limpiar y cargar&quot; en una sola función obliga a repetir la descarga cuando falla la carga. Tres tareas permiten reintentar solo lo que falló.</p>
 <h2>Paso 3 — Nada pesado al cargar el archivo</h2>
 <p>El dag processor lee cada archivo cada pocos segundos. Todo lo que está <strong>fuera de las tareas</strong> se ejecuta en cada lectura:</p>
-<pre data-norun><code class="language-python"># ❌ se ejecuta cada vez que se lee el archivo
+<pre data-norun tabindex="0"><code class="language-python"># ❌ se ejecuta cada vez que se lee el archivo
 clientes = requests.get(&quot;https://api.tienda.local/clientes&quot;).json()
 umbral = Variable.get(&quot;umbral_alerta&quot;)
 
@@ -87,7 +87,7 @@ def descargar():
 
 
 <p>Cualquier opción de <code>airflow.cfg</code> se pisa con una variable de entorno <code>AIRFLOW__SECCION__CLAVE</code>:</p>
-<pre data-norun><code class="language-bash">export AIRFLOW__CORE__LOAD_EXAMPLES=False
+<pre data-norun tabindex="0"><code class="language-bash">export AIRFLOW__CORE__LOAD_EXAMPLES=False
 export AIRFLOW__CORE__PARALLELISM=64
 export AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL=60</code></pre>
 <h2>Paso 6 — Lista de revisión de un pull request</h2>

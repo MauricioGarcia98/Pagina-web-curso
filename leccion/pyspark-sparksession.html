@@ -29,7 +29,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>La SparkSession: la puerta de entrada</h2>
 <p>Todo programa PySpark empieza obteniendo una <strong>SparkSession</strong>: el objeto que se conecta con el motor de Spark y desde el cual lees datos, creas tablas y ejecutas SQL.</p>
-<pre><code class="language-python">from pyspark.sql import SparkSession
+<pre tabindex="0"><code class="language-python">from pyspark.sql import SparkSession
 
 spark = (SparkSession.builder
            .appName(&quot;mi-primer-job&quot;)     # un nombre para reconocer el trabajo en la interfaz de Spark
@@ -41,13 +41,13 @@ print(spark.version)</code></pre>
 </ul>
 <h3>Instalar PySpark en tu computadora</h3>
 <p>Según la documentación oficial, Spark 4.2 necesita <strong>Java 17, 21 o 25</strong> y <strong>Python 3.10 o más nuevo</strong>. Java es necesario porque el motor de Spark corre en la máquina virtual de Java (JVM); PySpark es la capa de Python que le habla.</p>
-<pre data-norun><code class="language-bash">java -version                       # debe decir 17, 21 o 25; si no, instala un JDK (por ejemplo, Temurin)
+<pre data-norun tabindex="0"><code class="language-bash">java -version                       # debe decir 17, 21 o 25; si no, instala un JDK (por ejemplo, Temurin)
 python -m venv .venv &amp;&amp; source .venv/bin/activate
 pip install pyspark==4.2.1          # trae el motor completo (unos 400 MB)
 pyspark                             # abre una consola interactiva con `spark` ya creada</code></pre>
 <p>En tu computadora Spark corre en <strong>modo local</strong>: el driver y los executors son hilos del mismo proceso, y usa todos los núcleos del procesador (<code>local[*]</code>). Es la misma API que en un clúster, solo que en una máquina.</p>
 <p>Si en vez de correr Spark en tu máquina quieres <strong>conectarte</strong> a uno que ya existe (un clúster o Databricks), usa el cliente liviano de <strong>Spark Connect</strong>, que no necesita Java:</p>
-<pre data-norun><code class="language-python"># pip install pyspark-client
+<pre data-norun tabindex="0"><code class="language-python"># pip install pyspark-client
 from pyspark.sql import SparkSession
 spark = SparkSession.builder.remote(&quot;sc://mi-servidor:15002&quot;).getOrCreate()</code></pre>
 <p>La lección &quot;Spark 4: qué cambió&quot; del módulo de Spark explica Spark Connect y el modo ANSI, que cambia cómo se comportan las conversiones de tipos.</p>
@@ -87,7 +87,7 @@ spark = SparkSession.builder.remote(&quot;sc://mi-servidor:15002&quot;).getOrCre
 
 <h2>Crear un DataFrame a mano</h2>
 <p>Para pruebas y ejemplos puedes crear un DataFrame desde una lista de Python:</p>
-<pre><code class="language-python">datos = [
+<pre tabindex="0"><code class="language-python">datos = [
     (&quot;Ana&quot;, &quot;Chile&quot;, 34),
     (&quot;Luis&quot;, &quot;Perú&quot;, 28),
     (&quot;Eva&quot;, &quot;México&quot;, 41),
@@ -95,7 +95,7 @@ spark = SparkSession.builder.remote(&quot;sc://mi-servidor:15002&quot;).getOrCre
 df = spark.createDataFrame(datos, [&quot;nombre&quot;, &quot;pais&quot;, &quot;edad&quot;])
 df.show()
 df.printSchema()</code></pre>
-<pre><code class="language-text">+------+------+----+
+<pre tabindex="0"><code class="language-text">+------+------+----+
 |nombre|  pais|edad|
 +------+------+----+
 |   Ana| Chile|  34|
@@ -113,7 +113,7 @@ root
 </ul>
 <h3>Definir el esquema explícitamente</h3>
 <p>Inferir tipos es cómodo para probar, pero en un pipeline real conviene <strong>declarar</strong> el esquema: es más rápido (Spark no tiene que adivinar), y si los datos llegan con otro formato, el error aparece enseguida en lugar de colarse.</p>
-<pre><code class="language-python">from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+<pre tabindex="0"><code class="language-python">from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 
 esquema = StructType([
     StructField(&quot;nombre&quot;, StringType(), nullable=False),
@@ -162,7 +162,7 @@ df2.show()</code></pre>
 </tbody></table></div>
 <h2>Leer una tabla y explorarla</h2>
 <p>En la práctica casi nunca creas DataFrames a mano: los <strong>lees</strong> de tablas o archivos. <code>spark.table(&quot;nombre&quot;)</code> devuelve una tabla registrada en el catálogo como DataFrame:</p>
-<pre><code class="language-python">pedidos = spark.table(&quot;pedidos&quot;)
+<pre tabindex="0"><code class="language-python">pedidos = spark.table(&quot;pedidos&quot;)
 pedidos.printSchema()            # columnas y tipos
 pedidos.show(5)                  # primeras 5 filas
 print(pedidos.count())           # cantidad de filas
@@ -243,11 +243,11 @@ pedidos.describe(&quot;pedido_id&quot;).show()   # estadísticas básicas: count
 
 <h2>Row: las filas de Spark</h2>
 <p>Cuando traes filas a Python (<code>first()</code>, <code>take</code>, <code>collect</code>), cada una es un objeto <code>Row</code>, parecido a una tupla con nombres:</p>
-<pre><code class="language-python">fila = spark.table(&quot;clientes&quot;).first()
+<pre tabindex="0"><code class="language-python">fila = spark.table(&quot;clientes&quot;).first()
 print(fila)
 print(fila[&quot;nombre&quot;], fila.pais)          # acceso por nombre o como atributo
 print(fila.asDict())                      # convertir a diccionario</code></pre>
-<pre><code class="language-text">Row(cliente_id=1, nombre='Lucía', apellido='Aguilar', email='lucia.aguilar@correo.com', …)
+<pre tabindex="0"><code class="language-text">Row(cliente_id=1, nombre='Lucía', apellido='Aguilar', email='lucia.aguilar@correo.com', …)
 Lucía España</code></pre>
 <h2>Resumen</h2>
 <ul>
@@ -274,7 +274,7 @@ Lucía España</code></pre>
 <li>Fíjate que <code>filter</code> no imprime nada hasta que llamas a <code>show()</code> o <code>count()</code>: es una transformación perezosa.</li>
 <li>Cambia el filtro a otro canal y vuelve a contar.</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import SparkSession
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 
 spark = SparkSession.builder.appName(&quot;primeros-pasos&quot;).getOrCreate()

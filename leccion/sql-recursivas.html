@@ -61,7 +61,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p>Con un self join (lección 12) subes <strong>un</strong> nivel: &quot;el padre de Laptops es Computadoras&quot;. Pero ¿y si quieres <strong>todos</strong> los niveles, sin saber cuántos hay? Necesitarías un join para cada nivel, y la profundidad cambia. La solución es una <strong>CTE recursiva</strong>: una CTE que se usa <strong>a sí misma</strong> hasta que no hay más que recorrer.</p>
 <h2>La estructura</h2>
-<pre data-norun><code class="language-sql">WITH RECURSIVE nombre AS (
+<pre data-norun tabindex="0"><code class="language-sql">WITH RECURSIVE nombre AS (
     -- 1. ANCLA (caso base): las filas con las que se empieza
     SELECT …
     UNION ALL
@@ -89,7 +89,7 @@ SELECT * FROM nombre;</code></pre>
 
 <h2>Ejemplo 1: generar una serie de números</h2>
 <p>El caso más simple, para entender la mecánica:</p>
-<pre><code class="language-sql">WITH RECURSIVE numeros(n) AS (
+<pre tabindex="0"><code class="language-sql">WITH RECURSIVE numeros(n) AS (
     SELECT 1                                  -- ancla: empiezo en 1
     UNION ALL
     SELECT n + 1 FROM numeros WHERE n &lt; 10    -- paso: el siguiente, mientras sea menor a 10
@@ -133,7 +133,7 @@ SELECT n, n * n AS cuadrado FROM numeros;</code></pre>
 
 <h2>Ejemplo 2: un calendario para rellenar huecos</h2>
 <p>Ya viste que <code>GROUP BY</code> no muestra los días <strong>sin</strong> datos. Un calendario generado con recursión, unido con <code>LEFT JOIN</code>, lo resuelve:</p>
-<pre><code class="language-sql">WITH RECURSIVE dias(dia) AS (
+<pre tabindex="0"><code class="language-sql">WITH RECURSIVE dias(dia) AS (
     SELECT '2024-12-20'
     UNION ALL
     SELECT date(dia, '+1 day') FROM dias WHERE dia &lt; '2024-12-31'
@@ -161,7 +161,7 @@ GROUP BY d.dia;</code></pre>
 </tbody></table></div>
 <p>Si algún día no hubiera tenido pedidos, aparecería con <strong>0</strong> en lugar de desaparecer. En reportes y gráficos esto es fundamental: un día faltante en un gráfico de líneas une puntos que no deberían unirse. (En Spark, BigQuery o PostgreSQL existen funciones que generan series directamente, como <code>sequence()</code> o <code>generate_series()</code>; la recursión funciona en todos.)</p>
 <h2>Ejemplo 3: recorrer el organigrama completo</h2>
-<pre><code class="language-sql">WITH RECURSIVE org AS (
+<pre tabindex="0"><code class="language-sql">WITH RECURSIVE org AS (
     -- ancla: el CEO (no tiene jefe)
     SELECT empleado_id, nombre, cargo, jefe_id, 0 AS nivel, nombre AS ruta
     FROM empleados
@@ -280,7 +280,7 @@ LIMIT 25;</code></pre>
 <li>Agrega una columna con la cadena de jefes (<code>ruta || &#39; &gt; &#39; || nombre</code>).</li>
 <li>Genera una serie del 1 al 12 con una CTE recursiva (los meses de un año).</li>
 </ol>
-<pre data-norun><code class="language-sql">WITH RECURSIVE org AS (
+<pre data-norun tabindex="0"><code class="language-sql">WITH RECURSIVE org AS (
   SELECT empleado_id, nombre, jefe_id, 1 AS nivel
   FROM empleados WHERE jefe_id IS NULL
   UNION ALL

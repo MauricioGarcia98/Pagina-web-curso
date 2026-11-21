@@ -61,7 +61,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Aplanar documentos en PySpark</h2>
 <p><code>from_json</code> convierte el texto JSON en una estructura con el esquema que le das, y después cada campo anidado se lee con un punto. Un documento roto da una fila con todos los campos nulos (modo <code>PERMISSIVE</code>), sin frenar el proceso:</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 esquema = &quot;v INT, evento STRUCT&lt;tipo: STRING, ts: STRING&gt;, usuario STRUCT&lt;id: INT, logueado: BOOLEAN&gt;, producto STRUCT&lt;id: INT, precio: DOUBLE&gt;&quot;
 eventos = (spark.table(&quot;bronze_eventos_app&quot;)
@@ -80,7 +80,7 @@ eventos.show(5)</code></pre>
 <li>Fíjate en que el pedido sin líneas desaparece con <code>explode</code>. Cámbialo por <code>explode_outer</code> y mira qué pasa.</li>
 <li>Agrega una columna <code>importe = cantidad * precio</code> y suma el importe por pedido.</li>
 </ol>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 docs = spark.createDataFrame(
     [(101, &quot;entregado&quot;, [{&quot;producto_id&quot;: 3, &quot;cantidad&quot;: 2, &quot;precio&quot;: 120.0}, {&quot;producto_id&quot;: 9, &quot;cantidad&quot;: 1, &quot;precio&quot;: 45.0}]),

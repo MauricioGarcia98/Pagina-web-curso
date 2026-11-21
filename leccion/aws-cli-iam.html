@@ -20,7 +20,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>La AWS CLI: AWS desde la terminal</h2>
 <p>Todo lo que se hace con clics en la consola web se puede hacer con el comando <code>aws</code>. Los data engineers prefieren la terminal porque <strong>se puede repetir, guardar en un script y versionar en Git</strong>.</p>
 <p>La forma de todos los comandos es siempre la misma:</p>
-<pre><code class="language-text">aws  &lt;servicio&gt;  &lt;operación&gt;  [--parámetros]
+<pre tabindex="0"><code class="language-text">aws  &lt;servicio&gt;  &lt;operación&gt;  [--parámetros]
 aws   s3          ls
 aws   glue        get-databases   --output table
 aws   athena      start-query-execution --query-string &quot;SELECT 1&quot; ...</code></pre>
@@ -31,16 +31,16 @@ aws   athena      start-query-execution --query-string &quot;SELECT 1&quot; ...<
 
 
 <h3>Instalar y verificar</h3>
-<pre data-norun><code class="language-bash"># Linux (en macOS: brew install awscli · en Windows: el instalador .msi)
+<pre data-norun tabindex="0"><code class="language-bash"># Linux (en macOS: brew install awscli · en Windows: el instalador .msi)
 curl &quot;https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip&quot; -o awscliv2.zip
 unzip awscliv2.zip &amp;&amp; sudo ./aws/install
 aws --version</code></pre>
 <h3>Configurar credenciales</h3>
-<pre data-norun><code class="language-bash">aws configure                       # pide Access Key, Secret Key, región y formato
+<pre data-norun tabindex="0"><code class="language-bash">aws configure                       # pide Access Key, Secret Key, región y formato
 aws configure list                  # muestra qué configuración se está usando
 aws sts get-caller-identity         # &quot;¿quién soy?&quot;: cuenta, usuario o rol actual</code></pre>
 <p><code>aws configure</code> guarda dos archivos en tu carpeta personal:</p>
-<pre><code class="language-ini"># ~/.aws/credentials   (secreto: nunca a Git)
+<pre tabindex="0"><code class="language-ini"># ~/.aws/credentials   (secreto: nunca a Git)
 [default]
 aws_access_key_id = AKIA...
 aws_secret_access_key = ...
@@ -62,7 +62,7 @@ region = sa-east-1</code></pre>
 
 
 <h3>Perfiles y región</h3>
-<pre data-norun><code class="language-bash">aws s3 ls --profile datos-prod            # usar otro perfil para un comando
+<pre data-norun tabindex="0"><code class="language-bash">aws s3 ls --profile datos-prod            # usar otro perfil para un comando
 export AWS_PROFILE=datos-prod             # o para toda la sesión
 aws glue get-databases --region sa-east-1 # cambiar de región para un comando</code></pre>
 <h2>Formatos de salida y --query</h2>
@@ -88,16 +88,16 @@ aws glue get-databases --region sa-east-1 # cambiar de región para un comando</
 </tr>
 </tbody></table></div>
 <p><code>--query</code> usa <strong>JMESPath</strong> (el mismo lenguaje que <code>az</code>). La diferencia con Azure: en AWS la respuesta casi siempre viene <strong>envuelta</strong> en una clave, por ejemplo <code>{&quot;Buckets&quot;: [...]}</code> o <code>{&quot;DatabaseList&quot;: [...]}</code>, así que la consulta empieza por esa clave:</p>
-<pre data-norun><code class="language-bash">aws s3api list-buckets --query &quot;Buckets[].Name&quot; --output text
+<pre data-norun tabindex="0"><code class="language-bash">aws s3api list-buckets --query &quot;Buckets[].Name&quot; --output text
 aws glue get-databases --query &quot;DatabaseList[].Name&quot; --output text
 aws lambda list-functions --query &quot;Functions[?Runtime=='python3.12'].FunctionName&quot;
 aws glue get-tables --database-name lake_bronze --query &quot;TableList[].{Tabla:Name, Ubicacion:Location}&quot; --output table</code></pre>
-<pre><code class="language-bash">aws sts get-caller-identity
+<pre tabindex="0"><code class="language-bash">aws sts get-caller-identity
 aws sts get-caller-identity --query Account --output text
 aws s3 ls</code></pre>
 <div class="callout callout-tip"><div class="callout-title">💡 Guarda resultados en variables</div>
 
-<pre data-norun><code class="language-bash">CUENTA=$(aws sts get-caller-identity --query Account --output text)
+<pre data-norun tabindex="0"><code class="language-bash">CUENTA=$(aws sts get-caller-identity --query Account --output text)
 echo &quot;Trabajando en la cuenta $CUENTA&quot;</code></pre>
 </div>
 
@@ -140,7 +140,7 @@ echo &quot;Trabajando en la cuenta $CUENTA&quot;</code></pre>
 
 
 <h3>Anatomía de una política</h3>
-<pre><code class="language-json">{
+<pre tabindex="0"><code class="language-json">{
   &quot;Version&quot;: &quot;2012-10-17&quot;,
   &quot;Statement&quot;: [
     {
@@ -175,7 +175,7 @@ echo &quot;Trabajando en la cuenta $CUENTA&quot;</code></pre>
 <li><strong>Política de confianza</strong> (<em>trust policy</em>): quién puede asumir el rol (por ejemplo, <code>glue.amazonaws.com</code>).</li>
 <li><strong>Políticas de permisos</strong>: qué puede hacer una vez asumido.</li>
 </ol>
-<pre data-norun><code class="language-bash">aws iam create-role --role-name GlueJobSilver \
+<pre data-norun tabindex="0"><code class="language-bash">aws iam create-role --role-name GlueJobSilver \
   --assume-role-policy-document file://confianza-glue.json
 aws iam attach-role-policy --role-name GlueJobSilver \
   --policy-arn arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
@@ -187,7 +187,7 @@ aws iam list-roles --query &quot;Roles[].RoleName&quot; --output text</code></pr
 <li>Filtra con <code>--query</code> (JMESPath): primero una lista de nombres, después un filtro con condición.</li>
 <li>Revisa qué roles existen: cada servicio (Glue, Lambda) trabaja con un rol, no con tus claves.</li>
 </ol>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 aws s3 mb s3://practica-iam-dev
 aws s3api list-buckets --output table
 aws s3api list-buckets --query &quot;Buckets[].Name&quot; --output text

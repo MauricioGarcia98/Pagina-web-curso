@@ -43,7 +43,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>Paso 2 — Filtrar filas con una condición</h2>
-<pre data-norun><code class="language-python">cancelados = pedidos[pedidos[&quot;estado&quot;] == &quot;cancelado&quot;]
+<pre data-norun tabindex="0"><code class="language-python">cancelados = pedidos[pedidos[&quot;estado&quot;] == &quot;cancelado&quot;]
 len(cancelados)</code></pre>
 <p>Da <strong>967</strong>. Cómo funciona: <code>pedidos[&quot;estado&quot;] == &quot;cancelado&quot;</code> da una columna de <code>True</code>/<code>False</code> (una por fila); al ponerla entre corchetes, pandas se queda con las filas <code>True</code>.</p>
 <div class="table-wrap"><table><thead><tr>
@@ -60,7 +60,7 @@ len(cancelados)</code></pre>
 </tr>
 </tbody></table></div>
 <h2>Paso 3 — Dos condiciones: &amp; (y), | (o)</h2>
-<pre data-norun><code class="language-python">cancel_web = pedidos[(pedidos[&quot;canal&quot;] == &quot;web&quot;) &amp; (pedidos[&quot;estado&quot;] == &quot;cancelado&quot;)]
+<pre data-norun tabindex="0"><code class="language-python">cancel_web = pedidos[(pedidos[&quot;canal&quot;] == &quot;web&quot;) &amp; (pedidos[&quot;estado&quot;] == &quot;cancelado&quot;)]
 cancel_web.shape</code></pre>
 <figure class="captura"><img src="assets/img/guias/jupyter/e07-filtro.webp" alt="Dos condiciones con &amp;: 421 pedidos web cancelados" loading="lazy"><figcaption>Dos condiciones con &amp;: 421 pedidos web cancelados</figcaption></figure>
 
@@ -93,11 +93,11 @@ cancel_web.shape</code></pre>
 
 
 <h2>Paso 4 — Varios valores: isin</h2>
-<pre data-norun><code class="language-python">perdidos = pedidos[pedidos[&quot;estado&quot;].isin([&quot;cancelado&quot;, &quot;devuelto&quot;])]
+<pre data-norun tabindex="0"><code class="language-python">perdidos = pedidos[pedidos[&quot;estado&quot;].isin([&quot;cancelado&quot;, &quot;devuelto&quot;])]
 len(perdidos)</code></pre>
 <p>Da <strong>1.473</strong> (967 cancelados + 506 devueltos). Es el <code>IN (...)</code> de SQL. Para &quot;todos menos&quot;: <code>~pedidos[&quot;estado&quot;].isin([...])</code>.</p>
 <h2>Paso 5 — Ordenar</h2>
-<pre data-norun><code class="language-python">pedidos.sort_values(&quot;fecha_pedido&quot;, ascending=False).head()</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">pedidos.sort_values(&quot;fecha_pedido&quot;, ascending=False).head()</code></pre>
 <figure class="captura"><img src="assets/img/guias/jupyter/e07-orden.webp" alt="sort_values con ascending=False: los pedidos más recientes primero" loading="lazy"><figcaption>sort_values con ascending=False: los pedidos más recientes primero</figcaption></figure>
 
 
@@ -129,7 +129,7 @@ len(perdidos)</code></pre>
 
 
 <h2>Paso 6 — loc: filas y columnas a la vez</h2>
-<pre data-norun><code class="language-python">pedidos.loc[pedidos[&quot;canal&quot;] == &quot;telefono&quot;, [&quot;pedido_id&quot;, &quot;fecha_pedido&quot;, &quot;estado&quot;]]</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">pedidos.loc[pedidos[&quot;canal&quot;] == &quot;telefono&quot;, [&quot;pedido_id&quot;, &quot;fecha_pedido&quot;, &quot;estado&quot;]]</code></pre>
 <p><code>loc[filas, columnas]</code>: la condición elige las filas y la lista elige las columnas. Es la forma más clara cuando necesitas las dos cosas, y la correcta para <strong>modificar</strong> valores de algunas filas (<code>pedidos.loc[cond, &quot;col&quot;] = valor</code>).</p>
 <h2>Equivalencias</h2>
 <div class="table-wrap"><table><thead><tr>

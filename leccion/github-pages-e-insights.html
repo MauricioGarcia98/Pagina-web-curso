@@ -29,7 +29,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p>En uno o dos minutos el sitio queda en:</p>
-<pre><code class="language-text">https://alumno.github.io/ventas-app/</code></pre>
+<pre tabindex="0"><code class="language-text">https://alumno.github.io/ventas-app/</code></pre>
 <div class="table-wrap"><table><thead><tr>
 <th>Tipo de sitio</th>
 <th>Repositorio</th>
@@ -49,7 +49,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Si hay un <code>index.html</code>, se muestra ese; si no, GitHub convierte el <code>README.md</code> en página. La carpeta puede ser <code>/ (root)</code> o <code>/docs</code> (para separar la documentación del código).</p>
 <h2>Paso 2 — Una página de documentación</h2>
 <p>Crea <code>docs/index.html</code> (y elige la carpeta <code>/docs</code> en Pages) con lo mínimo de un diccionario de datos:</p>
-<pre><code class="language-html">&lt;!doctype html&gt;
+<pre tabindex="0"><code class="language-html">&lt;!doctype html&gt;
 &lt;html lang=&quot;es&quot;&gt;
 &lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;ventas-app - documentación&lt;/title&gt;&lt;/head&gt;
 &lt;body&gt;
@@ -67,7 +67,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Entra por PR (main está protegida). Al fusionar, Pages vuelve a publicar solo.</p>
 <h2>Paso 3 — Publicar con GitHub Actions</h2>
 <p>Cuando el sitio se <strong>genera</strong> (por ejemplo, la documentación de dbt con <code>dbt docs generate</code>, o un reporte que crea un script), se publica con un workflow. En <strong>Settings → Pages → Source</strong> elige <strong>GitHub Actions</strong>, y en <strong>Actions → New workflow</strong> está la plantilla <strong>Static HTML</strong>. Lo esencial:</p>
-<pre><code class="language-yaml">name: docs
+<pre tabindex="0"><code class="language-yaml">name: docs
 on:
   push:
     branches: [main]

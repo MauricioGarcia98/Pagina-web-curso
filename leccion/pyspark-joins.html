@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Los mismos joins de SQL, con otra sintaxis</h2>
 <p>Todo lo que aprendiste de <code>JOIN</code> en SQL vale aquí: claves que conectan tablas, <code>INNER</code> que descarta lo que no tiene pareja, <code>LEFT</code> que conserva todo lo de la izquierda, el anti-join para encontrar lo que falta y la multiplicación de filas en relaciones uno a muchos. En PySpark un join es un <strong>método</strong> del DataFrame de la izquierda:</p>
-<pre data-norun><code class="language-python">df_izq.join(df_der, on=..., how=&quot;inner&quot;)</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">df_izq.join(df_der, on=..., how=&quot;inner&quot;)</code></pre>
 <div class="table-wrap"><table><thead><tr>
 <th>Parámetro</th>
 <th>Qué es</th>
@@ -70,10 +70,10 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>Join por nombre de columna</h2>
 <p>Si la columna de unión <strong>se llama igual</strong> en las dos tablas, pasa su nombre:</p>
-<pre><code class="language-python">pedidos = spark.table(&quot;pedidos&quot;)
+<pre tabindex="0"><code class="language-python">pedidos = spark.table(&quot;pedidos&quot;)
 clientes = spark.table(&quot;clientes&quot;)
 pedidos.join(clientes, &quot;cliente_id&quot;).select(&quot;pedido_id&quot;, &quot;nombre&quot;, &quot;pais&quot;).show(5)</code></pre>
-<pre><code class="language-text">+---------+--------+----------+
+<pre tabindex="0"><code class="language-text">+---------+--------+----------+
 |pedido_id|  nombre|      pais|
 +---------+--------+----------+
 |        1|   Paula| Argentina|
@@ -82,7 +82,7 @@ pedidos.join(clientes, &quot;cliente_id&quot;).select(&quot;pedido_id&quot;, &qu
 <p>Es el <code>USING</code> de SQL: la columna <code>cliente_id</code> aparece <strong>una sola vez</strong> en el resultado (no hay ambigüedad). Para unir por varias columnas, pasa una lista: <code>ventas.join(metas, [&quot;anio&quot;, &quot;mes&quot;, &quot;tienda&quot;])</code>.</p>
 <h2>Join por condición y el problema de las columnas ambiguas</h2>
 <p>Si los nombres son distintos, o necesitas una condición más compleja, escribe la condición con columnas de cada DataFrame:</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 p = spark.table(&quot;productos&quot;)
 c = spark.table(&quot;categorias&quot;)
@@ -95,7 +95,7 @@ c = spark.table(&quot;categorias&quot;)
 <li>Referirte a la columna a través de su DataFrame (<code>p.nombre</code>, <code>c.nombre</code>), como arriba.</li>
 <li>Ponerle <strong>alias</strong> a cada DataFrame y usar <code>F.col(&quot;alias.columna&quot;)</code>:</li>
 </ol>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 (spark.table(&quot;productos&quot;).alias(&quot;p&quot;)
    .join(spark.table(&quot;categorias&quot;).alias(&quot;c&quot;), F.col(&quot;p.categoria_id&quot;) == F.col(&quot;c.categoria_id&quot;))
@@ -104,7 +104,7 @@ c = spark.table(&quot;categorias&quot;)
 <ol start="3">
 <li>La más práctica: <strong>renombrar</strong> las columnas conflictivas antes del join y unir por nombre.</li>
 </ol>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 categorias = spark.table(&quot;categorias&quot;).select(&quot;categoria_id&quot;, F.col(&quot;nombre&quot;).alias(&quot;categoria&quot;))
 spark.table(&quot;productos&quot;).join(categorias, &quot;categoria_id&quot;).select(&quot;nombre&quot;, &quot;categoria&quot;).show(3)</code></pre>
@@ -116,7 +116,7 @@ spark.table(&quot;productos&quot;).join(categorias, &quot;categoria_id&quot;).se
 
 <h2>Los tipos de join, con números reales</h2>
 <p>Con 2.000 clientes, 1.453 de ellos con pedidos y 12.000 pedidos en total:</p>
-<pre><code class="language-python">clientes = spark.table(&quot;clientes&quot;)
+<pre tabindex="0"><code class="language-python">clientes = spark.table(&quot;clientes&quot;)
 pedidos = spark.table(&quot;pedidos&quot;)
 print(&quot;inner:&quot;, clientes.join(pedidos, &quot;cliente_id&quot;).count())               # 12000: solo clientes con pedidos, una fila por pedido
 print(&quot;left:&quot;, clientes.join(pedidos, &quot;cliente_id&quot;, &quot;left&quot;).count())        # 12547: + 547 clientes sin pedidos, con nulos
@@ -165,7 +165,7 @@ print(&quot;left_anti:&quot;, clientes.join(pedidos, &quot;cliente_id&quot;, &qu
 
 <h2>Self join</h2>
 <p>Unir una tabla consigo misma requiere <strong>alias</strong>, porque las dos &quot;copias&quot; tienen exactamente las mismas columnas:</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 e = spark.table(&quot;empleados&quot;)
 (e.alias(&quot;e&quot;)
@@ -191,7 +191,7 @@ e = spark.table(&quot;empleados&quot;)
 </tr>
 </tbody></table></div>
 <p>Puedes sugerir el broadcast cuando sabes que una tabla es chica (una dimensión de países, de categorías):</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 spark.table(&quot;productos&quot;).join(F.broadcast(spark.table(&quot;categorias&quot;)), &quot;categoria_id&quot;).count()</code></pre>
 <p>Lo verás en detalle en la lección de rendimiento; por ahora quédate con la idea: <strong>unir una tabla grande con una chica es barato; unir dos grandes, caro</strong>.</p>
@@ -220,7 +220,7 @@ spark.table(&quot;productos&quot;).join(F.broadcast(spark.table(&quot;categorias
 <li>Cambia a un <code>left_anti</code> para encontrar los productos que nunca se vendieron.</li>
 <li>Compara <code>count()</code> antes y después de cada join: ¿se duplicaron filas?</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 det = spark.table(&quot;detalle_pedidos&quot;)
 prod = spark.table(&quot;productos&quot;)

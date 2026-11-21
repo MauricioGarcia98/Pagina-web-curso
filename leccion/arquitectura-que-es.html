@@ -228,7 +228,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Con esos números decides: ¿alcanza un batch nocturno o hace falta algo casi en tiempo real?</li>
 <li>Anota el resultado como lo pondrías en un documento de diseño: &quot;N pedidos/día, pico de M por hora&quot;.</li>
 </ol>
-<pre data-norun><code class="language-sql">WITH por_dia AS (
+<pre data-norun tabindex="0"><code class="language-sql">WITH por_dia AS (
     SELECT fecha_pedido, COUNT(*) AS pedidos FROM pedidos GROUP BY fecha_pedido
 )
 SELECT ROUND(AVG(pedidos), 1) AS promedio_diario,

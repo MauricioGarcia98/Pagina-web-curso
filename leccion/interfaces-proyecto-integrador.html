@@ -72,18 +72,18 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Paso 1 · El job en Databricks</h2>
 <p>Un <strong>job</strong> es una tarea programable de Databricks. Este crea la tabla gold a partir de los pedidos de muestra.</p>
 <p>Abre la terminal (la de <a href="#/airflow">Airflow</a> sirve: botón <strong>Terminal</strong>) y crea el job con la CLI:</p>
-<pre><code class="language-bash">databricks jobs create --json '{&quot;name&quot;:&quot;carga_gold&quot;,&quot;tasks&quot;:[{&quot;task_key&quot;:&quot;construir&quot;,&quot;sql_task&quot;:{&quot;query&quot;:{&quot;query_text&quot;:&quot;CREATE OR REPLACE TABLE main.default.ventas_por_canal AS SELECT canal, COUNT(*) AS pedidos FROM samples.tienda.pedidos GROUP BY canal&quot;}}}]}'</code></pre>
+<pre tabindex="0"><code class="language-bash">databricks jobs create --json '{&quot;name&quot;:&quot;carga_gold&quot;,&quot;tasks&quot;:[{&quot;task_key&quot;:&quot;construir&quot;,&quot;sql_task&quot;:{&quot;query&quot;:{&quot;query_text&quot;:&quot;CREATE OR REPLACE TABLE main.default.ventas_por_canal AS SELECT canal, COUNT(*) AS pedidos FROM samples.tienda.pedidos GROUP BY canal&quot;}}}]}'</code></pre>
 <p>La respuesta trae el <strong><code>job_id</code></strong>: anótalo. También lo ves en <a href="#/databricks">Databricks</a> → <strong>Jobs &amp; Pipelines</strong> → el job → <em>Job details</em>.</p>
 <blockquote>
 <p>En Databricks real, una tarea SQL apunta a una consulta guardada o a un archivo <code>.sql</code> del repositorio, y necesita un SQL warehouse. La réplica acepta el texto de la consulta para que el ejemplo sea corto.</p>
 </blockquote>
 <h2>Paso 2 · La conexión en Airflow</h2>
 <p>Airflow no guarda direcciones ni tokens en el código del DAG: usa <strong>conexiones</strong>. El operador de Databricks busca por defecto una llamada <code>databricks_default</code>.</p>
-<pre><code class="language-bash">airflow connections add databricks_default --conn-type databricks --conn-host https://adb-1234567890123456.7.azuredatabricks.net</code></pre>
+<pre tabindex="0"><code class="language-bash">airflow connections add databricks_default --conn-type databricks --conn-host https://adb-1234567890123456.7.azuredatabricks.net</code></pre>
 <p>(O en la interfaz: <strong>Admin → Connections → +</strong>.) En un entorno real, la conexión lleva además un token o, mejor, un service principal.</p>
 <h2>Paso 3 · El DAG que orquesta</h2>
 <p>Crea el archivo <code>~/airflow/dags/orquesta_gold.py</code> (con <code>nano</code> o <code>vim</code>) y reemplaza <code>123</code> por tu <code>job_id</code>:</p>
-<pre data-norun><code class="language-python">from datetime import datetime
+<pre data-norun tabindex="0"><code class="language-python">from datetime import datetime
 
 from airflow.sdk import DAG
 from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
@@ -112,7 +112,7 @@ with DAG(
 <p>Cambia el <code>job_id</code> del DAG por uno que no existe y dispara otra vez. La tarea falla con <code>Job 999 does not exist</code>, y <code>avisar_al_equipo</code> queda en naranja (<code>upstream_failed</code>). Corrige el archivo y usa <strong>Clear</strong> sobre la tarea para volver a correr solo desde ahí.</p>
 <h2>Paso 4 · Una tabla en Snowflake</h2>
 <p>En <a href="#/snowflake">Snowflake</a>, abre una hoja y ejecuta:</p>
-<pre data-norun><code class="language-sql">CREATE DATABASE analitica;
+<pre data-norun tabindex="0"><code class="language-sql">CREATE DATABASE analitica;
 CREATE SCHEMA gold;
 
 CREATE TABLE ventas_pais AS
@@ -170,7 +170,7 @@ GROUP BY c.pais;</code></pre>
 <li>Cada operador registra con qué parámetros llamaría a la herramienta real.</li>
 <li>Sigue los pasos de la lección para hacer cada parte en su réplica.</li>
 </ol>
-<pre data-norun><code class="language-python">from datetime import datetime
+<pre data-norun tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import DAG
 from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
 from airflow.providers.snowflake.operators.snowflake import SnowflakeSqlApiOperator

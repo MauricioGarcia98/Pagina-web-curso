@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — Guardar JSON</h2>
-<pre data-norun><code class="language-sql">CREATE TABLE eventos_web (datos VARIANT);
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE eventos_web (datos VARIANT);
 
 INSERT INTO eventos_web
 SELECT PARSE_JSON('{&quot;evento&quot;:&quot;compra&quot;,&quot;cliente&quot;:{&quot;id&quot;:5,&quot;pais&quot;:&quot;PE&quot;},&quot;items&quot;:[{&quot;sku&quot;:&quot;A1&quot;,&quot;cant&quot;:2},{&quot;sku&quot;:&quot;B7&quot;,&quot;cant&quot;:1}]}')
@@ -32,7 +32,7 @@ UNION ALL SELECT PARSE_JSON('{&quot;evento&quot;:&quot;compra&quot;,&quot;client
 UNION ALL SELECT PARSE_JSON('{&quot;evento&quot;:&quot;visita&quot;,&quot;cliente&quot;:{&quot;id&quot;:12,&quot;pais&quot;:&quot;MX&quot;},&quot;items&quot;:[]}');</code></pre>
 <p>Una columna <strong>VARIANT</strong> guarda cualquier JSON (hasta 16 MB por valor) sin definir el esquema antes. Si mañana el evento trae un campo nuevo, no hay que cambiar la tabla.</p>
 <h2>Paso 2 — Leer campos</h2>
-<pre data-norun><code class="language-sql">SELECT datos:evento::string       AS evento,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT datos:evento::string       AS evento,
        datos:cliente.id::int       AS cliente_id,
        datos:cliente.pais::string  AS pais
 FROM eventos_web;</code></pre>
@@ -62,7 +62,7 @@ FROM eventos_web;</code></pre>
 </tbody></table></div>
 <h2>Paso 3 — Abrir los arreglos</h2>
 <p>Cada compra trae una lista de ítems. Para tener una fila por ítem:</p>
-<pre data-norun><code class="language-sql">SELECT e.datos:cliente.pais::string AS pais,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT e.datos:cliente.pais::string AS pais,
        f.value:sku::string          AS sku,
        f.value:cant::int            AS cantidad,
        f.index                      AS posicion

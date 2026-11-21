@@ -35,11 +35,11 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p><strong>Auto detect</strong> deduce los tipos mirando los datos. Para producción conviene un <strong>esquema explícito</strong>: si mañana un archivo trae <code>&quot;N/A&quot;</code> en una columna numérica, el esquema fijo rechaza la fila en lugar de cambiar el tipo.</p>
 <h2>Paso 3 — Otras formas de cargar</h2>
-<pre data-norun><code class="language-sql">-- con SQL, desde Cloud Storage
+<pre data-norun tabindex="0"><code class="language-sql">-- con SQL, desde Cloud Storage
 LOAD DATA INTO analitica.eventos_app
 PARTITION BY fecha
 FROM FILES (format = 'CSV', skip_leading_rows = 1, uris = ['gs://tienda-andina-landing/eventos/*.csv']);</code></pre>
-<pre data-norun><code class="language-bash"># con la CLI
+<pre data-norun tabindex="0"><code class="language-bash"># con la CLI
 bq load --source_format=CSV --skip_leading_rows=1 --time_partitioning_field=fecha \
   analitica.eventos_app gs://tienda-andina-landing/eventos/*.csv</code></pre>
 <div class="table-wrap"><table><thead><tr>

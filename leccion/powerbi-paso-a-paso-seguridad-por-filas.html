@@ -54,7 +54,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Con <strong>Gerente Argentina</strong>, la tarjeta de ventas muestra <strong>2 895 224,93</strong> (las ventas de clientes argentinos) en lugar de 14 878 014,07. Un aviso arriba del lienzo recuerda que estás viendo como un rol; <strong>Detener la vista</strong> vuelve a todo.</p>
 <h2>Paso 3 — Reglas dinámicas</h2>
 <p>Con 20 países, 20 roles es inmanejable. La alternativa es <strong>una</strong> regla que use quién está mirando:</p>
-<pre><code class="language-text">-- en una tabla de asignación: gerentes[email], gerentes[pais]
+<pre tabindex="0"><code class="language-text">-- en una tabla de asignación: gerentes[email], gerentes[pais]
 [pais] = LOOKUPVALUE(gerentes[pais], gerentes[email], USERPRINCIPALNAME())</code></pre>
 <p><code>USERPRINCIPALNAME()</code> devuelve el correo de quien abre el informe. Se mantiene una tabla <code>gerentes</code> (quién ve qué país) y el modelo hace el resto. En <strong>Ver como → Otro usuario</strong> se escribe un correo para probarla.</p>
 <h2>Paso 4 — En el servicio</h2>

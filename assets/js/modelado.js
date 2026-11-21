@@ -292,7 +292,7 @@
         <div class="card mod-editor">
           <div class="ex-tools" style="border-top:0"><b class="small">Tu modelo</b><span class="spacer"></span><button class="btn btn-ghost btn-sm" id="ayuda">❔ Sintaxis</button><button class="btn btn-ghost btn-sm" id="reiniciar">↺ Empezar de nuevo</button></div>
           <div id="ed"></div>
-          <div class="ex-tools"><button class="btn btn-primary" id="revisar">✓ Revisar</button><button class="btn btn-sm" id="verSol">👁 Ver una solución</button><span class="spacer"></span><select id="motor"><option value="sqlite">SQLite</option><option value="postgres">PostgreSQL</option><option value="mysql">MySQL</option><option value="sqlserver">SQL Server</option></select><button class="btn btn-sm" id="verDdl">🧾 SQL de creación</button></div>
+          <div class="ex-tools"><button class="btn btn-primary" id="revisar">✓ Revisar</button><button class="btn btn-sm" id="verSol">👁 Ver una solución</button><span class="spacer"></span><select id="motor" aria-label="Motor de base de datos para probar el DDL"><option value="sqlite">SQLite</option><option value="postgres">PostgreSQL</option><option value="mysql">MySQL</option><option value="sqlserver">SQL Server</option></select><button class="btn btn-sm" id="verDdl">🧾 SQL de creación</button></div>
           <div id="errores"></div>
         </div>
       </div>

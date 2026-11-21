@@ -55,7 +55,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>En la vista previa de cada tabla, confirma que las fechas vienen como fecha y los números como número. Si una columna de fecha llega como texto, corrígelo en <strong>Transformar datos</strong> (Power Query) antes de cargar.</p>
 <h2>2. La tabla de fechas</h2>
 <p>Las tres tablas tienen una columna de fecha, pero ninguna tiene todos los días. Crea una tabla de fechas en <strong>Modelado → Nueva tabla</strong>:</p>
-<pre><code class="language-text">Calendario = CALENDAR(DATE(2026, 11, 1), DATE(2026, 11, 30))</code></pre>
+<pre tabindex="0"><code class="language-text">Calendario = CALENDAR(DATE(2026, 11, 1), DATE(2026, 11, 30))</code></pre>
 <p>Márcala como tabla de fechas (<strong>Herramientas de tabla → Marcar como tabla de fechas</strong>) y relaciona, en la vista <strong>Modelo</strong>:</p>
 <ul>
 <li><code>Calendario[Date]</code> → <code>INGRESOS_DIARIOS[FECHA]</code></li>
@@ -65,7 +65,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Las tres relaciones son de uno a muchos, con filtro en una sola dirección (del calendario a cada tabla).</p>
 <h2>3. Las medidas</h2>
 <p>Arrastrar una columna numérica al gráfico funciona, pero cada visual decide cómo sumarla. Una <strong>medida</strong> se define una vez y vale igual en todos lados:</p>
-<pre><code class="language-text">Ingresos = SUM(INGRESOS_DIARIOS[INGRESOS])
+<pre tabindex="0"><code class="language-text">Ingresos = SUM(INGRESOS_DIARIOS[INGRESOS])
 Viajes = SUM(viajes_por_estacion[viajes_salida])
 Viajes pase día = SUM(uso_por_barrio[viajes_pase_dia])
 % pase día = DIVIDE([Viajes pase día], SUM(uso_por_barrio[viajes]))
@@ -82,7 +82,7 @@ Fuera de estación = SUM(viajes_por_estacion[fuera_de_estacion])</code></pre>
 </ul>
 <h2>5. Antes de mostrarlo: ¿cuadra?</h2>
 <p>Elige un día en el segmentador y compara con la fuente:</p>
-<pre data-norun><code class="language-sql">-- en Databricks
+<pre data-norun tabindex="0"><code class="language-sql">-- en Databricks
 SELECT SUM(viajes) AS viajes, SUM(ingresos) AS ingresos
 FROM pedalia.gold.ingresos_diarios WHERE fecha = '2026-11-09';</code></pre>
 <p>La tarjeta <strong>Viajes</strong> del tablero tiene que dar lo mismo que <code>viajes</code>, e <strong>Ingresos</strong> lo mismo que <code>ingresos</code>. Si no coinciden, no se presenta: se busca la diferencia (una relación mal hecha, una carga duplicada en Snowflake, un día que falta en BigQuery).</p>

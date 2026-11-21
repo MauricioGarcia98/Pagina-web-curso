@@ -20,7 +20,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Programas que deciden</h2>
 <p>Hasta ahora tus programas ejecutaban <strong>todas</strong> sus líneas, siempre. Pero la lógica de negocio está llena de decisiones: &quot;si el stock es bajo, avisar&quot;, &quot;si el total supera 2.000, el envío es gratis&quot;, &quot;si el email está vacío, mandar el registro a revisión&quot;. Para eso existen los <strong>condicionales</strong>: bloques de código que se ejecutan <strong>solo si</strong> se cumple una condición.</p>
 <h2>if: hacer algo solo si se cumple una condición</h2>
-<pre><code class="language-python">stock = 3
+<pre tabindex="0"><code class="language-python">stock = 3
 if stock &lt; 5:
     print(&quot;¡Quedan pocas unidades!&quot;)
     print(&quot;Reponer pronto&quot;)
@@ -56,7 +56,7 @@ print(&quot;Fin del chequeo&quot;)</code></pre>
 
 
 <h2>elif y else: varias alternativas</h2>
-<pre><code class="language-python">total = 1800
+<pre tabindex="0"><code class="language-python">total = 1800
 if total &gt;= 2000:
     envio = 0
 elif total &gt;= 1000:
@@ -152,7 +152,7 @@ print(&quot;Costo de envío:&quot;, envio)</code></pre>
 <td><code>not es_cliente</code></td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-python">pais = &quot;Chile&quot;
+<pre tabindex="0"><code class="language-python">pais = &quot;Chile&quot;
 edad = 17
 if pais in (&quot;Chile&quot;, &quot;Perú&quot;) and not edad &lt; 18:
     print(&quot;Puede registrarse&quot;)
@@ -185,7 +185,7 @@ else:
 </tr>
 </tbody></table></div>
 <p><strong>Todo lo demás es verdadero</strong> (incluido <code>&quot; &quot;</code>, un texto con un espacio, y <code>&quot;0&quot;</code>, un texto con un cero).</p>
-<pre><code class="language-python">email = &quot;&quot;
+<pre tabindex="0"><code class="language-python">email = &quot;&quot;
 if not email:
     print(&quot;Falta el email&quot;)
 
@@ -197,7 +197,7 @@ else:
 <p>Es una forma muy idiomática (típica de Python) de escribir &quot;si está vacío&quot; o &quot;si hay algo&quot;. Pero cuidado: <code>if not cantidad:</code> también es verdadero cuando <code>cantidad</code> es <code>0</code>, que puede ser un valor válido. Si quieres distinguir &quot;cero&quot; de &quot;sin dato&quot;, pregunta explícitamente: <code>if cantidad is None:</code>.</p>
 <h2>Condicionales anidados</h2>
 <p>Un <code>if</code> puede ir dentro de otro (con más sangría):</p>
-<pre><code class="language-python">es_cliente = True
+<pre tabindex="0"><code class="language-python">es_cliente = True
 total = 2500
 if es_cliente:
     if total &gt; 2000:
@@ -209,7 +209,7 @@ else:
 <p>Más de dos o tres niveles se vuelve difícil de leer. Muchas veces se puede aplanar con <code>and</code> (<code>if es_cliente and total &gt; 2000:</code>) o con <em>guardas</em> (salir temprano con <code>return</code> dentro de una función, como verás después).</p>
 <h2>La expresión condicional: if en una línea</h2>
 <p>Para asignar un valor u otro según una condición, existe una forma compacta:</p>
-<pre><code class="language-python">nota = 7
+<pre tabindex="0"><code class="language-python">nota = 7
 resultado = &quot;aprobado&quot; if nota &gt;= 6 else &quot;desaprobado&quot;
 print(resultado)</code></pre>
 <p>Se lee: &quot;<code>resultado</code> es <code>&#39;aprobado&#39;</code> <strong>si</strong> <code>nota &gt;= 6</code>, <strong>si no</strong> <code>&#39;desaprobado&#39;</code>&quot;. Úsala para decisiones simples de dos ramas; para más casos, <code>if/elif/else</code> es más claro.</p>
@@ -262,7 +262,7 @@ print(resultado)</code></pre>
 <li>Agrega una categoría <code>mayorista</code> para montos de más de 100.000.</li>
 <li>Agrega una condición con <code>and</code>: envío gratis si el monto supera 50.000 y el país es Chile.</li>
 </ol>
-<pre data-norun><code class="language-python">monto = 72000
+<pre data-norun tabindex="0"><code class="language-python">monto = 72000
 if monto &gt;= 50000:
     categoria = &quot;grande&quot;
 elif monto &gt;= 10000:

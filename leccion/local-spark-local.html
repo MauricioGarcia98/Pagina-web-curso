@@ -51,7 +51,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>1. Instalar Java y PySpark</h2>
 <p>Spark está escrito en Scala y corre sobre la <strong>JVM</strong> (Java): PySpark necesita Java instalado. Usa Java 17 (compatible con Spark 3.5).</p>
-<pre data-norun><code class="language-bash"># Ubuntu / WSL
+<pre data-norun tabindex="0"><code class="language-bash"># Ubuntu / WSL
 sudo apt install -y openjdk-17-jdk
 # macOS
 brew install openjdk@17
@@ -60,13 +60,13 @@ sudo ln -sfn $(brew --prefix)/opt/openjdk@17/libexec/openjdk.jdk /Library/Java/J
 java -version</code></pre>
 <p>Si tienes varias versiones de Java, apunta <code>JAVA_HOME</code> a la 17 (en <code>~/.bashrc</code> o <code>~/.zshrc</code>): <code>export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64</code> (Ubuntu) o <code>export JAVA_HOME=$(/usr/libexec/java_home -v 17)</code> (macOS).</p>
 <p>Y PySpark en el proyecto:</p>
-<pre data-norun><code class="language-bash">uv init spark-rapido &amp;&amp; cd spark-rapido
+<pre data-norun tabindex="0"><code class="language-bash">uv init spark-rapido &amp;&amp; cd spark-rapido
 uv add pyspark==3.5.3 pandas pyarrow
 uv add --dev jupyter ipykernel
 uv run python -c &quot;from pyspark.sql import SparkSession; print(SparkSession.builder.master('local[*]').getOrCreate().version)&quot;</code></pre>
 <h2>2. Un notebook en VS Code</h2>
 <p>Crea <code>explorar.ipynb</code>, elige el kernel de <code>.venv</code> (arriba a la derecha) y:</p>
-<pre data-norun><code class="language-python">from pyspark.sql import SparkSession, functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import SparkSession, functions as F
 
 spark = (SparkSession.builder
          .master(&quot;local[*]&quot;)
@@ -118,7 +118,7 @@ pedidos.printSchema()
 </tbody></table></div>
 <h2>4. Un job con spark-submit</h2>
 <p>El notebook es para explorar; el job que va a producción es un script:</p>
-<pre data-norun><code class="language-python"># jobs/mart_diario.py
+<pre data-norun tabindex="0"><code class="language-python"># jobs/mart_diario.py
 import sys
 from pyspark.sql import SparkSession, functions as F
 
@@ -136,7 +136,7 @@ def main(entrada, salida):
 
 if __name__ == &quot;__main__&quot;:
     main(sys.argv[1], sys.argv[2])</code></pre>
-<pre data-norun><code class="language-bash">uv run spark-submit --master &quot;local[*]&quot; --driver-memory 4g \
+<pre data-norun tabindex="0"><code class="language-bash">uv run spark-submit --master &quot;local[*]&quot; --driver-memory 4g \
   jobs/mart_diario.py data/delivery_pedidos.csv salida/mart_diario
 ls salida/mart_diario | head      # fecha=2024-01-01/  fecha=2024-01-02/  …  _SUCCESS</code></pre>
 <ul>
@@ -146,7 +146,7 @@ ls salida/mart_diario | head      # fecha=2024-01-01/  fecha=2024-01-02/  …  _
 </ul>
 <h2>5. La alternativa: Spark en Docker</h2>
 <p>Si no quieres instalar Java, la imagen <code>jupyter/pyspark-notebook</code> trae Python, Java, Spark y Jupyter:</p>
-<pre data-norun><code class="language-bash">docker run -d --name spark -p 8888:8888 -p 4040:4040 -v &quot;$PWD&quot;:/home/jovyan/work jupyter/pyspark-notebook
+<pre data-norun tabindex="0"><code class="language-bash">docker run -d --name spark -p 8888:8888 -p 4040:4040 -v &quot;$PWD&quot;:/home/jovyan/work jupyter/pyspark-notebook
 docker logs spark          # copia la URL con el token y ábrela en el navegador</code></pre>
 <p>Tus archivos aparecen en la carpeta <code>work/</code> del Jupyter.</p>
 <!-- estandar:errores -->
@@ -191,7 +191,7 @@ docker logs spark          # copia la URL con el token y ábrela en el navegador
 <li>Escribe un script de PySpark que lee un CSV y córrelo con <code>spark-submit</code> en modo local (<code>local[*]</code> usa todos los núcleos). En la práctica, los CSV de las tablas del curso están en <code>/datos/</code>.</li>
 <li>Mientras corre, en tu computadora la Spark UI está en <code>http://localhost:4040</code>.</li>
 </ol>
-<pre data-norun><code class="language-bash">java -version
+<pre data-norun tabindex="0"><code class="language-bash">java -version
 spark-submit --version
 printf 'from pyspark.sql import SparkSession\nspark = SparkSession.builder.master(&quot;local[*]&quot;).appName(&quot;local&quot;).getOrCreate()\ndf = spark.read.option(&quot;header&quot;, True).csv(&quot;/datos/pedidos.csv&quot;)\ndf.groupBy(&quot;canal&quot;).count().show()\n' &gt; contar.py
 spark-submit contar.py</code></pre>

@@ -32,7 +32,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ul>
 <h2>Entornos virtuales: un proyecto, sus dependencias</h2>
 <p>Cada proyecto necesita versiones distintas de librerías. Un <strong>entorno virtual</strong> es una carpeta aislada con su propio Python y paquetes.</p>
-<pre data-norun><code class="language-bash">python -m venv .venv                 # crear
+<pre data-norun tabindex="0"><code class="language-bash">python -m venv .venv                 # crear
 source .venv/bin/activate            # activar (Windows: .venv\Scripts\activate)
 pip install pandas requests pytest   # instalar paquetes
 pip freeze &gt; requirements.txt        # guardar versiones exactas
@@ -45,7 +45,7 @@ deactivate</code></pre>
 
 
 <h2>Estructura de un proyecto</h2>
-<pre><code class="language-text">mi_pipeline/
+<pre tabindex="0"><code class="language-text">mi_pipeline/
 ├── pyproject.toml          # metadatos y dependencias
 ├── README.md
 ├── .gitignore              # .venv/, __pycache__/, .env
@@ -60,7 +60,7 @@ deactivate</code></pre>
 <p>Un <strong>test</strong> es código que verifica que tu código hace lo que debe. Puede parecer trabajo extra, pero en datos es lo que te permite dormir tranquilo: si mañana alguien cambia la función <code>limpiar_email</code> y rompe un caso, el test falla <strong>antes</strong> de que el error llegue a producción y a los reportes.</p>
 <p>Cada test sigue tres pasos (<em>arrange, act, assert</em>): <strong>preparar</strong> una entrada, <strong>ejecutar</strong> la función, <strong>verificar</strong> con <code>assert</code> que el resultado es el esperado. Con <code>pytest</code>, cualquier función cuyo nombre empiece con <code>test_</code>, en un archivo que empiece con <code>test_</code>, se ejecuta automáticamente con el comando <code>pytest</code>. En los equipos profesionales los tests corren solos en cada Pull Request (<strong>CI</strong>, integración continua): si alguno falla, no se puede fusionar el cambio.</p>
 <p>Los ejercicios de este curso funcionan exactamente así: tu código + unos <code>assert</code> que lo verifican.</p>
-<pre data-norun><code class="language-python"># tests/test_transformar.py
+<pre data-norun tabindex="0"><code class="language-python"># tests/test_transformar.py
 import pytest
 from mi_pipeline.transformar import limpiar_email
 
@@ -103,7 +103,7 @@ def test_invalidos(entrada):
 <td>El proceso no puede seguir</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-python">import logging
+<pre tabindex="0"><code class="language-python">import logging
 logging.basicConfig(level=logging.INFO, format=&quot;%(asctime)s %(levelname)s %(name)s: %(message)s&quot;, force=True)
 log = logging.getLogger(&quot;pipeline.ventas&quot;)
 
@@ -112,7 +112,7 @@ log.warning(&quot;Se descartaron %d filas inválidas&quot;, 12)
 log.error(&quot;No se pudo conectar a la base&quot;)</code></pre>
 <h2>Configuración y secretos</h2>
 <p>Nunca escribas contraseñas en el código. Léelas de <strong>variables de entorno</strong> (o de un gestor de secretos como Azure Key Vault):</p>
-<pre data-norun><code class="language-python">import os
+<pre data-norun tabindex="0"><code class="language-python">import os
 password = os.environ[&quot;DB_PASSWORD&quot;]               # falla si no existe: mejor que un default silencioso
 entorno = os.getenv(&quot;AMBIENTE&quot;, &quot;desarrollo&quot;)</code></pre>
 <h2>Estilo y calidad</h2>
@@ -124,14 +124,14 @@ entorno = os.getenv(&quot;AMBIENTE&quot;, &quot;desarrollo&quot;)</code></pre>
 </ul>
 <h2>Ejemplo resuelto: de script suelto a código profesional</h2>
 <p>Martín te pasa este script, que alguien escribió hace un año y que &quot;a veces falla&quot;:</p>
-<pre data-norun><code class="language-python"># limpiar.py
+<pre data-norun tabindex="0"><code class="language-python"># limpiar.py
 import csv
 f = open(&quot;C:/Users/pedro/Desktop/clientes.csv&quot;)
 for r in csv.reader(f):
     print(r[3].lower().strip())
 password = &quot;Andina2023!&quot;</code></pre>
 <p>Problemas, uno por uno: una ruta que solo existe en la computadora de Pedro, un archivo que nunca se cierra, <code>r[3]</code> (¿qué columna es?), <code>print</code> en vez de logging, ninguna prueba, y una <strong>contraseña</strong> escrita en el código (que ya está en Git). Así queda la versión profesional, separada en una función que se puede probar:</p>
-<pre><code class="language-python">import csv
+<pre tabindex="0"><code class="language-python">import csv
 import io
 import logging
 import os
@@ -260,7 +260,7 @@ print(procesar(datos))</code></pre>
 <li>Escribe una función y su test.</li>
 <li>Corre el test con pytest.</li>
 </ol>
-<pre><code class="language-bash">mkdir -p ~/proyecto &amp;&amp; cd ~/proyecto
+<pre tabindex="0"><code class="language-bash">mkdir -p ~/proyecto &amp;&amp; cd ~/proyecto
 python -m venv .venv
 echo &quot;def total(xs): return sum(xs)&quot; &gt; calculos.py
 echo &quot;from calculos import total&quot; &gt; test_calculos.py

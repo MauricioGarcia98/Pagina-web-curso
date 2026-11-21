@@ -59,7 +59,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <p>Airflow es quien dispara cada paso <strong>en orden</strong>, reintenta si algo falla por un problema pasajero y deja un registro de qué corrió y cuándo.</p>
 <h2>El DAG completo</h2>
-<pre><code class="language-python">from datetime import datetime, timedelta
+<pre tabindex="0"><code class="language-python">from datetime import datetime, timedelta
 from airflow.sdk import DAG
 from airflow.providers.standard.operators.empty import EmptyOperator
 from airflow.providers.standard.operators.bash import BashOperator
@@ -170,7 +170,7 @@ dag.test()</code></pre>
 
 
 <h2>Alertas</h2>
-<pre data-norun><code class="language-python">def avisar_falla(context):
+<pre data-norun tabindex="0"><code class="language-python">def avisar_falla(context):
     ti = context[&quot;task_instance&quot;]
     enviar_a_teams(f&quot;❌ Falló {ti.dag_id}.{ti.task_id} ({context['ds']}). Log: {ti.log_url}&quot;)
 
@@ -212,7 +212,7 @@ default_args = {&quot;on_failure_callback&quot;: avisar_falla, &quot;retries&quo
 <li>Mira en la salida qué parámetros recibió cada operador (el simulador los registra en vez de llamar a la nube).</li>
 <li>Agrega <code>retries=2</code> al job de Databricks: es la tarea más propensa a fallar por el clúster.</li>
 </ol>
-<pre data-norun><code class="language-python">from datetime import datetime
+<pre data-norun tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import DAG
 from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
 from airflow.providers.standard.operators.bash import BashOperator

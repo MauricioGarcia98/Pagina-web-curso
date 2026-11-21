@@ -27,7 +27,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>En la lección anterior usaste <code>ORDER BY</code> dentro de <code>OVER</code> para numerar filas. Ese mismo orden abre otras puertas: <strong>acumular</strong> (&quot;ventas acumuladas del año&quot;), <strong>suavizar</strong> (&quot;promedio de los últimos 3 meses&quot;) y <strong>comparar con filas vecinas</strong> (&quot;¿cuánto crecimos respecto al mes anterior?&quot;, &quot;¿cuántos días pasaron desde la compra anterior?&quot;). Son las herramientas de cualquier análisis temporal.</p>
 <h2>Totales acumulados</h2>
 <p>Si a una agregación de ventana le agregas <code>ORDER BY</code>, deja de ser &quot;el total del grupo&quot; y pasa a ser <strong>&quot;el total desde el principio hasta esta fila&quot;</strong>:</p>
-<pre><code class="language-sql">WITH mensual AS (
+<pre tabindex="0"><code class="language-sql">WITH mensual AS (
   SELECT strftime('%Y-%m', fecha_pedido) AS mes, COUNT(*) AS pedidos
   FROM pedidos
   GROUP BY mes
@@ -71,7 +71,7 @@ ORDER BY mes;</code></pre>
 
 <h3>Acumular &quot;por año&quot;: PARTITION BY + ORDER BY</h3>
 <p>Con <code>PARTITION BY</code>, el acumulado <strong>vuelve a cero</strong> en cada grupo. Es el clásico &quot;acumulado del año&quot; (<em>year to date</em>, YTD):</p>
-<pre><code class="language-sql">WITH mensual AS (
+<pre tabindex="0"><code class="language-sql">WITH mensual AS (
   SELECT strftime('%Y-%m', p.fecha_pedido) AS mes,
          SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS ventas
   FROM pedidos p JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
@@ -125,7 +125,7 @@ ORDER BY mes;</code></pre>
 </tbody></table></div>
 <h3>Promedio móvil</h3>
 <p>Las series mensuales o diarias tienen &quot;ruido&quot; (un mes con un feriado, una semana con una promoción). Un <strong>promedio móvil</strong> suaviza la curva para ver la tendencia:</p>
-<pre><code class="language-sql">WITH mensual AS (
+<pre tabindex="0"><code class="language-sql">WITH mensual AS (
   SELECT strftime('%Y-%m', fecha_pedido) AS mes, COUNT(*) AS pedidos
   FROM pedidos GROUP BY mes
 )
@@ -167,7 +167,7 @@ FROM mensual;</code></pre>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ ROWS vs RANGE (el detalle que nadie te cuenta)</div>
 
 <p>Si escribes <code>ORDER BY</code> <strong>sin</strong> marco, el marco por defecto es <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>. <strong>RANGE</strong> trata como una sola cosa a todas las filas <strong>empatadas</strong> en el orden:</p>
-<pre><code class="language-sql">WITH t(dia, v) AS (VALUES ('d1', 10), ('d2', 5), ('d2', 7), ('d3', 1))
+<pre tabindex="0"><code class="language-sql">WITH t(dia, v) AS (VALUES ('d1', 10), ('d2', 5), ('d2', 7), ('d3', 1))
 SELECT dia, v,
        SUM(v) OVER (ORDER BY dia)                                           AS con_range,
        SUM(v) OVER (ORDER BY dia ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS con_rows
@@ -216,7 +216,7 @@ FROM t;</code></pre>
 <li><code>LEAD(columna, n, valor_por_defecto)</code>: el valor de la fila <code>n</code> posiciones <strong>después</strong>.</li>
 </ul>
 <h3>Crecimiento respecto al periodo anterior</h3>
-<pre><code class="language-sql">WITH mensual AS (
+<pre tabindex="0"><code class="language-sql">WITH mensual AS (
   SELECT strftime('%Y-%m', fecha_pedido) AS mes, COUNT(*) AS pedidos FROM pedidos GROUP BY mes
 )
 SELECT mes, pedidos,
@@ -259,7 +259,7 @@ FROM mensual;</code></pre>
 <p>Para comparar con <strong>el mismo mes del año anterior</strong> (y evitar la estacionalidad), usa <code>LAG(pedidos, 12)</code>, siempre que no falten meses en la serie.</p>
 <h3>Tiempo entre eventos</h3>
 <p>Con <code>PARTITION BY</code>, <code>LAG</code> mira la fila anterior <strong>del mismo cliente</strong>:</p>
-<pre><code class="language-sql">SELECT cliente_id, pedido_id, fecha_pedido,
+<pre tabindex="0"><code class="language-sql">SELECT cliente_id, pedido_id, fecha_pedido,
        julianday(fecha_pedido) - julianday(LAG(fecha_pedido) OVER (PARTITION BY cliente_id ORDER BY fecha_pedido)) AS dias_desde_anterior
 FROM pedidos
 WHERE cliente_id = 3;</code></pre>
@@ -297,7 +297,7 @@ WHERE cliente_id = 3;</code></pre>
 <p>Esta técnica es la base de muchísimos análisis: frecuencia de compra, sesiones web (un &quot;corte&quot; cuando pasan más de 30 minutos entre eventos), rachas, detección de fraude (tres compras en pocos segundos: lo verás en el caso del banco con <code>LAG(fecha_hora, 2)</code>).</p>
 <h2>FIRST_VALUE, LAST_VALUE y NTH_VALUE</h2>
 <p>Devuelven el valor de la primera, la última o la n-ésima fila <strong>del marco</strong>:</p>
-<pre><code class="language-sql">SELECT cliente_id, pedido_id, fecha_pedido,
+<pre tabindex="0"><code class="language-sql">SELECT cliente_id, pedido_id, fecha_pedido,
        FIRST_VALUE(fecha_pedido) OVER (PARTITION BY cliente_id ORDER BY fecha_pedido) AS primera_compra
 FROM pedidos
 WHERE cliente_id &lt;= 3;</code></pre>
@@ -334,14 +334,14 @@ WHERE cliente_id &lt;= 3;</code></pre>
 <td>Distribución acumulada</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-sql">SELECT nombre, precio,
+<pre tabindex="0"><code class="language-sql">SELECT nombre, precio,
        NTILE(4) OVER (ORDER BY precio)                AS cuartil,
        ROUND(PERCENT_RANK() OVER (ORDER BY precio), 3) AS pct_rank
 FROM productos
 LIMIT 10;</code></pre>
 <h2>Ventanas con nombre: WINDOW</h2>
 <p>Si repites la misma definición varias veces, ponle nombre al final de la consulta:</p>
-<pre><code class="language-sql">SELECT nombre, salario,
+<pre tabindex="0"><code class="language-sql">SELECT nombre, salario,
        RANK() OVER w                  AS puesto,
        ROUND(AVG(salario) OVER w, 0)  AS promedio_acumulado
 FROM empleados
@@ -405,7 +405,7 @@ LIMIT 10;</code></pre>
 <li>Agrega la variación contra el mes anterior con <code>LAG</code>.</li>
 <li>Calcula un promedio móvil de 3 meses con <code>ROWS BETWEEN 2 PRECEDING AND CURRENT ROW</code>.</li>
 </ol>
-<pre data-norun><code class="language-sql">WITH mensual AS (
+<pre data-norun tabindex="0"><code class="language-sql">WITH mensual AS (
   SELECT SUBSTR(CAST(fecha_pedido AS VARCHAR), 1, 7) AS mes, COUNT(*) AS pedidos
   FROM pedidos GROUP BY 1
 )

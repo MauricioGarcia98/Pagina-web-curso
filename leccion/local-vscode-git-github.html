@@ -81,7 +81,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>2. Git: tu identidad</h2>
 <p>Git viene en macOS (con <code>xcode-select</code>) y lo instalaste en WSL/Linux con <code>apt</code>. Antes del primer commit, dile quién eres (queda en cada commit):</p>
-<pre data-norun><code class="language-bash">git config --global user.name &quot;Ana Pérez&quot;
+<pre data-norun tabindex="0"><code class="language-bash">git config --global user.name &quot;Ana Pérez&quot;
 git config --global user.email &quot;ana@correo.com&quot;     # el mismo email de tu cuenta de GitHub
 git config --global init.defaultBranch main
 git config --global pull.rebase false
@@ -93,22 +93,22 @@ git config --global --list</code></pre>
 
 
 <p><strong>Paso 1.</strong> Crea la clave (pon una frase de contraseña cuando la pida):</p>
-<pre data-norun><code class="language-bash">ssh-keygen -t ed25519 -C &quot;ana@correo.com&quot;</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">ssh-keygen -t ed25519 -C &quot;ana@correo.com&quot;</code></pre>
 <p><strong>Paso 2.</strong> Copia la clave <strong>pública</strong>:</p>
-<pre data-norun><code class="language-bash">cat ~/.ssh/id_ed25519.pub</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">cat ~/.ssh/id_ed25519.pub</code></pre>
 <p><strong>Paso 3.</strong> En GitHub: tu foto → <strong>Settings</strong> → <strong>SSH and GPG keys</strong> → <strong>New SSH key</strong>, pega el contenido y guarda. (Con la CLI de GitHub: <code>gh auth login</code> y <code>gh ssh-key add ~/.ssh/id_ed25519.pub</code>.)</p>
 <p><strong>Paso 4.</strong> Prueba la conexión:</p>
-<pre><code class="language-text">$ ssh -T git@github.com
+<pre tabindex="0"><code class="language-text">$ ssh -T git@github.com
 Hi ana-perez! You've successfully authenticated, but GitHub does not provide shell access.</code></pre>
 <h2>4. Tu primer repositorio</h2>
-<pre data-norun><code class="language-bash">mkdir -p ~/proyectos/lago &amp;&amp; cd ~/proyectos/lago
+<pre data-norun tabindex="0"><code class="language-bash">mkdir -p ~/proyectos/lago &amp;&amp; cd ~/proyectos/lago
 git init
 code .gitignore           # pega el contenido de abajo
 echo &quot;# Lago de datos&quot; &gt; README.md
 git add .
 git commit -m &quot;Primer commit: README y .gitignore&quot;</code></pre>
 <p>Un <code>.gitignore</code> de un proyecto de datos:</p>
-<pre><code class="language-text"># entornos y cachés de Python
+<pre tabindex="0"><code class="language-text"># entornos y cachés de Python
 .venv/
 __pycache__/
 .pytest_cache/
@@ -134,14 +134,14 @@ logs/
 *.tfstate
 *.tfstate.*</code></pre>
 <p>Crea el repositorio vacío en GitHub (botón <strong>New</strong>, sin README) y conéctalo:</p>
-<pre data-norun><code class="language-bash">git remote add origin git@github.com:ana-perez/lago.git
+<pre data-norun tabindex="0"><code class="language-bash">git remote add origin git@github.com:ana-perez/lago.git
 git push -u origin main</code></pre>
 <h2>5. El flujo de trabajo de un equipo</h2>
 <p>Nadie trabaja directo en <code>main</code>. Cada cambio va en una <strong>rama</strong>, se sube y se propone con un <strong>pull request</strong> (PR) que otra persona revisa.</p>
 <figure class="diagrama"><figcaption>Del cambio al merge: el flujo con ramas y pull requests</figcaption></figure>
 
 
-<pre data-norun><code class="language-bash">git switch main &amp;&amp; git pull              # empezar siempre desde main actualizado
+<pre data-norun tabindex="0"><code class="language-bash">git switch main &amp;&amp; git pull              # empezar siempre desde main actualizado
 git switch -c feat/ingesta-pedidos       # rama nueva con un nombre que diga qué haces
 # … editas, pruebas …
 git add ingesta.py
@@ -196,7 +196,7 @@ git push -u origin feat/ingesta-pedidos  # la primera vez, -u conecta la rama lo
 <li>Genera una llave SSH: la parte pública (<code>.pub</code>) se sube a GitHub; la privada nunca sale de tu computadora.</li>
 <li>Crea un repositorio, haz tu primer commit y mira el historial.</li>
 </ol>
-<pre data-norun><code class="language-bash">git config --global user.name &quot;Tu Nombre&quot;
+<pre data-norun tabindex="0"><code class="language-bash">git config --global user.name &quot;Tu Nombre&quot;
 git config --global user.email &quot;tu@correo.example&quot;
 git config --global init.defaultBranch main
 ssh-keygen -t ed25519 -C &quot;tu@correo.example&quot; -f ~/.ssh/id_ed25519 -N ''

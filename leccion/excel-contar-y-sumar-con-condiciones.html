@@ -33,7 +33,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/excel/03-countif.webp" alt="COUNTIF en la barra de fórmulas (1) y su resultado (2): 9.288 pedidos entregados" loading="lazy"><figcaption>COUNTIF en la barra de fórmulas (1) y su resultado (2): 9.288 pedidos entregados</figcaption></figure>
 
 
-<pre><code class="language-text">=COUNTIF(dónde_buscar, qué_condición)</code></pre>
+<pre tabindex="0"><code class="language-text">=COUNTIF(dónde_buscar, qué_condición)</code></pre>
 <p><code>E:E</code> es toda la columna E. Se lee: &quot;en la columna E, contá las celdas que dicen <em>entregado</em>&quot;.</p>
 <h2>Paso 2 — Cómo se escriben los criterios</h2>
 <div class="table-wrap"><table><thead><tr>
@@ -88,7 +88,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-tip"><div class="callout-title">💡 Fechas entre dos días</div>
 
 <p>Para contar los pedidos de marzo de 2024, usa dos condiciones sobre la misma columna:</p>
-<pre><code class="language-text">=COUNTIFS(D:D,&quot;&gt;=2024-03-01&quot;,D:D,&quot;&lt;2024-04-01&quot;)</code></pre>
+<pre tabindex="0"><code class="language-text">=COUNTIFS(D:D,&quot;&gt;=2024-03-01&quot;,D:D,&quot;&lt;2024-04-01&quot;)</code></pre>
 <p>Resultado: 354. Usa siempre &quot;mayor o igual al primer día&quot; y &quot;menor al primer día del mes siguiente&quot;: funciona con meses de 28, 30 o 31 días sin pensar.</p>
 </div>
 
@@ -137,7 +137,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p><code>pagos!E:E</code> significa &quot;la columna E de la hoja pagos&quot;. Así se usan datos de otra hoja.</p>
-<pre><code class="language-text">=SUMIF(dónde_mirar_la_condición, condición, qué_sumar)
+<pre tabindex="0"><code class="language-text">=SUMIF(dónde_mirar_la_condición, condición, qué_sumar)
 =SUMIFS(qué_sumar, rango1, condición1, rango2, condición2, ...)</code></pre>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ SUMIF y SUMIFS tienen el orden al revés</div>
 
@@ -148,7 +148,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <ol start="6">
 <li>Cobrado en 2024 (aprobado <strong>y</strong> con fecha en 2024). En <strong>A5</strong> escribe <code>Aprobado 2024</code> y en <strong>C5</strong>:</li>
 </ol>
-<pre><code class="language-text">=SUMIFS(pagos!D:D,pagos!E:E,&quot;aprobado&quot;,pagos!C:C,&quot;&gt;=2024-01-01&quot;,pagos!C:C,&quot;&lt;2025-01-01&quot;)</code></pre>
+<pre tabindex="0"><code class="language-text">=SUMIFS(pagos!D:D,pagos!E:E,&quot;aprobado&quot;,pagos!C:C,&quot;&gt;=2024-01-01&quot;,pagos!C:C,&quot;&lt;2025-01-01&quot;)</code></pre>
 <figure class="captura"><img src="assets/img/guias/excel/e10-sumifs.webp" alt="SUMIFS con tres condiciones (1): lo cobrado en 2024 (2)" loading="lazy"><figcaption>SUMIFS con tres condiciones (1): lo cobrado en 2024 (2)</figcaption></figure>
 
 

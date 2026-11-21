@@ -58,7 +58,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <p>En Python la <strong>sangría</strong> (los espacios al comienzo de la línea) no es decoración: indica qué está dentro de qué. Si una tarea queda sin sangría, queda <strong>fuera</strong> del DAG.</p>
 <h2>El DAG completo</h2>
-<pre><code class="language-python">from datetime import datetime
+<pre tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import DAG
 from airflow.providers.standard.operators.bash import BashOperator
 from airflow.providers.standard.operators.python import PythonOperator
@@ -113,7 +113,7 @@ dag.test()                                 # ejecuta el DAG completo una vez (co
 <li>Cuando llega la hora (según el <code>schedule</code>), el <strong>scheduler</strong> crea un <strong>DAG run</strong> y va enviando cada tarea a un <em>worker</em>, que recién ahí ejecuta <code>transformar()</code> o el comando de Bash.</li>
 </ol>
 <p>Consecuencia práctica, y la primera regla de la página de buenas prácticas de la documentación oficial: el código que está <strong>fuera</strong> de las funciones de las tareas (el <em>top-level code</em>) se ejecuta cada vez que se parsea el archivo, ¡miles de veces por día! Nunca pongas ahí consultas a bases de datos, llamadas a APIs o lecturas de archivos grandes: van <strong>dentro</strong> de las tareas.</p>
-<pre data-norun><code class="language-python"># MAL: se ejecuta en cada lectura del archivo, aunque el DAG no corra
+<pre data-norun tabindex="0"><code class="language-python"># MAL: se ejecuta en cada lectura del archivo, aunque el DAG no corra
 clientes = requests.get(&quot;https://api.tienda.com/clientes&quot;).json()
 
 # BIEN: se ejecuta solo cuando corre la tarea
@@ -163,7 +163,7 @@ def descargar_clientes():
 </tbody></table></div>
 <p>Un <strong>provider</strong> es un paquete aparte que agrega operadores para un sistema: <code>pip install apache-airflow-providers-databricks</code> agrega los de Databricks.</p>
 <h2>Dependencias</h2>
-<pre data-norun><code class="language-python">a &gt;&gt; b            # a antes que b      (equivale a b &lt;&lt; a)
+<pre data-norun tabindex="0"><code class="language-python">a &gt;&gt; b            # a antes que b      (equivale a b &lt;&lt; a)
 a &gt;&gt; [b, c]       # b y c después de a (en paralelo)
 [b, c] &gt;&gt; d       # d después de b y c
 a &gt;&gt; b &gt;&gt; c       # en cadena
@@ -179,7 +179,7 @@ chain(a, [b, c], d)</code></pre>
 
 <h2>Pruébalo en la terminal</h2>
 <p>La terminal tiene un DAG de ejemplo en <code>~/dags/etl_ventas.py</code>, y el comando <code>airflow</code> usa el mismo simulador que los ejercicios:</p>
-<pre><code class="language-bash">cat dags/etl_ventas.py
+<pre tabindex="0"><code class="language-bash">cat dags/etl_ventas.py
 airflow dags list
 airflow tasks list etl_ventas
 airflow dags test etl_ventas 2024-12-31</code></pre>
@@ -227,7 +227,7 @@ airflow dags test etl_ventas 2024-12-31</code></pre>
 <li>Agrega una cuarta tarea <code>validar</code> (PythonOperator) entre <code>transformar</code> y <code>cargar</code>.</li>
 <li>Rompe a propósito la función (<code>1 / 0</code>) y mira cómo la tarea falla y las siguientes no corren.</li>
 </ol>
-<pre data-norun><code class="language-python">from datetime import datetime
+<pre data-norun tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import DAG
 from airflow.providers.standard.operators.bash import BashOperator
 from airflow.providers.standard.operators.python import PythonOperator

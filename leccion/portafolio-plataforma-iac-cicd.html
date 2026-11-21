@@ -51,7 +51,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Fase 1: Terraform</h2>
-<pre><code class="language-hcl">terraform {
+<pre tabindex="0"><code class="language-hcl">terraform {
   backend &quot;azurerm&quot; {
     resource_group_name  = &quot;rg-tfstate&quot;
     storage_account_name = &quot;sttfstateacademia&quot;
@@ -79,7 +79,7 @@ resource &quot;azurerm_storage_account&quot; &quot;lago&quot; {
 <li><strong>Un estado por entorno</strong> (<code>dev</code>, <code>prod</code>), con variables distintas: mismo código, distinta escala.</li>
 </ul>
 <h2>Fase 2: el Asset Bundle</h2>
-<pre><code class="language-yaml"># databricks.yml
+<pre tabindex="0"><code class="language-yaml"># databricks.yml
 bundle:
   name: ventas_lakehouse
 
@@ -98,7 +98,7 @@ targets:
       host: https://adb-2222222222222222.2.azuredatabricks.net
     run_as:
       service_principal_name: sp-datos-prod   # producción no corre con un usuario personal</code></pre>
-<pre><code class="language-yaml"># resources/ventas.job.yml
+<pre tabindex="0"><code class="language-yaml"># resources/ventas.job.yml
 resources:
   jobs:
     ventas_diarias:
@@ -108,7 +108,7 @@ resources:
         - task_key: dbt_build
           dbt_task: { project_directory: ./transform, commands: [&quot;dbt deps&quot;, &quot;dbt build&quot;] }</code></pre>
 <h2>Fase 3: CI/CD con GitHub Actions</h2>
-<pre><code class="language-yaml"># .github/workflows/ci.yml
+<pre tabindex="0"><code class="language-yaml"># .github/workflows/ci.yml
 on:
   pull_request:
   push: { branches: [main] }
@@ -173,7 +173,7 @@ jobs:
 <li>El bundle de Databricks se valida y despliega al entorno de desarrollo.</li>
 <li>Esos mismos comandos son los pasos del workflow de GitHub Actions.</li>
 </ol>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 mkdir -p ~/plataforma &amp;&amp; cd ~/plataforma
 printf 'resource &quot;aws_s3_bucket&quot; &quot;bronze&quot; {\n  bucket = &quot;plataforma-dev-bronze&quot;\n}\n' &gt; main.tf
 terraform init

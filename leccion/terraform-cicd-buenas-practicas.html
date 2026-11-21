@@ -30,7 +30,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Pruebas con terraform test</h2>
 <p>Desde la versión 1.6, Terraform trae su propio framework de pruebas. Una prueba es un archivo <strong><code>.tftest.hcl</code></strong> (en la carpeta del módulo o en <code>tests/</code>) con bloques <strong><code>run</code></strong>. Cada <code>run</code> planifica o aplica el módulo con ciertas variables y verifica condiciones con <strong><code>assert</code></strong>.</p>
 <p>Para el proyecto del lago de la lección de HCL (buckets por capa, versionado solo en prod, bucket de logs solo en prod):</p>
-<pre><code class="language-hcl"># tests/lago.tftest.hcl
+<pre tabindex="0"><code class="language-hcl"># tests/lago.tftest.hcl
 variables {                          # valores para todos los run
   proyecto = &quot;tienda&quot;
 }
@@ -107,7 +107,7 @@ run &quot;entorno_invalido&quot; {
 <td>Prueba que una validación rechaza un valor inválido</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-text">$ terraform test
+<pre tabindex="0"><code class="language-text">$ terraform test
 tests/lago.tftest.hcl... in progress
   run &quot;dev_sin_logs&quot;... pass
   run &quot;prod_con_logs_y_versionado&quot;... pass
@@ -161,7 +161,7 @@ Success! 3 passed, 0 failed.</code></pre>
 </tbody></table></div>
 <p>Todo esto se corre también <strong>antes del commit</strong> con <strong>pre-commit</strong> (<code>.pre-commit-config.yaml</code> con los hooks de <code>pre-commit-terraform</code>), para que los errores obvios no lleguen ni al pull request.</p>
 <h2>El pipeline en GitHub Actions</h2>
-<pre><code class="language-yaml"># .github/workflows/terraform.yml
+<pre tabindex="0"><code class="language-yaml"># .github/workflows/terraform.yml
 name: terraform
 
 on:
@@ -246,7 +246,7 @@ jobs:
 </ul>
 <h3>OIDC: la CI sin secretos</h3>
 <p>La forma vieja era crear un usuario de IAM, generar una <strong>access key</strong> y guardarla en los secretos de GitHub. Esa clave no expira, se puede filtrar y hay que rotarla. Con <strong>OIDC</strong> (<em>OpenID Connect</em>), GitHub le presenta a la nube un token firmado que dice &quot;soy el workflow del repositorio <code>grupo-andina/infra-datos</code>, rama <code>main</code>&quot;, y la nube le da credenciales <strong>temporales</strong> (una hora) para un rol que confía en ese repositorio:</p>
-<pre><code class="language-hcl">resource &quot;aws_iam_openid_connect_provider&quot; &quot;github&quot; {
+<pre tabindex="0"><code class="language-hcl">resource &quot;aws_iam_openid_connect_provider&quot; &quot;github&quot; {
   url             = &quot;https://token.actions.githubusercontent.com&quot;
   client_id_list  = [&quot;sts.amazonaws.com&quot;]
   thumbprint_list = [&quot;6938fd4d98bab03faadb97b34396831e3780aea1&quot;]
@@ -271,7 +271,7 @@ resource &quot;aws_iam_role&quot; &quot;github_apply&quot; {
 <p>La condición <code>sub</code> es la clave: <strong>solo</strong> la rama <code>main</code> de <strong>ese</strong> repositorio puede usar el rol de apply. Azure (<em>federated credentials</em> de una identidad) y Google Cloud (<em>Workload Identity Federation</em>) tienen el mismo mecanismo.</p>
 <h2>Drift: lo que cambió fuera de Terraform</h2>
 <p>El <strong>drift</strong> es la diferencia entre lo que dice el código y lo que hay en la nube porque alguien cambió algo a mano (o lo cambió otro sistema). Se detecta con un plan programado:</p>
-<pre><code class="language-yaml">on:
+<pre tabindex="0"><code class="language-yaml">on:
   schedule:
     - cron: &quot;0 6 * * 1-5&quot;       # de lunes a viernes, 06:00 UTC
 jobs:
@@ -280,21 +280,21 @@ jobs:
       # … checkout, setup, OIDC con el rol de solo lectura, init …
       - run: terraform plan -detailed-exitcode -input=false</code></pre>
 <p><code>-detailed-exitcode</code> cambia el código de salida: <strong>0</strong> = sin cambios, <strong>1</strong> = error, <strong>2</strong> = hay cambios (drift). Un 2 abre un issue o avisa en Slack. Después alguien decide: llevar el cambio al código, o aplicar para revertirlo.</p>
-<pre><code class="language-text">$ terraform plan -detailed-exitcode
+<pre tabindex="0"><code class="language-text">$ terraform plan -detailed-exitcode
 ...
 Plan: 0 to add, 1 to change, 0 to destroy.
 $ echo $?
 2</code></pre>
 <h3>Laboratorio: provoca un drift</h3>
 <p>En la terminal, crea un bucket con Terraform y bórralo &quot;a mano&quot;, como haría alguien desde la consola:</p>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 mkdir -p ~/infra/drift &amp;&amp; cd ~/infra/drift
 code main.tf                         # provider &quot;aws&quot; + resource &quot;aws_s3_bucket&quot; &quot;gold&quot; { bucket = &quot;tienda-prod-gold&quot; }
 terraform init &amp;&amp; terraform apply -auto-approve
 aws s3 rb s3://tienda-prod-gold      # el cambio &quot;por fuera&quot;
 terraform plan -refresh-only         # solo muestra lo que cambió afuera
 terraform plan -detailed-exitcode; echo $?</code></pre>
-<pre><code class="language-text">Note: Objects have changed outside of Terraform
+<pre tabindex="0"><code class="language-text">Note: Objects have changed outside of Terraform
 
   # aws_s3_bucket.gold has been deleted
   - resource &quot;aws_s3_bucket&quot; &quot;gold&quot; {
@@ -352,7 +352,7 @@ Plan: 1 to add, 0 to change, 0 to destroy.
 </tr>
 </tbody></table></div>
 <h3>Las versiones, fijadas</h3>
-<pre><code class="language-hcl">terraform {
+<pre tabindex="0"><code class="language-hcl">terraform {
   required_version = &quot;&gt;= 1.10, &lt; 2.0&quot;
 
   required_providers {
@@ -449,7 +449,7 @@ Plan: 1 to add, 0 to change, 0 to destroy.
 <li>Simula un cambio hecho a mano afuera de Terraform (borras el bucket con la CLI).</li>
 <li><code>plan -refresh-only</code> muestra la diferencia entre el estado y la realidad: eso es <em>drift</em>.</li>
 </ol>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 mkdir -p ~/infra/drift &amp;&amp; cd ~/infra/drift
 printf 'resource &quot;aws_s3_bucket&quot; &quot;gold&quot; {\n  bucket = &quot;tienda-prod-gold&quot;\n}\n' &gt; main.tf
 terraform init

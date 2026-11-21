@@ -56,7 +56,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>no factura</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-sql">WITH f AS (SELECT empresa_id, mes, SUM(monto) AS mrr FROM saas_facturas GROUP BY empresa_id, mes)
+<pre tabindex="0"><code class="language-sql">WITH f AS (SELECT empresa_id, mes, SUM(monto) AS mrr FROM saas_facturas GROUP BY empresa_id, mes)
 SELECT a.mes, a.empresa_id, b.mrr AS mrr_anterior, a.mrr AS mrr_actual
 FROM f a
 LEFT JOIN f b ON b.empresa_id = a.empresa_id AND b.mes = date(a.mes, '-1 month')
@@ -84,7 +84,7 @@ LIMIT 5;</code></pre>
 <li><code>LAG</code> trae el MRR del mes anterior para calcular la variación.</li>
 <li>Busca los meses en que el MRR bajó: ¿más bajas o menos altas?</li>
 </ol>
-<pre data-norun><code class="language-sql">WITH mrr AS (
+<pre data-norun tabindex="0"><code class="language-sql">WITH mrr AS (
     SELECT mes, SUM(monto) AS mrr
     FROM saas_facturas
     WHERE estado = 'pagada'

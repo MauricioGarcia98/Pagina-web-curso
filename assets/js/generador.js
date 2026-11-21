@@ -685,7 +685,7 @@ az storage fs directory upload --account-name <cuenta> -f crudo -s "./*.csv" -d 
       main.querySelectorAll('input[name=pais]').forEach((x) => { x.checked = cfg.paises.includes(x.value); });
       for (const k of Object.keys(PROBLEMAS)) { const r = F['p_' + k]; r.value = cfg.problemas[k]; r.nextElementSibling.textContent = cfg.problemas[k] + '%'; }
       F.formato.value = cfg.formato; F.dialecto.value = cfg.dialecto; F.soluciones.checked = cfg.soluciones;
-      F.dialecto.closest('label').style.opacity = cfg.formato === 'sql' ? 1 : 0.5;
+      F.dialecto.closest('label').style.opacity = cfg.formato === 'sql' ? 1 : 0.5; F.dialecto.disabled = cfg.formato !== 'sql';
     }
     function leerCfg() {
       cfg.n = Math.max(10, Math.min(200000, Number(F.n.value) || ESCENARIOS[cfg.escenario].base));
@@ -697,7 +697,7 @@ az storage fs directory upload --account-name <cuenta> -f crudo -s "./*.csv" -d 
       cfg.formato = F.formato.value; cfg.dialecto = F.dialecto.value; cfg.soluciones = F.soluciones.checked;
     }
     main.querySelector('#genEsc').addEventListener('click', (e) => { const b = e.target.closest('[data-esc]'); if (!b) return; leerCfg(); cfg.escenario = b.dataset.esc; cfg.n = ESCENARIOS[cfg.escenario].base; pintarCfg(); });
-    F.addEventListener('input', (e) => { if (e.target.type === 'range') e.target.nextElementSibling.textContent = e.target.value + '%'; leerCfg(); F.dialecto.closest('label').style.opacity = cfg.formato === 'sql' ? 1 : 0.5; });
+    F.addEventListener('input', (e) => { if (e.target.type === 'range') e.target.nextElementSibling.textContent = e.target.value + '%'; leerCfg(); F.dialecto.closest('label').style.opacity = cfg.formato === 'sql' ? 1 : 0.5; F.dialecto.disabled = cfg.formato !== 'sql'; });
     main.querySelector('.gen-tam').addEventListener('click', (e) => { const b = e.target.closest('[data-f]'); if (!b) return; F.n.value = Math.round(ESCENARIOS[cfg.escenario].base * Number(b.dataset.f)); leerCfg(); });
     $('#genDado').addEventListener('click', () => { F.semilla.value = Math.floor(Math.random() * 999998) + 1; leerCfg(); });
     main.querySelector('.gen-presets').addEventListener('click', (e) => {

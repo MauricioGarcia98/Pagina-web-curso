@@ -29,7 +29,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p><strong>Mercurio Logística</strong> gestiona seis almacenes y despacha envíos con cuatro transportistas. No guarda el stock en una tabla: guarda <strong>movimientos</strong> (como un extracto bancario) y el stock se <strong>calcula</strong>.</p>
 <h2>El modelo de datos</h2>
-<pre><code class="language-text">logistica_almacenes (almacen_id, ciudad, capacidad_unidades)
+<pre tabindex="0"><code class="language-text">logistica_almacenes (almacen_id, ciudad, capacidad_unidades)
 logistica_movimientos (movimiento_id, almacen_id, sku, fecha, tipo, cantidad)   -- entrada (+), salida (-), ajuste (-)
 logistica_envios (envio_id, almacen_id, ciudad_destino, transportista,
                   fecha_despacho, fecha_prometida, fecha_entrega, costo, estado)</code></pre>
@@ -88,7 +88,7 @@ logistica_envios (envio_id, almacen_id, ciudad_destino, transportista,
 <li><strong>Stock final</strong>: la suma de <strong>todos</strong> los movimientos de cada almacén (las salidas ya vienen con signo negativo).</li>
 <li><strong>Ocupación</strong>: stock / capacidad.</li>
 </ol>
-<pre><code class="language-sql">SELECT a.ciudad,
+<pre tabindex="0"><code class="language-sql">SELECT a.ciudad,
        a.capacidad_unidades,
        SUM(m.cantidad)                                          AS stock_final,
        ROUND(100.0 * SUM(m.cantidad) / a.capacidad_unidades, 1) AS pct_ocupacion
@@ -159,7 +159,7 @@ ORDER BY pct_ocupacion DESC;</code></pre>
 <li>Los envíos en tránsito todavía no se pueden juzgar: quedan fuera del denominador.</li>
 <li>Agrega el costo promedio: el más barato ¿es también el que más falla?</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT transportista,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT transportista,
        COUNT(*) AS envios,
        ROUND(100.0 * AVG(CASE WHEN estado = 'entregado' AND fecha_entrega &lt;= fecha_prometida THEN 1 ELSE 0 END), 1) AS pct_a_tiempo,
        ROUND(100.0 * AVG(CASE WHEN estado = 'perdido' THEN 1 ELSE 0 END), 2) AS pct_perdidos,

@@ -67,7 +67,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Permisos con SQL</h2>
 <p>Los permisos se dan a <strong>grupos</strong> (no a personas) y se heredan hacia abajo. Para leer una tabla hacen falta <code>USE CATALOG</code>, <code>USE SCHEMA</code> y <code>SELECT</code>:</p>
-<pre data-norun><code class="language-sql">GRANT USE CATALOG ON CATALOG prod TO `analistas`;
+<pre data-norun tabindex="0"><code class="language-sql">GRANT USE CATALOG ON CATALOG prod TO `analistas`;
 GRANT USE SCHEMA  ON SCHEMA prod.gold TO `analistas`;
 GRANT SELECT      ON SCHEMA prod.gold TO `analistas`;           -- todas las tablas del esquema, incluidas las futuras
 GRANT MODIFY, SELECT ON TABLE prod.silver.pedidos TO `ingenieros-datos`;
@@ -109,7 +109,7 @@ SHOW GRANTS ON SCHEMA prod.gold;</code></pre>
 <li><strong>Vistas dinámicas</strong> con <code>is_account_group_member(&#39;grupo&#39;)</code>.</li>
 </ul>
 <h2>Acceso al almacenamiento</h2>
-<pre data-norun><code class="language-sql">-- Credencial (managed identity vía Access Connector) y ubicación externa
+<pre data-norun tabindex="0"><code class="language-sql">-- Credencial (managed identity vía Access Connector) y ubicación externa
 CREATE EXTERNAL LOCATION lake_bronze
 URL 'abfss://bronze@stdatosprod001.dfs.core.windows.net/'
 WITH (STORAGE CREDENTIAL cred_lake_prod);
@@ -125,7 +125,7 @@ LOCATION 'abfss://bronze@stdatosprod001.dfs.core.windows.net/archivos/';</code><
 <li>Mira el último <code>SELECT</code>: el filtro deja ver solo las filas de Lima, aunque la consulta no tenga <code>WHERE</code>.</li>
 <li>Abre la tabla en <strong>Catalog</strong> → pestaña <strong>Permissions</strong> y verifica lo que diste con SQL.</li>
 </ol>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE main.default.clientes_lima AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE main.default.clientes_lima AS
 SELECT cliente_id, nombre, ciudad FROM samples.tienda.clientes WHERE cliente_id &lt;= 20;
 
 GRANT SELECT ON TABLE main.default.clientes_lima TO `analistas`;

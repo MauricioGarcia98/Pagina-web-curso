@@ -68,13 +68,13 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Una sesión guiada, paso a paso</h2>
 <p>Abre la terminal (⌨ Terminal) y sigue esta sesión. Vas a crear un repositorio, hacer commits, trabajar en una rama y unirla. Todo funciona igual que en tu computadora.</p>
 <p><strong>1. Crear el repositorio y presentarte.</strong> Git anota en cada commit quién lo hizo, así que hay que decirle tu nombre y email una sola vez:</p>
-<pre data-norun><code class="language-bash">mkdir -p ~/mi_pipeline &amp;&amp; cd ~/mi_pipeline
+<pre data-norun tabindex="0"><code class="language-bash">mkdir -p ~/mi_pipeline &amp;&amp; cd ~/mi_pipeline
 git init
 git config --global user.name &quot;Ana Datos&quot;
 git config --global user.email &quot;ana@ejemplo.com&quot;</code></pre>
 <p><code>git init</code> crea una carpeta oculta <code>.git</code> donde se guarda todo el historial. Si la borras, el historial desaparece (los archivos no).</p>
 <p><strong>2. Crear un archivo y mirar el estado.</strong> <code>git status</code> es el comando que más vas a usar: te dice qué cambió y qué está listo para guardar.</p>
-<pre><code class="language-text">$ echo &quot;SELECT canal, COUNT(*) FROM pedidos GROUP BY canal;&quot; &gt; ventas.sql
+<pre tabindex="0"><code class="language-text">$ echo &quot;SELECT canal, COUNT(*) FROM pedidos GROUP BY canal;&quot; &gt; ventas.sql
 $ git status
 En la rama main
 
@@ -85,13 +85,13 @@ Archivos sin seguimiento:
     ventas.sql</code></pre>
 <p>&quot;Sin seguimiento&quot; (<em>untracked</em>) significa que Git ve el archivo, pero todavía no lo controla.</p>
 <p><strong>3. Agregar al staging y hacer el commit:</strong></p>
-<pre><code class="language-text">$ git add ventas.sql
+<pre tabindex="0"><code class="language-text">$ git add ventas.sql
 $ git commit -m &quot;Agrega consulta de ventas por canal&quot;
 [main (commit-raíz) aad6f3d] Agrega consulta de ventas por canal
  1 archivo(s) cambiado(s)</code></pre>
 <p><code>aad6f3d</code> es el <strong>identificador</strong> del commit (un <em>hash</em>). Cada commit tiene uno distinto, y con él puedes volver a esa versión cuando quieras.</p>
 <p><strong>4. Cambiar el archivo y ver la diferencia:</strong></p>
-<pre><code class="language-text">$ echo &quot;-- total por canal&quot; &gt;&gt; ventas.sql
+<pre tabindex="0"><code class="language-text">$ echo &quot;-- total por canal&quot; &gt;&gt; ventas.sql
 $ git diff
 diff --git a/ventas.sql b/ventas.sql
 +-- total por canal
@@ -101,7 +101,7 @@ $ git log --oneline
 aad6f3d Agrega consulta de ventas por canal</code></pre>
 <p><code>git diff</code> muestra qué cambió desde el último commit (las líneas con <code>+</code> son nuevas, las con <code>-</code>, borradas). <code>git log --oneline</code> muestra el historial, del más nuevo al más viejo.</p>
 <p><strong>5. Trabajar en una rama.</strong> Para un cambio nuevo, <strong>nunca</strong> trabajes directo en <code>main</code>: crea una rama.</p>
-<pre><code class="language-text">$ git switch -c feature/clientes
+<pre tabindex="0"><code class="language-text">$ git switch -c feature/clientes
 Cambiado a nueva rama 'feature/clientes'
 $ echo &quot;SELECT pais, COUNT(*) FROM clientes GROUP BY pais;&quot; &gt; clientes.sql
 $ git add clientes.sql &amp;&amp; git commit -m &quot;Agrega clientes por país&quot;
@@ -110,26 +110,26 @@ $ ls
 ventas.sql</code></pre>
 <p>Al volver a <code>main</code>, <code>clientes.sql</code> <strong>desaparece</strong>: ese archivo existe solo en la rama <code>feature/clientes</code>. Así, si tu cambio no está listo, <code>main</code> sigue funcionando.</p>
 <p><strong>6. Unir la rama:</strong></p>
-<pre><code class="language-text">$ git merge feature/clientes
+<pre tabindex="0"><code class="language-text">$ git merge feature/clientes
 $ ls
 clientes.sql  ventas.sql</code></pre>
 <p>En un equipo, este paso no lo haces tú en la terminal: lo hace GitHub cuando aprueban tu <strong>pull request</strong>.</p>
 <p><strong>7. Deshacer un cambio que todavía no guardaste:</strong></p>
-<pre><code class="language-text">$ echo &quot;basura&quot; &gt;&gt; ventas.sql
+<pre tabindex="0"><code class="language-text">$ echo &quot;basura&quot; &gt;&gt; ventas.sql
 $ git restore ventas.sql
 $ cat ventas.sql
 SELECT canal, COUNT(*) FROM pedidos GROUP BY canal;
 -- total por canal</code></pre>
 <p><code>git restore</code> vuelve el archivo a como estaba en el último commit. Es el &quot;deshacer&quot; más usado.</p>
 <p><strong>8. No subir secretos: <code>.gitignore</code>.</strong> Un archivo <code>.gitignore</code> lista lo que Git debe ignorar:</p>
-<pre><code class="language-text">$ echo &quot;PASSWORD=1234&quot; &gt; .env
+<pre tabindex="0"><code class="language-text">$ echo &quot;PASSWORD=1234&quot; &gt; .env
 $ echo &quot;.env&quot; &gt; .gitignore
 $ git status
 Archivos sin seguimiento:
     .gitignore</code></pre>
 <p><code>.env</code> ya no aparece: Git lo ignora y nunca va a terminar en GitHub. Lo mismo se hace con carpetas de datos, entornos virtuales (<code>.venv/</code>) y archivos generados (<code>target/</code> en dbt, <code>__pycache__/</code> en Python).</p>
 <h2>El ciclo diario en un equipo</h2>
-<pre data-norun><code class="language-bash">git clone https://github.com/empresa/pipelines.git   # 1. descargar el repo (una sola vez)
+<pre data-norun tabindex="0"><code class="language-bash">git clone https://github.com/empresa/pipelines.git   # 1. descargar el repo (una sola vez)
 cd pipelines
 git switch -c feature/nuevo-modelo                   # 2. crear una rama para tu cambio
 # ... editas archivos ...
@@ -201,7 +201,7 @@ git switch main &amp;&amp; git pull                          # 8. actualizar tu 
 <li>Agrega un archivo, mira <code>git status</code> antes y después de <code>git add</code>.</li>
 <li>Haz el commit y míralo en <code>git log --oneline</code>.</li>
 </ol>
-<pre><code class="language-bash">mkdir -p ~/mi-repo &amp;&amp; cd ~/mi-repo
+<pre tabindex="0"><code class="language-bash">mkdir -p ~/mi-repo &amp;&amp; cd ~/mi-repo
 git init
 echo &quot;# Mi repo de datos&quot; &gt; README.md
 git status

@@ -68,7 +68,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Datos anidados: la relación 1:N dentro de la fila</h2>
 <p>Las plataformas columnares (BigQuery, Databricks, Snowflake, Athena) aceptan columnas con <strong>estructuras</strong>: un <code>STRUCT</code> (un objeto con campos) o un <code>ARRAY</code> (una lista). Así puedes guardar las líneas de un pedido <strong>dentro</strong> de la fila del pedido, sin tabla aparte:</p>
-<pre data-norun><code class="language-sql">-- BigQuery: una fila por pedido, con sus líneas adentro
+<pre data-norun tabindex="0"><code class="language-sql">-- BigQuery: una fila por pedido, con sus líneas adentro
 CREATE TABLE gold.pedidos_anidados AS
 SELECT
   p.pedido_id, p.fecha_pedido, p.canal,
@@ -84,7 +84,7 @@ SELECT cliente.pais, SUM(l.cantidad * l.precio_unitario) AS ventas
 FROM gold.pedidos_anidados, UNNEST(lineas) AS l
 GROUP BY cliente.pais;</code></pre>
 <p>En SQLite no hay <code>STRUCT</code>, pero puedes ver la misma idea con JSON (<code>json_group_array</code> arma la lista de líneas de cada pedido):</p>
-<pre><code class="language-sql">SELECT
+<pre tabindex="0"><code class="language-sql">SELECT
     p.pedido_id,
     p.fecha_pedido,
     json_object('cliente_id', c.cliente_id, 'pais', c.pais) AS cliente,
@@ -114,7 +114,7 @@ GROUP BY p.pedido_id, p.fecha_pedido, c.cliente_id, c.pais;</code></pre>
 <p>Es muy usado en BigQuery (donde Google lo recomienda) y para eventos que llegan en JSON con listas adentro.</p>
 <h2>Tablas agregadas</h2>
 <p>Un tablero de ventas diarias no necesita leer 30 millones de líneas cada vez que alguien lo abre. Una <strong>tabla agregada</strong> precalcula el resultado al grano que pide el tablero:</p>
-<pre><code class="language-sql">SELECT
+<pre tabindex="0"><code class="language-sql">SELECT
     p.fecha_pedido                                                    AS fecha,
     p.canal,
     COUNT(DISTINCT p.pedido_id)                                       AS pedidos,
@@ -206,7 +206,7 @@ ORDER BY fecha, canal;</code></pre>
 <li>La segunda consulta anida: una fila por pedido con sus productos en una <strong>lista</strong> (como en BigQuery o Databricks).</li>
 <li>Compara: ¿cuál usarías para un dashboard y cuál para guardar eventos?</li>
 </ol>
-<pre data-norun><code class="language-sql">DROP TABLE IF EXISTS obt_ventas;
+<pre data-norun tabindex="0"><code class="language-sql">DROP TABLE IF EXISTS obt_ventas;
 CREATE TABLE obt_ventas AS
 SELECT d.detalle_id, p.pedido_id, p.fecha_pedido, p.canal, c.ciudad, c.segmento,
        pr.nombre AS producto, pr.marca, d.cantidad,

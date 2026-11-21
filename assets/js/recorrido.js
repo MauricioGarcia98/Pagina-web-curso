@@ -35,7 +35,7 @@
     const lang = { texto: 'plaintext', log: 'plaintext', csv: 'plaintext' }[paso.lang] || paso.lang;
     let code = esc(paso.dato);
     if (window.hljs && window.hljs.getLanguage(lang)) { try { code = window.hljs.highlight(paso.dato, { language: lang, ignoreIllegals: true }).value; } catch (e) { /* sin resaltado */ } }
-    return `<pre class="rc-code"><code class="hljs">${code}</code></pre>`;
+    return `<pre class="rc-code" tabindex="0"><code class="hljs">${code}</code></pre>`;
   }
 
   function montar(div) {

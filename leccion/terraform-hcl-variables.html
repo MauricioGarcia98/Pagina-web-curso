@@ -104,7 +104,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>Variables: las entradas</h2>
-<pre><code class="language-hcl"># variables.tf
+<pre tabindex="0"><code class="language-hcl"># variables.tf
 variable &quot;proyecto&quot; {
   type        = string
   description = &quot;Prefijo de todos los recursos&quot;
@@ -177,7 +177,7 @@ variable &quot;dias_retencion&quot; {
 </tr>
 </tbody></table></div>
 <p>Un archivo <code>.tfvars</code> tiene solo asignaciones:</p>
-<pre><code class="language-hcl"># dev.tfvars
+<pre tabindex="0"><code class="language-hcl"># dev.tfvars
 entorno = &quot;dev&quot;
 
 # prod.tfvars
@@ -191,7 +191,7 @@ capas   = [&quot;bronze&quot;, &quot;silver&quot;, &quot;gold&quot;, &quot;sandb
 
 <h2>Locals: los valores calculados</h2>
 <p>Un <strong>local</strong> es un valor que calculas una vez y reutilizas. Sirve para no repetir la misma expresión en diez lugares:</p>
-<pre><code class="language-hcl"># locals.tf
+<pre tabindex="0"><code class="language-hcl"># locals.tf
 locals {
   prefijo = &quot;${var.proyecto}-${var.entorno}&quot;     # &quot;tienda-dev&quot;
 
@@ -343,7 +343,7 @@ locals {
 <h2>Muchas copias de un recurso: count y for_each</h2>
 <p>Necesitas tres buckets iguales salvo el nombre. Escribir tres bloques <code>resource</code> es repetir código. Terraform tiene dos <strong>meta-argumentos</strong> para crear varias <strong>instancias</strong> de un mismo bloque.</p>
 <h3>count: N copias numeradas</h3>
-<pre><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;logs&quot; {
+<pre tabindex="0"><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;logs&quot; {
   count  = local.es_prod ? 1 : 0          # 1 en prod, 0 en los demás
   bucket = &quot;${local.prefijo}-logs&quot;
 }</code></pre>
@@ -352,7 +352,7 @@ locals {
 <li><strong><code>count = condición ? 1 : 0</code></strong> es el truco más usado para crear un recurso <strong>solo en algunos entornos</strong>.</li>
 </ul>
 <h3>for_each: una copia por cada clave</h3>
-<pre><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;capa&quot; {
+<pre tabindex="0"><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;capa&quot; {
   for_each = toset(var.capas)                      # &quot;bronze&quot;, &quot;silver&quot;, &quot;gold&quot;
 
   bucket = &quot;${local.prefijo}-${each.key}&quot;
@@ -363,7 +363,7 @@ locals {
 <li>Dentro del bloque, <strong><code>each.key</code></strong> es la clave y <strong><code>each.value</code></strong> el valor (con un set, los dos son iguales; con un mapa, <code>each.value</code> es el valor de esa clave).</li>
 <li>Puedes encadenar recursos: <code>for_each = aws_s3_bucket.capa</code> crea una instancia por cada bucket, y <code>each.value.id</code> es el id de ese bucket.</li>
 </ul>
-<pre><code class="language-hcl">resource &quot;aws_s3_bucket_versioning&quot; &quot;capa&quot; {
+<pre tabindex="0"><code class="language-hcl">resource &quot;aws_s3_bucket_versioning&quot; &quot;capa&quot; {
   for_each = aws_s3_bucket.capa
   bucket   = each.value.id
 
@@ -378,7 +378,7 @@ locals {
 <p>Con <code>count</code>, cada instancia se identifica por su <strong>posición</strong>. Si quitas <code>silver</code> de la lista, <code>gold</code> pasa de la posición 2 a la 1, y Terraform cree que <code>[1]</code> cambió de nombre (lo <strong>reemplaza</strong>) y que <code>[2]</code> sobra (lo <strong>borra</strong>). Con un bucket de datos, eso es una catástrofe. Con <code>for_each</code>, cada instancia se identifica por su <strong>clave</strong>: quitar <code>silver</code> borra solo <code>[&quot;silver&quot;]</code>.</p>
 <p><strong>Regla práctica:</strong> <code>count</code> solo para &quot;0 o 1&quot; (crear algo opcional) o copias idénticas de verdad. Para todo lo que tiene un nombre, <code>for_each</code>.</p>
 <h2>Outputs: las salidas</h2>
-<pre><code class="language-hcl"># outputs.tf
+<pre tabindex="0"><code class="language-hcl"># outputs.tf
 output &quot;buckets&quot; {
   description = &quot;Nombre de cada bucket por capa&quot;
   value       = { for k, b in aws_s3_bucket.capa : k =&gt; b.bucket }
@@ -388,20 +388,20 @@ output &quot;retencion_gold&quot; {
   value = lookup(var.dias_retencion, &quot;gold&quot;, 30)
 }</code></pre>
 <p>Los outputs sirven para tres cosas: mostrarte datos útiles al terminar el <code>apply</code>, pasarle datos a <strong>otro</strong> proyecto de Terraform (se ve en la lección de estado remoto) y usarlos desde <strong>scripts</strong>:</p>
-<pre data-norun><code class="language-bash">terraform output                     # todos
+<pre data-norun tabindex="0"><code class="language-bash">terraform output                     # todos
 terraform output buckets             # uno
 terraform output -json               # en JSON, para jq
 terraform output -raw retencion_gold # el valor solo, sin comillas: para scripts
 BUCKET=$(terraform output -json buckets | jq -r '.gold')</code></pre>
 <h2>Laboratorio: los tres entornos</h2>
 <p>Abre la terminal. Arma el proyecto con los bloques de esta lección en un único <code>main.tf</code> (o repártelos en archivos, como prefieras):</p>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 mkdir -p ~/infra/lago &amp;&amp; cd ~/infra/lago
 code main.tf          # variables + locals + provider + los tres recursos + outputs
 code dev.tfvars       # entorno = &quot;dev&quot;
 terraform init</code></pre>
 <p><strong>1. La validación funciona.</strong> Prueba un entorno que no existe:</p>
-<pre><code class="language-text">$ terraform plan -var entorno=qa
+<pre tabindex="0"><code class="language-text">$ terraform plan -var entorno=qa
 ╷
 │ Error: Invalid value for variable
 │
@@ -409,7 +409,7 @@ terraform init</code></pre>
 ╵</code></pre>
 <p><strong>2. El plan de dev.</strong> <code>terraform plan -var-file=dev.tfvars</code> muestra 6 recursos a crear: los tres buckets con sus etiquetas y los tres versionados, con <code>status = &quot;Suspended&quot;</code>. No aparece el bucket de logs (en dev, <code>count = 0</code>).</p>
 <p><strong>3. Aplica y mira los outputs:</strong></p>
-<pre><code class="language-text">$ terraform apply -auto-approve -var-file=dev.tfvars
+<pre tabindex="0"><code class="language-text">$ terraform apply -auto-approve -var-file=dev.tfvars
 $ terraform output
 buckets = {
   &quot;bronze&quot; = &quot;tienda-dev-bronze&quot;
@@ -418,7 +418,7 @@ buckets = {
 }
 retencion_gold = 730</code></pre>
 <p><strong>4. Un cambio de etiqueta.</strong> Cambia <code>equipo = &quot;datos&quot;</code> por <code>equipo = &quot;plataforma&quot;</code> en los locals. El plan muestra un <code>~</code> por bucket, y dentro, solo la clave que cambió:</p>
-<pre><code class="language-text">  ~ resource &quot;aws_s3_bucket&quot; &quot;capa&quot; {
+<pre tabindex="0"><code class="language-text">  ~ resource &quot;aws_s3_bucket&quot; &quot;capa&quot; {
       ~ tags = {
           ~ &quot;equipo&quot; = &quot;datos&quot; -&gt; &quot;plataforma&quot;
             # (3 unchanged elements hidden)
@@ -508,7 +508,7 @@ retencion_gold = 730</code></pre>
 <li>Aplica y lee el output: tres buckets con un solo bloque.</li>
 <li>Planifica con otro entorno (<code>-var entorno=prod</code>) y mira qué cambiaría.</li>
 </ol>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 mkdir -p ~/infra/capas &amp;&amp; cd ~/infra/capas
 printf 'variable &quot;entorno&quot; {\n  default = &quot;dev&quot;\n}\n\nlocals {\n  capas = toset([&quot;bronze&quot;, &quot;silver&quot;, &quot;gold&quot;])\n}\n\nresource &quot;aws_s3_bucket&quot; &quot;capa&quot; {\n  for_each = local.capas\n  bucket   = &quot;practica-${var.entorno}-${each.key}&quot;\n}\n\noutput &quot;buckets&quot; {\n  value = [for b in aws_s3_bucket.capa : b.bucket]\n}\n' &gt; main.tf
 terraform init

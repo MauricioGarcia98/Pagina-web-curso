@@ -30,7 +30,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
-<pre><code class="language-python">class Producto:
+<pre tabindex="0"><code class="language-python">class Producto:
     def __init__(self, nombre, precio, stock=0):   # constructor: se ejecuta al crear cada objeto
         self.nombre = nombre                       # atributos: los datos de ESTE objeto
         self.precio = precio
@@ -89,7 +89,7 @@ print(teclado.nombre, teclado.stock)           # el teclado no se vio afectado</
 
 <h2>Métodos especiales (dunder)</h2>
 <p>Los métodos con doble guion bajo al principio y al final (<em>double underscore</em>, &quot;dunder&quot;) definen cómo se comporta el objeto con las operaciones de Python: cómo se muestra, qué hace el <code>+</code>, cómo se compara.</p>
-<pre><code class="language-python">class Dinero:
+<pre tabindex="0"><code class="language-python">class Dinero:
     def __init__(self, monto, moneda=&quot;USD&quot;):
         self.monto = monto
         self.moneda = moneda
@@ -144,7 +144,7 @@ print(Dinero(10) == Dinero(10.0))</code></pre>
 
 <h2>Herencia: especializar una clase</h2>
 <p>Una clase puede <strong>heredar</strong> de otra: recibe todos sus atributos y métodos, y puede agregar o <strong>reemplazar</strong> (<em>sobrescribir</em>) algunos.</p>
-<pre><code class="language-python">class Fuente:
+<pre tabindex="0"><code class="language-python">class Fuente:
     def __init__(self, nombre):
         self.nombre = nombre
     def leer(self):
@@ -180,7 +180,7 @@ for f in [FuenteCSV(&quot;ventas.csv&quot;, &quot;;&quot;), FuenteAPI(&quot;http
 
 <h2>dataclasses: clases de datos sin escribir de más</h2>
 <p>Muchas clases solo existen para <strong>agrupar datos</strong> (un pedido, un evento, una fila). Escribir <code>__init__</code>, <code>__repr__</code> y <code>__eq__</code> a mano es repetitivo. El decorador <code>@dataclass</code> los genera por ti a partir de las anotaciones de tipo:</p>
-<pre><code class="language-python">from dataclasses import dataclass, field
+<pre tabindex="0"><code class="language-python">from dataclasses import dataclass, field
 
 @dataclass
 class Pedido:
@@ -197,7 +197,7 @@ print(p, p.total())            # __init__, __repr__ y __eq__ se generaron solos
 print(p == Pedido(1, &quot;Eva&quot;, [{&quot;cantidad&quot;: 2, &quot;precio&quot;: 10.0}]))</code></pre>
 <p><code>field(default_factory=list)</code> resuelve la misma trampa de los valores por defecto mutables que viste en funciones. Con <code>@dataclass(frozen=True)</code> el objeto se vuelve inmutable, ideal para registros que no deben cambiar.</p>
 <h2>Propiedades y métodos de clase</h2>
-<pre><code class="language-python">class Temperatura:
+<pre tabindex="0"><code class="language-python">class Temperatura:
     def __init__(self, celsius):
         self.celsius = celsius
 
@@ -269,7 +269,7 @@ print(t.celsius, t.fahrenheit)</code></pre>
 <li>Agrega un método <code>aplicar_descuento(pct)</code>.</li>
 <li>Agrega <code>__repr__</code> para que el pedido se imprima legible.</li>
 </ol>
-<pre data-norun><code class="language-python">class Pedido:
+<pre data-norun tabindex="0"><code class="language-python">class Pedido:
     def __init__(self, pedido_id):
         self.pedido_id = pedido_id
         self.lineas = []

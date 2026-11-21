@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Una capa por instrucción</h2>
-<pre data-norun><code class="language-dockerfile">FROM python:3.13-slim              # capa 1: la imagen base
+<pre data-norun tabindex="0"><code class="language-dockerfile">FROM python:3.13-slim              # capa 1: la imagen base
 WORKDIR /app                       # capa 2
 COPY pyproject.toml uv.lock ./     # capa 3: solo los archivos de dependencias
 RUN pip install uv &amp;&amp; uv sync --frozen --no-dev   # capa 4: instalar dependencias (lento)
@@ -64,7 +64,7 @@ CMD [&quot;uv&quot;, &quot;run&quot;, &quot;python&quot;, &quot;-m&quot;, &quot;
 
 <h2>Imágenes más chicas: build multi-etapa</h2>
 <p>Las herramientas para compilar o instalar (compiladores, cachés de pip) no hacen falta para <strong>ejecutar</strong>. Un build multi-etapa instala en una etapa y copia a la final solo lo necesario:</p>
-<pre data-norun><code class="language-dockerfile">FROM python:3.13-slim AS construir
+<pre data-norun tabindex="0"><code class="language-dockerfile">FROM python:3.13-slim AS construir
 WORKDIR /app
 RUN pip install uv
 COPY pyproject.toml uv.lock ./
@@ -92,7 +92,7 @@ CMD [&quot;python&quot;, &quot;-m&quot;, &quot;src.pipeline&quot;]</code></pre>
 <li>Compara los dos Dockerfiles: el que copia todo primero reinstala dependencias por un cambio en <code>src/pipeline.py</code>; el ordenado no.</li>
 <li>Cambia el archivo modificado a <code>uv.lock</code> y mira qué pasa en cada uno.</li>
 </ol>
-<pre><code class="language-python">def reconstruidas(instrucciones, cambiados):
+<pre tabindex="0"><code class="language-python">def reconstruidas(instrucciones, cambiados):
     invalido, res = False, []
     for i, ins in enumerate(instrucciones):
         partes = ins.split()

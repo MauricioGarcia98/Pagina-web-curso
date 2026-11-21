@@ -57,14 +57,14 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Cada registro lleva una <strong>partition key</strong>: los registros con la misma clave van al mismo shard y <strong>mantienen el orden</strong> (por ejemplo, todos los eventos de una misma <code>cuenta_id</code>).</li>
 <li>Los datos viajan en <strong>base64</strong> y se conservan 24 h por defecto.</li>
 </ul>
-<pre data-norun><code class="language-bash">aws kinesis create-stream --stream-name transacciones --shard-count 2
+<pre data-norun tabindex="0"><code class="language-bash">aws kinesis create-stream --stream-name transacciones --shard-count 2
 aws kinesis describe-stream-summary --stream-name transacciones
 aws kinesis put-record --stream-name transacciones \
   --partition-key cuenta-1042 \
   --data '{&quot;cuenta_id&quot;: 1042, &quot;monto&quot;: 350.0, &quot;comercio&quot;: &quot;Electro&quot;}' \
   --cli-binary-format raw-in-base64-out
 aws kinesis list-streams</code></pre>
-<pre><code class="language-bash">aws kinesis create-stream --stream-name transacciones --shard-count 2
+<pre tabindex="0"><code class="language-bash">aws kinesis create-stream --stream-name transacciones --shard-count 2
 aws kinesis put-record --stream-name transacciones --partition-key cuenta-1042 --data '{&quot;cuenta_id&quot;: 1042, &quot;monto&quot;: 350.0}' --cli-binary-format raw-in-base64-out
 aws kinesis describe-stream-summary --stream-name transacciones</code></pre>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ La partition key importa</div>
@@ -78,7 +78,7 @@ aws kinesis describe-stream-summary --stream-name transacciones</code></pre>
 <figure class="diagrama"><figcaption>Un stream, dos caminos: el lago en lotes y la alerta en el momento</figcaption></figure>
 
 
-<pre data-norun><code class="language-bash">aws firehose create-delivery-stream --delivery-stream-name tx-a-s3 \
+<pre data-norun tabindex="0"><code class="language-bash">aws firehose create-delivery-stream --delivery-stream-name tx-a-s3 \
   --delivery-stream-type KinesisStreamAsSource \
   --kinesis-stream-source-configuration KinesisStreamARN=arn:aws:kinesis:us-east-1:123456789012:stream/transacciones,RoleARN=arn:aws:iam::123456789012:role/FirehoseRole \
   --extended-s3-destination-configuration file://destino-s3.json</code></pre>
@@ -88,7 +88,7 @@ aws kinesis describe-stream-summary --stream-name transacciones</code></pre>
 <h2>Lambda: código que reacciona a eventos</h2>
 <p>Una <strong>función Lambda</strong> es un pedazo de código (Python, por ejemplo) que AWS ejecuta <strong>cuando pasa algo</strong>: llega un archivo a S3, entra un lote de registros a Kinesis, se cumple un horario de EventBridge, alguien llama a una API. Escala sola, cobra por milisegundo y tiene un límite de <strong>15 minutos</strong> por ejecución.</p>
 <p>Toda Lambda en Python tiene la misma forma: una función <code>handler(event, context)</code>. El <code>event</code> es un diccionario con la información de lo que pasó.</p>
-<pre data-norun><code class="language-python">import json, urllib.parse
+<pre data-norun tabindex="0"><code class="language-python">import json, urllib.parse
 import boto3
 
 s3 = boto3.client(&quot;s3&quot;)
@@ -102,7 +102,7 @@ def handler(event, context):
         print(f&quot;{clave}: {len(filas) - 1} filas&quot;)
     return {&quot;statusCode&quot;: 200}</code></pre>
 <p>Así se ve el <code>event</code> que manda S3 cuando llega un archivo (recortado):</p>
-<pre><code class="language-json">{
+<pre tabindex="0"><code class="language-json">{
   &quot;Records&quot;: [
     {
       &quot;eventName&quot;: &quot;ObjectCreated:Put&quot;,
@@ -113,7 +113,7 @@ def handler(event, context):
     }
   ]
 }</code></pre>
-<pre data-norun><code class="language-bash">aws lambda list-functions --query &quot;Functions[].FunctionName&quot;
+<pre data-norun tabindex="0"><code class="language-bash">aws lambda list-functions --query &quot;Functions[].FunctionName&quot;
 aws lambda invoke --function-name procesar-archivo --payload file://evento.json --cli-binary-format raw-in-base64-out respuesta.json
 aws logs tail /aws/lambda/procesar-archivo --follow</code></pre>
 <div class="callout callout-experto"><div class="callout-title">🚀 Idempotencia: el evento puede llegar dos veces</div>
@@ -141,7 +141,7 @@ aws logs tail /aws/lambda/procesar-archivo --follow</code></pre>
 <li>Publica dos eventos con su clave de partición: la misma clave cae siempre en el mismo shard y conserva el orden.</li>
 <li>Piensa cómo seguiría: Firehose los lleva a S3 cada pocos minutos o una Lambda reacciona a cada uno.</li>
 </ol>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 aws kinesis create-stream --stream-name transacciones --shard-count 1
 aws kinesis describe-stream-summary --stream-name transacciones
 aws kinesis put-record --stream-name transacciones --partition-key cuenta-1042 --data '{&quot;cuenta_id&quot;: 1042, &quot;monto&quot;: 350.0}' --cli-binary-format raw-in-base64-out

@@ -30,7 +30,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Todo lo que hiciste en el curso es parte de ese recorrido. Lo que agregan los equipos de datos son los pasos de <strong>datos</strong>: construir modelos contra una base real y desplegar jobs.</p>
 <h2>Paso 2 — CI de un proyecto dbt</h2>
 <p>En cada PR, el CI construye los modelos en un <strong>esquema temporal</strong> (para no tocar las tablas que usa el negocio) y corre los tests de datos:</p>
-<pre><code class="language-yaml">name: dbt-ci
+<pre tabindex="0"><code class="language-yaml">name: dbt-ci
 on:
   pull_request:
 jobs:
@@ -56,7 +56,7 @@ jobs:
 <p>Lo practicas en el curso de <a href="#/m/dbt">dbt</a>.</p>
 <h2>Paso 3 — Desplegar a Databricks con OIDC</h2>
 <p>Los jobs y pipelines de Databricks se describen en archivos con <strong>Declarative Automation Bundles</strong> (antes Asset Bundles) y se despliegan con la CLI:</p>
-<pre><code class="language-yaml">name: deploy
+<pre tabindex="0"><code class="language-yaml">name: deploy
 on:
   push:
     branches: [main]
@@ -106,12 +106,12 @@ jobs:
 <td>El <code>DATABRICKS_HOST</code> de prod distinto del de dev</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-yaml">  deploy-prod:
+<pre tabindex="0"><code class="language-yaml">  deploy-prod:
     needs: deploy-dev
     runs-on: ubuntu-latest
     environment: prod        # aquí se detiene hasta que alguien apruebe</code></pre>
 <h2>Paso 5 — Workflows programados</h2>
-<pre><code class="language-yaml">on:
+<pre tabindex="0"><code class="language-yaml">on:
   schedule:
     - cron: &quot;0 6 * * *&quot;      # todos los días a las 06:00 UTC
   workflow_dispatch:</code></pre>

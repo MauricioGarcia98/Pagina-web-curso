@@ -87,7 +87,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p>Resolver un problema es, casi siempre, decidir <strong>cuáles</strong> de estas necesitas y <strong>en qué orden</strong>.</p>
 <h2>Una función por paso</h2>
-<pre><code class="language-python">def solo_entregados(pedidos):
+<pre tabindex="0"><code class="language-python">def solo_entregados(pedidos):
     return [p for p in pedidos if p[&quot;estado&quot;] == &quot;entregado&quot;]
 
 def total_por_cliente(pedidos):
@@ -110,7 +110,7 @@ print(top(total_por_cliente(solo_entregados(pedidos)), 3))</code></pre>
 <p>Cada función se puede <strong>probar sola</strong>. Si el resultado final está mal, pruebas las tres por separado y encuentras cuál falla en un minuto.</p>
 <h2>La tabla de traza: seguir el programa a mano</h2>
 <p>Cuando un bucle no hace lo que esperas, deja de mirar el código y <strong>síguelo paso a paso</strong> anotando el valor de cada variable.</p>
-<pre><code class="language-python">numeros = [3, 8, 5]
+<pre tabindex="0"><code class="language-python">numeros = [3, 8, 5]
 mayor = numeros[0]
 for n in numeros:
     if n &gt; mayor:
@@ -168,7 +168,7 @@ print(mayor)</code></pre>
 <li>Sigue el programa a mano con la tabla de traza (anota el valor de cada variable en cada vuelta).</li>
 <li>Cambia los datos y predice el resultado <strong>antes</strong> de ejecutar.</li>
 </ol>
-<pre data-norun><code class="language-python">pedidos = [(&quot;ana&quot;, 120), (&quot;luis&quot;, 80), (&quot;ana&quot;, 60), (&quot;luis&quot;, 40), (&quot;sofia&quot;, 200)]
+<pre data-norun tabindex="0"><code class="language-python">pedidos = [(&quot;ana&quot;, 120), (&quot;luis&quot;, 80), (&quot;ana&quot;, 60), (&quot;luis&quot;, 40), (&quot;sofia&quot;, 200)]
 
 def agrupar(filas):
     grupos = {}

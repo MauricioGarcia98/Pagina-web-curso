@@ -31,13 +31,13 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Escribir el módulo</h2>
 <p>La estructura estándar de un módulo:</p>
-<pre><code class="language-text">modules/capa_lago/
+<pre tabindex="0"><code class="language-text">modules/capa_lago/
 ├── variables.tf    ← las entradas
 ├── main.tf         ← los recursos
 ├── outputs.tf      ← las salidas
 └── README.md       ← cómo se usa (muchos equipos lo generan con terraform-docs)</code></pre>
 <p><strong>variables.tf</strong> — la &quot;firma&quot; del módulo. Pocas entradas, con descripción y valores por defecto razonables:</p>
-<pre><code class="language-hcl">variable &quot;nombre&quot; {
+<pre tabindex="0"><code class="language-hcl">variable &quot;nombre&quot; {
   type        = string
   description = &quot;Nombre completo del bucket&quot;
 }
@@ -58,7 +58,7 @@ variable &quot;etiquetas&quot; {
   default = {}
 }</code></pre>
 <p><strong>main.tf</strong> — lo que la empresa decidió que <strong>toda</strong> capa del lago debe tener:</p>
-<pre><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;this&quot; {
+<pre tabindex="0"><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;this&quot; {
   bucket = var.nombre
   tags   = var.etiquetas
 }
@@ -96,7 +96,7 @@ resource &quot;aws_s3_bucket_lifecycle_configuration&quot; &quot;this&quot; {
 <li>Lo obligatorio para la empresa (privado) <strong>no</strong> es una variable: nadie puede apagarlo por error. Lo que cambia entre usos (retención, versionado) sí lo es.</li>
 </ul>
 <p><strong>outputs.tf</strong> — lo que necesita saber quien lo usa:</p>
-<pre><code class="language-hcl">output &quot;nombre&quot; {
+<pre tabindex="0"><code class="language-hcl">output &quot;nombre&quot; {
   value = aws_s3_bucket.this.bucket
 }
 
@@ -110,7 +110,7 @@ output &quot;arn&quot; {
 
 
 <h2>Llamar al módulo</h2>
-<pre><code class="language-hcl"># envs/dev/main.tf
+<pre tabindex="0"><code class="language-hcl"># envs/dev/main.tf
 provider &quot;aws&quot; {
   region = &quot;us-east-1&quot;
 }
@@ -149,7 +149,7 @@ output &quot;arns&quot; {
 </ul>
 <h2>Laboratorio: el lago con un módulo</h2>
 <p>En la terminal, arma esta estructura (para simplificar, el raíz va en <code>~/infra/m</code> y el módulo en <code>~/infra/m/modules/capa_lago</code>, así que el <code>source</code> es <code>&quot;./modules/capa_lago&quot;</code>):</p>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 mkdir -p ~/infra/m/modules/capa_lago &amp;&amp; cd ~/infra/m
 code modules/capa_lago/variables.tf
 code modules/capa_lago/main.tf
@@ -157,11 +157,11 @@ code modules/capa_lago/outputs.tf
 code main.tf
 terraform init</code></pre>
 <p>El <code>init</code> ahora instala los módulos:</p>
-<pre><code class="language-text">Initializing modules...
+<pre tabindex="0"><code class="language-text">Initializing modules...
 - capa in modules/capa_lago
 - logs in modules/capa_lago</code></pre>
 <p>Aplica y mira cómo se llaman los recursos en el estado:</p>
-<pre><code class="language-text">$ terraform apply -auto-approve
+<pre tabindex="0"><code class="language-text">$ terraform apply -auto-approve
 ...
 Apply complete! Resources: 13 added, 0 changed, 0 destroyed.
 
@@ -176,7 +176,7 @@ module.logs.aws_s3_bucket_versioning.this</code></pre>
 <p>Cuenta: 3 recursos por cada una de las 4 copias (12) + 1 regla de retención, solo en bronze = <strong>13</strong>. La dirección completa de un recurso es <code>module.&lt;nombre&gt;[clave].&lt;tipo&gt;.&lt;nombre_local&gt;</code>.</p>
 <p>Prueba: agrega una capa <code>sandbox = { dias = 7, versionado = false }</code> al mapa y ejecuta <code>terraform plan</code>. Aparecen 4 recursos nuevos, todos con la misma seguridad, sin escribir una línea de recursos.</p>
 <h2>Organizar el repositorio</h2>
-<pre><code class="language-text">infra-datos/
+<pre tabindex="0"><code class="language-text">infra-datos/
 ├── modules/
 │   ├── capa_lago/         ← un bucket del lago con todo lo obligatorio
 │   ├── catalogo_glue/     ← base de Glue + crawler + rol
@@ -191,7 +191,7 @@ module.logs.aws_s3_bucket_versioning.this</code></pre>
 
 <h2>Módulos del registro público</h2>
 <p>No hace falta escribir todo. El <strong>Terraform Registry</strong> (registry.terraform.io) tiene miles de módulos. Los de <code>terraform-aws-modules</code> y <code>Azure/avm-*</code> (Azure Verified Modules) son los más usados:</p>
-<pre><code class="language-hcl">module &quot;lago_bronze&quot; {
+<pre tabindex="0"><code class="language-hcl">module &quot;lago_bronze&quot; {
   source  = &quot;terraform-aws-modules/s3-bucket/aws&quot;
   version = &quot;~&gt; 4.2&quot;            # fija la versión: 4.2, 4.3… pero nunca 5.0
 
@@ -335,7 +335,7 @@ module &quot;red&quot; {
 <li>La raíz lo llama dos veces (<code>bronze</code> y <code>silver</code>) y junta sus outputs.</li>
 <li>Mira las direcciones en el estado: <code>module.bronze.aws_s3_bucket.este</code>.</li>
 </ol>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 mkdir -p ~/infra/m/modules/capa &amp;&amp; cd ~/infra/m
 printf 'variable &quot;nombre&quot; {}\n\nresource &quot;aws_s3_bucket&quot; &quot;este&quot; {\n  bucket = &quot;modulo-${var.nombre}&quot;\n}\n\noutput &quot;bucket&quot; {\n  value = aws_s3_bucket.este.bucket\n}\n' &gt; modules/capa/main.tf
 printf 'module &quot;bronze&quot; {\n  source = &quot;./modules/capa&quot;\n  nombre = &quot;bronze&quot;\n}\n\nmodule &quot;silver&quot; {\n  source = &quot;./modules/capa&quot;\n  nombre = &quot;silver&quot;\n}\n\noutput &quot;buckets&quot; {\n  value = [module.bronze.bucket, module.silver.bucket]\n}\n' &gt; main.tf

@@ -52,7 +52,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <p>Una práctica común: cada build de <code>main</code> publica <code>sha-&lt;commit&gt;</code> y, si es una versión, también <code>1.4.0</code>. Las ramas de prueba publican <code>&lt;rama&gt;-sha-&lt;commit&gt;</code>. Las etiquetas de Docker solo admiten letras, números, <code>_</code>, <code>.</code> y <code>-</code>, y hasta 128 caracteres: una rama <code>feature/Nuevo-Lote</code> hay que convertirla a <code>feature-nuevo-lote</code>.</p>
 <h2>Construir y publicar en GitHub Actions</h2>
-<pre data-norun><code class="language-yaml">name: imagen
+<pre data-norun tabindex="0"><code class="language-yaml">name: imagen
 on:
   push:
     branches: [main]
@@ -120,7 +120,7 @@ jobs:
 <li>Mira por qué la vulnerabilidad alta de <code>libssl</code> sin arreglo no frena, y la de <code>requests</code> sí.</li>
 <li>Cambia el umbral a <code>&quot;MEDIA&quot;</code> y mira qué pasa.</li>
 </ol>
-<pre><code class="language-python">ORDEN = {&quot;BAJA&quot;: 1, &quot;MEDIA&quot;: 2, &quot;ALTA&quot;: 3, &quot;CRITICA&quot;: 4}
+<pre tabindex="0"><code class="language-python">ORDEN = {&quot;BAJA&quot;: 1, &quot;MEDIA&quot;: 2, &quot;ALTA&quot;: 3, &quot;CRITICA&quot;: 4}
 
 reporte = [
     {&quot;id&quot;: &quot;CVE-2025-1111&quot;, &quot;paquete&quot;: &quot;requests&quot;, &quot;severidad&quot;: &quot;ALTA&quot;, &quot;corregida_en&quot;: &quot;2.32.4&quot;},

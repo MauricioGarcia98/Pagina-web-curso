@@ -35,11 +35,11 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Los formatos cambian sin aviso</strong>: lo que hoy es raro mañana es normal, y bronze lo absorbe sin romperse.</li>
 </ol>
 <p>Mira las dos tablas antes de empezar:</p>
-<pre><code class="language-sql">SELECT * FROM bronze_pedidos LIMIT 12;</code></pre>
-<pre><code class="language-sql">SELECT * FROM bronze_eventos_app WHERE evento_id IN (1, 2, 2000, 2001);</code></pre>
+<pre tabindex="0"><code class="language-sql">SELECT * FROM bronze_pedidos LIMIT 12;</code></pre>
+<pre tabindex="0"><code class="language-sql">SELECT * FROM bronze_eventos_app WHERE evento_id IN (1, 2, 2000, 2001);</code></pre>
 <h2>Paso 1: medir antes de limpiar</h2>
 <p>Lo primero no es arreglar: es <strong>medir</strong>. Cuántas filas, cuántos pedidos distintos, cuántos nulos, cuántos formatos. Así sabes qué tan grave es cada problema y, después, puedes comprobar que la limpieza hizo lo que esperabas.</p>
-<pre><code class="language-sql">SELECT COUNT(*)                         AS filas,
+<pre tabindex="0"><code class="language-sql">SELECT COUNT(*)                         AS filas,
        COUNT(DISTINCT pedido_id)        AS pedidos,
        COUNT(*) - COUNT(DISTINCT pedido_id) AS filas_repetidas,
        SUM(monto IS NULL)               AS sin_monto,
@@ -54,7 +54,7 @@ FROM bronze_pedidos;</code></pre>
 
 <h2>Paso 2: duplicados por reenvío</h2>
 <p>Cuando la app no recibe confirmación, <strong>reenvía</strong> el archivo. Por eso el mismo <code>pedido_id</code> aparece en dos archivos, y a veces el reenvío trae el estado <strong>actualizado</strong> (el pedido pasó de enviado a entregado). La regla de negocio: <strong>quedarse con la versión más reciente</strong> de cada pedido, la de mayor <code>cargado_en</code>.</p>
-<pre><code class="language-sql">WITH ranqueado AS (
+<pre tabindex="0"><code class="language-sql">WITH ranqueado AS (
   SELECT *, ROW_NUMBER() OVER (PARTITION BY pedido_id ORDER BY cargado_en DESC) AS rn
   FROM bronze_pedidos
 )
@@ -89,7 +89,7 @@ WHERE rn = 1;</code></pre>
 <td><code>substr(fecha, 7, 4) || &#39;-&#39; || substr(fecha, 4, 2) || &#39;-&#39; || substr(fecha, 1, 2)</code></td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-sql">SELECT fecha,
+<pre tabindex="0"><code class="language-sql">SELECT fecha,
        CASE WHEN fecha LIKE '__/__/____%'
             THEN substr(fecha, 7, 4) || '-' || substr(fecha, 4, 2) || '-' || substr(fecha, 1, 2)
             ELSE substr(fecha, 1, 10)
@@ -129,7 +129,7 @@ WHERE registro_id IN (1, 2, 3, 40, 41, 42, 80);</code></pre>
 <td>dejarlo nulo y contarlo</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-sql">SELECT monto,
+<pre tabindex="0"><code class="language-sql">SELECT monto,
        CAST(CASE WHEN monto LIKE '%,%' THEN REPLACE(REPLACE(monto, '.', ''), ',', '.')
                  WHEN monto LIKE '$%' THEN substr(monto, 2)
                  ELSE monto END AS REAL) AS monto_num
@@ -137,7 +137,7 @@ FROM bronze_pedidos
 WHERE registro_id &lt;= 12;</code></pre>
 <h2>Paso 5: una categoría escrita de muchas formas</h2>
 <p><code>estado</code> llega con mayúsculas distintas y, desde una versión de la app, <strong>en inglés</strong>. Primero normalizas (<code>LOWER(TRIM(...))</code>) y después traduces con un <code>CASE</code>. En un proyecto real, esa traducción vive en una <strong>tabla de mapeo</strong> (un <em>seed</em> de dbt) para que agregar un valor nuevo no requiera cambiar código.</p>
-<pre><code class="language-sql">SELECT estado, COUNT(*) AS filas
+<pre tabindex="0"><code class="language-sql">SELECT estado, COUNT(*) AS filas
 FROM bronze_pedidos
 GROUP BY estado
 ORDER BY filas DESC;</code></pre>
@@ -176,7 +176,7 @@ ORDER BY filas DESC;</code></pre>
 </tr>
 </tbody></table></div>
 <p><code>json_extract(payload, &#39;$.ruta&#39;)</code> saca un valor; <code>COALESCE</code> toma el primero que no sea nulo, así una sola consulta lee las dos versiones. Y <code>json_valid(payload)</code> descarta los que llegaron cortados.</p>
-<pre><code class="language-sql">SELECT evento_id,
+<pre tabindex="0"><code class="language-sql">SELECT evento_id,
        json_extract(payload, '$.v') AS version,
        COALESCE(json_extract(payload, '$.tipo'), json_extract(payload, '$.evento.tipo')) AS tipo,
        COALESCE(json_extract(payload, '$.cliente'), json_extract(payload, '$.usuario.id')) AS cliente_id
@@ -191,7 +191,7 @@ LIMIT 10 OFFSET 1495;</code></pre>
 
 <h2>La consulta silver, completa</h2>
 <p>Todo junto, en pasos con CTE: cada uno hace una sola cosa y se puede probar por separado.</p>
-<pre><code class="language-sql">WITH ultimo AS (
+<pre tabindex="0"><code class="language-sql">WITH ultimo AS (
   SELECT *, ROW_NUMBER() OVER (PARTITION BY pedido_id ORDER BY cargado_en DESC) AS rn
   FROM bronze_pedidos
 ),
@@ -299,7 +299,7 @@ LIMIT 20;</code></pre>
 <li>Cuenta los clientes duplicados por email normalizado (<code>LOWER(TRIM(email))</code>).</li>
 <li>Escribe la versión limpia en una CTE y cuenta cuántos quedan.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT email
+<pre data-norun tabindex="0"><code class="language-sql">SELECT email
 FROM clientes
 WHERE email &lt;&gt; LOWER(TRIM(email))
 LIMIT 20;</code></pre>

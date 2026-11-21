@@ -68,7 +68,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Siempre es <strong>qué</strong> (grupo y subgrupo) + <strong>qué hacer</strong> (acción) + <strong>sobre qué</strong> (parámetros). Con <code>--help</code> al final de cualquier parte ves las opciones: <code>az storage account create --help</code>.</p>
 <h2>Paso 3 — Consultar</h2>
 <p>Escribe estos tres comandos:</p>
-<pre><code class="language-bash">az account show -o table
+<pre tabindex="0"><code class="language-bash">az account show -o table
 az group list -o table
 az storage account list -g rg-tiendaandina-dev --query &quot;[].{nombre:name, sku:sku.name, hns:isHnsEnabled}&quot; -o table</code></pre>
 <p>Para verlos mejor, usa el botón de maximizar de la terminal:</p>
@@ -113,7 +113,7 @@ az storage account list -g rg-tiendaandina-dev --query &quot;[].{nombre:name, sk
 <p><strong><code>--query</code></strong> usa el lenguaje JMESPath: <code>[]</code> recorre la lista y <code>{nombre:name}</code> elige y renombra campos. <code>--query &quot;[].name&quot; -o tsv</code> devuelve solo los nombres, uno por línea.</p>
 <h2>Paso 4 — Crear desde la terminal</h2>
 <p>Sin cerrar la terminal, con la lista de <strong>Resource groups</strong> abierta en el portal, crea un grupo de prueba:</p>
-<pre><code class="language-bash">az storage blob list --account-name sttiendaandinadev -c bronze --auth-mode login --query &quot;[].name&quot; -o tsv
+<pre tabindex="0"><code class="language-bash">az storage blob list --account-name sttiendaandinadev -c bronze --auth-mode login --query &quot;[].name&quot; -o tsv
 az group create -n rg-tiendaandina-sandbox -l eastus2 --tags entorno=sandbox</code></pre>
 <figure class="captura"><img src="assets/img/guias/azure/b09-shell-crear.webp" alt="El grupo creado con az group create (1) aparece al instante en la lista del portal (2)" loading="lazy"><figcaption>El grupo creado con az group create (1) aparece al instante en la lista del portal (2)</figcaption></figure>
 
@@ -126,7 +126,7 @@ az group create -n rg-tiendaandina-sandbox -l eastus2 --tags entorno=sandbox</co
 
 
 <h2>Paso 5 — Borrar</h2>
-<pre><code class="language-bash">az group delete -n rg-tiendaandina-sandbox --yes
+<pre tabindex="0"><code class="language-bash">az group delete -n rg-tiendaandina-sandbox --yes
 az group list --query &quot;[].name&quot; -o tsv</code></pre>
 <figure class="captura"><img src="assets/img/guias/azure/b09-shell-borrar.webp" alt="El grupo de prueba borrado y la lista de grupos que queda" loading="lazy"><figcaption>El grupo de prueba borrado y la lista de grupos que queda</figcaption></figure>
 

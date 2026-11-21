@@ -127,7 +127,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h3>En SQL</h3>
-<pre data-norun><code class="language-sql">-- BRONZE: ingesta incremental de archivos (Auto Loader por debajo)
+<pre data-norun tabindex="0"><code class="language-sql">-- BRONZE: ingesta incremental de archivos (Auto Loader por debajo)
 CREATE OR REFRESH STREAMING TABLE bronze_pedidos
 COMMENT 'Pedidos tal como llegan'
 AS SELECT *, _metadata.file_path AS _archivo
@@ -159,7 +159,7 @@ GROUP BY ALL;</code></pre>
 <li>Las tablas se publican en el <strong>catálogo y esquema</strong> configurados en el pipeline (Unity Catalog).</li>
 </ul>
 <h3>En Python</h3>
-<pre data-norun><code class="language-python">from pyspark import pipelines as dp
+<pre data-norun tabindex="0"><code class="language-python">from pyspark import pipelines as dp
 from pyspark.sql import functions as F
 
 @dp.table(comment=&quot;Pedidos tal como llegan&quot;)             # @dp.table crea una STREAMING TABLE
@@ -241,7 +241,7 @@ def gold_ventas_diarias():
 
 <h2>AUTO CDC: aplicar cambios con historia</h2>
 <p>Una base de datos te envía un flujo de cambios con la operación (<code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>), la clave y un número de secuencia. Aplicarlos a mano con <code>MERGE</code> es delicado: hay que ordenar, deduplicar, manejar cambios que llegan desordenados y borrados. <strong>AUTO CDC</strong> (antes <code>APPLY CHANGES INTO</code>, que sigue funcionando) lo resuelve de forma declarativa:</p>
-<pre data-norun><code class="language-sql">CREATE OR REFRESH STREAMING TABLE silver_clientes;
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REFRESH STREAMING TABLE silver_clientes;
 
 CREATE FLOW clientes_cdc AS AUTO CDC INTO silver_clientes
 FROM STREAM(bronze_clientes_cdc)
@@ -250,7 +250,7 @@ APPLY AS DELETE WHEN operacion = 'DELETE'
 SEQUENCE BY secuencia                   -- define el orden real de los cambios
 COLUMNS * EXCEPT (operacion, secuencia)
 STORED AS SCD TYPE 2;                   -- guarda historia</code></pre>
-<pre data-norun><code class="language-python">dp.create_streaming_table(&quot;silver_clientes&quot;)
+<pre data-norun tabindex="0"><code class="language-python">dp.create_streaming_table(&quot;silver_clientes&quot;)
 
 dp.create_auto_cdc_flow(
     target=&quot;silver_clientes&quot;,

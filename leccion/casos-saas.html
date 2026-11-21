@@ -29,7 +29,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p><strong>Nube Pyme</strong> vende un software de gestión a pequeñas y medianas empresas, con tres planes mensuales. Es el tipo de empresa donde las métricas de suscripción lo son todo, y donde un Analytics/Data Engineer las calcula para el directorio y los inversores.</p>
 <h2>El modelo de datos</h2>
-<pre><code class="language-text">saas_planes (plan_id, nombre, precio_mensual)            -- 1 Básico 49, 2 Profesional 149, 3 Empresa 499
+<pre tabindex="0"><code class="language-text">saas_planes (plan_id, nombre, precio_mensual)            -- 1 Básico 49, 2 Profesional 149, 3 Empresa 499
 saas_empresas (empresa_id, nombre, industria, pais, empleados, fecha_alta)
 saas_facturas (factura_id, empresa_id, plan_id, mes, monto, estado)   -- una por empresa y mes activo
 saas_tickets (ticket_id, empresa_id, fecha_creacion, fecha_cierre, prioridad, categoria, satisfaccion)</code></pre>
@@ -77,7 +77,7 @@ saas_tickets (ticket_id, empresa_id, fecha_creacion, fecha_cierre, prioridad, ca
 <li><strong>Filtro</strong>: facturas de 2024 (<code>mes &gt;= &#39;2024-01-01&#39;</code>) y <strong>pagadas</strong>: lo facturado y no cobrado es otra métrica (cobranza).</li>
 <li><strong>Métricas</strong>: empresas distintas (<code>COUNT(DISTINCT …)</code>, porque cada empresa tiene una factura por mes) y monto facturado.</li>
 </ol>
-<pre><code class="language-sql">SELECT e.industria,
+<pre tabindex="0"><code class="language-sql">SELECT e.industria,
        COUNT(DISTINCT e.empresa_id) AS empresas,
        ROUND(SUM(f.monto), 2)       AS facturado
 FROM saas_empresas e
@@ -142,7 +142,7 @@ ORDER BY facturado DESC;</code></pre>
 <li>Normaliza: tickets por cada 10 empresas, para comparar planes de distinto tamaño.</li>
 <li>Si un plan caro tiene muchos tickets críticos, es un riesgo de churn de los clientes que más pagan.</li>
 </ol>
-<pre data-norun><code class="language-sql">WITH ultimo AS (SELECT MAX(mes) AS mes FROM saas_facturas),
+<pre data-norun tabindex="0"><code class="language-sql">WITH ultimo AS (SELECT MAX(mes) AS mes FROM saas_facturas),
 mrr AS (
     SELECT f.plan_id, COUNT(DISTINCT f.empresa_id) AS empresas, SUM(f.monto) AS mrr
     FROM saas_facturas f, ultimo u

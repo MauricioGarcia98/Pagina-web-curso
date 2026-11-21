@@ -5,12 +5,12 @@
  *   al guardar una versión nueva, se borra la vieja del mismo archivo.
  * - El resto de los archivos propios (datos, páginas de lecciones) se sirven desde la caché y se actualizan
  *   en segundo plano.
- * - Las bibliotecas de las CDN (versiones fijas: Pyodide, sql.js, DuckDB, Monaco, fuentes) se guardan la primera
+ * - Las bibliotecas de las CDN (versiones fijas: Pyodide, sql.js, DuckDB, Monaco, íconos) se guardan la primera
  *   vez que se usan. Nada más sale a internet desde aquí: ni cuentas ni anuncios pasan por la caché.
  */
 const APP = 'academia-app-v1';
 const CDN = 'academia-cdn-v2';
-const CDNS = ['cdn.jsdelivr.net', 'cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'unpkg.com'];
+const CDNS = ['cdn.jsdelivr.net', 'cdnjs.cloudflare.com', 'unpkg.com'];
 const BASE = new URL('./', self.location).href;
 
 self.addEventListener('install', (e) => {

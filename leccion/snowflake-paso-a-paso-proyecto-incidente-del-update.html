@@ -59,7 +59,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Query History</strong>: buscar un <code>UPDATE pedidos_actuales SET total = 0</code> reciente y copiar su Query ID.</li>
 <li>Restaurar:</li>
 </ol>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE pedidos_actuales AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE pedidos_actuales AS
 SELECT * FROM pedidos_actuales BEFORE(STATEMENT =&gt; '&lt;query id del UPDATE&gt;');</code></pre>
 <p><strong>Por qué CREATE OR REPLACE y no INSERT:</strong> el UPDATE no borró filas, las <strong>cambió</strong>. Insertar las versiones anteriores duplicaría los pedidos; reemplazar la tabla deja exactamente el estado anterior. (Si después del error hubo cambios buenos, hay que rescatarlos aparte o usar un MERGE desde el pasado.)</p>
 <p><strong>Propuestas para prevenirlo:</strong></p>

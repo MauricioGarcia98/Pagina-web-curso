@@ -20,7 +20,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div></div>
 
 <h2>1. El acceso al SFTP</h2>
-<pre><code class="language-bash">red accesos                                   # el correo de IT: host, puerto, usuario y huella
+<pre tabindex="0"><code class="language-bash">red accesos                                   # el correo de IT: host, puerto, usuario y huella
 ssh-keygen -t ed25519 -f ~/.ssh/red_analitica -C &quot;equipo-datos&quot;
 red alta-clave ~/.ssh/red_analitica.pub       # IT la autoriza en unos minutos
 red estado</code></pre>
@@ -28,11 +28,11 @@ red estado</code></pre>
 
 
 <p>La primera vez, el cliente no conoce al servidor. <strong>Verifica la huella</strong> contra la del correo antes de aceptarla:</p>
-<pre><code class="language-bash">ssh-keyscan -p 2222 sftp.redanalitica.example &gt;&gt; ~/.ssh/known_hosts
+<pre tabindex="0"><code class="language-bash">ssh-keyscan -p 2222 sftp.redanalitica.example &gt;&gt; ~/.ssh/known_hosts
 # o, después de comparar la huella que muestra el error:
 sftp -o StrictHostKeyChecking=accept-new -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example</code></pre>
 <p>Comandos de la consola de <code>sftp</code>: <code>ls -l</code>, <code>cd</code>, <code>pwd</code>, <code>get archivo [destino]</code>, <code>mget patrón</code>, <code>lcd</code>, <code>lpwd</code>, <code>bye</code>. La cuenta es de <strong>solo lectura</strong>. Para un script se usa el modo lote:</p>
-<pre><code class="language-bash">cat &gt; lote.txt &lt;&lt;'EOF2'
+<pre tabindex="0"><code class="language-bash">cat &gt; lote.txt &lt;&lt;'EOF2'
 cd /entrantes/norte
 mget *.csv
 EOF2
@@ -52,7 +52,7 @@ scp -i ~/.ssh/red_analitica -P 2222 'equipo_datos@sftp.redanalitica.example:/ent
 <p>Códigos: 1001 glucosa, 1002 hemoglobina, 1003 colesterol, 1004 creatinina, 1005 TSH. Unidades: mg/dl, g/dl, µUI/ml.</p>
 <h3>Laboratorio Sur · <code>/entrantes/sur/sur_resultados_AAAA-MM-DD.jsonl</code></h3>
 <p>JSON por líneas. Un resultado por línea:</p>
-<pre><code class="language-json">{&quot;sample&quot;: &quot;S-100892&quot;, &quot;taken_at&quot;: &quot;2026-11-17T09:12:00-03:00&quot;, &quot;patient&quot;: {&quot;doc&quot;: 46720691, &quot;name&quot;: &quot;…&quot;, &quot;birth&quot;: &quot;…&quot;, &quot;sex&quot;: &quot;M&quot;}, &quot;test&quot;: &quot;glucose&quot;, &quot;value&quot;: 4.33, &quot;unit&quot;: &quot;mmol/L&quot;}</code></pre>
+<pre tabindex="0"><code class="language-json">{&quot;sample&quot;: &quot;S-100892&quot;, &quot;taken_at&quot;: &quot;2026-11-17T09:12:00-03:00&quot;, &quot;patient&quot;: {&quot;doc&quot;: 46720691, &quot;name&quot;: &quot;…&quot;, &quot;birth&quot;: &quot;…&quot;, &quot;sex&quot;: &quot;M&quot;}, &quot;test&quot;: &quot;glucose&quot;, &quot;value&quot;: 4.33, &quot;unit&quot;: &quot;mmol/L&quot;}</code></pre>
 <p>Tests: <code>glucose</code> (mmol/L), <code>hemoglobin</code> (g/L), <code>cholesterol</code> (mmol/L), <code>creatinine</code> (µmol/L), <code>tsh</code> (mIU/L). Si encontramos un error, reenviamos el archivo completo del día con sufijo <code>_v2</code>, <code>_v3</code>… que <strong>reemplaza</strong> al anterior.</p>
 <h3>Laboratorio Costa · <code>/entrantes/costa/Reporte Costa DDMMAAAA.csv</code></h3>
 <blockquote>
@@ -101,9 +101,9 @@ scp -i ~/.ssh/red_analitica -P 2222 'equipo_datos@sftp.redanalitica.example:/ent
 </tbody></table></div>
 <p>Conversiones: glucosa mmol/L × 18,016 = mg/dL · colesterol mmol/L × 38,67 = mg/dL · creatinina µmol/L ÷ 88,4 = mg/dL · hemoglobina g/L ÷ 10 = g/dL · µUI/mL = mUI/L. El <strong>día</strong> de un resultado es el día de la toma en hora de Ciudad del Río (UTC-3).</p>
 <h2>4. Herramientas que te van a servir</h2>
-<pre><code class="language-bash">file CENTRO_17-11-2026.csv                        # codificación, BOM y fin de línea
+<pre tabindex="0"><code class="language-bash">file CENTRO_17-11-2026.csv                        # codificación, BOM y fin de línea
 iconv -f LATIN1 -t UTF-8 entrada.csv -o salida.csv</code></pre>
-<pre data-norun><code class="language-sql">-- Databricks: opciones de read_files para archivos difíciles
+<pre data-norun tabindex="0"><code class="language-sql">-- Databricks: opciones de read_files para archivos difíciles
 SELECT * FROM read_files('abfss://…/centro/', format =&gt; 'csv', sep =&gt; ';', header =&gt; true, encoding =&gt; 'ISO-8859-1');
 SELECT * FROM read_files('abfss://…/costa/', format =&gt; 'csv', header =&gt; true, skipRows =&gt; 3);
 SELECT patient:doc, value, unit FROM read_files('abfss://…/sur/', format =&gt; 'json');

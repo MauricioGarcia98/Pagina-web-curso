@@ -121,7 +121,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Ejecuta la segunda: la misma métrica por dispositivo y grupo. Compara cada fila.</li>
 <li>Ejecuta la tercera: el porcentaje de usuarios móviles en cada grupo. Ahí está la explicación.</li>
 </ol>
-<pre><code class="language-sql">SELECT grupo, COUNT(*) AS clientes, ROUND(100.0 * SUM(convirtio) / COUNT(*), 1) AS conversion_pct
+<pre tabindex="0"><code class="language-sql">SELECT grupo, COUNT(*) AS clientes, ROUND(100.0 * SUM(convirtio) / COUNT(*), 1) AS conversion_pct
 FROM experimento_checkout GROUP BY grupo;
 
 SELECT dispositivo, grupo, COUNT(*) AS clientes, ROUND(100.0 * SUM(convirtio) / COUNT(*), 1) AS conversion_pct

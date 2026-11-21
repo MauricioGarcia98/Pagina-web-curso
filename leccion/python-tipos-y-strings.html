@@ -63,7 +63,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p><code>type()</code> te dice el tipo de cualquier valor:</p>
-<pre><code class="language-python">print(type(42), type(3.14), type(&quot;hola&quot;), type(True), type(None))</code></pre>
+<pre tabindex="0"><code class="language-python">print(type(42), type(3.14), type(&quot;hola&quot;), type(True), type(None))</code></pre>
 <div class="callout callout-nota"><div class="callout-title">📝 Los guiones bajos en los números</div>
 
 <p><code>1_000_000</code> es lo mismo que <code>1000000</code>: Python ignora los <code>_</code> dentro de los números para que se lean mejor. Muy útil con cifras grandes.</p>
@@ -72,7 +72,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Convertir de un tipo a otro</h2>
 <p>Los datos que llegan de afuera (un archivo CSV, un formulario, una API) muchas veces llegan como <strong>texto</strong>, aunque representen números. Para operar con ellos, hay que convertirlos:</p>
-<pre><code class="language-python">edad_texto = &quot;29&quot;
+<pre tabindex="0"><code class="language-python">edad_texto = &quot;29&quot;
 edad = int(edad_texto)      # str -&gt; int
 precio = float(&quot;19.99&quot;)     # str -&gt; float
 codigo = str(1234)          # int -&gt; str
@@ -119,7 +119,7 @@ print(edad + 1, precio * 2, codigo + &quot;-A&quot;)</code></pre>
 
 
 <h2>Strings: trabajar con texto</h2>
-<pre><code class="language-python">nombre = &quot;Ana&quot;
+<pre tabindex="0"><code class="language-python">nombre = &quot;Ana&quot;
 apellido = &quot;Pérez&quot;
 completo = nombre + &quot; &quot; + apellido   # concatenar (unir) con +
 print(completo)
@@ -129,7 +129,7 @@ print(completo[-1])                   # último carácter: z
 print(completo[0:3])                  # rebanada (slice): Ana
 print(&quot;=&quot; * 20)                       # repetir 20 veces</code></pre>
 <h3>Índices: cada carácter tiene una posición</h3>
-<pre><code class="language-text"> A   n   a       P   é   r   e   z
+<pre tabindex="0"><code class="language-text"> A   n   a       P   é   r   e   z
  0   1   2   3   4   5   6   7   8     ← índices desde el principio
 -9  -8  -7  -6  -5  -4  -3  -2  -1     ← índices desde el final</code></pre>
 <ul>
@@ -138,11 +138,11 @@ print(&quot;=&quot; * 20)                       # repetir 20 veces</code></pre>
 <li>Un <strong>slice</strong> <code>texto[inicio:fin]</code> toma desde <code>inicio</code> <strong>hasta antes de</strong> <code>fin</code> (el fin <strong>no</strong> se incluye). <code>completo[0:3]</code> = posiciones 0, 1 y 2 = <code>&quot;Ana&quot;</code>.</li>
 <li>Si omites un extremo, va hasta el borde: <code>completo[4:]</code> = <code>&quot;Pérez&quot;</code>, <code>completo[:3]</code> = <code>&quot;Ana&quot;</code>.</li>
 </ul>
-<pre><code class="language-python">fecha = &quot;2024-03-15&quot;
+<pre tabindex="0"><code class="language-python">fecha = &quot;2024-03-15&quot;
 print(fecha[:4], fecha[5:7], fecha[8:])   # 2024 03 15</code></pre>
 <h2>f-strings: armar textos con valores adentro</h2>
 <p>Concatenar con <code>+</code> y <code>str()</code> es incómodo. Las <strong>f-strings</strong> (de <em>formatted</em>) permiten escribir expresiones entre llaves <code>{}</code> directamente dentro del texto. Solo hay que poner una <code>f</code> antes de las comillas:</p>
-<pre><code class="language-python">producto = &quot;Laptop&quot;
+<pre tabindex="0"><code class="language-python">producto = &quot;Laptop&quot;
 precio = 1234.5
 unidades = 3
 print(f&quot;{unidades} x {producto} = {precio * unidades}&quot;)
@@ -259,7 +259,7 @@ print(f&quot;Porcentaje: {0.4567:.1%}&quot;)</code></pre>
 </tbody></table></div>
 <h3>Los strings no se modifican: se crean nuevos</h3>
 <p>Los strings son <strong>inmutables</strong>: ningún método cambia el texto original, todos <strong>devuelven uno nuevo</strong>. Si quieres conservar el resultado, guárdalo:</p>
-<pre><code class="language-python">email = &quot;  Ana.Perez@Gmail.COM &quot;
+<pre tabindex="0"><code class="language-python">email = &quot;  Ana.Perez@Gmail.COM &quot;
 email.strip()                 # devuelve un texto nuevo, pero no lo guardamos: se pierde
 print(repr(email))            # sigue con espacios
 limpio = email.strip().lower()   # métodos encadenados: primero strip, después lower
@@ -324,7 +324,7 @@ print(limpio, usuario, dominio)</code></pre>
 <li>Separa usuario y dominio con <code>split(&quot;@&quot;)</code>.</li>
 <li>Verifica el tipo de cada variable con <code>type()</code>.</li>
 </ol>
-<pre data-norun><code class="language-python">email = &quot;  Ana.Gomez@Correo.Example  &quot;
+<pre data-norun tabindex="0"><code class="language-python">email = &quot;  Ana.Gomez@Correo.Example  &quot;
 limpio = email.strip().lower()
 usuario, dominio = limpio.split(&quot;@&quot;)
 print(limpio, usuario, dominio, sep=&quot; | &quot;)</code></pre>

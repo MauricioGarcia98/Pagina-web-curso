@@ -128,7 +128,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Revisa el presupuesto: el gasto real y el pronosticado.</li>
 <li>Regla del curso: cada laboratorio termina con su limpieza y una verificación de que no quedó nada encendido.</li>
 </ol>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 aws budgets create-budget --account-id 123456789012 --budget '{&quot;BudgetName&quot;:&quot;labs&quot;,&quot;BudgetLimit&quot;:{&quot;Amount&quot;:&quot;10&quot;,&quot;Unit&quot;:&quot;USD&quot;},&quot;TimeUnit&quot;:&quot;MONTHLY&quot;,&quot;BudgetType&quot;:&quot;COST&quot;}'
 aws budgets describe-budgets --account-id 123456789012
 az login
@@ -159,7 +159,7 @@ az consumption budget create --budget-name labs --amount 10 --time-grain Monthly
 
 
 <h2>En tu cuenta real: presupuestos y alertas</h2>
-<pre data-norun><code class="language-bash"># AWS: presupuesto mensual de USD 10 con alerta por correo al 80 %
+<pre data-norun tabindex="0"><code class="language-bash"># AWS: presupuesto mensual de USD 10 con alerta por correo al 80 %
 aws budgets create-budget --account-id $(aws sts get-caller-identity --query Account --output text) \
   --budget '{&quot;BudgetName&quot;:&quot;labs&quot;,&quot;BudgetLimit&quot;:{&quot;Amount&quot;:&quot;10&quot;,&quot;Unit&quot;:&quot;USD&quot;},&quot;TimeUnit&quot;:&quot;MONTHLY&quot;,&quot;BudgetType&quot;:&quot;COST&quot;}' \
   --notifications-with-subscribers '[{&quot;Notification&quot;:{&quot;NotificationType&quot;:&quot;ACTUAL&quot;,&quot;ComparisonOperator&quot;:&quot;GREATER_THAN&quot;,&quot;Threshold&quot;:80},&quot;Subscribers&quot;:[{&quot;SubscriptionType&quot;:&quot;EMAIL&quot;,&quot;Address&quot;:&quot;tu-correo@ejemplo.com&quot;}]}]'
@@ -181,7 +181,7 @@ az consumption budget create --budget-name labs --amount 10 --time-grain Monthly
 <li><strong>Databricks</strong>: usa la <strong>Free Edition</strong> para practicar; en una cuenta paga, crea una <em>budget policy</em> y revisa <code>system.billing.usage</code>.</li>
 </ul>
 <h2>Cómo comprobar que limpiaste todo</h2>
-<pre data-norun><code class="language-bash"># AWS: recursos con la etiqueta del laboratorio, en todas las regiones
+<pre data-norun tabindex="0"><code class="language-bash"># AWS: recursos con la etiqueta del laboratorio, en todas las regiones
 aws resourcegroupstaggingapi get-resources --tag-filters Key=proyecto,Values=lab --query &quot;ResourceTagMappingList[].ResourceARN&quot;
 aws sagemaker list-endpoints --query &quot;Endpoints[].EndpointName&quot;
 

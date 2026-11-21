@@ -63,7 +63,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Ramas: elegir un camino</h2>
 <p>Una <strong>tarea de rama</strong> es una función de Python que <strong>devuelve el <code>task_id</code> del camino a seguir</strong> (o una lista de <code>task_id</code> si quieres seguir varios). Airflow ejecuta ese camino y marca como <code>skipped</code> las otras tareas que salen directamente de la rama.</p>
 <p>Ejemplo: la carga completa solo el día 1 del mes, el resto de los días la carga incremental.</p>
-<pre><code class="language-python">from datetime import datetime
+<pre tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import DAG
 from airflow.providers.standard.operators.python import BranchPythonOperator
 from airflow.providers.standard.operators.empty import EmptyOperator
@@ -89,7 +89,7 @@ dag.test(logical_date=datetime(2024, 3, 1))</code></pre>
 <li><code>fin</code> une los dos caminos. Su <code>trigger_rule</code> se explica en la siguiente sección; sin ella, <code>fin</code> nunca correría.</li>
 </ol>
 <p>La versión moderna con TaskFlow hace lo mismo con un decorador:</p>
-<pre data-norun><code class="language-python">from airflow.sdk import task
+<pre data-norun tabindex="0"><code class="language-python">from airflow.sdk import task
 
 @task.branch
 def decidir(ds=None):
@@ -162,7 +162,7 @@ def decidir(ds=None):
 <p>Imagina que <code>procesar</code> crea un clúster caro y <code>apagar_cluster</code> lo apaga. Si <code>procesar</code> falla, con la regla por defecto <code>apagar_cluster</code> queda en <code>upstream_failed</code> y el clúster sigue encendido (y cobrando) toda la noche. Con <code>trigger_rule=&quot;all_done&quot;</code> el apagado corre pase lo que pase.</p>
 <p>Un detalle importante: con <code>all_done</code> la tarea de limpieza termina en success, pero <strong>el DAG run igual queda marcado como fallido</strong>, porque <code>procesar</code> falló. Así no escondes el error: limpias <strong>y</strong> te enteras.</p>
 <h3>Alertas</h3>
-<pre data-norun><code class="language-python">alerta = PythonOperator(task_id=&quot;avisar_slack&quot;, python_callable=avisar, trigger_rule=&quot;one_failed&quot;)
+<pre data-norun tabindex="0"><code class="language-python">alerta = PythonOperator(task_id=&quot;avisar_slack&quot;, python_callable=avisar, trigger_rule=&quot;one_failed&quot;)
 [extraer, transformar, cargar] &gt;&gt; alerta</code></pre>
 <p><code>avisar_slack</code> solo corre si alguna de las tres falló. Si todo sale bien, queda skipped. Para alertas también existen los <strong>callbacks</strong> (<code>on_failure_callback</code>), que se ven en la lección de buenas prácticas.</p>
 <div class="recorrido"></div>
@@ -170,7 +170,7 @@ def decidir(ds=None):
 
 <h2>Sensores: esperar a que algo pase</h2>
 <p>Un <strong>sensor</strong> es una tarea que no procesa nada: <strong>espera</strong> a que se cumpla una condición. Por ejemplo, que llegue un archivo, que termine otro DAG o que una tabla tenga los datos del día. Cada cierto tiempo pregunta &quot;¿ya está?&quot;. A cada pregunta se le llama <em>poke</em>.</p>
-<pre data-norun><code class="language-python">from airflow.providers.standard.sensors.filesystem import FileSensor
+<pre data-norun tabindex="0"><code class="language-python">from airflow.providers.standard.sensors.filesystem import FileSensor
 
 esperar = FileSensor(
     task_id=&quot;esperar_archivo&quot;,
@@ -200,7 +200,7 @@ esperar &gt;&gt; procesar</code></pre>
 <h2>Assets: que los datos disparen los DAGs</h2>
 <p>Los sensores responden a la pregunta &quot;¿ya llegó?&quot; preguntando una y otra vez. Hay otra forma, más directa: que el DAG que <strong>produce</strong> un dato <strong>avise</strong> cuando lo actualizó, y que el DAG que lo <strong>consume</strong> arranque solo. En Airflow 3 eso se hace con <strong>Assets</strong> (en Airflow 2.4 a 2.11 se llamaban <em>Datasets</em>).</p>
 <p>Un <code>Asset</code> es simplemente un <strong>nombre para un dato</strong>: una tabla, un archivo o una carpeta del lago, identificado por un texto (su URI). Airflow no lee ese dato ni revisa que exista: solo lleva la cuenta de <strong>quién lo actualiza</strong> y <strong>quién lo espera</strong>.</p>
-<pre><code class="language-python">from datetime import datetime
+<pre tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import DAG, Asset
 from airflow.providers.standard.operators.bash import BashOperator
 from airflow.providers.standard.operators.empty import EmptyOperator
@@ -254,7 +254,7 @@ productor.test()</code></pre>
 
 <h2>TaskGroups: ordenar DAGs grandes</h2>
 <p>Un DAG real puede tener 80 tareas. En la interfaz se vuelve un plato de fideos. Un <strong>TaskGroup</strong> agrupa tareas bajo un nombre (bronze, silver, gold) y en la interfaz se ve como una caja que puedes abrir o cerrar.</p>
-<pre><code class="language-python">from datetime import datetime
+<pre tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import DAG
 from airflow.providers.standard.operators.empty import EmptyOperator
 from airflow.sdk import TaskGroup
@@ -319,7 +319,7 @@ dag.tree()</code></pre>
 <li>Mira el estado de la rama no elegida: queda <code>skipped</code>.</li>
 <li><code>fin</code> usa <code>none_failed_min_one_success</code>: sin esa regla, el skip de la otra rama la saltaría también. Pruébalo quitándola.</li>
 </ol>
-<pre data-norun><code class="language-python">from datetime import datetime
+<pre data-norun tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import dag, task
 from airflow.providers.standard.operators.empty import EmptyOperator
 

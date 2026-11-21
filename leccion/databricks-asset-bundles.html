@@ -62,9 +62,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <p>El ciclo de trabajo es siempre: <strong>editar → <code>bundle validate</code> → <code>bundle deploy -t dev</code> → <code>bundle run -t dev</code> → commit → CI despliega a prod</strong>.</p>
 <h2>Crear un bundle</h2>
-<pre data-norun><code class="language-bash">databricks bundle init                  # elige una plantilla: default-python, dbt-sql, default-sql...
+<pre data-norun tabindex="0"><code class="language-bash">databricks bundle init                  # elige una plantilla: default-python, dbt-sql, default-sql...
 cd mi_proyecto</code></pre>
-<pre><code class="language-text">mi_proyecto/
+<pre tabindex="0"><code class="language-text">mi_proyecto/
 ├── databricks.yml            # definición del bundle y de los entornos (targets)
 ├── resources/
 │   └── etl_diario.job.yml    # jobs y pipelines
@@ -73,7 +73,7 @@ cd mi_proyecto</code></pre>
 │   └── silver.ipynb
 └── tests/</code></pre>
 <h2>databricks.yml</h2>
-<pre data-norun><code class="language-yaml">bundle:
+<pre data-norun tabindex="0"><code class="language-yaml">bundle:
   name: tienda_lakehouse
 
 include:
@@ -98,7 +98,7 @@ targets:
     run_as:
       service_principal_name: &quot;11111111-2222-3333-4444-555555555555&quot;</code></pre>
 <h2>Un job definido como código</h2>
-<pre data-norun><code class="language-yaml"># resources/etl_diario.job.yml
+<pre data-norun tabindex="0"><code class="language-yaml"># resources/etl_diario.job.yml
 resources:
   jobs:
     etl_diario:
@@ -126,7 +126,7 @@ resources:
       email_notifications:
         on_failure: [equipo-datos@empresa.com]</code></pre>
 <h2>El ciclo de trabajo</h2>
-<pre data-norun><code class="language-bash">databricks bundle validate                      # revisa la configuración
+<pre data-norun tabindex="0"><code class="language-bash">databricks bundle validate                      # revisa la configuración
 databricks bundle deploy -t dev                 # sube código y crea/actualiza jobs en dev
 databricks bundle run -t dev etl_diario         # ejecuta el job y muestra el progreso
 databricks bundle summary -t dev                # qué recursos hay desplegados
@@ -136,7 +136,7 @@ databricks bundle destroy -t dev                # borra lo desplegado en dev</co
 
 
 <h2>CI/CD con GitHub Actions</h2>
-<pre data-norun><code class="language-yaml">name: deploy-prod
+<pre data-norun tabindex="0"><code class="language-yaml">name: deploy-prod
 on:
   push:
     branches: [main]
@@ -155,7 +155,7 @@ jobs:
           DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}</code></pre>
 <p>Flujo típico: rama → PR (CI: tests unitarios + <code>bundle validate</code> + deploy a un entorno de pruebas) → merge a <code>main</code> → deploy automático a producción con un <strong>service principal</strong>.</p>
 <h2>Laboratorio en la terminal</h2>
-<pre><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+<pre tabindex="0"><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
 databricks bundle init
 cd mi_proyecto
 cat databricks.yml
@@ -170,7 +170,7 @@ databricks bundle summary</code></pre>
 <li>Valídalo y despliégalo al target <code>dev</code>.</li>
 <li>Revisa el resumen: qué recursos creó y dónde.</li>
 </ol>
-<pre data-norun><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+<pre data-norun tabindex="0"><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
 databricks bundle init
 cd mi_proyecto
 cat databricks.yml

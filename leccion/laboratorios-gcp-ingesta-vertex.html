@@ -53,7 +53,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Publica un evento y léelo.</li>
 <li>Lista los endpoints de Vertex AI: igual que en SageMaker, un endpoint desplegado cobra por hora.</li>
 </ol>
-<pre data-norun><code class="language-bash">gcloud auth login
+<pre data-norun tabindex="0"><code class="language-bash">gcloud auth login
 gcloud config set project academia-datos-dev
 gcloud services enable pubsub.googleapis.com workflows.googleapis.com cloudscheduler.googleapis.com aiplatform.googleapis.com
 gcloud pubsub topics create eventos-lab
@@ -107,7 +107,7 @@ gcloud ai endpoints list --region us-central1</code></pre>
 
 
 <h2>En tu cuenta real</h2>
-<pre data-norun><code class="language-bash">gcloud services enable pubsub.googleapis.com workflows.googleapis.com cloudscheduler.googleapis.com aiplatform.googleapis.com
+<pre data-norun tabindex="0"><code class="language-bash">gcloud services enable pubsub.googleapis.com workflows.googleapis.com cloudscheduler.googleapis.com aiplatform.googleapis.com
 # la cuenta de servicio de Pub/Sub necesita escribir en BigQuery
 gcloud projects add-iam-policy-binding $PROYECTO \
   --member=&quot;serviceAccount:service-$NUMERO@gcp-sa-pubsub.iam.gserviceaccount.com&quot; --role=roles/bigquery.dataEditor
@@ -118,7 +118,7 @@ gcloud ai endpoints deploy-model $EP --region us-central1 --model $MODELO --disp
   --machine-type n1-standard-2 --min-replica-count 1 --max-replica-count 2 --traffic-split 0=100</code></pre>
 <p>El modelo de sklearn espera en <code>gs://academia-modelos/segmento/</code> un archivo <code>model.joblib</code> (o <code>model.pkl</code>) entrenado con la misma versión de la imagen.</p>
 <h2>Limpieza</h2>
-<pre data-norun><code class="language-bash">DM=$(gcloud ai endpoints describe $EP --region us-central1 --format=&quot;value(deployedModels[0].id)&quot;)
+<pre data-norun tabindex="0"><code class="language-bash">DM=$(gcloud ai endpoints describe $EP --region us-central1 --format=&quot;value(deployedModels[0].id)&quot;)
 gcloud ai endpoints undeploy-model $EP --region us-central1 --deployed-model-id $DM
 gcloud ai endpoints delete $EP --region us-central1 --quiet
 gcloud ai models delete $MODELO --region us-central1 --quiet

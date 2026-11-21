@@ -60,7 +60,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Opción 1: <code>airflow standalone</code> (la más simple)</h2>
 <p>Airflow tiene muchas dependencias y se instala con un archivo de <strong>constraints</strong>: las versiones exactas que Airflow probó juntas. Sin él, pip puede elegir una combinación que rompe Airflow.</p>
-<pre data-norun><code class="language-bash">uv venv --python 3.12 &amp;&amp; source .venv/bin/activate
+<pre data-norun tabindex="0"><code class="language-bash">uv venv --python 3.12 &amp;&amp; source .venv/bin/activate
 AIRFLOW_VERSION=3.3.2
 PYTHON_VERSION=3.12
 uv pip install &quot;apache-airflow==${AIRFLOW_VERSION}&quot; \
@@ -76,13 +76,13 @@ airflow standalone</code></pre>
 
 
 <h2>Opción 2: Astro CLI (la recomendada para el día a día)</h2>
-<pre data-norun><code class="language-bash">brew install astro                                   # macOS
+<pre data-norun tabindex="0"><code class="language-bash">brew install astro                                   # macOS
 curl -sSL install.astronomer.io | sudo bash -s       # Linux y WSL
 
 mkdir rapido-airflow &amp;&amp; cd rapido-airflow
 astro dev init          # crea la estructura del proyecto
 astro dev start         # construye la imagen y levanta Postgres, scheduler, Dag processor, API server y triggerer</code></pre>
-<pre><code class="language-text">rapido-airflow/
+<pre tabindex="0"><code class="language-text">rapido-airflow/
 ├── dags/                 ← tus DAGs
 ├── include/              ← SQL, scripts y archivos que usan los DAGs
 ├── plugins/
@@ -93,7 +93,7 @@ astro dev start         # construye la imagen y levanta Postgres, scheduler, Dag
 └── airflow_settings.yaml ← conexiones, variables y pools para desarrollo</code></pre>
 <p>UI en <code>http://localhost:8080</code> (usuario y contraseña <code>admin</code>). Cuando cambias un DAG, el scheduler lo relee solo; cuando cambias <code>requirements.txt</code>, <code>astro dev restart</code>.</p>
 <h2>Opción 3: el docker-compose oficial</h2>
-<pre data-norun><code class="language-bash">mkdir airflow-oficial &amp;&amp; cd airflow-oficial
+<pre data-norun tabindex="0"><code class="language-bash">mkdir airflow-oficial &amp;&amp; cd airflow-oficial
 curl -LfO 'https://airflow.apache.org/docs/apache-airflow/2.10.3/docker-compose.yaml'
 mkdir -p ./dags ./logs ./plugins ./config
 echo -e &quot;AIRFLOW_UID=$(id -u)&quot; &gt; .env
@@ -101,7 +101,7 @@ docker compose up airflow-init       # inicializa la base y crea el usuario airf
 docker compose up -d</code></pre>
 <p>Levanta la arquitectura completa (con CeleryExecutor, Redis y workers): es la mejor forma de <strong>ver</strong> cómo se compone Airflow en producción, pero consume bastante memoria (4 GB o más para Docker).</p>
 <h2>Probar DAGs sin esperar al scheduler</h2>
-<pre data-norun><code class="language-bash">airflow dags list                        # ¿aparece mi DAG?
+<pre data-norun tabindex="0"><code class="language-bash">airflow dags list                        # ¿aparece mi DAG?
 airflow dags list-import-errors          # errores de sintaxis o de import, con el archivo y la línea
 airflow tasks list rapido_operaciones    # sus tareas
 airflow tasks test rapido_operaciones compuerta_calidad 2024-12-01   # una tarea, sin dependencias ni estado
@@ -110,7 +110,7 @@ airflow dags test rapido_operaciones 2024-12-01                       # el DAG c
 <p><code>tasks test</code> y <code>dags test</code> no registran nada en la base (no afectan el historial) y muestran los logs en la terminal: es el ciclo rápido de desarrollo.</p>
 <h2>Conexiones y variables sin contraseñas en el código</h2>
 <p>Airflow lee conexiones y variables de <strong>variables de entorno</strong> con un nombre especial:</p>
-<pre><code class="language-text"># .env (Astro CLI la carga sola; con standalone: export …)
+<pre tabindex="0"><code class="language-text"># .env (Astro CLI la carga sola; con standalone: export …)
 AIRFLOW_CONN_POSTGRES_RAPIDO=postgresql://rapido:clave-local@host.docker.internal:5432/operaciones
 AIRFLOW_VAR_CIUDADES='[&quot;Bogotá&quot;, &quot;Lima&quot;, &quot;Ciudad de México&quot;]'</code></pre>
 <p>En el DAG se usan por su id (<code>postgres_rapido</code>) y su nombre (<code>ciudades</code>), sin ver nunca la contraseña. En producción, las mismas conexiones vienen de un gestor de secretos (AWS Secrets Manager, Key Vault, Secret Manager) configurado como <em>secrets backend</em>: el código del DAG no cambia.</p>
@@ -122,7 +122,7 @@ AIRFLOW_VAR_CIUDADES='[&quot;Bogotá&quot;, &quot;Lima&quot;, &quot;Ciudad de M�
 
 <h2>Pruebas de los DAGs</h2>
 <p>La prueba más valiosa y simple: que <strong>todos</strong> los DAGs importen sin errores y cumplan las reglas del equipo.</p>
-<pre data-norun><code class="language-python"># tests/dags/test_dags.py
+<pre data-norun tabindex="0"><code class="language-python"># tests/dags/test_dags.py
 from airflow.dag_processing.dagbag import DagBag   # en Airflow 2: from airflow.models import DagBag
 
 def test_sin_errores_de_importacion():
@@ -134,7 +134,7 @@ def test_reglas_del_equipo():
     for dag_id, dag in bag.dags.items():
         assert dag.catchup is False or &quot;backfill&quot; in dag.tags, f&quot;{dag_id}: catchup sin justificar&quot;
         assert dag.default_args.get(&quot;retries&quot;, 0) &gt;= 1, f&quot;{dag_id}: sin reintentos&quot;</code></pre>
-<pre data-norun><code class="language-bash">pytest tests/            # con standalone
+<pre data-norun tabindex="0"><code class="language-bash">pytest tests/            # con standalone
 astro dev pytest         # con Astro CLI</code></pre>
 <!-- estandar:errores -->
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
@@ -178,7 +178,7 @@ astro dev pytest         # con Astro CLI</code></pre>
 <li>Lista los DAGs de tu carpeta y prueba uno sin scheduler.</li>
 <li>En un equipo se usa Astro CLI o Docker Compose para que todos corran la misma versión.</li>
 </ol>
-<pre data-norun><code class="language-bash">airflow version
+<pre data-norun tabindex="0"><code class="language-bash">airflow version
 airflow standalone
 airflow dags list
 airflow dags test etl_ventas 2024-01-01</code></pre>

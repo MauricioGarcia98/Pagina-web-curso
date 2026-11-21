@@ -53,7 +53,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><code>repartition</code> cuesta un shuffle, pero deja particiones <strong>parejas</strong>.</li>
 <li><code>coalesce</code> es casi gratis, pero <strong>solo puede reducir</strong> y puede dejar particiones desparejas.</li>
 </ul>
-<pre><code class="language-python">pedidos = spark.table(&quot;pedidos&quot;)
+<pre tabindex="0"><code class="language-python">pedidos = spark.table(&quot;pedidos&quot;)
 print(&quot;Particiones originales:&quot;, pedidos.rdd.getNumPartitions())
 print(&quot;Con repartition(4):    &quot;, pedidos.repartition(4).rdd.getNumPartitions())
 print(&quot;Con coalesce(2):       &quot;, pedidos.coalesce(2).rdd.getNumPartitions())</code></pre>
@@ -71,7 +71,7 @@ print(&quot;Con coalesce(2):       &quot;, pedidos.coalesce(2).rdd.getNumPartiti
 <figure class="diagrama"><figcaption>Broadcast join: la tabla chica viaja a cada executor, la grande no se mueve</figcaption></figure>
 
 
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 pedidos = spark.table(&quot;pedidos&quot;)
 clientes = spark.table(&quot;clientes&quot;).select(&quot;cliente_id&quot;, &quot;pais&quot;)
@@ -129,7 +129,7 @@ por_pais.show(5)</code></pre>
 <h2>Data skew: el enemigo silencioso</h2>
 <p><strong>Skew</strong> (sesgo) es cuando unas pocas claves concentran la mayoría de los datos. Como un shuffle manda <strong>todas</strong> las filas de una misma clave a <strong>una misma partición</strong>, una clave gigante produce una partición gigante.</p>
 <p>Ejemplo: en un join por <code>cliente_id</code>, el &quot;cliente&quot; <code>NULL</code> o <code>0</code> (compras sin cuenta) tiene el 40 % de las filas.</p>
-<pre><code class="language-text">200 particiones después del shuffle por cliente_id:
+<pre tabindex="0"><code class="language-text">200 particiones después del shuffle por cliente_id:
  partición 1   (cliente_id = 0):  40.000.000 filas   ████████████████████████████  2 horas
  partición 2   (cliente_id = 17):       3.100 filas  ▏                             2 segundos
  partición 3   (cliente_id = 29):       2.800 filas  ▏                             2 segundos
@@ -141,7 +141,7 @@ por_pais.show(5)</code></pre>
 <li>Errores de memoria o mucho <strong>spill</strong> a disco en una sola tarea.</li>
 </ul>
 <p>Para detectarlo antes de que pase, cuenta cuántas filas tiene cada clave. Mira qué tan repartidos están los pedidos por canal:</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 pedidos = spark.table(&quot;pedidos&quot;)
 total = pedidos.count()
@@ -157,7 +157,7 @@ total = pedidos.count()
 <li><strong>Broadcast</strong> de la tabla chica, si se puede: sin shuffle no hay partición gigante.</li>
 <li><strong>Salting</strong>: agregar un número al azar a la clave caliente para repartirla en N particiones, y replicar la otra tabla N veces:</li>
 </ul>
-<pre data-norun><code class="language-python">N = 10
+<pre data-norun tabindex="0"><code class="language-python">N = 10
 # Lado grande: a cada fila le agrega un número al azar de 0 a 9
 ventas_s = ventas.withColumn(&quot;sal&quot;, (F.rand() * N).cast(&quot;int&quot;))
 # Lado chico: se replica 10 veces, una por cada valor de sal
@@ -219,7 +219,7 @@ unido = ventas_s.join(clientes_s, [&quot;cliente_id&quot;, &quot;sal&quot;]).dro
 <li>Desactiva el broadcast (<code>autoBroadcastJoinThreshold = -1</code>) y mira el <code>SortMergeJoin</code> con shuffle en ambos lados.</li>
 <li>Busca skew: cuenta pedidos por <code>cliente_id</code>. Si un cliente concentrara la mitad, una sola tarea haría la mitad del trabajo.</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 det = spark.table(&quot;detalle_pedidos&quot;)
 prod = spark.table(&quot;productos&quot;)

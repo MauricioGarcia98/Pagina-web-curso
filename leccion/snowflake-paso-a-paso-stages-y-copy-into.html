@@ -30,7 +30,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — Crear el stage</h2>
-<pre data-norun><code class="language-sql">USE SCHEMA tienda_dev.raw;
+<pre data-norun tabindex="0"><code class="language-sql">USE SCHEMA tienda_dev.raw;
 CREATE STAGE carga_pedidos;</code></pre>
 <p>Un <strong>stage</strong> es una carpeta donde se dejan archivos antes de cargarlos. Este es <strong>interno</strong>: los archivos viven dentro de Snowflake.</p>
 <h2>Paso 2 — Subir el archivo</h2>
@@ -38,7 +38,7 @@ CREATE STAGE carga_pedidos;</code></pre>
 <figure class="captura"><img src="assets/img/guias/snowflake/s09-stage.webp" alt="El stage con + Files (1) y el archivo subido (2)" loading="lazy"><figcaption>El stage con + Files (1) y el archivo subido (2)</figcaption></figure>
 
 
-<pre data-norun><code class="language-sql">LIST @carga_pedidos;</code></pre>
+<pre data-norun tabindex="0"><code class="language-sql">LIST @carga_pedidos;</code></pre>
 <figure class="captura"><img src="assets/img/guias/snowflake/s09-list.webp" alt="LIST - nombre, tamaño, md5 y última modificación de cada archivo" loading="lazy"><figcaption>LIST - nombre, tamaño, md5 y última modificación de cada archivo</figcaption></figure>
 
 
@@ -49,7 +49,7 @@ CREATE STAGE carga_pedidos;</code></pre>
 
 
 <h2>Paso 3 — La primera carga (con error)</h2>
-<pre data-norun><code class="language-sql">CREATE TABLE pedidos_staging (
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE pedidos_staging (
   pedido_id INT, cliente_id INT, fecha DATE, canal VARCHAR, total NUMBER(10,2)
 );
 COPY INTO pedidos_staging FROM @carga_pedidos;</code></pre>
@@ -58,7 +58,7 @@ COPY INTO pedidos_staging FROM @carga_pedidos;</code></pre>
 
 <p>Por defecto COPY INTO <strong>aborta</strong> la carga ante el primer error (<code>ON_ERROR = ABORT_STATEMENT</code>): no carga nada a medias.</p>
 <h2>Paso 4 — Cargar bien</h2>
-<pre data-norun><code class="language-sql">COPY INTO pedidos_staging
+<pre data-norun tabindex="0"><code class="language-sql">COPY INTO pedidos_staging
 FROM @carga_pedidos
 FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1);</code></pre>
 <figure class="captura"><img src="assets/img/guias/snowflake/s09-copy.webp" alt="El COPY INTO con el formato (1) y el resultado - archivo LOADED con 5 filas leídas y 5 cargadas (2)" loading="lazy"><figcaption>El COPY INTO con el formato (1) y el resultado - archivo LOADED con 5 filas leídas y 5 cargadas (2)</figcaption></figure>
@@ -91,7 +91,7 @@ FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1);</code></pre>
 </tbody></table></div>
 <h2>Paso 5 — Stages externos</h2>
 <p>En producción, los archivos suelen estar en S3, Azure Blob Storage o Google Cloud Storage. Se crea un <strong>stage externo</strong> que apunta al bucket mediante una <strong>storage integration</strong> (la credencial la administra Snowflake, no va en el SQL):</p>
-<pre data-norun><code class="language-sql">CREATE STAGE ventas_s3
+<pre data-norun tabindex="0"><code class="language-sql">CREATE STAGE ventas_s3
   URL = 's3://tienda-andina-landing/pedidos/'
   STORAGE_INTEGRATION = s3_tienda
   FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1);</code></pre>

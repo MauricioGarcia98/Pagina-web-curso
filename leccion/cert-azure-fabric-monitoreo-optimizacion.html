@@ -131,7 +131,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Z-order y particiones</strong>: <code>OPTIMIZE tabla ZORDER BY (col)</code> agrupa datos por columnas que se filtran seguido; particionar solo por columnas de baja cardinalidad en tablas grandes.</li>
 <li>El lakehouse ofrece <strong>mantenimiento de tablas</strong> desde la interfaz (OPTIMIZE con V-Order y VACUUM) y se puede programar desde un notebook.</li>
 </ul>
-<pre data-norun><code class="language-sql">OPTIMIZE silver_ventas VORDER;                    -- compacta y aplica V-Order
+<pre data-norun tabindex="0"><code class="language-sql">OPTIMIZE silver_ventas VORDER;                    -- compacta y aplica V-Order
 OPTIMIZE silver_ventas ZORDER BY (sucursal_id);   -- agrupa por una columna muy filtrada
 VACUUM silver_ventas RETAIN 168 HOURS;            -- borra archivos de más de 7 días</code></pre>
 <h2>Optimizar Spark</h2>

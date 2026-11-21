@@ -28,7 +28,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Una <strong>columna</strong> (también una columna calculada) tiene un valor <strong>por fila</strong> y se guarda en la tabla.</li>
 <li>Una <strong>medida</strong> no se guarda: es una <strong>fórmula que se calcula cada vez</strong>, para cada celda del objeto visual, con los filtros de esa celda.</li>
 </ul>
-<pre><code class="language-dax">Unidades = SUM(detalle_pedidos[cantidad])</code></pre>
+<pre tabindex="0"><code class="language-dax">Unidades = SUM(detalle_pedidos[cantidad])</code></pre>
 <p>Si pones <code>[Unidades]</code> en un gráfico de columnas por canal, la misma fórmula da un número distinto en cada barra: en la barra &quot;web&quot; solo suma las líneas de pedidos web. Eso es el <strong>contexto de filtro</strong>: el conjunto de filtros que tiene cada celda (la barra, las segmentaciones, los filtros de página y los de las otras visuales).</p>
 <figure class="diagrama"><figcaption>Una medida, muchos resultados: cada barra la evalúa con su propio filtro</figcaption></figure>
 
@@ -78,13 +78,13 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Medidas que usan medidas</h2>
 <p>Una medida puede usar otra entre corchetes. Así cada fórmula se escribe una sola vez:</p>
-<pre><code class="language-dax">Pedidos = COUNTROWS(pedidos)
+<pre tabindex="0"><code class="language-dax">Pedidos = COUNTROWS(pedidos)
 Ventas = SUMX(detalle_pedidos, detalle_pedidos[cantidad] * detalle_pedidos[precio_unitario] * (1 - detalle_pedidos[descuento]))
 Ticket promedio = DIVIDE([Ventas], [Pedidos])</code></pre>
 <p><code>SUMX</code> recorre la tabla fila por fila (lo verás a fondo en otra lección). Por ahora, úsalo tal cual para las ventas.</p>
 <h2>Cómo se corrigen los ejercicios de esta lección</h2>
 <p>Escribes <strong>la fórmula de una medida</strong>. El ejercicio la llama <code>[?]</code> y la pone en una consulta, como si la arrastraras a un objeto visual. Por ejemplo, para &quot;por canal&quot;:</p>
-<pre><code class="language-dax">EVALUATE SUMMARIZECOLUMNS(pedidos[canal], &quot;Valor&quot;, [?])</code></pre>
+<pre tabindex="0"><code class="language-dax">EVALUATE SUMMARIZECOLUMNS(pedidos[canal], &quot;Valor&quot;, [?])</code></pre>
 <p>Puedes escribir <code>Nombre = expresión</code> o solo la expresión. Abre &quot;Tu medida se llama [?]…&quot; en cada ejercicio para ver la consulta.</p>
 <h2>Caso real: así te lo piden en un trabajo</h2>
 <p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
@@ -103,7 +103,7 @@ Ticket promedio = DIVIDE([Ventas], [Pedidos])</code></pre>
 <li>Arriba de cada medida aparece <strong>Actualizar modelo: agregar medida nueva</strong>: úsalo para guardarlas en el modelo.</li>
 <li>En la vista <strong>Informe</strong>, arma una tabla con <code>pedidos[canal]</code> y las tres medidas.</li>
 </ol>
-<pre data-norun><code class="language-dax">DEFINE
+<pre data-norun tabindex="0"><code class="language-dax">DEFINE
     MEASURE detalle_pedidos[Unidades] = SUM(detalle_pedidos[cantidad])
     MEASURE detalle_pedidos[Pedidos] = DISTINCTCOUNT(detalle_pedidos[pedido_id])
     MEASURE detalle_pedidos[Unidades por pedido] = DIVIDE([Unidades], [Pedidos])

@@ -69,7 +69,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <ol>
 <li>En <strong>Parameters</strong> (abajo, con el lienzo vacío seleccionado): agrega <code>fecha</code>, tipo String, valor por defecto <code>2026-11-09</code>.</li>
 <li>Arrastra una actividad <strong>Copy data</strong>, nombre <code>Copiar viajes</code>:<ul>
-<li><strong>Source</strong>: <code>ds_landing_pedalia</code>, y en <strong>Wildcard file name</strong> el contenido dinámico:<pre><code class="language-text">@concat(pipeline().parameters.fecha, '/viajes_*.csv')</code></pre>
+<li><strong>Source</strong>: <code>ds_landing_pedalia</code>, y en <strong>Wildcard file name</strong> el contenido dinámico:<pre tabindex="0"><code class="language-text">@concat(pipeline().parameters.fecha, '/viajes_*.csv')</code></pre>
 </li>
 <li><strong>Sink</strong>: <code>ds_bronze_viajes</code>.</li>
 </ul>
@@ -77,7 +77,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Validate</strong>, después <strong>Debug</strong> con <code>fecha = 2026-11-09</code>. En la salida de la actividad mira <code>filesRead</code>, <code>rowsCopied</code> y <code>dataWritten</code>.</li>
 </ol>
 <p>El JSON que queda (lo vas a guardar en el repositorio):</p>
-<pre><code class="language-json">{
+<pre tabindex="0"><code class="language-json">{
   &quot;name&quot;: &quot;pl_ingesta_pedalia&quot;,
   &quot;properties&quot;: {
     &quot;parameters&quot;: { &quot;fecha&quot;: { &quot;type&quot;: &quot;String&quot;, &quot;defaultValue&quot;: &quot;2026-11-09&quot; } },
@@ -103,13 +103,13 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>5. Publicar y ejecutar como lo haría otro sistema</h2>
 <p><strong>Publish all</strong>. Desde ahora existe la versión publicada, que es la que ejecutan los triggers, la API y Airflow. Lo que edites después no corre hasta que vuelvas a publicar.</p>
 <p>Ejecútalo desde la terminal, como lo haría un script o un orquestador (es la API &quot;Create Run&quot; del servicio):</p>
-<pre><code class="language-bash">az datafactory pipeline create-run -g rg-pedalia-dev --factory-name adf-pedalia-dev \
+<pre tabindex="0"><code class="language-bash">az datafactory pipeline create-run -g rg-pedalia-dev --factory-name adf-pedalia-dev \
   -n pl_ingesta_pedalia --parameters '{&quot;fecha&quot;: &quot;2026-11-09&quot;}'
 az storage blob list --account-name stpedaliadev -c bronze -o table</code></pre>
 <p>En el Studio, <strong>Monitor → Pipeline runs</strong>: vas a ver la corrida con su <code>runId</code>, quién la disparó y cuánto tardó. Entra a la actividad para ver la entrada y la salida.</p>
 <h2>6. Al repositorio</h2>
 <p>En Data Factory real se conecta el Studio a un repositorio Git (Manage → Git configuration) y cada pipeline queda como un JSON en <code>pipeline/</code>. Acá guarda el JSON a mano:</p>
-<pre><code class="language-bash">cd ~/pedalia-datos
+<pre tabindex="0"><code class="language-bash">cd ~/pedalia-datos
 git checkout main &amp;&amp; git pull
 git checkout -b adf/ingesta
 mkdir -p adf/pipeline

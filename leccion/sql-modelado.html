@@ -50,7 +50,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Tabla de hechos</strong> (<em>fact</em>): los eventos medibles del negocio, con <strong>métricas</strong> numéricas y <strong>claves</strong> a dimensiones. Ej.: <code>fct_ventas</code> (una fila por línea de pedido: unidades, importe, descuento).</li>
 <li><strong>Tablas de dimensiones</strong> (<em>dim</em>): el contexto descriptivo: <code>dim_cliente</code>, <code>dim_producto</code>, <code>dim_fecha</code>, <code>dim_canal</code>.</li>
 </ul>
-<pre><code class="language-text">                 dim_fecha
+<pre tabindex="0"><code class="language-text">                 dim_fecha
                      |
   dim_cliente — fct_ventas — dim_producto
                      |
@@ -156,7 +156,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>El trabajo del data engineer es, en buena parte, <strong>llevar datos del mundo OLTP al OLAP</strong>: extraer de las bases de las aplicaciones, limpiar y remodelar en un esquema pensado para analizar.</p>
 <h2>Ejemplo: construir una estrella con las tablas de la tienda</h2>
 <p>Las tablas del curso están normalizadas (OLTP). Así se construiría un modelo dimensional mínimo con SQL (en un proyecto real, cada consulta sería un modelo de dbt):</p>
-<pre><code class="language-sql">-- Dimensión de productos: aplanamos la categoría para no tener que unirla siempre
+<pre tabindex="0"><code class="language-sql">-- Dimensión de productos: aplanamos la categoría para no tener que unirla siempre
 CREATE TABLE dim_producto AS
 SELECT pr.producto_id, pr.nombre AS producto, pr.marca, c.nombre AS categoria, pr.precio AS precio_lista
 FROM productos pr
@@ -264,7 +264,7 @@ ORDER BY dp.categoria, anio;</code></pre>
 <li>Agrega la dimensión fecha (año y mes) y la dimensión producto (categoría).</li>
 <li>Responde: facturación por categoría y año, solo con la estrella.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT d.detalle_id, p.fecha_pedido, p.cliente_id, d.producto_id,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT d.detalle_id, p.fecha_pedido, p.cliente_id, d.producto_id,
        d.cantidad, d.cantidad * d.precio_unitario AS importe
 FROM detalle_pedidos AS d
 JOIN pedidos AS p ON p.pedido_id = d.pedido_id

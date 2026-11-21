@@ -74,11 +74,11 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>Paso 3 — La dirección abfss://</h2>
 <p>Spark, Databricks y Fabric leen ADLS Gen2 con el esquema <strong>abfss</strong> (<em>Azure Blob File System, Secure</em>):</p>
-<pre><code class="language-text">abfss://&lt;contenedor&gt;@&lt;cuenta&gt;.dfs.core.windows.net/&lt;ruta&gt;</code></pre>
+<pre tabindex="0"><code class="language-text">abfss://&lt;contenedor&gt;@&lt;cuenta&gt;.dfs.core.windows.net/&lt;ruta&gt;</code></pre>
 <p>Para los pedidos de noviembre:</p>
-<pre><code class="language-text">abfss://bronze@sttiendaandinadev.dfs.core.windows.net/pedidos/2026/11/</code></pre>
+<pre tabindex="0"><code class="language-text">abfss://bronze@sttiendaandinadev.dfs.core.windows.net/pedidos/2026/11/</code></pre>
 <p>En un notebook de Databricks se lee así (con los permisos configurados, que ves en el nivel 4):</p>
-<pre data-norun><code class="language-python">df = spark.read.option(&quot;header&quot;, True).csv(
+<pre data-norun tabindex="0"><code class="language-python">df = spark.read.option(&quot;header&quot;, True).csv(
     &quot;abfss://bronze@sttiendaandinadev.dfs.core.windows.net/pedidos/2026/11/&quot;
 )
 df.show()</code></pre>

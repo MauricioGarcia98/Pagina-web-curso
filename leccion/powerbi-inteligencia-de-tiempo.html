@@ -28,7 +28,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="diagrama"><figcaption>La tabla calendario: una fecha por día, unida a los hechos</figcaption></figure>
 
 
-<pre><code class="language-dax">Calendario = ADDCOLUMNS(
+<pre tabindex="0"><code class="language-dax">Calendario = ADDCOLUMNS(
     CALENDAR(DATE(2022, 1, 1), DATE(2024, 12, 31)),
     &quot;Año&quot;, YEAR([Date]),
     &quot;Mes&quot;, FORMAT([Date], &quot;MMMM&quot;),
@@ -74,7 +74,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p><code>TOTALYTD([Ventas], fecha)</code> es un atajo de <code>CALCULATE([Ventas], DATESYTD(fecha))</code>. Toma la última fecha visible en la celda y suma desde el 1 de enero de ese año hasta esa fecha.</p>
 <h2>VAR y RETURN</h2>
 <p>Para la variación interanual hace falta el valor del año anterior dos veces. Con variables se calcula una sola vez y la fórmula se lee como una receta:</p>
-<pre><code class="language-dax">Var. interanual % =
+<pre tabindex="0"><code class="language-dax">Var. interanual % =
 VAR actual = [Ventas]
 VAR anterior = CALCULATE([Ventas], SAMEPERIODLASTYEAR(Calendario[Date]))
 RETURN
@@ -103,7 +103,7 @@ RETURN
 <li>Márcala como tabla de fechas (<strong>Herramientas de tabla → Marcar como tabla de fechas</strong>, columna <code>Date</code>) y relaciona <code>Calendario[Date]</code> (lado 1) con <code>pedidos[fecha_pedido]</code> (lado varios) en la vista <strong>Modelo</strong>.</li>
 <li>Ejecuta la consulta en <strong>Consultas DAX</strong>: acumulado del año (<code>TOTALYTD</code>) y mismo período del año anterior (<code>SAMEPERIODLASTYEAR</code>). 2022 no tiene año anterior: por eso su columna queda vacía.</li>
 </ol>
-<pre data-norun><code class="language-dax">DEFINE
+<pre data-norun tabindex="0"><code class="language-dax">DEFINE
     MEASURE detalle_pedidos[Ventas] =
         SUMX(detalle_pedidos, detalle_pedidos[cantidad] * detalle_pedidos[precio_unitario] * (1 - detalle_pedidos[descuento]))
     MEASURE detalle_pedidos[Ventas YTD] = TOTALYTD([Ventas], Calendario[Date])

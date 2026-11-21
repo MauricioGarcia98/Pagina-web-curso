@@ -66,7 +66,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>Como las fechas están guardadas como texto, la resta se hace con <code>julianday(fecha)</code>, que devuelve un número de días. El valor del grupo no significa nada por sí mismo: solo sirve para agrupar.</p>
-<pre><code class="language-sql">WITH numerado AS (
+<pre tabindex="0"><code class="language-sql">WITH numerado AS (
   SELECT cliente_id, fecha,
          julianday(fecha) - ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha) AS grupo
   FROM logins
@@ -83,7 +83,7 @@ ORDER BY cliente_id, inicio;</code></pre>
 
 <h2>Huecos con LAG y LEAD</h2>
 <p>Para los huecos no hace falta agrupar: compara cada fila con la siguiente. <code>LEAD(fecha)</code> trae la fecha del próximo login; si la diferencia es mayor que 1, entre medio hay días sin actividad.</p>
-<pre><code class="language-sql">WITH l AS (
+<pre tabindex="0"><code class="language-sql">WITH l AS (
   SELECT cliente_id, fecha,
          LEAD(fecha) OVER (PARTITION BY cliente_id ORDER BY fecha) AS siguiente
   FROM logins
@@ -122,7 +122,7 @@ WHERE siguiente IS NOT NULL AND julianday(siguiente) - julianday(fecha) &gt; 1;<
 </tbody></table></div>
 <h2>Lo que no está: el calendario</h2>
 <p>Una tabla de pedidos no tiene filas para los días <strong>sin</strong> pedidos, así que ningún <code>GROUP BY</code> los va a mostrar. Hay que generar todos los días y buscar los que faltan:</p>
-<pre><code class="language-sql">WITH RECURSIVE dias(fecha) AS (
+<pre tabindex="0"><code class="language-sql">WITH RECURSIVE dias(fecha) AS (
   SELECT '2024-01-01'
   UNION ALL
   SELECT date(fecha, '+1 day') FROM dias WHERE fecha &lt; '2024-01-31'
@@ -143,7 +143,7 @@ WHERE fecha NOT IN (SELECT fecha_pedido FROM pedidos WHERE canal = 'telefono');<
 <li>Fíjate cómo el grupo se mantiene igual mientras los días son seguidos y cambia después de cada hueco.</li>
 <li>Agrega <code>GROUP BY grupo</code> con <code>MIN(fecha)</code>, <code>MAX(fecha)</code> y <code>COUNT(*)</code> para convertir las filas en rachas.</li>
 </ol>
-<pre><code class="language-sql">SELECT cliente_id, fecha,
+<pre tabindex="0"><code class="language-sql">SELECT cliente_id, fecha,
        ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha) AS fila,
        julianday(fecha) - ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha) AS grupo
 FROM logins

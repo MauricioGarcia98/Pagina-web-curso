@@ -33,7 +33,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Mira el SQL compilado: <code>source(&#39;tienda&#39;, &#39;saas_facturas&#39;)</code> se reemplazó por la tabla real.</li>
 <li>En el proyecto real, este modelo iría en <code>marts/</code> y tendría tests de <code>not_null</code> y <code>unique</code> sobre <code>mes</code> + <code>plan_id</code>.</li>
 </ol>
-<pre data-norun><code class="language-sql">with facturas as (
+<pre data-norun tabindex="0"><code class="language-sql">with facturas as (
     select * from {{ source('tienda', 'saas_facturas') }}
     where estado = 'pagada'
 )
@@ -63,7 +63,7 @@ order by mes, plan_id</code></pre>
 
 <h2>2. Python: descomponer el MRR en movimientos</h2>
 <p>El MRR pasó de 100.000 a 104.000. ¿Es buena noticia? Depende: puede ser que entraron muchos clientes nuevos y se fueron otros tantos. Por eso se <strong>descompone</strong> la variación:</p>
-<pre><code class="language-text">MRR final = MRR inicial + nuevo + expansión − contracción − churn</code></pre>
+<pre tabindex="0"><code class="language-text">MRR final = MRR inicial + nuevo + expansión − contracción − churn</code></pre>
 <div class="exercise-slot"></div>
 
 

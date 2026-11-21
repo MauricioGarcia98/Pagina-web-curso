@@ -51,7 +51,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Escribe cada mensaje como fila en una tabla, sin código intermedio</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-bash">gcloud pubsub topics create ventas
+<pre tabindex="0"><code class="language-bash">gcloud pubsub topics create ventas
 gcloud pubsub subscriptions create ventas-fraude --topic ventas
 gcloud pubsub topics publish ventas --message '{&quot;pedido_id&quot;: 1, &quot;cliente_id&quot;: 42, &quot;total&quot;: 350.0}'
 gcloud pubsub topics publish ventas --message '{&quot;pedido_id&quot;: 2, &quot;cliente_id&quot;: 42, &quot;total&quot;: 12.5}'
@@ -64,7 +64,7 @@ gcloud pubsub subscriptions pull ventas-fraude --auto-ack --limit 10</code></pre
 
 <h2>Dataflow y Apache Beam</h2>
 <p><strong>Dataflow</strong> ejecuta pipelines escritos con <strong>Apache Beam</strong> (Python o Java) sin servidores: escala los workers solo. Lo mismo sirve para <strong>batch</strong> y para <strong>streaming</strong>.</p>
-<pre data-norun><code class="language-python">import apache_beam as beam
+<pre data-norun tabindex="0"><code class="language-python">import apache_beam as beam
 from apache_beam.transforms.window import FixedWindows
 import json
 
@@ -103,7 +103,7 @@ with beam.Pipeline(options=opciones) as p:
 <td>Local vs. cluster</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-bash">python pipeline.py --runner DataflowRunner --project academia-datos-dev --region us-central1 \
+<pre data-norun tabindex="0"><code class="language-bash">python pipeline.py --runner DataflowRunner --project academia-datos-dev --region us-central1 \
   --temp_location gs://lake-tienda-dev/tmp --streaming
 gcloud dataflow flex-template run ventas-rt --template-file-gcs-location gs://…/plantilla.json --region us-central1
 gcloud dataflow jobs list --region us-central1</code></pre>
@@ -165,7 +165,7 @@ gcloud dataflow jobs list --region us-central1</code></pre>
 <li>Publica dos mensajes.</li>
 <li>Léelos con <code>pull</code>. Con <code>--auto-ack</code> se confirman; sin confirmar, Pub/Sub los vuelve a entregar.</li>
 </ol>
-<pre data-norun><code class="language-bash">gcloud auth login
+<pre data-norun tabindex="0"><code class="language-bash">gcloud auth login
 gcloud config set project academia-datos-dev
 gcloud pubsub topics create ventas
 gcloud pubsub subscriptions create ventas-fraude --topic ventas

@@ -79,12 +79,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>Comprueba:</p>
-<pre data-norun><code class="language-bash">docker --version
+<pre data-norun tabindex="0"><code class="language-bash">docker --version
 docker compose version
 docker run hello-world</code></pre>
 <p><code>hello-world</code> descarga una imagen mínima, crea un contenedor que imprime un mensaje y termina. Si ves &quot;Hello from Docker!&quot;, todo funciona.</p>
 <h2>PostgreSQL en un contenedor</h2>
-<pre data-norun><code class="language-bash">docker run -d --name pg \
+<pre data-norun tabindex="0"><code class="language-bash">docker run -d --name pg \
   -e POSTGRES_PASSWORD=secreto \
   -e POSTGRES_DB=rapido \
   -p 5432:5432 \
@@ -124,7 +124,7 @@ docker run hello-world</code></pre>
 </tr>
 </tbody></table></div>
 <p>Para mirarlo y manejarlo:</p>
-<pre data-norun><code class="language-bash">docker ps                    # contenedores corriendo
+<pre data-norun tabindex="0"><code class="language-bash">docker ps                    # contenedores corriendo
 docker ps -a                 # también los detenidos
 docker logs pg               # lo que imprimió (aquí: &quot;database system is ready to accept connections&quot;)
 docker exec -it pg psql -U postgres -d rapido     # una consola SQL dentro del contenedor
@@ -139,7 +139,7 @@ docker rm -f pg              # lo borra (si no había volumen, los datos se van 
 
 <h2>Tu propia imagen: un Dockerfile</h2>
 <p>Para que tu pipeline corra igual en todos lados, se empaqueta en una imagen. El <strong>Dockerfile</strong> es la receta:</p>
-<pre><code class="language-dockerfile"># Dockerfile
+<pre tabindex="0"><code class="language-dockerfile"># Dockerfile
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -177,7 +177,7 @@ CMD [&quot;python&quot;, &quot;pipeline.py&quot;]</code></pre>
 <td>El comando que se ejecuta al <strong>correr</strong> el contenedor</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-bash">docker build -t rapido-pipeline .       # construye la imagen con el Dockerfile de esta carpeta
+<pre data-norun tabindex="0"><code class="language-bash">docker build -t rapido-pipeline .       # construye la imagen con el Dockerfile de esta carpeta
 docker images                           # aparece rapido-pipeline:latest
 docker run --rm --env-file .env rapido-pipeline   # la corre; --rm la borra al terminar</code></pre>
 <div class="callout callout-tip"><div class="callout-title">💡 El orden importa: la caché de capas</div>
@@ -188,7 +188,7 @@ docker run --rm --env-file .env rapido-pipeline   # la corre; --rm la borra al t
 
 <h2>Docker Compose: varios servicios juntos</h2>
 <p>Con varios servicios, en lugar de largos <code>docker run</code>, se describen en un archivo <code>compose.yaml</code> (o <code>docker-compose.yml</code>):</p>
-<pre><code class="language-yaml"># compose.yaml
+<pre tabindex="0"><code class="language-yaml"># compose.yaml
 services:
   db:
     image: postgres:16
@@ -213,7 +213,7 @@ services:
 
 volumes:
   pgdata:</code></pre>
-<pre data-norun><code class="language-bash">docker compose up -d          # crea la red, los volúmenes y los contenedores, en orden (depends_on)
+<pre data-norun tabindex="0"><code class="language-bash">docker compose up -d          # crea la red, los volúmenes y los contenedores, en orden (depends_on)
 docker compose ps             # el estado de cada servicio
 docker compose logs db        # los logs de un servicio
 docker compose exec db psql -U rapido -d operaciones
@@ -263,7 +263,7 @@ docker compose down -v        # …y también los volúmenes: empezar de cero</c
 <li>Comprueba que está corriendo y conéctate con <code>psql</code>.</li>
 <li>Para y borra el contenedor: tu computadora queda como estaba.</li>
 </ol>
-<pre data-norun><code class="language-bash">docker run -d --name pg -e POSTGRES_PASSWORD=secreta -p 5432:5432 postgres:16
+<pre data-norun tabindex="0"><code class="language-bash">docker run -d --name pg -e POSTGRES_PASSWORD=secreta -p 5432:5432 postgres:16
 docker ps
 psql -h localhost -U postgres -c &quot;SELECT version();&quot;
 docker logs pg

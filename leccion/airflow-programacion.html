@@ -150,7 +150,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>La <code>logical_date</code> es <strong>el momento en que se dispara</strong> la ejecución.</li>
 <li>No hay intervalo de datos: <code>data_interval_start</code> y <code>data_interval_end</code> valen <strong>lo mismo</strong> (el momento del disparo).</li>
 </ul>
-<pre><code class="language-text">DAG con schedule=&quot;0 2 * * *&quot; (Airflow 3, comportamiento por defecto)
+<pre tabindex="0"><code class="language-text">DAG con schedule=&quot;0 2 * * *&quot; (Airflow 3, comportamiento por defecto)
 
 Ejecución que se dispara el 2024-01-02 a las 02:00
   logical_date        = 2024-01-02 02:00   →  {{ ds }} = '2024-01-02'
@@ -159,12 +159,12 @@ Ejecución que se dispara el 2024-01-02 a las 02:00
 <p>Es lo intuitivo: &quot;la ejecución del 2 de enero corre el 2 de enero&quot;. Pero cuidado: si la tarea procesa <strong>las ventas de ayer</strong>, <code>{{ ds }}</code> es <strong>hoy</strong>, y hay que pedir el día anterior explícitamente.</p>
 <h3>Procesar &quot;el día de ayer&quot; en Airflow 3: dos formas</h3>
 <p><strong>Forma 1: restar un día en la plantilla.</strong> <code>macros.ds_add(ds, -1)</code> devuelve la fecha <code>ds</code> menos un día:</p>
-<pre data-norun><code class="language-python">BashOperator(
+<pre data-norun tabindex="0"><code class="language-python">BashOperator(
     task_id=&quot;extraer&quot;,
     bash_command=&quot;python extraer.py --fecha {{ macros.ds_add(ds, -1) }}&quot;,
 )</code></pre>
 <p><strong>Forma 2: declarar el intervalo en el timetable.</strong> Con <code>interval=</code>, la ejecución tiene un intervalo de datos que <strong>termina</strong> en el momento del disparo:</p>
-<pre data-norun><code class="language-python">from datetime import datetime, timedelta
+<pre data-norun tabindex="0"><code class="language-python">from datetime import datetime, timedelta
 from airflow.sdk import DAG
 from airflow.timetables.trigger import CronTriggerTimetable
 
@@ -179,7 +179,7 @@ with DAG(
 <p>La segunda forma es la más clara para pipelines por períodos: las tareas leen <code>data_interval_start</code> y <code>data_interval_end</code>, y el período queda escrito en la definición del DAG.</p>
 <h2>La fecha lógica en Airflow 2 (la verás en muchos proyectos)</h2>
 <p>En Airflow 2, una expresión cron usaba <code>CronDataIntervalTimetable</code>: cada ejecución representa un <strong>período completo</strong> y se dispara <strong>al terminar</strong> ese período. La <code>logical_date</code> es el <strong>comienzo</strong> del período, no el momento en que corre:</p>
-<pre><code class="language-text">DAG @daily con start_date = 2024-01-01 (Airflow 2)
+<pre tabindex="0"><code class="language-text">DAG @daily con start_date = 2024-01-01 (Airflow 2)
 
 Ejecución que corre el 2024-01-02 a las 00:00
   data_interval_start = 2024-01-01 00:00   ← es la &quot;logical date&quot; ({{ ds }} = '2024-01-01')
@@ -219,7 +219,7 @@ Ejecución que corre el 2024-01-02 a las 00:00
 <li><code>catchup=True</code> (era el valor por defecto en Airflow 2): crea <strong>todas</strong> las ejecuciones pendientes desde enero, ¡60 de golpe! (limitadas por <code>max_active_runs</code>). Lo mismo pasa si pausas el DAG una semana y lo reactivas.</li>
 </ul>
 <p>Para reprocesar un rango a propósito se usa un <strong>backfill</strong>. En Airflow 3 se crea desde la interfaz (botón <em>Trigger</em> → <em>Backfill</em>) o con el comando:</p>
-<pre data-norun><code class="language-bash">airflow backfill create --dag-id etl_ventas \
+<pre data-norun tabindex="0"><code class="language-bash">airflow backfill create --dag-id etl_ventas \
     --from-date 2024-01-01 --to-date 2024-01-31 \
     --reprocess-behavior failed \
     --max-active-runs 3</code></pre>
@@ -236,7 +236,7 @@ Ejecución que corre el 2024-01-02 a las 00:00
 
 <h2>default_args</h2>
 <p>Parámetros comunes a todas las tareas del DAG:</p>
-<pre><code class="language-python">from datetime import datetime, timedelta
+<pre tabindex="0"><code class="language-python">from datetime import datetime, timedelta
 from airflow.sdk import DAG
 from airflow.providers.standard.operators.empty import EmptyOperator
 
@@ -287,7 +287,7 @@ print(dag.get_task(&quot;tarea&quot;).retries)</code></pre>
 <li>Cambia la fecha de <code>dag.test</code> y mira cómo cambian <code>ds</code> y <code>logical_date</code>.</li>
 <li>Usa <code>ds</code> para armar la ruta del archivo del día: es lo que hace que una corrida sea reprocesable.</li>
 </ol>
-<pre data-norun><code class="language-python">from datetime import datetime
+<pre data-norun tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 

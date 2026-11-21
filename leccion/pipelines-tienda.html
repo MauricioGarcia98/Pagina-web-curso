@@ -82,7 +82,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>La validación corta el pipeline si llegan menos filas de las esperadas (mejor fallar que publicar datos incompletos).</li>
 <li>Cambia el mínimo de filas a 10 y vuelve a correr: mira cómo falla y las tareas siguientes no corren.</li>
 </ol>
-<pre data-norun><code class="language-python">from datetime import datetime
+<pre data-norun tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import dag, task
 from airflow.exceptions import AirflowFailException
 
@@ -132,7 +132,7 @@ etl_tienda().test()</code></pre>
 
 
 <p>Y su YAML con los tests que lo protegen:</p>
-<pre data-norun><code class="language-yaml">version: 2
+<pre data-norun tabindex="0"><code class="language-yaml">version: 2
 models:
   - name: clientes_rfm
     description: &quot;Una fila por cliente con compras: recencia, frecuencia y monto al 2024-12-31.&quot;

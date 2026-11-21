@@ -74,7 +74,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ul>
 <h3>Cómo se define un job</h3>
 <p>Se puede crear con clics en la interfaz, pero en un equipo profesional se define como <strong>código</strong>: en un Asset Bundle (lo viste en la lección de CLI) o en un JSON. Este job tiene cuatro tareas: bronze, después silver, y después dos gold en paralelo:</p>
-<pre><code class="language-json">{
+<pre tabindex="0"><code class="language-json">{
   &quot;name&quot;: &quot;lakehouse_diario&quot;,
   &quot;parameters&quot;: [{ &quot;name&quot;: &quot;fecha&quot;, &quot;default&quot;: &quot;2024-12-31&quot; }],
   &quot;schedule&quot;: { &quot;quartz_cron_expression&quot;: &quot;0 0 3 * * ?&quot;, &quot;timezone_id&quot;: &quot;America/Santiago&quot; },
@@ -101,11 +101,11 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ul>
 <h3>Leer los parámetros en el notebook</h3>
 <p>En cada notebook, el parámetro llega como un <strong>widget</strong>:</p>
-<pre data-norun><code class="language-python">fecha = dbutils.widgets.get(&quot;fecha&quot;)             # &quot;2024-12-31&quot;
+<pre data-norun tabindex="0"><code class="language-python">fecha = dbutils.widgets.get(&quot;fecha&quot;)             # &quot;2024-12-31&quot;
 df = spark.read.table(&quot;bronze.pedidos&quot;).where(f&quot;fecha_ingesta = '{fecha}'&quot;)</code></pre>
 <h3>Pasar valores entre tareas</h3>
 <p>A veces una tarea necesita un dato de la anterior, por ejemplo cuántas filas cargó bronze, para saltarse silver si llegaron 0. Para eso están los <strong>task values</strong> (el &quot;XCom&quot; de Databricks):</p>
-<pre data-norun><code class="language-python"># En el notebook de la tarea &quot;bronze&quot;
+<pre data-norun tabindex="0"><code class="language-python"># En el notebook de la tarea &quot;bronze&quot;
 dbutils.jobs.taskValues.set(key=&quot;filas&quot;, value=1200)
 
 # En una tarea posterior
@@ -113,10 +113,10 @@ filas = dbutils.jobs.taskValues.get(taskKey=&quot;bronze&quot;, key=&quot;filas&
 <p>También se pueden usar en una tarea <strong>If/else</strong>: <code>{{tasks.bronze.values.filas}} &gt; 0</code>. Como con XCom en Airflow, sirven para valores <strong>chicos</strong> (números, textos, rutas), no para datos.</p>
 <h2>Laboratorio: un job de cuatro tareas en la terminal</h2>
 <p>Abre la terminal (⌨ Terminal) y conéctate al workspace simulado:</p>
-<pre data-norun><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+<pre data-norun tabindex="0"><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
 code job.json</code></pre>
 <p>En el editor, pega este JSON (es el de arriba, más corto) y guarda:</p>
-<pre><code class="language-json">{&quot;name&quot;: &quot;lakehouse_diario&quot;,
+<pre tabindex="0"><code class="language-json">{&quot;name&quot;: &quot;lakehouse_diario&quot;,
  &quot;parameters&quot;: [{&quot;name&quot;: &quot;fecha&quot;, &quot;default&quot;: &quot;2024-12-31&quot;}],
  &quot;tasks&quot;: [
    {&quot;task_key&quot;: &quot;bronze&quot;},
@@ -125,7 +125,7 @@ code job.json</code></pre>
    {&quot;task_key&quot;: &quot;gold_clientes&quot;, &quot;depends_on&quot;: [{&quot;task_key&quot;: &quot;silver&quot;}]}
  ]}</code></pre>
 <p>Ahora crea el job, guarda su id en una variable y ejecútalo:</p>
-<pre data-norun><code class="language-bash">databricks jobs create --json @job.json
+<pre data-norun tabindex="0"><code class="language-bash">databricks jobs create --json @job.json
 JOB=$(databricks jobs list | grep lakehouse_diario | cut -d&quot; &quot; -f1)
 databricks jobs run-now $JOB
 databricks jobs run-now $JOB --json '{&quot;job_parameters&quot;: {&quot;fecha&quot;: &quot;2024-12-30&quot;}}'
@@ -165,7 +165,7 @@ databricks jobs list-runs --job-id $JOB</code></pre>
 </li>
 <li><strong>Alertas sobre los datos</strong>: que el job termine en verde no significa que los datos estén bien. Una <strong>alerta de Databricks SQL</strong> sobre una consulta de calidad avisa cuando algo no cuadra.</li>
 </ol>
-<pre data-norun><code class="language-sql">-- ¿Qué jobs fallaron en los últimos 7 días?
+<pre data-norun tabindex="0"><code class="language-sql">-- ¿Qué jobs fallaron en los últimos 7 días?
 SELECT job_id, run_id, period_start_time, result_state
 FROM system.lakeflow.job_run_timeline
 WHERE result_state = 'FAILED' AND period_start_time &gt;= current_date() - 7;
@@ -193,7 +193,7 @@ SELECT count(*) AS pedidos_hoy FROM silver.pedidos WHERE fecha_pedido = current_
 <li>Agrega una segunda tarea que dependa de la primera y córrelo con <strong>Run now</strong>.</li>
 <li>Abre la corrida: mira el grafo de tareas, la duración y la salida de cada una.</li>
 </ol>
-<pre data-norun><code class="language-yaml"># lo mismo, como código (lo que guardarías en un bundle):
+<pre data-norun tabindex="0"><code class="language-yaml"># lo mismo, como código (lo que guardarías en un bundle):
 resources:
   jobs:
     lakehouse_diario:

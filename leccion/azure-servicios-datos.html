@@ -89,14 +89,14 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Azure Databricks</h2>
-<pre data-norun><code class="language-bash">az extension add --name databricks
+<pre data-norun tabindex="0"><code class="language-bash">az extension add --name databricks
 az databricks workspace create \
   --resource-group rg-datos-dev --name dbw-datos-dev \
   --location eastus2 --sku premium
 az databricks workspace show --resource-group rg-datos-dev --name dbw-datos-dev --query workspaceUrl -o tsv</code></pre>
 <p>El SKU <strong>premium</strong> es necesario para Unity Catalog, controles de acceso y la mayoría de las funciones empresariales.</p>
 <h2>Azure Data Factory</h2>
-<pre data-norun><code class="language-bash">az extension add --name datafactory
+<pre data-norun tabindex="0"><code class="language-bash">az extension add --name datafactory
 az datafactory create --resource-group rg-datos-dev --factory-name adf-datos-dev --location eastus2
 az datafactory pipeline create-run --resource-group rg-datos-dev --factory-name adf-datos-dev --name pl_copiar_ventas</code></pre>
 <p>ADF es ideal para <strong>copiar</strong> datos de cientos de conectores (SQL Server on-premises, SAP, APIs, SFTP…) al data lake, con un Integration Runtime que puede vivir dentro de tu red.</p>
@@ -139,15 +139,15 @@ az datafactory pipeline create-run --resource-group rg-datos-dev --factory-name 
 
 
 <h2>Event Hubs (streaming)</h2>
-<pre data-norun><code class="language-bash">az eventhubs namespace create --resource-group rg-datos-dev --name evh-datos-dev --location eastus2 --sku Standard
+<pre data-norun tabindex="0"><code class="language-bash">az eventhubs namespace create --resource-group rg-datos-dev --name evh-datos-dev --location eastus2 --sku Standard
 az eventhubs eventhub create --resource-group rg-datos-dev --namespace-name evh-datos-dev --name clics --partition-count 4</code></pre>
 <p>Spark Structured Streaming lo consume con el conector de Kafka (Event Hubs es compatible con el protocolo Kafka).</p>
 <h2>Etiquetas (tags) y costos</h2>
-<pre data-norun><code class="language-bash">az group update --name rg-datos-dev --set tags.centro_costos=analitica tags.entorno=dev
+<pre data-norun tabindex="0"><code class="language-bash">az group update --name rg-datos-dev --set tags.centro_costos=analitica tags.entorno=dev
 az resource list --tag entorno=dev -o table
 az consumption usage list --start-date 2024-12-01 --end-date 2024-12-31 -o table</code></pre>
 <h2>Pruébalo en la terminal</h2>
-<pre><code class="language-bash">az login
+<pre tabindex="0"><code class="language-bash">az login
 az group create --name rg-datos-dev --location eastus2
 az extension add --name databricks
 az databricks workspace create --resource-group rg-datos-dev --name dbw-datos-dev --location eastus2 --sku premium
@@ -157,12 +157,12 @@ az resource list --resource-group rg-datos-dev -o table</code></pre>
 <h2>De dbt en tu terminal a Azure, paso a paso</h2>
 <p>En el módulo de dbt construiste un proyecto que corre en la terminal sobre una base local. Llevarlo a Azure no cambia los modelos: cambia <strong>dónde</strong> se ejecuta el SQL (un SQL warehouse de Azure Databricks) y <strong>quién</strong> lo ejecuta todos los días (un job). Estos son los pasos, según la documentación de Databricks.</p>
 <p><strong>1. Crear el workspace y un SQL warehouse.</strong> El workspace es el que creaste arriba con <code>az databricks workspace create</code>. Dentro de él, un <strong>SQL warehouse</strong> es el cómputo que va a ejecutar el SQL que genera dbt. Los workspaces nuevos traen un <em>Serverless Starter Warehouse</em>; su página <em>Connection details</em> muestra dos datos que vas a necesitar: el <strong>Server hostname</strong> (<code>adb-1234567890123456.7.azuredatabricks.net</code>) y el <strong>HTTP path</strong> (<code>/sql/1.0/warehouses/1a2b3c4d5e6f7a8b</code>).</p>
-<pre><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+<pre tabindex="0"><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
 databricks warehouses list</code></pre>
 <p><strong>2. Instalar el adaptador de Databricks en tu proyecto.</strong> En el entorno virtual del proyecto (la documentación recomienda <code>dbt-databricks</code> 1.8 o más nuevo):</p>
-<pre data-norun><code class="language-bash">pip install &quot;dbt-databricks&gt;=1.8,&lt;2.0&quot;</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">pip install &quot;dbt-databricks&gt;=1.8,&lt;2.0&quot;</code></pre>
 <p><strong>3. Agregar el destino en <code>profiles.yml</code>.</strong> Tu perfil ya tenía un destino local; se agrega uno para Azure. La documentación recomienda OAuth en vez de un token personal, y no escribir secretos en el archivo:</p>
-<pre data-norun><code class="language-yaml">tienda_dbt:
+<pre data-norun tabindex="0"><code class="language-yaml">tienda_dbt:
   target: dev
   outputs:
     dev:                               # tu destino local de siempre
@@ -177,11 +177,11 @@ databricks warehouses list</code></pre>
       auth_type: oauth                 # abre el navegador la primera vez
       threads: 4                       # cuántos modelos construye en paralelo</code></pre>
 <p><strong>4. Probar la conexión y construir.</strong> Con el warehouse encendido:</p>
-<pre data-norun><code class="language-bash">dbt debug --target azure               # &quot;Connection test: OK connection ok&quot;
+<pre data-norun tabindex="0"><code class="language-bash">dbt debug --target azure               # &quot;Connection test: OK connection ok&quot;
 dbt build --target azure               # los mismos modelos, ahora como tablas Delta en main.dbt_ana</code></pre>
 <p>Los datos de origen tienen que existir en Unity Catalog (por ejemplo, cargados en bronze por Data Factory o Auto Loader) y tu <code>sources.yml</code> debe apuntar a ese catálogo y esquema. Es el único archivo del proyecto que suele cambiar.</p>
 <p><strong>5. Programarlo con un job.</strong> En producción nadie corre <code>dbt build</code> desde su computadora. Un <strong>Lakeflow Job</strong> con una tarea de tipo <strong>dbt</strong> lo hace todos los días: toma el proyecto desde Git, ejecuta los comandos en orden sobre un SQL warehouse y usa como identidad el <em>Run as</em> del job (un <em>service principal</em>), que necesita permiso <code>CAN USE</code> sobre el warehouse y los privilegios de Unity Catalog sobre el catálogo. Definido como código en un bundle:</p>
-<pre data-norun><code class="language-yaml"># databricks.yml (fragmento)
+<pre data-norun tabindex="0"><code class="language-yaml"># databricks.yml (fragmento)
 resources:
   jobs:
     dbt_diario:
@@ -202,7 +202,7 @@ resources:
         - environment_key: dbt
           spec:
             dependencies: [&quot;dbt-databricks&gt;=1.8,&lt;2.0&quot;]</code></pre>
-<pre data-norun><code class="language-bash">databricks bundle validate -t prod
+<pre data-norun tabindex="0"><code class="language-bash">databricks bundle validate -t prod
 databricks bundle deploy -t prod
 databricks bundle run dbt_diario -t prod</code></pre>
 <p>La documentación recomienda <strong>fijar la versión</strong> de <code>dbt-databricks</code> para que desarrollo y producción usen la misma, y correr la parte de dbt en cómputo <em>serverless</em> o en un clúster de un solo nodo (el trabajo pesado lo hace el warehouse, no dbt).</p>
@@ -272,7 +272,7 @@ databricks bundle run dbt_diario -t prod</code></pre>
 <li>En la ruta del destino usa contenido dinámico con la expresión de abajo: cada día escribe en su propia carpeta.</li>
 <li>Ejecuta con <strong>Debug</strong> y revisa la salida de la actividad: filas leídas y escritas.</li>
 </ol>
-<pre data-norun><code class="language-text">@concat('bronze/ventas/', formatDateTime(utcnow(), 'yyyy/MM/dd'))</code></pre>
+<pre data-norun tabindex="0"><code class="language-text">@concat('bronze/ventas/', formatDateTime(utcnow(), 'yyyy/MM/dd'))</code></pre>
 <p>Reto: agrega un parámetro <code>fecha</code> al pipeline y cambia la expresión para que use <code>pipeline().parameters.fecha</code> en vez de <code>utcnow()</code> (así puedes reprocesar un día).</p>
 <p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/azure/data-factory/copy-activity-overview">actividad de copia</a> · <a href="https://learn.microsoft.com/es-es/azure/data-factory/control-flow-expression-language-functions">expresiones y funciones</a></p>
 </div>
