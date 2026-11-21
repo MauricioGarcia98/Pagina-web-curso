@@ -43,7 +43,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Por canal: pedidos del año, cancelados, % de cancelación y una columna <code>alerta</code> con <code>&quot;revisar&quot;</code> si supera el umbral (o vacío si no). Ordenada de mayor a menor tasa.</p>
 <details><summary>💡 Pista</summary>
 
-<pre data-norun><code class="language-python">del_anio = pedidos[pedidos[&quot;anio&quot;] == ANIO].assign(cancelado=lambda d: d[&quot;estado&quot;] == &quot;cancelado&quot;)
+<pre data-norun tabindex="0"><code class="language-python">del_anio = pedidos[pedidos[&quot;anio&quot;] == ANIO].assign(cancelado=lambda d: d[&quot;estado&quot;] == &quot;cancelado&quot;)
 canal = del_anio.groupby(&quot;canal&quot;).agg(pedidos=(&quot;pedido_id&quot;, &quot;count&quot;), cancelados=(&quot;cancelado&quot;, &quot;sum&quot;))
 canal[&quot;tasa&quot;] = (canal[&quot;cancelados&quot;] / canal[&quot;pedidos&quot;] * 100).round(1)
 canal[&quot;alerta&quot;] = np.where(canal[&quot;tasa&quot;] &gt; UMBRAL_CANCELACION, &quot;revisar&quot;, &quot;&quot;)</code></pre>

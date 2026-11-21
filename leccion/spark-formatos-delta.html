@@ -21,7 +21,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Filas vs. columnas: la idea clave</h2>
 <p>Imagina la tabla de pedidos con 100 millones de filas y 30 columnas. La pregunta del negocio es: &quot;¿cuánto vendimos por canal?&quot;. Solo necesitas <strong>2 de las 30 columnas</strong>: <code>canal</code> y <code>total</code>.</p>
 <p>Hay dos formas de guardar esa tabla en disco:</p>
-<pre><code class="language-text">ORIENTADO A FILAS (CSV, JSON, Avro)        ORIENTADO A COLUMNAS (Parquet, Delta)
+<pre tabindex="0"><code class="language-text">ORIENTADO A FILAS (CSV, JSON, Avro)        ORIENTADO A COLUMNAS (Parquet, Delta)
 fila 1: 1001, Ana, web, 2024-03-15, 89.9   canal:  web, app, web, tienda, ...
 fila 2: 1002, Luis, app, 2024-03-15, 15.0  total:  89.9, 15.0, 42.5, 120.0, ...
 fila 3: 1003, Ana, web, 2024-03-16, 42.5   nombre: Ana, Luis, Ana, Marta, ...
@@ -103,11 +103,11 @@ fila 3: 1003, Ana, web, 2024-03-16, 42.5   nombre: Ana, Luis, Ana, Marta, ...
 <p>Si consultas <code>WHERE fecha = &#39;2024-02-10&#39;</code>, Spark lee el pie, ve que el row group 1 termina el 31 de enero y <strong>se lo salta sin leerlo</strong>. Esto es el <em>predicate pushdown</em> que viste en la lección anterior.</p>
 <h2>Particionado en disco</h2>
 <p>Al escribir puedes <strong>particionar por una columna</strong>: Spark crea una carpeta por cada valor.</p>
-<pre data-norun><code class="language-python">(df.write
+<pre data-norun tabindex="0"><code class="language-python">(df.write
    .mode(&quot;overwrite&quot;)
    .partitionBy(&quot;anio&quot;, &quot;mes&quot;)
    .parquet(&quot;/lake/silver/pedidos&quot;))</code></pre>
-<pre><code class="language-text">/lake/silver/pedidos/anio=2024/mes=1/part-0000.parquet
+<pre tabindex="0"><code class="language-text">/lake/silver/pedidos/anio=2024/mes=1/part-0000.parquet
 /lake/silver/pedidos/anio=2024/mes=2/part-0000.parquet
 ...</code></pre>
 <p>Un filtro <code>WHERE anio = 2024 AND mes = 2</code> lee <strong>solo esa carpeta</strong> y ni siquiera abre las demás (<em>partition pruning</em>). Con 5 años de datos, eso es leer 1 de 60 carpetas.</p>
@@ -127,7 +127,7 @@ fila 3: 1003, Ana, web, 2024-03-16, 42.5   nombre: Ana, Luis, Ana, Marta, ...
 <li><strong>Esquemas que se rompen</strong>: si un día llega un archivo con una columna de más o con otro tipo, se mezcla con los demás sin que nadie avise.</li>
 </ol>
 <p><strong>Delta Lake</strong> resuelve esto agregando un <strong>registro de transacciones</strong>, la carpeta <code>_delta_log/</code>, junto a los archivos Parquet:</p>
-<pre><code class="language-text">/lake/silver/clientes/
+<pre tabindex="0"><code class="language-text">/lake/silver/clientes/
 ├── _delta_log/
 │   ├── 00000000000000000000.json    ← versión 0: &quot;se agregaron part-001 y part-002&quot;
 │   ├── 00000000000000000001.json    ← versión 1: &quot;se agregó part-003&quot;
@@ -145,7 +145,7 @@ fila 3: 1003, Ana, web, 2024-03-16, 42.5   nombre: Ana, Luis, Ana, Marta, ...
 <li><strong>OPTIMIZE, Z-ORDER y Liquid Clustering</strong>: compactan archivos chicos y ordenan los datos para acelerar los filtros.</li>
 <li>Lectura y escritura <strong>batch y streaming</strong> sobre la misma tabla.</li>
 </ul>
-<pre data-norun><code class="language-sql">-- Upsert de cambios en la tabla de clientes
+<pre data-norun tabindex="0"><code class="language-sql">-- Upsert de cambios en la tabla de clientes
 MERGE INTO silver.clientes AS t
 USING bronze.clientes_cambios AS s
 ON t.cliente_id = s.cliente_id
@@ -230,7 +230,7 @@ VACUUM silver.clientes RETAIN 168 HOURS;</code></pre>
 <li>Después del <code>UPDATE</code>, mira <code>DESCRIBE HISTORY</code>: cada escritura es una versión nueva en el log de transacciones.</li>
 <li>Consulta la versión anterior con <code>VERSION AS OF</code> y compara.</li>
 </ol>
-<pre data-norun><code class="language-sql">CREATE TABLE main.default.precios (producto STRING, precio DOUBLE);
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE main.default.precios (producto STRING, precio DOUBLE);
 INSERT INTO main.default.precios VALUES ('Teclado', 45.5), ('Mouse', 12.0);
 UPDATE main.default.precios SET precio = 49.9 WHERE producto = 'Teclado';
 DESCRIBE HISTORY main.default.precios;

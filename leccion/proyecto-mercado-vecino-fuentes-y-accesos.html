@@ -33,7 +33,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="diagrama"><figcaption>Los sistemas de Mercado Vecino y por dónde llegan los datos</figcaption></figure>
 
 
-<pre><code class="language-bash"># la clave se puede pasar por variable de entorno (no queda en la URI)...
+<pre tabindex="0"><code class="language-bash"># la clave se puede pasar por variable de entorno (no queda en la URI)...
 export PGPASSWORD='&lt;la clave del correo&gt;'
 psql &quot;postgresql://lector_datos@mv-prod-replica.postgres.database.azure.com:5432/mercado?sslmode=require&quot;
 
@@ -81,7 +81,7 @@ psql &quot;…&quot; -c &quot;\copy (SELECT * FROM clientes) TO 'clientes.csv' W
 </ul>
 <h2>2. El CDC: Debezium → Event Hubs (Kafka)</h2>
 <p>Debezium lee el WAL de la base principal y publica <strong>un mensaje por fila cambiada</strong> en un tópico por tabla. Event Hubs habla el protocolo Kafka.</p>
-<pre><code class="language-json">{
+<pre tabindex="0"><code class="language-json">{
   &quot;name&quot;: &quot;mv-prod-cdc&quot;,
   &quot;config&quot;: {
     &quot;connector.class&quot;: &quot;io.debezium.connector.postgresql.PostgresConnector&quot;,
@@ -128,7 +128,7 @@ psql &quot;…&quot; -c &quot;\copy (SELECT * FROM clientes) TO 'clientes.csv' W
 </tr>
 </tbody></table></div>
 <h3>Un mensaje</h3>
-<pre><code class="language-json">{
+<pre tabindex="0"><code class="language-json">{
   &quot;before&quot;: { &quot;id&quot;: 1474, &quot;estado&quot;: &quot;creado&quot;, &quot;total&quot;: &quot;1760.00&quot;, &quot;actualizado_en&quot;: 1794969312825000, &quot;…&quot;: &quot;…&quot; },
   &quot;after&quot;:  { &quot;id&quot;: 1474, &quot;estado&quot;: &quot;pagado&quot;, &quot;total&quot;: &quot;1760.00&quot;, &quot;pago_ref&quot;: &quot;py_0piz7m4007m&quot;, &quot;actualizado_en&quot;: 1794969330112000, &quot;…&quot;: &quot;…&quot; },
   &quot;source&quot;: { &quot;connector&quot;: &quot;postgresql&quot;, &quot;name&quot;: &quot;mv_prod&quot;, &quot;db&quot;: &quot;mercado&quot;, &quot;schema&quot;: &quot;public&quot;, &quot;table&quot;: &quot;pedidos&quot;, &quot;txId&quot;: 9123, &quot;lsn&quot;: 1509981234, &quot;ts_ms&quot;: 1794969330112 },
@@ -171,7 +171,7 @@ psql &quot;…&quot; -c &quot;\copy (SELECT * FROM clientes) TO 'clientes.csv' W
 
 
 <h3>Consumir desde la terminal (kcat)</h3>
-<pre><code class="language-bash"># propiedades en un archivo (así la clave no queda en el historial)
+<pre tabindex="0"><code class="language-bash"># propiedades en un archivo (así la clave no queda en el historial)
 mkdir -p ~/.config &amp;&amp; cat &gt; ~/.config/kcat.conf &lt;&lt;'CONF'
 bootstrap.servers=mv-eventos.servicebus.windows.net:9093
 security.protocol=SASL_SSL
@@ -186,7 +186,7 @@ kcat -C -t mv_prod.public.pedidos -o beginning -e &gt; pedidos.jsonl
 kcat -G mi-grupo mv_prod.public.pedidos -o beginning -e   # con grupo: la próxima vez sigue desde donde quedó</code></pre>
 <p>Con <code>-G</code>, el offset se guarda al terminar. Un grupo nuevo sin <code>-o</code> empieza <strong>por el final</strong> (no ve nada viejo). Si el offset guardado ya venció por la retención, Kafka salta al más viejo disponible y avisa con <code>Offset out of range</code>: <strong>los mensajes del medio se perdieron</strong>.</p>
 <h3>Consumir desde Databricks (read_kafka)</h3>
-<pre data-norun><code class="language-sql">SELECT CAST(value AS STRING) AS valor, offset, timestamp
+<pre data-norun tabindex="0"><code class="language-sql">SELECT CAST(value AS STRING) AS valor, offset, timestamp
 FROM read_kafka(
   bootstrapServers =&gt; 'mv-eventos.servicebus.windows.net:9093',
   subscribe =&gt; 'mv_prod.public.pedidos',
@@ -233,7 +233,7 @@ FROM read_kafka(
 </tbody></table></div>
 <p>Respuesta de lista: <code>{&quot;objeto&quot;: &quot;lista&quot;, &quot;hay_mas&quot;: true, &quot;datos&quot;: [...]}</code>. Para recorrer todo: pide la primera página, toma el <code>id</code> del <strong>último</strong> elemento y pide <code>despues_de=&lt;ese id&gt;</code> hasta que <code>hay_mas</code> sea <code>false</code>.</p>
 <p>Un evento:</p>
-<pre><code class="language-json">{
+<pre tabindex="0"><code class="language-json">{
   &quot;id&quot;: &quot;evt_0xa3j5200ld&quot;,
   &quot;objeto&quot;: &quot;evento&quot;,
   &quot;tipo&quot;: &quot;pago.aprobado&quot;,
@@ -250,11 +250,11 @@ FROM read_kafka(
 </ul>
 <h2>4. PagoYa: los webhooks</h2>
 <p>PagoYa avisa cada evento con un <code>POST</code> a los endpoints registrados. El del equipo de datos lo das de alta tú:</p>
-<pre><code class="language-bash">pagoya webhooks configurar --cuenta &lt;tu cuenta del lago&gt; --contenedor landing --prefijo pagoya/webhooks
+<pre tabindex="0"><code class="language-bash">pagoya webhooks configurar --cuenta &lt;tu cuenta del lago&gt; --contenedor landing --prefijo pagoya/webhooks
 pagoya webhooks estado</code></pre>
 <p>Del otro lado está la función <strong>mv-webhooks</strong> (la escribió el ingeniero anterior): responde 200 y guarda <strong>cada entrega tal como llegó</strong>, sin verificar nada, en:</p>
-<pre><code class="language-text">abfss://landing@&lt;cuenta&gt;.dfs.core.windows.net/pagoya/webhooks/fecha=AAAA-MM-DD/hora=HH/&lt;entrega_id&gt;.json</code></pre>
-<pre><code class="language-json">{&quot;entrega_id&quot;: &quot;whd_5ed0f802465a4d37&quot;, &quot;recibido_en&quot;: &quot;2026-11-19T13:01:02.123Z&quot;, &quot;endpoint&quot;: &quot;we_75fcbebf33ebac&quot;,
+<pre tabindex="0"><code class="language-text">abfss://landing@&lt;cuenta&gt;.dfs.core.windows.net/pagoya/webhooks/fecha=AAAA-MM-DD/hora=HH/&lt;entrega_id&gt;.json</code></pre>
+<pre tabindex="0"><code class="language-json">{&quot;entrega_id&quot;: &quot;whd_5ed0f802465a4d37&quot;, &quot;recibido_en&quot;: &quot;2026-11-19T13:01:02.123Z&quot;, &quot;endpoint&quot;: &quot;we_75fcbebf33ebac&quot;,
  &quot;headers&quot;: {&quot;content-type&quot;: &quot;application/json; charset=utf-8&quot;, &quot;pagoya-signature&quot;: &quot;t=1795034813,v1=31bb2c7c…&quot;, &quot;user-agent&quot;: &quot;PagoYa/1.0&quot;},
  &quot;body&quot;: &quot;{\&quot;id\&quot;:\&quot;evt_1f1ts8t00j3\&quot;,\&quot;objeto\&quot;:\&quot;evento\&quot;,\&quot;tipo\&quot;:\&quot;pago.aprobado\&quot;,…}&quot;}</code></pre>
 <ul>
@@ -271,7 +271,7 @@ pagoya webhooks estado</code></pre>
 <li>Compáralo con <code>v1</code> con una comparación de tiempo constante (<code>hmac.compare_digest</code> en Python).</li>
 <li>Rechaza la entrega si <code>t</code> está a más de <strong>5 minutos</strong> de <code>recibido_en</code>: protege contra repeticiones de entregas viejas.</li>
 </ol>
-<pre data-norun><code class="language-python">import hmac, hashlib
+<pre data-norun tabindex="0"><code class="language-python">import hmac, hashlib
 firmado = f&quot;{t}.{body}&quot;.encode()
 esperada = hmac.new(secreto.encode(), firmado, hashlib.sha256).hexdigest()
 valida = hmac.compare_digest(esperada, v1)</code></pre>

@@ -32,7 +32,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>1. Conectar Databricks al lago</h2>
 <p>En Unity Catalog, para leer <code>abfss://…</code> hace falta una <strong>ubicación externa</strong> (external location): un permiso que dice &quot;esta carpeta del lago se puede usar desde Databricks, con esta credencial&quot;. La credencial del workspace es la identidad del <strong>Access Connector</strong>, a la que ya le diste el rol en la cuenta.</p>
 <p>Abre el <a href="#/databricks">Databricks de práctica</a> → <strong>SQL Editor</strong> y ejecuta:</p>
-<pre data-norun><code class="language-sql">SHOW STORAGE CREDENTIALS;
+<pre data-norun tabindex="0"><code class="language-sql">SHOW STORAGE CREDENTIALS;
 
 CREATE EXTERNAL LOCATION lago_bronze
 URL 'abfss://bronze@stpedaliadev.dfs.core.windows.net/'
@@ -44,7 +44,7 @@ URL 'abfss://gold@stpedaliadev.dfs.core.windows.net/'
 WITH (STORAGE CREDENTIAL credencial_lago)
 COMMENT 'Exportaciones gold para otros sistemas';</code></pre>
 <p>Prueba que puedes listar los archivos:</p>
-<pre data-norun><code class="language-sql">LIST 'abfss://bronze@stpedaliadev.dfs.core.windows.net/pedalia/viajes';</code></pre>
+<pre data-norun tabindex="0"><code class="language-sql">LIST 'abfss://bronze@stpedaliadev.dfs.core.windows.net/pedalia/viajes';</code></pre>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Si te da 403</div>
 
 <p><em>AuthorizationPermissionMismatch</em> quiere decir que la ubicación externa existe pero la identidad <code>unity-catalog-access-connector</code> no tiene un rol de datos en la cuenta. Es exactamente lo que pasa en Azure real cuando alguien olvida el paso de IAM. Vuelve a la lección del lago y asigna <strong>Storage Blob Data Contributor</strong>.</p>
@@ -52,13 +52,13 @@ COMMENT 'Exportaciones gold para otros sistemas';</code></pre>
 
 
 <h2>2. El catálogo del proyecto</h2>
-<pre data-norun><code class="language-sql">CREATE CATALOG IF NOT EXISTS pedalia;
+<pre data-norun tabindex="0"><code class="language-sql">CREATE CATALOG IF NOT EXISTS pedalia;
 CREATE SCHEMA IF NOT EXISTS pedalia.bronze;
 CREATE SCHEMA IF NOT EXISTS pedalia.silver;
 CREATE SCHEMA IF NOT EXISTS pedalia.gold;</code></pre>
 <h2>3. Bronze: leer sin interpretar</h2>
 <p>En bronze <strong>todo es texto</strong>. Si dejas que Databricks adivine los tipos y un día llega <code>&quot;N/A&quot;</code> en una columna numérica, la lectura falla o, peor, convierte en silencio. Con <code>inferSchema =&gt; &#39;false&#39;</code> guardas exactamente lo que vino:</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE pedalia.bronze.viajes AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE pedalia.bronze.viajes AS
 SELECT *
 FROM read_files(
   'abfss://bronze@stpedaliadev.dfs.core.windows.net/pedalia/viajes',
@@ -69,7 +69,7 @@ SELECT COUNT(*) AS filas, COUNT(DISTINCT viaje_id) AS viajes FROM pedalia.bronze
 <p>Compara con lo que anotaste en la terminal: <code>filas</code> tiene que ser igual a las líneas del archivo menos el encabezado.</p>
 <h2>4. Silver: el contrato en SQL</h2>
 <p>Una consulta, tres pasos con nombre (CTE). Cada paso corresponde a una parte del contrato:</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE pedalia.silver.viajes AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE pedalia.silver.viajes AS
 WITH tipado AS (
   -- 1. tipos: el formato de fecha va explícito, tal como dice el contrato
   SELECT
@@ -109,12 +109,12 @@ WHERE rn = 1
 
 <h2>5. La cuarentena</h2>
 <p>Lo que no entra en silver no se borra: se guarda con el motivo, para contarlo y avisar.</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE pedalia.silver.viajes_cuarentena AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE pedalia.silver.viajes_cuarentena AS
 SELECT b.*, 'error_reloj' AS motivo
 FROM pedalia.bronze.viajes b
 WHERE b.fin &lt;&gt; '' AND to_timestamp(b.fin, 'yyyy-MM-dd HH:mm:ss') &lt; to_timestamp(b.inicio, 'yyyy-MM-dd HH:mm:ss');</code></pre>
 <h2>6. La cuenta de control</h2>
-<pre data-norun><code class="language-sql">SELECT
+<pre data-norun tabindex="0"><code class="language-sql">SELECT
   (SELECT COUNT(*) FROM pedalia.bronze.viajes)                                   AS filas_archivo,
   (SELECT COUNT(*) - COUNT(DISTINCT viaje_id) FROM pedalia.bronze.viajes)        AS repetidas,
   (SELECT COUNT(DISTINCT viaje_id) FROM pedalia.bronze.viajes WHERE fin = '' OR fin IS NULL) AS en_curso,

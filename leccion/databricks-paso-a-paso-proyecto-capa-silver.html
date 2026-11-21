@@ -35,7 +35,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Crea el esquema <code>main.ventas</code> y la tabla <code>main.ventas.pedidos_silver</code> a partir de <code>samples.tienda.pedidos</code>, con <code>fecha_pedido</code> como <code>DATE</code>, <code>estado</code> y <code>canal</code> en minúsculas y sin filas con <code>cliente_id</code> nulo. Comprueba cuántas filas tiene y cuántas por estado.</p>
 <details><summary>💡 Pista</summary>
 
-<pre data-norun><code class="language-sql">CREATE SCHEMA IF NOT EXISTS main.ventas;
+<pre data-norun tabindex="0"><code class="language-sql">CREATE SCHEMA IF NOT EXISTS main.ventas;
 
 CREATE OR REPLACE TABLE main.ventas.pedidos_silver AS
 SELECT pedido_id, cliente_id, empleado_id,
@@ -53,7 +53,7 @@ SELECT estado, COUNT(*) AS n FROM main.ventas.pedidos_silver GROUP BY estado ORD
 <p>Logística avisa: <strong>todos los pedidos pendientes del canal app ya salieron</strong> (pasan a <code>enviado</code>). Arma el lote como una consulta (pedido_id y estado nuevo), cuenta cuántos son, y aplícalo con <code>MERGE</code>. Verifica con los números por estado antes y después.</p>
 <details><summary>💡 Pista</summary>
 
-<pre data-norun><code class="language-sql">-- cuántos cambian
+<pre data-norun tabindex="0"><code class="language-sql">-- cuántos cambian
 SELECT COUNT(*) FROM main.ventas.pedidos_silver WHERE estado = 'pendiente' AND canal = 'app';
 
 MERGE INTO main.ventas.pedidos_silver AS destino

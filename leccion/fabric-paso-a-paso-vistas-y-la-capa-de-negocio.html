@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 1 — Crear la vista</h2>
 <p>En <code>wh_ventas</code>:</p>
-<pre data-norun><code class="language-sql">CREATE VIEW dbo.v_avance_metas AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE VIEW dbo.v_avance_metas AS
 SELECT m.tienda, m.meta_unidades, u.unidades,
        ROUND(100.0 * u.unidades / m.meta_unidades, 1) AS pct_avance
 FROM dbo.metas_tienda AS m
@@ -36,7 +36,7 @@ JOIN (SELECT tienda, SUM(cantidad) AS unidades
 
 
 <h2>Paso 2 — Consultarla</h2>
-<pre data-norun><code class="language-sql">SELECT * FROM dbo.v_avance_metas ORDER BY pct_avance DESC;</code></pre>
+<pre data-norun tabindex="0"><code class="language-sql">SELECT * FROM dbo.v_avance_metas ORDER BY pct_avance DESC;</code></pre>
 <figure class="captura"><img src="assets/img/guias/fabric/b14-vista.webp" alt="La vista en Views del explorador (1) y su resultado (2) - Santiago Providencia 48 %, CDMX Roma 30 %, Bogotá Norte 17,1 %, Lima Centro 7,5 %" loading="lazy"><figcaption>La vista en Views del explorador (1) y su resultado (2) - Santiago Providencia 48 %, CDMX Roma 30 %, Bogotá Norte 17,1 %, Lima Centro 7,5 %</figcaption></figure>
 
 

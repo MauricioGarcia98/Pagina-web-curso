@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — Una vista con un arreglo</h2>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE VIEW analitica.v_ultimos_pedidos AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE VIEW analitica.v_ultimos_pedidos AS
 SELECT cliente_id,
        ARRAY_AGG(pedido_id ORDER BY fecha_pedido DESC LIMIT 3) AS ultimos
 FROM tienda.pedidos
@@ -36,7 +36,7 @@ SELECT * FROM analitica.v_ultimos_pedidos ORDER BY cliente_id LIMIT 5;</code></p
 
 <p>Una <strong>vista</strong> guarda la consulta, no los datos: cada vez que se usa, se ejecuta y se cobra lo que lee de las tablas de fondo.</p>
 <h2>Paso 2 — UNNEST</h2>
-<pre data-norun><code class="language-sql">SELECT v.cliente_id, pedido
+<pre data-norun tabindex="0"><code class="language-sql">SELECT v.cliente_id, pedido
 FROM analitica.v_ultimos_pedidos AS v,
      UNNEST(v.ultimos) AS pedido
 WHERE v.cliente_id &lt;= 3
@@ -66,7 +66,7 @@ ORDER BY v.cliente_id;</code></pre>
 </tr>
 </tbody></table></div>
 <h2>Paso 3 — STRUCT</h2>
-<pre data-norun><code class="language-sql">SELECT STRUCT('Lima Centro' AS tienda, 'PE' AS pais) AS sucursal,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT STRUCT('Lima Centro' AS tienda, 'PE' AS pais) AS sucursal,
        ['web', 'app', 'tienda'] AS canales;</code></pre>
 <figure class="captura"><img src="assets/img/guias/bigquery/q11-struct.webp" alt="Un STRUCT (registro con campos) y un ARRAY en una sola fila" loading="lazy"><figcaption>Un STRUCT (registro con campos) y un ARRAY en una sola fila</figcaption></figure>
 

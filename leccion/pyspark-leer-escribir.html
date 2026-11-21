@@ -19,7 +19,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer CSV, JSON y Parquet con opciones y esquema explícito</li><li>Escribir con el modo correcto (overwrite, append, error)</li><li>Particionar la escritura en disco</li></ul>
 <h2>De dónde vienen y adónde van los datos</h2>
 <p>Un pipeline siempre empieza <strong>leyendo</strong> (archivos que llegaron al lago, una tabla bronze, una base de datos) y termina <strong>escribiendo</strong> (una tabla silver o gold, archivos para otro equipo). En Spark ambas cosas tienen una API simétrica:</p>
-<pre><code class="language-text">spark.read  .format(…).option(…).schema(…).load(ruta)     → DataFrame
+<pre tabindex="0"><code class="language-text">spark.read  .format(…).option(…).schema(…).load(ruta)     → DataFrame
 df.write    .format(…).mode(…).partitionBy(…).save(ruta)  → archivos / tabla</code></pre>
 <h2>Formatos de archivo: cuál usar y por qué</h2>
 <div class="table-wrap"><table><thead><tr>
@@ -78,7 +78,7 @@ df.write    .format(…).mode(…).partitionBy(…).save(ruta)  → archivos / t
 
 
 <h2>Leer</h2>
-<pre data-norun><code class="language-python"># CSV con encabezado e infiriendo tipos (cómodo para explorar, lento y arriesgado en producción)
+<pre data-norun tabindex="0"><code class="language-python"># CSV con encabezado e infiriendo tipos (cómodo para explorar, lento y arriesgado en producción)
 df = spark.read.option(&quot;header&quot;, True).option(&quot;inferSchema&quot;, True).csv(&quot;/datos/ventas.csv&quot;)
 
 # CSV con esquema explícito (recomendado)
@@ -140,13 +140,13 @@ df = spark.read.table(&quot;main.silver.clientes&quot;)     # o spark.table(...)
 
 <h3>Leer en el simulador</h3>
 <p>En el simulador hay un sistema de archivos &quot;de juguete&quot;: cada tabla de ejemplo también se puede leer como <code>&quot;/datos/&lt;tabla&gt;.csv&quot;</code> o <code>.parquet</code>. Fíjate en la diferencia de tipos:</p>
-<pre><code class="language-python">df = spark.read.option(&quot;header&quot;, True).csv(&quot;/datos/productos.csv&quot;)
+<pre tabindex="0"><code class="language-python">df = spark.read.option(&quot;header&quot;, True).csv(&quot;/datos/productos.csv&quot;)
 df.printSchema()      # sin inferSchema: TODO es string, igual que en Spark real
 df2 = spark.read.option(&quot;header&quot;, True).option(&quot;inferSchema&quot;, True).csv(&quot;/datos/productos.csv&quot;)
 df2.printSchema()     # ahora precio es double, stock es int…</code></pre>
 <p>Sin <code>inferSchema</code> ni esquema, <strong>cada columna de un CSV es texto</strong>: <code>precio</code> es <code>&quot;484.99&quot;</code>. Si sumaras esa columna sin convertirla, Spark intentaría convertir implícitamente o daría resultados inesperados. Por eso la capa bronze → silver casi siempre empieza con <code>cast</code>.</p>
 <h2>Escribir</h2>
-<pre data-norun><code class="language-python">(df.write
+<pre data-norun tabindex="0"><code class="language-python">(df.write
    .format(&quot;delta&quot;)                 # o .parquet(...), .csv(...), .json(...)
    .mode(&quot;overwrite&quot;)               # qué hacer si ya existe
    .partitionBy(&quot;anio&quot;, &quot;mes&quot;)      # una carpeta por cada combinación anio/mes
@@ -182,7 +182,7 @@ df.write.mode(&quot;append&quot;).saveAsTable(&quot;main.silver.pedidos&quot;)  
 </tbody></table></div>
 <h3>Particionar al escribir</h3>
 <p><code>partitionBy(&quot;anio&quot;, &quot;mes&quot;)</code> crea una carpeta por cada valor, en el estilo Hive que viste en S3 y Cloud Storage:</p>
-<pre><code class="language-text">/lake/silver/pedidos/
+<pre tabindex="0"><code class="language-text">/lake/silver/pedidos/
 ├── anio=2023/mes=12/part-00000.parquet
 └── anio=2024/
     ├── mes=01/part-00000.parquet
@@ -190,7 +190,7 @@ df.write.mode(&quot;append&quot;).saveAsTable(&quot;main.silver.pedidos&quot;)  
 <p>Después, una lectura con <code>filter(F.col(&quot;anio&quot;) == 2024)</code> lee <strong>solo</strong> esa carpeta (<em>partition pruning</em>). Elige columnas de partición con <strong>pocos valores distintos</strong> y que se usen siempre para filtrar (fecha, país). Particionar por <code>cliente_id</code> crearía millones de carpetas con archivos diminutos: un desastre de rendimiento.</p>
 <h3>¿Cuántos archivos se escriben?</h3>
 <p>Spark escribe <strong>un archivo por partición del DataFrame</strong> (por cada carpeta). Si tu DataFrame tiene 200 particiones en memoria, puedes terminar con 200 archivos chiquitos por carpeta. Para controlarlo:</p>
-<pre data-norun><code class="language-python">df.coalesce(4).write.mode(&quot;overwrite&quot;).parquet(&quot;/lake/gold/resumen&quot;)        # juntar en 4 archivos
+<pre data-norun tabindex="0"><code class="language-python">df.coalesce(4).write.mode(&quot;overwrite&quot;).parquet(&quot;/lake/gold/resumen&quot;)        # juntar en 4 archivos
 df.repartition(&quot;anio&quot;, &quot;mes&quot;).write.partitionBy(&quot;anio&quot;, &quot;mes&quot;).parquet(…)   # un archivo por carpeta</code></pre>
 <div class="callout callout-experto"><div class="callout-title">🚀 Sobrescribir solo algunas particiones (idempotencia)</div>
 
@@ -237,7 +237,7 @@ df.repartition(&quot;anio&quot;, &quot;mes&quot;).write.partitionBy(&quot;anio&q
 <li>Vuelve a ejecutar: falla porque la ruta ya existe. Cambia el modo a <code>overwrite</code>.</li>
 <li>Lee la ruta y verifica que el conteo coincide.</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 entregados = spark.table(&quot;pedidos&quot;).filter(F.col(&quot;estado&quot;) == &quot;entregado&quot;)
 (entregados.write

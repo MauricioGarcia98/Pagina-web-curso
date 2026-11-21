@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Primero el grano, después la ventana</h2>
 <p>El error más común es aplicar la ventana sobre la tabla de detalle. Si quieres ventas <strong>por mes</strong>, primero agregas a una fila por mes y recién ahí aplicas <code>SUM() OVER</code>, <code>LAG</code> o <code>AVG() OVER</code>.</p>
-<pre><code class="language-sql">WITH mensual AS (
+<pre tabindex="0"><code class="language-sql">WITH mensual AS (
   SELECT substr(p.fecha_pedido, 1, 7) AS mes,
          ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas
   FROM pedidos p
@@ -75,7 +75,7 @@ ORDER BY mes;</code></pre>
 
 
 <h2>Crecimiento sin trampas</h2>
-<pre data-norun><code class="language-sql">ROUND(100.0 * (ventas - LAG(ventas) OVER (ORDER BY mes)) / NULLIF(LAG(ventas) OVER (ORDER BY mes), 0), 1)</code></pre>
+<pre data-norun tabindex="0"><code class="language-sql">ROUND(100.0 * (ventas - LAG(ventas) OVER (ORDER BY mes)) / NULLIF(LAG(ventas) OVER (ORDER BY mes), 0), 1)</code></pre>
 <ul>
 <li><code>100.0</code> (no <code>100</code>) evita la <strong>división entera</strong>: en SQLite y PostgreSQL, <code>7 / 2</code> da <code>3</code>.</li>
 <li><code>NULLIF(..., 0)</code> evita dividir por cero si un mes tuvo ventas 0: el resultado queda <code>NULL</code>.</li>
@@ -94,7 +94,7 @@ ORDER BY mes;</code></pre>
 <figure class="diagrama"><figcaption>Retención del mes 1: de la cohorte, ¿cuántos volvieron el mes siguiente?</figcaption></figure>
 
 
-<pre><code class="language-sql">WITH primero AS (
+<pre tabindex="0"><code class="language-sql">WITH primero AS (
   SELECT cliente_id, MIN(substr(fecha_pedido, 1, 7)) AS cohorte
   FROM pedidos WHERE estado &lt;&gt; 'cancelado' GROUP BY cliente_id
 ),
@@ -123,7 +123,7 @@ ORDER BY p.cohorte;</code></pre>
 <li>Verifica a mano la fila de marzo: el acumulado debe ser enero + febrero + marzo.</li>
 <li>Agrega una columna de crecimiento porcentual con <code>NULLIF</code> y comprueba que enero queda en <code>NULL</code>.</li>
 </ol>
-<pre><code class="language-sql">WITH mensual AS (
+<pre tabindex="0"><code class="language-sql">WITH mensual AS (
   SELECT substr(p.fecha_pedido, 1, 7) AS mes,
          ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas
   FROM pedidos p

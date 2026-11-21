@@ -63,7 +63,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Mira los días de atraso por cuota y el tramo de mora (1-30, 31-90, más de 90).</li>
 <li>Resume por tramo: es el reporte que pide el área de riesgo.</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 corte = F.lit(&quot;2024-12-31&quot;)
 cuotas = spark.table(&quot;banco_cuotas&quot;)

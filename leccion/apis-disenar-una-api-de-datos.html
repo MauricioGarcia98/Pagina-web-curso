@@ -154,7 +154,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>Con cursor, la respuesta incluye dónde seguir:</p>
-<pre><code class="language-json">{&quot;datos&quot;: [{&quot;pedido_id&quot;: 101}, {&quot;pedido_id&quot;: 102}], &quot;siguiente&quot;: 102}</code></pre>
+<pre tabindex="0"><code class="language-json">{&quot;datos&quot;: [{&quot;pedido_id&quot;: 101}, {&quot;pedido_id&quot;: 102}], &quot;siguiente&quot;: 102}</code></pre>
 <p>y el cliente pide <code>?cursor=102</code> hasta que <code>siguiente</code> venga vacío. Así paginan las APIs de Stripe, GitHub (para muchos recursos) y la mayoría de las APIs de datos grandes.</p>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ OFFSET con datos que cambian</div>
 
@@ -197,7 +197,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Fíjate en que el bucle termina cuando <code>siguiente</code> es <code>None</code>, y que se juntan todas las filas exactamente una vez.</li>
 <li>Cambia <code>limite=3</code> por <code>limite=1</code> y por <code>limite=100</code>: el total debe ser siempre el mismo.</li>
 </ol>
-<pre><code class="language-python">PEDIDOS = [{&quot;pedido_id&quot;: i, &quot;monto&quot;: i * 10} for i in (3, 5, 8, 9, 12, 15, 21)]
+<pre tabindex="0"><code class="language-python">PEDIDOS = [{&quot;pedido_id&quot;: i, &quot;monto&quot;: i * 10} for i in (3, 5, 8, 9, 12, 15, 21)]
 
 def pagina(cursor=None, limite=3):
     &quot;&quot;&quot;El servidor: los pedidos con id mayor al cursor, en orden, y dónde seguir.&quot;&quot;&quot;

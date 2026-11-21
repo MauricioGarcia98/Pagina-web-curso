@@ -26,7 +26,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>source(): el punto de entrada</h2>
 <p>dbt <strong>no carga datos</strong>: solo transforma lo que ya está en el warehouse. Las tablas crudas las dejó otra herramienta (Fivetran, Airbyte, Data Factory, Auto Loader o un script de Python). A esas tablas que dbt no creó se las llama <strong>sources</strong>, y se declaran en un archivo YAML:</p>
-<pre data-norun><code class="language-yaml"># models/staging/_sources.yml
+<pre data-norun tabindex="0"><code class="language-yaml"># models/staging/_sources.yml
 version: 2
 sources:
   - name: tienda              # nombre lógico que usarás en source('tienda', ...)
@@ -41,7 +41,7 @@ sources:
       - name: clientes
       - name: detalle_pedidos</code></pre>
 <p>Después, en los modelos, en vez de escribir el nombre real de la tabla usas:</p>
-<pre data-norun><code class="language-sql">select * from {{ source('tienda', 'pedidos') }}
+<pre data-norun tabindex="0"><code class="language-sql">select * from {{ source('tienda', 'pedidos') }}
 -- dbt lo compila como:  select * from prod.bronze.pedidos</code></pre>
 <p>¿Por qué no escribir <code>prod.bronze.pedidos</code> directamente? Por cuatro razones:</p>
 <ol>
@@ -109,7 +109,7 @@ sources:
 </ul>
 <h2>Un modelo de staging típico</h2>
 <p>Staging es <strong>un modelo por tabla de origen</strong>, con transformaciones mínimas. Nada de joins ni de agregaciones:</p>
-<pre><code class="language-dbt">-- models/staging/stg_tienda__clientes.sql
+<pre tabindex="0"><code class="language-dbt">-- models/staging/stg_tienda__clientes.sql
 with fuente as (
     select * from {{ source('tienda', 'clientes') }}
 ),
@@ -153,7 +153,7 @@ select * from renombrado</code></pre>
 <p>El patrón <code>with fuente as (...), renombrado as (...) select * from renombrado</code> es una convención de estilo: cada CTE es un paso con nombre y el <code>select</code> final queda trivial. Al leer un modelo ajeno, sabes dónde buscar cada cosa.</p>
 <h2>Seeds: pequeños CSV versionados</h2>
 <p>A veces necesitas una tabla chica que <strong>no viene de ningún sistema</strong>: la región comercial de cada país, los feriados, las metas de ventas o la equivalencia entre códigos viejos y nuevos. La solución de dbt son los <strong>seeds</strong>: un CSV dentro de la carpeta <code>seeds/</code> del proyecto.</p>
-<pre><code class="language-text">seeds/regiones.csv
+<pre tabindex="0"><code class="language-text">seeds/regiones.csv
 pais,region
 Argentina,Cono Sur
 Chile,Cono Sur
@@ -172,18 +172,18 @@ México,Norteamérica</code></pre>
 <h2>Laboratorio: seed + source + ref en la terminal</h2>
 <p>Vas a construir un mart que cuente clientes por región comercial usando las tres piezas. Abre la terminal (⌨ Terminal) y ejecuta paso a paso. Los archivos se crean con <code>printf</code> para que puedas copiar y pegar; si prefieres, ábrelos con <code>code archivo</code>, que abre el editor visual, y pega el contenido.</p>
 <p><strong>1. Crea el seed</strong> con la región de cada país:</p>
-<pre data-norun><code class="language-bash">cd ~/tienda_dbt
+<pre data-norun tabindex="0"><code class="language-bash">cd ~/tienda_dbt
 mkdir -p seeds
 printf 'pais,region\nArgentina,Cono Sur\nChile,Cono Sur\nUruguay,Cono Sur\nParaguay,Cono Sur\nBolivia,Andina\nPerú,Andina\nEcuador,Andina\nColombia,Andina\nMéxico,Norteamérica\nCosta Rica,Centroamérica\nEspaña,Europa\n' &gt; seeds/regiones.csv
 dbt seed</code></pre>
 <p>Deberías ver <code>OK loaded seed file main.regiones [INSERT 11]</code>.</p>
 <p><strong>2. Crea el modelo de staging</strong>, que lee la fuente:</p>
-<pre data-norun><code class="language-bash">printf &quot;select\n    cliente_id,\n    trim(nombre) || ' ' || trim(apellido) as nombre_completo,\n    lower(trim(email)) as email,\n    pais,\n    segmento\nfrom {{ source('tienda', 'clientes') }}\n&quot; &gt; models/staging/stg_tienda__clientes.sql
+<pre data-norun tabindex="0"><code class="language-bash">printf &quot;select\n    cliente_id,\n    trim(nombre) || ' ' || trim(apellido) as nombre_completo,\n    lower(trim(email)) as email,\n    pais,\n    segmento\nfrom {{ source('tienda', 'clientes') }}\n&quot; &gt; models/staging/stg_tienda__clientes.sql
 cat models/staging/stg_tienda__clientes.sql</code></pre>
 <p><strong>3. Crea el mart</strong>, que une el staging con el seed usando <code>ref</code>:</p>
-<pre data-norun><code class="language-bash">printf &quot;select\n    r.region,\n    count(*) as clientes\nfrom {{ ref('stg_tienda__clientes') }} c\njoin {{ ref('regiones') }} r on r.pais = c.pais\ngroup by r.region\norder by clientes desc\n&quot; &gt; models/marts/clientes_por_region.sql</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">printf &quot;select\n    r.region,\n    count(*) as clientes\nfrom {{ ref('stg_tienda__clientes') }} c\njoin {{ ref('regiones') }} r on r.pais = c.pais\ngroup by r.region\norder by clientes desc\n&quot; &gt; models/marts/clientes_por_region.sql</code></pre>
 <p><strong>4. Construye y consulta:</strong></p>
-<pre data-norun><code class="language-bash">dbt run -s stg_tienda__clientes clientes_por_region
+<pre data-norun tabindex="0"><code class="language-bash">dbt run -s stg_tienda__clientes clientes_por_region
 sqlite3 &quot;SELECT * FROM clientes_por_region&quot;</code></pre>
 <p>Resultado esperado:</p>
 <div class="table-wrap"><table><thead><tr>
@@ -219,7 +219,7 @@ sqlite3 &quot;SELECT * FROM clientes_por_region&quot;</code></pre>
 <li>Agrega <code>segmento</code> en minúsculas.</li>
 <li>Regla de staging: una fila por fila de origen, sin joins ni agregaciones. Verifica que no agregaste ninguna.</li>
 </ol>
-<pre data-norun><code class="language-sql">with origen as (
+<pre data-norun tabindex="0"><code class="language-sql">with origen as (
     select * from {{ source('tienda', 'clientes') }}
 ),
 

@@ -72,7 +72,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Números, <strong>textos</strong> (orden alfabético) y <strong>fechas</strong></td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-sql">SELECT COUNT(*)              AS total_clientes,
+<pre tabindex="0"><code class="language-sql">SELECT COUNT(*)              AS total_clientes,
        COUNT(email)          AS con_email,
        COUNT(DISTINCT pais)  AS paises,
        MIN(fecha_registro)   AS primer_registro,
@@ -118,7 +118,7 @@ FROM clientes;</code></pre>
 </tr>
 </tbody></table></div>
 <p>Y en <code>pedidos</code>:</p>
-<pre><code class="language-sql">SELECT COUNT(*)                   AS pedidos,
+<pre tabindex="0"><code class="language-sql">SELECT COUNT(*)                   AS pedidos,
        COUNT(DISTINCT cliente_id) AS clientes_que_compraron
 FROM pedidos;</code></pre>
 <p>Hay 12.000 pedidos hechos por <strong>1.453</strong> clientes distintos. Eso ya es información de negocio: de 2.000 clientes registrados, 547 nunca compraron. Confundir <code>COUNT(*)</code> con <code>COUNT(DISTINCT cliente_id)</code> es uno de los errores más caros en reportes: &quot;tenemos 12.000 compradores&quot; vs. &quot;tenemos 1.453&quot;.</p>
@@ -129,7 +129,7 @@ FROM pedidos;</code></pre>
 
 
 <h2>SUM y AVG</h2>
-<pre><code class="language-sql">SELECT COUNT(*)                                  AS lineas,
+<pre tabindex="0"><code class="language-sql">SELECT COUNT(*)                                  AS lineas,
        ROUND(SUM(cantidad * precio_unitario), 2) AS facturacion_bruta,
        ROUND(AVG(cantidad * precio_unitario), 2) AS importe_promedio_linea,
        MIN(precio_unitario)                      AS precio_minimo,
@@ -165,7 +165,7 @@ FROM detalle_pedidos;</code></pre>
 
 <h2>MIN y MAX con textos y fechas</h2>
 <p><code>MIN</code> y <code>MAX</code> no son solo para números:</p>
-<pre><code class="language-sql">SELECT MIN(nombre) AS primero_alfabetico,   -- Agustín
+<pre tabindex="0"><code class="language-sql">SELECT MIN(nombre) AS primero_alfabetico,   -- Agustín
        MAX(nombre) AS ultimo_alfabetico     -- Ximena
 FROM clientes;
 
@@ -175,21 +175,21 @@ FROM pedidos;</code></pre>
 <p>Con fechas ISO, <code>MAX(fecha)</code> es la más reciente: así se responde &quot;¿cuándo fue la última compra de cada cliente?&quot; (con <code>GROUP BY</code>, en la próxima lección).</p>
 <h2>Agregar con filtros: WHERE va antes</h2>
 <p><code>WHERE</code> se aplica <strong>antes</strong> de agregar: primero se eligen las filas y después se resumen.</p>
-<pre><code class="language-sql">-- ¿Cuántos pedidos se cancelaron en 2024?
+<pre tabindex="0"><code class="language-sql">-- ¿Cuántos pedidos se cancelaron en 2024?
 SELECT COUNT(*) AS cancelados_2024
 FROM pedidos
 WHERE estado = 'cancelado'
   AND fecha_pedido &gt;= '2024-01-01' AND fecha_pedido &lt; '2025-01-01';</code></pre>
 <h3>Contar varias cosas a la vez: agregación condicional</h3>
 <p>¿Y si quieres, en una misma consulta, el total de pedidos <strong>y</strong> los cancelados? Con <code>WHERE</code> no se puede (filtraría todo). El truco es sumar <code>1</code> solo cuando se cumple la condición:</p>
-<pre><code class="language-sql">SELECT COUNT(*) AS pedidos,
+<pre tabindex="0"><code class="language-sql">SELECT COUNT(*) AS pedidos,
        SUM(CASE WHEN estado = 'cancelado' THEN 1 ELSE 0 END) AS cancelados,
        ROUND(100.0 * SUM(CASE WHEN estado = 'cancelado' THEN 1 ELSE 0 END) / COUNT(*), 2) AS pct_cancelados
 FROM pedidos;</code></pre>
 <p><code>CASE WHEN</code> (que verás en detalle en la lección 10) devuelve 1 para los cancelados y 0 para el resto; la suma de unos es la cantidad. Es una de las técnicas más usadas en análisis: la verás en casi todos los casos de negocio.</p>
 <h2>Una regla importante: agregaciones y columnas sueltas</h2>
 <p>Sin <code>GROUP BY</code>, una consulta con agregaciones devuelve <strong>una sola fila</strong>. Por eso esto no tiene sentido:</p>
-<pre data-norun><code class="language-sql">SELECT nombre, COUNT(*) FROM clientes;   -- ❌ ¿qué &quot;nombre&quot; mostraría al lado del 2000?</code></pre>
+<pre data-norun tabindex="0"><code class="language-sql">SELECT nombre, COUNT(*) FROM clientes;   -- ❌ ¿qué &quot;nombre&quot; mostraría al lado del 2000?</code></pre>
 <p>Hay 2.000 nombres y un solo conteo: no hay una respuesta lógica. PostgreSQL, SQL Server, BigQuery y Spark dan <strong>error</strong>. SQLite y MySQL (en ciertos modos) lo permiten y muestran <strong>un nombre cualquiera</strong>, lo que es aún peor porque parece correcto. Si quieres &quot;el conteo <strong>por</strong> algo&quot;, necesitas <code>GROUP BY</code>: es la próxima lección.</p>
 <!-- estandar:errores -->
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
@@ -252,7 +252,7 @@ FROM pedidos;</code></pre>
 <li>Agrega el costo total del inventario: <code>SUM(costo * stock)</code>.</li>
 <li>Cuenta las marcas distintas con <code>COUNT(DISTINCT marca)</code>.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT COUNT(*) AS productos,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT COUNT(*) AS productos,
        ROUND(AVG(precio), 2) AS precio_promedio,
        MIN(precio) AS minimo,
        MAX(precio) AS maximo

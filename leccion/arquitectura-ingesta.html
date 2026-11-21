@@ -76,7 +76,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Carga incremental con marca de agua</h2>
 <p>La idea: guardar <strong>hasta dónde llegaste</strong> la última vez (la <em>marca de agua</em> o <em>watermark</em>) y pedir solo lo posterior.</p>
-<pre><code class="language-text">Ejecución del lunes:   SELECT * FROM pedidos WHERE updated_at &gt;  '2024-12-01 00:00:00'   → máximo visto: '2024-12-01 23:58:10'
+<pre tabindex="0"><code class="language-text">Ejecución del lunes:   SELECT * FROM pedidos WHERE updated_at &gt;  '2024-12-01 00:00:00'   → máximo visto: '2024-12-01 23:58:10'
 Ejecución del martes:  SELECT * FROM pedidos WHERE updated_at &gt;  '2024-12-01 23:58:10'   → máximo visto: '2024-12-02 23:59:41'</code></pre>
 <p>Tres reglas para que no se pierdan filas:</p>
 <ol>
@@ -87,7 +87,7 @@ Ejecución del martes:  SELECT * FROM pedidos WHERE updated_at &gt;  '2024-12-01
 <h3>Idempotencia: poder repetir sin miedo</h3>
 <p>Una carga es <strong>idempotente</strong> si ejecutarla dos veces con los mismos datos deja el destino igual que ejecutarla una vez. Con el margen de seguridad vas a recibir filas repetidas, y con los reintentos, cargas repetidas. Por eso el destino no se escribe con <code>INSERT</code>, sino con un <strong>upsert</strong> (<code>MERGE</code>): si la fila existe, se actualiza; si no, se inserta.</p>
 <p>Practica la lógica con datos escritos a mano. Esta consulta simula &quot;lo que ya tengo en el destino&quot; y &quot;lo que llegó en la carga de hoy&quot;, y calcula cómo queda la tabla después del upsert:</p>
-<pre><code class="language-sql">WITH destino(pedido_id, estado, updated_at) AS (
+<pre tabindex="0"><code class="language-sql">WITH destino(pedido_id, estado, updated_at) AS (
     VALUES (1, 'pagado',    '2024-12-01 10:00'),
            (2, 'pagado',    '2024-12-01 11:00'),
            (3, 'pendiente', '2024-12-01 12:00')
@@ -115,7 +115,7 @@ ORDER BY pedido_id;</code></pre>
 
 
 <p>Cada evento dice <strong>qué operación</strong> fue, el estado <strong>antes</strong> y <strong>después</strong>, y cuándo pasó. Simplificado:</p>
-<pre><code class="language-json">{&quot;op&quot;: &quot;u&quot;, &quot;antes&quot;: {&quot;pedido_id&quot;: 2, &quot;estado&quot;: &quot;pagado&quot;}, &quot;despues&quot;: {&quot;pedido_id&quot;: 2, &quot;estado&quot;: &quot;enviado&quot;}, &quot;ts_ms&quot;: 1733130000000}
+<pre tabindex="0"><code class="language-json">{&quot;op&quot;: &quot;u&quot;, &quot;antes&quot;: {&quot;pedido_id&quot;: 2, &quot;estado&quot;: &quot;pagado&quot;}, &quot;despues&quot;: {&quot;pedido_id&quot;: 2, &quot;estado&quot;: &quot;enviado&quot;}, &quot;ts_ms&quot;: 1733130000000}
 {&quot;op&quot;: &quot;d&quot;, &quot;antes&quot;: {&quot;pedido_id&quot;: 5, &quot;estado&quot;: &quot;pendiente&quot;}, &quot;despues&quot;: null, &quot;ts_ms&quot;: 1733130060000}</code></pre>
 <p><code>op</code> vale <code>c</code> (create), <code>u</code> (update), <code>d</code> (delete) o <code>r</code> (lectura inicial, <em>snapshot</em>). Las herramientas más usadas: <strong>Debezium</strong> (open source), <strong>AWS DMS</strong>, <strong>Google Datastream</strong>, <strong>Azure Data Factory</strong> con CDC, <strong>Fivetran</strong> y <strong>Airbyte</strong>.</p>
 <div class="callout callout-nota"><div class="callout-title">📝 ¿Por qué el CDC no carga la base?</div>
@@ -203,7 +203,7 @@ ORDER BY pedido_id;</code></pre>
 <li>La segunda sentencia trae solo lo que es más nuevo que la marca de agua (<code>MAX(fecha_pedido)</code> del destino).</li>
 <li>Vuelve a ejecutar solo el <code>INSERT</code>: no duplica nada, porque la marca de agua ya avanzó (idempotencia).</li>
 </ol>
-<pre data-norun><code class="language-sql">DROP TABLE IF EXISTS destino_pedidos;
+<pre data-norun tabindex="0"><code class="language-sql">DROP TABLE IF EXISTS destino_pedidos;
 CREATE TABLE destino_pedidos AS
 SELECT pedido_id, cliente_id, fecha_pedido, estado FROM pedidos WHERE fecha_pedido &lt; '2024-12-01';
 

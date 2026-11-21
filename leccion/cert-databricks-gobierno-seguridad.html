@@ -126,7 +126,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Todos los privilegios aplicables</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-sql">GRANT USE CATALOG ON CATALOG prod TO `analistas`;
+<pre data-norun tabindex="0"><code class="language-sql">GRANT USE CATALOG ON CATALOG prod TO `analistas`;
 GRANT USE SCHEMA, SELECT ON SCHEMA prod.gold TO `analistas`;   -- SELECT se hereda a todas las tablas del esquema, presentes y futuras
 GRANT MODIFY ON TABLE prod.silver.pedidos TO `sp-etl`;
 REVOKE SELECT ON SCHEMA prod.gold FROM `analistas`;
@@ -145,7 +145,7 @@ SHOW GRANTS ON SCHEMA prod.gold;</code></pre>
 <h2>Seguridad a nivel de fila y columna</h2>
 <h3>Vistas dinámicas</h3>
 <p>Una vista que filtra o enmascara según <strong>quién</strong> consulta:</p>
-<pre data-norun><code class="language-sql">CREATE VIEW prod.gold.clientes_seguro AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE VIEW prod.gold.clientes_seguro AS
 SELECT
   cliente_id,
   CASE WHEN is_account_group_member('fraude') THEN email ELSE '***' END AS email,
@@ -154,7 +154,7 @@ FROM prod.silver.clientes
 WHERE is_account_group_member('admins') OR region = current_region_of_user();   -- función propia que devuelve la región del usuario</code></pre>
 <h3>Row filters y column masks</h3>
 <p>Se aplican <strong>a la tabla misma</strong>, así que valen para cualquier consulta, sin crear vistas aparte. Ambos se escriben como <strong>funciones SQL</strong> de Unity Catalog:</p>
-<pre data-norun><code class="language-sql">-- Row filter: cada gerente ve su región; admins ven todo
+<pre data-norun tabindex="0"><code class="language-sql">-- Row filter: cada gerente ve su región; admins ven todo
 CREATE FUNCTION prod.seguridad.filtro_region(region STRING)
 RETURN is_account_group_member('admins') OR is_account_group_member(concat('gerentes_', region));
 
@@ -172,7 +172,7 @@ ALTER TABLE prod.silver.clientes ALTER COLUMN email SET MASK prod.seguridad.masc
 <li>Se crea una <strong>política</strong> que dice: &quot;en este catálogo, a todos excepto el grupo <code>fraude</code>, aplicar la función <code>mascara_pii</code> a las columnas con etiqueta <code>pii</code>&quot;.</li>
 <li>Toda tabla nueva con una columna etiquetada queda protegida sin tocar la política.</li>
 </ol>
-<pre data-norun><code class="language-sql">CREATE POLICY ocultar_pii
+<pre data-norun tabindex="0"><code class="language-sql">CREATE POLICY ocultar_pii
 ON CATALOG prod
 COMMENT 'Enmascara columnas personales'
 COLUMN MASK prod.seguridad.mascara_pii
@@ -215,7 +215,7 @@ ON COLUMN col;</code></pre>
 <td>Tablas (y vistas) mediante un archivo de credenciales o federación OIDC</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-sql">CREATE SHARE ventas_restaurantes COMMENT 'Ventas diarias para socios';
+<pre data-norun tabindex="0"><code class="language-sql">CREATE SHARE ventas_restaurantes COMMENT 'Ventas diarias para socios';
 ALTER SHARE ventas_restaurantes ADD TABLE prod.gold.ventas_diarias
   PARTITION (ciudad = 'Lima');                           -- compartir solo una parte
 CREATE RECIPIENT cadena_sabor USING ID 'aws:us-east-1:7f3c...';   -- Databricks a Databricks (id de su metastore)

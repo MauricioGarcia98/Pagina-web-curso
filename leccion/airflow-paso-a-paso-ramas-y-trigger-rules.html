@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 1 — La rama</h2>
 <p>En <code>reporte_ventas</code>:</p>
-<pre data-norun><code class="language-python">@task.branch
+<pre data-norun tabindex="0"><code class="language-python">@task.branch
 def decidir(umbral):
     total_hoy = 246.4
     print(f&quot;Total de hoy: {total_hoy}&quot;)
@@ -82,7 +82,7 @@ decidir(leer_umbral()) &gt;&gt; [enviar_alerta(), sin_alerta()]</code></pre>
 <figure class="captura"><img src="assets/img/guias/airflow/a14-trigger-rule.webp" alt="La tarea fin de ingesta_api - Trigger Rule none_failed_min_one_success" loading="lazy"><figcaption>La tarea fin de ingesta_api - Trigger Rule none_failed_min_one_success</figcaption></figure>
 
 
-<pre data-norun><code class="language-python">fin = EmptyOperator(task_id=&quot;fin&quot;, trigger_rule=&quot;none_failed_min_one_success&quot;)
+<pre data-norun tabindex="0"><code class="language-python">fin = EmptyOperator(task_id=&quot;fin&quot;, trigger_rule=&quot;none_failed_min_one_success&quot;)
 limpiar = BashOperator(task_id=&quot;limpiar_tmp&quot;, bash_command=&quot;rm -rf /tmp/ventas_{{ ds_nodash }}&quot;, trigger_rule=&quot;all_done&quot;)</code></pre>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
 

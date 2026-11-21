@@ -26,10 +26,10 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Ejecuta</strong> el plan más barato.</li>
 </ol>
 <p>Con <code>EXPLAIN QUERY PLAN</code> (SQLite) o <code>EXPLAIN</code> / <code>EXPLAIN ANALYZE</code> (PostgreSQL, Spark, Databricks) ves el plan:</p>
-<pre><code class="language-sql">EXPLAIN QUERY PLAN
+<pre tabindex="0"><code class="language-sql">EXPLAIN QUERY PLAN
 SELECT * FROM pedidos WHERE cliente_id = 42;</code></pre>
 <p>Verás <code>SEARCH pedidos USING INDEX idx_pedidos_cliente (cliente_id=?)</code>: el motor usa un <strong>índice</strong> en vez de recorrer toda la tabla. Compara con:</p>
-<pre><code class="language-sql">EXPLAIN QUERY PLAN
+<pre tabindex="0"><code class="language-sql">EXPLAIN QUERY PLAN
 SELECT * FROM pedidos WHERE metodo_pago = 'efectivo';</code></pre>
 <p>Aquí verás <code>SCAN pedidos</code>: un recorrido completo (<em>full table scan</em>), porque no hay índice sobre <code>metodo_pago</code>.</p>
 <h2>¿Qué es un índice?</h2>
@@ -39,7 +39,7 @@ SELECT * FROM pedidos WHERE metodo_pago = 'efectivo';</code></pre>
 </div>
 
 
-<pre><code class="language-sql">CREATE INDEX idx_pedidos_metodo ON pedidos(metodo_pago);
+<pre tabindex="0"><code class="language-sql">CREATE INDEX idx_pedidos_metodo ON pedidos(metodo_pago);
 EXPLAIN QUERY PLAN SELECT * FROM pedidos WHERE metodo_pago = 'efectivo';</code></pre>
 <p><strong>Ventajas</strong>: búsquedas, joins y ordenamientos mucho más rápidos.
 <strong>Costos</strong>: ocupan espacio y hacen más lentos los <code>INSERT</code>/<code>UPDATE</code>/<code>DELETE</code> (hay que mantener el índice).</p>
@@ -148,7 +148,7 @@ EXPLAIN QUERY PLAN SELECT * FROM pedidos WHERE metodo_pago = 'efectivo';</code><
 <td>Costoso con muchos datos</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-sql">EXPLAIN QUERY PLAN
+<pre tabindex="0"><code class="language-sql">EXPLAIN QUERY PLAN
 SELECT c.pais, COUNT(*)
 FROM pedidos p JOIN clientes c ON c.cliente_id = p.cliente_id
 WHERE p.fecha_pedido &gt;= '2024-12-01'
@@ -216,7 +216,7 @@ GROUP BY c.pais;</code></pre>
 <li>Cambia <code>EXPLAIN</code> por <code>EXPLAIN ANALYZE</code> (en DuckDB) para ver tiempos reales.</li>
 <li>Quita columnas que no usas del <code>SELECT</code> y compara.</li>
 </ol>
-<pre data-norun><code class="language-sql">EXPLAIN
+<pre data-norun tabindex="0"><code class="language-sql">EXPLAIN
 SELECT c.pais, COUNT(*) AS pedidos
 FROM pedidos AS p
 JOIN clientes AS c ON c.cliente_id = p.cliente_id

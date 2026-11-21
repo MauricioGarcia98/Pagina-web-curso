@@ -34,7 +34,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Declarative Automation Bundles</h2>
 <p>En marzo de 2026, Databricks renombró <strong>Databricks Asset Bundles</strong> a <strong>Declarative Automation Bundles</strong>. La sigla <strong>DAB</strong>, los comandos (<code>databricks bundle …</code>) y los archivos de configuración no cambiaron.</p>
 <p>Un <strong>bundle</strong> es una carpeta con código (notebooks, archivos <code>.py</code> y <code>.sql</code>) y un archivo <strong><code>databricks.yml</code></strong> que describe los <strong>recursos</strong> de Databricks (jobs, pipelines, esquemas, volúmenes, dashboards, apps, endpoints de serving) y los <strong>targets</strong> (entornos) donde se despliegan.</p>
-<pre><code class="language-yaml">bundle:
+<pre tabindex="0"><code class="language-yaml">bundle:
   name: rapido_pedidos
 
 include:
@@ -130,7 +130,7 @@ targets:
 </tr>
 </tbody></table></div>
 <h2>El ciclo con la CLI</h2>
-<pre data-norun><code class="language-bash">databricks bundle init                        # crea un bundle a partir de una plantilla (default-python, default-sql, dbt-sql…)
+<pre data-norun tabindex="0"><code class="language-bash">databricks bundle init                        # crea un bundle a partir de una plantilla (default-python, default-sql, dbt-sql…)
 databricks bundle validate                    # revisa la sintaxis y resuelve variables; no despliega nada
 databricks bundle deploy -t dev               # sube el código y crea o actualiza los recursos del target dev
 databricks bundle run -t dev diario           # ejecuta el recurso &quot;diario&quot; (un job o un pipeline)
@@ -175,7 +175,7 @@ databricks bundle deployment bind diario 123456 -t prod    # asocia el recurso d
 </tr>
 </tbody></table></div>
 <h3>GitHub Actions: desplegar al aprobar un PR</h3>
-<pre><code class="language-yaml">name: deploy-prod
+<pre tabindex="0"><code class="language-yaml">name: deploy-prod
 on:
   push:
     branches: [ main ]
@@ -215,7 +215,7 @@ jobs:
 
 <div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 La estructura que verás en las empresas</div>
 
-<pre><code class="language-text">rapido_pedidos/
+<pre tabindex="0"><code class="language-text">rapido_pedidos/
 ├── databricks.yml
 ├── resources/            ← jobs.yml, pipelines.yml
 ├── src/                  ← notebooks, .sql y paquete de Python

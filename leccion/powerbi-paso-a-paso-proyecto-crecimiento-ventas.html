@@ -28,14 +28,14 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Crea <strong>Ventas entregadas</strong> sobre la medida Ventas, contando solo los pedidos en estado <code>entregado</code>.</p>
 <details><summary>💡 Pista</summary>
 
-<pre><code class="language-text">Ventas entregadas = CALCULATE([Ventas], pedidos[estado] = &quot;entregado&quot;)</code></pre>
+<pre tabindex="0"><code class="language-text">Ventas entregadas = CALCULATE([Ventas], pedidos[estado] = &quot;entregado&quot;)</code></pre>
 </details>
 
 <h2>Tarea 2 — Año anterior, crecimiento y participación</h2>
 <p>Sobre <strong>Ventas entregadas</strong>: el año anterior, el crecimiento % y la participación de cada canal sobre el total del año.</p>
 <details><summary>💡 Pista</summary>
 
-<pre><code class="language-text">Entregadas año anterior = CALCULATE([Ventas entregadas], SAMEPERIODLASTYEAR(Calendario[Date]))
+<pre tabindex="0"><code class="language-text">Entregadas año anterior = CALCULATE([Ventas entregadas], SAMEPERIODLASTYEAR(Calendario[Date]))
 Crecimiento entregadas % = DIVIDE([Ventas entregadas] - [Entregadas año anterior], [Entregadas año anterior])
 Participación canal % = DIVIDE([Ventas entregadas], CALCULATE([Ventas entregadas], ALL(pedidos[canal])))</code></pre>
 <p><code>ALL(pedidos[canal])</code> quita solo el filtro de canal: el año sigue filtrando, así la participación es &quot;dentro del año&quot;. Formato de porcentaje en las dos últimas.</p>
@@ -58,7 +58,7 @@ Participación canal % = DIVIDE([Ventas entregadas], CALCULATE([Ventas entregada
 <p>Comprueba los números por año con la vista de consultas DAX.</p>
 <details><summary>💡 Pista</summary>
 
-<pre><code class="language-text">EVALUATE
+<pre tabindex="0"><code class="language-text">EVALUATE
     SUMMARIZECOLUMNS(
         Calendario[Año],
         &quot;Entregadas&quot;, [Ventas entregadas],

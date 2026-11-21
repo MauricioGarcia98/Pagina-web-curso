@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Ventanas: SQL avanzado, ahora en PySpark</h2>
 <p>Las funciones de ventana te permitieron, en SQL, numerar filas dentro de un grupo, calcular acumulados y comparar con la fila anterior <strong>sin colapsar</strong> las filas. Todo eso funciona igual en PySpark. La diferencia es que la &quot;ventana&quot; (<code>OVER (PARTITION BY … ORDER BY …)</code>) se define como un <strong>objeto</strong> de la clase <code>Window</code>, que se guarda en una variable y se reutiliza:</p>
-<pre data-norun><code class="language-python">from pyspark.sql.window import Window
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql.window import Window
 
 w = Window.partitionBy(&quot;marca&quot;).orderBy(F.col(&quot;precio&quot;).desc())   # la definición de la ventana
 F.row_number().over(w)                                           # una función aplicada SOBRE esa ventana</code></pre>
@@ -68,7 +68,7 @@ F.row_number().over(w)                                           # una función 
 </tr>
 </tbody></table></div>
 <h2>Rankings y top-N por grupo</h2>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 w = Window.partitionBy(&quot;marca&quot;).orderBy(F.col(&quot;precio&quot;).desc())
@@ -90,7 +90,7 @@ w = Window.partitionBy(&quot;marca&quot;).orderBy(F.col(&quot;precio&quot;).desc
 <p>Fíjate en una diferencia con SQL: como en PySpark cada paso es un método, <strong>sí</strong> puedes filtrar por la ventana directamente después del <code>withColumn</code>. No hace falta la CTE intermedia (ni <code>QUALIFY</code>): el DataFrame de la línea anterior ya tiene la columna <code>rn</code> calculada.</p>
 <h3>Deduplicar: el uso número uno en ingeniería de datos</h3>
 <p>&quot;Quedarse con la versión más reciente de cada registro&quot; es probablemente la ventana que más vas a escribir en la capa silver:</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 w = Window.partitionBy(&quot;cliente_id&quot;).orderBy(F.col(&quot;fecha_pedido&quot;).desc(), F.col(&quot;pedido_id&quot;).desc())
@@ -104,7 +104,7 @@ print(ultimo_pedido.count())   # una fila por cliente con pedidos: 1453</code></
 
 
 <h2>lag y lead: comparar con la fila vecina</h2>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 w = Window.partitionBy(&quot;cliente_id&quot;).orderBy(&quot;fecha_pedido&quot;)
@@ -116,7 +116,7 @@ w = Window.partitionBy(&quot;cliente_id&quot;).orderBy(&quot;fecha_pedido&quot;)
    .show())</code></pre>
 <p><code>F.lag(&quot;fecha_pedido&quot;, 1)</code> trae la fecha de la fila anterior <strong>del mismo cliente</strong> (por el <code>partitionBy</code>). La primera compra no tiene anterior: <code>null</code>. Es la base de la frecuencia de compra, las sesiones web y las reglas de fraude.</p>
 <h2>Acumulados y promedio móvil</h2>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 diario = (spark.table(&quot;pedidos&quot;)
@@ -173,7 +173,7 @@ w_movil = Window.orderBy(&quot;fecha_pedido&quot;).rowsBetween(-6, Window.curren
 <li>Con <code>lag</code>, calcula los días desde la compra anterior.</li>
 <li>Filtra la primera compra de cada cliente (<code>n_compra == 1</code>).</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 w = Window.partitionBy(&quot;cliente_id&quot;).orderBy(&quot;fecha_pedido&quot;)

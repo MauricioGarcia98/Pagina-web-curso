@@ -152,7 +152,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p><strong>Task values</strong>: así una tarea le pasa un dato chico a las siguientes (parecido al XCom de Airflow):</p>
-<pre data-norun><code class="language-python"># En la tarea &quot;validar&quot;
+<pre data-norun tabindex="0"><code class="language-python"># En la tarea &quot;validar&quot;
 filas = spark.table(&quot;prod.silver.pedidos&quot;).where(&quot;dia = current_date()&quot;).count()
 dbutils.jobs.taskValues.set(key=&quot;filas&quot;, value=filas)
 
@@ -160,7 +160,7 @@ dbutils.jobs.taskValues.set(key=&quot;filas&quot;, value=filas)
 filas = dbutils.jobs.taskValues.get(taskKey=&quot;validar&quot;, key=&quot;filas&quot;, default=0)</code></pre>
 <h3>For each</h3>
 <p>La tarea <strong>For each</strong> recibe una lista (fija, un parámetro o un task value en JSON) y ejecuta su tarea anidada una vez por elemento, con un límite de <strong>concurrencia</strong>. Dentro de la tarea anidada, <code>{{input}}</code> es el elemento actual:</p>
-<pre><code class="language-yaml">- task_key: por_ciudad
+<pre tabindex="0"><code class="language-yaml">- task_key: por_ciudad
   depends_on: [{ task_key: decidir }]
   for_each_task:
     inputs: '[&quot;Lima&quot;, &quot;Cusco&quot;, &quot;Arequipa&quot;]'
@@ -245,7 +245,7 @@ filas = dbutils.jobs.taskValues.get(taskKey=&quot;validar&quot;, key=&quot;filas
 <li>La interfaz muestra la <strong>vista de matriz</strong> (cada tarea en cada ejecución), duraciones, logs y el enlace a la Spark UI.</li>
 <li>Las tablas de sistema <strong><code>system.lakeflow.jobs</code></strong>, <strong><code>system.lakeflow.job_run_timeline</code></strong> y <strong><code>system.lakeflow.job_task_run_timeline</code></strong> guardan la historia de jobs, ejecuciones y tareas para analizar fallas y duraciones; se cruzan con <code>system.billing.usage</code> por <code>usage_metadata.job_id</code> para saber cuánto cuesta cada job.</li>
 </ul>
-<pre data-norun><code class="language-sql">-- Jobs con más ejecuciones fallidas en los últimos 7 días
+<pre data-norun tabindex="0"><code class="language-sql">-- Jobs con más ejecuciones fallidas en los últimos 7 días
 SELECT job_id, COUNT(*) AS fallas
 FROM system.lakeflow.job_run_timeline
 WHERE period_start_time &gt;= current_timestamp() - INTERVAL 7 DAYS
@@ -253,7 +253,7 @@ WHERE period_start_time &gt;= current_timestamp() - INTERVAL 7 DAYS
 GROUP BY job_id
 ORDER BY fallas DESC;</code></pre>
 <h2>Desde la CLI</h2>
-<pre data-norun><code class="language-bash">databricks jobs list                                             # jobs del workspace
+<pre data-norun tabindex="0"><code class="language-bash">databricks jobs list                                             # jobs del workspace
 databricks jobs run-now 123456                                   # ejecutar ahora
 databricks jobs run-now 123456 --json '{&quot;job_parameters&quot;: {&quot;fecha&quot;: &quot;2026-10-28&quot;}}'
 databricks jobs get-run 987654                                   # estado de una ejecución

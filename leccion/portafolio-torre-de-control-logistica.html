@@ -31,7 +31,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ul>
 <h2>Los datos</h2>
 <p><a href="#/generador?esc=logistica&n=5000&semilla=21&desde=2024-01-01&hasta=2024-12-31&duplicados=2&nulos=3&formatos=4&tardios=5">🏭 Generar los datos del proyecto</a> · Escenario <strong>Logística</strong>: <code>almacenes</code>, <code>envios</code> (fecha prometida y real) y <code>eventos_envio</code> (creado, retirado, en camino, en reparto, entregado).</p>
-<pre><code class="language-bash">generar-datos logistica --filas 1500 --semilla 21
+<pre tabindex="0"><code class="language-bash">generar-datos logistica --filas 1500 --semilla 21
 duckdb -c &quot;SELECT transportista, COUNT(*) FROM '~/datos/generados/logistica/envios.csv' GROUP BY 1&quot;</code></pre>
 <h2>Arquitectura en Azure</h2>
 <figure class="diagrama"><figcaption>Torre de control logística en Azure</figcaption></figure>
@@ -61,7 +61,7 @@ duckdb -c &quot;SELECT transportista, COUNT(*) FROM '~/datos/generados/logistica
 </tr>
 </tbody></table></div>
 <h2>Fase 2: Azure paso a paso</h2>
-<pre><code class="language-bash">az group create -n rg-torre-lab -l eastus2 --tags proyecto=lab
+<pre tabindex="0"><code class="language-bash">az group create -n rg-torre-lab -l eastus2 --tags proyecto=lab
 ST=sttorrelab$RANDOM                 # el nombre debe ser único en todo Azure: le agregamos un número al azar
 az storage account create -n $ST -g rg-torre-lab -l eastus2 --sku Standard_LRS --kind StorageV2 --hns true
 az storage fs create -n raw --account-name $ST --auth-mode login
@@ -120,7 +120,7 @@ echo &quot;Tu cuenta se llama: $ST&quot;         # anótalo: lo vas a usar en lo
 <li>Esa tabla es la que alimentaría el tablero de la torre de control.</li>
 <li>Busca la semana con peor OTD y averigua qué transportista la explica.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT date_trunc('week', CAST(fecha_despacho AS DATE)) AS semana,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT date_trunc('week', CAST(fecha_despacho AS DATE)) AS semana,
        COUNT(*) AS envios,
        ROUND(100.0 * AVG(CASE WHEN estado = 'entregado' AND fecha_entrega &lt;= fecha_prometida THEN 1 ELSE 0 END), 1) AS otd_pct,
        SUM(CASE WHEN estado = 'perdido' THEN 1 ELSE 0 END) AS perdidos

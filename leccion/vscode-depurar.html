@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 1 — Un error que no da error</h2>
 <p>Crea <strong>scripts/descuentos.py</strong> con:</p>
-<pre data-norun><code class="language-python">precios = [100, 250, 80]
+<pre data-norun tabindex="0"><code class="language-python">precios = [100, 250, 80]
 descuento = 0.1
 total = 0
 for precio in precios:
@@ -114,7 +114,7 @@ print(&quot;Total:&quot;, total)</code></pre>
 <p>Ahí está: en cada vuelta, <code>total</code> <strong>se reemplaza</strong> en lugar de <strong>sumarse</strong>. La línea correcta es <code>total = total + precio * (1 - descuento)</code> (o <code>total += ...</code>).</p>
 <h2>Paso 5 — Prueba la hipótesis antes de cambiar el código</h2>
 <p>En el panel, pestaña <strong>CONSOLA DE DEPURACIÓN</strong>, escribe expresiones mientras el programa está detenido:</p>
-<pre><code class="language-text">total + precio * (1 - descuento)</code></pre>
+<pre tabindex="0"><code class="language-text">total + precio * (1 - descuento)</code></pre>
 <p>Te muestra el valor que tendría <code>total</code> con la corrección. Es la forma de comprobar una idea sin editar ni volver a ejecutar.</p>
 <h2>Paso 6 — Corrige y vuelve a ejecutar</h2>
 <ol>

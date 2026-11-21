@@ -37,7 +37,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ol>
 <h2>Errores de Python: se leen de abajo hacia arriba</h2>
 <p>Python muestra un <strong>traceback</strong> (el &quot;rastro&quot; de por dónde pasó el programa antes de fallar). La parte importante está <strong>al final</strong>:</p>
-<pre data-norun><code class="language-text">Traceback (most recent call last):
+<pre data-norun tabindex="0"><code class="language-text">Traceback (most recent call last):
   File &quot;ventas.py&quot;, line 3, in &lt;module&gt;
     total = precio * cantidad
             ^^^^^^
@@ -106,7 +106,7 @@ NameError: name 'precio' is not defined</code></pre>
 </tbody></table></div>
 <h2>Errores de SQL</h2>
 <p>Los errores de SQL son más cortos y casi siempre nombran el culpable:</p>
-<pre data-norun><code class="language-text">Error: no such column: emial</code></pre>
+<pre data-norun tabindex="0"><code class="language-text">Error: no such column: emial</code></pre>
 <p>&quot;No existe la columna <code>emial</code>&quot;: un error de tipeo (era <code>email</code>). Los más comunes:</p>
 <div class="table-wrap"><table><thead><tr>
 <th>Mensaje</th>
@@ -209,7 +209,7 @@ NameError: name 'precio' is not defined</code></pre>
 <li>Lee de abajo hacia arriba: la <strong>última línea</strong> dice el tipo de error (<code>NameError</code>) y qué pasó.</li>
 <li>Arriba está la línea exacta donde ocurrió. Corrige el nombre y vuelve a ejecutar.</li>
 </ol>
-<pre data-norun><code class="language-python">import traceback
+<pre data-norun tabindex="0"><code class="language-python">import traceback
 
 try:
     precio = 100

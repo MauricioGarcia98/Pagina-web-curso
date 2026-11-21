@@ -56,7 +56,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>Trampa 1: el denominador</h2>
 <p>Una tasa es <strong>casos que cumplen ÷ casos que podían cumplir</strong>. Lo difícil es el “podían”.</p>
-<pre><code class="language-sql">-- Tasa de rechazo de pagos: sobre todos los intentos de pago
+<pre tabindex="0"><code class="language-sql">-- Tasa de rechazo de pagos: sobre todos los intentos de pago
 SELECT ROUND(100.0 * SUM(estado = 'rechazado') / COUNT(*), 2) AS pct_rechazo_intentos
 FROM pagos;
 
@@ -67,7 +67,7 @@ FROM pagos;</code></pre>
 <p>Las dos están “bien”: responden preguntas diferentes. La ficha dice cuál se usa.</p>
 <h2>Trampa 2: el promedio de promedios</h2>
 <p>El margen de la empresa <strong>no</strong> es el promedio de los márgenes de cada producto: un producto que vende poco pesa lo mismo que uno que vende mucho.</p>
-<pre><code class="language-sql">SELECT
+<pre tabindex="0"><code class="language-sql">SELECT
   -- promedio de razones: cada producto pesa igual
   ROUND(AVG((precio - costo) / precio) * 100, 2) AS margen_promedio_productos,
   -- razón de sumas: pondera por lo que realmente se vendió
@@ -93,14 +93,14 @@ JOIN productos pr ON pr.producto_id = d.producto_id;</code></pre>
 </ul>
 <h2>Trampa 4: el JOIN que multiplica filas</h2>
 <p>Es la trampa más común en el trabajo real y la más difícil de ver, porque la consulta corre sin errores. Un pedido tiene varias líneas en <code>detalle_pedidos</code>. Si unes <code>pedidos</code> con <code>detalle_pedidos</code> y cuentas con <code>COUNT(*)</code>, estás contando <strong>líneas</strong>, no pedidos.</p>
-<pre><code class="language-sql">SELECT COUNT(*) AS filas_despues_del_join,
+<pre tabindex="0"><code class="language-sql">SELECT COUNT(*) AS filas_despues_del_join,
        COUNT(DISTINCT p.pedido_id) AS pedidos_reales
 FROM pedidos p
 JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
 WHERE p.estado &lt;&gt; 'cancelado';</code></pre>
 <p>La primera columna es más del doble que la segunda. Cualquier KPI que use <code>COUNT(*)</code> o <code>SUM</code> de una columna del pedido (por ejemplo, un costo de envío) <strong>después</strong> de ese join queda inflado. A esto se le llama <em>fan-out</em> (abanico): una fila de un lado se abre en varias del otro.</p>
 <p>La forma segura es <strong>llevar cada tabla al grano del KPI antes de unir</strong>: primero una fila por pedido, después el cálculo.</p>
-<pre><code class="language-sql">WITH pedido_neto AS (            -- 1. una fila por pedido
+<pre tabindex="0"><code class="language-sql">WITH pedido_neto AS (            -- 1. una fila por pedido
   SELECT p.pedido_id, p.canal,
          SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS neto,
          COUNT(*) AS lineas
@@ -130,7 +130,7 @@ ORDER BY ticket_promedio DESC;</code></pre>
 
 <h2>Trampa 5: el filtro que cambia la población</h2>
 <p>El escenario de esta lección pasa en la base de la tienda. Con los mismos datos, la &quot;tasa de cancelación&quot; puede ser:</p>
-<pre><code class="language-sql">SELECT ROUND(100.0 * SUM(estado = 'cancelado') / COUNT(*), 2) AS sobre_todos,
+<pre tabindex="0"><code class="language-sql">SELECT ROUND(100.0 * SUM(estado = 'cancelado') / COUNT(*), 2) AS sobre_todos,
        ROUND(100.0 * SUM(estado = 'cancelado')
              / SUM(estado IN ('enviado', 'entregado', 'cancelado')), 2) AS sin_pendientes_ni_devueltos
 FROM pedidos;</code></pre>
@@ -156,7 +156,7 @@ FROM pedidos;</code></pre>
 <li><strong>Cortes permitidos</strong>: canal y mes.</li>
 <li><strong>Dueño</strong>: quién responde si el número cambia.</li>
 </ol>
-<pre><code class="language-sql">WITH pedido_neto AS (
+<pre tabindex="0"><code class="language-sql">WITH pedido_neto AS (
   SELECT p.pedido_id,
          CASE WHEN u.cupon_id IS NULL THEN 'sin cupón' ELSE 'con cupón' END AS grupo,
          SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS neto
@@ -251,7 +251,7 @@ GROUP BY grupo;</code></pre>
 <li>La primera promedia líneas de detalle (un pedido con 5 líneas pesa 5 veces); la segunda divide el total por la cantidad de <strong>pedidos</strong>: esa es la definición correcta.</li>
 <li>Escribe la ficha del KPI: numerador, denominador, filtro y grano.</li>
 </ol>
-<pre data-norun><code class="language-sql">WITH lineas AS (
+<pre data-norun tabindex="0"><code class="language-sql">WITH lineas AS (
     SELECT d.pedido_id, d.cantidad * d.precio_unitario * (1 - d.descuento) AS importe
     FROM detalle_pedidos d
     JOIN pedidos p ON p.pedido_id = d.pedido_id

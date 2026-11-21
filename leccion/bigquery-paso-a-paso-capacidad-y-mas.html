@@ -56,7 +56,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 3 — BigQuery ML</h2>
-<pre data-norun><code class="language-sql">-- ¿qué clientes van a volver a comprar? un modelo con SQL
+<pre data-norun tabindex="0"><code class="language-sql">-- ¿qué clientes van a volver a comprar? un modelo con SQL
 CREATE OR REPLACE MODEL analitica.modelo_recompra
 OPTIONS (model_type = 'logistic_reg', input_label_cols = ['volvio']) AS
 SELECT pais, segmento, pedidos_previos, dias_desde_ultimo, volvio

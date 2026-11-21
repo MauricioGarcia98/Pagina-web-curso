@@ -123,7 +123,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>La trampa: las clases frías son baratas para <strong>guardar</strong>, pero <strong>caras para leer</strong>. Y si borras un objeto antes del mínimo, igual pagas los días que faltan. Nunca pongas en <code>COLDLINE</code> algo que un pipeline lee todos los días.</p>
 <h2>Los comandos</h2>
 <p>Hoy la herramienta recomendada es <strong><code>gcloud storage</code></strong>. La clásica, <code>gsutil</code>, sigue funcionando y la vas a ver en mucha documentación y scripts viejos.</p>
-<pre data-norun><code class="language-bash">gcloud storage buckets create gs://lake-tienda-dev --location=us-central1 --uniform-bucket-level-access
+<pre data-norun tabindex="0"><code class="language-bash">gcloud storage buckets create gs://lake-tienda-dev --location=us-central1 --uniform-bucket-level-access
 gcloud storage buckets list --format=&quot;value(name)&quot;
 gcloud storage buckets describe gs://lake-tienda-dev   # configuración del bucket
 gcloud storage ls                                      # buckets
@@ -147,7 +147,7 @@ gsutil ls gs://lake-tienda-dev                         # la herramienta clásica
 </ul>
 <h3>Laboratorio: arma el lago en GCS</h3>
 <p>Abre la terminal (⌨ Terminal) y ejecuta paso a paso. En la carpeta <code>datos/</code> ya tienes dos archivos de Tienda Andina.</p>
-<pre><code class="language-bash">gcloud auth login
+<pre tabindex="0"><code class="language-bash">gcloud auth login
 gcloud config set project academia-datos-dev
 gcloud storage buckets create gs://lake-tienda-dev --location=us-central1 --uniform-bucket-level-access
 gcloud storage cp datos/ventas_2024_12.csv gs://lake-tienda-dev/bronze/ventas/
@@ -155,18 +155,18 @@ gcloud storage cp datos/clientes.csv gs://lake-tienda-dev/bronze/clientes/
 gcloud storage ls --recursive gs://lake-tienda-dev
 gcloud storage cat gs://lake-tienda-dev/bronze/clientes/clientes.csv | head -3</code></pre>
 <p>Deberías ver los dos objetos y las primeras líneas de clientes:</p>
-<pre><code class="language-text">gs://lake-tienda-dev/bronze/clientes/clientes.csv
+<pre tabindex="0"><code class="language-text">gs://lake-tienda-dev/bronze/clientes/clientes.csv
 gs://lake-tienda-dev/bronze/ventas/ventas_2024_12.csv
 cliente_id,nombre,apellido,email,ciudad,pais,segmento
 1,Lucía,Aguilar,lucia.aguilar@correo.com,Madrid,España,Corporativo</code></pre>
 <p>Sigue explorando:</p>
-<pre data-norun><code class="language-bash">gcloud storage ls -l --recursive gs://lake-tienda-dev      # tamaños y total
+<pre data-norun tabindex="0"><code class="language-bash">gcloud storage ls -l --recursive gs://lake-tienda-dev      # tamaños y total
 gcloud storage du -s --readable-sizes gs://lake-tienda-dev # cuánto ocupa el bucket
 gcloud storage ls gs://lake-tienda-dev/bronze/*/*.csv       # comodines
 gcloud storage rsync datos gs://lake-tienda-dev/landing/datos   # ejecútalo dos veces y compara</code></pre>
 <h2>Ciclo de vida y versiones</h2>
 <p>Nadie se acuerda de borrar archivos viejos a mano. Las <strong>reglas de ciclo de vida</strong> lo hacen solas: GCS revisa los objetos todos los días y aplica la acción a los que cumplen la condición.</p>
-<pre><code class="language-json">{
+<pre tabindex="0"><code class="language-json">{
   &quot;rule&quot;: [
     { &quot;action&quot;: { &quot;type&quot;: &quot;Delete&quot; }, &quot;condition&quot;: { &quot;age&quot;: 7, &quot;matchesPrefix&quot;: [&quot;landing/&quot;] } },
     { &quot;action&quot;: { &quot;type&quot;: &quot;SetStorageClass&quot;, &quot;storageClass&quot;: &quot;COLDLINE&quot; }, &quot;condition&quot;: { &quot;age&quot;: 180, &quot;matchesPrefix&quot;: [&quot;bronze/&quot;] } }
@@ -177,7 +177,7 @@ gcloud storage rsync datos gs://lake-tienda-dev/landing/datos   # ejecútalo dos
 <li>Todo lo que está en <code>landing/</code> y tiene <strong>más de 7 días</strong> se <strong>borra</strong>. Landing es una zona de paso: los archivos llegan, se procesan hacia bronze y ya no hacen falta.</li>
 <li>Todo lo que está en <code>bronze/</code> y tiene <strong>más de 180 días</strong> pasa a <strong>COLDLINE</strong>: se conserva por si hay que reprocesar, pero cuesta un 80 % menos.</li>
 </ol>
-<pre data-norun><code class="language-bash">gcloud storage buckets update gs://lake-tienda-dev --lifecycle-file=ciclo.json
+<pre data-norun tabindex="0"><code class="language-bash">gcloud storage buckets update gs://lake-tienda-dev --lifecycle-file=ciclo.json
 gcloud storage buckets update gs://lake-tienda-dev --versioning
 gcloud storage buckets describe gs://lake-tienda-dev      # verifica que quedó aplicado</code></pre>
 <p><strong>Versionado</strong> (<code>--versioning</code>): cuando sobrescribes o borras un objeto, GCS guarda la versión anterior en lugar de perderla. Te salva de un <code>rm</code> equivocado, pero <strong>cada versión ocupa espacio y se cobra</strong>. Combínalo con una regla de ciclo de vida que borre las versiones viejas (condición <code>numNewerVersions</code>).</p>
@@ -212,7 +212,7 @@ gcloud storage buckets describe gs://lake-tienda-dev      # verifica que quedó 
 <td>El equipo de plataforma</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-bash">gcloud storage buckets add-iam-policy-binding gs://lake-tienda-dev \
+<pre data-norun tabindex="0"><code class="language-bash">gcloud storage buckets add-iam-policy-binding gs://lake-tienda-dev \
   --member=&quot;serviceAccount:etl-tienda@academia-datos-dev.iam.gserviceaccount.com&quot; \
   --role=&quot;roles/storage.objectUser&quot;</code></pre>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Un bucket público es un incidente</div>
@@ -223,7 +223,7 @@ gcloud storage buckets describe gs://lake-tienda-dev      # verifica que quedó 
 
 <h2>Cómo organizar el lago</h2>
 <p>Una convención típica, en <strong>un bucket por entorno</strong>, con un prefijo por capa:</p>
-<pre><code class="language-text">gs://tiendaandina-lake-prod/
+<pre tabindex="0"><code class="language-text">gs://tiendaandina-lake-prod/
 ├── landing/            ← lo que llega, tal cual, una vez al día (se borra a los 7 días)
 │   └── erp/ventas/2024-12-01/ventas.csv
 ├── bronze/             ← copia fiel e histórica, particionada por fecha de carga
@@ -254,7 +254,7 @@ gcloud storage buckets describe gs://lake-tienda-dev      # verifica que quedó 
 <li>Sube el archivo a <code>bronze/</code> y lista el lago.</li>
 <li>Mira cuánto ocupa con <code>du</code>.</li>
 </ol>
-<pre data-norun><code class="language-bash">gcloud auth login
+<pre data-norun tabindex="0"><code class="language-bash">gcloud auth login
 gcloud config set project academia-datos-dev
 gcloud storage buckets create gs://lake-practica-dev --location=us-central1 --uniform-bucket-level-access
 gcloud storage cp datos/clientes.csv gs://lake-practica-dev/bronze/clientes/

@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 1 — Carga el CSV</h2>
 <p>En un notebook nuevo (<a href="#/jupyter">JupyterLab de práctica</a>):</p>
-<pre data-norun><code class="language-python">import pandas as pd
+<pre data-norun tabindex="0"><code class="language-python">import pandas as pd
 pedidos = pd.read_csv(&quot;datos/pedidos.csv&quot;)
 pedidos.head()</code></pre>
 <ul>
@@ -37,12 +37,12 @@ pedidos.head()</code></pre>
 
 
 <h2>Paso 2 — Tamaño y columnas</h2>
-<pre data-norun><code class="language-python">pedidos.shape</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">pedidos.shape</code></pre>
 <p>Da <code>(12000, 7)</code>: <strong>12.000 filas y 7 columnas</strong>. Es una tupla (filas, columnas), sin paréntesis de función.</p>
-<pre data-norun><code class="language-python">pedidos.columns</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">pedidos.columns</code></pre>
 <p>Lista los nombres de las columnas: <code>pedido_id</code>, <code>cliente_id</code>, <code>empleado_id</code>, <code>fecha_pedido</code>, <code>estado</code>, <code>canal</code>, <code>metodo_pago</code>.</p>
 <h2>Paso 3 — info(): tipos y nulos</h2>
-<pre data-norun><code class="language-python">pedidos.info()</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">pedidos.info()</code></pre>
 <figure class="captura"><img src="assets/img/guias/jupyter/04-info.webp" alt="info() muestra cada columna, cuántos valores no nulos tiene y su tipo" loading="lazy"><figcaption>info() muestra cada columna, cuántos valores no nulos tiene y su tipo</figcaption></figure>
 
 
@@ -71,7 +71,7 @@ pedidos.head()</code></pre>
 
 
 <h2>Paso 4 — describe(): resumen de los números</h2>
-<pre data-norun><code class="language-python">pedidos.describe()</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">pedidos.describe()</code></pre>
 <figure class="captura"><img src="assets/img/guias/jupyter/e06-describe.webp" alt="describe() resume cada columna numérica: cantidad, promedio, desvío, mínimo, cuartiles y máximo" loading="lazy"><figcaption>describe() resume cada columna numérica: cantidad, promedio, desvío, mínimo, cuartiles y máximo</figcaption></figure>
 
 
@@ -107,7 +107,7 @@ pedidos.head()</code></pre>
 
 
 <h2>Paso 5 — value_counts(): contar categorías</h2>
-<pre data-norun><code class="language-python">pedidos[&quot;canal&quot;].value_counts()</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">pedidos[&quot;canal&quot;].value_counts()</code></pre>
 <figure class="captura"><img src="assets/img/guias/jupyter/e06-value-counts.webp" alt="value_counts() cuenta cuántas veces aparece cada valor, de mayor a menor" loading="lazy"><figcaption>value_counts() cuenta cuántas veces aparece cada valor, de mayor a menor</figcaption></figure>
 
 
@@ -117,7 +117,7 @@ pedidos.head()</code></pre>
 <li><code>.value_counts(normalize=True)</code> da proporciones: web es el 45 %.</li>
 </ul>
 <h2>Paso 6 — Nulos de un vistazo</h2>
-<pre data-norun><code class="language-python">pedidos.isna().sum()</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">pedidos.isna().sum()</code></pre>
 <p>Da la cantidad de nulos por columna. Con <code>.isna().mean()</code> obtienes el <strong>porcentaje</strong>.</p>
 <h2>La ficha del primer vistazo</h2>
 <div class="table-wrap"><table><thead><tr>

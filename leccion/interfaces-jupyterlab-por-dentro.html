@@ -180,13 +180,13 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Instalar un paquete en el entorno del kernel</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-text">%%writefile utilidades.py
+<pre tabindex="0"><code class="language-text">%%writefile utilidades.py
 def limpiar_email(email):
     return email.strip().lower()</code></pre>
 <p>Después, en otra celda: <code>from utilidades import limpiar_email</code>. Así el código que se repite sale del notebook y se puede probar y reutilizar.</p>
 <h2>El formato .ipynb</h2>
 <p>Un notebook es un archivo <strong>JSON</strong> con extensión <code>.ipynb</code>. Adentro guarda cada celda con su tipo, su código y <strong>sus salidas</strong> (incluidas las imágenes de los gráficos codificadas en texto).</p>
-<pre><code class="language-json">{
+<pre tabindex="0"><code class="language-json">{
  &quot;cells&quot;: [
   { &quot;cell_type&quot;: &quot;markdown&quot;, &quot;source&quot;: [&quot;# Mi análisis&quot;] },
   { &quot;cell_type&quot;: &quot;code&quot;, &quot;execution_count&quot;: 1, &quot;source&quot;: [&quot;1 + 1&quot;],
@@ -271,7 +271,7 @@ def limpiar_email(email):
 <li>Mira el número entre corchetes <code>[1]</code>: indica en qué orden corrió cada celda.</li>
 <li>Reinicia el kernel (<strong>Kernel → Restart</strong>) y ejecuta todo de nuevo con <strong>Run All</strong>: un notebook confiable corre de arriba hacia abajo sin errores.</li>
 </ol>
-<pre data-norun><code class="language-python">import pandas as pd
+<pre data-norun tabindex="0"><code class="language-python">import pandas as pd
 ventas = pd.DataFrame({&quot;canal&quot;: [&quot;web&quot;, &quot;app&quot;, &quot;web&quot;, &quot;tienda&quot;], &quot;monto&quot;: [120, 80, 45, 200]})
 ventas.groupby(&quot;canal&quot;)[&quot;monto&quot;].sum()</code></pre>
 <p>Reto: agrega una celda Markdown con un título y una conclusión de una línea, como lo entregarías a un equipo.</p>

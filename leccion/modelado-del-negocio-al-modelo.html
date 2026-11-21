@@ -179,7 +179,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Se prefiere usar claves sustitutas como clave primaria, y guardar la natural como atributo (con un control de unicidad). ¿Por qué? Porque las claves naturales <strong>cambian</strong> (alguien corrige un documento mal cargado), <strong>se repiten entre sistemas</strong> (dos países pueden tener el mismo número de documento) y a veces <strong>faltan</strong> (un huésped extranjero sin documento local).</p>
 <h2>Paso 4: el modelo físico</h2>
 <p>En el físico se decide lo que depende del motor:</p>
-<pre data-norun><code class="language-sql">CREATE TABLE reservas (
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE reservas (
     reserva_id     BIGINT        PRIMARY KEY,
     huesped_id     BIGINT        NOT NULL REFERENCES huespedes(huesped_id),
     agencia_id     BIGINT        REFERENCES agencias(agencia_id),      -- puede ser NULL: reserva directa
@@ -194,7 +194,7 @@ CREATE INDEX ix_reservas_check_in ON reservas (check_in);</code></pre>
 <p>Las restricciones (<code>NOT NULL</code>, <code>CHECK</code>, <code>REFERENCES</code>) son <strong>reglas de negocio escritas en la base</strong>: la base rechaza una reserva con salida anterior a la entrada. En un lakehouse muchas de estas restricciones no se aplican solas, y se reemplazan con tests (dbt, contratos).</p>
 <h2>Verificar la cardinalidad con los datos reales</h2>
 <p>El negocio dice &quot;cada pedido es de un solo cliente&quot;. Los datos pueden decir otra cosa. Antes de modelar, <strong>compruébalo</strong>. Con las tablas de Tienda Andina:</p>
-<pre><code class="language-sql">-- ¿Cuántas líneas tiene cada pedido? (esperamos 1:N)
+<pre tabindex="0"><code class="language-sql">-- ¿Cuántas líneas tiene cada pedido? (esperamos 1:N)
 SELECT
     MIN(lineas) AS minimo,
     MAX(lineas) AS maximo,
@@ -204,7 +204,7 @@ FROM (
     FROM detalle_pedidos
     GROUP BY pedido_id
 );</code></pre>
-<pre><code class="language-sql">-- ¿Algún pedido tiene más de un pago? (¿es 1:1 o 1:N?)
+<pre tabindex="0"><code class="language-sql">-- ¿Algún pedido tiene más de un pago? (¿es 1:1 o 1:N?)
 SELECT pagos_por_pedido, COUNT(*) AS pedidos
 FROM (SELECT pedido_id, COUNT(*) AS pagos_por_pedido FROM pagos GROUP BY pedido_id)
 GROUP BY pagos_por_pedido
@@ -269,7 +269,7 @@ ORDER BY pagos_por_pedido;</code></pre>
 <li>Valida el modelo: el laboratorio avisa si falta una clave, si una relación N:M no tiene tabla puente o si hay atributos repetidos.</li>
 <li>Genera el DDL y léelo: ese es el modelo físico.</li>
 </ol>
-<pre data-norun><code class="language-text">Requerimiento: &quot;Una academia dicta cursos. Cada curso tiene varias clases y un docente a cargo.
+<pre data-norun tabindex="0"><code class="language-text">Requerimiento: &quot;Una academia dicta cursos. Cada curso tiene varias clases y un docente a cargo.
 Los alumnos se inscriben en muchos cursos y por cada inscripción se guarda la fecha y la nota final.&quot;</code></pre>
 <p>Reto: explica por qué la nota final va en la tabla de inscripciones y no en alumnos ni en cursos.</p>
 <p>Documentación oficial: <a href="https://learn.microsoft.com/es-es/power-bi/guidance/star-schema">modelo estrella (Microsoft)</a> · <a href="https://www.postgresql.org/docs/current/ddl-constraints.html">restricciones en PostgreSQL</a></p>

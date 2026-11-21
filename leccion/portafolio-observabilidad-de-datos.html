@@ -57,7 +57,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Checks genéricos</h2>
 <p>En lugar de escribir un check por tabla, una <strong>configuración</strong> (YAML o tabla) dice qué medir y un único job los corre todos:</p>
-<pre><code class="language-yaml">transacciones:
+<pre tabindex="0"><code class="language-yaml">transacciones:
   frescura: { columna: ts, max_horas: 6 }
   volumen:  { comparar_con: mismo_dia_4_semanas, min_ratio: 0.7 }
   nulos:    { columnas: [cuenta_id, monto], max_pct: 1 }
@@ -105,7 +105,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>En producción, esta consulta corre cada hora y se compara con lo esperado: una tabla que no creció o que no tiene datos de ayer es una alerta.</li>
 <li>Agrega una tabla más a la lista.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT 'pedidos' AS tabla, COUNT(*) AS filas, MAX(fecha_pedido) AS ultimo_dato FROM pedidos
+<pre data-norun tabindex="0"><code class="language-sql">SELECT 'pedidos' AS tabla, COUNT(*) AS filas, MAX(fecha_pedido) AS ultimo_dato FROM pedidos
 UNION ALL
 SELECT 'pagos', COUNT(*), MAX(fecha_pago) FROM pagos
 UNION ALL

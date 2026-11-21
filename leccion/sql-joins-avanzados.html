@@ -105,7 +105,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>LEFT JOIN en la práctica</h2>
-<pre><code class="language-sql">SELECT c.cliente_id, c.nombre, p.pedido_id
+<pre tabindex="0"><code class="language-sql">SELECT c.cliente_id, c.nombre, p.pedido_id
 FROM clientes c
 LEFT JOIN pedidos p ON p.cliente_id = c.cliente_id
 ORDER BY c.cliente_id
@@ -147,7 +147,7 @@ LIMIT 6;</code></pre>
 <li>En total: 12.000 filas de clientes con pedido + 547 clientes sin pedido = <strong>12.547 filas</strong>.</li>
 </ul>
 <h3>Contar correctamente después de un LEFT JOIN</h3>
-<pre><code class="language-sql">SELECT c.cliente_id, c.nombre, COUNT(p.pedido_id) AS pedidos
+<pre tabindex="0"><code class="language-sql">SELECT c.cliente_id, c.nombre, COUNT(p.pedido_id) AS pedidos
 FROM clientes c
 LEFT JOIN pedidos p ON p.cliente_id = c.cliente_id
 GROUP BY c.cliente_id, c.nombre
@@ -156,7 +156,7 @@ LIMIT 5;</code></pre>
 <p>Fíjate en <code>COUNT(p.pedido_id)</code> y no <code>COUNT(*)</code>. Para Lucía hay <strong>una</strong> fila (con <code>pedido_id</code> en <code>NULL</code>): <code>COUNT(*)</code> diría 1 pedido (¡falso!), mientras que <code>COUNT(p.pedido_id)</code> ignora el <code>NULL</code> y da <strong>0</strong>. Es un error muy común.</p>
 <h2>El anti-join: encontrar lo que falta</h2>
 <p>&quot;¿Qué clientes <strong>nunca</strong> compraron?&quot; Haz un <code>LEFT JOIN</code> y quédate con las filas donde la derecha vino vacía:</p>
-<pre><code class="language-sql">SELECT c.cliente_id, c.nombre, c.fecha_registro
+<pre tabindex="0"><code class="language-sql">SELECT c.cliente_id, c.nombre, c.fecha_registro
 FROM clientes c
 LEFT JOIN pedidos p ON p.cliente_id = c.cliente_id
 WHERE p.pedido_id IS NULL;</code></pre>
@@ -164,13 +164,13 @@ WHERE p.pedido_id IS NULL;</code></pre>
 <p>Para el <code>IS NULL</code>, usa una columna que <strong>nunca</strong> es nula cuando hay pareja (la clave primaria de la tabla derecha es lo más seguro).</p>
 <h2>La trampa más común: filtrar la tabla derecha en el WHERE</h2>
 <p>Quieres &quot;todos los clientes, con sus pedidos de 2024 si los tienen&quot;. El intento intuitivo:</p>
-<pre><code class="language-sql">-- ❌ Este &quot;LEFT JOIN&quot; se comporta como INNER: 4.633 filas, solo clientes que compraron en 2024
+<pre tabindex="0"><code class="language-sql">-- ❌ Este &quot;LEFT JOIN&quot; se comporta como INNER: 4.633 filas, solo clientes que compraron en 2024
 SELECT c.cliente_id, p.pedido_id
 FROM clientes c
 LEFT JOIN pedidos p ON p.cliente_id = c.cliente_id
 WHERE p.fecha_pedido &gt;= '2024-01-01';</code></pre>
 <p>¿Qué pasó? El <code>LEFT JOIN</code> sí conservó a los clientes sin pedidos (con <code>fecha_pedido</code> en <code>NULL</code>), pero después el <code>WHERE</code> evaluó <code>NULL &gt;= &#39;2024-01-01&#39;</code> → UNKNOWN → <strong>descartados</strong>. La condición sobre la tabla derecha hay que ponerla <strong>en el <code>ON</code></strong>:</p>
-<pre><code class="language-sql">-- ✅ Todos los clientes (2.000), con la cantidad de pedidos de 2024 (0 si no compraron)
+<pre tabindex="0"><code class="language-sql">-- ✅ Todos los clientes (2.000), con la cantidad de pedidos de 2024 (0 si no compraron)
 SELECT c.cliente_id, COUNT(p.pedido_id) AS pedidos_2024
 FROM clientes c
 LEFT JOIN pedidos p
@@ -201,7 +201,7 @@ LIMIT 10;</code></pre>
 <li><code>RIGHT JOIN</code> es un <code>LEFT JOIN</code> con las tablas al revés. <code>A RIGHT JOIN B</code> = <code>B LEFT JOIN A</code>. Casi nadie lo usa: es más fácil leer siempre de izquierda a derecha y poner la tabla &quot;principal&quot; primero.</li>
 <li><code>FULL OUTER JOIN</code> conserva todo de ambos lados. Su uso clásico es <strong>comparar dos fuentes</strong>: &quot;¿qué ids están solo en el sistema A, solo en el B, o en los dos?&quot; (conciliaciones, migraciones, validar que una carga no perdió filas).</li>
 </ul>
-<pre><code class="language-sql">-- ¿Hay pedidos sin pago o pagos sin pedido?
+<pre tabindex="0"><code class="language-sql">-- ¿Hay pedidos sin pago o pagos sin pedido?
 SELECT CASE WHEN p.pedido_id IS NULL THEN 'pago sin pedido'
             WHEN g.pedido_id IS NULL THEN 'pedido sin pago'
             ELSE 'ok' END AS situacion,
@@ -220,7 +220,7 @@ GROUP BY situacion;</code></pre>
 
 <h2>SELF JOIN: una tabla consigo misma</h2>
 <p>A veces una tabla apunta <strong>a sí misma</strong>. En <code>empleados</code>, la columna <code>jefe_id</code> guarda el <code>empleado_id</code> de otro empleado. Para ver cada empleado con el nombre de su jefe, usas la misma tabla <strong>dos veces</strong>, con dos alias distintos, como si fueran dos tablas:</p>
-<pre><code class="language-sql">SELECT e.nombre AS empleado, e.cargo, j.nombre AS jefe, j.cargo AS cargo_jefe
+<pre tabindex="0"><code class="language-sql">SELECT e.nombre AS empleado, e.cargo, j.nombre AS jefe, j.cargo AS cargo_jefe
 FROM empleados e                               -- e = &quot;el empleado&quot;
 LEFT JOIN empleados j ON j.empleado_id = e.jefe_id   -- j = &quot;su jefe&quot;
 LIMIT 10;</code></pre>
@@ -252,7 +252,7 @@ LIMIT 10;</code></pre>
 <p>Es <code>LEFT</code> porque el CEO no tiene jefe: con <code>INNER</code> desaparecería. Otros usos del self join: comparar cada fila con la anterior (aunque las funciones de ventana lo hacen mejor), encontrar duplicados (<code>a.email = b.email AND a.id &lt; b.id</code>), o pares de productos comprados juntos.</p>
 <h2>CROSS JOIN: todas las combinaciones</h2>
 <p><code>CROSS JOIN</code> no tiene condición: combina <strong>cada</strong> fila de la izquierda con <strong>cada</strong> fila de la derecha (producto cartesiano). Su uso legítimo es generar <strong>grillas</strong> completas, por ejemplo todos los pares canal × año, para después rellenar con ceros los que no tuvieron ventas:</p>
-<pre><code class="language-sql">SELECT canales.canal, anios.anio
+<pre tabindex="0"><code class="language-sql">SELECT canales.canal, anios.anio
 FROM (SELECT DISTINCT canal FROM pedidos) AS canales
 CROSS JOIN (SELECT DISTINCT strftime('%Y', fecha_pedido) AS anio FROM pedidos) AS anios
 ORDER BY 1, 2;</code></pre>
@@ -265,7 +265,7 @@ ORDER BY 1, 2;</code></pre>
 
 <h2>Joins con condiciones que no son igualdad</h2>
 <p>El <code>ON</code> acepta <strong>cualquier</strong> condición, no solo <code>=</code>. Un uso típico es asignar cada fila a un <strong>rango</strong> definido en otra tabla:</p>
-<pre><code class="language-sql">WITH rangos(nombre, desde, hasta) AS (VALUES ('chico', 0, 100), ('mediano', 100, 1000), ('grande', 1000, 1e9))
+<pre tabindex="0"><code class="language-sql">WITH rangos(nombre, desde, hasta) AS (VALUES ('chico', 0, 100), ('mediano', 100, 1000), ('grande', 1000, 1e9))
 SELECT r.nombre, COUNT(*) AS lineas
 FROM detalle_pedidos d
 JOIN rangos r ON d.precio_unitario &gt;= r.desde AND d.precio_unitario &lt; r.hasta
@@ -326,7 +326,7 @@ GROUP BY r.nombre;</code></pre>
 <li>Cambia <code>LEFT JOIN</code> por <code>JOIN</code>. ¿Por qué ahora no aparece nadie?</li>
 <li>Con un self join de <code>empleados</code>, muestra cada empleado con el nombre de su jefe.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT c.cliente_id, c.nombre, c.apellido
+<pre data-norun tabindex="0"><code class="language-sql">SELECT c.cliente_id, c.nombre, c.apellido
 FROM clientes AS c
 LEFT JOIN pedidos AS p ON p.cliente_id = c.cliente_id
 WHERE p.pedido_id IS NULL;</code></pre>

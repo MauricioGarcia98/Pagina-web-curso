@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Un stack de datos local</h2>
-<pre data-norun><code class="language-yaml">services:
+<pre data-norun tabindex="0"><code class="language-yaml">services:
   db:
     image: postgres:17
     environment:
@@ -136,7 +136,7 @@ secrets:
 <li>Agrega un servicio <code>tablero</code> que dependa de <code>pipeline</code> y vuelve a ejecutar.</li>
 <li>Crea un ciclo (<code>db</code> depende de <code>pipeline</code>) y mira el error.</li>
 </ol>
-<pre><code class="language-python">def orden_arranque(dependencias):
+<pre tabindex="0"><code class="language-python">def orden_arranque(dependencias):
     pendientes = {s: set(d) for s, d in dependencias.items()}
     orden = []
     while pendientes:

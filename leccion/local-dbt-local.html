@@ -29,15 +29,15 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p>El <strong>código</strong> del proyecto (modelos, pruebas, <code>dbt_project.yml</code>) es igual para todos y va a Git. <strong>Dónde</strong> se ejecuta lo dice el <code>profiles.yml</code>, que es personal (tiene credenciales) y vive en <code>~/.dbt/</code>, fuera del repositorio. Cambiar de DuckDB a BigQuery es cambiar de <em>target</em>, no de código.</p>
 <h2>1. Instalar</h2>
-<pre data-norun><code class="language-bash">uv init rapido-dbt &amp;&amp; cd rapido-dbt
+<pre data-norun tabindex="0"><code class="language-bash">uv init rapido-dbt &amp;&amp; cd rapido-dbt
 uv add dbt-duckdb              # trae dbt-core y el adaptador de DuckDB
 uv run dbt --version</code></pre>
 <p>(Con pip clásico: <code>pip install dbt-duckdb</code> dentro de un entorno virtual.) Para trabajar sin escribir <code>uv run</code> cada vez, activa el entorno: <code>source .venv/bin/activate</code>.</p>
 <h2>2. Crear el proyecto y el perfil</h2>
-<pre data-norun><code class="language-bash">dbt init rapido_dbt            # pregunta el adaptador: elige duckdb
+<pre data-norun tabindex="0"><code class="language-bash">dbt init rapido_dbt            # pregunta el adaptador: elige duckdb
 cd rapido_dbt</code></pre>
 <p>El perfil (<code>~/.dbt/profiles.yml</code>):</p>
-<pre><code class="language-yaml">rapido_dbt:                    # el mismo nombre que &quot;profile:&quot; en dbt_project.yml
+<pre tabindex="0"><code class="language-yaml">rapido_dbt:                    # el mismo nombre que &quot;profile:&quot; en dbt_project.yml
   target: dev
   outputs:
     dev:
@@ -50,10 +50,10 @@ cd rapido_dbt</code></pre>
       project: rapido-datos-prod
       dataset: analytics
       threads: 8</code></pre>
-<pre data-norun><code class="language-bash">dbt debug                      # comprueba el proyecto, el perfil y la conexión</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">dbt debug                      # comprueba el proyecto, el perfil y la conexión</code></pre>
 <h2>3. Fuentes: los CSV como tablas</h2>
 <p>Copia los datos de muestra a <code>data/</code> y decláralos como <strong>fuentes</strong>. Con dbt-duckdb, una fuente puede apuntar directo a un archivo con <code>external_location</code>:</p>
-<pre><code class="language-yaml"># models/staging/sources.yml
+<pre tabindex="0"><code class="language-yaml"># models/staging/sources.yml
 version: 2
 
 sources:
@@ -64,7 +64,7 @@ sources:
       - name: delivery_pedidos
       - name: delivery_restaurantes</code></pre>
 <h2>4. Modelos: staging y marts</h2>
-<pre data-norun><code class="language-sql">-- models/staging/stg_rapido_pedidos.sql
+<pre data-norun tabindex="0"><code class="language-sql">-- models/staging/stg_rapido_pedidos.sql
 {{ config(materialized='view') }}
 
 select
@@ -76,7 +76,7 @@ select
     estado,
     subtotal
 from {{ source('app', 'delivery_pedidos') }}</code></pre>
-<pre data-norun><code class="language-sql">-- models/marts/mart_tiempos_ciudad.sql
+<pre data-norun tabindex="0"><code class="language-sql">-- models/marts/mart_tiempos_ciudad.sql
 {{ config(materialized='table') }}
 
 select
@@ -91,7 +91,7 @@ group by ciudad</code></pre>
 <li><code>ref(&#39;stg_rapido_pedidos&#39;)</code> → otro modelo. Con los <code>ref</code>, dbt arma el <strong>grafo</strong> y sabe que primero va staging y después el mart.</li>
 </ul>
 <h2>5. Pruebas y documentación</h2>
-<pre><code class="language-yaml"># models/marts/schema.yml
+<pre tabindex="0"><code class="language-yaml"># models/marts/schema.yml
 version: 2
 
 models:
@@ -146,7 +146,7 @@ models:
 </tr>
 </tbody></table></div>
 <p>Y para mirar el resultado, DuckDB:</p>
-<pre data-norun><code class="language-bash">duckdb rapido.duckdb -c &quot;SELECT * FROM mart_tiempos_ciudad ORDER BY min_promedio DESC&quot;</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">duckdb rapido.duckdb -c &quot;SELECT * FROM mart_tiempos_ciudad ORDER BY min_promedio DESC&quot;</code></pre>
 <div class="callout callout-tip"><div class="callout-title">💡 Practica en la terminal del curso</div>
 
 <p>La terminal del curso tiene un dbt que ejecuta los modelos de verdad (sobre SQLite, con todas las tablas del curso, incluidas <code>delivery_*</code>). Prueba: <code>dbt init rapido_dbt</code>, crea los modelos de esta lección con <code>code</code>, y corre <code>dbt build</code>.</p>
@@ -195,7 +195,7 @@ models:
 <li>Construye modelos y tests con <code>dbt build</code>.</li>
 <li>Genera la documentación: en tu computadora, <code>dbt docs serve</code> la abre en el navegador con el linaje.</li>
 </ol>
-<pre data-norun><code class="language-bash">cd ~/tienda_dbt
+<pre data-norun tabindex="0"><code class="language-bash">cd ~/tienda_dbt
 dbt debug
 dbt build
 dbt docs generate

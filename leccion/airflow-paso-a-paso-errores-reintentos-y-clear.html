@@ -79,7 +79,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Entre intentos la tarea queda en <strong>up_for_retry</strong>. Los reintentos sirven para fallas pasajeras (una API que no respondió, un corte de red). <strong>Un error de código falla igual en todos los intentos</strong>: hay que corregirlo.</p>
 <h2>Paso 4 — Corregir</h2>
 <p>En la terminal:</p>
-<pre data-norun><code class="language-bash">cd ~/airflow/dags
+<pre data-norun tabindex="0"><code class="language-bash">cd ~/airflow/dags
 grep -n &quot;importe\|monto&quot; conciliacion_pagos.py
 sed -i 's/importe/monto/' conciliacion_pagos.py
 grep -n &quot;monto&quot; conciliacion_pagos.py</code></pre>

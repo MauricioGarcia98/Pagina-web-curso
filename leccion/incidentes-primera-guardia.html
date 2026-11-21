@@ -81,14 +81,14 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>El mensaje de estado</h2>
 <p>El primer aviso no necesita la causa. Necesita cuatro cosas: <strong>qué pasa</strong>, <strong>a quién afecta</strong>, <strong>qué estás haciendo</strong> y <strong>cuándo vuelves a escribir</strong>.</p>
-<pre><code class="language-text">🔴 [SEV2] Ventas diarias sin datos del 28/10
+<pre tabindex="0"><code class="language-text">🔴 [SEV2] Ventas diarias sin datos del 28/10
 Impacto: el tablero &quot;Ventas diarias - Gerencia&quot; muestra hasta el 27/10.
 Qué hacemos: investigando la carga de esta madrugada. Agregamos un aviso en el tablero.
 Próxima actualización: 07:45 UTC o antes si hay novedades.</code></pre>
 <p>Lo que <strong>no</strong> se escribe: &quot;creo que es el ERP&quot; (si no está confirmado), jerga (&quot;el MERGE devolvió 0 rows affected&quot;) o silencio durante una hora.</p>
 <h2>Leer un log de Airflow</h2>
 <p>Cada tarea de Airflow deja un log con líneas como esta:</p>
-<pre><code class="language-text">[2026-10-29 03:06:14,512] {erp.py:83} WARNING - Archivo erp/ventas/2026-10-28.csv no encontrado después de 6 intentos; allow_empty=True: se continúa con un lote vacío</code></pre>
+<pre tabindex="0"><code class="language-text">[2026-10-29 03:06:14,512] {erp.py:83} WARNING - Archivo erp/ventas/2026-10-28.csv no encontrado después de 6 intentos; allow_empty=True: se continúa con un lote vacío</code></pre>
 <div class="table-wrap"><table><thead><tr>
 <th>Parte</th>
 <th>Significado</th>

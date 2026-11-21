@@ -242,14 +242,14 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Gobierno fino: quién ve qué filas y qué columnas</h2>
 <p><code>GRANT SELECT</code> es todo o nada: o ves la tabla o no la ves. Pero muchas veces la regla es más fina: <em>&quot;el equipo de Argentina solo ve los clientes de Argentina&quot;</em> o <em>&quot;solo soporte ve el email completo&quot;</em>. Para eso Unity Catalog tiene tres piezas que se usan juntas.</p>
 <p><strong>1. Una función SQL propia</strong> (<em>UDF</em>). Es como una fórmula de Excel con nombre: recibe valores y devuelve un resultado.</p>
-<pre data-norun><code class="language-sql">CREATE FUNCTION main.default.con_iva(precio DOUBLE)
+<pre data-norun tabindex="0"><code class="language-sql">CREATE FUNCTION main.default.con_iva(precio DOUBLE)
 RETURNS DOUBLE
 RETURN precio * 1.21;
 
 SELECT nombre, main.default.con_iva(precio) AS precio_final
 FROM samples.tienda.productos;</code></pre>
 <p><strong>2. Un filtro de fila</strong> (<em>row filter</em>): una función que devuelve <strong>verdadero o falso</strong> para cada fila. Las filas con falso desaparecen para quien consulta, como si no existieran.</p>
-<pre data-norun><code class="language-sql">CREATE FUNCTION main.default.solo_mi_pais(pais STRING)
+<pre data-norun tabindex="0"><code class="language-sql">CREATE FUNCTION main.default.solo_mi_pais(pais STRING)
 RETURNS BOOLEAN
 RETURN is_account_group_member('admins') OR pais = 'Argentina';
 
@@ -257,7 +257,7 @@ ALTER TABLE main.default.clientes
   SET ROW FILTER main.default.solo_mi_pais ON (pais);</code></pre>
 <p><code>is_account_group_member(&#39;admins&#39;)</code> pregunta &quot;¿la persona que está consultando está en el grupo admins?&quot;. Si está, ve todo; si no, solo Argentina.</p>
 <p><strong>3. Una máscara de columna</strong> (<em>column mask</em>): una función que recibe el valor real y devuelve lo que se muestra.</p>
-<pre data-norun><code class="language-sql">CREATE FUNCTION main.default.ocultar_email(email STRING)
+<pre data-norun tabindex="0"><code class="language-sql">CREATE FUNCTION main.default.ocultar_email(email STRING)
 RETURNS STRING
 RETURN CASE WHEN is_account_group_member('soporte') THEN email
             ELSE concat('***@', split(email, '@')[1]) END;
@@ -269,7 +269,7 @@ ALTER TABLE main.default.clientes
 Primero quita el filtro o la máscara (<code>ALTER TABLE … DROP ROW FILTER</code> o <code>ALTER COLUMN … DROP MASK</code>) y <strong>después</strong> borra la función. Si borras la función primero, la tabla queda inaccesible hasta que quites la referencia.
 :::</p>
 <p><strong>Etiquetas</strong> (<em>tags</em>): marcan qué es sensible para poder encontrarlo y auditarlo.</p>
-<pre data-norun><code class="language-sql">ALTER TABLE main.default.clientes SET TAGS ('dominio' = 'ventas');
+<pre data-norun tabindex="0"><code class="language-sql">ALTER TABLE main.default.clientes SET TAGS ('dominio' = 'ventas');
 ALTER TABLE main.default.clientes ALTER COLUMN email SET TAGS ('pii' = 'email');
 
 SELECT * FROM main.information_schema.column_tags;   -- ¿dónde hay datos personales?
@@ -283,7 +283,7 @@ SELECT * FROM main.information_schema.row_filters;    -- ¿qué tablas tienen fi
 
 <h2>Tablas de streaming desde el editor SQL</h2>
 <p>No hace falta armar un pipeline para ingerir archivos de forma incremental: desde el SQL Editor puedes crear una <strong>tabla de streaming independiente</strong> (Databricks crea por detrás un pipeline administrado).</p>
-<pre data-norun><code class="language-sql">CREATE OR REFRESH STREAMING TABLE main.default.pedidos_bronze
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REFRESH STREAMING TABLE main.default.pedidos_bronze
 AS SELECT * FROM STREAM read_files('/Volumes/main/default/crudos/', format =&gt; 'csv', header =&gt; true);
 
 -- llegan archivos nuevos al volumen…
@@ -318,7 +318,7 @@ REFRESH STREAMING TABLE main.default.pedidos_bronze FULL;   -- borra todo y proc
 <td><code>@champion</code> = la versión que usa producción</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-python">import mlflow
+<pre data-norun tabindex="0"><code class="language-python">import mlflow
 mlflow.set_registry_uri(&quot;databricks-uc&quot;)      # los modelos van a Unity Catalog
 with mlflow.start_run():
     mlflow.log_param(&quot;max_depth&quot;, 5)
@@ -376,7 +376,7 @@ with mlflow.start_run():
 <li>En la barra lateral, abre <strong>Catalog</strong> y navega <code>samples</code> → <code>tienda</code> → <code>pedidos</code>: esquema, datos de muestra, historial y permisos.</li>
 <li>Abre <strong>Compute</strong> y <strong>Workspace</strong>: dónde corre el código y dónde viven tus notebooks.</li>
 </ol>
-<pre data-norun><code class="language-sql">SHOW TABLES IN samples.tienda;
+<pre data-norun tabindex="0"><code class="language-sql">SHOW TABLES IN samples.tienda;
 SELECT estado, COUNT(*) AS pedidos FROM samples.tienda.pedidos GROUP BY ALL ORDER BY pedidos DESC;</code></pre>
 <p>Reto: desde la tabla en <strong>Catalog</strong>, abre su linaje y explica qué te dice.</p>
 <p>Documentación oficial: <a href="https://docs.databricks.com/aws/en/workspace/">el workspace</a> · <a href="https://docs.databricks.com/aws/en/catalog-explorer/">Catalog Explorer</a></p>

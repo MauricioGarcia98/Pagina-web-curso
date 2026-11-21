@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — El MERGE</h2>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE analitica.stock_tiendas AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE analitica.stock_tiendas AS
 SELECT producto_id, stock FROM tienda.productos WHERE producto_id &lt;= 5;
 
 MERGE analitica.stock_tiendas AS t
@@ -65,7 +65,7 @@ WHEN NOT MATCHED THEN INSERT (producto_id, stock) VALUES (s.producto_id, s.stock
 </tr>
 </tbody></table></div>
 <h2>Paso 3 — DML con WHERE obligatorio</h2>
-<pre data-norun><code class="language-sql">UPDATE analitica.stock_tiendas SET stock = 0;              -- error: UPDATE must have a WHERE clause
+<pre data-norun tabindex="0"><code class="language-sql">UPDATE analitica.stock_tiendas SET stock = 0;              -- error: UPDATE must have a WHERE clause
 UPDATE analitica.stock_tiendas SET stock = 0 WHERE TRUE;   -- explícito: todas las filas</code></pre>
 <p>BigQuery obliga a escribir <code>WHERE</code> en <code>UPDATE</code> y <code>DELETE</code>: un recordatorio de que vas a tocar filas. Y los DML se cobran por los bytes que leen de la tabla, como cualquier consulta.</p>
 <div class="callout callout-tip"><div class="callout-title">💡 MERGE para cargas</div>

@@ -66,7 +66,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Reintentos y timeouts: la configuración que evita sorpresas</h2>
-<pre data-norun><code class="language-python">default_args = {
+<pre data-norun tabindex="0"><code class="language-python">default_args = {
     &quot;retries&quot;: 3,
     &quot;retry_delay&quot;: timedelta(minutes=5),
     &quot;retry_exponential_backoff&quot;: True,      # 5, 10, 20 minutos: no martilla un sistema caído

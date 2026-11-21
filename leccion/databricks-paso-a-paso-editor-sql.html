@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 1 — La pantalla</h2>
 <p>Menú <strong>Lakehouse → SQL Editor</strong>. Escribe:</p>
-<pre data-norun><code class="language-sql">SELECT canal, estado, COUNT(*) AS pedidos
+<pre data-norun tabindex="0"><code class="language-sql">SELECT canal, estado, COUNT(*) AS pedidos
 FROM samples.tienda.pedidos
 GROUP BY canal, estado
 ORDER BY pedidos DESC</code></pre>
@@ -84,7 +84,7 @@ ORDER BY pedidos DESC</code></pre>
 <p>Tipos disponibles: barras, líneas, área, torta, dispersión y contador (un solo número grande, para KPIs).</p>
 <h2>Paso 4 — Parámetros</h2>
 <p>Un parámetro es un valor que se completa antes de ejecutar. Se escribe con dos puntos:</p>
-<pre data-norun><code class="language-sql">SELECT estado, COUNT(*) AS pedidos
+<pre data-norun tabindex="0"><code class="language-sql">SELECT estado, COUNT(*) AS pedidos
 FROM samples.tienda.pedidos
 WHERE canal = :canal
 GROUP BY estado

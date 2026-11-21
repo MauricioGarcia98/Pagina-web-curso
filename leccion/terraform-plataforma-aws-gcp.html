@@ -90,7 +90,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h3>Proveedor con etiquetas para todo</h3>
-<pre><code class="language-hcl">provider &quot;aws&quot; {
+<pre tabindex="0"><code class="language-hcl">provider &quot;aws&quot; {
   region = &quot;us-east-1&quot;
 
   default_tags {
@@ -109,7 +109,7 @@ locals {
 }</code></pre>
 <p><code>default_tags</code> pone esas etiquetas en <strong>todos</strong> los recursos de este proveedor: no hace falta repetirlas.</p>
 <h3>Lago y artefactos</h3>
-<pre><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;capa&quot; {
+<pre tabindex="0"><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;capa&quot; {
   for_each = local.capas
   bucket   = &quot;${local.prefijo}-${each.key}&quot;
 }
@@ -128,7 +128,7 @@ resource &quot;aws_s3_object&quot; &quot;script&quot; {
 <p><code>etag = filemd5(...)</code> hace que Terraform vuelva a subir el script cuando cambia su contenido. En el laboratorio, usa <code>content = &quot;print(&#39;silver&#39;)&quot;</code> en lugar de <code>source</code> y <code>etag</code>.</p>
 <h3>El rol de Glue con permisos mínimos</h3>
 <p>Un <strong>rol</strong> de IAM tiene dos partes: <strong>quién puede usarlo</strong> (la <em>trust policy</em>, <code>assume_role_policy</code>) y <strong>qué puede hacer</strong> (las políticas que se le adjuntan).</p>
-<pre><code class="language-hcl">resource &quot;aws_iam_role&quot; &quot;glue&quot; {
+<pre tabindex="0"><code class="language-hcl">resource &quot;aws_iam_role&quot; &quot;glue&quot; {
   name = &quot;${local.prefijo}-glue&quot;
 
   # quién: solo el servicio Glue puede asumir este rol
@@ -177,7 +177,7 @@ resource &quot;aws_iam_role_policy_attachment&quot; &quot;glue_servicio&quot; {
 <li>Los objetos (<code>GetObject</code>) se autorizan sobre <code>arn/*</code>; listar (<code>ListBucket</code>), sobre el bucket (<code>arn</code>). Confundirlos es el error de IAM más común en S3.</li>
 </ul>
 <h3>Catálogo, crawler, job y Athena</h3>
-<pre><code class="language-hcl">resource &quot;aws_glue_catalog_database&quot; &quot;capa&quot; {
+<pre tabindex="0"><code class="language-hcl">resource &quot;aws_glue_catalog_database&quot; &quot;capa&quot; {
   for_each = local.capas
   name     = &quot;andina_dev_${each.key}&quot;         # Glue no acepta guiones: guiones bajos
 }
@@ -220,7 +220,7 @@ resource &quot;aws_athena_workgroup&quot; &quot;analistas&quot; {
 }</code></pre>
 <p><code>bytes_scanned_cutoff_per_query</code> es un <strong>control de costos en código</strong>: Athena cobra por dato escaneado, y una consulta sin filtro de partición sobre años de datos se corta antes de costar cientos de dólares.</p>
 <h3>Laboratorio AWS</h3>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 mkdir -p ~/infra/ritmo &amp;&amp; cd ~/infra/ritmo
 code main.tf                 # todo lo de la parte 1 (con content = &quot;print('silver')&quot; en el script)
 terraform init
@@ -234,7 +234,7 @@ aws s3 cp s3://andina-dev-artefactos/glue/silver_pedidos.py -</code></pre>
 <figure class="diagrama"><figcaption>Rápido en Google Cloud: lago, BigQuery por capas, eventos y una cuenta de servicio con permisos por recurso</figcaption></figure>
 
 
-<pre><code class="language-hcl">provider &quot;google&quot; {
+<pre tabindex="0"><code class="language-hcl">provider &quot;google&quot; {
   project = &quot;academia-datos-dev&quot;
   region  = &quot;us-central1&quot;
 }
@@ -279,7 +279,7 @@ resource &quot;google_bigquery_table&quot; &quot;pedidos&quot; {
 }</code></pre>
 <p>La tabla queda <strong>particionada por día</strong> (una consulta con <code>WHERE fecha = ...</code> lee solo esa partición) y <strong>agrupada</strong> (<em>clustered</em>) por cliente: lo que viste en BigQuery, ahora en código revisable.</p>
 <h3>Identidad y permisos</h3>
-<pre><code class="language-hcl">resource &quot;google_service_account&quot; &quot;etl&quot; {
+<pre tabindex="0"><code class="language-hcl">resource &quot;google_service_account&quot; &quot;etl&quot; {
   account_id   = &quot;etl-andina-dev&quot;
   display_name = &quot;ETL del lakehouse&quot;
 }
@@ -328,7 +328,7 @@ resource &quot;google_pubsub_subscription&quot; &quot;a_bigquery&quot; {
 
 
 <h3>Laboratorio Google Cloud</h3>
-<pre data-norun><code class="language-bash">gcloud auth login
+<pre data-norun tabindex="0"><code class="language-bash">gcloud auth login
 gcloud config set project academia-datos-dev
 mkdir -p ~/infra/rapido &amp;&amp; cd ~/infra/rapido
 code main.tf                        # todo lo de la parte 2
@@ -389,7 +389,7 @@ gcloud pubsub subscriptions list</code></pre>
 <li>Escribe un bucket de Cloud Storage y aplícalo.</li>
 <li>Verifícalo con <code>gcloud</code>: el mismo flujo de Terraform sirve para las tres nubes; cambia el provider y el tipo de recurso.</li>
 </ol>
-<pre data-norun><code class="language-bash">gcloud auth login
+<pre data-norun tabindex="0"><code class="language-bash">gcloud auth login
 gcloud config set project academia-datos-dev
 mkdir -p ~/infra/gcp &amp;&amp; cd ~/infra/gcp
 printf 'resource &quot;google_storage_bucket&quot; &quot;lago&quot; {\n  name     = &quot;tf-lab-lago&quot;\n  location = &quot;US&quot;\n}\n' &gt; main.tf

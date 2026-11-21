@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — Barras en una línea</h2>
-<pre data-norun><code class="language-python">ax = pedidos[&quot;canal&quot;].value_counts().plot(kind=&quot;bar&quot;, title=&quot;Pedidos por canal&quot;, figsize=(7, 3))
+<pre data-norun tabindex="0"><code class="language-python">ax = pedidos[&quot;canal&quot;].value_counts().plot(kind=&quot;bar&quot;, title=&quot;Pedidos por canal&quot;, figsize=(7, 3))
 ax.set_ylabel(&quot;pedidos&quot;)</code></pre>
 <figure class="captura"><img src="assets/img/guias/jupyter/e11-barras.webp" alt="value_counts().plot(kind=&quot;bar&quot;): las barras ya salen ordenadas de mayor a menor" loading="lazy"><figcaption>value_counts().plot(kind=&quot;bar&quot;): las barras ya salen ordenadas de mayor a menor</figcaption></figure>
 
@@ -35,7 +35,7 @@ ax.set_ylabel(&quot;pedidos&quot;)</code></pre>
 <li><code>.plot</code> devuelve los <strong>ejes</strong> (<code>ax</code>): con ellos pones etiquetas (<code>set_ylabel</code>, <code>set_xlabel</code>, <code>set_title</code>).</li>
 </ul>
 <h2>Paso 2 — Líneas para el tiempo</h2>
-<pre data-norun><code class="language-python">pedidos[&quot;fecha_pedido&quot;] = pd.to_datetime(pedidos[&quot;fecha_pedido&quot;])
+<pre data-norun tabindex="0"><code class="language-python">pedidos[&quot;fecha_pedido&quot;] = pd.to_datetime(pedidos[&quot;fecha_pedido&quot;])
 por_mes = pedidos.groupby(pedidos[&quot;fecha_pedido&quot;].dt.to_period(&quot;M&quot;)).size()
 por_mes.plot(title=&quot;Pedidos por mes&quot;, figsize=(8, 3))</code></pre>
 <figure class="captura"><img src="assets/img/guias/jupyter/04-linea-por-mes.webp" alt="La evolución mensual: se ve el crecimiento y el pico de fin de año" loading="lazy"><figcaption>La evolución mensual: se ve el crecimiento y el pico de fin de año</figcaption></figure>
@@ -69,7 +69,7 @@ por_mes.plot(title=&quot;Pedidos por mes&quot;, figsize=(8, 3))</code></pre>
 </tr>
 </tbody></table></div>
 <h2>Paso 4 — Títulos que dicen la conclusión</h2>
-<pre data-norun><code class="language-python">import matplotlib.pyplot as plt
+<pre data-norun tabindex="0"><code class="language-python">import matplotlib.pyplot as plt
 tasa = (pedidos.assign(c=pedidos[&quot;estado&quot;] == &quot;cancelado&quot;).groupby(&quot;canal&quot;)[&quot;c&quot;].mean() * 100).sort_values()
 ax = tasa.plot(kind=&quot;barh&quot;, figsize=(7, 3), title=&quot;La app cancela más que el resto (% de pedidos)&quot;)
 ax.set_xlabel(&quot;% cancelados&quot;)
@@ -85,13 +85,13 @@ plt.show()</code></pre>
 
 
 <h2>Paso 5 — Dos gráficos lado a lado</h2>
-<pre data-norun><code class="language-python">fig, (izq, der) = plt.subplots(1, 2, figsize=(10, 3))
+<pre data-norun tabindex="0"><code class="language-python">fig, (izq, der) = plt.subplots(1, 2, figsize=(10, 3))
 pedidos[&quot;canal&quot;].value_counts().plot(kind=&quot;bar&quot;, ax=izq, title=&quot;Por canal&quot;)
 pedidos[&quot;estado&quot;].value_counts().plot(kind=&quot;bar&quot;, ax=der, title=&quot;Por estado&quot;)
 plt.tight_layout()</code></pre>
 <p><code>plt.subplots(filas, columnas)</code> crea una figura con varios ejes; a cada <code>.plot</code> le dices en cuál dibujar con <code>ax=</code>.</p>
 <h2>Paso 6 — Guardar la imagen</h2>
-<pre data-norun><code class="language-python">ax = por_mes.plot(title=&quot;Pedidos por mes&quot;, figsize=(8, 3))
+<pre data-norun tabindex="0"><code class="language-python">ax = por_mes.plot(title=&quot;Pedidos por mes&quot;, figsize=(8, 3))
 ax.figure.savefig(&quot;pedidos_por_mes.png&quot;, dpi=150, bbox_inches=&quot;tight&quot;)</code></pre>
 <p>El PNG aparece en el explorador de archivos; clic derecho → <strong>Download</strong> para llevarlo a un informe o una presentación.</p>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>

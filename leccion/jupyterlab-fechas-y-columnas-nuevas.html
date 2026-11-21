@@ -24,9 +24,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — De texto a fecha</h2>
-<pre data-norun><code class="language-python">pedidos[&quot;fecha_pedido&quot;].dtype</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">pedidos[&quot;fecha_pedido&quot;].dtype</code></pre>
 <p>Dice <code>object</code> o <code>str</code>: es texto. Conviértela:</p>
-<pre data-norun><code class="language-python">pedidos[&quot;fecha_pedido&quot;] = pd.to_datetime(pedidos[&quot;fecha_pedido&quot;])
+<pre data-norun tabindex="0"><code class="language-python">pedidos[&quot;fecha_pedido&quot;] = pd.to_datetime(pedidos[&quot;fecha_pedido&quot;])
 pedidos[&quot;anio&quot;] = pedidos[&quot;fecha_pedido&quot;].dt.year
 pedidos.groupby(&quot;anio&quot;).size()</code></pre>
 <figure class="captura"><img src="assets/img/guias/jupyter/e10-fechas.webp" alt="Con la fecha convertida, .dt.year saca el año: 3.346, 4.021 y 4.633 pedidos" loading="lazy"><figcaption>Con la fecha convertida, .dt.year saca el año: 3.346, 4.021 y 4.633 pedidos</figcaption></figure>
@@ -73,13 +73,13 @@ pedidos.groupby(&quot;anio&quot;).size()</code></pre>
 </tr>
 </tbody></table></div>
 <p>¿Qué día de la semana tiene más pedidos?</p>
-<pre data-norun><code class="language-python">pedidos[&quot;fecha_pedido&quot;].dt.day_name().value_counts()</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">pedidos[&quot;fecha_pedido&quot;].dt.day_name().value_counts()</code></pre>
 <h2>Paso 3 — Filtrar por fechas</h2>
-<pre data-norun><code class="language-python">pedidos_2024 = pedidos[(pedidos[&quot;fecha_pedido&quot;] &gt;= &quot;2024-01-01&quot;) &amp; (pedidos[&quot;fecha_pedido&quot;] &lt; &quot;2025-01-01&quot;)]
+<pre data-norun tabindex="0"><code class="language-python">pedidos_2024 = pedidos[(pedidos[&quot;fecha_pedido&quot;] &gt;= &quot;2024-01-01&quot;) &amp; (pedidos[&quot;fecha_pedido&quot;] &lt; &quot;2025-01-01&quot;)]
 len(pedidos_2024)</code></pre>
 <p>Da 4.633. Igual que en Excel y SQL: &quot;mayor o igual al primer día&quot; y &quot;menor al primer día del período siguiente&quot;. Con la columna <code>anio</code> también vale <code>pedidos[pedidos[&quot;anio&quot;] == 2024]</code>.</p>
 <h2>Paso 4 — Diferencias entre fechas</h2>
-<pre data-norun><code class="language-python">clientes = pd.read_csv(&quot;datos/clientes.csv&quot;, parse_dates=[&quot;fecha_registro&quot;])
+<pre data-norun tabindex="0"><code class="language-python">clientes = pd.read_csv(&quot;datos/clientes.csv&quot;, parse_dates=[&quot;fecha_registro&quot;])
 corte = pd.Timestamp(&quot;2024-12-31&quot;)
 clientes[&quot;dias_cliente&quot;] = (corte - clientes[&quot;fecha_registro&quot;]).dt.days
 clientes[&quot;dias_cliente&quot;].describe()</code></pre>
@@ -114,7 +114,7 @@ clientes[&quot;dias_cliente&quot;].describe()</code></pre>
 
 
 <h2>Paso 6 — Encadenar con assign</h2>
-<pre data-norun><code class="language-python">resumen_mes = (
+<pre data-norun tabindex="0"><code class="language-python">resumen_mes = (
     pedidos
     .assign(mes=pedidos[&quot;fecha_pedido&quot;].dt.to_period(&quot;M&quot;))
     .query(&quot;anio == 2024&quot;)

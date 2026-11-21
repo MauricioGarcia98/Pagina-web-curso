@@ -53,21 +53,21 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>La trampa número uno de SQL: <code>= NULL</code></h2>
-<pre><code class="language-sql">-- ❌ Devuelve 0 filas, aunque hay 89 clientes sin email
+<pre tabindex="0"><code class="language-sql">-- ❌ Devuelve 0 filas, aunque hay 89 clientes sin email
 SELECT COUNT(*) FROM clientes WHERE email = NULL;</code></pre>
 <p>¿Por qué? Porque cualquier comparación con <code>NULL</code> da como resultado… <code>NULL</code> (desconocido). La pregunta &quot;¿este email desconocido es igual a otro valor desconocido?&quot; no tiene respuesta. Y <code>WHERE</code> solo deja pasar las filas donde la condición es <strong>verdadera</strong>: lo desconocido se descarta.</p>
 <p>Para preguntar por nulos existen dos operadores especiales:</p>
-<pre><code class="language-sql">-- ✅ Clientes sin email: 89
+<pre tabindex="0"><code class="language-sql">-- ✅ Clientes sin email: 89
 SELECT cliente_id, nombre, email FROM clientes WHERE email IS NULL;
 
 -- ✅ Clientes con email: 1.911
 SELECT COUNT(*) FROM clientes WHERE email IS NOT NULL;</code></pre>
 <h3>Los NULL desaparecen de los filtros &quot;negativos&quot;</h3>
 <p>Esto engaña incluso a gente con experiencia:</p>
-<pre><code class="language-sql">-- ¿Cuántos clientes NO tienen el email x@x.com? Uno esperaría 2.000…
+<pre tabindex="0"><code class="language-sql">-- ¿Cuántos clientes NO tienen el email x@x.com? Uno esperaría 2.000…
 SELECT COUNT(*) FROM clientes WHERE email &lt;&gt; 'x@x.com';</code></pre>
 <p>El resultado es <strong>1.911</strong>, no 2.000. Para los 89 clientes sin email, <code>NULL &lt;&gt; &#39;x@x.com&#39;</code> es desconocido, y quedan afuera. Si quieres incluirlos, dilo explícitamente:</p>
-<pre><code class="language-sql">SELECT COUNT(*) FROM clientes WHERE email &lt;&gt; 'x@x.com' OR email IS NULL;</code></pre>
+<pre tabindex="0"><code class="language-sql">SELECT COUNT(*) FROM clientes WHERE email &lt;&gt; 'x@x.com' OR email IS NULL;</code></pre>
 <div class="recorrido"></div>
 
 
@@ -129,7 +129,7 @@ SELECT COUNT(*) FROM clientes WHERE email &lt;&gt; 'x@x.com';</code></pre>
 <h2>NULL en cálculos y funciones de agregación</h2>
 <p>En cálculos fila por fila, un <code>NULL</code> &quot;contagia&quot; todo: <code>precio * NULL</code> es <code>NULL</code>.</p>
 <p>Pero las funciones de agregación (<code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code>, <code>MAX</code>, que verás en detalle pronto) <strong>ignoran</strong> los <code>NULL</code>. Mira este ejemplo con tres alumnos, uno sin nota:</p>
-<pre><code class="language-sql">WITH notas(alumno, nota) AS (VALUES ('Ana', 8), ('Beto', NULL), ('Carla', 6))
+<pre tabindex="0"><code class="language-sql">WITH notas(alumno, nota) AS (VALUES ('Ana', 8), ('Beto', NULL), ('Carla', 6))
 SELECT COUNT(*)             AS filas,
        COUNT(nota)          AS con_nota,
        SUM(nota)            AS suma,
@@ -161,7 +161,7 @@ FROM notas;</code></pre>
 <p>Ninguno de los dos promedios es &quot;el correcto&quot;: depende de qué significa el <code>NULL</code> en tu caso. Esa es una pregunta de negocio, no de SQL.</p>
 <h2>COALESCE: reemplazar nulos por un valor</h2>
 <p><code>COALESCE(a, b, c, …)</code> revisa los valores <strong>de izquierda a derecha</strong> y devuelve <strong>el primero que no sea <code>NULL</code></strong>:</p>
-<pre><code class="language-sql">SELECT nombre,
+<pre tabindex="0"><code class="language-sql">SELECT nombre,
        COALESCE(telefono, 'sin teléfono')         AS telefono,
        COALESCE(email, telefono, 'sin contacto')  AS contacto
 FROM clientes
@@ -202,7 +202,7 @@ LIMIT 5;</code></pre>
 
 <h2>NULLIF: crear un NULL a propósito</h2>
 <p><code>NULLIF(a, b)</code> devuelve <code>NULL</code> si <code>a</code> es igual a <code>b</code>; si no, devuelve <code>a</code>. Parece rara, pero tiene un uso estrella: <strong>evitar la división por cero</strong>.</p>
-<pre><code class="language-sql">SELECT nombre, precio, stock,
+<pre tabindex="0"><code class="language-sql">SELECT nombre, precio, stock,
        precio / NULLIF(stock, 0) AS precio_por_unidad_en_stock
 FROM productos
 LIMIT 10;</code></pre>
@@ -271,7 +271,7 @@ LIMIT 10;</code></pre>
 <li>Cambia <code>IS NULL</code> por <code>= NULL</code>. ¿Por qué da 0?</li>
 <li>Muestra el teléfono o el texto <code>sin teléfono</code> con <code>COALESCE</code>.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT COUNT(*) AS sin_telefono
+<pre data-norun tabindex="0"><code class="language-sql">SELECT COUNT(*) AS sin_telefono
 FROM clientes
 WHERE telefono IS NULL;</code></pre>
 <p>Reto: compara <code>COUNT(*)</code> con <code>COUNT(telefono)</code> en la misma consulta y explica la diferencia.</p>

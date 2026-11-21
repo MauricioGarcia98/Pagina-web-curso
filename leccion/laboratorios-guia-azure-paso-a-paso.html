@@ -117,12 +117,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h3>Paso 6: lo mismo con az en Cloud Shell</h3>
 <p><strong>Cloud Shell</strong> es una terminal en el navegador, ya conectada a tu cuenta y con <code>az</code> instalado. Ábrela con el ícono <code>&gt;_</code> de la barra superior del portal y elige <strong>Bash</strong>. Los comandos son los del módulo de Azure del curso:</p>
-<pre data-norun><code class="language-bash">az account show --query &quot;{suscripcion:name, usuario:user.name}&quot; -o table
+<pre data-norun tabindex="0"><code class="language-bash">az account show --query &quot;{suscripcion:name, usuario:user.name}&quot; -o table
 az group list -o table
 az storage account list -g rg-datos-lab --query &quot;[].{nombre:name, hns:isHnsEnabled, sku:sku.name}&quot; -o table
 az storage blob list --account-name &lt;tu_cuenta&gt; --container-name bronze --auth-mode login -o table</code></pre>
 <p>Si el último comando da un error de permisos, es porque <code>--auth-mode login</code> usa tu identidad de Entra ID y no las claves de la cuenta. Asígnate el rol de datos (como en la lección de identidad) y espera unos minutos:</p>
-<pre data-norun><code class="language-bash">az role assignment create --assignee &quot;$(az ad signed-in-user show --query id -o tsv)&quot; \
+<pre data-norun tabindex="0"><code class="language-bash">az role assignment create --assignee &quot;$(az ad signed-in-user show --query id -o tsv)&quot; \
   --role &quot;Storage Blob Data Contributor&quot; \
   --scope &quot;$(az storage account show -n &lt;tu_cuenta&gt; -g rg-datos-lab --query id -o tsv)&quot;</code></pre>
 <figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>Cloud Shell con la tabla de cuentas de almacenamiento (hns = True)</span><code>assets/img/guias/az-07-cloud-shell.png</code></div></figure>
@@ -165,7 +165,7 @@ az storage blob list --account-name &lt;tu_cuenta&gt; --container-name bronze --
 <li>En el portal: <strong>Resource groups</strong> → <code>rg-datos-lab</code> → <strong>Delete resource group</strong>. Escribe el nombre para confirmar. Esto borra la cuenta de almacenamiento, el workspace y, con él, el grupo administrado <code>databricks-rg-...</code>.</li>
 <li>Comprueba en Cloud Shell que no quedó nada:</li>
 </ol>
-<pre data-norun><code class="language-bash">az group list --query &quot;[?starts_with(name, 'rg-datos-lab') || starts_with(name, 'databricks-rg')].name&quot; -o tsv
+<pre data-norun tabindex="0"><code class="language-bash">az group list --query &quot;[?starts_with(name, 'rg-datos-lab') || starts_with(name, 'databricks-rg')].name&quot; -o tsv
 az resource list --tag proyecto=lab -o table</code></pre>
 <p>Ambos comandos deben devolver vacío. Al día siguiente, revisa <strong>Cost Management</strong> → <strong>Cost analysis</strong> para confirmar que el gasto dejó de crecer.</p>
 <figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>Cloud Shell sin grupos ni recursos con la etiqueta proyecto=lab</span><code>assets/img/guias/az-11-limpieza.png</code></div></figure>
@@ -209,7 +209,7 @@ az resource list --tag proyecto=lab -o table</code></pre>
 <li>Verifica en <strong>Cloud Shell</strong> con los comandos de abajo.</li>
 <li>Al terminar, borra el grupo: en tu cuenta real eso evita cualquier cobro.</li>
 </ol>
-<pre data-norun><code class="language-bash">az account show --query &quot;{suscripcion:name, usuario:user.name}&quot; -o table
+<pre data-norun tabindex="0"><code class="language-bash">az account show --query &quot;{suscripcion:name, usuario:user.name}&quot; -o table
 az group list -o table
 az storage account list -g rg-datos-lab --query &quot;[].{nombre:name, hns:isHnsEnabled, sku:sku.name}&quot; -o table
 az group delete -n rg-datos-lab --yes</code></pre>

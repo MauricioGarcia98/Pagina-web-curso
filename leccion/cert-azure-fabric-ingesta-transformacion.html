@@ -79,7 +79,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p>La consulta de la copy activity usa <strong>expresiones</strong> con las salidas de las actividades anteriores:</p>
-<pre><code class="language-text">SELECT * FROM dbo.ventas
+<pre tabindex="0"><code class="language-text">SELECT * FROM dbo.ventas
 WHERE modificado &gt;  '@{activity('MarcaAnterior').output.firstRow.marca}'
   AND modificado &lt;= '@{activity('MarcaNueva').output.firstRow.marca}'</code></pre>
 <p>La marca de agua nueva se guarda <strong>solo si la copia terminó bien</strong>: así, si falla, el siguiente intento vuelve a copiar el mismo intervalo. Y el destino se escribe con <code>MERGE</code> (o borrando e insertando el intervalo) para que reintentar no duplique.</p>
@@ -91,7 +91,7 @@ WHERE modificado &gt;  '@{activity('MarcaAnterior').output.firstRow.marca}'
 
 <h2>Cargar un modelo dimensional</h2>
 <h3>SCD tipo 2 en el warehouse (T-SQL)</h3>
-<pre data-norun><code class="language-sql">-- 1) Cerrar la versión vigente de los productos que cambiaron de precio
+<pre data-norun tabindex="0"><code class="language-sql">-- 1) Cerrar la versión vigente de los productos que cambiaron de precio
 UPDATE d
 SET    d.vigente_hasta = s.fecha_carga, d.es_vigente = 0
 FROM   dbo.dim_producto d
@@ -110,7 +110,7 @@ WHERE  d.producto_id IS NULL;           -- no tiene versión vigente: es nuevo o
 <li><strong>Miembro inferido</strong> (<em>late-arriving dimension</em>): si llega una venta de un producto que todavía no está en la dimensión, se inserta una fila provisoria (&quot;desconocido&quot;) para no perder el hecho, y se completa cuando llega el producto.</li>
 </ul>
 <h3>SCD y upserts en el lakehouse (PySpark)</h3>
-<pre data-norun><code class="language-python">from delta.tables import DeltaTable
+<pre data-norun tabindex="0"><code class="language-python">from delta.tables import DeltaTable
 from pyspark.sql import functions as F, Window
 
 nuevos = (spark.read.table(&quot;bronze_ventas&quot;)
@@ -129,7 +129,7 @@ nuevos = (spark.read.table(&quot;bronze_ventas&quot;)
 <li><strong>Notebook</strong>: <code>spark.read</code> de archivos (<code>Files/</code>) o fuentes externas y <code>saveAsTable</code> a <code>Tables/</code>.</li>
 <li><strong>T-SQL en el warehouse</strong>:</li>
 </ul>
-<pre data-norun><code class="language-sql">COPY INTO dbo.stock_proveedores
+<pre data-norun tabindex="0"><code class="language-sql">COPY INTO dbo.stock_proveedores
 FROM 'https://cuentadatos.blob.core.windows.net/proveedores/stock/*.parquet'
 WITH (FILE_TYPE = 'PARQUET');
 
@@ -192,7 +192,7 @@ GROUP BY v.fecha, p.categoria;</code></pre>
 <li><strong>Spark Structured Streaming</strong> en notebooks de Fabric: igual que en cualquier Spark (lecturas <code>readStream</code>, checkpoint, watermarks), escribiendo tablas Delta del lakehouse.</li>
 <li><strong>Eventhouse y KQL</strong>: las bases KQL ingieren millones de eventos por segundo y consultan con KQL. Las <strong>políticas de actualización</strong> (<em>update policies</em>) transforman los datos al ingerirlos hacia otra tabla; las <strong>vistas materializadas</strong> mantienen agregados actualizados.</li>
 </ul>
-<pre><code class="language-text">// Temperatura promedio por cámara cada 5 minutos, en la última hora
+<pre tabindex="0"><code class="language-text">// Temperatura promedio por cámara cada 5 minutos, en la última hora
 Lecturas
 | where timestamp &gt; ago(1h)
 | summarize temp_prom = avg(temperatura), temp_max = max(temperatura)

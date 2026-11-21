@@ -25,12 +25,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>La documentación primero</h2>
 <p>Toda API tiene su documentación. La de práctica también: <code>GET /v1/docs</code>. Léela antes de escribir código; es lo primero que hace un profesional.</p>
-<pre><code class="language-python">import requests
+<pre tabindex="0"><code class="language-python">import requests
 r = requests.get(&quot;https://api.tiendaandina.dev/v1/docs&quot;)
 for tema, texto in r.json().items():
     print(f&quot;{tema}: {texto}\n&quot;)</code></pre>
 <h2>Un pedido, con cuidado</h2>
-<pre><code class="language-python">import requests
+<pre tabindex="0"><code class="language-python">import requests
 
 r = requests.get(&quot;https://api.tiendaandina.dev/v1/productos&quot;, params={&quot;page&quot;: 1, &quot;per_page&quot;: 5})
 print(r.status_code)              # 200
@@ -55,7 +55,7 @@ for p in datos[&quot;datos&quot;]:
 
 
 <p><strong>Por número de página</strong> (<code>/v1/productos</code>): pides <code>page=1</code>, <code>page=2</code>… hasta que la respuesta diga que no hay <code>siguiente</code>:</p>
-<pre><code class="language-python">import requests
+<pre tabindex="0"><code class="language-python">import requests
 URL = &quot;https://api.tiendaandina.dev/v1/productos&quot;
 todos, page = [], 1
 while page is not None:
@@ -80,7 +80,7 @@ print(len(todos))</code></pre>
 <li>Lo mandas en cada pedido, en la cabecera <code>Authorization: Bearer &lt;token&gt;</code>.</li>
 <li>Si recibes <code>401</code> con &quot;token expirado&quot;, pides otro y repites el pedido.</li>
 </ol>
-<pre><code class="language-python">import os, requests
+<pre tabindex="0"><code class="language-python">import os, requests
 BASE = &quot;https://api.tiendaandina.dev/v1&quot;
 credenciales = {&quot;cliente_id&quot;: &quot;academia&quot;, &quot;secreto&quot;: os.environ.get(&quot;TIENDA_SECRETO&quot;, &quot;s3cr3t0-de-practica&quot;)}
 token = requests.post(f&quot;{BASE}/token&quot;, json=credenciales).json()[&quot;access_token&quot;]
@@ -94,7 +94,7 @@ print(r.status_code, r.json()[&quot;siguiente_cursor&quot;])</code></pre>
 
 <h2>Límites: 429 y Retry-After</h2>
 <p>Las APIs se protegen limitando cuántos pedidos aceptan por segundo o por minuto. La de práctica acepta <strong>10 por segundo</strong>. Si te pasas responde <code>429 Too Many Requests</code> con la cabecera <code>Retry-After</code> (segundos a esperar). Lo correcto es <strong>esperar eso y reintentar</strong>:</p>
-<pre><code class="language-python">import time, requests
+<pre tabindex="0"><code class="language-python">import time, requests
 
 def get_respetando_limite(url, **kw):
     while True:
@@ -106,7 +106,7 @@ def get_respetando_limite(url, **kw):
         time.sleep(espera)</code></pre>
 <h2>Reintentos con espera creciente (backoff)</h2>
 <p>Los <code>5xx</code> (500, 502, 503, 504) y los cortes de red suelen ser <strong>temporales</strong>. Se reintenta, pero esperando cada vez más (1, 2, 4, 8 segundos…) para no empeorar un servidor que ya está saturado. Eso se llama <strong>backoff exponencial</strong>. Los <code>4xx</code> (salvo 429) <strong>no</strong> se reintentan: el pedido está mal y va a seguir mal.</p>
-<pre><code class="language-python">import time, requests
+<pre tabindex="0"><code class="language-python">import time, requests
 
 def get_con_reintentos(url, intentos=5, **kw):
     for n in range(intentos):
@@ -221,7 +221,7 @@ def get_con_reintentos(url, intentos=5, **kw):
 <li>Recorre todas las páginas hasta <code>total_pages</code>.</li>
 <li>Cuenta cuántos productos hay en stock.</li>
 </ol>
-<pre data-norun><code class="language-python">import requests
+<pre data-norun tabindex="0"><code class="language-python">import requests
 r = requests.get(&quot;https://api.tiendaandina.dev/v1/productos&quot;, params={&quot;page&quot;: 1})
 datos = r.json()
 print(r.status_code, datos[&quot;total&quot;], &quot;productos en&quot;, datos[&quot;total_pages&quot;], &quot;páginas&quot;)</code></pre>

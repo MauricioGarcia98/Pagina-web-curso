@@ -76,7 +76,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Pruébalo en la terminal</h2>
 <p>La terminal del curso tiene un proyecto dbt de verdad en la carpeta <code>tienda_dbt</code> (los modelos se ejecutan sobre la base SQLite del curso). Ábrela con el botón <strong>⌨ En la terminal</strong> y ejecuta:</p>
-<pre><code class="language-bash">cd tienda_dbt
+<pre tabindex="0"><code class="language-bash">cd tienda_dbt
 dbt debug
 dbt ls
 dbt compile -s ventas_por_canal
@@ -136,7 +136,7 @@ dbt test</code></pre>
 <li>Compílalo: dbt reemplaza <code>ref</code> por el nombre real de la tabla. Eso es todo lo que hace con tu SQL.</li>
 <li>Ejecuta <code>dbt build</code>: construye los modelos en orden y corre sus tests.</li>
 </ol>
-<pre data-norun><code class="language-bash">cd ~/tienda_dbt
+<pre data-norun tabindex="0"><code class="language-bash">cd ~/tienda_dbt
 cat models/marts/ventas_por_canal.sql
 dbt compile -s ventas_por_canal
 dbt build</code></pre>

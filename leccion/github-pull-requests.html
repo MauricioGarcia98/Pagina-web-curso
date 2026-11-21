@@ -50,7 +50,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>Paso 2 — Crear el PR desde la terminal</h2>
 <p>En el nivel 2 subiste la rama <code>feature/resumen</code> de <code>ventas-app</code>. Si todavía no creaste el PR (o lo haces de nuevo con otra rama):</p>
-<pre><code class="language-bash">gh auth login
+<pre tabindex="0"><code class="language-bash">gh auth login
 gh pr create --title &quot;Agrega el resumen de ventas por canal&quot; --body &quot;Closes #1. Agrega totales_por_canal con un test que comprueba que se ignoran los cancelados.&quot;</code></pre>
 <p><code>gh auth login</code> se hace una vez: conecta la terminal con tu cuenta. <code>gh pr create</code> crea el PR desde la rama en la que estás hacia la rama por defecto.</p>
 <div class="callout callout-nota"><div class="callout-title">📝 Desde la web también</div>
@@ -109,7 +109,7 @@ gh pr create --title &quot;Agrega el resumen de ventas por canal&quot; --body &q
 </tr>
 </tbody></table></div>
 <p>Una plantilla que sirve casi siempre:</p>
-<pre><code class="language-text">## Qué cambia
+<pre tabindex="0"><code class="language-text">## Qué cambia
 Agrega totales_por_canal() en resumen.py.
 
 ## Por qué

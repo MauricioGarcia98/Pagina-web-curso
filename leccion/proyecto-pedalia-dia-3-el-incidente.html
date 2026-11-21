@@ -30,12 +30,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>1. El día 2: todo en verde</h2>
-<pre><code class="language-bash">pedalia exportar --dia 2
+<pre tabindex="0"><code class="language-bash">pedalia exportar --dia 2
 az storage blob upload-batch --account-name stpedaliadev -d landing/pedalia/2026-11-10 -s ~/pedalia/entrega/2026-11-10
 airflow dags test pedalia_diario 2026-11-10</code></pre>
 <p>Todas las tareas en verde. Revisa en Databricks que haya dos fechas en <code>pedalia.silver.viajes</code> y que el día 10 tenga menos viajes que el 9. ¿Por qué? Llovió el martes: es un dato real del negocio, no un error. Confírmalo con operaciones antes de &quot;arreglar&quot; algo que no está roto.</p>
 <h2>2. El día 3: la alerta</h2>
-<pre><code class="language-bash">pedalia exportar --dia 3
+<pre tabindex="0"><code class="language-bash">pedalia exportar --dia 3
 az storage blob upload-batch --account-name stpedaliadev -d landing/pedalia/2026-11-11 -s ~/pedalia/entrega/2026-11-11
 airflow dags test pedalia_diario 2026-11-11</code></pre>
 <p><code>ingesta_adf</code> en verde. <code>transformar_databricks</code> en <strong>rojo</strong>. Las cargas de Snowflake y BigQuery, <strong>upstream_failed</strong>.</p>
@@ -44,11 +44,11 @@ airflow dags test pedalia_diario 2026-11-11</code></pre>
 <li><strong>Airflow</strong>: el log de <code>transformar_databricks</code> dice que el job terminó con <code>result_state: FAILED</code> y trae el enlace a la corrida.</li>
 <li><strong>Databricks → Jobs &amp; Pipelines → pedalia_transformar → la corrida</strong>: falló la tarea <code>bronze_y_silver</code> con:</li>
 </ol>
-<pre><code class="language-text">[CANNOT_PARSE_TIMESTAMP] Text '11/11/2026 12:49' could not be parsed with the pattern 'yyyy-MM-dd HH:mm:ss'.</code></pre>
+<pre tabindex="0"><code class="language-text">[CANNOT_PARSE_TIMESTAMP] Text '11/11/2026 12:49' could not be parsed with the pattern 'yyyy-MM-dd HH:mm:ss'.</code></pre>
 <ol start="3">
 <li><strong>Los datos</strong>: confírmalo en la terminal.</li>
 </ol>
-<pre><code class="language-bash">head -3 ~/pedalia/entrega/2026-11-11/viajes_2026-11-11.csv</code></pre>
+<pre tabindex="0"><code class="language-bash">head -3 ~/pedalia/entrega/2026-11-11/viajes_2026-11-11.csv</code></pre>
 <p>La app ahora manda <code>DD/MM/AAAA HH:MM</code>. Nadie avisó: el LEEME es el mismo.</p>
 <div class="callout callout-nota"><div class="callout-title">📝 Fallar fue lo correcto</div>
 
@@ -58,23 +58,23 @@ airflow dags test pedalia_diario 2026-11-11</code></pre>
 
 <h2>3. Comunicar antes de arreglar</h2>
 <p>Antes de tocar código, un mensaje corto al canal del equipo:</p>
-<pre><code class="language-text">🔴 pedalia_diario (11/11) falló en la transformación. Causa: la app cambió el formato de fecha de los viajes
+<pre tabindex="0"><code class="language-text">🔴 pedalia_diario (11/11) falló en la transformación. Causa: la app cambió el formato de fecha de los viajes
 sin aviso (ahora DD/MM/AAAA). Los números de ayer siguen publicados y son correctos; los de hoy todavía no están.
 Estimo tenerlo resuelto antes de las 9:00. Aviso cuando esté.</code></pre>
 <p>Y otro al equipo de la app: &quot;Desde hoy las fechas llegan como DD/MM/AAAA HH:MM, sin segundos. ¿Fue intencional? ¿Van a quedar así?&quot;. El arreglo no puede esperar la respuesta, pero la pregunta va igual: puede haber más cambios.</p>
 <h2>4. El arreglo, con un pull request</h2>
 <p>El contrato cambia: aceptar los dos formatos. El SQL de silver también:</p>
-<pre data-norun><code class="language-sql">coalesce(try_to_timestamp(inicio, 'yyyy-MM-dd HH:mm:ss'), try_to_timestamp(inicio, 'dd/MM/yyyy HH:mm')) AS inicio,
+<pre data-norun tabindex="0"><code class="language-sql">coalesce(try_to_timestamp(inicio, 'yyyy-MM-dd HH:mm:ss'), try_to_timestamp(inicio, 'dd/MM/yyyy HH:mm')) AS inicio,
 coalesce(try_to_timestamp(fin,    'yyyy-MM-dd HH:mm:ss'), try_to_timestamp(fin,    'dd/MM/yyyy HH:mm')) AS fin,</code></pre>
 <p>¿Y si mañana llega un tercer formato? Con <code>coalesce</code> de dos <code>try_to_timestamp</code>, una fecha con otro formato quedaría NULL y el viaje se perdería en silencio, justo lo que acabamos de evitar. Agrega una <strong>alarma</strong>: si alguna fecha no se pudo leer, el job falla.</p>
-<pre data-norun><code class="language-sql">-- al final de la tarea bronze_y_silver
+<pre data-norun tabindex="0"><code class="language-sql">-- al final de la tarea bronze_y_silver
 SELECT CASE WHEN COUNT(*) &gt; 0 THEN raise_error(CONCAT(COUNT(*), ' viajes con una fecha que no tiene formato conocido'))
             ELSE 'fechas OK' END AS control
 FROM pedalia.bronze.viajes
 WHERE inicio IS NOT NULL
   AND coalesce(try_to_timestamp(inicio, 'yyyy-MM-dd HH:mm:ss'), try_to_timestamp(inicio, 'dd/MM/yyyy HH:mm')) IS NULL;</code></pre>
 <p>En el repositorio:</p>
-<pre><code class="language-bash">cd ~/pedalia-datos
+<pre tabindex="0"><code class="language-bash">cd ~/pedalia-datos
 git checkout main &amp;&amp; git pull
 git checkout -b fix/formato-fecha-app
 nano sql/databricks/silver_viajes.sql     # los dos formatos + la alarma
@@ -91,7 +91,7 @@ git push -u origin fix/formato-fecha-app</code></pre>
 <h2>5. Re-ejecutar solo lo que falló</h2>
 <p>En <a href="#/airflow">Airflow</a>, la corrida del 11/11 → la tarea <code>transformar_databricks</code> → <strong>Clear</strong> (con <em>downstream</em>). Airflow vuelve a ejecutar la transformación y, si sale bien, las dos cargas. La ingesta no se repite: ya estaba bien.</p>
 <p>O desde la terminal:</p>
-<pre><code class="language-bash">airflow dags test pedalia_diario 2026-11-11</code></pre>
+<pre tabindex="0"><code class="language-bash">airflow dags test pedalia_diario 2026-11-11</code></pre>
 <p>Todo en verde. Avisa en el canal: &quot;✅ Resuelto. Los datos del 11/11 ya están en Snowflake, BigQuery y el tablero&quot;.</p>
 <h2>6. ¿Cuadra todo?</h2>
 <p>El panel de abajo lee el estado real de cada herramienta y lo compara con <strong>lo que tiene que dar tu entrega</strong> según el contrato (con tus datos, que son solo tuyos). No modifica nada: úsalo tantas veces como quieras.</p>
@@ -100,7 +100,7 @@ git push -u origin fix/formato-fecha-app</code></pre>
 <p>Si algo no cuadra, el panel dice qué y dónde. Las causas más comunes: un día que no se subió a landing, el pipeline sin publicar, una carga duplicada en Snowflake o la tabla de BigQuery cargada con <code>INTO</code> en vez de <code>OVERWRITE</code>.</p>
 <h2>7. El postmortem</h2>
 <p>Un incidente no termina cuando vuelve el verde: termina cuando se escribió qué aprendió el equipo. Sin culpas: el objetivo es que no se repita, no encontrar a quién señalar.</p>
-<pre><code class="language-markdown"># Postmortem · pedalia_diario 11/11/2026
+<pre tabindex="0"><code class="language-markdown"># Postmortem · pedalia_diario 11/11/2026
 
 ## Resumen
 La transformación falló porque la app cambió el formato de fecha de los viajes sin aviso.

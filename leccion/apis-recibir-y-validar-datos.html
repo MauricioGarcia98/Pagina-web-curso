@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Un modelo describe lo que entra</h2>
-<pre><code class="language-python">from typing import Literal
+<pre tabindex="0"><code class="language-python">from typing import Literal
 from pydantic import BaseModel, Field
 
 class Linea(BaseModel):
@@ -69,7 +69,7 @@ class PedidoNuevo(BaseModel):
 
 <h2>El cuerpo de un POST</h2>
 <p>Si un parámetro de la función es un modelo, FastAPI lo lee del <strong>cuerpo JSON</strong>:</p>
-<pre data-norun><code class="language-python">@app.post(&quot;/pedidos&quot;, status_code=201)
+<pre data-norun tabindex="0"><code class="language-python">@app.post(&quot;/pedidos&quot;, status_code=201)
 def crear(pedido: PedidoNuevo):
     nuevo = {&quot;pedido_id&quot;: len(PEDIDOS) + 1, **pedido.model_dump()}
     PEDIDOS.append(nuevo)
@@ -77,7 +77,7 @@ def crear(pedido: PedidoNuevo):
 <p><code>model_dump()</code> convierte el modelo en un diccionario (incluidos los modelos anidados). <code>status_code=201</code> es el código correcto al crear.</p>
 <h2>Leer un 422</h2>
 <p>Si mandan <code>{&quot;cliente_id&quot;: 7, &quot;canal&quot;: &quot;fax&quot;, &quot;lineas&quot;: [{&quot;producto_id&quot;: 1, &quot;cantidad&quot;: 0}]}</code>:</p>
-<pre><code class="language-json">{&quot;detail&quot;: [
+<pre tabindex="0"><code class="language-json">{&quot;detail&quot;: [
   {&quot;type&quot;: &quot;literal_error&quot;, &quot;loc&quot;: [&quot;body&quot;, &quot;canal&quot;], &quot;msg&quot;: &quot;Input should be 'web', 'app', 'tienda' or 'telefono'&quot;, &quot;input&quot;: &quot;fax&quot;},
   {&quot;type&quot;: &quot;greater_than_equal&quot;, &quot;loc&quot;: [&quot;body&quot;, &quot;lineas&quot;, 0, &quot;cantidad&quot;], &quot;msg&quot;: &quot;Input should be greater than or equal to 1&quot;, &quot;input&quot;: 0}
 ]}</code></pre>
@@ -88,7 +88,7 @@ def crear(pedido: PedidoNuevo):
 
 
 <p>La solución estándar: el cliente genera una clave única por operación y la manda en el encabezado <code>Idempotency-Key</code>. El servidor guarda la respuesta de cada clave; si vuelve a llegar la misma clave, devuelve la respuesta guardada <strong>sin crear nada</strong>. Así lo documenta, por ejemplo, la <a href="https://docs.stripe.com/api/idempotent_requests">API de Stripe</a>.</p>
-<pre data-norun><code class="language-python">from fastapi import Header
+<pre data-norun tabindex="0"><code class="language-python">from fastapi import Header
 
 RESPUESTAS = {}
 
@@ -115,7 +115,7 @@ def crear(pedido: PedidoNuevo, idempotency_key: str | None = Header(None)):
 <li>Comprueba que, con la misma <code>Idempotency-Key</code>, la lista de pedidos no crece.</li>
 <li>Agrega al modelo <code>Linea</code> un campo <code>precio_unitario: float = Field(gt=0)</code> y prueba qué pasa si mandas <code>0</code>.</li>
 </ol>
-<pre><code class="language-python">from typing import Literal
+<pre tabindex="0"><code class="language-python">from typing import Literal
 from fastapi import FastAPI, Header
 from fastapi.testclient import TestClient
 from pydantic import BaseModel, Field

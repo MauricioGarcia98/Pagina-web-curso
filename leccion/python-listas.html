@@ -19,7 +19,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear listas, leer elementos por posición y modificar su contenido</li><li>Usar <code>len</code>, <code>sum</code>, <code>min</code>, <code>max</code>, <code>sorted</code> y slices para analizar una lista</li><li>Evitar la trampa de las referencias al copiar listas</li><li>Representar registros con tuplas y tablas con listas de tuplas</li></ul>
 <h2>Muchos valores bajo un mismo nombre</h2>
 <p>Una variable guarda <strong>un</strong> valor. Pero los datos casi siempre vienen en grupos: las ventas del mes, los emails de los clientes, las líneas de un archivo. Una <strong>lista</strong> guarda varios valores <strong>en orden</strong> bajo un solo nombre. Es la estructura de datos más usada de Python.</p>
-<pre><code class="language-python">ventas = [120, 340, 90, 560]
+<pre tabindex="0"><code class="language-python">ventas = [120, 340, 90, 560]
 nombres = [&quot;Ana&quot;, &quot;Luis&quot;, &quot;Eva&quot;]
 mezcla = [1, &quot;dos&quot;, 3.0, True, None]   # puede mezclar tipos (casi nunca conviene)
 vacia = []
@@ -38,7 +38,7 @@ print(len(ventas), ventas[0], ventas[-1], ventas[1:3])</code></pre>
 <p>Si pides un índice que no existe, Python avisa: <code>ventas[10]</code> → <code>IndexError: list index out of range</code>.</p>
 <h2>Modificar listas</h2>
 <p>A diferencia de los strings, las listas son <strong>mutables</strong>: se pueden cambiar sin crear una nueva.</p>
-<pre><code class="language-python">carrito = [&quot;mouse&quot;, &quot;teclado&quot;]
+<pre tabindex="0"><code class="language-python">carrito = [&quot;mouse&quot;, &quot;teclado&quot;]
 carrito.append(&quot;monitor&quot;)          # agrega AL FINAL               → ['mouse', 'teclado', 'monitor']
 carrito.insert(0, &quot;webcam&quot;)        # agrega en una posición       → ['webcam', 'mouse', 'teclado', 'monitor']
 carrito.remove(&quot;teclado&quot;)          # quita la primera aparición de ese VALOR
@@ -88,7 +88,7 @@ print(carrito, ultimo)</code></pre>
 </tr>
 </tbody></table></div>
 <h2>Funciones y métodos útiles</h2>
-<pre><code class="language-python">numeros = [5, 3, 9, 1, 7]
+<pre tabindex="0"><code class="language-python">numeros = [5, 3, 9, 1, 7]
 print(sum(numeros), min(numeros), max(numeros))   # 25 1 9
 print(sorted(numeros))                 # NUEVA lista ordenada: [1, 3, 5, 7, 9]
 print(sorted(numeros, reverse=True))   # de mayor a menor
@@ -103,14 +103,14 @@ print(numeros, 9 in numeros, numeros.index(9), numeros.count(3))</code></pre>
 
 <h3>Ordenar por un criterio: key</h3>
 <p><code>sorted</code> acepta <code>key=</code>, una función que dice <strong>por qué</strong> ordenar:</p>
-<pre><code class="language-python">nombres = [&quot;valentina&quot;, &quot;Ana&quot;, &quot;luis&quot;, &quot;Bruno&quot;]
+<pre tabindex="0"><code class="language-python">nombres = [&quot;valentina&quot;, &quot;Ana&quot;, &quot;luis&quot;, &quot;Bruno&quot;]
 print(sorted(nombres))                    # mayúsculas primero: ['Ana', 'Bruno', 'luis', 'valentina']
 print(sorted(nombres, key=str.lower))     # ignorando mayúsculas
 print(sorted(nombres, key=len))           # por largo</code></pre>
 <p>Lo usarás muchísimo con listas de diccionarios o tuplas: &quot;ordena los clientes por total gastado&quot; (<code>key=lambda c: c[&quot;total&quot;]</code>, lo verás en funciones).</p>
 <h2>Copiar listas: la trampa de las referencias</h2>
 <p>Esto sorprende a todos la primera vez:</p>
-<pre><code class="language-python">a = [1, 2, 3]
+<pre tabindex="0"><code class="language-python">a = [1, 2, 3]
 b = a          # ¡b NO es una copia: es otro nombre para LA MISMA lista!
 b.append(4)
 print(a)       # [1, 2, 3, 4]  😱 a también cambió
@@ -123,7 +123,7 @@ print(a, c)    # a no cambia</code></pre>
 
 <h2>Listas de listas: tablas en memoria</h2>
 <p>Una lista puede contener otras listas. Así se representa una tabla: una lista de filas.</p>
-<pre><code class="language-python">tabla = [
+<pre tabindex="0"><code class="language-python">tabla = [
     [&quot;Ana&quot;, &quot;Chile&quot;, 3],
     [&quot;Luis&quot;, &quot;Perú&quot;, 5],
 ]
@@ -133,7 +133,7 @@ for nombre, pais, compras in tabla:     # desempaquetado de cada fila
 <p>El <strong>desempaquetado</strong> (<code>for nombre, pais, compras in tabla</code>) asigna cada elemento de la fila a una variable. Es mucho más legible que <code>fila[0]</code>, <code>fila[1]</code>, <code>fila[2]</code>. (Para tablas con nombres de columnas, en la próxima lección verás que es mejor una lista de <strong>diccionarios</strong>.)</p>
 <h2>Tuplas: registros que no cambian</h2>
 <p>Una <strong>tupla</strong> es como una lista pero <strong>inmutable</strong>: una vez creada no se puede modificar. Se escribe con paréntesis:</p>
-<pre><code class="language-python">punto = (-34.6, -58.4)           # latitud, longitud
+<pre tabindex="0"><code class="language-python">punto = (-34.6, -58.4)           # latitud, longitud
 lat, lon = punto                 # desempaquetado
 registro = (&quot;2024-03-15&quot;, &quot;web&quot;, 120.5)
 print(lat, lon, registro[1])</code></pre>
@@ -208,7 +208,7 @@ print(lat, lon, registro[1])</code></pre>
 <li>Agrega un producto con <code>append</code> y vuelve a ordenar.</li>
 <li>Saca el último con <code>pop()</code> y muéstralo.</li>
 </ol>
-<pre data-norun><code class="language-python">precios = [45.5, 12.0, 99.9, 7.25, 60.0]
+<pre data-norun tabindex="0"><code class="language-python">precios = [45.5, 12.0, 99.9, 7.25, 60.0]
 precios.sort(reverse=True)
 print(&quot;Top 3:&quot;, precios[:3])
 print(&quot;Más barato:&quot;, precios[-1])</code></pre>

@@ -119,16 +119,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Windows: trabajar dentro de Linux con WSL 2</h2>
 <p>Casi todas las herramientas de datos están pensadas para Linux: los servidores de producción, los contenedores y la documentación de dbt, Airflow y Spark asumen una terminal Linux. <strong>WSL 2</strong> (<em>Windows Subsystem for Linux</em>) corre un Ubuntu real dentro de Windows, integrado con el explorador de archivos y con VS Code. Es la forma recomendada de trabajar en Windows.</p>
 <p><strong>Paso 1.</strong> Abre <strong>PowerShell como administrador</strong> (clic derecho en el menú Inicio → &quot;Terminal (Administrador)&quot;) y ejecuta:</p>
-<pre><code class="language-powershell">wsl --install</code></pre>
+<pre tabindex="0"><code class="language-powershell">wsl --install</code></pre>
 <p>Instala la plataforma de virtualización, el kernel de Linux y <strong>Ubuntu</strong>. Reinicia cuando te lo pida.</p>
 <p><strong>Paso 2.</strong> Al reiniciar se abre Ubuntu y te pide un <strong>usuario y una contraseña de Linux</strong> (no tienen que ser los de Windows; anota la contraseña: la pide <code>sudo</code>).</p>
 <p><strong>Paso 3.</strong> Comprueba que es la versión 2:</p>
-<pre><code class="language-powershell">wsl -l -v</code></pre>
-<pre><code class="language-text">  NAME      STATE           VERSION
+<pre tabindex="0"><code class="language-powershell">wsl -l -v</code></pre>
+<pre tabindex="0"><code class="language-text">  NAME      STATE           VERSION
 * Ubuntu    Running         2</code></pre>
 <p><strong>Paso 4.</strong> Instala <strong>Windows Terminal</strong> (viene con Windows 11; en Windows 10, desde la Microsoft Store). Desde ahora abre &quot;Ubuntu&quot; en Windows Terminal para trabajar.</p>
 <p><strong>Paso 5.</strong> Actualiza Ubuntu e instala lo básico:</p>
-<pre data-norun><code class="language-bash">sudo apt update &amp;&amp; sudo apt upgrade -y
+<pre data-norun tabindex="0"><code class="language-bash">sudo apt update &amp;&amp; sudo apt upgrade -y
 sudo apt install -y build-essential curl unzip git make</code></pre>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Dónde guardar tus proyectos</div>
 
@@ -137,22 +137,22 @@ sudo apt install -y build-essential curl unzip git make</code></pre>
 
 
 <p><strong>Instalar programas de Windows</strong> (VS Code, Docker Desktop) se hace con el instalador o con <strong>winget</strong> en PowerShell:</p>
-<pre><code class="language-powershell">winget install -e --id Microsoft.VisualStudioCode
+<pre tabindex="0"><code class="language-powershell">winget install -e --id Microsoft.VisualStudioCode
 winget install -e --id Docker.DockerDesktop</code></pre>
 <h2>macOS: Homebrew</h2>
 <p>macOS ya tiene una terminal tipo Unix (zsh). Le falta un <strong>gestor de paquetes</strong>: <strong>Homebrew</strong>, que instala y actualiza herramientas con un comando.</p>
 <p><strong>Paso 1.</strong> Instala las herramientas de línea de comandos de Apple (incluyen <code>git</code> y el compilador):</p>
-<pre data-norun><code class="language-bash">xcode-select --install</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">xcode-select --install</code></pre>
 <p><strong>Paso 2.</strong> Instala Homebrew (el comando oficial de <a href="https://brew.sh">brew.sh</a>):</p>
-<pre data-norun><code class="language-bash">/bin/bash -c &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)&quot;</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">/bin/bash -c &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)&quot;</code></pre>
 <p>Al terminar, Homebrew te muestra <strong>dos líneas para agregar al PATH</strong> (en Apple Silicon, <code>eval &quot;$(/opt/homebrew/bin/brew shellenv)&quot;</code>). Cópialas y ejecútalas: si no, la terminal no encuentra <code>brew</code>.</p>
 <p><strong>Paso 3.</strong> Instala lo básico:</p>
-<pre data-norun><code class="language-bash">brew install git make wget
+<pre data-norun tabindex="0"><code class="language-bash">brew install git make wget
 brew install --cask visual-studio-code docker</code></pre>
 <p><code>--cask</code> es para aplicaciones con ventana (VS Code, Docker Desktop).</p>
 <h2>Linux (Ubuntu o Debian)</h2>
 <p>Ya tienes todo lo necesario para empezar. Actualiza e instala lo básico con <strong>apt</strong>:</p>
-<pre data-norun><code class="language-bash">sudo apt update &amp;&amp; sudo apt upgrade -y
+<pre data-norun tabindex="0"><code class="language-bash">sudo apt update &amp;&amp; sudo apt upgrade -y
 sudo apt install -y build-essential curl unzip git make</code></pre>
 <h2>Los gestores de paquetes, comparados</h2>
 <div class="table-wrap"><table><thead><tr>
@@ -195,7 +195,7 @@ sudo apt install -y build-essential curl unzip git make</code></pre>
 <p><code>sudo</code> ejecuta el comando como administrador: <code>apt</code> lo necesita porque instala para todo el sistema; <code>brew</code> no (instala en tu usuario).</p>
 <h2>La checklist: ¿está todo listo?</h2>
 <p>Al terminar el módulo, estos comandos deberían responder con una versión. Ve tachando a medida que avanzas:</p>
-<pre data-norun><code class="language-bash">git --version          # lección 2
+<pre data-norun tabindex="0"><code class="language-bash">git --version          # lección 2
 code --version         # lección 2
 uv --version           # lección 3
 python --version       # lección 3
@@ -249,7 +249,7 @@ terraform -version     # lección 9</code></pre>
 <li>Si alguno dice <em>command not found</em> en tu máquina, esa es la herramienta que te falta instalar.</li>
 <li>Anota las versiones: cuando pidas ayuda, es lo primero que te van a preguntar.</li>
 </ol>
-<pre data-norun><code class="language-bash">git --version
+<pre data-norun tabindex="0"><code class="language-bash">git --version
 python3 --version
 uv --version
 docker --version

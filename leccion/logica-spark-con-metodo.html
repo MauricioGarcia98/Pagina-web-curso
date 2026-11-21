@@ -69,7 +69,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>En Spark no se recorre con un for</h2>
 <p>En Python puro escribes el bucle. En Spark los datos están repartidos entre muchas máquinas: <strong>describes qué hacer con cada columna</strong> y Spark decide cómo repartir el trabajo. Si te encuentras escribiendo <code>for fila in df.collect()</code>, casi siempre hay una forma con <code>filter</code>, <code>withColumn</code> o <code>groupBy</code>.</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 pedidos = spark.table(&quot;pedidos&quot;)
 
@@ -84,7 +84,7 @@ resultado.show()</code></pre>
 <p>Cada línea es un paso del plan. Si el resultado está mal, comenta las últimas líneas y mira con <code>.show()</code> el paso anterior, igual que probabas cada CTE.</p>
 <h2>Comparar con el anterior y top N: ventanas</h2>
 <p>Una <code>Window</code> define &quot;el grupo y el orden&quot; en el que miras a los vecinos de cada fila.</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 por_anio = (spark.table(&quot;pedidos&quot;)
@@ -94,7 +94,7 @@ por_anio = (spark.table(&quot;pedidos&quot;)
 w = Window.orderBy(&quot;anio&quot;)
 por_anio.withColumn(&quot;anterior&quot;, F.lag(&quot;count&quot;).over(w)).show()</code></pre>
 <p>Para &quot;los 2 productos más caros de cada categoría&quot;, numeras dentro de cada grupo y te quedas con los primeros:</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 w = Window.partitionBy(&quot;categoria_id&quot;).orderBy(F.desc(&quot;precio&quot;), &quot;nombre&quot;)
@@ -138,7 +138,7 @@ w = Window.partitionBy(&quot;categoria_id&quot;).orderBy(F.desc(&quot;precio&quo
 <li>Ejecuta: cada paso es una línea; no hay <code>for</code>, Spark recorre por ti.</li>
 <li>Verifica contando filas después de cada paso, igual que en SQL.</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 ped = spark.table(&quot;pedidos&quot;).filter(F.col(&quot;estado&quot;) == &quot;entregado&quot;)          # filtrar

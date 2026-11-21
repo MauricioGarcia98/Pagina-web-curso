@@ -82,7 +82,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Arriba de cada hoja hay dos selectores: <strong>rol · warehouse</strong> y <strong>base.esquema</strong>. Son el <em>contexto</em> de la sesión, lo mismo que ejecutar <code>USE ROLE</code>, <code>USE WAREHOUSE</code> y <code>USE SCHEMA</code>.</p>
 <h2>Warehouses y créditos</h2>
 <p>Un warehouse tiene un <strong>tamaño</strong>: X-Small consume 1 crédito por hora, Small 2, Medium 4, y así se duplica en cada tamaño. Un tamaño más grande no es más caro por consulta si la consulta termina proporcionalmente más rápido; sirve para consultas pesadas, no para muchas consultas chicas (para eso existe el escalado multi-cluster).</p>
-<pre data-norun><code class="language-sql">CREATE WAREHOUSE etl_wh
+<pre data-norun tabindex="0"><code class="language-sql">CREATE WAREHOUSE etl_wh
   WAREHOUSE_SIZE = 'XSMALL'
   AUTO_SUSPEND = 60        -- se apaga tras 60 s sin consultas
   AUTO_RESUME = TRUE       -- se enciende solo al recibir una consulta
@@ -100,13 +100,13 @@ ALTER WAREHOUSE etl_wh SUSPEND;</code></pre>
 <p>En la réplica, la página <strong>Warehouses</strong> suma los créditos de tus consultas con estas mismas reglas.</p>
 <h2>Bases, esquemas y nombres</h2>
 <p>Toda tabla vive en <code>BASE.ESQUEMA.TABLA</code>. Los nombres sin comillas se guardan en <strong>mayúsculas</strong>: <code>ventas</code>, <code>Ventas</code> y <code>VENTAS</code> son la misma tabla; <code>&quot;Ventas&quot;</code>, con comillas, sería otra.</p>
-<pre data-norun><code class="language-sql">CREATE DATABASE analitica;
+<pre data-norun tabindex="0"><code class="language-sql">CREATE DATABASE analitica;
 CREATE SCHEMA analitica.staging;
 USE SCHEMA analitica.staging;
 CREATE TABLE ventas (id INT, monto NUMBER(10,2), pais VARCHAR);</code></pre>
 <h2>Cargar archivos: stages y COPY INTO</h2>
 <p>Un <strong>stage</strong> es una carpeta donde quedan los archivos antes de cargarlos. Puede ser <strong>interno</strong> (los archivos viven en Snowflake; en Snowsight se suben con <strong>+ Files</strong>) o <strong>externo</strong> (apunta a un bucket de S3, un contenedor de Azure o GCS).</p>
-<pre data-norun><code class="language-sql">CREATE STAGE carga;
+<pre data-norun tabindex="0"><code class="language-sql">CREATE STAGE carga;
 LIST @carga;
 
 COPY INTO clientes_nuevos
@@ -117,7 +117,7 @@ ON_ERROR = 'ABORT_STATEMENT';</code></pre>
 <p><code>COPY INTO</code> <strong>recuerda qué archivos ya cargó</strong> en esa tabla (durante 64 días): si lo ejecutas otra vez, esos archivos aparecen como <code>LOAD_SKIPPED</code> y no se duplican filas. Para cargarlos de nuevo a propósito se usa <code>FORCE = TRUE</code>. Para cargas continuas sin programar nada existe <strong>Snowpipe</strong>, que ejecuta el <code>COPY</code> cada vez que llega un archivo.</p>
 <h2>Time Travel, UNDROP y clones</h2>
 <p>Snowflake guarda las versiones anteriores de los datos durante un período de retención (1 día por defecto; hasta 90 en la edición Enterprise). Eso permite:</p>
-<pre data-norun><code class="language-sql">-- la tabla como estaba hace 5 minutos
+<pre data-norun tabindex="0"><code class="language-sql">-- la tabla como estaba hace 5 minutos
 SELECT * FROM ventas AT(OFFSET =&gt; -60*5);
 
 -- la tabla justo antes de una sentencia (el Query ID sale de Query History)
@@ -158,7 +158,7 @@ UNDROP TABLE ventas;</code></pre>
 </tr>
 </tbody></table></div>
 <p>Para que un rol pueda leer una tabla necesita permiso en <strong>toda la cadena</strong>: el warehouse, la base, el esquema y la tabla.</p>
-<pre data-norun><code class="language-sql">USE ROLE SECURITYADMIN;   -- SYSADMIN no puede crear roles
+<pre data-norun tabindex="0"><code class="language-sql">USE ROLE SECURITYADMIN;   -- SYSADMIN no puede crear roles
 CREATE ROLE analista;
 GRANT USAGE ON WAREHOUSE compute_wh TO ROLE analista;
 GRANT USAGE ON DATABASE tienda_andina TO ROLE analista;
@@ -248,7 +248,7 @@ USE ROLE analista;       -- prueba el rol: solo puede leer ese esquema</code></p
 <li>Abre un <strong>worksheet</strong>, elige base y esquema, y ejecuta la consulta de abajo.</li>
 <li>Revisa <strong>Query History</strong>: cuánto tardó y qué warehouse usó.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT canal, COUNT(*) AS pedidos
+<pre data-norun tabindex="0"><code class="language-sql">SELECT canal, COUNT(*) AS pedidos
 FROM pedidos
 GROUP BY canal
 ORDER BY pedidos DESC;</code></pre>

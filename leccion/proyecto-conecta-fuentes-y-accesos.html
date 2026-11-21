@@ -18,7 +18,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <a class="cta" href="../index.html#/l/proyecto-conecta-fuentes-y-accesos">▶ Abrir la lección interactiva (2 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer correos .eml con sus codificaciones</li><li>Extraer texto de un PDF</li><li>Llamar a un modelo de lenguaje desde un pipeline con reintentos</li><li>Calcular embeddings y buscar por similitud</li></ul>
 <h2>Accesos</h2>
-<pre><code class="language-bash">conecta accesos</code></pre>
+<pre tabindex="0"><code class="language-bash">conecta accesos</code></pre>
 <figure class="diagrama"><figcaption>Los sistemas de Conecta y el lugar de la IA</figcaption></figure>
 
 
@@ -46,7 +46,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>Los buzones de correo</h2>
-<pre><code class="language-bash">conecta correo descargar            # desde dos días antes del arranque
+<pre tabindex="0"><code class="language-bash">conecta correo descargar            # desde dos días antes del arranque
 conecta correo descargar --desde 2026-11-20</code></pre>
 <p>Archivos <code>.eml</code> en <code>~/conecta/correo/soporte/</code> y <code>~/conecta/correo/facturacion/</code>. Son correos de verdad:</p>
 <ul>
@@ -55,7 +55,7 @@ conecta correo descargar --desde 2026-11-20</code></pre>
 <li>Si un correo se mandó a los dos buzones, aparece dos veces con el <strong>mismo <code>Message-ID</code></strong>.</li>
 <li>El remitente se busca en <code>/v1/clientes</code>. Si no está, a veces el cliente escribió su &quot;Nro de cliente&quot; en el cuerpo.</li>
 </ul>
-<pre><code class="language-python">from email import policy
+<pre tabindex="0"><code class="language-python">from email import policy
 from email.parser import BytesParser
 # con un archivo: crudo = open(ruta, &quot;rb&quot;).read()
 crudo = (b'From: Ana &lt;ana@correo.example&gt;\nMessage-ID: &lt;abc123@correo.example&gt;\n'
@@ -64,12 +64,12 @@ crudo = (b'From: Ana &lt;ana@correo.example&gt;\nMessage-ID: &lt;abc123@correo.e
 msg = BytesParser(policy=policy.default).parsebytes(crudo)
 print(msg[&quot;Message-ID&quot;], msg.get_body(preferencelist=(&quot;plain&quot;,)).get_content())</code></pre>
 <h2>Los contratos</h2>
-<pre><code class="language-bash">conecta contratos descargar
+<pre tabindex="0"><code class="language-bash">conecta contratos descargar
 pdftotext ~/conecta/contratos/CTR-4100.pdf -</code></pre>
 <p>Uno por empresa. La cláusula QUINTA tiene el plazo de primera respuesta. Algunos contratos tienen una <strong>adenda</strong> en otra página que lo cambia.</p>
 <h2>Lumen IA · <code>https://api.lumenia.example/v1</code></h2>
 <p><code>Authorization: Bearer lum_…</code></p>
-<pre><code class="language-bash">curl -s https://api.lumenia.example/v1/chat -H &quot;Authorization: Bearer $LUMEN&quot; \
+<pre tabindex="0"><code class="language-bash">curl -s https://api.lumenia.example/v1/chat -H &quot;Authorization: Bearer $LUMEN&quot; \
   --json '{&quot;model&quot;: &quot;lumen-mini-1&quot;, &quot;temperature&quot;: 0, &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Hola&quot;}]}'</code></pre>
 <div class="table-wrap"><table><thead><tr>
 <th>Ruta</th>
@@ -132,7 +132,7 @@ pdftotext ~/conecta/contratos/CTR-4100.pdf -</code></pre>
 <li><strong>recall@3</strong>: de las preguntas que la base sí puede responder, en cuántas el artículo correcto está entre los 3 primeros que recupera tu buscador.</li>
 <li><strong>Respuesta correcta</strong>: trae el dato del artículo; si la base no tiene la respuesta, el asistente dice que no la tiene.</li>
 </ul>
-<pre><code class="language-python">def coseno(a, b):  # los vectores ya vienen normalizados
+<pre tabindex="0"><code class="language-python">def coseno(a, b):  # los vectores ya vienen normalizados
     return sum(x * y for x, y in zip(a, b))</code></pre>
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>

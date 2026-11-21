@@ -65,7 +65,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>El modelo de datos</h2>
-<pre><code class="language-text">delivery_clientes     (cliente_id, ciudad, fecha_registro, plataforma)
+<pre tabindex="0"><code class="language-text">delivery_clientes     (cliente_id, ciudad, fecha_registro, plataforma)
 delivery_restaurantes (restaurante_id, nombre, ciudad, categoria, comision_pct, rating)
 delivery_repartidores (repartidor_id, ciudad, vehiculo, fecha_alta)
 delivery_pedidos      (pedido_id, cliente_id, restaurante_id, repartidor_id, ciudad,
@@ -79,7 +79,7 @@ delivery_pedidos      (pedido_id, cliente_id, restaurante_id, repartidor_id, ciu
 <li>Ojo: del 14 al 16 de agosto una versión de la app registró mal algunos horarios (hay pedidos con <code>aceptado</code> después de <code>retirado</code>). En el proyecto final escribirás el control que lo detecta.</li>
 </ul>
 <h2>Un ejemplo resuelto: ¿dónde se va el tiempo?</h2>
-<pre><code class="language-sql">SELECT ciudad,
+<pre tabindex="0"><code class="language-sql">SELECT ciudad,
        COUNT(*) AS entregados,
        ROUND(AVG((julianday(aceptado)  - julianday(creado))   * 1440), 1) AS aceptacion_min,
        ROUND(AVG((julianday(retirado)  - julianday(aceptado)) * 1440), 1) AS preparacion_min,
@@ -175,7 +175,7 @@ ORDER BY total_min DESC;</code></pre>
 <li>Agrega las cancelaciones: un pedido cancelado no deja ingreso pero sí costo operativo.</li>
 <li>¿La ciudad con mejor take rate es también la que menos cancela?</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT p.ciudad,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT p.ciudad,
        SUM(CASE WHEN p.estado = 'entregado' THEN 1 ELSE 0 END) AS entregados,
        ROUND(SUM(CASE WHEN p.estado = 'entregado' THEN p.subtotal ELSE 0 END), 2) AS gmv,
        ROUND(SUM(CASE WHEN p.estado = 'entregado' THEN p.subtotal * r.comision_pct / 100.0 + p.costo_envio ELSE 0 END), 2) AS ingreso,

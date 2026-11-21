@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 1 — Conecta con GitHub</h2>
 <p>En la terminal integrada, dentro de <code>ventas_app</code> (con al menos un commit):</p>
-<pre><code class="language-bash">gh repo create ventas_app --private --source=. --push</code></pre>
+<pre tabindex="0"><code class="language-bash">gh repo create ventas_app --private --source=. --push</code></pre>
 <p>Crea el repositorio en GitHub, lo conecta como <code>origin</code> y sube tu rama. En la práctica se crea en la <a href="#/github">réplica de GitHub</a>; en tu computadora, en GitHub de verdad (después de <code>gh auth login</code>).</p>
 <div class="table-wrap"><table><thead><tr>
 <th>Comando</th>
@@ -67,7 +67,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 3 — Un conflicto</h2>
 <p>Un conflicto aparece cuando dos personas cambiaron <strong>las mismas líneas</strong> de un archivo. Al hacer <code>git pull</code> o <code>git merge</code>, Git no sabe con cuál quedarse y marca el archivo:</p>
-<pre><code class="language-text">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+<pre tabindex="0"><code class="language-text">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
 UMBRAL = 8.0
 =======
 UMBRAL = 7.5

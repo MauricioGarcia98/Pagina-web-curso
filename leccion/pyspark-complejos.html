@@ -57,7 +57,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Arrays</h2>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 df = spark.createDataFrame(
     [(1, [&quot;sql&quot;, &quot;python&quot;]), (2, [&quot;spark&quot;]), (3, [])],
@@ -69,14 +69,14 @@ df.select(&quot;alumno_id&quot;,
 <p>Otras funciones útiles de arrays: <code>F.array_distinct</code> (sin repetidos), <code>F.array_sort</code>, <code>F.array_join(c, &quot;, &quot;)</code> (unir en un texto), <code>F.array_union</code> / <code>F.array_intersect</code>, y <code>F.filter</code> / <code>F.transform</code> para filtrar o transformar cada elemento sin desarmar el array.</p>
 <h3>explode: un elemento, una fila</h3>
 <p><code>explode</code> convierte <strong>cada elemento</strong> de un array en <strong>una fila</strong> (las demás columnas se repiten):</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 df = spark.createDataFrame(
     [(1, [&quot;sql&quot;, &quot;python&quot;]), (2, [&quot;spark&quot;]), (3, [])],
     &quot;alumno_id INT, cursos ARRAY&lt;STRING&gt;&quot;)
 df.select(&quot;alumno_id&quot;, F.explode(&quot;cursos&quot;).alias(&quot;curso&quot;)).show()          # el alumno 3 desaparece
 df.select(&quot;alumno_id&quot;, F.explode_outer(&quot;cursos&quot;).alias(&quot;curso&quot;)).show()    # conserva al 3 con NULL</code></pre>
-<pre><code class="language-text">explode                     explode_outer
+<pre tabindex="0"><code class="language-text">explode                     explode_outer
 +---------+------+          +---------+------+
 |alumno_id| curso|          |alumno_id| curso|
 +---------+------+          +---------+------+
@@ -89,7 +89,7 @@ df.select(&quot;alumno_id&quot;, F.explode_outer(&quot;cursos&quot;).alias(&quot
 <p>Lo contrario de <code>explode</code> es agrupar con <code>collect_list</code> / <code>collect_set</code>, que viste en agregaciones.</p>
 <h3>split + explode: de un texto con separadores a filas</h3>
 <p>Es muy común recibir listas metidas en un texto (<code>&quot;oferta,verano,remeras&quot;</code>). <code>split</code> lo convierte en array y <code>explode</code> en filas:</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 tags = spark.createDataFrame([(1, &quot;oferta,verano,remeras&quot;), (2, &quot;invierno&quot;)], [&quot;producto_id&quot;, &quot;tags&quot;])
 tags.withColumn(&quot;tag&quot;, F.explode(F.split(&quot;tags&quot;, &quot;,&quot;))).select(&quot;producto_id&quot;, &quot;tag&quot;).show()</code></pre>
@@ -97,7 +97,7 @@ tags.withColumn(&quot;tag&quot;, F.explode(F.split(&quot;tags&quot;, &quot;,&quo
 
 
 <h2>Structs: registros dentro de una columna</h2>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 clientes = spark.table(&quot;clientes&quot;).select(
     &quot;cliente_id&quot;,
@@ -105,7 +105,7 @@ clientes = spark.table(&quot;clientes&quot;).select(
 )
 clientes.printSchema()
 clientes.select(&quot;cliente_id&quot;, &quot;ubicacion.pais&quot;).show(3)   # acceder a un campo con punto</code></pre>
-<pre><code class="language-text">root
+<pre tabindex="0"><code class="language-text">root
  |-- cliente_id: integer
  |-- ubicacion: struct
  |    |-- ciudad: string
@@ -116,7 +116,7 @@ clientes.select(&quot;cliente_id&quot;, &quot;ubicacion.pais&quot;).show(3)   # 
 </ul>
 <h2>JSON</h2>
 <p>Cuando el JSON llega como <strong>texto</strong> dentro de una columna (algo muy común en tablas de eventos o en mensajes de Kafka / Pub/Sub / Kinesis), tienes dos opciones:</p>
-<pre><code class="language-python">from pyspark.sql import functions as F
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 eventos = spark.createDataFrame([
     (1, '{&quot;tipo&quot;: &quot;compra&quot;, &quot;monto&quot;: 120.5, &quot;items&quot;: 3}'),
@@ -157,7 +157,7 @@ eventos = spark.createDataFrame([
 <p>Si un campo no existe (como <code>monto</code> en el evento 2), el resultado es <code>null</code>, no un error: los eventos de tipos distintos conviven en la misma tabla.</p>
 <h2>UDFs: cuando no existe una función nativa</h2>
 <p>Una <strong>UDF</strong> (<em>user-defined function</em>) es una función de Python que Spark aplica a cada fila. Sirve para lógica que no existe en <code>F</code>:</p>
-<pre><code class="language-python">from pyspark.sql import functions as F, types as T
+<pre tabindex="0"><code class="language-python">from pyspark.sql import functions as F, types as T
 
 @F.udf(returnType=T.StringType())
 def categoria_talla(talla):
@@ -203,7 +203,7 @@ spark.createDataFrame([(36,), (42,), (None,)], [&quot;talla&quot;]).withColumn(&
 <li>Unifica las dos versiones con <code>coalesce</code> y cuenta eventos por tipo.</li>
 <li>Junta los productos que vio cada cliente en un array con <code>collect_set</code>.</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 esquema = &quot;v INT, tipo STRING, cliente INT, evento STRING, usuario INT, producto INT, ts STRING&quot;
 crudo = spark.table(&quot;bronze_eventos_app&quot;).withColumn(&quot;e&quot;, F.from_json(&quot;payload&quot;, esquema))

@@ -49,7 +49,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Ventaja: el notebook convive en el mismo editor con los <code>.py</code>, los tests y Git. Todo lo del curso <a href="#/m/jupyterlab">JupyterLab paso a paso</a> aplica igual.</p>
 <h2>Paso 2 — Dev Containers: el mismo entorno para todos</h2>
 <p>&quot;En mi máquina funciona&quot; se termina con un <strong>contenedor de desarrollo</strong>: un archivo <code>.devcontainer/devcontainer.json</code> en el repositorio describe la imagen (Python 3.12, dbt, las extensiones). VS Code abre el proyecto <strong>dentro</strong> de ese contenedor, con todo instalado igual para todos.</p>
-<pre><code class="language-json">{
+<pre tabindex="0"><code class="language-json">{
   &quot;name&quot;: &quot;ventas_app&quot;,
   &quot;image&quot;: &quot;mcr.microsoft.com/devcontainers/python:3.12&quot;,
   &quot;postCreateCommand&quot;: &quot;pip install -e '.[dev]'&quot;,

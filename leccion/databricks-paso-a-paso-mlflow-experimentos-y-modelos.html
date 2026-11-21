@@ -63,7 +63,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p>El notebook entrena tres versiones de un modelo mínimo (costo de envío = base + tasa × peso) y registra cada una:</p>
-<pre data-norun><code class="language-python">import mlflow
+<pre data-norun tabindex="0"><code class="language-python">import mlflow
 mlflow.set_experiment(&quot;/Users/alumno@academia.dev/precio-envios&quot;)
 
 for base, tasa in [(3, 2.0), (3.5, 1.9), (4, 1.6)]:
@@ -95,7 +95,7 @@ for base, tasa in [(3, 2.0), (3.5, 1.9), (4, 1.6)]:
 
 <p>Cada <code>log_model</code> con <code>registered_model_name</code> creó una <strong>versión</strong> (1, 2, 3). Pon el alias <code>champion</code> a la versión con menor MAE. El modelo vive en Unity Catalog: con los mismos permisos, linaje y nombre de tres partes que una tabla.</p>
 <h2>Paso 5 — Usar el modelo por alias</h2>
-<pre data-norun><code class="language-python">import mlflow
+<pre data-norun tabindex="0"><code class="language-python">import mlflow
 modelo = mlflow.pyfunc.load_model(&quot;models:/main.default.precio_envio@champion&quot;)
 modelo.predict([4, 10])</code></pre>
 <p>El notebook que predice no sabe qué versión usa: pide <code>@champion</code>. Cuando el equipo entrena una versión mejor, mueve el alias y el pipeline de predicción cambia de modelo <strong>sin tocar código</strong>. Esa separación entre entrenar y usar es lo que hace mantenible un sistema de ML.</p>

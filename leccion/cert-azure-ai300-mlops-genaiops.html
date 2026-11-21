@@ -55,7 +55,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>Todo se define como <strong>código</strong>: archivos YAML con la <strong>CLI v2</strong> (<code>az ml</code>) o el SDK de Python v2, y la infraestructura de Azure con <strong>Bicep</strong> o <strong>Terraform</strong>, desplegada desde CI con identidades federadas (OIDC), no con secretos.</p>
-<pre><code class="language-yaml"># job-entrenar.yml: un job de comando
+<pre tabindex="0"><code class="language-yaml"># job-entrenar.yml: un job de comando
 $schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
 code: ./src
 command: python entrenar.py --datos ${{inputs.ventas}} --max_depth ${{inputs.max_depth}}
@@ -65,7 +65,7 @@ inputs:
 environment: azureml:entorno-demanda@latest
 compute: azureml:cluster-cpu
 experiment_name: demanda</code></pre>
-<pre data-norun><code class="language-bash">az ml job create --file job-entrenar.yml --workspace-name ws-ml-dev --resource-group rg-ml</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">az ml job create --file job-entrenar.yml --workspace-name ws-ml-dev --resource-group rg-ml</code></pre>
 <h2>El ciclo de vida del modelo</h2>
 <ul>
 <li><strong>Seguimiento con MLflow</strong>: Azure ML es compatible con MLflow; <code>mlflow.autolog()</code> registra parámetros, métricas y el modelo de cada job.</li>
@@ -96,7 +96,7 @@ experiment_name: demanda</code></pre>
 </tr>
 </tbody></table></div>
 <p><strong>Despliegue azul-verde</strong> (o <em>canary</em>): el endpoint tiene el despliegue <code>azul</code> (actual) y se agrega <code>verde</code> (nuevo). Primero se <strong>espeja</strong> un porcentaje del tráfico al verde sin afectar respuestas (<em>mirror traffic</em>), después se le da un 10 % del tráfico real, y si las métricas acompañan, el 100 %. Si algo sale mal, se vuelve el tráfico al azul sin cortes.</p>
-<pre data-norun><code class="language-bash">az ml online-endpoint create --file endpoint.yml
+<pre data-norun tabindex="0"><code class="language-bash">az ml online-endpoint create --file endpoint.yml
 az ml online-deployment create --file deploy-verde.yml --endpoint-name demanda-api
 az ml online-endpoint update --name demanda-api --traffic &quot;azul=90 verde=10&quot;</code></pre>
 <h3>Monitorear el modelo</h3>

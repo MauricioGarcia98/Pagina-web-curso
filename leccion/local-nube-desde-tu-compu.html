@@ -53,7 +53,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Lo primero: una alerta de presupuesto</div>
 
 <p>Antes de crear cualquier recurso, crea un presupuesto con alerta por email (por ejemplo, 10 USD al mes). No apaga nada, pero te avisa a tiempo.</p>
-<pre data-norun><code class="language-bash"># AWS
+<pre data-norun tabindex="0"><code class="language-bash"># AWS
 aws budgets create-budget --account-id 123456789012 \
   --budget '{&quot;BudgetName&quot;:&quot;mensual&quot;,&quot;BudgetLimit&quot;:{&quot;Amount&quot;:&quot;10&quot;,&quot;Unit&quot;:&quot;USD&quot;},&quot;TimeUnit&quot;:&quot;MONTHLY&quot;,&quot;BudgetType&quot;:&quot;COST&quot;}' \
   --notifications-with-subscribers '[{&quot;Notification&quot;:{&quot;NotificationType&quot;:&quot;ACTUAL&quot;,&quot;ComparisonOperator&quot;:&quot;GREATER_THAN&quot;,&quot;Threshold&quot;:80},&quot;Subscribers&quot;:[{&quot;SubscriptionType&quot;:&quot;EMAIL&quot;,&quot;Address&quot;:&quot;ana@correo.com&quot;}]}]'
@@ -232,7 +232,7 @@ az consumption budget create --budget-name mensual --amount 10 --category cost \
 <li>Crea un presupuesto con alerta antes de crear cualquier recurso: es tu red de seguridad.</li>
 <li>Verifica con quién estás conectado en cada una.</li>
 </ol>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 aws sts get-caller-identity
 aws budgets create-budget --account-id 123456789012 --budget '{&quot;BudgetName&quot;:&quot;labs&quot;,&quot;BudgetLimit&quot;:{&quot;Amount&quot;:&quot;10&quot;,&quot;Unit&quot;:&quot;USD&quot;},&quot;TimeUnit&quot;:&quot;MONTHLY&quot;,&quot;BudgetType&quot;:&quot;COST&quot;}'
 az login

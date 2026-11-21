@@ -67,7 +67,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Crea el bucket con los documentos de la base de conocimiento.</li>
 <li>Limpia el bucket al terminar: la base de conocimiento y su almacén vectorial son lo que más cuesta si se olvidan.</li>
 </ol>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 aws bedrock list-foundation-models --query &quot;modelSummaries[].modelId&quot; --output text
 aws s3 mb s3://kb-politicas-lab
 aws s3 cp datos/clientes.csv s3://kb-politicas-lab/docs/
@@ -145,7 +145,7 @@ aws s3 rb s3://kb-politicas-lab --force</code></pre>
 <li><strong>S3 Vectors</strong>: crea antes el vector bucket y el índice, y pasa sus ARN en <code>--storage-configuration</code> (<code>{&quot;type&quot;:&quot;S3_VECTORS&quot;,&quot;s3VectorsConfiguration&quot;:{&quot;indexArn&quot;:&quot;…&quot;}}</code>). La consola lo hace con <em>Quick create</em>.</li>
 <li><strong>La ingesta tarda</strong>: consulta <code>aws bedrock-agent get-ingestion-job</code> hasta ver <code>COMPLETE</code>.</li>
 </ul>
-<pre data-norun><code class="language-python">import boto3
+<pre data-norun tabindex="0"><code class="language-python">import boto3
 
 rt = boto3.client(&quot;bedrock-agent-runtime&quot;, region_name=&quot;us-east-1&quot;)
 resp = rt.retrieve_and_generate(
@@ -169,7 +169,7 @@ for c in resp[&quot;citations&quot;]:
     for r in c[&quot;retrievedReferences&quot;]:
         print(&quot;fuente:&quot;, r[&quot;location&quot;][&quot;s3Location&quot;][&quot;uri&quot;])</code></pre>
 <h2>Limpieza</h2>
-<pre data-norun><code class="language-bash">aws bedrock-agent delete-data-source --knowledge-base-id $KB --data-source-id $DS
+<pre data-norun tabindex="0"><code class="language-bash">aws bedrock-agent delete-data-source --knowledge-base-id $KB --data-source-id $DS
 aws bedrock-agent delete-knowledge-base --knowledge-base-id $KB
 aws bedrock delete-guardrail --guardrail-identifier $GR
 aws s3 rb s3://kb-politicas-lab --force

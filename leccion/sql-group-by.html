@@ -19,7 +19,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular métricas &quot;por cada…&quot; con <code>GROUP BY</code></li><li>Agrupar por varias columnas y por expresiones (año, mes)</li><li>Filtrar grupos con <code>HAVING</code> y saber cuándo usar <code>WHERE</code></li><li>Aplicar la regla de oro: toda columna del <code>SELECT</code> está en el <code>GROUP BY</code> o dentro de una agregación</li></ul>
 <h2>De &quot;un total&quot; a &quot;un total por cada…&quot;</h2>
 <p>La lección anterior te dio <strong>un</strong> número para toda la tabla: 2.000 clientes. Pero el negocio pregunta casi siempre <strong>&quot;por&quot;</strong>: clientes <strong>por país</strong>, ventas <strong>por mes</strong>, pedidos <strong>por canal</strong>, ticket promedio <strong>por segmento</strong>. Eso es <code>GROUP BY</code>: divide las filas en <strong>grupos</strong> según el valor de una o más columnas y calcula la agregación <strong>dentro de cada grupo</strong>.</p>
-<pre><code class="language-sql">SELECT pais, COUNT(*) AS clientes
+<pre tabindex="0"><code class="language-sql">SELECT pais, COUNT(*) AS clientes
 FROM clientes
 GROUP BY pais
 ORDER BY clientes DESC;</code></pre>
@@ -62,7 +62,7 @@ ORDER BY clientes DESC;</code></pre>
 <li><strong>GROUP BY canal</strong>: las reparte en 4 montones: <code>app</code>, <code>telefono</code>, <code>tienda</code>, <code>web</code>.</li>
 <li><strong>SELECT</strong>: para cada montón calcula las agregaciones y escribe <strong>una fila</strong>.</li>
 </ol>
-<pre><code class="language-sql">SELECT canal,
+<pre tabindex="0"><code class="language-sql">SELECT canal,
        COUNT(*) AS pedidos,
        SUM(CASE WHEN estado = 'cancelado' THEN 1 ELSE 0 END) AS cancelados
 FROM pedidos
@@ -102,10 +102,10 @@ GROUP BY canal;</code></pre>
 <p>Toda columna del <code>SELECT</code> debe estar <strong>en el <code>GROUP BY</code></strong> o <strong>dentro de una función de agregación</strong>.</p>
 </blockquote>
 <p>¿Por qué? Porque cada fila del resultado representa <strong>un grupo</strong>. Si pones <code>nombre</code> en el <code>SELECT</code> agrupando por <code>pais</code>, en el grupo &quot;Chile&quot; hay 167 nombres distintos: ¿cuál mostraría? No hay respuesta. En cambio <code>pais</code> tiene un único valor por grupo (por definición), y <code>COUNT(*)</code> también.</p>
-<pre><code class="language-sql">-- ❌ nombre no está agrupado ni agregado
+<pre tabindex="0"><code class="language-sql">-- ❌ nombre no está agrupado ni agregado
 SELECT pais, nombre, COUNT(*) FROM clientes GROUP BY pais;</code></pre>
 <p>Ejecútalo: el motor responde con un error que dice exactamente eso, que <code>nombre</code> tiene que estar en el <code>GROUP BY</code> o dentro de una función de agregación. PostgreSQL, SQL Server y Databricks hacen lo mismo. Algunos motores (SQLite, MySQL con cierta configuración) no protestan y devuelven un nombre cualquiera del grupo, que es peor: el resultado parece correcto y no lo es.</p>
-<pre><code class="language-sql">-- ✅ Agrupar por varias columnas: un grupo por cada combinación
+<pre tabindex="0"><code class="language-sql">-- ✅ Agrupar por varias columnas: un grupo por cada combinación
 SELECT pais, segmento, COUNT(*) AS clientes
 FROM clientes
 GROUP BY pais, segmento
@@ -113,7 +113,7 @@ ORDER BY pais, segmento;</code></pre>
 <p>Con dos columnas en el <code>GROUP BY</code>, cada grupo es una <strong>combinación</strong>: &quot;Argentina – Consumidor&quot;, &quot;Argentina – Corporativo&quot;, &quot;Argentina – Pyme&quot;, &quot;Bolivia – Consumidor&quot;… (33 grupos).</p>
 <h2>Agrupar por una expresión</h2>
 <p>El grupo no tiene que ser una columna tal cual: puede ser un cálculo. El caso más común es agrupar fechas por <strong>mes</strong> o <strong>año</strong>:</p>
-<pre><code class="language-sql">SELECT strftime('%Y', fecha_pedido) AS anio,
+<pre tabindex="0"><code class="language-sql">SELECT strftime('%Y', fecha_pedido) AS anio,
        COUNT(*) AS pedidos
 FROM pedidos
 GROUP BY anio
@@ -144,7 +144,7 @@ ORDER BY anio;</code></pre>
 
 <h2>HAVING: filtrar grupos</h2>
 <p><code>WHERE</code> filtra <strong>filas</strong>, antes de agrupar. ¿Y si quieres filtrar por el <strong>resultado</strong> de una agregación, como &quot;las ciudades con más de 100 clientes&quot;? No puedes usar <code>WHERE COUNT(*) &gt; 100</code>, porque cuando se ejecuta el <code>WHERE</code> los grupos todavía no existen. Para eso está <code>HAVING</code>: filtra <strong>grupos</strong>, después de agrupar.</p>
-<pre><code class="language-sql">SELECT ciudad, COUNT(*) AS clientes
+<pre tabindex="0"><code class="language-sql">SELECT ciudad, COUNT(*) AS clientes
 FROM clientes
 GROUP BY ciudad
 HAVING COUNT(*) &gt; 100
@@ -197,7 +197,7 @@ ORDER BY clientes DESC;</code></pre>
 <td><code>HAVING SUM(total) &gt; 10000</code></td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-sql">-- Clientes con más de 10 pedidos ENTREGADOS
+<pre tabindex="0"><code class="language-sql">-- Clientes con más de 10 pedidos ENTREGADOS
 SELECT cliente_id, COUNT(*) AS pedidos_entregados
 FROM pedidos
 WHERE estado = 'entregado'          -- 1) solo filas entregadas
@@ -344,7 +344,7 @@ ORDER BY pedidos_entregados DESC;</code></pre>
 <li>Agrupa por canal y estado a la vez.</li>
 <li>Con <code>HAVING</code>, deja solo los grupos con más de 100 pedidos.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT canal, COUNT(*) AS pedidos
+<pre data-norun tabindex="0"><code class="language-sql">SELECT canal, COUNT(*) AS pedidos
 FROM pedidos
 GROUP BY canal
 ORDER BY pedidos DESC;</code></pre>

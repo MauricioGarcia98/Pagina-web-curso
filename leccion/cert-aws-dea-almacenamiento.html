@@ -117,7 +117,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p><strong>Reglas de ciclo de vida</strong>: transicionan objetos por antigüedad (por ejemplo, a Standard-IA a los 30 días y a Deep Archive a los 365) y los <strong>expiran</strong>; también borran versiones antiguas y cargas multiparte incompletas. <strong>Versionado</strong> protege de borrados; <strong>Object Lock</strong> (modo cumplimiento) impide borrar o modificar durante el período de retención (WORM).</p>
-<pre data-norun><code class="language-json">{
+<pre data-norun tabindex="0"><code class="language-json">{
   &quot;Rules&quot;: [{
     &quot;ID&quot;: &quot;bronze-a-archivo&quot;,
     &quot;Filter&quot;: {&quot;Prefix&quot;: &quot;bronze/&quot;},
@@ -146,7 +146,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Viaje en el tiempo</strong> y snapshots.</li>
 </ul>
 <p><strong>Amazon S3 Tables</strong> son <em>table buckets</em> que guardan tablas Iceberg <strong>administradas</strong>: AWS ejecuta automáticamente la compactación, la expiración de snapshots y el borrado de archivos huérfanos, con más rendimiento de consulta que Iceberg autogestionado. Se integran con el catálogo de AWS Glue y Lake Formation.</p>
-<pre data-norun><code class="language-sql">-- Athena: tabla Iceberg y upsert
+<pre data-norun tabindex="0"><code class="language-sql">-- Athena: tabla Iceberg y upsert
 CREATE TABLE silver.envios (
   envio_id string, estado string, actualizado timestamp
 )
@@ -207,7 +207,7 @@ OPTIMIZE silver.envios REWRITE DATA USING BIN_PACK;   -- compactar</code></pre>
 <li>Carga con <strong><code>COPY</code></strong> desde S3 en paralelo (varios archivos, divisibles), nunca con miles de <code>INSERT</code>. <code>UNLOAD</code> exporta a S3 en Parquet.</li>
 <li><code>VACUUM</code> reordena y libera espacio; <code>ANALYZE</code> actualiza estadísticas (ambos automáticos por defecto).</li>
 </ul>
-<pre data-norun><code class="language-sql">CREATE TABLE envios (
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE envios (
   envio_id    BIGINT,
   cliente_id  INT,
   fecha       DATE,

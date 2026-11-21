@@ -49,7 +49,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Vistas temporales: SQL sobre un DataFrame</h2>
-<pre data-norun><code class="language-python">pedidos = spark.read.parquet(&quot;/lake/silver/pedidos&quot;)
+<pre data-norun tabindex="0"><code class="language-python">pedidos = spark.read.parquet(&quot;/lake/silver/pedidos&quot;)
 pedidos.createOrReplaceTempView(&quot;pedidos&quot;)        # visible solo en esta SparkSession
 
 top = spark.sql(&quot;&quot;&quot;
@@ -93,7 +93,7 @@ top.show()</code></pre>
 <td>Se borra la definición</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-sql">CREATE TABLE IF NOT EXISTS main.ventas.pedidos (
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE IF NOT EXISTS main.ventas.pedidos (
   pedido_id BIGINT, cliente_id BIGINT, fecha_pedido DATE, estado STRING, canal STRING
 ) USING DELTA;
 
@@ -105,7 +105,7 @@ SELECT * FROM main.ventas.pedidos WHERE estado = 'entregado';</code></pre>
 <h2>Unity Catalog: el espacio de nombres de tres niveles</h2>
 <p>En Databricks con <strong>Unity Catalog</strong> las tablas se nombran <code>catalogo.esquema.tabla</code> (por ejemplo <code>main.ventas.pedidos</code> o <code>prod.gold.ventas_diarias</code>). Unity Catalog centraliza <strong>permisos</strong>, <strong>linaje</strong> (qué tabla sale de cuál) y <strong>auditoría</strong> para todos los workspaces.</p>
 <h2>Funciones útiles de Spark SQL</h2>
-<pre data-norun><code class="language-sql">SELECT
+<pre data-norun tabindex="0"><code class="language-sql">SELECT
   date_trunc('MONTH', fecha_pedido)               AS mes,
   date_format(fecha_pedido, 'yyyy-MM')            AS mes_txt,
   datediff(current_date(), fecha_pedido)          AS dias,
@@ -138,7 +138,7 @@ FROM ...</code></pre>
 <li>Mira el catálogo con <code>spark.catalog.listTables()</code>: la vista temporal aparece junto a las tablas.</li>
 <li>Vuelve a DataFrame: el resultado de <code>spark.sql</code> es un DataFrame y puedes seguir con <code>.filter()</code>.</li>
 </ol>
-<pre data-norun><code class="language-python">spark.table(&quot;pedidos&quot;).createOrReplaceTempView(&quot;ped&quot;)
+<pre data-norun tabindex="0"><code class="language-python">spark.table(&quot;pedidos&quot;).createOrReplaceTempView(&quot;ped&quot;)
 
 top = spark.sql(&quot;&quot;&quot;
     SELECT canal, metodo_pago, COUNT(*) AS n

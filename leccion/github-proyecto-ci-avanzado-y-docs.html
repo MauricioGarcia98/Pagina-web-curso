@@ -110,7 +110,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Mensaje a Camila: <em>&quot;Listo: tests en 3.11 y 3.12 en cada PR; cada merge a main genera el reporte (artefacto <code>reporte-ventas</code>) y publica la documentación en alumno.github.io/ventas-app. Cambié la regla de main para exigir los dos checks de la matriz.&quot;</em></p>
 <h2>🖥️ Hazlo también en GitHub real</h2>
 <p>En GitHub real, agrega a <code>on:</code> un <code>schedule</code> para generar el reporte todos los lunes aunque nadie haga push:</p>
-<pre><code class="language-yaml">on:
+<pre tabindex="0"><code class="language-yaml">on:
   schedule:
     - cron: &quot;0 11 * * 1&quot;   # lunes 11:00 UTC</code></pre>
 <p>La réplica no corre workflows programados; GitHub real sí (con hasta unos minutos de demora, y se pausan si el repositorio no tiene actividad por 60 días).</p>

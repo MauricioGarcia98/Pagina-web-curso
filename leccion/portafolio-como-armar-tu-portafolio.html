@@ -138,7 +138,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ol>
 <h2>Los datos: el generador</h2>
 <p>Cada proyecto empieza con un botón <strong>🏭 Generar los datos del proyecto</strong> que abre el <a href="#/generador">generador</a> con la configuración lista. También puedes hacerlo desde la terminal:</p>
-<pre><code class="language-bash">generar-datos ecommerce --filas 500 --semilla 42 --problemas realista
+<pre tabindex="0"><code class="language-bash">generar-datos ecommerce --filas 500 --semilla 42 --problemas realista
 duckdb -c &quot;SELECT COUNT(*) FROM '~/datos/generados/ecommerce/pedidos.csv'&quot;</code></pre>
 <p>En tu computadora, descarga el <code>.zip</code> del generador (incluye un <code>README.md</code> con el diccionario de datos y los problemas sembrados) y descomprímelo en <code>data/raw/</code> de tu proyecto.</p>
 <div class="callout callout-nota"><div class="callout-title">📝 ¿Por qué datos generados y no un dataset de Kaggle?</div>
@@ -175,7 +175,7 @@ duckdb -c &quot;SELECT COUNT(*) FROM '~/datos/generados/ecommerce/pedidos.csv'&q
 </tbody></table></div>
 <p>Las reglas del módulo de laboratorios siguen valiendo: presupuesto con alertas, una región, nombres con sufijo <code>-lab</code>, etiquetas y <strong>limpieza el mismo día</strong>.</p>
 <h2>La estructura de cada repositorio</h2>
-<pre><code class="language-text">proyecto-ventas-lakehouse/
+<pre tabindex="0"><code class="language-text">proyecto-ventas-lakehouse/
 ├── README.md            ← lo primero (y a veces lo único) que leen
 ├── docs/arquitectura.png
 ├── data/raw/            ← en .gitignore: los datos se regeneran con la semilla
@@ -187,7 +187,7 @@ duckdb -c &quot;SELECT COUNT(*) FROM '~/datos/generados/ecommerce/pedidos.csv'&q
 ├── .github/workflows/   ← CI: lint, tests, validate
 └── pyproject.toml       ← dependencias con uv</code></pre>
 <h2>El README que funciona</h2>
-<pre><code class="language-markdown"># Detección de fraude en tiempo casi real
+<pre tabindex="0"><code class="language-markdown"># Detección de fraude en tiempo casi real
 
 **Problema**: el banco detecta el fraude con tarjeta al día siguiente; cada hora de demora cuesta dinero.
 **Resultado**: alertas en menos de 2 minutos; las reglas detectan el 82 % del fraude etiquetado
@@ -276,7 +276,7 @@ con 0,4 % de falsas alarmas sobre 38.000 transacciones sintéticas.
 <li>Descarga los CSV: son la fuente de tu proyecto y van en la carpeta <code>data/raw/</code> del repositorio (o el script que los genera, si son grandes).</li>
 <li>Con eso, escribe el README de abajo: es lo primero que mira quien revisa tu portafolio.</li>
 </ol>
-<pre data-norun><code class="language-text"># Nombre del proyecto
+<pre data-norun tabindex="0"><code class="language-text"># Nombre del proyecto
 
 **Problema de negocio:** qué pregunta responde y para quién.
 **Datos:** de dónde salen y cuántas filas tienen.

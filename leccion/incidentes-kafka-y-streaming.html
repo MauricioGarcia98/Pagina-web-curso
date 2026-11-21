@@ -30,7 +30,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Cada consumidor <strong>confirma</strong> (commit) el offset hasta donde procesó. Si se reinicia, sigue desde el último offset confirmado.</li>
 <li><strong>Lag</strong> = último offset de la partición (<code>LOG-END-OFFSET</code>) − offset confirmado (<code>CURRENT-OFFSET</code>): cuántos mensajes faltan procesar.</li>
 </ul>
-<pre><code class="language-text">GROUP         TOPIC    PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG      CONSUMER-ID                HOST        CLIENT-ID
+<pre tabindex="0"><code class="language-text">GROUP         TOPIC    PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG      CONSUMER-ID                HOST        CLIENT-ID
 pedidos-sink  pedidos  7          3511588         4800000         1288412  consumer-pedidos-3-d91f    /10.0.4.14  sink
 pedidos-sink  pedidos  10         4402911         4805000         402089   -                          -           -</code></pre>
 <p>La partición 7 tiene consumidor y <strong>no avanza</strong>. La 10 <strong>no tiene</strong> consumidor (<code>-</code>). Son dos problemas distintos.</p>

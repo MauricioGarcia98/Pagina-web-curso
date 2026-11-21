@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — Estructura de un proyecto de datos</h2>
-<pre><code class="language-text">ventas-app/
+<pre tabindex="0"><code class="language-text">ventas-app/
 ├── .github/
 │   ├── workflows/          CI, reportes, docs
 │   ├── ISSUE_TEMPLATE/     formularios de issues
@@ -50,7 +50,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 2 — El README de un repositorio profesional</h2>
 <p>Arriba de todo, los <strong>badges</strong> (insignias) muestran el estado:</p>
-<pre><code class="language-text"># ventas-app
+<pre tabindex="0"><code class="language-text"># ventas-app
 
 ![CI](https://github.com/alumno/ventas-app/actions/workflows/pipeline.yml/badge.svg)
 ![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)
@@ -109,7 +109,7 @@ Resumen semanal de ventas por canal de Tienda Andina: limpieza, métricas y repo
 </tr>
 </tbody></table></div>
 <p>Un formulario de issue para pedidos de datos:</p>
-<pre><code class="language-yaml">name: Pedido de datos
+<pre tabindex="0"><code class="language-yaml">name: Pedido de datos
 description: Pedir un reporte o una tabla nueva
 labels: [&quot;pedido-de-datos&quot;]
 body:
@@ -151,7 +151,7 @@ body:
 <td>PARCHE</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-bash">git tag -a v1.0.0 -m &quot;Primera versión estable&quot;
+<pre tabindex="0"><code class="language-bash">git tag -a v1.0.0 -m &quot;Primera versión estable&quot;
 git push origin v1.0.0
 gh release create v1.0.0 --generate-notes</code></pre>
 <p><code>--generate-notes</code> arma las notas con los títulos de los PRs fusionados desde la versión anterior: otra razón para escribir buenos títulos. El <code>CHANGELOG.md</code> lleva lo mismo en el repositorio.</p>

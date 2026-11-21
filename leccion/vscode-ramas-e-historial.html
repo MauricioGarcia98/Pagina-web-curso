@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 1 — Crea una rama</h2>
 <p>En la terminal integrada (dentro de <code>ventas_app</code>):</p>
-<pre><code class="language-bash">git checkout -b feature/validaciones
+<pre tabindex="0"><code class="language-bash">git checkout -b feature/validaciones
 git log --oneline</code></pre>
 <figure class="captura"><img src="assets/img/guias/vscode/v14-rama.webp" alt="La barra de estado muestra la rama actual (1); git log lista los commits (2)" loading="lazy"><figcaption>La barra de estado muestra la rama actual (1); git log lista los commits (2)</figcaption></figure>
 
@@ -90,7 +90,7 @@ git log --oneline</code></pre>
 
 <h2>Paso 5 — Fusionar la rama</h2>
 <p>Cuando la rama está lista:</p>
-<pre><code class="language-bash">git checkout main
+<pre tabindex="0"><code class="language-bash">git checkout main
 git merge feature/validaciones
 git branch -d feature/validaciones</code></pre>
 <p><code>main</code> ahora tiene la validación. En un equipo, en lugar de fusionar en tu máquina, se abre un <strong>pull request</strong> para que alguien revise antes (lección 15 y proyecto 4).</p>

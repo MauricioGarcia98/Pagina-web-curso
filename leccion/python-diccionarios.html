@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
-<pre><code class="language-python">cliente = {
+<pre tabindex="0"><code class="language-python">cliente = {
     &quot;id&quot;: 7,
     &quot;nombre&quot;: &quot;Sofía&quot;,
     &quot;pais&quot;: &quot;Chile&quot;,
@@ -43,7 +43,7 @@ print(cliente)</code></pre>
 </ul>
 <p>Un diccionario es la forma natural de representar <strong>un registro</strong> (una fila con nombres de columna). Por eso, cuando leas un CSV con <code>csv.DictReader</code> o un JSON de una API, cada fila te llegará como un diccionario.</p>
 <h2>Leer sin errores: get</h2>
-<pre><code class="language-python">cliente = {&quot;id&quot;: 7, &quot;nombre&quot;: &quot;Sofía&quot;}
+<pre tabindex="0"><code class="language-python">cliente = {&quot;id&quot;: 7, &quot;nombre&quot;: &quot;Sofía&quot;}
 # print(cliente[&quot;telefono&quot;])                 # KeyError: 'telefono'
 print(cliente.get(&quot;telefono&quot;))               # None
 print(cliente.get(&quot;telefono&quot;, &quot;sin dato&quot;))   # valor por defecto
@@ -71,7 +71,7 @@ print(&quot;telefono&quot; in cliente)                 # ¿existe la clave? → 
 </tbody></table></div>
 <p>En datos reales (JSON de APIs, eventos) es muy común que falten campos: <code>get</code> con valor por defecto es tu mejor amigo. Usa <code>d[&quot;clave&quot;]</code> cuando la clave <strong>tiene</strong> que estar y prefieres que el programa falle si no está.</p>
 <h2>Recorrer un diccionario</h2>
-<pre><code class="language-python">stock = {&quot;mouse&quot;: 40, &quot;teclado&quot;: 0, &quot;monitor&quot;: 7}
+<pre tabindex="0"><code class="language-python">stock = {&quot;mouse&quot;: 40, &quot;teclado&quot;: 0, &quot;monitor&quot;: 7}
 for producto, unidades in stock.items():          # pares (clave, valor)
     estado = &quot;AGOTADO&quot; if unidades == 0 else unidades
     print(f&quot;{producto:10} {estado}&quot;)
@@ -96,7 +96,7 @@ print(list(stock.keys()), list(stock.values()))</code></pre>
 <p><code>for k in d:</code> recorre las <strong>claves</strong>. Desde Python 3.7 los diccionarios <strong>conservan el orden</strong> en que se insertaron las claves.</p>
 <h2>El patrón más importante: contar y agrupar</h2>
 <p>Este es el <code>GROUP BY</code> de Python. Recorres los registros y acumulas en un diccionario cuya <strong>clave es el grupo</strong>:</p>
-<pre><code class="language-python">pedidos = [(&quot;web&quot;, 120), (&quot;app&quot;, 80), (&quot;web&quot;, 200), (&quot;tienda&quot;, 50), (&quot;app&quot;, 30)]
+<pre tabindex="0"><code class="language-python">pedidos = [(&quot;web&quot;, 120), (&quot;app&quot;, 80), (&quot;web&quot;, 200), (&quot;tienda&quot;, 50), (&quot;app&quot;, 30)]
 
 conteo = {}
 total_por_canal = {}
@@ -149,7 +149,7 @@ print(total_por_canal)   # {'web': 320, 'app': 110, 'tienda': 50}</code></pre>
 
 <h2>Estructuras anidadas: así llegan los datos de las APIs</h2>
 <p>El formato <strong>JSON</strong>, que usan casi todas las APIs, es exactamente &quot;diccionarios y listas anidados&quot;. Leerlo es encadenar claves e índices:</p>
-<pre><code class="language-python">pedido = {
+<pre tabindex="0"><code class="language-python">pedido = {
     &quot;id&quot;: 1001,
     &quot;cliente&quot;: {&quot;nombre&quot;: &quot;Mateo&quot;, &quot;pais&quot;: &quot;México&quot;},
     &quot;items&quot;: [
@@ -165,7 +165,7 @@ print(total)                                # 55.5</code></pre>
 <p>Un trabajo típico de data engineer es <strong>aplanar</strong> (<em>flatten</em>) estas estructuras: convertir cada <code>item</code> en una fila de una tabla con columnas <code>pedido_id</code>, <code>sku</code>, <code>cantidad</code>, <code>precio</code>. Es lo mismo que hace <code>explode</code> en PySpark o <code>UNNEST</code> en SQL.</p>
 <h2>Conjuntos (set): valores únicos</h2>
 <p>Un <strong>conjunto</strong> guarda valores <strong>sin repetir</strong> y <strong>sin orden</strong>. Se escribe con llaves pero sin <code>:</code>:</p>
-<pre><code class="language-python">compraron_2023 = {1, 2, 3, 5, 8}
+<pre tabindex="0"><code class="language-python">compraron_2023 = {1, 2, 3, 5, 8}
 compraron_2024 = {2, 3, 4, 8, 9}
 print(compraron_2023 &amp; compraron_2024)   # intersección: compraron ambos años → {2, 3, 8}
 print(compraron_2023 - compraron_2024)   # diferencia: compraron en 2023 y NO en 2024 (churn) → {1, 5}
@@ -254,7 +254,7 @@ print(len(set([&quot;a&quot;, &quot;b&quot;, &quot;a&quot;, &quot;c&quot;])))   
 <li>Agrega el monto total por canal en otro diccionario.</li>
 <li>Usa un conjunto para ver los canales distintos.</li>
 </ol>
-<pre data-norun><code class="language-python">ventas = [(&quot;web&quot;, 120), (&quot;app&quot;, 80), (&quot;web&quot;, 45), (&quot;tienda&quot;, 200), (&quot;app&quot;, 30)]
+<pre data-norun tabindex="0"><code class="language-python">ventas = [(&quot;web&quot;, 120), (&quot;app&quot;, 80), (&quot;web&quot;, 45), (&quot;tienda&quot;, 200), (&quot;app&quot;, 30)]
 conteo = {}
 for canal, monto in ventas:
     conteo[canal] = conteo.get(canal, 0) + 1

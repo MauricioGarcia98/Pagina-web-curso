@@ -64,7 +64,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <p>El <strong>RevPAR</strong> es el KPI rey porque castiga los dos errores: un hotel lleno a precio de remate (ocupación alta, ADR bajo) y uno caro y vacío (ADR alto, ocupación baja).</p>
 <h2>El modelo de datos</h2>
-<pre><code class="language-text">hotel_hoteles   (hotel_id, nombre, ciudad, estrellas, habitaciones)
+<pre tabindex="0"><code class="language-text">hotel_hoteles   (hotel_id, nombre, ciudad, estrellas, habitaciones)
 hotel_huespedes (huesped_id, pais, programa_fidelidad)
 hotel_reservas  (reserva_id, hotel_id, huesped_id, fecha_reserva, check_in, check_out,
                  tipo_habitacion, canal, tarifa_noche, comision_pct, estado)
@@ -84,7 +84,7 @@ hotel_resenas   (resena_id, reserva_id, fecha, puntaje)</code></pre>
 <li><strong>Grano</strong>: un hotel por fila. Las reservas se agregan por hotel (solo completadas) y se unen con <code>hotel_hoteles</code> para tener la capacidad.</li>
 <li><strong>Disponibilidad</strong>: habitaciones × 366 días (2024 fue bisiesto).</li>
 </ol>
-<pre><code class="language-sql">WITH r AS (
+<pre tabindex="0"><code class="language-sql">WITH r AS (
   SELECT hotel_id,
          SUM(julianday(check_out) - julianday(check_in)) AS noches,
          SUM((julianday(check_out) - julianday(check_in)) * tarifa_noche) AS ingreso
@@ -193,7 +193,7 @@ ORDER BY revpar DESC;</code></pre>
 <li>RevPAR = ADR × ocupación: un hotel puede tener ADR alto y RevPAR bajo si está vacío.</li>
 <li>Ordena por RevPAR: es el número que mira la gerencia.</li>
 </ol>
-<pre data-norun><code class="language-sql">WITH noches AS (
+<pre data-norun tabindex="0"><code class="language-sql">WITH noches AS (
     SELECT hotel_id, SUM(date_diff('day', CAST(check_in AS DATE), CAST(check_out AS DATE))) AS noches,
            SUM(date_diff('day', CAST(check_in AS DATE), CAST(check_out AS DATE)) * tarifa_noche) AS ingreso
     FROM hotel_reservas WHERE estado = 'completada'

@@ -62,7 +62,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Consulta con Athena para verificar que todo funciona.</li>
 <li>Limpia: borra el crawler, la base del catálogo y el bucket (con <code>--force</code> borra también su contenido) y verifica.</li>
 </ol>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 aws s3 mb s3://lake-tienda-lab
 aws s3 cp datos/clientes.csv s3://lake-tienda-lab/bronze/clientes/
 aws glue create-database --database-input '{&quot;Name&quot;: &quot;lab_bronze&quot;}'
@@ -134,14 +134,14 @@ aws s3 ls</code></pre>
 <li>La evaluación de calidad tarda unos minutos: consulta <code>get-data-quality-ruleset-evaluation-run</code> hasta que <code>Status</code> sea <code>SUCCEEDED</code>.</li>
 <li>Para ver los resultados de Athena: <code>aws athena get-query-results --query-execution-id &lt;id&gt;</code>.</li>
 </ul>
-<pre data-norun><code class="language-bash">aws iam create-role --role-name GlueServiceRole-lab \
+<pre data-norun tabindex="0"><code class="language-bash">aws iam create-role --role-name GlueServiceRole-lab \
   --assume-role-policy-document '{&quot;Version&quot;:&quot;2012-10-17&quot;,&quot;Statement&quot;:[{&quot;Effect&quot;:&quot;Allow&quot;,&quot;Principal&quot;:{&quot;Service&quot;:&quot;glue.amazonaws.com&quot;},&quot;Action&quot;:&quot;sts:AssumeRole&quot;}]}'
 aws iam attach-role-policy --role-name GlueServiceRole-lab \
   --policy-arn arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
 aws iam put-role-policy --role-name GlueServiceRole-lab --policy-name leer-lake \
   --policy-document '{&quot;Version&quot;:&quot;2012-10-17&quot;,&quot;Statement&quot;:[{&quot;Effect&quot;:&quot;Allow&quot;,&quot;Action&quot;:[&quot;s3:GetObject&quot;,&quot;s3:ListBucket&quot;],&quot;Resource&quot;:[&quot;arn:aws:s3:::lake-tienda-lab&quot;,&quot;arn:aws:s3:::lake-tienda-lab/*&quot;]}]}'</code></pre>
 <h2>Limpieza</h2>
-<pre data-norun><code class="language-bash">aws s3 rb s3://lake-tienda-lab --force
+<pre data-norun tabindex="0"><code class="language-bash">aws s3 rb s3://lake-tienda-lab --force
 aws glue delete-crawler --name crawler-clientes
 aws glue delete-data-quality-ruleset --name dq-clientes
 aws glue delete-database --name lake_bronze

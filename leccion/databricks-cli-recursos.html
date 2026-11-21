@@ -73,19 +73,19 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Workspace (notebooks y carpetas)</h2>
-<pre data-norun><code class="language-bash">databricks workspace list /Users/ana@empresa.com
+<pre data-norun tabindex="0"><code class="language-bash">databricks workspace list /Users/ana@empresa.com
 databricks workspace mkdirs /Shared/pipelines
 databricks workspace import /Shared/pipelines/silver --file ./silver.py --language PYTHON --format SOURCE
 databricks workspace export /Shared/pipelines/silver --format SOURCE --file ./silver.py
 databricks workspace import-dir ./notebooks /Shared/pipelines --overwrite</code></pre>
 <h2>Archivos (Volumes / DBFS)</h2>
-<pre data-norun><code class="language-bash">databricks fs ls dbfs:/Volumes/main/crudo/archivos/
+<pre data-norun tabindex="0"><code class="language-bash">databricks fs ls dbfs:/Volumes/main/crudo/archivos/
 databricks fs cp ./ventas.csv dbfs:/Volumes/main/crudo/archivos/ventas.csv
 databricks fs cp -r ./exportes dbfs:/Volumes/main/crudo/archivos/exportes --overwrite
 databricks fs cat dbfs:/Volumes/main/crudo/archivos/ventas.csv
 databricks fs rm -r dbfs:/Volumes/main/crudo/tmp</code></pre>
 <h2>Clusters</h2>
-<pre data-norun><code class="language-bash">databricks clusters list
+<pre data-norun tabindex="0"><code class="language-bash">databricks clusters list
 databricks clusters get 0123-456789-abcdef12
 databricks clusters start 0123-456789-abcdef12
 databricks clusters delete 0123-456789-abcdef12        # &quot;delete&quot; = TERMINAR (apagar), se puede volver a iniciar
@@ -96,7 +96,7 @@ databricks clusters spark-versions                      # versiones de Databrick
 
 
 <h2>Jobs</h2>
-<pre data-norun><code class="language-bash">databricks jobs list
+<pre data-norun tabindex="0"><code class="language-bash">databricks jobs list
 databricks jobs get 123456
 databricks jobs run-now 123456
 databricks jobs run-now 123456 --json '{&quot;job_parameters&quot;: {&quot;fecha&quot;: &quot;2024-12-31&quot;}}'
@@ -105,14 +105,14 @@ databricks jobs get-run 987654321
 databricks jobs cancel-run 987654321
 databricks jobs create --json @job.json</code></pre>
 <h2>Secretos</h2>
-<pre data-norun><code class="language-bash">databricks secrets create-scope datos-api
+<pre data-norun tabindex="0"><code class="language-bash">databricks secrets create-scope datos-api
 databricks secrets put-secret datos-api token              # pide el valor de forma segura
 databricks secrets put-secret datos-api token --string-value &quot;abc123&quot;
 databricks secrets list-scopes
 databricks secrets list-secrets datos-api
 databricks secrets put-acl datos-api ingenieros-datos READ</code></pre>
 <h2>Unity Catalog y SQL</h2>
-<pre data-norun><code class="language-bash">databricks catalogs list
+<pre data-norun tabindex="0"><code class="language-bash">databricks catalogs list
 databricks schemas list main
 databricks tables list main ventas
 databricks warehouses list</code></pre>
@@ -123,7 +123,7 @@ databricks warehouses list</code></pre>
 
 
 <h2>Laboratorio en la terminal</h2>
-<pre><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+<pre tabindex="0"><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
 databricks fs cp datos/clientes.csv dbfs:/Volumes/main/crudo/archivos/clientes.csv
 databricks fs ls dbfs:/Volumes/main/crudo/archivos
 databricks secrets create-scope datos-api
@@ -138,7 +138,7 @@ databricks jobs list</code></pre>
 <li>Crea un <em>scope</em> de secretos y guarda un valor: en un notebook se lee con <code>dbutils.secrets.get</code> y nunca aparece en el código.</li>
 <li>Lista los jobs del workspace.</li>
 </ol>
-<pre data-norun><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+<pre data-norun tabindex="0"><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
 databricks fs cp datos/clientes.csv dbfs:/Volumes/main/crudo/archivos/clientes.csv
 databricks fs ls dbfs:/Volumes/main/crudo/archivos
 databricks secrets create-scope datos-api

@@ -25,16 +25,16 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p>Con <code>pedidos</code> cargado en un notebook de <a href="#/jupyter">JupyterLab de práctica</a>:</p>
 <h2>Paso 1 — Contar por grupo</h2>
-<pre data-norun><code class="language-python">pedidos.groupby(&quot;canal&quot;).size()</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">pedidos.groupby(&quot;canal&quot;).size()</code></pre>
 <p>Da la cantidad de pedidos de cada canal (lo mismo que <code>value_counts</code>, pero ordenado por nombre). El patrón siempre es:</p>
-<pre><code class="language-text">df.groupby(&quot;columna_que_agrupa&quot;)[&quot;columna_que_calculo&quot;].operación()</code></pre>
+<pre tabindex="0"><code class="language-text">df.groupby(&quot;columna_que_agrupa&quot;)[&quot;columna_que_calculo&quot;].operación()</code></pre>
 <h2>Paso 2 — Una tasa por grupo</h2>
 <p>¿Qué porcentaje de pedidos cancela cada canal?</p>
-<pre data-norun><code class="language-python">pedidos[&quot;es_cancelado&quot;] = pedidos[&quot;estado&quot;] == &quot;cancelado&quot;
+<pre data-norun tabindex="0"><code class="language-python">pedidos[&quot;es_cancelado&quot;] = pedidos[&quot;estado&quot;] == &quot;cancelado&quot;
 (pedidos.groupby(&quot;canal&quot;)[&quot;es_cancelado&quot;].mean() * 100).round(1)</code></pre>
 <p>Resultado: app 8.9, telefono 7.4, tienda 7.8, web 7.8. El truco del proyecto anterior (<code>mean</code> de True/False = proporción), ahora para todos los grupos de una vez.</p>
 <h2>Paso 3 — Varias métricas: agg con nombres</h2>
-<pre data-norun><code class="language-python">resumen = pedidos.groupby(&quot;canal&quot;).agg(
+<pre data-norun tabindex="0"><code class="language-python">resumen = pedidos.groupby(&quot;canal&quot;).agg(
     pedidos=(&quot;pedido_id&quot;, &quot;count&quot;),
     clientes=(&quot;cliente_id&quot;, &quot;nunique&quot;),
     tasa_cancelacion=(&quot;es_cancelado&quot;, &quot;mean&quot;),
@@ -48,10 +48,10 @@ resumen.sort_values(&quot;pedidos&quot;, ascending=False)</code></pre>
 
 
 <h2>Paso 4 — Agrupar por dos columnas</h2>
-<pre data-norun><code class="language-python">pedidos.groupby([&quot;canal&quot;, &quot;estado&quot;]).size().reset_index(name=&quot;pedidos&quot;)</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">pedidos.groupby([&quot;canal&quot;, &quot;estado&quot;]).size().reset_index(name=&quot;pedidos&quot;)</code></pre>
 <p><code>reset_index</code> convierte el resultado agrupado en una tabla común, con <code>canal</code>, <code>estado</code> y <code>pedidos</code> como columnas: el formato &quot;largo&quot; que piden Power BI, SQL y los gráficos.</p>
 <h2>Paso 5 — Tabla de doble entrada: pivot_table</h2>
-<pre data-norun><code class="language-python">pd.pivot_table(pedidos, index=&quot;canal&quot;, columns=&quot;estado&quot;, values=&quot;pedido_id&quot;, aggfunc=&quot;count&quot;, margins=True)</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">pd.pivot_table(pedidos, index=&quot;canal&quot;, columns=&quot;estado&quot;, values=&quot;pedido_id&quot;, aggfunc=&quot;count&quot;, margins=True)</code></pre>
 <figure class="captura"><img src="assets/img/guias/jupyter/e09-pivot.webp" alt="pivot_table: canal en filas, estado en columnas, y los totales (All) con margins=True" loading="lazy"><figcaption>pivot_table: canal en filas, estado en columnas, y los totales (All) con margins=True</figcaption></figure>
 
 
@@ -77,7 +77,7 @@ resumen.sort_values(&quot;pedidos&quot;, ascending=False)</code></pre>
 </tr>
 </tbody></table></div>
 <h2>Paso 6 — Un groupby que ya conoces</h2>
-<pre data-norun><code class="language-python">entregados = pedidos[pedidos[&quot;estado&quot;] == &quot;entregado&quot;]
+<pre data-norun tabindex="0"><code class="language-python">entregados = pedidos[pedidos[&quot;estado&quot;] == &quot;entregado&quot;]
 entregados.groupby(&quot;canal&quot;).size().sort_values(ascending=False)</code></pre>
 <figure class="captura"><img src="assets/img/guias/jupyter/04-groupby.webp" alt="Filtrar primero y agrupar después: pedidos entregados por canal" loading="lazy"><figcaption>Filtrar primero y agrupar después: pedidos entregados por canal</figcaption></figure>
 

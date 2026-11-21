@@ -35,7 +35,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Fase 1: local</h2>
-<pre data-norun><code class="language-python"># ingesta: fragmentos con superposición y metadatos (artículo, título, fecha)
+<pre data-norun tabindex="0"><code class="language-python"># ingesta: fragmentos con superposición y metadatos (artículo, título, fecha)
 def fragmentar(texto, tam=600, solape=120):
     return [texto[i:i + tam] for i in range(0, max(1, len(texto) - solape), tam - solape)]
 
@@ -47,7 +47,7 @@ for a in articulos:
         col.add(ids=[f'{a[&quot;articulo_id&quot;]}-{k}'], embeddings=[emb], documents=[frag],
                 metadatas=[{&quot;articulo_id&quot;: a[&quot;articulo_id&quot;], &quot;titulo&quot;: a[&quot;titulo&quot;]}])</code></pre>
 <p>El prompt de generación:</p>
-<pre><code class="language-text">Responde la pregunta del cliente usando SOLO los fragmentos.
+<pre tabindex="0"><code class="language-text">Responde la pregunta del cliente usando SOLO los fragmentos.
 Después de cada afirmación, cita el artículo entre corchetes: [art. 3].
 Si los fragmentos no alcanzan para responder, di exactamente:
 &quot;No tengo esa información; te derivo con un agente.&quot; No inventes plazos ni montos.
@@ -124,7 +124,7 @@ Pregunta: {pregunta}</code></pre>
 <li>Si ningún fragmento se parece lo suficiente, el asistente dice que no sabe (mejor que inventar).</li>
 <li>Cambia una pregunta por algo que no está en los documentos y verifica que no responde.</li>
 </ol>
-<pre data-norun><code class="language-python">documentos = {
+<pre data-norun tabindex="0"><code class="language-python">documentos = {
     &quot;politica-devoluciones#1&quot;: &quot;Puedes devolver un producto dentro de los 30 días con la factura.&quot;,
     &quot;politica-envios#2&quot;: &quot;Los envíos a todo el país demoran entre 3 y 5 días hábiles.&quot;,
     &quot;politica-garantia#1&quot;: &quot;La garantía cubre fallas de fábrica por 12 meses.&quot;,

@@ -42,7 +42,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Anatomía de un comando</h2>
-<pre data-norun><code class="language-bash">ls -l --all /home/ana</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">ls -l --all /home/ana</code></pre>
 <ul>
 <li><code>ls</code> → el <strong>programa</strong> (listar archivos).</li>
 <li><code>-l</code> → una <strong>opción corta</strong> (formato largo). Las cortas llevan un guion y una letra, y se pueden juntar: <code>-la</code> es lo mismo que <code>-l -a</code>.</li>
@@ -57,7 +57,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p>En la terminal, <code>tree</code> te muestra lo mismo como texto:</p>
-<pre><code class="language-text">/home/alumno
+<pre tabindex="0"><code class="language-text">/home/alumno
 ├── README.md
 ├── datos/
 ├── logs/
@@ -191,7 +191,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Opciones de <code>grep</code> que vas a usar mucho: <code>-i</code> (ignora mayúsculas), <code>-c</code> (cuenta en vez de mostrar), <code>-v</code> (las líneas que <strong>no</strong> coinciden) y <code>-n</code> (muestra el número de línea).</p>
 <h2>Tuberías (pipes) y redirección</h2>
 <p>La barra vertical <code>|</code> envía la salida de un comando como entrada del siguiente. Es la idea central de un <em>pipeline</em>, ¡en miniatura! Cada comando hace <strong>una sola cosa</strong> y se encadenan como piezas de Lego.</p>
-<pre data-norun><code class="language-bash"># ¿Cuántas líneas de clientes.csv mencionan &quot;Chile&quot;?
+<pre data-norun tabindex="0"><code class="language-bash"># ¿Cuántas líneas de clientes.csv mencionan &quot;Chile&quot;?
 grep &quot;Chile&quot; datos/clientes.csv | wc -l
 
 # Guardar el resultado en un archivo (&gt; sobrescribe, &gt;&gt; agrega al final)
@@ -236,7 +236,7 @@ grep &quot;Chile&quot; datos/clientes.csv &gt; clientes_chile.csv</code></pre>
 <p>Un comando tiene dos salidas: la <strong>normal</strong> (descriptor 1) y la de <strong>errores</strong> (descriptor 2). <code>&gt;</code> solo redirige la normal: por eso <code>ls /noexiste &gt; salida.txt</code> sigue mostrando el error en pantalla y deja el archivo vacío.</p>
 <h3>Procesos en segundo plano</h3>
 <p>Algo que tarda (un script de carga, un servidor local) se puede lanzar con <code>&amp;</code> al final y seguir trabajando:</p>
-<pre data-norun><code class="language-bash">sleep 30 &amp;          # [1] 4123 → número de trabajo y PID
+<pre data-norun tabindex="0"><code class="language-bash">sleep 30 &amp;          # [1] 4123 → número de trabajo y PID
 jobs                # [1]+  Ejecutando   sleep 30 &amp;
 fg %1               # lo trae al frente y esperas que termine (Ctrl+C lo corta)
 kill %1             # o lo terminas sin traerlo
@@ -249,21 +249,21 @@ wait                # espera a que terminen todos</code></pre>
 <h2>Una sesión real, paso a paso</h2>
 <p>Abre la terminal (⌨ Terminal) y haz esta sesión. Es exactamente lo que hace un ingeniero de datos cuando recibe un archivo nuevo: <strong>mirarlo antes de procesarlo</strong>.</p>
 <p><strong>1. ¿Dónde estoy y qué hay?</strong></p>
-<pre><code class="language-text">$ pwd
+<pre tabindex="0"><code class="language-text">$ pwd
 /home/alumno
 $ ls datos
 clientes.csv  ventas_2024_12.csv</code></pre>
 <p><strong>2. ¿Qué columnas tiene el archivo de ventas?</strong> Las primeras líneas de un CSV dicen mucho:</p>
-<pre><code class="language-text">$ head -n 3 datos/ventas_2024_12.csv
+<pre tabindex="0"><code class="language-text">$ head -n 3 datos/ventas_2024_12.csv
 pedido_id,fecha,cliente_id,canal,estado,total
 11407,2024-12-01,562,app,entregado,359.97
 11408,2024-12-01,1744,tienda,entregado,63.96</code></pre>
 <p><strong>3. ¿Cuántas filas tiene?</strong></p>
-<pre><code class="language-text">$ wc -l datos/ventas_2024_12.csv
+<pre tabindex="0"><code class="language-text">$ wc -l datos/ventas_2024_12.csv
  595 datos/ventas_2024_12.csv</code></pre>
 <p>Son 595 líneas: 1 de encabezado + <strong>594 pedidos</strong>.</p>
 <p><strong>4. ¿Cuántos pedidos hay por canal?</strong> Aquí se ve la potencia de las tuberías. Se lee de izquierda a derecha:</p>
-<pre><code class="language-text">$ cut -d, -f4 datos/ventas_2024_12.csv | tail -n +2 | sort | uniq -c | sort -rn
+<pre tabindex="0"><code class="language-text">$ cut -d, -f4 datos/ventas_2024_12.csv | tail -n +2 | sort | uniq -c | sort -rn
     258 web
     152 app
     136 tienda
@@ -277,7 +277,7 @@ pedido_id,fecha,cliente_id,canal,estado,total
 </ul>
 <p>Es un <code>SELECT canal, COUNT(*) ... GROUP BY canal ORDER BY 2 DESC</code> hecho con comandos de terminal.</p>
 <p><strong>5. ¿Hubo errores en el pipeline de anoche?</strong></p>
-<pre><code class="language-text">$ grep -n ERROR logs/pipeline.log
+<pre tabindex="0"><code class="language-text">$ grep -n ERROR logs/pipeline.log
 36:2025-01-01 02:21:00 ERROR [cargar_silver] MERGE falló: duplicate key pedido_id=8812
 42:2025-01-01 02:41:10 ERROR [dbt_build] Compilation Error in model fct_ventas: ref(&quot;stg_pagos_v2&quot;) not found</code></pre>
 <p>Dos errores, con su número de línea y la tarea que falló. Esto es lo primero que haces cuando te avisan &quot;el dashboard no se actualizó&quot;.</p>
@@ -304,7 +304,7 @@ pedido_id,fecha,cliente_id,canal,estado,total
 <td>Abre la carpeta en un editor completo con explorador, pestañas y terminal integrada</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-bash">nano notas.txt
+<pre tabindex="0"><code class="language-bash">nano notas.txt
 vim etl.py
 code .</code></pre>
 <h3>Ejecutar lo que escribiste</h3>
@@ -334,7 +334,7 @@ code .</code></pre>
 
 <h2>Variables de entorno</h2>
 <p>Son valores con nombre que el sistema guarda y que cualquier programa puede leer. Se usan muchísimo para <strong>configuraciones</strong> (en qué entorno estoy) y <strong>secretos</strong> (una contraseña que no debe quedar escrita en el código).</p>
-<pre data-norun><code class="language-bash">export AMBIENTE=desarrollo
+<pre data-norun tabindex="0"><code class="language-bash">export AMBIENTE=desarrollo
 echo $AMBIENTE        # imprime: desarrollo
 echo $HOME            # tu carpeta personal: /home/alumno</code></pre>
 <ul>
@@ -343,7 +343,7 @@ echo $HOME            # tu carpeta personal: /home/alumno</code></pre>
 <li>Duran mientras la terminal está abierta. Para que queden siempre, se agregan al archivo <code>~/.bashrc</code>.</li>
 </ul>
 <p>También se puede guardar en una variable <strong>el resultado de un comando</strong> con <code>$( ... )</code>. Lo vas a usar mucho con las CLIs de la nube:</p>
-<pre data-norun><code class="language-bash">TOTAL=$(wc -l &lt; datos/ventas_2024_12.csv)
+<pre data-norun tabindex="0"><code class="language-bash">TOTAL=$(wc -l &lt; datos/ventas_2024_12.csv)
 echo &quot;El archivo tiene $TOTAL líneas&quot;</code></pre>
 <div class="callout callout-tip"><div class="callout-title">💡 Truco de supervivencia</div>
 
@@ -407,7 +407,7 @@ echo &quot;El archivo tiene $TOTAL líneas&quot;</code></pre>
 <li>Crea una carpeta de trabajo, entra y crea un archivo con un texto.</li>
 <li>Busca una palabra dentro del archivo con <code>grep</code>.</li>
 </ol>
-<pre><code class="language-bash">pwd
+<pre tabindex="0"><code class="language-bash">pwd
 ls -la
 mkdir -p ~/practica &amp;&amp; cd ~/practica
 echo &quot;ventas 2024 ok&quot; &gt; notas.txt

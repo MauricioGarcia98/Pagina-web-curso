@@ -24,9 +24,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — Tu primera función</h2>
-<pre data-norun><code class="language-python">def tasa(parte, total):
+<pre data-norun tabindex="0"><code class="language-python">def tasa(parte, total):
     return round(parte / total * 100, 1)</code></pre>
-<pre data-norun><code class="language-python">assert tasa(1, 4) == 25.0
+<pre data-norun tabindex="0"><code class="language-python">assert tasa(1, 4) == 25.0
 tasa(371, 4633)</code></pre>
 <figure class="captura"><img src="assets/img/guias/jupyter/e18-funcion.webp" alt="La función tasa, una prueba con assert y su uso: 8.0 % de pedidos cancelados en 2024" loading="lazy"><figcaption>La función tasa, una prueba con assert y su uso: 8.0 % de pedidos cancelados en 2024</figcaption></figure>
 
@@ -49,7 +49,7 @@ tasa(371, 4633)</code></pre>
 </tr>
 </tbody></table></div>
 <h2>Paso 2 — Parámetros por defecto y docstring</h2>
-<pre data-norun><code class="language-python">def tasa(parte, total, decimales=1):
+<pre data-norun tabindex="0"><code class="language-python">def tasa(parte, total, decimales=1):
     &quot;&quot;&quot;Porcentaje de parte sobre total. Devuelve None si total es 0.&quot;&quot;&quot;
     if total == 0:
         return None
@@ -59,13 +59,13 @@ tasa(371, 4633)</code></pre>
 <li>El texto entre <code>&quot;&quot;&quot;</code> es el <strong>docstring</strong>: lo que muestra <code>tasa?</code> o Shift + Tab en Jupyter real.</li>
 </ul>
 <h2>Paso 3 — Pruébala, incluidos los casos borde</h2>
-<pre data-norun><code class="language-python">assert tasa(1, 4) == 25.0
+<pre data-norun tabindex="0"><code class="language-python">assert tasa(1, 4) == 25.0
 assert tasa(0, 10) == 0.0
 assert tasa(5, 0) is None          # caso borde: dividir por cero
 assert tasa(1, 3, decimales=2) == 33.33</code></pre>
 <p>Un <strong>caso borde</strong> es una entrada en el límite: cero, vacío, nulo, un solo elemento. Es donde se rompen las funciones. Si una prueba falla, <code>assert</code> detiene la celda y te dice cuál.</p>
 <h2>Paso 4 — Funciones que reciben y devuelven tablas</h2>
-<pre data-norun><code class="language-python">def resumen_por(df, columna):
+<pre data-norun tabindex="0"><code class="language-python">def resumen_por(df, columna):
     &quot;&quot;&quot;Pedidos y tasa de cancelación por los valores de una columna.&quot;&quot;&quot;
     return (df.assign(cancelado=df[&quot;estado&quot;] == &quot;cancelado&quot;)
               .groupby(columna)

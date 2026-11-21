@@ -31,7 +31,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 1 — Qué es un asset</h2>
 <p>Un <strong>asset</strong> es un dato con nombre (una tabla, un archivo) identificado por una URI, por ejemplo <code>tienda://gold/ventas_diarias</code>. Una tarea declara que lo <strong>produce</strong>, y otro Dag se programa para correr cuando ese dato <strong>se actualiza</strong>.</p>
-<pre data-norun><code class="language-python">from airflow.sdk import Asset, dag, task
+<pre data-norun tabindex="0"><code class="language-python">from airflow.sdk import Asset, dag, task
 
 VENTAS = Asset(&quot;tienda://gold/ventas_diarias&quot;)
 

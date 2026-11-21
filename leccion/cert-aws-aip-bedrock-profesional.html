@@ -76,7 +76,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Sincronización</strong> incremental de la fuente (ingestion jobs).</li>
 <li><strong>Filtros por metadatos</strong> (archivos <code>.metadata.json</code> con, por ejemplo, <code>cliente_id</code> o <code>pais</code>) para limitar qué documentos ve cada usuario.</li>
 </ul>
-<pre data-norun><code class="language-python">import boto3
+<pre data-norun tabindex="0"><code class="language-python">import boto3
 
 rt = boto3.client(&quot;bedrock-agent-runtime&quot;)
 resp = rt.retrieve_and_generate(
@@ -113,7 +113,7 @@ for c in resp[&quot;citations&quot;]:
 <li><strong>Patrones</strong>: ReAct (razonar y actuar), planificador-ejecutor, supervisor con subagentes, <em>human-in-the-loop</em>.</li>
 <li><strong>MCP</strong> (Model Context Protocol) y <strong>A2A</strong> (agente a agente) para interoperar.</li>
 </ul>
-<pre data-norun><code class="language-python">from strands import Agent, tool
+<pre data-norun tabindex="0"><code class="language-python">from strands import Agent, tool
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 
 app = BedrockAgentCoreApp()

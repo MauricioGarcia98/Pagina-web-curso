@@ -58,7 +58,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>El modelo central: MRR por empresa y mes</h2>
 <p>El truco es <strong>expandir</strong> cada suscripción a los meses en que estuvo activa y después agregar:</p>
-<pre data-norun><code class="language-sql">-- models/marts/mrr_mensual.sql (dbt + DuckDB)
+<pre data-norun tabindex="0"><code class="language-sql">-- models/marts/mrr_mensual.sql (dbt + DuckDB)
 with meses as (
     select unnest(generate_series(date '2023-01-01', date '2024-12-01', interval 1 month))::date as mes
 )
@@ -69,7 +69,7 @@ join meses m on m.mes &gt;= date_trunc('month', s.inicio)
 group by all</code></pre>
 <p>Con <code>mrr_mensual</code>, los movimientos salen de comparar cada empresa con el mes anterior (<code>lag</code>): si antes era 0 y ahora no → nuevo; si sube → expansión; si baja sin llegar a 0 → contracción; si llega a 0 → churn.</p>
 <h2>El historial de planes: dbt snapshot</h2>
-<pre data-norun><code class="language-sql">{% snapshot planes_snapshot %}
+<pre data-norun tabindex="0"><code class="language-sql">{% snapshot planes_snapshot %}
 {{ config(target_schema='snapshots', unique_key='empresa_id', strategy='check', check_cols=['plan', 'mrr']) }}
 select empresa_id, plan, mrr from {{ ref('stg_suscripcion_actual') }}
 {% endsnapshot %}</code></pre>
@@ -116,7 +116,7 @@ select empresa_id, plan, mrr from {{ ref('stg_suscripcion_actual') }}
 <li>Con esas dos columnas se clasifica cada movimiento: nuevo, expansión, contracción o baja.</li>
 <li>Mira el SQL compilado: así quedaría el modelo en <code>marts/</code>.</li>
 </ol>
-<pre data-norun><code class="language-sql">with facturas as (
+<pre data-norun tabindex="0"><code class="language-sql">with facturas as (
     select empresa_id, mes, sum(monto) as mrr
     from {{ source('tienda', 'saas_facturas') }}
     where estado = 'pagada'

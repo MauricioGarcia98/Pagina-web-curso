@@ -27,10 +27,10 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Cuando algo sale mal, Python no &quot;se rompe&quot; sin más: <strong>lanza una excepción</strong>, un objeto que describe qué pasó, y si nadie la maneja, detiene el programa y muestra un mensaje. Al principio esos mensajes en rojo asustan; con práctica se vuelven tu mejor herramienta, porque dicen <strong>exactamente</strong> qué falló y dónde.</p>
 <p>En ingeniería de datos los errores son parte del día a día: un archivo que llega con una columna de menos, un precio escrito &quot;N/A&quot;, una API que no responde, una fecha imposible. Esta lección te enseña a <strong>leer</strong> errores, <strong>manejarlos</strong> cuando corresponde y <strong>lanzarlos</strong> tú misma cuando los datos no tienen sentido.</p>
 <h2>Leer un error (traceback)</h2>
-<pre><code class="language-python">precios = {&quot;mouse&quot;: 25}
+<pre tabindex="0"><code class="language-python">precios = {&quot;mouse&quot;: 25}
 print(precios[&quot;teclado&quot;])</code></pre>
 <p>El mensaje se llama <strong>traceback</strong> (&quot;rastro&quot;) y tiene tres partes:</p>
-<pre><code class="language-text">Traceback (most recent call last):
+<pre tabindex="0"><code class="language-text">Traceback (most recent call last):
   File &quot;main.py&quot;, line 2, in &lt;module&gt;      ← DÓNDE: archivo y número de línea
     print(precios[&quot;teclado&quot;])               ← la línea que falló
 KeyError: 'teclado'                         ← QUÉ: tipo de error + detalle</code></pre>
@@ -110,7 +110,7 @@ KeyError: 'teclado'                         ← QUÉ: tipo de error + detalle</c
 </tbody></table></div>
 <h2>try / except: manejar los errores esperables</h2>
 <p>A veces <strong>sabes</strong> que algo puede fallar y tienes un plan para ese caso. Por ejemplo, al convertir textos de un archivo a números: algunos vendrán vacíos o mal escritos. En vez de que el programa entero se detenga en la fila 5.000, quieres convertir lo que se pueda y marcar lo demás.</p>
-<pre><code class="language-python">def a_numero(texto):
+<pre tabindex="0"><code class="language-python">def a_numero(texto):
     try:
         return float(texto)            # intenta esto…
     except ValueError:                 # …si falla con ValueError, haz esto otro
@@ -126,7 +126,7 @@ print([a_numero(v) for v in valores])  # [10.5, None, 7.0, None]</code></pre>
 <li>Si ocurre un error de <strong>otro</strong> tipo (por ejemplo <code>TypeError</code>), el <code>except ValueError</code> no lo atrapa y el programa se detiene igual. Eso es bueno: no esperabas ese error.</li>
 </ol>
 <h3>La estructura completa</h3>
-<pre><code class="language-python">try:
+<pre tabindex="0"><code class="language-python">try:
     resultado = 10 / 0
 except ZeroDivisionError as e:      # captura un tipo específico; e es el objeto error
     print(&quot;Error:&quot;, e)
@@ -173,7 +173,7 @@ finally:                             # SIEMPRE se ejecuta, haya error o no
 
 <h2>Reintentos: un uso real de try</h2>
 <p>Las conexiones de red fallan a veces por motivos pasajeros. Un patrón común es reintentar unas pocas veces antes de rendirse:</p>
-<pre><code class="language-python">import random
+<pre tabindex="0"><code class="language-python">import random
 
 def llamar_api():
     if random.random() &lt; 0.6:                       # simulamos una API inestable
@@ -193,7 +193,7 @@ print(con_reintentos(llamar_api))</code></pre>
 <p>Airflow tiene esto incorporado (<code>retries=3</code> en cada tarea), pero la lógica es la misma.</p>
 <h2>Lanzar tus propios errores: raise</h2>
 <p>A veces el código no falla, pero los <strong>datos no tienen sentido</strong>: una cantidad negativa, un estado desconocido, una fecha de entrega anterior a la de compra. Python no lo sabe; tú sí. Con <code>raise</code> detienes la ejecución con un mensaje claro. Es la base de la <strong>validación de datos</strong>:</p>
-<pre><code class="language-python">def validar_pedido(p):
+<pre tabindex="0"><code class="language-python">def validar_pedido(p):
     if p[&quot;cantidad&quot;] &lt;= 0:
         raise ValueError(f&quot;Cantidad inválida en el pedido {p['id']}: {p['cantidad']}&quot;)
     if p[&quot;estado&quot;] not in {&quot;pendiente&quot;, &quot;enviado&quot;, &quot;entregado&quot;}:
@@ -207,7 +207,7 @@ except ValueError as e:
 <p>Un buen mensaje de error dice <strong>qué</strong> está mal, <strong>dónde</strong> (el id del registro) y <strong>qué valor</strong> tenía. Quien lo lea a las 3 de la mañana te lo agradecerá.</p>
 <h3>Tus propias clases de error</h3>
 <p>Puedes definir errores con nombre propio, para distinguirlos de los de Python:</p>
-<pre><code class="language-python">class DatosInvalidos(Exception):
+<pre tabindex="0"><code class="language-python">class DatosInvalidos(Exception):
     &quot;&quot;&quot;Los datos de entrada no cumplen el contrato esperado.&quot;&quot;&quot;
 
 def leer_monto(texto):
@@ -288,7 +288,7 @@ except DatosInvalidos as e:
 <li>Agrega un <code>finally</code> que imprima cuántos se procesaron.</li>
 <li>Lanza tu propio error si un monto es negativo.</li>
 </ol>
-<pre data-norun><code class="language-python">crudos = [&quot;120&quot;, &quot;45.5&quot;, &quot;abc&quot;, &quot;&quot;, &quot;300&quot;]
+<pre data-norun tabindex="0"><code class="language-python">crudos = [&quot;120&quot;, &quot;45.5&quot;, &quot;abc&quot;, &quot;&quot;, &quot;300&quot;]
 ok, malos = [], []
 for x in crudos:
     try:

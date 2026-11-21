@@ -32,7 +32,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Cómo funciona Delta Lake por dentro</h2>
 <p>Una tabla Delta es una carpeta en el lago con dos cosas:</p>
-<pre><code class="language-text">/lake/silver/clientes/
+<pre tabindex="0"><code class="language-text">/lake/silver/clientes/
 ├── part-00000-a1b2.snappy.parquet      ← los datos: archivos Parquet comunes
 ├── part-00001-c3d4.snappy.parquet
 ├── part-00002-e5f6.snappy.parquet
@@ -71,7 +71,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Crear tablas</h2>
-<pre data-norun><code class="language-sql">CREATE CATALOG IF NOT EXISTS dev;
+<pre data-norun tabindex="0"><code class="language-sql">CREATE CATALOG IF NOT EXISTS dev;
 CREATE SCHEMA IF NOT EXISTS dev.silver;
 
 CREATE TABLE IF NOT EXISTS dev.silver.clientes (
@@ -91,7 +91,7 @@ SELECT c.pais, SUM(f.importe) AS ventas
 FROM dev.silver.fct_ventas f JOIN dev.silver.clientes c USING (cliente_id)
 GROUP BY c.pais;</code></pre>
 <h2>MERGE: el upsert del lakehouse</h2>
-<pre data-norun><code class="language-sql">MERGE INTO dev.silver.clientes AS t
+<pre data-norun tabindex="0"><code class="language-sql">MERGE INTO dev.silver.clientes AS t
 USING (
   SELECT * FROM dev.bronze.clientes_cambios
   QUALIFY ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY _fecha_ingesta DESC) = 1   -- ¡deduplicar el origen!
@@ -140,19 +140,19 @@ WHEN NOT MATCHED AND s.operacion &lt;&gt; 'D' THEN INSERT *;</code></pre>
 </tbody></table></div>
 <p>Las cláusulas <code>WHEN</code> se evalúan <strong>en orden</strong> y cada fila usa la primera que se cumple, como un <code>CASE</code>. Correr este <code>MERGE</code> dos veces con los mismos cambios deja la tabla igual: es <strong>idempotente</strong>, la propiedad que buscamos en todo pipeline.</p>
 <h2>Historial, time travel y RESTORE</h2>
-<pre data-norun><code class="language-sql">DESCRIBE HISTORY dev.silver.clientes;                      -- versión, fecha, operación, usuario
+<pre data-norun tabindex="0"><code class="language-sql">DESCRIBE HISTORY dev.silver.clientes;                      -- versión, fecha, operación, usuario
 SELECT * FROM dev.silver.clientes VERSION AS OF 5;
 SELECT * FROM dev.silver.clientes TIMESTAMP AS OF '2024-12-01';
 RESTORE TABLE dev.silver.clientes TO VERSION AS OF 5;      -- deshacer un error</code></pre>
 <h2>Mantenimiento</h2>
-<pre data-norun><code class="language-sql">OPTIMIZE dev.silver.fct_ventas;                            -- compacta archivos pequeños
+<pre data-norun tabindex="0"><code class="language-sql">OPTIMIZE dev.silver.fct_ventas;                            -- compacta archivos pequeños
 OPTIMIZE dev.silver.fct_ventas ZORDER BY (cliente_id);     -- (legado) agrupa datos para data skipping
 ALTER TABLE dev.silver.fct_ventas CLUSTER BY (fecha);      -- Liquid Clustering (recomendado hoy)
 VACUUM dev.silver.fct_ventas RETAIN 168 HOURS;             -- borra archivos viejos no referenciados (pierdes time travel más antiguo)
 ANALYZE TABLE dev.silver.fct_ventas COMPUTE STATISTICS;</code></pre>
 <p>Con <strong>Predictive Optimization</strong> (Unity Catalog), Databricks ejecuta OPTIMIZE y VACUUM automáticamente.</p>
 <h2>Calidad y cambios</h2>
-<pre data-norun><code class="language-sql">ALTER TABLE dev.silver.pedidos ADD CONSTRAINT monto_positivo CHECK (monto &gt;= 0);   -- rechaza filas inválidas
+<pre data-norun tabindex="0"><code class="language-sql">ALTER TABLE dev.silver.pedidos ADD CONSTRAINT monto_positivo CHECK (monto &gt;= 0);   -- rechaza filas inválidas
 ALTER TABLE dev.silver.pedidos SET TBLPROPERTIES (delta.enableChangeDataFeed = true);
 SELECT * FROM table_changes('dev.silver.pedidos', 10);   -- filas insertadas/actualizadas/borradas desde la versión 10</code></pre>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: MERGE, historial y mantenimiento de una tabla Delta</div>
@@ -162,7 +162,7 @@ SELECT * FROM table_changes('dev.silver.pedidos', 10);   -- filas insertadas/act
 <li>Mira <code>DESCRIBE HISTORY</code>: la versión 1 es el MERGE, con cuántas filas actualizó e insertó en <code>operationMetrics</code>.</li>
 <li>Consulta la versión 0 con <code>VERSION AS OF 0</code> y compárala con la actual.</li>
 </ol>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE main.default.clientes_dim AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE main.default.clientes_dim AS
 SELECT cliente_id, nombre, ciudad FROM samples.tienda.clientes WHERE cliente_id &lt;= 5;
 
 MERGE INTO main.default.clientes_dim AS d

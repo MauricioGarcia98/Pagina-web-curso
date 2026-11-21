@@ -48,7 +48,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Step Functions: el flujo como una máquina de estados</h2>
 <p>Se define en <strong>ASL</strong> (<em>Amazon States Language</em>), un JSON con estados. Cada estado <code>Task</code> llama a un servicio; <code>.sync</code> significa &quot;espera a que termine&quot;.</p>
-<pre><code class="language-json">{
+<pre tabindex="0"><code class="language-json">{
   &quot;Comment&quot;: &quot;Pipeline diario del banco&quot;,
   &quot;StartAt&quot;: &quot;SilverTransacciones&quot;,
   &quot;States&quot;: {
@@ -81,7 +81,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Catch</strong>: si se agotan los reintentos, va a otro estado (avisar) en lugar de morir en silencio.</li>
 <li>Otros estados útiles: <code>Choice</code> (if), <code>Parallel</code> (ramas simultáneas), <code>Map</code> (un paso por cada elemento de una lista), <code>Wait</code>.</li>
 </ul>
-<pre data-norun><code class="language-bash">aws stepfunctions create-state-machine --name pipeline-banco \
+<pre data-norun tabindex="0"><code class="language-bash">aws stepfunctions create-state-machine --name pipeline-banco \
   --definition file://pipeline-banco.json \
   --role-arn arn:aws:iam::123456789012:role/StepFunctionsDatos
 aws stepfunctions start-execution \
@@ -91,7 +91,7 @@ aws stepfunctions start-execution \
 
 
 <h3>EventBridge: disparar con horario</h3>
-<pre data-norun><code class="language-bash">aws events put-rule --name diario-banco --schedule-expression &quot;cron(0 3 * * ? *)&quot;     # 03:00 UTC todos los días
+<pre data-norun tabindex="0"><code class="language-bash">aws events put-rule --name diario-banco --schedule-expression &quot;cron(0 3 * * ? *)&quot;     # 03:00 UTC todos los días
 aws events put-targets --rule diario-banco \
   --targets 'Id=1,Arn=arn:aws:states:us-east-1:123456789012:stateMachine:pipeline-banco,RoleArn=arn:aws:iam::123456789012:role/EventBridgeDatos'
 aws events list-rules --query &quot;Rules[].{Nombre:Name, Horario:ScheduleExpression}&quot; --output table</code></pre>
@@ -132,7 +132,7 @@ aws events list-rules --query &quot;Rules[].{Nombre:Name, Horario:ScheduleExpres
 <td>Invoca una Lambda</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-bash">aws s3 cp dags/pipeline_banco.py s3://mwaa-datos-dev/dags/
+<pre data-norun tabindex="0"><code class="language-bash">aws s3 cp dags/pipeline_banco.py s3://mwaa-datos-dev/dags/
 aws mwaa list-environments</code></pre>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
 
@@ -150,7 +150,7 @@ aws mwaa list-environments</code></pre>
 
 <h2>Gobierno: Lake Formation y permisos finos</h2>
 <p>Con IAM das permisos sobre <strong>rutas de S3</strong>. Pero los analistas piensan en <strong>tablas y columnas</strong>: &quot;Marketing puede ver <code>clientes</code> pero no la columna <code>email</code>&quot;. Para eso está <strong>AWS Lake Formation</strong>: permisos tipo base de datos (<code>SELECT</code>, <code>DESCRIBE</code>, <code>ALTER</code>) sobre bases, tablas, <strong>columnas</strong> y <strong>filas</strong> del Glue Data Catalog, que respetan Athena, Redshift Spectrum, Glue y EMR.</p>
-<pre data-norun><code class="language-bash">aws lakeformation grant-permissions \
+<pre data-norun tabindex="0"><code class="language-bash">aws lakeformation grant-permissions \
   --principal DataLakePrincipalIdentifier=arn:aws:iam::123456789012:role/Analistas \
   --resource '{&quot;TableWithColumns&quot;: {&quot;DatabaseName&quot;: &quot;lake_silver&quot;, &quot;Name&quot;: &quot;clientes&quot;, &quot;ColumnNames&quot;: [&quot;cliente_id&quot;, &quot;pais&quot;, &quot;segmento&quot;]}}' \
   --permissions SELECT
@@ -207,7 +207,7 @@ aws lakeformation list-permissions</code></pre>
 <td>Genera CloudFormation desde código</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-hcl"># main.tf (Terraform)
+<pre tabindex="0"><code class="language-hcl"># main.tf (Terraform)
 resource &quot;aws_s3_bucket&quot; &quot;lake&quot; {
   bucket = &quot;lake-banco-${var.entorno}&quot;
   tags   = { proyecto = &quot;banco&quot;, entorno = var.entorno }
@@ -216,7 +216,7 @@ resource &quot;aws_s3_bucket&quot; &quot;lake&quot; {
 resource &quot;aws_glue_catalog_database&quot; &quot;silver&quot; {
   name = &quot;lake_silver&quot;
 }</code></pre>
-<pre data-norun><code class="language-bash">terraform init &amp;&amp; terraform plan -var entorno=dev &amp;&amp; terraform apply -var entorno=dev
+<pre data-norun tabindex="0"><code class="language-bash">terraform init &amp;&amp; terraform plan -var entorno=dev &amp;&amp; terraform apply -var entorno=dev
 aws cloudformation deploy --template-file lake.yaml --stack-name lake-banco-dev --parameter-overrides Entorno=dev</code></pre>
 <h2>Arquitectura de referencia: el banco en AWS</h2>
 <figure class="diagrama"><figcaption>Arquitectura de referencia: el banco en AWS</figcaption></figure>
@@ -236,7 +236,7 @@ aws cloudformation deploy --template-file lake.yaml --stack-name lake-banco-dev 
 <li>Lista las reglas en una tabla con <code>--query</code>.</li>
 <li>En un caso real, el objetivo de la regla es la máquina de estados de Step Functions que corre el pipeline.</li>
 </ol>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 aws events put-rule --name diario-banco --schedule-expression &quot;cron(0 3 * * ? *)&quot;
 aws events list-rules --query &quot;Rules[].{Nombre:Name, Horario:ScheduleExpression}&quot; --output table</code></pre>
 <p>Reto: compara Step Functions y MWAA (Airflow administrado): ¿cuál elegirías para un pipeline de 4 pasos y cuál para 60 DAGs con dependencias?</p>

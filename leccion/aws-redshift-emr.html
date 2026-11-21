@@ -84,7 +84,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>La columna por la que más filtras (fecha)</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-sql">CREATE TABLE gold.fact_ventas (
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE gold.fact_ventas (
   pedido_id   BIGINT,
   fecha       DATE,
   cliente_id  BIGINT,
@@ -105,7 +105,7 @@ DISTSTYLE ALL;</code></pre>
 
 <h3>Cargar datos: COPY desde S3</h3>
 <p>Nunca cargues millones de filas con <code>INSERT … VALUES</code>. Usa <code>COPY</code>, que lee en paralelo desde S3:</p>
-<pre data-norun><code class="language-sql">COPY staging.ventas
+<pre data-norun tabindex="0"><code class="language-sql">COPY staging.ventas
 FROM 's3://lake-tienda-dev/silver/ventas/'
 IAM_ROLE 'arn:aws:iam::123456789012:role/RedshiftCopyRole'
 FORMAT AS PARQUET;
@@ -119,12 +119,12 @@ WHEN NOT MATCHED THEN INSERT VALUES (s.pedido_id, s.fecha, s.cliente_id, s.produ
 <li><strong>Redshift Serverless</strong>: sin nodos que dimensionar; pagas por capacidad usada (RPU) mientras hay consultas.</li>
 <li><strong>Data API</strong> (<code>aws redshift-data</code>): ejecutar SQL por HTTPS sin drivers ni conexiones abiertas. Ideal desde Lambda, Step Functions o Airflow.</li>
 </ul>
-<pre data-norun><code class="language-bash">ID=$(aws redshift-data execute-statement --workgroup-name analitica --database tienda \
+<pre data-norun tabindex="0"><code class="language-bash">ID=$(aws redshift-data execute-statement --workgroup-name analitica --database tienda \
       --sql &quot;SELECT canal, COUNT(*) FROM public.pedidos GROUP BY canal&quot; --query Id --output text)
 aws redshift-data describe-statement --id $ID --query Status
 aws redshift-data get-statement-result --id $ID</code></pre>
 <p>En esta terminal, la Data API ejecuta el SQL de verdad sobre las tablas del curso:</p>
-<pre><code class="language-bash">ID=$(aws redshift-data execute-statement --workgroup-name analitica --database tienda --sql &quot;SELECT canal, COUNT(*) AS pedidos FROM pedidos GROUP BY canal ORDER BY pedidos DESC&quot; --query Id --output text)
+<pre tabindex="0"><code class="language-bash">ID=$(aws redshift-data execute-statement --workgroup-name analitica --database tienda --sql &quot;SELECT canal, COUNT(*) AS pedidos FROM pedidos GROUP BY canal ORDER BY pedidos DESC&quot; --query Id --output text)
 aws redshift-data describe-statement --id $ID --query Status
 aws redshift-data get-statement-result --id $ID --query &quot;Records[][0].stringValue&quot;</code></pre>
 <h2>EMR: Spark (y más) en clusters que controlas</h2>
@@ -149,7 +149,7 @@ aws redshift-data get-statement-result --id $ID --query &quot;Records[][0].strin
 <td>Spark sobre Kubernetes, si tu empresa ya usa EKS</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-bash">aws emr create-cluster --name etl-nocturno --release-label emr-7.2.0 \
+<pre data-norun tabindex="0"><code class="language-bash">aws emr create-cluster --name etl-nocturno --release-label emr-7.2.0 \
   --applications Name=Spark \
   --instance-type m5.xlarge --instance-count 5 \
   --use-default-roles --auto-terminate \
@@ -214,7 +214,7 @@ aws emr terminate-clusters --cluster-ids j-ABC123</code></pre>
 <li>Revisa el estado y pide el resultado con el id.</li>
 <li>Piensa cuándo usarías Redshift (consultas de negocio, concurrencia) y cuándo EMR (Spark a medida).</li>
 </ol>
-<pre data-norun><code class="language-bash">aws configure
+<pre data-norun tabindex="0"><code class="language-bash">aws configure
 ID=$(aws redshift-data execute-statement --workgroup-name analitica --database tienda --sql &quot;SELECT canal, COUNT(*) AS pedidos FROM pedidos GROUP BY canal&quot; --query Id --output text)
 aws redshift-data describe-statement --id $ID --query Status
 aws redshift-data get-statement-result --id $ID</code></pre>

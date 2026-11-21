@@ -51,7 +51,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="captura"><img src="assets/img/guias/vscode/v17-modelo-dbt.webp" alt="Un modelo dbt: un SELECT que usa ref('stg_ventas'); el ▷ (1) lo ejecuta con dbt run --select" loading="lazy"><figcaption>Un modelo dbt: un SELECT que usa ref('stg_ventas'); el ▷ (1) lo ejecuta con dbt run --select</figcaption></figure>
 
 
-<pre data-norun><code class="language-sql">select
+<pre data-norun tabindex="0"><code class="language-sql">select
     canal,
     count(distinct pedido_id) as pedidos,
     round(sum(importe), 2)    as ventas
@@ -87,14 +87,14 @@ group by canal</code></pre>
 </tbody></table></div>
 <h2>Paso 4 — Construye el proyecto</h2>
 <p>En la terminal:</p>
-<pre><code class="language-bash">dbt run</code></pre>
+<pre tabindex="0"><code class="language-bash">dbt run</code></pre>
 <figure class="captura"><img src="assets/img/guias/vscode/v17-dbt-run.webp" alt="dbt run construye los 3 modelos en orden: primero stg_ventas, después los marts" loading="lazy"><figcaption>dbt run construye los 3 modelos en orden: primero stg_ventas, después los marts</figcaption></figure>
 
 
 <p>Ahora sí, <code>▷</code> sobre <code>ventas_por_canal.sql</code> funciona.</p>
 <h2>Paso 5 — Los tests del schema.yml</h2>
 <p>Abre <strong>models/schema.yml</strong>:</p>
-<pre><code class="language-yaml">models:
+<pre tabindex="0"><code class="language-yaml">models:
   - name: ventas_por_canal
     columns:
       - name: canal

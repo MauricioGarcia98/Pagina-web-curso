@@ -73,7 +73,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Capa semántica: una sola definición de cada métrica</h2>
 <p>El problema: el tablero de comercial dice que en noviembre se vendieron 1,20 millones; el de finanzas, 1,15 millones. Los dos tienen razón: uno resta devoluciones y el otro no. Cada herramienta define &quot;ventas&quot; por su lado.</p>
 <p>Una <strong>capa semántica</strong> define las métricas <strong>una sola vez</strong>, en código, y todas las herramientas las piden ahí:</p>
-<pre data-norun><code class="language-yaml"># metricas.yml (estilo dbt Semantic Layer / MetricFlow)
+<pre data-norun tabindex="0"><code class="language-yaml"># metricas.yml (estilo dbt Semantic Layer / MetricFlow)
 metrics:
   - name: venta_neta
     description: &quot;Importe de pedidos no cancelados, menos descuentos y devoluciones&quot;
@@ -182,7 +182,7 @@ metrics:
 <li>Las dos consultas siguientes la reutilizan con distintos cortes: ninguna repite la fórmula.</li>
 <li>Esa es la idea de la capa semántica: si mañana cambia la definición, se cambia en un solo lugar.</li>
 </ol>
-<pre data-norun><code class="language-sql">DROP VIEW IF EXISTS metrica_venta_neta;
+<pre data-norun tabindex="0"><code class="language-sql">DROP VIEW IF EXISTS metrica_venta_neta;
 CREATE VIEW metrica_venta_neta AS
 SELECT p.pedido_id, p.fecha_pedido, p.canal, c.pais,
        d.cantidad * d.precio_unitario * (1 - d.descuento) AS venta_neta

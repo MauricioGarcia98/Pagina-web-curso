@@ -38,7 +38,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Primas devengadas</strong>: una póliza anual no “ingresa” todo el primer mes; se gana mes a mes mientras está vigente. Para un año, se cuentan los meses de vigencia que caen dentro del año.</li>
 <li><strong>Puntualidad</strong>: un vuelo está a tiempo si sale (o llega) con menos de 15 minutos de demora sobre lo programado; los cancelados se informan aparte.</li>
 </ul>
-<pre><code class="language-sql">-- noches ocupadas de cada hotel en la primera semana de diciembre
+<pre tabindex="0"><code class="language-sql">-- noches ocupadas de cada hotel en la primera semana de diciembre
 WITH RECURSIVE cal(noche) AS (
   SELECT '2024-12-01' UNION ALL SELECT date(noche, '+1 day') FROM cal WHERE noche &lt; '2024-12-07'
 )
@@ -65,7 +65,7 @@ LIMIT 7;</code></pre>
 <li>Ejecuta y compara: la diferencia entre versiones es información para quien pregunta.</li>
 <li>Escribe en una línea qué recomendarías y por qué.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT
+<pre data-norun tabindex="0"><code class="language-sql">SELECT
     -- versión A: compró al menos una vez en los últimos 90 días del período
     COUNT(DISTINCT CASE WHEN fecha_pedido &gt;= '2024-10-02' THEN cliente_id END) AS activos_90d,
     -- versión B: compró en al menos 2 meses distintos del último año

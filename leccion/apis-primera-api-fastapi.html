@@ -24,7 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>La app más chica</h2>
-<pre><code class="language-python">from fastapi import FastAPI
+<pre tabindex="0"><code class="language-python">from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 app = FastAPI(title=&quot;API de la tienda&quot;)
@@ -68,7 +68,7 @@ print(r.status_code, r.json())   # 200 {'estado': 'ok'}</code></pre>
 <figure class="diagrama"><figcaption>Qué hace FastAPI con cada pedido antes de llamar a tu función</figcaption></figure>
 
 
-<pre data-norun><code class="language-python">@app.get(&quot;/productos/{producto_id}&quot;)          # producto_id está en la ruta
+<pre data-norun tabindex="0"><code class="language-python">@app.get(&quot;/productos/{producto_id}&quot;)          # producto_id está en la ruta
 def producto(producto_id: int):               # → parámetro de ruta, convertido a int
     ...
 
@@ -98,7 +98,7 @@ def productos(categoria: str | None = None,   # no está en la ruta y es simple 
 </tr>
 </tbody></table></div>
 <h2>Errores: HTTPException</h2>
-<pre data-norun><code class="language-python">from fastapi import HTTPException
+<pre data-norun tabindex="0"><code class="language-python">from fastapi import HTTPException
 
 @app.get(&quot;/productos/{producto_id}&quot;)
 def producto(producto_id: int):
@@ -109,7 +109,7 @@ def producto(producto_id: int):
 <p>La respuesta es <code>404</code> con el cuerpo <code>{&quot;detail&quot;: &quot;Producto no encontrado&quot;}</code>.</p>
 <h2>Límites con Query</h2>
 <p><code>limite: int = Query(10, ge=1, le=50)</code> valida que esté entre 1 y 50. Si piden <code>?limite=500</code>, FastAPI responde 422 con un detalle que dice exactamente qué falló y dónde:</p>
-<pre><code class="language-json">{&quot;detail&quot;: [{&quot;type&quot;: &quot;less_than_equal&quot;, &quot;loc&quot;: [&quot;query&quot;, &quot;limite&quot;],
+<pre tabindex="0"><code class="language-json">{&quot;detail&quot;: [{&quot;type&quot;: &quot;less_than_equal&quot;, &quot;loc&quot;: [&quot;query&quot;, &quot;limite&quot;],
              &quot;msg&quot;: &quot;Input should be less than or equal to 50&quot;, &quot;input&quot;: &quot;500&quot;, &quot;ctx&quot;: {&quot;le&quot;: 50}}]}</code></pre>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Sin límite, una API se cae</div>
 
@@ -124,7 +124,7 @@ def producto(producto_id: int):
 <li>Mira la respuesta de <code>/productos/abc</code> y de <code>?limite=500</code>: FastAPI responde 422 sin que hayas escrito ni una línea de validación.</li>
 <li>Agrega una ruta <code>GET /categorias</code> que devuelva la lista de categorías sin repetir, ordenada.</li>
 </ol>
-<pre><code class="language-python">from fastapi import FastAPI, HTTPException, Query
+<pre tabindex="0"><code class="language-python">from fastapi import FastAPI, HTTPException, Query
 from fastapi.testclient import TestClient
 
 PRODUCTOS = [

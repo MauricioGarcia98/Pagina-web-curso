@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 1 — La consulta</h2>
 <p>Hoja nueva, nombre <strong>Ventas por país</strong>:</p>
-<pre data-norun><code class="language-sql">SELECT c.pais,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT c.pais,
        COUNT(DISTINCT p.pedido_id) AS pedidos,
        ROUND(SUM(d.cantidad * d.precio_unitario), 2) AS ventas
 FROM pedidos p

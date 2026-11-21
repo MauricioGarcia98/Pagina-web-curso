@@ -62,7 +62,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>Paso 2 — Instalar con pip y un entorno virtual</h2>
 <p>En la terminal (en Windows, PowerShell; en Mac/Linux, Terminal), dentro de la carpeta de tu proyecto:</p>
-<pre><code class="language-bash">python -m venv .venv
+<pre tabindex="0"><code class="language-bash">python -m venv .venv
 # Windows:      .venv\Scripts\activate
 # Mac / Linux:  source .venv/bin/activate
 pip install jupyterlab pandas matplotlib
@@ -76,15 +76,15 @@ jupyter lab</code></pre>
 
 <h2>Paso 3 — Kernels: qué Python usa el notebook</h2>
 <p>Arriba a la derecha del notebook ves el kernel (<strong>Python 3 (ipykernel)</strong>). Si tienes varios entornos, regístralos para elegirlos desde JupyterLab:</p>
-<pre><code class="language-bash">pip install ipykernel
+<pre tabindex="0"><code class="language-bash">pip install ipykernel
 python -m ipykernel install --user --name analisis_ventas --display-name &quot;Python (analisis_ventas)&quot;</code></pre>
 <p>Después: <strong>Kernel → Change Kernel…</strong> y eliges el del proyecto.</p>
 <h2>Paso 4 — Instalar paquetes desde el notebook</h2>
-<pre data-norun><code class="language-python">%pip install seaborn</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">%pip install seaborn</code></pre>
 <p>Usa <code>%pip</code> (magic) y no <code>!pip</code>: <code>%pip</code> instala en el <strong>mismo entorno del kernel</strong> que está usando el notebook; <code>!pip</code> puede instalar en otro Python y el <code>import</code> sigue fallando. Después de instalar, a veces hay que reiniciar el kernel.</p>
 <p>En esta práctica, <code>%pip</code> muestra un aviso: corre en tu navegador y ya trae pandas, numpy y matplotlib.</p>
 <h2>Paso 5 — Fijar versiones: requirements.txt</h2>
-<pre><code class="language-bash">pip freeze &gt; requirements.txt          # guarda las versiones exactas
+<pre tabindex="0"><code class="language-bash">pip freeze &gt; requirements.txt          # guarda las versiones exactas
 pip install -r requirements.txt        # otra persona recrea el mismo entorno</code></pre>
 <p>Junto con el notebook, el <code>requirements.txt</code> es lo que hace que tu análisis corra igual en otra computadora dentro de un año. (Con conda: <code>environment.yml</code>.)</p>
 <h2>Paso 6 — Lo que tiene el JupyterLab real y la práctica no</h2>

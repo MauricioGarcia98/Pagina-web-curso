@@ -74,7 +74,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Cómo se ve en el log</h2>
-<pre><code class="language-text">2026-10-29 01:10:02 WARN  ingesta_pagos  archivo part-0000.json: columna &quot;amount&quot; no existe; se completa con NULL (modo PERMISSIVE)
+<pre tabindex="0"><code class="language-text">2026-10-29 01:10:02 WARN  ingesta_pagos  archivo part-0000.json: columna &quot;amount&quot; no existe; se completa con NULL (modo PERMISSIVE)
 2026-10-29 01:10:03 WARN  ingesta_pagos  archivo part-0000.json: columnas desconocidas ignoradas: amount_cents, currency</code></pre>
 <p>Dos warnings por archivo, catorce archivos y un <strong>Fin OK</strong>. Nadie lee los warnings de un job que termina bien. Por eso el check de nulos de la lección anterior es la red de seguridad.</p>
 <div class="recorrido"></div>

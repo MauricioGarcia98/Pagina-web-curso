@@ -28,7 +28,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <figure class="diagrama"><figcaption>Los controles por los que pasa un pedido antes de llegar a los datos</figcaption></figure>
 
 
-<pre data-norun><code class="language-python">from fastapi import Depends, Header, HTTPException
+<pre data-norun tabindex="0"><code class="language-python">from fastapi import Depends, Header, HTTPException
 
 CLAVES = {&quot;clave-finanzas&quot;: &quot;finanzas&quot;, &quot;clave-comercial&quot;: &quot;comercial&quot;}
 
@@ -61,7 +61,7 @@ def ventas(equipo: str = Depends(equipo_actual)):
 
 <h2>response_model: no devolver de más</h2>
 <p>Si la función devuelve el registro completo del cliente, el email y el teléfono salen en la respuesta. Con <code>response_model</code>, FastAPI <strong>filtra</strong> la salida a los campos del modelo, aunque la función devuelva más:</p>
-<pre data-norun><code class="language-python">class ClientePublico(BaseModel):
+<pre data-norun tabindex="0"><code class="language-python">class ClientePublico(BaseModel):
     cliente_id: int
     nombre: str
     ciudad: str
@@ -72,9 +72,9 @@ def cliente(cliente_id: int):
 <p>Es una red de seguridad: si mañana alguien agrega una columna sensible a la tabla, no aparece en la API por accidente. Ver <a href="https://fastapi.tiangolo.com/tutorial/response-model/">modelo de respuesta en la documentación</a>.</p>
 <h2>Límites de uso: 429 y Retry-After</h2>
 <p>Un límite de uso protege la API de un cliente con un bucle descontrolado. La forma más simple es la <strong>ventana fija</strong>: como máximo N pedidos por clave cada X segundos. Al pasarse, se responde <strong>429</strong> con el encabezado <code>Retry-After</code> (segundos que faltan para que se abra la ventana siguiente). Un cliente bien escrito espera ese tiempo antes de reintentar (lo viste del lado del cliente en <a href="#/l/python-extraer-de-apis">Python: extraer de una API</a>).</p>
-<pre data-norun><code class="language-python">raise HTTPException(status_code=429, detail=&quot;Demasiados pedidos&quot;, headers={&quot;Retry-After&quot;: &quot;12&quot;})</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">raise HTTPException(status_code=429, detail=&quot;Demasiados pedidos&quot;, headers={&quot;Retry-After&quot;: &quot;12&quot;})</code></pre>
 <h2>Versiones con routers</h2>
-<pre data-norun><code class="language-python">from fastapi import APIRouter
+<pre data-norun tabindex="0"><code class="language-python">from fastapi import APIRouter
 
 v1 = APIRouter(prefix=&quot;/v1&quot;)
 
@@ -113,7 +113,7 @@ app.include_router(v1)        # la ruta queda en /v1/productos</code></pre>
 <td><code>/docs</code> (Swagger UI) y <code>/openapi.json</code> salen solos: compártelos con quien consume la API</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-dockerfile">FROM python:3.13-slim
+<pre data-norun tabindex="0"><code class="language-dockerfile">FROM python:3.13-slim
 WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN pip install uv &amp;&amp; uv sync --frozen --no-dev
@@ -126,7 +126,7 @@ CMD [&quot;uv&quot;, &quot;run&quot;, &quot;fastapi&quot;, &quot;run&quot;, &quo
 <li>Mira la respuesta del cuarto pedido: 429 con <code>Retry-After</code>.</li>
 <li>Agrega la regla de permisos: solo el equipo <code>finanzas</code> puede ver <code>/reportes/ventas</code>; el resto recibe 403.</li>
 </ol>
-<pre><code class="language-python">from fastapi import FastAPI, Depends, Header, HTTPException
+<pre tabindex="0"><code class="language-python">from fastapi import FastAPI, Depends, Header, HTTPException
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
 

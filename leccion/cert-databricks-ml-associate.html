@@ -35,7 +35,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ul>
 <h2>Features en Unity Catalog</h2>
 <p>Una <strong>tabla de features</strong> es una tabla Delta de Unity Catalog con una <strong>clave primaria</strong> (y opcionalmente una clave de tiempo) que guarda features reutilizables. Cualquier tabla de Unity Catalog con clave primaria puede usarse como tabla de features.</p>
-<pre data-norun><code class="language-python">from databricks.feature_engineering import FeatureEngineeringClient, FeatureLookup
+<pre data-norun tabindex="0"><code class="language-python">from databricks.feature_engineering import FeatureEngineeringClient, FeatureLookup
 
 fe = FeatureEngineeringClient()
 
@@ -75,7 +75,7 @@ entrenamiento = conjunto.load_df()</code></pre>
 
 <h2>Entrenar y registrar con MLflow</h2>
 <p><strong>MLflow</strong> organiza el trabajo en <strong>experimentos</strong>, que contienen <strong>ejecuciones</strong> (<em>runs</em>); cada ejecución guarda parámetros, métricas, artefactos y el modelo.</p>
-<pre data-norun><code class="language-python">import mlflow
+<pre data-norun tabindex="0"><code class="language-python">import mlflow
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 
@@ -109,7 +109,7 @@ with mlflow.start_run(run_name=&quot;hgb_v1&quot;):
 <li><strong>pandas API on Spark</strong> (<code>pyspark.pandas</code>) permite usar sintaxis de pandas sobre datos distribuidos.</li>
 </ul>
 <h2>Registro en Unity Catalog y alias</h2>
-<pre data-norun><code class="language-python">mlflow.set_registry_uri(&quot;databricks-uc&quot;)
+<pre data-norun tabindex="0"><code class="language-python">mlflow.set_registry_uri(&quot;databricks-uc&quot;)
 mlflow.register_model(f&quot;runs:/{run_id}/model&quot;, &quot;prod.ml.churn&quot;)      # crea la versión 3, por ejemplo
 
 from mlflow import MlflowClient
@@ -143,7 +143,7 @@ modelo = mlflow.pyfunc.load_model(&quot;models:/prod.ml.churn@champion&quot;)   
 <td>La app necesita la predicción en milisegundos</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-python">predecir = mlflow.pyfunc.spark_udf(spark, &quot;models:/prod.ml.churn@champion&quot;, result_type=&quot;double&quot;)
+<pre data-norun tabindex="0"><code class="language-python">predecir = mlflow.pyfunc.spark_udf(spark, &quot;models:/prod.ml.churn@champion&quot;, result_type=&quot;double&quot;)
 (spark.table(&quot;prod.ml.features_hoy&quot;)
    .withColumn(&quot;prob_churn&quot;, predecir(*columnas_features))
    .write.mode(&quot;overwrite&quot;).saveAsTable(&quot;prod.ml.churn_scores&quot;))</code></pre>

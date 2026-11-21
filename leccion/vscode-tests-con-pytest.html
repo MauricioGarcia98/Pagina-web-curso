@@ -25,13 +25,13 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 1 — La función a probar</h2>
 <p>Crea <strong>scripts/precios.py</strong>:</p>
-<pre data-norun><code class="language-python">def con_descuento(precio, descuento):
+<pre data-norun tabindex="0"><code class="language-python">def con_descuento(precio, descuento):
     &quot;&quot;&quot;Precio con descuento (descuento entre 0 y 1).&quot;&quot;&quot;
     return round(precio * (1 - descuento), 2)</code></pre>
 <p>Para poder probar algo, tiene que estar en una <strong>función</strong> que reciba datos y devuelva un resultado. Un script que lee un CSV e imprime no se puede probar fácil; una función sí.</p>
 <h2>Paso 2 — Los tests</h2>
 <p>Crea <strong>scripts/test_precios.py</strong>:</p>
-<pre data-norun><code class="language-python">from precios import con_descuento
+<pre data-norun tabindex="0"><code class="language-python">from precios import con_descuento
 
 
 def test_descuento_normal():
@@ -59,7 +59,7 @@ def test_sin_descuento():
 </tbody></table></div>
 <h2>Paso 3 — Ejecuta los tests</h2>
 <p>En la terminal, desde la carpeta <code>scripts</code>:</p>
-<pre><code class="language-bash">cd ~/scripts
+<pre tabindex="0"><code class="language-bash">cd ~/scripts
 pytest</code></pre>
 <p>(O en la paleta: <strong>Python: ejecutar los tests (pytest)</strong>.)</p>
 <figure class="captura"><img src="assets/img/guias/vscode/v11-pytest.webp" alt="pytest encuentra los dos tests y los dos pasan: 2 passed, 0 failed" loading="lazy"><figcaption>pytest encuentra los dos tests y los dos pasan: 2 passed, 0 failed</figcaption></figure>
@@ -67,7 +67,7 @@ pytest</code></pre>
 
 <h2>Paso 4 — Un test que falla</h2>
 <p>Agrega un test con un error a propósito:</p>
-<pre data-norun><code class="language-python">def test_descuento_total():
+<pre data-norun tabindex="0"><code class="language-python">def test_descuento_total():
     assert con_descuento(50, 1) == 5</code></pre>
 <p>Ejecuta <code>pytest</code>: aparece <strong>FAILED</strong> con el detalle <code>assert 0.0 == 5</code>. Se lee: &quot;esperabas 5, la función devolvió 0.0&quot;. Acá el error está en el test (con 100 % de descuento el precio es 0); en la vida real, puede estar en la función. Corrige el test (<code>== 0</code>) y vuelve a ejecutar.</p>
 <h2>Paso 5 — Qué probar</h2>

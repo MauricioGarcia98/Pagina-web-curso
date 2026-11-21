@@ -31,14 +31,14 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ul>
 <h2>Los datos</h2>
 <p><a href="#/generador?esc=soporte&n=1500&semilla=88&desde=2024-01-01&hasta=2024-12-31&formatos=3&duplicados=1">🏭 Generar los datos del proyecto</a> · Escenario <strong>Soporte</strong>: <code>tickets</code> (mensaje, canal, país, y las etiquetas <code>categoria</code>, <code>sentimiento</code> y <code>prioridad</code>) y <code>base_conocimiento</code> (para el proyecto 9).</p>
-<pre><code class="language-bash">generar-datos soporte --filas 300 --semilla 88
+<pre tabindex="0"><code class="language-bash">generar-datos soporte --filas 300 --semilla 88
 duckdb -c &quot;SELECT categoria, COUNT(*) FROM '~/datos/generados/soporte/tickets.csv' GROUP BY 1&quot;</code></pre>
 <h2>Arquitectura</h2>
 <figure class="diagrama"><figcaption>Clasificación con LLM y evaluación</figcaption></figure>
 
 
 <h2>El prompt</h2>
-<pre><code class="language-text">Eres un clasificador de tickets de soporte de una tienda online.
+<pre tabindex="0"><code class="language-text">Eres un clasificador de tickets de soporte de una tienda online.
 Categorías posibles: pagos, envios, devoluciones, garantia, cuenta.
 Prioridad: urgente si hay riesgo de dinero o de seguridad (cobros duplicados, cuenta hackeada);
 alta si el cliente está enojado; si no, media.
@@ -53,7 +53,7 @@ Mensaje: &quot;&quot;&quot;{mensaje}&quot;&quot;&quot;</code></pre>
 </ul>
 <h2>Tres formas de ejecutarlo</h2>
 <p><strong>Local con Ollama</strong> (gratis, privado):</p>
-<pre data-norun><code class="language-python">import json, ollama, pandas as pd
+<pre data-norun tabindex="0"><code class="language-python">import json, ollama, pandas as pd
 df = pd.read_csv(&quot;data/raw/tickets.csv&quot;)
 def clasificar(msg):
     r = ollama.chat(model=&quot;llama3.2&quot;, options={&quot;temperature&quot;: 0}, format=&quot;json&quot;,
@@ -61,7 +61,7 @@ def clasificar(msg):
     return json.loads(r[&quot;message&quot;][&quot;content&quot;])
 df[[&quot;pred_categoria&quot;, &quot;pred_prioridad&quot;, &quot;confianza&quot;]] = df[&quot;mensaje&quot;].apply(lambda m: pd.Series(clasificar(m)))</code></pre>
 <p><strong>Databricks, con funciones de IA en SQL</strong>:</p>
-<pre data-norun><code class="language-sql">SELECT ticket_id, mensaje, categoria,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT ticket_id, mensaje, categoria,
        ai_classify(mensaje, ARRAY('pagos', 'envios', 'devoluciones', 'garantia', 'cuenta')) AS pred_categoria,
        ai_analyze_sentiment(mensaje) AS pred_sentimiento
 FROM workspace.soporte.tickets;</code></pre>
@@ -134,7 +134,7 @@ FROM workspace.soporte.tickets;</code></pre>
 <li>Mira la exactitud y, sobre todo, la tabla de confusión: en qué categorías se equivoca.</li>
 <li>Con un modelo de lenguaje harías lo mismo: el set de evaluación etiquetado a mano es lo que no puede faltar.</li>
 </ol>
-<pre data-norun><code class="language-python">tickets = [
+<pre data-norun tabindex="0"><code class="language-python">tickets = [
     (&quot;no puedo entrar a mi cuenta&quot;, &quot;acceso&quot;), (&quot;me cobraron dos veces&quot;, &quot;facturacion&quot;),
     (&quot;la app se cierra sola&quot;, &quot;tecnico&quot;), (&quot;olvidé mi contraseña&quot;, &quot;acceso&quot;),
     (&quot;quiero la factura de marzo&quot;, &quot;facturacion&quot;), (&quot;el reporte tarda mucho&quot;, &quot;tecnico&quot;),

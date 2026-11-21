@@ -95,7 +95,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>BI Engine</strong> acelera paneles en memoria; <strong>caché de resultados</strong> de 24 horas sin costo.</li>
 <li>Escritura: <strong>Storage Write API</strong> (alto volumen, exactly-once), cargas por lotes gratuitas, <code>MERGE</code> para upserts.</li>
 </ul>
-<pre data-norun><code class="language-sql">CREATE TABLE ventas.tickets (
+<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE ventas.tickets (
   ticket_id STRING,
   sucursal_id INT64,
   fecha TIMESTAMP,
@@ -122,7 +122,7 @@ GROUP BY l.producto_id;</code></pre>
 <li><strong>Seguridad por fila</strong> (<em>row access policies</em>) y <strong>por columna</strong> con <strong>etiquetas de política</strong> (<em>policy tags</em>) de una taxonomía; <strong>enmascaramiento dinámico</strong> (hash, nulo, últimos 4 caracteres) según el rol.</li>
 <li><strong>Vistas autorizadas</strong> para exponer columnas o filas a otro grupo sin dar acceso a la tabla base.</li>
 </ul>
-<pre data-norun><code class="language-sql">CREATE ROW ACCESS POLICY solo_su_region
+<pre data-norun tabindex="0"><code class="language-sql">CREATE ROW ACCESS POLICY solo_su_region
 ON ventas.tickets
 GRANT TO (&quot;group:gerentes-norte@cadena.com&quot;)
 FILTER USING (region = &quot;NORTE&quot;);</code></pre>
@@ -139,7 +139,7 @@ FILTER USING (region = &quot;NORTE&quot;);</code></pre>
 <li><strong>Gemini en BigQuery</strong>: asistencia para escribir SQL, <em>data canvas</em> y agentes de datos.</li>
 <li><strong>Looker</strong> (modelo semántico <strong>LookML</strong>), <strong>Looker Studio</strong> para paneles, <strong>Connected Sheets</strong> para analizar en Sheets.</li>
 </ul>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE MODEL ventas.modelo_demanda
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE MODEL ventas.modelo_demanda
 OPTIONS (model_type = 'ARIMA_PLUS',
          time_series_timestamp_col = 'dia',
          time_series_data_col = 'unidades',

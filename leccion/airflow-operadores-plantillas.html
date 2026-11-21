@@ -64,7 +64,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Los de bases de datos y nubes vienen en paquetes aparte llamados <strong>providers</strong> (<code>apache-airflow-providers-databricks</code>, <code>-amazon</code>, <code>-google</code>, <code>-microsoft-azure</code>…).</p>
 <h2>PythonOperator con argumentos</h2>
 <p><code>python_callable</code> recibe la <strong>función</strong> (sin paréntesis: <code>cargar_pais</code>, no <code>cargar_pais()</code>). Los argumentos se pasan con <code>op_kwargs</code> (un diccionario de nombre → valor) o <code>op_args</code> (una lista, por posición).</p>
-<pre><code class="language-python">from datetime import datetime
+<pre tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 
@@ -136,7 +136,7 @@ dag.test()</code></pre>
 <td>Ejecuciones manuales con parámetros</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-python">from datetime import datetime
+<pre tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import DAG
 from airflow.providers.standard.operators.bash import BashOperator
 
@@ -174,7 +174,7 @@ dag.test()</code></pre>
 <h2>El contexto en funciones Python</h2>
 <p>Además de plantillas, una función de <code>PythonOperator</code> puede recibir el <strong>contexto</strong> de ejecución. Es un diccionario con todo lo que Airflow sabe de esa ejecución: las fechas, la tarea, el DAG run y la instancia de tarea <code>ti</code> (que se usa para XCom).</p>
 <p>Airflow mira <strong>los nombres de los parámetros</strong> de tu función y le pasa los que coinciden. Si pones <code>**context</code>, recibe todo el resto.</p>
-<pre><code class="language-python">from datetime import datetime
+<pre tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 
@@ -222,7 +222,7 @@ dag.test(logical_date=datetime(2024, 6, 30))</code></pre>
 </tbody></table></div>
 <h2>Reintentos y timeouts</h2>
 <p>Una API que no responde o una red que se cae un segundo son cosas normales. En vez de fallar a la primera, configura <strong>reintentos</strong>:</p>
-<pre data-norun><code class="language-python">PythonOperator(
+<pre data-norun tabindex="0"><code class="language-python">PythonOperator(
     task_id=&quot;llamar_api&quot;,
     python_callable=llamar_api,
     retries=3,                               # hasta 3 intentos extra (4 en total)
@@ -236,7 +236,7 @@ dag.test(logical_date=datetime(2024, 6, 30))</code></pre>
 <li><strong>Los reintentos solo son seguros si la tarea es idempotente.</strong> Si la tarea inserta filas sin borrar las anteriores, cada reintento las duplica.</li>
 </ul>
 <p>Para no repetir lo mismo en cada tarea, se pone en <code>default_args</code> del DAG y todas lo heredan:</p>
-<pre data-norun><code class="language-python">default_args = {&quot;retries&quot;: 2, &quot;retry_delay&quot;: timedelta(minutes=5)}
+<pre data-norun tabindex="0"><code class="language-python">default_args = {&quot;retries&quot;: 2, &quot;retry_delay&quot;: timedelta(minutes=5)}
 with DAG(&quot;etl&quot;, default_args=default_args, ...) as dag:
     ...   # todas las tareas tienen 2 reintentos, salvo que una lo cambie</code></pre>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Plantillas Jinja y reintentos</div>
@@ -246,7 +246,7 @@ with DAG(&quot;etl&quot;, default_args=default_args, ...) as dag:
 <li>Agrega <code>{{ ds_nodash }}</code> al nombre del archivo.</li>
 <li>Mira <code>retries</code> y <code>retry_delay</code> en <code>default_args</code>: si <code>descargar</code> falla, Airflow la reintenta.</li>
 </ol>
-<pre data-norun><code class="language-python">from datetime import datetime, timedelta
+<pre data-norun tabindex="0"><code class="language-python">from datetime import datetime, timedelta
 from airflow.sdk import DAG
 from airflow.providers.standard.operators.bash import BashOperator
 

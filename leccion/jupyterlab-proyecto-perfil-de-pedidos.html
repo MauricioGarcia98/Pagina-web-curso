@@ -29,7 +29,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Crea <code>perfil_pedidos.ipynb</code> y una celda Markdown con el título <code># Perfil de la tabla pedidos</code> y una línea de contexto.</li>
 <li>Una celda de código que cargue los datos:</li>
 </ol>
-<pre data-norun><code class="language-python">import pandas as pd
+<pre data-norun tabindex="0"><code class="language-python">import pandas as pd
 pedidos = pd.read_csv(&quot;datos/pedidos.csv&quot;)</code></pre>
 <p>Antes de cada tarea, agrega una celda Markdown con el subtítulo (<code>## 1. Tamaño</code>, <code>## 2. Calidad</code>…). Así el notebook se lee como un informe.</p>
 <h2>Tarea 1 — Tamaño y estructura</h2>
@@ -71,7 +71,7 @@ pedidos = pd.read_csv(&quot;datos/pedidos.csv&quot;)</code></pre>
 <p>Calcula el <strong>% de pedidos cancelados de cada canal</strong> (cancelados del canal / pedidos del canal). Hazlo al menos para app y web.</p>
 <details><summary>💡 Pista</summary>
 
-<pre data-norun><code class="language-python">app = pedidos[pedidos[&quot;canal&quot;] == &quot;app&quot;]
+<pre data-norun tabindex="0"><code class="language-python">app = pedidos[pedidos[&quot;canal&quot;] == &quot;app&quot;]
 (app[&quot;estado&quot;] == &quot;cancelado&quot;).mean() * 100</code></pre>
 <p><code>(condición).mean()</code> es el porcentaje de <code>True</code>: un truco que vas a usar siempre. En el nivel 3 lo haces para todos los canales de una vez con <code>groupby</code>.</p>
 </details>

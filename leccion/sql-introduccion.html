@@ -184,7 +184,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p>Se lee: &quot;un cliente tiene <strong>muchos</strong> pedidos; un pedido tiene <strong>muchas</strong> líneas de detalle; cada línea apunta a <strong>un</strong> producto; cada producto pertenece a <strong>una</strong> categoría&quot;. Los símbolos <code>&lt;</code> indican el lado &quot;muchos&quot;.</p>
 <h2>Tu primera consulta</h2>
-<pre><code class="language-sql">SELECT * FROM productos;</code></pre>
+<pre tabindex="0"><code class="language-sql">SELECT * FROM productos;</code></pre>
 <p>Léela en voz alta, palabra por palabra:</p>
 <div class="table-wrap"><table><thead><tr>
 <th>Parte</th>
@@ -215,7 +215,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Texto entre comillas simples</strong>: los valores de texto se escriben <code>&#39;así&#39;</code> (lo verás en la lección de <code>WHERE</code>). Las comillas dobles se reservan para nombres de columnas raros.</li>
 <li><strong>Comentarios</strong>: todo lo que va después de <code>--</code> en una línea es un comentario, y SQL lo ignora. Úsalos para explicar tu consulta.</li>
 </ul>
-<pre><code class="language-sql">-- Esto es un comentario: SQL lo ignora
+<pre tabindex="0"><code class="language-sql">-- Esto es un comentario: SQL lo ignora
 SELECT *          -- todas las columnas
 FROM clientes     -- de la tabla de clientes
 LIMIT 5;          -- solo 5 filas</code></pre>
@@ -224,7 +224,7 @@ LIMIT 5;          -- solo 5 filas</code></pre>
 
 <h2>Ver solo algunas filas: LIMIT</h2>
 <p>Las tablas reales pueden tener <strong>millones</strong> de filas. Pedirlas todas para &quot;echar un vistazo&quot; es lento y, en la nube, puede costar dinero. Para explorar usa <code>LIMIT</code>, que corta el resultado a la cantidad de filas que indiques:</p>
-<pre><code class="language-sql">SELECT * FROM clientes LIMIT 5;</code></pre>
+<pre tabindex="0"><code class="language-sql">SELECT * FROM clientes LIMIT 5;</code></pre>
 <p><code>LIMIT</code> siempre va <strong>al final</strong> de la consulta. Sin un orden explícito (lo verás con <code>ORDER BY</code>), la base devuelve &quot;las primeras que encuentre&quot;, que no tienen por qué ser siempre las mismas: <code>LIMIT</code> sirve para mirar, no para pedir &quot;los 5 mejores&quot;.</p>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Errores típicos del primer día</div>
 
@@ -243,7 +243,7 @@ LIMIT 5;          -- solo 5 filas</code></pre>
 <li>La página <a href="#/datos">Bases de datos</a> describe cada tabla y dibuja cómo se relacionan.</li>
 <li>Una consulta rápida con <code>LIMIT 1</code>: verás todos los nombres de columnas en el encabezado del resultado.</li>
 </ol>
-<pre><code class="language-sql">SELECT * FROM pedidos LIMIT 1;</code></pre>
+<pre tabindex="0"><code class="language-sql">SELECT * FROM pedidos LIMIT 1;</code></pre>
 <div class="callout callout-tip"><div class="callout-title">💡 Explora sin miedo</div>
 
 <p>En el <a href="#/lab/sql">Laboratorio SQL</a> puedes escribir cualquier consulta, sobre cualquier tabla, sin que nada se califique. Ninguna consulta <code>SELECT</code> modifica los datos: solo los lee. Equivocarse es parte de aprender, y los mensajes de error te dicen exactamente qué falló.</p>
@@ -308,7 +308,7 @@ LIMIT 5;          -- solo 5 filas</code></pre>
 <li>Cambia <code>10</code> por <code>3</code> y vuelve a ejecutar.</li>
 <li>Cambia <code>clientes</code> por <code>productos</code>. ¿Qué columnas tiene esa tabla?</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT *
+<pre data-norun tabindex="0"><code class="language-sql">SELECT *
 FROM clientes
 LIMIT 10;</code></pre>
 <p>Reto: muestra 5 filas de la tabla <code>pedidos</code> y anota qué columnas la conectan con <code>clientes</code>.</p>

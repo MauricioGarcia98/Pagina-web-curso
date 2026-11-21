@@ -51,7 +51,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <p>La diferencia grande es que en DAX <strong>no escribes los JOIN</strong>: las relaciones ya están en el modelo y los filtros viajan solos.</p>
 <h2>DEFINE: probar antes de crear</h2>
-<pre><code class="language-dax">DEFINE
+<pre tabindex="0"><code class="language-dax">DEFINE
     MEASURE pedidos[Ticket] = DIVIDE([Ventas], [Pedidos])
 EVALUATE
     SUMMARIZECOLUMNS(pedidos[canal], &quot;Ticket&quot;, [Ticket])
@@ -59,7 +59,7 @@ ORDER BY [Ticket] DESC</code></pre>
 <p>La medida existe solo mientras corre la consulta. En Power BI Desktop, encima del <code>DEFINE</code> aparece <strong>&quot;Actualizar el modelo: agregar una medida nueva&quot;</strong> para pasarla al modelo con un clic. El laboratorio también lo tiene.</p>
 <h2>TMDL: el modelo como código</h2>
 <p>La <strong>vista TMDL</strong> muestra el modelo semántico en <em>Tabular Model Definition Language</em>, un formato de texto:</p>
-<pre><code class="language-tmdl">createOrReplace
+<pre tabindex="0"><code class="language-tmdl">createOrReplace
 
     table pedidos
 
@@ -87,7 +87,7 @@ ORDER BY [Ticket] DESC</code></pre>
 <li>Abre la vista <strong>TMDL</strong>: tus medidas aparecen como código, listas para versionar en Git (formato PBIP).</li>
 <li>Con esas medidas, arma en <strong>Informe</strong> una página: tarjeta de ventas, gráfico por mes y tabla por país.</li>
 </ol>
-<pre data-norun><code class="language-dax">DEFINE
+<pre data-norun tabindex="0"><code class="language-dax">DEFINE
     MEASURE detalle_pedidos[Ventas] =
         SUMX(detalle_pedidos, detalle_pedidos[cantidad] * detalle_pedidos[precio_unitario] * (1 - detalle_pedidos[descuento]))
     MEASURE detalle_pedidos[Clientes] = DISTINCTCOUNT(pedidos[cliente_id])

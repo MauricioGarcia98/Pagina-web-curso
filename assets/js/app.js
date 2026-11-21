@@ -1,6 +1,8 @@
 /* Academia de Datos — aplicación principal (router, vistas, ejercicios, laboratorios). */
 (function () {
   'use strict';
+  // lectores de pantalla: todo editor de código tiene nombre aunque quien lo cree no lo indique
+  if (window.CodeMirror && window.CodeMirror.defaults && !window.CodeMirror.defaults.screenReaderLabel) window.CodeMirror.defaults.screenReaderLabel = 'Editor de código';
   // Comillas en todos los editores (como en JupyterLab y VS Code): dentro de un string abierto (también f"...", r"...") la comilla lo cierra, no abre un par nuevo.
   // El autocierre de CodeMirror 5 no reconoce los prefijos de string y en f"{x}" terminaba agregando "" de más.
   const comillaPy = (q) => (cm) => {
@@ -276,7 +278,7 @@
       base: 'vs-dark', inherit: true,
       rules: [
         { token: 'keyword', foreground: 'C4A7FF', fontStyle: 'bold' }, { token: 'string', foreground: '7EE0A1' }, { token: 'number', foreground: 'F5B971' },
-        { token: 'comment', foreground: '6C7389', fontStyle: 'italic' }, { token: 'predefined', foreground: '8CB8FF' }, { token: 'operator', foreground: 'B4B9CB' },
+        { token: 'comment', foreground: '9198AE', fontStyle: 'italic' }, { token: 'predefined', foreground: '8CB8FF' }, { token: 'operator', foreground: 'B4B9CB' },
       ],
       colors: { 'editor.background': '#12151d', 'editor.lineHighlightBackground': '#1b1f2b', 'editorLineNumber.foreground': '#4b5266', 'editorLineNumber.activeForeground': '#b4b9cb', 'editor.selectionBackground': '#3a3f7a', 'editorCursor.foreground': '#a5a1ff', 'editorIndentGuide.background1': '#232838' },
     });
@@ -353,7 +355,7 @@
     };
     const useCm = () => {
       if (!window.CodeMirror) {
-        const ta = h('<textarea class="fallback-editor" spellcheck="false"></textarea>');
+        const ta = h('<textarea class="fallback-editor" spellcheck="false" aria-label="Editor de código del ejercicio"></textarea>');
         ta.value = value; wrap.appendChild(ta);
         ta.addEventListener('keydown', (e) => {
           if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); (e.shiftKey ? onCheck : onRun)?.(); }
@@ -365,6 +367,7 @@
       }
       const cm = window.CodeMirror(wrap, {
         value, mode: cmMode(lang), lineNumbers: true, matchBrackets: true, autoCloseBrackets: true,
+        screenReaderLabel: `Editor de ${({ sql: 'SQL', dbt: 'SQL (dbt)', python: 'Python', pyspark: 'PySpark', bash: 'la terminal' })[lang] || 'código'} del ejercicio`,
         indentUnit: 4, tabSize: 4, indentWithTabs: false, lineWrapping: false, viewportMargin: Infinity,
         extraKeys: {
           'Ctrl-Enter': () => onRun?.(), 'Cmd-Enter': () => onRun?.(),
@@ -2037,7 +2040,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
           if (l.nivel !== lastLevel) { html += `<div class="side-level">${esc(l.nivel)}</div>`; lastLevel = l.nivel; }
           const d = Store.lessonDone(l);
           const lb = leccionBloqueada(l);
-          html += `<a href="#/l/${l.id}" data-lesson="${l.id}" class="${route.lesson === l ? 'active' : ''} ${d ? 'done' : ''}${lb ? ' bloqueada' : ''}"${lb ? ` title="Se abre con ${esc(lb.nombre)}"` : ''}><span class="dot">${d ? '✓' : lb ? '🔒' : '○'}</span><span>${esc(l.titulo)}</span></a>`;
+          html += `<a href="#/l/${l.id}" data-lesson="${l.id}" class="${route.lesson === l ? 'active' : ''} ${d ? 'done' : ''}${lb ? ' bloqueada' : ''}"${lb ? ` aria-disabled="true" title="Se abre con ${esc(lb.nombre)}"` : ''}><span class="dot">${d ? '✓' : lb ? '🔒' : '○'}</span><span>${esc(l.titulo)}</span></a>`;
         }
         html += '</div></div>';
       }
@@ -2953,7 +2956,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       let actual = null;
       $('#glist').innerHTML = items.map((g) => {
         const l = letra(g.termino);
-        const cab = !q && l !== actual ? `<h3 class="gloss-letra" id="letra-${l}">${l}</h3>` : '';
+        const cab = !q && l !== actual ? `<h2 class="gloss-letra" id="letra-${l}">${l}</h2>` : '';
         actual = l;
         return cab + tarjeta(g);
       }).join('') || '<div class="card muted" style="padding:16px">Sin resultados. Prueba con otra palabra.</div>';
@@ -3033,6 +3036,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       <h1>📈 Mi progreso</h1>
       ${bloqueRacha()}
       <div class="stats"><div class="stat"><b>${tp.pct}%</b><span>del curso</span></div><div class="stat"><b>${tp.done}/${tp.total}</b><span>lecciones</span></div><div class="stat"><b>${exDone}/${ALL_EX.length}</b><span>ejercicios</span></div></div>
+      <h2 class="sr-only">Avance por módulo</h2>
       <div class="grid" style="margin-top:20px">${C.modulos.map((m) => {
         const p = moduleProgress(m);
         const e = m.lecciones.flatMap((l) => l.ejercicios);
@@ -4035,6 +4039,9 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (anchor && document.getElementById(anchor)) document.getElementById(anchor).scrollIntoView();
     else window.scrollTo(0, 0);
     main.focus({ preventScroll: true });
+    // lectores de pantalla: si la página salta del título (h1) a subtítulos h3 sin ningún h2, se agrega un h2
+    // invisible para que la estructura de títulos no tenga huecos
+    { const h1 = $('h1', main); if (h1 && !$('h2', main) && $('h3', main)) h1.insertAdjacentHTML('afterend', '<h2 class="sr-only">Contenido de la página</h2>'); }
     // los paneles laterales de los laboratorios también se pliegan
     for (const lab of $$('.lab', main)) {
       const side = $('.lab-side', lab); if (!side || (lab.previousElementSibling && lab.previousElementSibling.classList.contains('panel-toggle'))) continue;

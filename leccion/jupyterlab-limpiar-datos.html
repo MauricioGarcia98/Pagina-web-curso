@@ -24,13 +24,13 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — Carga y mide</h2>
-<pre data-norun><code class="language-python">crudo = pd.read_csv(&quot;datos/clientes_crudo.csv&quot;)
+<pre data-norun tabindex="0"><code class="language-python">crudo = pd.read_csv(&quot;datos/clientes_crudo.csv&quot;)
 print(&quot;filas:&quot;, len(crudo))
 print(&quot;clientes distintos:&quot;, crudo[&quot;cliente_id&quot;].nunique())
 print(&quot;repetidos por cliente_id:&quot;, crudo[&quot;cliente_id&quot;].duplicated().sum())
 crudo.isna().sum()</code></pre>
 <p>400 filas, <strong>243</strong> clientes distintos, <strong>157</strong> filas repetidas y <strong>19</strong> emails vacíos. Mira algunas filas del mismo cliente:</p>
-<pre data-norun><code class="language-python">crudo[crudo[&quot;cliente_id&quot;] == 1638].sort_values(&quot;fecha_carga&quot;)</code></pre>
+<pre data-norun tabindex="0"><code class="language-python">crudo[crudo[&quot;cliente_id&quot;] == 1638].sort_values(&quot;fecha_carga&quot;)</code></pre>
 <p>El mismo Benjamín Torres aparece cinco veces: con el nombre en mayúsculas, el email en mayúsculas o la ciudad en minúscula.</p>
 <h2>Paso 2 — Decide qué es un duplicado</h2>
 <div class="table-wrap"><table><thead><tr>
@@ -48,13 +48,13 @@ crudo.isna().sum()</code></pre>
 </tbody></table></div>
 <p>Y de cada cliente repetido te quedas con la <strong>carga más reciente</strong>.</p>
 <h2>Paso 3 — Deduplica conservando la más reciente</h2>
-<pre data-norun><code class="language-python">limpio = (crudo
+<pre data-norun tabindex="0"><code class="language-python">limpio = (crudo
           .sort_values(&quot;fecha_carga&quot;, ascending=False)
           .drop_duplicates(&quot;cliente_id&quot;, keep=&quot;first&quot;))
 len(limpio)</code></pre>
 <p>Da <strong>243</strong>: coincide con los clientes distintos que mediste. <code>drop_duplicates</code> conserva la primera aparición (<code>keep=&quot;first&quot;</code>); como ordenaste de la más nueva a la más vieja, la primera es la más reciente.</p>
 <h2>Paso 4 — Normaliza los textos</h2>
-<pre data-norun><code class="language-python">limpio = limpio.assign(
+<pre data-norun tabindex="0"><code class="language-python">limpio = limpio.assign(
     nombre=limpio[&quot;nombre&quot;].str.strip().str.title(),
     apellido=limpio[&quot;apellido&quot;].str.strip().str.title(),
     email=limpio[&quot;email&quot;].str.strip().str.lower(),
@@ -128,7 +128,7 @@ len(limpio)</code></pre>
 
 <p>En la carga más reciente quedan <strong>13</strong> clientes sin email.</p>
 <h2>Paso 6 — Valida con assert</h2>
-<pre data-norun><code class="language-python">assert limpio[&quot;cliente_id&quot;].is_unique, &quot;Hay clientes repetidos&quot;
+<pre data-norun tabindex="0"><code class="language-python">assert limpio[&quot;cliente_id&quot;].is_unique, &quot;Hay clientes repetidos&quot;
 assert len(limpio) == crudo[&quot;cliente_id&quot;].nunique()
 assert (limpio[&quot;email&quot;].dropna() == limpio[&quot;email&quot;].dropna().str.lower()).all(), &quot;Quedan emails con mayúsculas&quot;</code></pre>
 <p><code>assert condición, &quot;mensaje&quot;</code> no hace nada si la condición se cumple; si no, detiene el notebook con el mensaje. Son tus controles automáticos: si mañana llega un archivo con un problema nuevo, el notebook avisa.</p>

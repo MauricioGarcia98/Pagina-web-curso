@@ -107,7 +107,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Arriba, comprueba que esté seleccionado el SQL warehouse (Free Edition trae uno, de tamaño 2X-Small).</li>
 <li>Escribe y ejecuta:</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT pickup_zip, COUNT(*) AS viajes, ROUND(AVG(fare_amount), 2) AS tarifa_promedio
+<pre data-norun tabindex="0"><code class="language-sql">SELECT pickup_zip, COUNT(*) AS viajes, ROUND(AVG(fare_amount), 2) AS tarifa_promedio
 FROM samples.nyctaxi.trips
 GROUP BY pickup_zip
 ORDER BY viajes DESC
@@ -134,7 +134,7 @@ LIMIT 10;</code></pre>
 <li><strong>+ New</strong> → <strong>Notebook</strong>. Arriba, a la derecha, haz clic en <strong>Connect</strong> y elige el cómputo <strong>Serverless</strong>.</li>
 <li>En la primera celda, crea la tabla cruda desde el archivo (reemplaza <code>&lt;tu_catalogo&gt;</code> por el nombre de tu catálogo; lo ves en Catalog):</li>
 </ol>
-<pre data-norun><code class="language-python">catalogo = &quot;&lt;tu_catalogo&gt;&quot;
+<pre data-norun tabindex="0"><code class="language-python">catalogo = &quot;&lt;tu_catalogo&gt;&quot;
 ruta = f&quot;/Volumes/{catalogo}/default/crudo/pedidos.csv&quot;
 
 crudos = spark.read.option(&quot;header&quot;, True).csv(ruta)
@@ -143,7 +143,7 @@ display(crudos.limit(5))</code></pre>
 <ol start="3">
 <li>En la segunda celda, la capa silver: tipos con <code>try_cast</code> (en Free Edition corre Spark 4 con el modo ANSI), deduplicación y cuarentena, como en la lección de calidad:</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 df = spark.table(f&quot;{catalogo}.default.pedidos_crudos&quot;)
@@ -172,7 +172,7 @@ print(&quot;crudos:&quot;, df.count(), &quot;· silver:&quot;, silver.count(), &
 
 <h2>Paso 6: permisos con Unity Catalog</h2>
 <p>Como creaste la tabla, eres su <strong>dueño</strong>. Para dar acceso de lectura se usa <code>GRANT</code>, igual que en la lección de Unity Catalog. En el SQL Editor:</p>
-<pre data-norun><code class="language-sql">GRANT SELECT ON TABLE &lt;tu_catalogo&gt;.default.pedidos_silver TO `account users`;
+<pre data-norun tabindex="0"><code class="language-sql">GRANT SELECT ON TABLE &lt;tu_catalogo&gt;.default.pedidos_silver TO `account users`;
 SHOW GRANTS ON TABLE &lt;tu_catalogo&gt;.default.pedidos_silver;</code></pre>
 <p>También se puede hacer desde la interfaz: en la tabla, pestaña <strong>Permissions</strong> → <strong>Grant</strong>.</p>
 <figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>La pestaña Permissions de la tabla con el permiso SELECT otorgado</span><code>assets/img/guias/dbx-free-09-permisos.png</code></div></figure>
@@ -261,7 +261,7 @@ SHOW GRANTS ON TABLE &lt;tu_catalogo&gt;.default.pedidos_silver;</code></pre>
 <li>Ejecuta todo y revisa la tabla en <strong>Catalog</strong>.</li>
 <li>Cuando abras tu cuenta real, repite estos pasos: la interfaz es la misma.</li>
 </ol>
-<pre data-norun><code class="language-sql">CREATE SCHEMA IF NOT EXISTS main.mi_primer_esquema;
+<pre data-norun tabindex="0"><code class="language-sql">CREATE SCHEMA IF NOT EXISTS main.mi_primer_esquema;
 CREATE OR REPLACE TABLE main.mi_primer_esquema.ventas AS
 SELECT canal, fecha_pedido, estado FROM samples.tienda.pedidos;
 SELECT canal, COUNT(*) AS pedidos

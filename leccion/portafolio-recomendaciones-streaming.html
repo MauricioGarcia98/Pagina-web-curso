@@ -37,7 +37,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>La co-ocurrencia, en SQL</h2>
 <p>&quot;Quienes vieron A también vieron B&quot;: cuenta cuántos usuarios vieron ambos contenidos. Es simple, escala con SQL y <strong>se explica sola</strong> (&quot;te lo recomendamos porque viste <em>El último código</em>&quot;).</p>
-<pre data-norun><code class="language-sql">WITH vistos AS (SELECT DISTINCT usuario_id, contenido_id FROM reproducciones WHERE completado OR minutos_vistos &gt;= 20)
+<pre data-norun tabindex="0"><code class="language-sql">WITH vistos AS (SELECT DISTINCT usuario_id, contenido_id FROM reproducciones WHERE completado OR minutos_vistos &gt;= 20)
 SELECT a.contenido_id AS desde, b.contenido_id AS hacia, count(*) AS usuarios
 FROM vistos a JOIN vistos b ON a.usuario_id = b.usuario_id AND a.contenido_id &lt;&gt; b.contenido_id
 GROUP BY 1, 2
@@ -85,7 +85,7 @@ HAVING count(*) &gt;= 3;</code></pre>
 <li>Los pares con más usuarios en común son la base de una recomendación simple.</li>
 <li>Filtra un contenido y mira sus 5 recomendados.</li>
 </ol>
-<pre data-norun><code class="language-sql">WITH escuchas AS (
+<pre data-norun tabindex="0"><code class="language-sql">WITH escuchas AS (
     SELECT DISTINCT usuario_id, contenido_id FROM streaming_reproducciones
 )
 SELECT a.contenido_id AS contenido, b.contenido_id AS recomendado, COUNT(*) AS usuarios_en_comun

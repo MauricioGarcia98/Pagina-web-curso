@@ -18,7 +18,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <a class="cta" href="../index.html#/l/spark-streaming">▶ Abrir la lección interactiva (5 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar fuentes, sinks, triggers y checkpoints en Structured Streaming</li><li>Usar watermarks para manejar datos que llegan tarde</li><li>Ingerir archivos nuevos de forma incremental con Auto Loader</li></ul>
 <p>Hasta ahora procesamos datos “en lote” (<em>batch</em>): un conjunto fijo, de principio a fin. Pero muchos datos <strong>no paran de llegar</strong>: clics, pagos, sensores, logs. <strong>Structured Streaming</strong> permite tratarlos como una <strong>tabla que crece infinitamente</strong>, con casi la misma API que los DataFrames.</p>
-<pre data-norun><code class="language-python">eventos = (spark.readStream
+<pre data-norun tabindex="0"><code class="language-python">eventos = (spark.readStream
              .format(&quot;json&quot;)
              .schema(&quot;evento_id LONG, cliente_id LONG, tipo STRING, ts TIMESTAMP&quot;)
              .load(&quot;/lake/bronze/eventos/&quot;))
@@ -36,7 +36,7 @@ conteo = (eventos
    .toTable(&quot;silver.conteo_eventos&quot;))</code></pre>
 <h3>Cómo pensar un stream</h3>
 <p>La idea genial de Structured Streaming es que <strong>no tienes que aprender una API nueva</strong>. Imagina la fuente como una tabla a la que <strong>se le agregan filas sin parar</strong>. Escribes la consulta como si fuera batch (<code>filter</code>, <code>groupBy</code>, <code>join</code>), y Spark la ejecuta <strong>incrementalmente</strong>: cada cierto tiempo toma solo las filas nuevas, actualiza el resultado y lo escribe.</p>
-<pre><code class="language-text">tiempo →     t1               t2                 t3
+<pre tabindex="0"><code class="language-text">tiempo →     t1               t2                 t3
 fuente:      [e1 e2 e3]   +   [e4 e5]        +   [e6 e7 e8]
 Spark:       procesa e1-e3    procesa e4-e5      procesa e6-e8   (cada &quot;micro-lote&quot;)
 resultado:   conteo = 3       conteo = 5         conteo = 8
@@ -102,7 +102,7 @@ checkpoint:  &quot;leí hasta e3&quot;   &quot;leí hasta e5&quot;     &quot;le�
 
 <h2>Auto Loader (Databricks)</h2>
 <p><strong>Auto Loader</strong> (<code>format(&quot;cloudFiles&quot;)</code>) es la forma recomendada de ingerir archivos que van llegando a un data lake: detecta archivos nuevos de manera eficiente, infiere y evoluciona el esquema y guarda los registros malformados aparte.</p>
-<pre data-norun><code class="language-python">(spark.readStream.format(&quot;cloudFiles&quot;)
+<pre data-norun tabindex="0"><code class="language-python">(spark.readStream.format(&quot;cloudFiles&quot;)
    .option(&quot;cloudFiles.format&quot;, &quot;json&quot;)
    .option(&quot;cloudFiles.schemaLocation&quot;, &quot;/lake/_schemas/pedidos&quot;)
    .load(&quot;/Volumes/main/crudo/pedidos/&quot;)
@@ -139,7 +139,7 @@ checkpoint:  &quot;leí hasta e3&quot;   &quot;leí hasta e5&quot;     &quot;le�
 <li>Descomenta el segundo lote y ejecuta de nuevo: solo se procesan las filas nuevas.</li>
 <li>Cambia la ruta del checkpoint y vuelve a ejecutar: sin memoria, el stream relee todo (por eso el checkpoint no se borra).</li>
 </ol>
-<pre data-norun><code class="language-python">from pyspark.sql import functions as F
+<pre data-norun tabindex="0"><code class="language-python">from pyspark.sql import functions as F
 
 lote1 = spark.createDataFrame([(1, &quot;compra&quot;, 120.0), (2, &quot;vista&quot;, 0.0)], [&quot;evento_id&quot;, &quot;tipo&quot;, &quot;monto&quot;])
 lote1.write.mode(&quot;overwrite&quot;).json(&quot;/lake/landing/eventos/lote1&quot;)

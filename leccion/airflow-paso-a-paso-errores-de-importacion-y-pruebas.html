@@ -47,18 +47,18 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <p><code>avisos_slack.py</code> importa el operador de Slack, que viene en el paquete <strong>apache-airflow-providers-slack</strong>, y ese paquete no está instalado. En Airflow real se arregla instalándolo en la imagen o el entorno (<code>pip install apache-airflow-providers-slack</code>). En la práctica no se pueden instalar paquetes: queda como ejemplo.</p>
 <h2>Paso 2 — En la CLI</h2>
-<pre data-norun><code class="language-bash">airflow dags list-import-errors</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">airflow dags list-import-errors</code></pre>
 <figure class="captura"><img src="assets/img/guias/airflow/a17-cli.webp" alt="La misma información desde la terminal - archivo y traceback" loading="lazy"><figcaption>La misma información desde la terminal - archivo y traceback</figcaption></figure>
 
 
 <h2>Paso 3 — Probar una tarea</h2>
-<pre data-norun><code class="language-bash">airflow tasks test carga_ventas_tienda validar 2026-11-14</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">airflow tasks test carga_ventas_tienda validar 2026-11-14</code></pre>
 <figure class="captura"><img src="assets/img/guias/airflow/a17-tasks-test.webp" alt="tasks test corre solo validar para el 14, muestra su salida y no guarda nada en la historia" loading="lazy"><figcaption>tasks test corre solo validar para el 14, muestra su salida y no guarda nada en la historia</figcaption></figure>
 
 
 <p>Corre <strong>una tarea</strong>, sin dependencias, sin guardar estado. Ideal mientras escribes la función.</p>
 <h2>Paso 4 — Probar el Dag entero</h2>
-<pre data-norun><code class="language-bash">airflow dags test resumen_tiendas 2026-11-14</code></pre>
+<pre data-norun tabindex="0"><code class="language-bash">airflow dags test resumen_tiendas 2026-11-14</code></pre>
 <figure class="captura"><img src="assets/img/guias/airflow/a17-dags-test.webp" alt="dags test corre todas las tareas en orden en un solo proceso y termina con el estado de la corrida" loading="lazy"><figcaption>dags test corre todas las tareas en orden en un solo proceso y termina con el estado de la corrida</figcaption></figure>
 
 
@@ -85,7 +85,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>Paso 5 — Una prueba para el CI</h2>
 <p>Que ningún Dag con error llegue a producción:</p>
-<pre data-norun><code class="language-python"># tests/test_dags.py
+<pre data-norun tabindex="0"><code class="language-python"># tests/test_dags.py
 from airflow.models import DagBag
 
 

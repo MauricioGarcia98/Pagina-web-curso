@@ -67,7 +67,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>El modelo de datos</h2>
-<pre><code class="language-text">energia_clientes  (cliente_id, tipo, zona, fecha_alta)
+<pre tabindex="0"><code class="language-text">energia_clientes  (cliente_id, tipo, zona, fecha_alta)
 energia_medidores (medidor_id, cliente_id, tipo, fecha_instalacion)
 energia_lecturas  (lectura_id, medidor_id, mes, kwh, estimada)          ← una por medidor y mes de 2024
 energia_facturas  (factura_id, cliente_id, mes, kwh, monto, fecha_vencimiento, fecha_pago)
@@ -87,7 +87,7 @@ energia_cortes    (corte_id, zona, inicio, fin, causa, clientes_afectados)</code
 <li><strong>Truco</strong>: <code>AVG(CASE WHEN período THEN kwh END)</code> calcula los dos promedios en la misma pasada (el <code>CASE</code> sin <code>ELSE</code> deja <code>NULL</code> fuera del período, y <code>AVG</code> los ignora).</li>
 <li><strong>Comparar</strong> los dos promedios de cada cliente, no de toda la base: así no importa que un comercio consuma diez veces más que una casa.</li>
 </ol>
-<pre><code class="language-sql">WITH x AS (
+<pre tabindex="0"><code class="language-sql">WITH x AS (
   SELECT m.cliente_id, c.tipo, c.zona,
          AVG(CASE WHEN l.mes &lt;= '2024-03' THEN l.kwh END) AS kwh_ene_mar,
          AVG(CASE WHEN l.mes &gt;= '2024-10' THEN l.kwh END) AS kwh_oct_dic
@@ -181,7 +181,7 @@ ORDER BY pct_del_consumo;</code></pre>
 <li>Las fechas están en formato ISO (<code>AAAA-MM-DD</code>), así que se pueden comparar como texto.</li>
 <li>La zona con más atraso ¿es la misma que tiene más cortes de servicio? (mira <code>energia_cortes</code>).</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT c.zona,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT c.zona,
        COUNT(*) AS facturas,
        ROUND(100.0 * AVG(CASE WHEN f.fecha_pago IS NULL OR f.fecha_pago &gt; f.fecha_vencimiento THEN 1 ELSE 0 END), 1) AS pct_tarde_o_impaga,
        ROUND(SUM(CASE WHEN f.fecha_pago IS NULL THEN f.monto ELSE 0 END), 2) AS pendiente

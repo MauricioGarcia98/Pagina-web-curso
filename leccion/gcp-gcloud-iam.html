@@ -43,11 +43,11 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>La forma de los comandos de <code>gcloud</code> es: <code>gcloud &lt;grupo&gt; [&lt;subgrupo&gt;] &lt;verbo&gt; [ARGUMENTOS] [--flags]</code></p>
-<pre><code class="language-text">gcloud  storage  buckets  create  gs://lake-tienda-dev  --location=us-central1
+<pre tabindex="0"><code class="language-text">gcloud  storage  buckets  create  gs://lake-tienda-dev  --location=us-central1
 gcloud  pubsub   topics   publish ventas                --message='{&quot;id&quot;: 1}'
 gcloud  dataproc clusters list                          --region=us-central1</code></pre>
 <h2>Primeros pasos</h2>
-<pre data-norun><code class="language-bash">gcloud init                                        # asistente: login + proyecto + región
+<pre data-norun tabindex="0"><code class="language-bash">gcloud init                                        # asistente: login + proyecto + región
 gcloud auth login                                  # inicia sesión con tu cuenta (abre el navegador)
 gcloud auth application-default login              # credenciales para TUS programas (Python, dbt, Terraform)
 gcloud config set project academia-datos-dev       # proyecto por defecto
@@ -55,7 +55,7 @@ gcloud config set compute/region us-central1       # región por defecto
 gcloud config list                                 # ver la configuración activa
 gcloud projects list                               # proyectos a los que tienes acceso
 gcloud services enable bigquery.googleapis.com storage.googleapis.com pubsub.googleapis.com</code></pre>
-<pre><code class="language-bash">gcloud auth login
+<pre tabindex="0"><code class="language-bash">gcloud auth login
 gcloud config set project academia-datos-dev
 gcloud config list
 gcloud projects list</code></pre>
@@ -67,13 +67,13 @@ gcloud projects list</code></pre>
 
 <h3>Configuraciones con nombre</h3>
 <p>Si trabajas con dev y prod, crea una configuración para cada uno y cambia con un comando:</p>
-<pre data-norun><code class="language-bash">gcloud config configurations create prod
+<pre data-norun tabindex="0"><code class="language-bash">gcloud config configurations create prod
 gcloud config set project academia-datos-prod
 gcloud config configurations activate default
 gcloud storage ls --project=academia-datos-prod  # o sobrescribe el proyecto en un solo comando</code></pre>
 <h2>Formatos de salida y filtros</h2>
 <p><code>gcloud</code> tiene sus propias banderas (en lugar del <code>--query</code> de AWS y Azure):</p>
-<pre data-norun><code class="language-bash">gcloud projects list --format=&quot;value(projectId)&quot;                 # solo valores, ideal para scripts
+<pre data-norun tabindex="0"><code class="language-bash">gcloud projects list --format=&quot;value(projectId)&quot;                 # solo valores, ideal para scripts
 gcloud projects list --format=json                               # JSON completo
 gcloud projects list --format=&quot;table(projectId, name)&quot;           # tabla con columnas elegidas
 gcloud storage buckets list --filter=&quot;location=US&quot; --format=&quot;value(name)&quot;
@@ -134,7 +134,7 @@ PROYECTO=$(gcloud config get-value project)</code></pre>
 
 <h3>Cuentas de servicio</h3>
 <p>Una <strong>cuenta de servicio</strong> es una identidad para programas (el equivalente al <em>rol</em> de AWS o a la <em>identidad administrada</em> de Azure). Composer, Dataflow o un contenedor de Cloud Run corren &quot;como&quot; una cuenta de servicio.</p>
-<pre data-norun><code class="language-bash">gcloud iam service-accounts create etl-datos --display-name=&quot;ETL del lago&quot;
+<pre data-norun tabindex="0"><code class="language-bash">gcloud iam service-accounts create etl-datos --display-name=&quot;ETL del lago&quot;
 gcloud projects add-iam-policy-binding academia-datos-dev \
   --member=&quot;serviceAccount:etl-datos@academia-datos-dev.iam.gserviceaccount.com&quot; \
   --role=&quot;roles/bigquery.dataEditor&quot;</code></pre>
@@ -161,7 +161,7 @@ gcloud projects add-iam-policy-binding academia-datos-dev \
 <li>Usa <code>--format</code> para quedarte solo con lo que te interesa.</li>
 <li>Habilita las APIs de datos: en Google Cloud cada servicio se activa por proyecto antes de usarlo.</li>
 </ol>
-<pre data-norun><code class="language-bash">gcloud auth login
+<pre data-norun tabindex="0"><code class="language-bash">gcloud auth login
 gcloud config set project academia-datos-dev
 gcloud config set compute/region us-central1
 gcloud projects list --format=&quot;value(projectId)&quot;

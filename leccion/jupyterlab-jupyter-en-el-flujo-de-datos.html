@@ -48,7 +48,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Señales de que llegó el momento: lo ejecutas a mano todos los lunes, alguien te pide &quot;que corra solo&quot;, o el notebook pasó las 100 celdas.</p>
 <h2>Paso 2 — Ejecutar notebooks con parámetros (papermill)</h2>
 <p>El patrón de la celda de parámetros (proyectos 3, 4 y 5) existe por esto. En Jupyter real, marcas esa celda con la etiqueta <code>parameters</code> y <strong>papermill</strong> ejecuta el notebook con otros valores:</p>
-<pre><code class="language-text">papermill reporte.ipynb salidas/reporte_2025.ipynb -p ANIO 2025</code></pre>
+<pre tabindex="0"><code class="language-text">papermill reporte.ipynb salidas/reporte_2025.ipynb -p ANIO 2025</code></pre>
 <p>El resultado es un notebook nuevo, ejecutado, con las salidas de 2025. Un programador de tareas (cron, Airflow, Azure Data Factory) puede lanzarlo todos los meses.</p>
 <h2>Paso 3 — Convertir notebooks (nbconvert)</h2>
 <div class="table-wrap"><table><thead><tr>

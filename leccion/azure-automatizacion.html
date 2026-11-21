@@ -37,7 +37,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Infraestructura como código (IaC) declarativa</strong>: un archivo que describe <strong>cómo debe quedar</strong> la infraestructura; la herramienta calcula qué hacer.</li>
 </ol>
 <h2>Un script de aprovisionamiento con az</h2>
-<pre data-norun><code class="language-bash">#!/usr/bin/env bash
+<pre data-norun tabindex="0"><code class="language-bash">#!/usr/bin/env bash
 set -euo pipefail                      # cortar ante cualquier error
 
 ENTORNO=${1:-dev}
@@ -111,7 +111,7 @@ echo &quot;✔ Entorno $ENTORNO listo&quot;</code></pre>
 </tbody></table></div>
 <h2>Bicep paso a paso</h2>
 <p><strong>Bicep</strong> es el lenguaje de Microsoft para describir recursos de Azure. Por dentro, Azure lo traduce a una plantilla ARM (JSON), el formato original, mucho más verboso. Así se lee un archivo:</p>
-<pre data-norun><code class="language-bicep">// main.bicep
+<pre data-norun tabindex="0"><code class="language-bicep">// main.bicep
 param entorno string                                  // 1. parámetro obligatorio
 param ubicacion string = resourceGroup().location     // 2. parámetro con valor por defecto
 
@@ -135,7 +135,7 @@ output lakeId string = lake.id                        // 7. un valor que devuelv
 </ol>
 <h2>Previsualizar con what-if</h2>
 <p>Antes de aplicar, siempre se mira qué va a pasar. <code>what-if</code> compara el archivo con lo que ya existe y clasifica cada recurso:</p>
-<pre data-norun><code class="language-bash">az deployment group what-if --resource-group rg-datos-dev --template-file main.bicep --parameters entorno=dev
+<pre data-norun tabindex="0"><code class="language-bash">az deployment group what-if --resource-group rg-datos-dev --template-file main.bicep --parameters entorno=dev
 az deployment group create  --resource-group rg-datos-dev --template-file main.bicep --parameters entorno=dev</code></pre>
 <div class="table-wrap"><table><thead><tr>
 <th>Símbolo</th>
@@ -170,14 +170,14 @@ az deployment group create  --resource-group rg-datos-dev --template-file main.b
 <li>Los recursos que <strong>sí</strong> están en el archivo se vuelven a aplicar <strong>completos</strong>: si una propiedad no está escrita en el archivo, vuelve a su valor <strong>por defecto</strong>. Un error común es creer que lo que no escribes &quot;se deja como está&quot;. El archivo tiene que describir el recurso entero, no solo lo que quieres cambiar.</li>
 </ul>
 <p>Existía un modo <em>complete</em> (que borraba lo que no estaba en el archivo), pero Microsoft ya no lo recomienda y lo está retirando. Para que quitar un recurso del archivo lo <strong>borre</strong>, se usan los <strong>deployment stacks</strong>:</p>
-<pre data-norun><code class="language-bash">az stack group create --name datos --resource-group rg-datos-dev \
+<pre data-norun tabindex="0"><code class="language-bash">az stack group create --name datos --resource-group rg-datos-dev \
   --template-file main.bicep --parameters entorno=dev \
   --action-on-unmanage deleteResources \
   --deny-settings-mode none</code></pre>
 <p>Un <em>stack</em> recuerda qué recursos administra. Si en la siguiente versión del archivo falta uno, <code>--action-on-unmanage</code> decide: <code>detachAll</code> lo deja de administrar pero no lo borra, <code>deleteResources</code> borra los recursos y <code>deleteAll</code> borra también los grupos de recursos administrados. <code>--deny-settings-mode</code> puede además impedir que alguien modifique o borre esos recursos a mano desde el portal.</p>
 <h3>Pruébalo en la terminal</h3>
 <p>La terminal del curso lee de verdad tu archivo Bicep y compara con lo desplegado:</p>
-<pre><code class="language-bash">az login
+<pre tabindex="0"><code class="language-bash">az login
 az group create -n rg-datos-dev -l eastus2 -o none
 code main.bicep                     # pega el ejemplo de arriba y guarda
 az deployment group what-if -g rg-datos-dev -f main.bicep -p entorno=dev
@@ -195,7 +195,7 @@ az deployment group what-if -g rg-datos-dev -f main.bicep -p entorno=dev</code><
 <li>Se configura una <strong>credencial federada</strong>: le dice a Azure &quot;confía en los tokens que GitHub emite para el repositorio <code>empresa/plataforma-datos</code>, rama <code>main</code>&quot;.</li>
 <li>En GitHub se guardan como secretos solo tres identificadores, que no son contraseñas: <code>AZURE_CLIENT_ID</code>, <code>AZURE_TENANT_ID</code> y <code>AZURE_SUBSCRIPTION_ID</code>.</li>
 </ol>
-<pre data-norun><code class="language-yaml">name: desplegar-infra
+<pre data-norun tabindex="0"><code class="language-yaml">name: desplegar-infra
 on: { push: { branches: [main] } }
 permissions: { id-token: write, contents: read }    # id-token: write permite pedir el token OIDC
 jobs:
@@ -256,7 +256,7 @@ jobs:
 <li>Mira el despliegue: los recursos se crean en el orden que marca <code>dependsOn</code> (primero la cuenta, después el contenedor).</li>
 <li>Despliega otra vez la misma plantilla: no duplica nada, porque ARM es declarativo (idempotente).</li>
 </ol>
-<pre data-norun><code class="language-json">{
+<pre data-norun tabindex="0"><code class="language-json">{
   &quot;$schema&quot;: &quot;https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#&quot;,
   &quot;contentVersion&quot;: &quot;1.0.0.0&quot;,
   &quot;parameters&quot;: {

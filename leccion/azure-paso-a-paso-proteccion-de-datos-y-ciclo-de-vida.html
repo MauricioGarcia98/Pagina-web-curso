@@ -68,7 +68,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p>En el portal real, el interruptor <strong>Show deleted blobs</strong> lo muestra y <strong>Undelete</strong> lo devuelve. Con la CLI:</p>
-<pre><code class="language-bash">az storage blob list --account-name sttiendaandinadev -c bronze --include d --auth-mode login -o table
+<pre tabindex="0"><code class="language-bash">az storage blob list --account-name sttiendaandinadev -c bronze --include d --auth-mode login -o table
 az storage blob undelete --account-name sttiendaandinadev -c bronze -n pedidos/2026/11/pedidos.csv --auth-mode login</code></pre>
 <h2>Paso 3 — Los niveles de acceso</h2>
 <div class="table-wrap"><table><thead><tr>

@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 1 — El archivo de práctica</h2>
 <p>Crea en tu computadora un archivo <code>devoluciones.csv</code> con este contenido (un editor de texto alcanza; guárdalo con extensión <code>.csv</code>):</p>
-<pre><code class="language-text">pedido_id,fecha,categoria,canal,motivo,monto
+<pre tabindex="0"><code class="language-text">pedido_id,fecha,categoria,canal,motivo,monto
 1001,2024-11-02,Electrónica,web,defectuoso,129.90
 1002,2024-11-02,Hogar,app,no le gustó,45.00
 1003,2024-11-03,Electrónica,tienda,defectuoso,89.50
@@ -69,7 +69,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Desde la terminal del curso es lo mismo: <code>databricks fs cp devoluciones.csv dbfs:/Volumes/main/default/raw/</code>.</p>
 <h2>Paso 4 — Leer el archivo con SQL</h2>
 <p><strong>Create table</strong> junto al archivo abre el editor SQL con la consulta lista:</p>
-<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE main.default.devoluciones AS
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE main.default.devoluciones AS
 SELECT * EXCEPT (_rescued_data)
 FROM read_files('/Volumes/main/default/raw/devoluciones.csv', format =&gt; 'csv', header =&gt; true);</code></pre>
 <figure class="captura"><img src="assets/img/guias/databricks/d07-read-files.webp" alt="read_files lee el archivo del volumen (1) y el resultado confirma las 12 filas (2)" loading="lazy"><figcaption>read_files lee el archivo del volumen (1) y el resultado confirma las 12 filas (2)</figcaption></figure>

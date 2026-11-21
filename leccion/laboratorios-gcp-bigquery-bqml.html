@@ -58,7 +58,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Antes de cada consulta, mide su costo con <code>--dry_run</code>.</li>
 <li>Borra el dataset con <code>-r -f</code> (con todas sus tablas) y verifica.</li>
 </ol>
-<pre data-norun><code class="language-bash">gcloud auth login
+<pre data-norun tabindex="0"><code class="language-bash">gcloud auth login
 gcloud config set project academia-datos-dev
 gcloud storage buckets create gs://academia-lab-datos --location=US
 gcloud storage cp datos/clientes.csv gs://academia-lab-datos/
@@ -124,14 +124,14 @@ bq ls</code></pre>
 <li>Para obligar a filtrar la partición: <code>bq update --require_partition_filter ventas_lab.pedidos</code>. Las consultas sin filtro fallan en lugar de cobrar.</li>
 <li>Pon un <strong>tope por consulta</strong>: <code>bq query --maximum_bytes_billed=1000000000 …</code> (1 GB).</li>
 </ul>
-<pre data-norun><code class="language-sql">-- Lo mismo en el editor de la consola
+<pre data-norun tabindex="0"><code class="language-sql">-- Lo mismo en el editor de la consola
 CREATE TABLE ventas_lab.pedidos2
 PARTITION BY fecha
 CLUSTER BY canal
 OPTIONS (require_partition_filter = TRUE) AS
 SELECT * FROM ventas_lab.pedidos;</code></pre>
 <h2>Limpieza</h2>
-<pre data-norun><code class="language-bash">bq rm -r -f ventas_lab
+<pre data-norun tabindex="0"><code class="language-bash">bq rm -r -f ventas_lab
 bq rm -r -f ml_lab
 gcloud storage rm -r gs://academia-lab-datos</code></pre>
 <div class="exercise-slot"></div>

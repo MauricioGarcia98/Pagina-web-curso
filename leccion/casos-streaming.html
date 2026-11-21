@@ -72,7 +72,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Grano</strong>: una fila por tipo de contenido (<code>cancion</code>, <code>podcast</code>). El tipo está en <code>streaming_contenidos</code>, así que unimos cada reproducción con su contenido.</li>
 <li><strong>Métricas</strong>: reproducciones, minutos promedio escuchados y <strong>% completado</strong>. Para el % completado usamos el cociente de sumas: segundos escuchados totales / duración total de lo reproducido. (El promedio de los porcentajes individuales daría el mismo peso a una canción de 2 minutos que a un podcast de 1 hora.)</li>
 </ol>
-<pre><code class="language-sql">SELECT c.tipo,
+<pre tabindex="0"><code class="language-sql">SELECT c.tipo,
        COUNT(*)                                                   AS reproducciones,
        ROUND(AVG(r.segundos_escuchados) / 60.0, 1)                AS min_promedio,
        ROUND(100.0 * SUM(r.segundos_escuchados) / SUM(c.duracion_seg), 1) AS pct_completado
@@ -130,7 +130,7 @@ GROUP BY c.tipo;</code></pre>
 <li><code>cambio_plan</code> no es una baja del cliente: sepáralo antes de concluir.</li>
 <li>Compara el plan gratis con los pagos: ¿qué retención importa más para el negocio?</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT plan,
+<pre data-norun tabindex="0"><code class="language-sql">SELECT plan,
        COUNT(*) AS suscripciones,
        SUM(CASE WHEN fecha_fin IS NOT NULL AND motivo_baja &lt;&gt; 'cambio_plan' THEN 1 ELSE 0 END) AS bajas_reales,
        ROUND(100.0 * SUM(CASE WHEN fecha_fin IS NOT NULL AND motivo_baja &lt;&gt; 'cambio_plan' THEN 1 ELSE 0 END) / COUNT(*), 1) AS tasa_baja_pct

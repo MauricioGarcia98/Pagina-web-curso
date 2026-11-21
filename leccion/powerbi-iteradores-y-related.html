@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Por qué hace falta iterar</h2>
 <p>Las ventas de una línea son <code>cantidad × precio_unitario</code>. Si sumas las dos columnas por separado y después multiplicas, el resultado está <strong>mal</strong>:</p>
-<pre><code class="language-dax">-- ✗ mal: (suma de cantidades) × (suma de precios)
+<pre tabindex="0"><code class="language-dax">-- ✗ mal: (suma de cantidades) × (suma de precios)
 SUM(detalle_pedidos[cantidad]) * SUM(detalle_pedidos[precio_unitario])
 
 -- ✓ bien: multiplica en cada fila y después suma
@@ -33,7 +33,7 @@ SUMX(detalle_pedidos, detalle_pedidos[cantidad] * detalle_pedidos[precio_unitari
 <p>Las funciones que terminan en <strong>X</strong> (<code>SUMX</code>, <code>AVERAGEX</code>, <code>MINX</code>, <code>MAXX</code>, <code>COUNTX</code>) reciben una <strong>tabla</strong> y una <strong>expresión</strong>. Calculan la expresión en cada fila (contexto de fila) y después agregan los resultados.</p>
 <h2>RELATED: un dato de la dimensión</h2>
 <p>Dentro de <code>SUMX(detalle_pedidos, …)</code> estás parado en una línea de pedido. El costo del producto está en otra tabla. <code>RELATED</code> lo trae siguiendo la relación del lado <strong>*</strong> al lado <strong>1</strong>:</p>
-<pre><code class="language-dax">Costo = SUMX(detalle_pedidos, detalle_pedidos[cantidad] * RELATED(productos[costo]))
+<pre tabindex="0"><code class="language-dax">Costo = SUMX(detalle_pedidos, detalle_pedidos[cantidad] * RELATED(productos[costo]))
 Margen % = DIVIDE([Ventas] - [Costo], [Ventas])</code></pre>
 <div class="callout callout-nota"><div class="callout-title">📝 RELATED y RELATEDTABLE</div>
 
@@ -42,7 +42,7 @@ Margen % = DIVIDE([Ventas] - [Costo], [Ventas])</code></pre>
 
 
 <p>Con <code>RELATEDTABLE</code> puedes contar, desde cada cliente, sus pedidos. Por ejemplo, para saber cuántos clientes compraron 3 veces o más:</p>
-<pre><code class="language-dax">Clientes frecuentes = COUNTROWS(FILTER(clientes, COUNTROWS(RELATEDTABLE(pedidos)) &gt;= 3))</code></pre>
+<pre tabindex="0"><code class="language-dax">Clientes frecuentes = COUNTROWS(FILTER(clientes, COUNTROWS(RELATEDTABLE(pedidos)) &gt;= 3))</code></pre>
 <div class="callout callout-tip"><div class="callout-title">💡 LOOKUPVALUE cuando no hay relación</div>
 
 <p><code>LOOKUPVALUE(productos[nombre], productos[producto_id], 25)</code> busca un valor por clave, como un BUSCARV de Excel. Úsalo solo cuando <strong>no</strong> hay relación entre las tablas: si la hay, <code>RELATED</code> es más simple y más rápido.</p>
@@ -52,7 +52,7 @@ Margen % = DIVIDE([Ventas] - [Costo], [Ventas])</code></pre>
 <h2>Iterar sobre los valores de una columna</h2>
 <p><code>AVERAGEX(VALUES(clientes[segmento]), [Ventas])</code> calcula las ventas de <strong>cada</strong> segmento y después las promedia. Es distinto de <code>AVERAGE</code>, que promedia filas.</p>
 <h2>Ranking con RANKX</h2>
-<pre><code class="language-dax">Ranking de categoría = RANKX(ALL(categorias[nombre]), [Ventas])</code></pre>
+<pre tabindex="0"><code class="language-dax">Ranking de categoría = RANKX(ALL(categorias[nombre]), [Ventas])</code></pre>
 <p><code>RANKX</code> calcula <code>[Ventas]</code> para cada categoría de la lista y se fija en qué puesto queda la categoría de la celda. El <code>ALL</code> es clave: sin él, la lista tendría solo la categoría de la celda y todas quedarían en el puesto 1.</p>
 <h2>¿Columna calculada o medida?</h2>
 <div class="table-wrap"><table><thead><tr>
@@ -84,7 +84,7 @@ Margen % = DIVIDE([Ventas] - [Costo], [Ventas])</code></pre>
 <li>Ejecuta en <strong>Consultas DAX</strong>: <code>SUMX</code> recorre cada línea y <code>RELATED</code> trae el costo desde la dimensión <code>productos</code> (lado <em>uno</em> de la relación).</li>
 <li><code>RANKX</code> sobre <code>ALL(productos[marca])</code> pone el puesto de cada marca contra todas las demás.</li>
 </ol>
-<pre data-norun><code class="language-dax">DEFINE
+<pre data-norun tabindex="0"><code class="language-dax">DEFINE
     MEASURE detalle_pedidos[Margen] =
         SUMX(detalle_pedidos, detalle_pedidos[cantidad] * (detalle_pedidos[precio_unitario] - RELATED(productos[costo])))
     MEASURE detalle_pedidos[Puesto] = RANKX(ALL(productos[marca]), [Margen])

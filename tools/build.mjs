@@ -19,7 +19,7 @@ const marked = new Marked({
       const words = (info || '').trim().split(/\s+/).filter(Boolean);
       const lang = words[0] || 'text';
       const norun = words.includes('norun') ? ' data-norun' : '';
-      return `<pre data-lang="${escapeHtml(lang)}"${norun}><code class="language-${escapeHtml(lang)}">${escapeHtml(code.replace(/\n$/, ''))}</code></pre>\n`;
+      return `<pre data-lang="${escapeHtml(lang)}"${norun} tabindex="0"><code class="language-${escapeHtml(lang)}">${escapeHtml(code.replace(/\n$/, ''))}</code></pre>\n`;
     },
     table(header, body) {
       return `<div class="table-wrap"><table><thead>${header}</thead><tbody>${body}</tbody></table></div>\n`;

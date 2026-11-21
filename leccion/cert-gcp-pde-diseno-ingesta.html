@@ -89,7 +89,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Actualizar un pipeline en streaming: <strong>update</strong> (mismo nombre de job, conserva el estado) o <strong>drain</strong> (termina de procesar y se detiene) frente a <strong>cancel</strong> (descarta lo que está en vuelo).</li>
 <li>Mensajes con errores: <strong>dead-letter</strong> a un tema o tabla aparte, nunca frenar todo el pipeline.</li>
 </ul>
-<pre data-norun><code class="language-python">import apache_beam as beam
+<pre data-norun tabindex="0"><code class="language-python">import apache_beam as beam
 from apache_beam.transforms import window, trigger
 
 with beam.Pipeline(options=opciones) as p:

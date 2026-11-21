@@ -54,7 +54,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Workers secundarios</strong>: solo cómputo. Normalmente son <strong>spot</strong>: máquinas que Google te presta con un 60–90 % de descuento, a cambio de poder <strong>quitártelas</strong> en cualquier momento. Si Google se lleva una, Spark recalcula sus tareas en otra (gracias al linaje). Son ideales para sumar potencia barata en jobs batch.</li>
 </ul>
 <h2>Los comandos</h2>
-<pre data-norun><code class="language-bash">gcloud dataproc clusters create spark-etl --region us-central1 \
+<pre data-norun tabindex="0"><code class="language-bash">gcloud dataproc clusters create spark-etl --region us-central1 \
   --num-workers 2 --worker-machine-type n2-standard-4 \
   --secondary-worker-type spot --num-secondary-workers 4 \
   --max-idle 30m                                         # se borra solo tras 30 minutos sin jobs
@@ -102,7 +102,7 @@ gcloud dataproc clusters delete spark-etl --region us-central1</code></pre>
 </tbody></table></div>
 <p>En <code>jobs submit pyspark</code>, todo lo que va <strong>después de <code>--</code></strong> se le pasa a <strong>tu script</strong> como argumentos (<code>--fecha 2024-12-31</code>), no a gcloud.</p>
 <h3>Laboratorio en la terminal</h3>
-<pre><code class="language-bash">gcloud auth login
+<pre tabindex="0"><code class="language-bash">gcloud auth login
 gcloud config set project academia-datos-dev
 gcloud dataproc clusters create spark-etl --region us-central1 --num-workers 2
 gcloud dataproc clusters list --region us-central1
@@ -111,7 +111,7 @@ gcloud dataproc clusters delete spark-etl --region us-central1</code></pre>
 <p>Fíjate en el orden: <strong>crear → ejecutar → borrar</strong>. Ese es el patrón de <strong>clúster efímero</strong>, el más recomendado: el clúster existe solo mientras hay trabajo. Si intentas enviar el job después de borrar el clúster, el simulador responde <code>NOT_FOUND</code>, igual que Google Cloud.</p>
 <h2>Cómo se ve un job real</h2>
 <p>El script vive en un bucket. Recibe la fecha como argumento, lee de bronze en GCS y escribe silver. Es PySpark normal, el mismo que aprendiste en el módulo de PySpark:</p>
-<pre data-norun><code class="language-python"># gs://lake-tienda-dev/scripts/silver.py
+<pre data-norun tabindex="0"><code class="language-python"># gs://lake-tienda-dev/scripts/silver.py
 import argparse
 from pyspark.sql import SparkSession, functions as F
 
@@ -177,7 +177,7 @@ limpio = (crudo
 
 <h2>Spark + BigQuery</h2>
 <p>El <strong>conector de BigQuery</strong> permite leer y escribir tablas de BigQuery desde Spark como si fueran archivos:</p>
-<pre data-norun><code class="language-python">df = (spark.read.format(&quot;bigquery&quot;)
+<pre data-norun tabindex="0"><code class="language-python">df = (spark.read.format(&quot;bigquery&quot;)
       .option(&quot;table&quot;, &quot;academia-datos-dev.tienda_silver.pedidos&quot;)
       .option(&quot;filter&quot;, &quot;fecha_pedido &gt;= '2024-12-01'&quot;)     # se empuja a BigQuery: lee menos
       .load())
@@ -222,7 +222,7 @@ resultado = df.groupBy(&quot;canal&quot;).count()
 
 <h3>El patrón con Composer (Airflow)</h3>
 <p>En producción, nadie escribe estos comandos a mano: los ejecuta un DAG de Composer.</p>
-<pre data-norun><code class="language-python">from airflow.providers.google.cloud.operators.dataproc import (
+<pre data-norun tabindex="0"><code class="language-python">from airflow.providers.google.cloud.operators.dataproc import (
     DataprocCreateClusterOperator, DataprocSubmitJobOperator, DataprocDeleteClusterOperator)
 
 crear = DataprocCreateClusterOperator(task_id=&quot;crear_cluster&quot;, cluster_name=&quot;etl-{{ ds_nodash }}&quot;, ...)
@@ -250,7 +250,7 @@ crear &gt;&gt; correr &gt;&gt; borrar</code></pre>
 <li>Lístalo y mira su estado.</li>
 <li>Compara con Dataproc Serverless: el mismo job sin administrar clúster.</li>
 </ol>
-<pre data-norun><code class="language-bash">gcloud auth login
+<pre data-norun tabindex="0"><code class="language-bash">gcloud auth login
 gcloud config set project academia-datos-dev
 gcloud dataproc clusters create spark-etl --region us-central1 --num-workers 2 --max-idle 30m
 gcloud dataproc clusters list --region us-central1</code></pre>

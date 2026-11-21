@@ -68,7 +68,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ul>
 <h2>Cargar un hub y un satélite</h2>
 <p>Integrar el cliente de las dos fuentes en el hub: la clave de negocio (el documento) se normaliza y se quedan los valores distintos, con la primera fuente y fecha en que se vio:</p>
-<pre><code class="language-sql">WITH core(documento, nombre, segmento, fecha_carga) AS (
+<pre tabindex="0"><code class="language-sql">WITH core(documento, nombre, segmento, fecha_carga) AS (
     VALUES ('12.345.678', 'Ana Ruiz',  'Pyme',       '2024-01-10'),
            ('20.111.222', 'Luis Paz',  'Consumidor', '2024-01-10')
 ),
@@ -166,7 +166,7 @@ ORDER BY documento;</code></pre>
 <li>El <code>hashdiff</code> del satélite detecta cambios: si los atributos no cambian, el hash es el mismo y no se inserta otra fila.</li>
 <li>Cuenta filas: el hub tiene una por cliente; el satélite, una por cliente y versión.</li>
 </ol>
-<pre data-norun><code class="language-sql">DROP TABLE IF EXISTS hub_cliente;
+<pre data-norun tabindex="0"><code class="language-sql">DROP TABLE IF EXISTS hub_cliente;
 CREATE TABLE hub_cliente AS
 SELECT DISTINCT md5(CAST(cliente_id AS VARCHAR)) AS hk_cliente, cliente_id, 'crm' AS fuente
 FROM clientes_crudo;

@@ -58,7 +58,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <h2>1. Subconsulta escalar: un solo valor</h2>
-<pre><code class="language-sql">-- Productos más caros que el promedio
+<pre tabindex="0"><code class="language-sql">-- Productos más caros que el promedio
 SELECT nombre, precio
 FROM productos
 WHERE precio &gt; (SELECT AVG(precio) FROM productos)
@@ -70,7 +70,7 @@ ORDER BY precio;</code></pre>
 <li>Devuelve los 100 productos que superan ese valor.</li>
 </ol>
 <p>Una subconsulta escalar también puede ir en el <code>SELECT</code>, para mostrar el valor de referencia al lado de cada fila:</p>
-<pre><code class="language-sql">SELECT nombre, precio,
+<pre tabindex="0"><code class="language-sql">SELECT nombre, precio,
        ROUND(precio - (SELECT AVG(precio) FROM productos), 2) AS diferencia_con_promedio
 FROM productos
 ORDER BY diferencia_con_promedio DESC
@@ -83,7 +83,7 @@ LIMIT 5;</code></pre>
 
 <h2>2. Subconsulta con IN: una lista de valores</h2>
 <p><code>IN</code> ya lo conoces con listas escritas a mano (<code>pais IN (&#39;Chile&#39;, &#39;Perú&#39;)</code>). La lista también puede salir de una consulta:</p>
-<pre><code class="language-sql">-- Clientes que alguna vez compraron por teléfono
+<pre tabindex="0"><code class="language-sql">-- Clientes que alguna vez compraron por teléfono
 SELECT cliente_id, nombre, apellido
 FROM clientes
 WHERE cliente_id IN (SELECT cliente_id FROM pedidos WHERE canal = 'telefono');</code></pre>
@@ -93,7 +93,7 @@ WHERE cliente_id IN (SELECT cliente_id FROM pedidos WHERE canal = 'telefono');</
 </ol>
 <p>¿Por qué no un <code>JOIN</code>? Porque un cliente con 5 pedidos telefónicos aparecería <strong>5 veces</strong> con un join; con <code>IN</code> aparece <strong>una</strong>. <code>IN</code> responde &quot;¿está o no está?&quot;, sin multiplicar filas. Esto se llama <strong>semi-join</strong>.</p>
 <p>Una subconsulta con <code>IN</code> puede tener sus propios joins:</p>
-<pre><code class="language-sql">-- Clientes que compraron algún producto Apple
+<pre tabindex="0"><code class="language-sql">-- Clientes que compraron algún producto Apple
 SELECT cliente_id, nombre FROM clientes
 WHERE cliente_id IN (
   SELECT p.cliente_id
@@ -104,7 +104,7 @@ WHERE cliente_id IN (
 );</code></pre>
 <h2>3. EXISTS: ¿hay al menos una fila?</h2>
 <p><code>EXISTS (subconsulta)</code> es verdadero si la subconsulta devuelve <strong>alguna</strong> fila, sin importar qué columnas. Por eso se escribe <code>SELECT 1</code>: el contenido da igual.</p>
-<pre><code class="language-sql">SELECT c.cliente_id, c.nombre
+<pre tabindex="0"><code class="language-sql">SELECT c.cliente_id, c.nombre
 FROM clientes c
 WHERE EXISTS (
   SELECT 1
@@ -115,7 +115,7 @@ WHERE EXISTS (
 <p>Es el mismo resultado que el <code>IN</code> de arriba. La diferencia es que la subconsulta <strong>menciona</strong> <code>c.cliente_id</code>, una columna de afuera: se evalúa &quot;para cada cliente&quot;. El motor puede detenerse en cuanto encuentra <strong>la primera</strong> coincidencia, por eso <code>EXISTS</code> suele ser muy eficiente.</p>
 <h2>La trampa de NOT IN con NULL (caso real)</h2>
 <p>Para lo opuesto (&quot;lo que <strong>no</strong> está&quot;) tienes <code>NOT IN</code> y <code>NOT EXISTS</code>. Parecen equivalentes, pero no lo son cuando hay <code>NULL</code>. Mira este caso real con los datos del curso: queremos los clientes cuyo id no coincide con ningún <code>jefe_id</code> de la tabla <code>empleados</code> (es un ejemplo artificial, pero muestra el problema):</p>
-<pre><code class="language-sql">-- ❌ Devuelve 0 filas
+<pre tabindex="0"><code class="language-sql">-- ❌ Devuelve 0 filas
 SELECT COUNT(*) FROM clientes
 WHERE cliente_id NOT IN (SELECT jefe_id FROM empleados);
 
@@ -134,7 +134,7 @@ WHERE NOT EXISTS (SELECT 1 FROM empleados e WHERE e.jefe_id = c.cliente_id);</co
 
 <h2>4. Subconsultas correlacionadas</h2>
 <p>Una subconsulta es <strong>correlacionada</strong> cuando usa columnas de la consulta de afuera (como el <code>EXISTS</code> de arriba). Conceptualmente se ejecuta <strong>una vez por cada fila</strong> de afuera:</p>
-<pre><code class="language-sql">-- Cada producto comparado con el precio promedio de SU categoría
+<pre tabindex="0"><code class="language-sql">-- Cada producto comparado con el precio promedio de SU categoría
 SELECT p.nombre, p.categoria_id, p.precio,
        (SELECT ROUND(AVG(p2.precio), 2)
         FROM productos p2
@@ -175,7 +175,7 @@ LIMIT 10;</code></pre>
 
 <h2>5. Tablas derivadas: una subconsulta en el FROM</h2>
 <p>El resultado de cualquier <code>SELECT</code> es, a su vez, una tabla. Por eso puedes ponerlo en el <code>FROM</code> y consultarlo como si existiera. Es la herramienta para <strong>agregar dos veces</strong>:</p>
-<pre><code class="language-sql">-- ¿Cuántos pedidos hace en promedio un cliente (entre los que compraron)?
+<pre tabindex="0"><code class="language-sql">-- ¿Cuántos pedidos hace en promedio un cliente (entre los que compraron)?
 SELECT ROUND(AVG(n), 2) AS promedio_pedidos
 FROM (
   SELECT cliente_id, COUNT(*) AS n      -- paso 1: pedidos por cliente
@@ -242,7 +242,7 @@ FROM (
 <li>Reescribe el filtro con <code>IN</code>: clientes que compraron por el canal <code>app</code>.</li>
 <li>Prueba <code>EXISTS</code> para la misma pregunta y compara los resultados.</li>
 </ol>
-<pre data-norun><code class="language-sql">SELECT nombre, precio
+<pre data-norun tabindex="0"><code class="language-sql">SELECT nombre, precio
 FROM productos
 WHERE precio &gt; (SELECT AVG(precio) FROM productos)
 ORDER BY precio DESC;</code></pre>

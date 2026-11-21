@@ -75,7 +75,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>Si la validación falla, no se publica nada (mejor un tablero con datos de ayer que con datos rotos).</li>
 <li>Mira la salida de <code>dag.test</code>: el orden y lo que hace cada tarea.</li>
 </ol>
-<pre data-norun><code class="language-python">from datetime import datetime, timedelta
+<pre data-norun tabindex="0"><code class="language-python">from datetime import datetime, timedelta
 from airflow.sdk import dag, task
 from airflow.providers.standard.operators.bash import BashOperator
 from airflow.exceptions import AirflowFailException
@@ -115,7 +115,7 @@ rapido_diario().test(logical_date=datetime(2024, 6, 1))</code></pre>
 
 <h2>3. dbt: la tabla de hechos incremental</h2>
 <p><code>fct_rapido_pedidos</code> crece todos los días y los días cerrados no cambian. En dbt se escribe como modelo <strong>incremental</strong>: la primera vez procesa todo; después, solo las fechas posteriores a la última que ya tiene. En el proyecto de dbt:</p>
-<pre><code class="language-text">models/
+<pre tabindex="0"><code class="language-text">models/
 ├── staging/stg_rapido_pedidos.sql        ← vista: las reglas de validez (es_valido)
 ├── marts/fct_rapido_pedidos.sql          ← incremental por fecha
 ├── marts/mart_operaciones_diario.sql
@@ -136,7 +136,7 @@ rapido_diario().test(logical_date=datetime(2024, 6, 1))</code></pre>
 
 <h2>5. Terraform: la infraestructura en Google Cloud</h2>
 <p>Rápido trabaja en Google Cloud. El proyecto necesita: un bucket para bronze, datasets de BigQuery para silver y gold, una cuenta de servicio para el pipeline con permisos <strong>solo</strong> sobre esos recursos, y el estado de Terraform en un bucket aparte.</p>
-<pre><code class="language-hcl"># infra/envs/dev/main.tf
+<pre tabindex="0"><code class="language-hcl"># infra/envs/dev/main.tf
 terraform {
   backend &quot;gcs&quot; {
     bucket = &quot;rapido-tfstate&quot;
@@ -210,7 +210,7 @@ output &quot;cuenta_pipeline&quot; {
 
 <h2>6. CI: cada cambio, probado</h2>
 <p>El repositorio del proyecto tiene tres carpetas (<code>ingesta/</code>, <code>dbt/</code>, <code>infra/</code>) y un workflow que, en cada pull request, corre lo que corresponde a lo que cambió:</p>
-<pre><code class="language-yaml"># .github/workflows/ci.yml
+<pre tabindex="0"><code class="language-yaml"># .github/workflows/ci.yml
 name: ci
 on: [pull_request]
 

@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 1 — El Dag</h2>
 <p><code>ventas_por_tienda.py</code>:</p>
-<pre data-norun><code class="language-python">from datetime import datetime
+<pre data-norun tabindex="0"><code class="language-python">from datetime import datetime
 
 from airflow.sdk import dag, task
 
@@ -76,7 +76,7 @@ ventas_por_tienda()</code></pre>
 <p>Si mañana se abre una quinta tienda, la lista trae cinco elementos y hay cinco instancias, <strong>sin tocar el Dag</strong>.</p>
 <h2>Paso 3 — partial</h2>
 <p>Para fijar argumentos que son iguales en todas las instancias:</p>
-<pre data-norun><code class="language-python">@task
+<pre data-norun tabindex="0"><code class="language-python">@task
 def cargar(tienda, destino):
     print(f&quot;Cargando {tienda} en {destino}&quot;)
 

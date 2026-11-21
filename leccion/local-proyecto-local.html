@@ -28,13 +28,13 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1: el repositorio</h2>
-<pre data-norun><code class="language-bash">mkdir rapido-local &amp;&amp; cd rapido-local
+<pre data-norun tabindex="0"><code class="language-bash">mkdir rapido-local &amp;&amp; cd rapido-local
 git init
 uv init --name rapido
 uv add pandas duckdb psycopg[binary] python-dotenv pyarrow dbt-duckdb
 uv add --dev ruff pytest
 mkdir -p ingesta tests dbt dags data/bronze sql</code></pre>
-<pre><code class="language-text">rapido-local/
+<pre tabindex="0"><code class="language-text">rapido-local/
 ├── README.md                 ← qué es, diagrama, cómo levantarlo
 ├── Makefile                  ← los comandos del proyecto
 ├── compose.yaml              ← Postgres (la fuente)
@@ -47,7 +47,7 @@ mkdir -p ingesta tests dbt dags data/bronze sql</code></pre>
 ├── tests/                    ← pruebas de Python
 └── .github/workflows/ci.yml</code></pre>
 <h2>Paso 2: la fuente en Docker</h2>
-<pre><code class="language-yaml"># compose.yaml
+<pre tabindex="0"><code class="language-yaml"># compose.yaml
 services:
   app-db:
     image: postgres:16
@@ -61,10 +61,10 @@ services:
       - appdata:/var/lib/postgresql/data
 volumes:
   appdata:</code></pre>
-<pre><code class="language-text"># .env.example   (copiar a .env y completar)
+<pre tabindex="0"><code class="language-text"># .env.example   (copiar a .env y completar)
 POSTGRES_PASSWORD=
 POSTGRES_URL=postgresql://rapido:${POSTGRES_PASSWORD}@localhost:5432/app</code></pre>
-<pre data-norun><code class="language-sql">-- sql/crear_tablas.sql
+<pre data-norun tabindex="0"><code class="language-sql">-- sql/crear_tablas.sql
 CREATE TABLE IF NOT EXISTS pedidos (
   pedido_id      INTEGER PRIMARY KEY,
   cliente_id     INTEGER,
@@ -78,12 +78,12 @@ CREATE TABLE IF NOT EXISTS pedidos (
 <p>Verificación: <code>docker compose up -d</code>, <code>docker compose ps</code> (Up) y <code>psql -h localhost -U rapido -d app -c &#39;\dt&#39;</code>.</p>
 <h2>Paso 3: cargar datos de ejemplo</h2>
 <p>Exporta los pedidos de Rápido del curso a CSV (o usa los de tu propia app) y cárgalos con <code>\copy</code>:</p>
-<pre data-norun><code class="language-bash">psql -h localhost -U rapido -d app -f sql/crear_tablas.sql
+<pre data-norun tabindex="0"><code class="language-bash">psql -h localhost -U rapido -d app -f sql/crear_tablas.sql
 psql -h localhost -U rapido -d app -c &quot;\copy pedidos FROM 'data/semilla/pedidos.csv' WITH (FORMAT csv, HEADER)&quot;
 psql -h localhost -U rapido -d app -c &quot;SELECT estado, COUNT(*) FROM pedidos GROUP BY estado&quot;</code></pre>
 <h2>Paso 4: la ingesta incremental</h2>
 <p>La ingesta trae <strong>solo los pedidos de un día</strong> (el que le pasa Airflow) y los guarda en Parquet, en una carpeta por fecha. Si se vuelve a correr para el mismo día, <strong>sobrescribe</strong> ese archivo: es <strong>idempotente</strong> (correrla dos veces da el mismo resultado que una).</p>
-<pre data-norun><code class="language-python"># ingesta/ingesta.py
+<pre data-norun tabindex="0"><code class="language-python"># ingesta/ingesta.py
 import os
 import sys
 from pathlib import Path
@@ -114,7 +114,7 @@ if __name__ == &quot;__main__&quot;:
 <p>Verificación: <code>uv run python ingesta/ingesta.py 2024-12-01</code> y <code>duckdb -c &quot;SELECT COUNT(*) FROM &#39;data/bronze/pedidos/*/*.parquet&#39;&quot;</code>.</p>
 <h2>Paso 5: dbt sobre el lago local</h2>
 <p>En <code>dbt/models/staging/sources.yml</code>, la fuente apunta a los Parquet:</p>
-<pre><code class="language-yaml">version: 2
+<pre tabindex="0"><code class="language-yaml">version: 2
 sources:
   - name: bronze
     meta:
@@ -123,7 +123,7 @@ sources:
       - name: pedidos</code></pre>
 <p>Los modelos son los de la lección de dbt (<code>stg_rapido_pedidos</code>, <code>mart_tiempos_ciudad</code>) más el mart diario del proyecto final, con sus pruebas. Verificación: <code>cd dbt &amp;&amp; uv run dbt build</code> (todo en verde) y <code>duckdb rapido.duckdb -c &quot;SELECT * FROM mart_tiempos_ciudad&quot;</code>.</p>
 <h2>Paso 6: el DAG</h2>
-<pre data-norun><code class="language-python"># dags/rapido_diario.py
+<pre data-norun tabindex="0"><code class="language-python"># dags/rapido_diario.py
 from datetime import datetime
 from airflow.sdk import DAG
 from airflow.providers.standard.operators.bash import BashOperator
@@ -138,7 +138,7 @@ with DAG(&quot;rapido_diario&quot;, schedule=&quot;0 6 * * *&quot;, start_date=d
 <p>Verificación: <code>astro dev run dags test rapido_diario 2024-12-01</code>.</p>
 <h2>Paso 7: el Makefile</h2>
 <p>Un <strong>Makefile</strong> guarda los comandos del proyecto con nombres cortos. Cualquiera que clone el repo los ve todos en un solo lugar:</p>
-<pre><code class="language-makefile">.PHONY: up carga ingesta dbt test down limpiar
+<pre tabindex="0"><code class="language-makefile">.PHONY: up carga ingesta dbt test down limpiar
 
 up:          ## levanta la base de la app
     docker compose up -d
@@ -168,7 +168,7 @@ limpiar:     ## borra todo, incluidos los datos
 
 
 <h2>Paso 8: pruebas y CI</h2>
-<pre data-norun><code class="language-python"># tests/test_ingesta.py
+<pre data-norun tabindex="0"><code class="language-python"># tests/test_ingesta.py
 import pandas as pd
 from ingesta.ingesta import guardar
 
@@ -178,7 +178,7 @@ def test_guardar_es_idempotente(tmp_path):
     p2 = guardar(df, &quot;2024-12-01&quot;, base=str(tmp_path))
     assert p1 == p2
     assert len(pd.read_parquet(p1)) == 2          # no duplicó filas</code></pre>
-<pre><code class="language-yaml"># .github/workflows/ci.yml
+<pre tabindex="0"><code class="language-yaml"># .github/workflows/ci.yml
 name: ci
 on: [pull_request, push]
 jobs:
@@ -271,7 +271,7 @@ jobs:
 <li>Levanta la fuente en Docker y verifica que responde.</li>
 <li>Haz el primer commit: desde acá sigues los pasos de la lección.</li>
 </ol>
-<pre data-norun><code class="language-bash">mkdir -p ~/rapido-pipeline/{ingesta,dags,tests} &amp;&amp; cd ~/rapido-pipeline
+<pre data-norun tabindex="0"><code class="language-bash">mkdir -p ~/rapido-pipeline/{ingesta,dags,tests} &amp;&amp; cd ~/rapido-pipeline
 git init
 printf &quot;.venv/\n*.duckdb\n.env\n&quot; &gt; .gitignore
 uv init --no-workspace .

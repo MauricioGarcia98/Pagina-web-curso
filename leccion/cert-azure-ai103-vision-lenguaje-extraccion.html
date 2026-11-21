@@ -82,7 +82,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td><strong>Face</strong>, con <strong>acceso restringido</strong>: requiere solicitud y cumplir los principios de IA responsable de Microsoft; varias funciones de inferencia de atributos fueron retiradas</td>
 </tr>
 </tbody></table></div>
-<pre data-norun><code class="language-python"># Leer el texto de una receta escaneada (OCR) con Azure AI Vision, sin claves
+<pre data-norun tabindex="0"><code class="language-python"># Leer el texto de una receta escaneada (OCR) con Azure AI Vision, sin claves
 from azure.ai.vision.imageanalysis import ImageAnalysisClient
 from azure.ai.vision.imageanalysis.models import VisualFeatures
 from azure.identity import DefaultAzureCredential
@@ -140,7 +140,7 @@ for linea in resultado.read.blocks[0].lines:
 <li><strong>Azure AI Speech</strong>: voz a texto (transcripción en tiempo real o por lotes), texto a voz (voces neuronales), traducción de voz.</li>
 <li><strong>Azure AI Translator</strong>: traducción de textos y de documentos completos, con glosarios.</li>
 </ul>
-<pre data-norun><code class="language-python"># Ocultar datos personales de las reseñas antes de analizarlas
+<pre data-norun tabindex="0"><code class="language-python"># Ocultar datos personales de las reseñas antes de analizarlas
 from azure.ai.textanalytics import TextAnalyticsClient
 cliente = TextAnalyticsClient(endpoint=endpoint_language, credential=DefaultAzureCredential())
 for doc in cliente.recognize_pii_entities([&quot;Soy Ana Pérez, mi teléfono es 11 5555 0000 y me atendieron mal.&quot;], language=&quot;es&quot;):
