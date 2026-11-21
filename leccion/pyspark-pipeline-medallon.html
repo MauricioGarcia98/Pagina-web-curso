@@ -137,12 +137,19 @@ print(&quot;✔ test OK&quot;)</code></pre>
 <li>Ejecuta: cada capa es una función que recibe y devuelve un DataFrame.</li>
 <li>Agrega a <code>a_silver</code> el descarte de pedidos <code>cancelado</code>.</li>
 <li>Agrega a <code>a_gold</code> la cantidad de pedidos por día además del total.</li>
+<li>Mira la columna <code>fecha</code> del resultado: bronze trae fechas en dos formatos (<code>2024-07-01</code> y <code>01/07/2024 00:00</code>), y el mismo día aparece en dos filas. Normalízala en <code>a_silver</code> con <code>F.coalesce(F.to_date(&quot;fecha&quot;, &quot;yyyy-MM-dd&quot;), F.to_date(&quot;fecha&quot;, &quot;dd/MM/yyyy HH:mm&quot;))</code> y vuelve a ejecutar.</li>
 </ol>
 <pre data-norun><code class="language-python">from pyspark.sql import DataFrame, functions as F
 
+# &quot;16.99&quot;, &quot;$47.99&quot; o &quot;1.402,97&quot;: sin el $, y si hay coma decimal se quitan antes los puntos de miles
+def monto_a_numero(c):
+    sin_signo = F.regexp_replace(c, r&quot;\$&quot;, &quot;&quot;)
+    con_punto = F.when(sin_signo.contains(&quot;,&quot;), F.regexp_replace(F.regexp_replace(sin_signo, r&quot;\.&quot;, &quot;&quot;), &quot;,&quot;, &quot;.&quot;))
+    return con_punto.otherwise(sin_signo).try_cast(&quot;double&quot;)
+
 def a_silver(df: DataFrame) -&gt; DataFrame:
     return (df.withColumn(&quot;estado&quot;, F.lower(F.trim(&quot;estado&quot;)))
-              .withColumn(&quot;monto&quot;, F.regexp_replace(&quot;monto&quot;, &quot;,&quot;, &quot;.&quot;).try_cast(&quot;double&quot;))
+              .withColumn(&quot;monto&quot;, monto_a_numero(&quot;monto&quot;))
               .dropDuplicates([&quot;pedido_id&quot;])
               .filter(F.col(&quot;monto&quot;).isNotNull()))
 

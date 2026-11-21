@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL de entrevista 3 - acumulados, crecimiento, sesiones y retención · Academia de Datos</title><meta name="description" content="Las preguntas de &quot;cómo evoluciona algo en el tiempo&quot; - ventas acumuladas, crecimiento mes a mes, porcentaje del total, promedio móvil, sesiones por inactividad y retención por cohorte. Todas usan las mismas tres piezas - agregar al grano correcto, una función de ventana con el marco adecuado y LAG para comparar con el período anterior."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-sql-acumulados-y-retencion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="SQL de entrevista 3 - acumulados, crecimiento, sesiones y retención · Academia de Datos"><meta property="og:description" content="Las preguntas de &quot;cómo evoluciona algo en el tiempo&quot; - ventas acumuladas, crecimiento mes a mes, porcentaje del total, promedio móvil, sesiones por inactividad y retención por cohorte. Todas usan las mismas tres piezas - agregar al grano correcto, una función de ventana con el marco adecuado y LAG para comparar con el período anterior."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-sql-acumulados-y-retencion.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#entrevistas">🎤 Entrevistas técnicas de datos</a> · Experto · 70 min</div>
+<h1>SQL de entrevista 3 - acumulados, crecimiento, sesiones y retención</h1><p class="resumen">Las preguntas de &quot;cómo evoluciona algo en el tiempo&quot; - ventas acumuladas, crecimiento mes a mes, porcentaje del total, promedio móvil, sesiones por inactividad y retención por cohorte. Todas usan las mismas tres piezas - agregar al grano correcto, una función de ventana con el marco adecuado y LAG para comparar con el período anterior.</p>
+<a class="cta" href="../index.html#/l/entrevistas-sql-acumulados-y-retencion">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular acumulados y promedios móviles con el marco ROWS BETWEEN correcto</li><li>Comparar cada período con el anterior usando LAG sin dividir por cero</li><li>Calcular el porcentaje del total con SUM() OVER ()</li><li>Armar sesiones por inactividad con LAG y una suma acumulada</li><li>Construir una tabla de retención por cohorte de primera compra</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Piensa en la libreta de un almacén. Cada día anotas lo que vendiste (el <strong>total del período</strong>), al lado lo que llevas vendido en el mes (el <strong>acumulado</strong>), y con lápiz rojo cuánto subiste o bajaste respecto de ayer (el <strong>crecimiento</strong>). Una función de ventana es esa columna extra que mira las filas de arriba sin borrar ninguna.</p>
+</div>
+
+
+<h2>Primero el grano, después la ventana</h2>
+<p>El error más común es aplicar la ventana sobre la tabla de detalle. Si quieres ventas <strong>por mes</strong>, primero agregas a una fila por mes y recién ahí aplicas <code>SUM() OVER</code>, <code>LAG</code> o <code>AVG() OVER</code>.</p>
+<pre><code class="language-sql">WITH mensual AS (
+  SELECT substr(p.fecha_pedido, 1, 7) AS mes,
+         ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas
+  FROM pedidos p
+  JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+  WHERE p.estado &lt;&gt; 'cancelado' AND p.fecha_pedido &gt;= '2024-01-01' AND p.fecha_pedido &lt; '2025-01-01'
+  GROUP BY substr(p.fecha_pedido, 1, 7)
+)
+SELECT mes, ventas,
+       SUM(ventas) OVER (ORDER BY mes ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS acumulado,
+       LAG(ventas) OVER (ORDER BY mes) AS mes_anterior,
+       ROUND(AVG(ventas) OVER (ORDER BY mes ROWS BETWEEN 2 PRECEDING AND CURRENT ROW), 2) AS movil_3m
+FROM mensual
+ORDER BY mes;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Pregunta</th>
+<th>Ventana</th>
+</tr>
+</thead><tbody><tr>
+<td>Acumulado del año</td>
+<td><code>SUM(x) OVER (ORDER BY mes ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)</code></td>
+</tr>
+<tr>
+<td>Acumulado que se reinicia cada año</td>
+<td>Agrega <code>PARTITION BY anio</code></td>
+</tr>
+<tr>
+<td>Promedio móvil de 3 períodos</td>
+<td><code>AVG(x) OVER (ORDER BY mes ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)</code></td>
+</tr>
+<tr>
+<td>Período anterior</td>
+<td><code>LAG(x) OVER (ORDER BY mes)</code></td>
+</tr>
+<tr>
+<td>Mismo mes del año anterior</td>
+<td><code>LAG(x, 12) OVER (ORDER BY mes)</code> si no faltan meses, o un self-join por mes − 12</td>
+</tr>
+<tr>
+<td>Porcentaje del total</td>
+<td><code>x * 100.0 / SUM(x) OVER ()</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ ROWS y RANGE no son lo mismo</div>
+
+<p>Si escribes solo <code>SUM(x) OVER (ORDER BY fecha)</code>, el marco por defecto es <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>: las filas con la <strong>misma fecha</strong> se suman todas juntas y el acumulado &quot;salta&quot;. Con una fila por período da igual, pero sobre datos de detalle cambia el resultado. Escribe el marco <code>ROWS</code> explícito y no dependas del valor por defecto.</p>
+</div>
+
+
+<h2>Crecimiento sin trampas</h2>
+<pre data-norun><code class="language-sql">ROUND(100.0 * (ventas - LAG(ventas) OVER (ORDER BY mes)) / NULLIF(LAG(ventas) OVER (ORDER BY mes), 0), 1)</code></pre>
+<ul>
+<li><code>100.0</code> (no <code>100</code>) evita la <strong>división entera</strong>: en SQLite y PostgreSQL, <code>7 / 2</code> da <code>3</code>.</li>
+<li><code>NULLIF(..., 0)</code> evita dividir por cero si un mes tuvo ventas 0: el resultado queda <code>NULL</code>.</li>
+<li>El primer mes no tiene anterior: <code>LAG</code> da <code>NULL</code> y el crecimiento también. Dilo en la entrevista.</li>
+</ul>
+<h2>Sesiones por inactividad</h2>
+<p>Una sesión termina cuando pasan más de 30 minutos sin actividad. Se arma en tres capas:</p>
+<ol>
+<li><code>LAG(fecha_hora)</code> trae el evento anterior del mismo cliente.</li>
+<li>Una marca <code>nueva = 1</code> cuando no hay anterior o pasaron más de 30 minutos.</li>
+<li>La <strong>suma acumulada</strong> de esa marca numera las sesiones: 1, 1, 1, 2, 2, 3…</li>
+</ol>
+<p>Las diferencias de tiempo se calculan con <code>julianday</code>: <code>(julianday(b) - julianday(a)) * 1440</code> son minutos (un día tiene 1440).</p>
+<h2>Retención por cohorte</h2>
+<p>Una <strong>cohorte</strong> es el grupo de clientes que hicieron su primera compra en el mismo mes. La <strong>retención del mes 1</strong> es qué porcentaje de esa cohorte volvió a comprar en el mes siguiente.</p>
+<pre><code class="language-sql">WITH primero AS (
+  SELECT cliente_id, MIN(substr(fecha_pedido, 1, 7)) AS cohorte
+  FROM pedidos WHERE estado &lt;&gt; 'cancelado' GROUP BY cliente_id
+),
+actividad AS (
+  SELECT DISTINCT cliente_id, substr(fecha_pedido, 1, 7) AS mes
+  FROM pedidos WHERE estado &lt;&gt; 'cancelado'
+)
+SELECT p.cohorte,
+       COUNT(DISTINCT p.cliente_id) AS clientes,
+       COUNT(DISTINCT CASE WHEN a.mes = substr(date(p.cohorte || '-01', '+1 month'), 1, 7)
+                           THEN a.cliente_id END) AS volvieron_mes1
+FROM primero p
+LEFT JOIN actividad a ON a.cliente_id = p.cliente_id
+GROUP BY p.cohorte
+ORDER BY p.cohorte;</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 Cómo contarlo en voz alta</div>
+
+<p>&quot;Primero fijo la cohorte de cada cliente con su primera compra. Después armo una tabla de actividad cliente-mes sin duplicados. Al unirlas, para cada cohorte cuento clientes distintos y, con un <code>CASE</code>, los que tienen actividad justo un mes después.&quot;</p>
+</div>
+
+
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El tablero mensual completo en una consulta</div>
+
+<ol>
+<li>Ejecuta: una fila por mes de 2024 con ventas, acumulado, mes anterior y promedio móvil.</li>
+<li>Verifica a mano la fila de marzo: el acumulado debe ser enero + febrero + marzo.</li>
+<li>Agrega una columna de crecimiento porcentual con <code>NULLIF</code> y comprueba que enero queda en <code>NULL</code>.</li>
+</ol>
+<pre><code class="language-sql">WITH mensual AS (
+  SELECT substr(p.fecha_pedido, 1, 7) AS mes,
+         ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas
+  FROM pedidos p
+  JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+  WHERE p.estado &lt;&gt; 'cancelado' AND p.fecha_pedido &gt;= '2024-01-01' AND p.fecha_pedido &lt; '2025-01-01'
+  GROUP BY substr(p.fecha_pedido, 1, 7)
+)
+SELECT mes, ventas,
+       ROUND(SUM(ventas) OVER (ORDER BY mes ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW), 2) AS acumulado,
+       LAG(ventas) OVER (ORDER BY mes) AS mes_anterior,
+       ROUND(AVG(ventas) OVER (ORDER BY mes ROWS BETWEEN 2 PRECEDING AND CURRENT ROW), 2) AS movil_3m
+FROM mensual
+ORDER BY mes;</code></pre>
+<p>Reto: quita el filtro de año, agrega <code>substr(mes, 1, 4) AS anio</code> y haz que el acumulado se reinicie cada año con <code>PARTITION BY</code>.</p>
+<p>Documentación oficial: <a href="https://www.sqlite.org/windowfunctions.html#frame_specifications">Marcos de ventana (SQLite)</a> · <a href="https://duckdb.org/docs/current/sql/functions/window_functions">Funciones de ventana (DuckDB)</a> · <a href="https://www.postgresql.org/docs/current/functions-window.html">Window functions (PostgreSQL)</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Ventana sobre la tabla de detalle.</strong> Agrega primero al grano pedido.</li>
+<li><strong>División entera.</strong> Multiplica por <code>100.0</code>, no por <code>100</code>.</li>
+<li><strong>Dividir por cero.</strong> Usa <code>NULLIF(denominador, 0)</code>.</li>
+<li><strong>LAG(x, 12) con meses faltantes.</strong> Si falta un mes, el desfase de 12 filas ya no es &quot;hace un año&quot;. Asegura un calendario completo o usa un join por fecha.</li>
+<li><strong>Contar filas en vez de clientes en la retención.</strong> Siempre <code>COUNT(DISTINCT cliente_id)</code>.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;La retención de la cohorte de diciembre es mucho más baja. ¿Es un problema?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Antes de concluir, revisaría tres cosas: si la cohorte está completa (si diciembre es el último mes de datos, el mes 1 todavía no ocurrió), el tamaño de la cohorte (con 40 clientes, 5 puntos son 2 personas) y la estacionalidad: quien compra regalos en diciembre suele volver menos en enero. Lo compararía con diciembre del año anterior.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/entrevistas-sql-acumulados-y-retencion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="entrevistas-sql-rachas-y-huecos.html">← SQL de entrevista 2 - rachas y huecos (gaps &amp; islands)</a><a href="entrevistas-sql-deduplicar-pivotear-comparar.html">SQL de entrevista 4 - deduplicar, pivotear, anti-join y comparar períodos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

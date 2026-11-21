@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python de entrevista 2 - procesar datos reales sin pandas · Academia de Datos</title><meta name="description" content="En las entrevistas de ingeniería de datos el problema de Python casi nunca es abstracto - es un log que hay que resumir, eventos que se superponen, dos fotos de una tabla que hay que comparar, fechas que faltan o registros que hay que validar. Resuelves cada uno con Python puro (sin pandas), como piden muchas entrevistas, y aprendes a manejar líneas mal formadas en lugar de romperte con ellas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-python-procesar-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Python de entrevista 2 - procesar datos reales sin pandas · Academia de Datos"><meta property="og:description" content="En las entrevistas de ingeniería de datos el problema de Python casi nunca es abstracto - es un log que hay que resumir, eventos que se superponen, dos fotos de una tabla que hay que comparar, fechas que faltan o registros que hay que validar. Resuelves cada uno con Python puro (sin pandas), como piden muchas entrevistas, y aprendes a manejar líneas mal formadas en lugar de romperte con ellas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-python-procesar-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#entrevistas">🎤 Entrevistas técnicas de datos</a> · Experto · 75 min</div>
+<h1>Python de entrevista 2 - procesar datos reales sin pandas</h1><p class="resumen">En las entrevistas de ingeniería de datos el problema de Python casi nunca es abstracto - es un log que hay que resumir, eventos que se superponen, dos fotos de una tabla que hay que comparar, fechas que faltan o registros que hay que validar. Resuelves cada uno con Python puro (sin pandas), como piden muchas entrevistas, y aprendes a manejar líneas mal formadas en lugar de romperte con ellas.</p>
+<a class="cta" href="../index.html#/l/entrevistas-python-procesar-datos">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Parsear líneas de log tolerando las mal formadas</li><li>Calcular superposiciones de intervalos con un barrido de eventos</li><li>Comparar dos snapshots y clasificar insertados, borrados y modificados (la base del CDC)</li><li>Detectar fechas faltantes con datetime</li><li>Validar registros separando los buenos de los rechazados con su motivo</li><li>Procesar datos en lotes con generadores sin cargar todo en memoria</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Los datos reales llegan como la correspondencia de una oficina: la mayoría de las cartas están bien, algunas tienen la dirección incompleta y otras llegan repetidas. Un buen proceso no se detiene en la primera carta rara: la <strong>aparta con una nota</strong> (&quot;falta el código postal&quot;) y sigue con las demás.</p>
+</div>
+
+
+<h2>Regla número uno: no romperse con un dato malo</h2>
+<p>En una entrevista, cuando el enunciado dice &quot;procesa este archivo&quot;, pregunta qué hacer con las líneas mal formadas. La respuesta habitual en producción: <strong>contarlas o apartarlas</strong> (cuarentena) y seguir. Un <code>try/except</code> alrededor de cada línea, no alrededor de todo el archivo.</p>
+<pre><code class="language-python">lineas = [
+    &quot;2024-05-01T10:00:01 GET /api/pedidos 200 35&quot;,
+    &quot;2024-05-01T10:00:02 GET /api/pedidos 503 1200&quot;,
+    &quot;línea cortada&quot;,
+    &quot;2024-05-01T10:00:03 POST /api/pagos 201 80&quot;,
+    &quot;2024-05-01T10:00:04 GET /api/pedidos abc 10&quot;,
+]
+
+resumen, malas = {}, 0
+for linea in lineas:
+    partes = linea.split()
+    try:
+        _, metodo, ruta, estado, ms = partes
+        estado = int(estado)
+    except ValueError:
+        malas += 1
+        continue
+    total, errores = resumen.get(ruta, (0, 0))
+    resumen[ruta] = (total + 1, errores + (1 if estado &gt;= 500 else 0))
+
+print(resumen)                  # {'/api/pedidos': (2, 1), '/api/pagos': (1, 0)}
+print(&quot;líneas descartadas:&quot;, malas)  # 2</code></pre>
+<p><code>_, metodo, ruta, estado, ms = partes</code> lanza <code>ValueError</code> si la línea no tiene exactamente 5 partes, e <code>int(&quot;abc&quot;)</code> también: un solo <code>except</code> cubre los dos casos.</p>
+<h2>Intervalos: el barrido de eventos</h2>
+<p>&quot;¿Cuál es la mayor cantidad de usuarios conectados al mismo tiempo?&quot; Comparar cada sesión con todas las demás es O(n²). El truco: convertir cada intervalo en <strong>dos eventos</strong> (entra +1, sale −1), ordenarlos por tiempo y llevar la cuenta. O(n log n) por el ordenamiento.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>tiempo</th>
+<th>evento</th>
+<th>conectados</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>entra</td>
+<td>1</td>
+</tr>
+<tr>
+<td>2</td>
+<td>entra</td>
+<td>2</td>
+</tr>
+<tr>
+<td>4</td>
+<td>sale</td>
+<td>1</td>
+</tr>
+<tr>
+<td>4</td>
+<td>entra</td>
+<td>2</td>
+</tr>
+<tr>
+<td>5</td>
+<td>sale</td>
+<td>1</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ ¿Qué pasa en el mismo instante?</div>
+
+<p>Si una sesión termina a las 4 y otra empieza a las 4, ¿se superponen? Depende de si el fin es <strong>inclusivo o exclusivo</strong>. Acláralo en la entrevista. Con fin exclusivo, ordena las salidas antes que las entradas en el mismo instante: en Python, ordenar las tuplas <code>(tiempo, -1)</code> y <code>(tiempo, +1)</code> ya pone <code>-1</code> primero.</p>
+</div>
+
+
+<h2>Comparar dos fotos: la base del CDC</h2>
+<p>Cuando un sistema de origen no avisa qué cambió, se compara la foto de hoy con la de ayer por una <strong>clave</strong>. Pasar cada foto a un diccionario <code>clave -&gt; fila</code> hace que todo sea O(n):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Caso</th>
+<th>Condición</th>
+</tr>
+</thead><tbody><tr>
+<td>Insertado</td>
+<td>La clave está hoy y no ayer</td>
+</tr>
+<tr>
+<td>Borrado</td>
+<td>La clave estaba ayer y no hoy</td>
+</tr>
+<tr>
+<td>Modificado</td>
+<td>Está en las dos y la fila es distinta</td>
+</tr>
+</tbody></table></div>
+<p>Es lo mismo que hace un <code>MERGE</code> o el Change Data Feed de Delta Lake, pero a mano.</p>
+<h2>Fechas y generadores</h2>
+<ul>
+<li><code>datetime.date.fromisoformat(&quot;2024-05-01&quot;)</code> convierte un texto ISO en fecha, y <code>fecha + timedelta(days=1)</code> avanza un día (<a href="https://docs.python.org/3/library/datetime.html">documentación de datetime</a>).</li>
+<li>Un <strong>generador</strong> (<code>yield</code>) entrega los elementos de a uno: puedes procesar un archivo de 50 GB línea por línea sin cargarlo entero (<a href="https://docs.python.org/3/howto/functional.html#generators">documentación de generadores</a>).</li>
+</ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un resumen de log que no se rompe</div>
+
+<ol>
+<li>Ejecuta: el código resume un log con líneas buenas y malas, y cuenta las descartadas.</li>
+<li>Agrega una línea nueva con 6 partes y comprueba que se descarta sin romper el programa.</li>
+<li>Calcula, para cada ruta, la <strong>tasa de error</strong> en porcentaje con un decimal.</li>
+</ol>
+<pre><code class="language-python">lineas = [
+    &quot;2024-05-01T10:00:01 GET /api/pedidos 200 35&quot;,
+    &quot;2024-05-01T10:00:02 GET /api/pedidos 503 1200&quot;,
+    &quot;línea cortada&quot;,
+    &quot;2024-05-01T10:00:03 POST /api/pagos 201 80&quot;,
+    &quot;2024-05-01T10:00:04 GET /api/pedidos abc 10&quot;,
+    &quot;2024-05-01T10:00:05 GET /api/clientes 500 900&quot;,
+]
+
+resumen, malas = {}, []
+for n, linea in enumerate(lineas, start=1):
+    try:
+        _, metodo, ruta, estado, ms = linea.split()
+        estado, ms = int(estado), int(ms)
+    except ValueError as e:
+        malas.append((n, str(e)))
+        continue
+    total, errores = resumen.get(ruta, (0, 0))
+    resumen[ruta] = (total + 1, errores + (estado &gt;= 500))
+
+for ruta, (total, errores) in sorted(resumen.items()):
+    print(f&quot;{ruta:15} total={total} errores={errores}&quot;)
+print(&quot;descartadas:&quot;, malas)</code></pre>
+<p>Reto: guarda también el tiempo de respuesta y calcula el percentil 95 de <code>ms</code> por ruta (pista: ordena la lista y toma la posición <code>int(0.95 * (len - 1))</code>).</p>
+<p>Documentación oficial: <a href="https://docs.python.org/3/library/stdtypes.html#str.split">str.split</a> · <a href="https://docs.python.org/3/tutorial/errors.html">Errores y excepciones</a> · <a href="https://docs.python.org/3/library/datetime.html">datetime</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Un <code>try</code> alrededor de todo el archivo.</strong> La primera línea mala detiene el proceso entero.</li>
+<li><strong>Silenciar errores sin contarlos.</strong> Descartar está bien; descartar sin saber cuántos, no.</li>
+<li><strong>Comparar fotos con dos bucles anidados.</strong> Pasa cada foto a un diccionario por clave.</li>
+<li><strong>Cargar todo en una lista &quot;por las dudas&quot;.</strong> Si solo recorres una vez, un generador alcanza.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;Tu comparación de snapshots funciona con 10.000 filas. ¿Y con 300 millones?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;No entran en memoria de una máquina. Lo haría con Spark: un <code>full outer join</code> de las dos fotos por la clave, y una columna que clasifique: clave solo a la izquierda es borrado, solo a la derecha insertado, en ambas con un hash de las columnas distinto es modificado. Comparar un hash (por ejemplo <code>sha2</code> de las columnas concatenadas) es más barato que comparar columna por columna.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/entrevistas-python-procesar-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="entrevistas-python-estructuras-de-datos.html">← Python de entrevista 1 - diccionarios, conjuntos, pilas y ventanas</a><a href="entrevistas-pyspark-traducir-patrones.html">PySpark de entrevista - traducir cada patrón de SQL a DataFrames →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

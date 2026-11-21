@@ -2461,14 +2461,16 @@ def _load_sample_tables(tables):
         for i, c in enumerate(cols):
             sample = next((r[i] for r in rows if r[i] is not None), None)
             if c.startswith("fecha") and isinstance(sample, str):
-                if len(sample) > 10:
-                    for r in rows:
-                        r[i] = _to_ts(r[i])
-                    types.append(T.TimestampType())
+                # solo si TODOS los valores se pueden convertir: una tabla cruda (bronze) con fechas en varios
+                # formatos queda como texto, igual que en el catálogo real, en vez de volver NULL lo que no se entiende
+                conv, tipo = (_to_ts, T.TimestampType()) if len(sample) > 10 else (_to_date, T.DateType())
+                nuevos = [conv(r[i]) for r in rows]
+                if all(n is not None or r[i] is None for n, r in zip(nuevos, rows)):
+                    for r, n in zip(rows, nuevos):
+                        r[i] = n
+                    types.append(tipo)
                 else:
-                    for r in rows:
-                        r[i] = _to_date(r[i])
-                    types.append(T.DateType())
+                    types.append(T.StringType())
             elif isinstance(sample, float) or any(isinstance(r[i], float) for r in rows[:200]):
                 for r in rows:
                     if r[i] is not None:

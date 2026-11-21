@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL de entrevista 4 - deduplicar, pivotear, anti-join y comparar períodos · Academia de Datos</title><meta name="description" content="Las preguntas de &quot;ordenar datos desprolijos&quot; y &quot;comparar&quot; - quedarse con la última versión de cada registro, convertir filas en columnas, encontrar lo que no tiene pareja (clientes sin pedidos, clientes perdidos), comparar un trimestre con el mismo del año anterior y unir una tabla consigo misma. Son las que más aparecen en entrevistas de ingeniería de datos porque son el trabajo diario."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-sql-deduplicar-pivotear-comparar.html">
+<meta property="og:type" content="article"><meta property="og:title" content="SQL de entrevista 4 - deduplicar, pivotear, anti-join y comparar períodos · Academia de Datos"><meta property="og:description" content="Las preguntas de &quot;ordenar datos desprolijos&quot; y &quot;comparar&quot; - quedarse con la última versión de cada registro, convertir filas en columnas, encontrar lo que no tiene pareja (clientes sin pedidos, clientes perdidos), comparar un trimestre con el mismo del año anterior y unir una tabla consigo misma. Son las que más aparecen en entrevistas de ingeniería de datos porque son el trabajo diario."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-sql-deduplicar-pivotear-comparar.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#entrevistas">🎤 Entrevistas técnicas de datos</a> · Experto · 65 min</div>
+<h1>SQL de entrevista 4 - deduplicar, pivotear, anti-join y comparar períodos</h1><p class="resumen">Las preguntas de &quot;ordenar datos desprolijos&quot; y &quot;comparar&quot; - quedarse con la última versión de cada registro, convertir filas en columnas, encontrar lo que no tiene pareja (clientes sin pedidos, clientes perdidos), comparar un trimestre con el mismo del año anterior y unir una tabla consigo misma. Son las que más aparecen en entrevistas de ingeniería de datos porque son el trabajo diario.</p>
+<a class="cta" href="../index.html#/l/entrevistas-sql-deduplicar-pivotear-comparar">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Deduplicar con ROW_NUMBER quedándote con la última versión y normalizando valores</li><li>Pivotear filas a columnas con agregación condicional</li><li>Elegir entre NOT EXISTS, LEFT JOIN ... IS NULL y EXCEPT para encontrar lo que falta</li><li>Comparar períodos en una sola pasada con CASE dentro de SUM</li><li>Usar self-joins para comparar filas de la misma tabla</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Deduplicar es como ordenar una pila de formularios donde la misma persona se anotó tres veces: te quedas con el <strong>más reciente</strong> y lo pasas en limpio. Pivotear es dar vuelta una lista en una planilla con una columna por categoría. El anti-join es pasar lista: ¿quién <strong>no</strong> vino?</p>
+</div>
+
+
+<h2>Deduplicar: la última versión de cada registro</h2>
+<p>Los datos crudos (capa bronze) traen el mismo pedido varias veces porque se reenvió un archivo o porque cambió de estado. La regla de negocio típica: <strong>la carga más reciente gana</strong>.</p>
+<pre><code class="language-sql">WITH versiones AS (
+  SELECT pedido_id, estado, monto, cargado_en,
+         ROW_NUMBER() OVER (PARTITION BY pedido_id ORDER BY cargado_en DESC, registro_id DESC) AS rn
+  FROM bronze_pedidos
+)
+SELECT pedido_id, estado, monto
+FROM versiones
+WHERE rn = 1;</code></pre>
+<p>Y casi siempre hay que <strong>normalizar</strong> al mismo tiempo: estados escritos de varias formas (<code>Entregado</code>, <code>ENTREGADO</code>, <code>delivered</code>) y montos con coma decimal o signo <code>$</code>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Problema</th>
+<th>Arreglo en SQL</th>
+</tr>
+</thead><tbody><tr>
+<td>Mayúsculas mezcladas</td>
+<td><code>LOWER(estado)</code></td>
+</tr>
+<tr>
+<td>Sinónimos en otro idioma</td>
+<td><code>CASE LOWER(estado) WHEN &#39;delivered&#39; THEN &#39;entregado&#39; ... ELSE LOWER(estado) END</code></td>
+</tr>
+<tr>
+<td>Espacios sobrantes</td>
+<td><code>TRIM(nombre)</code></td>
+</tr>
+<tr>
+<td><code>1.402,97</code> (miles con punto, decimales con coma)</td>
+<td><code>CASE WHEN monto LIKE &#39;%,%&#39; THEN REPLACE(REPLACE(monto, &#39;.&#39;, &#39;&#39;), &#39;,&#39;, &#39;.&#39;) END</code>: primero quitas los puntos de miles, después cambias la coma</td>
+</tr>
+<tr>
+<td><code>$47.99</code></td>
+<td><code>REPLACE(monto, &#39;$&#39;, &#39;&#39;)</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Normalizar antes o después de deduplicar</div>
+
+<p>Si la clave de deduplicación es un texto sucio (un email con mayúsculas), <strong>normaliza primero</strong>: <code>PARTITION BY LOWER(TRIM(email))</code>. Si no, <code>Ana@x.com</code> y <code>ana@x.com</code> quedan como dos clientes distintos.</p>
+</div>
+
+
+<h2>Pivotear con agregación condicional</h2>
+<p><code>PIVOT</code> existe en SQL Server, Snowflake, Databricks, BigQuery y DuckDB, pero con sintaxis distinta en cada uno. La versión que funciona en <strong>todos</strong> es <code>SUM(CASE WHEN ...)</code>:</p>
+<pre><code class="language-sql">SELECT substr(fecha_pedido, 1, 4) AS anio,
+       SUM(CASE WHEN canal = 'web'      THEN 1 ELSE 0 END) AS web,
+       SUM(CASE WHEN canal = 'app'      THEN 1 ELSE 0 END) AS app,
+       SUM(CASE WHEN canal = 'tienda'   THEN 1 ELSE 0 END) AS tienda,
+       SUM(CASE WHEN canal = 'telefono' THEN 1 ELSE 0 END) AS telefono
+FROM pedidos
+GROUP BY substr(fecha_pedido, 1, 4);</code></pre>
+<p>El mismo truco compara períodos en una sola pasada: <code>SUM(CASE WHEN fecha en Q4 2023 THEN monto ELSE 0 END) AS q4_2023</code>.</p>
+<h2>Encontrar lo que falta: tres formas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Forma</th>
+<th>Ejemplo</th>
+<th>Cuidado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>NOT EXISTS</code></td>
+<td><code>WHERE NOT EXISTS (SELECT 1 FROM pedidos p WHERE p.cliente_id = c.cliente_id)</code></td>
+<td>La más segura y clara</td>
+</tr>
+<tr>
+<td><code>LEFT JOIN ... IS NULL</code></td>
+<td><code>LEFT JOIN pedidos p ON ... WHERE p.pedido_id IS NULL</code></td>
+<td>Filtra por una columna que nunca es nula en la tabla derecha</td>
+</tr>
+<tr>
+<td><code>EXCEPT</code></td>
+<td><code>SELECT cliente_id FROM a EXCEPT SELECT cliente_id FROM b</code></td>
+<td>Compara filas completas y quita duplicados</td>
+</tr>
+<tr>
+<td><code>NOT IN</code></td>
+<td><code>WHERE cliente_id NOT IN (SELECT cliente_id FROM pedidos)</code></td>
+<td>Si la subconsulta tiene <strong>un solo NULL</strong>, devuelve <strong>cero filas</strong></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La trampa del NOT IN</div>
+
+<p><code>x NOT IN (1, 2, NULL)</code> nunca es verdadero: comparar con <code>NULL</code> da &quot;desconocido&quot;. Es una pregunta clásica de entrevista. Usa <code>NOT EXISTS</code>, o agrega <code>WHERE cliente_id IS NOT NULL</code> dentro de la subconsulta.</p>
+</div>
+
+
+<h2>Self-join: comparar filas de la misma tabla</h2>
+<p>Cuando una tabla se refiere a sí misma (un empleado tiene un <code>jefe_id</code> que es otro empleado), la unes consigo misma con dos alias:</p>
+<pre><code class="language-sql">SELECT e.nombre AS empleado, j.nombre AS jefe
+FROM empleados e
+JOIN empleados j ON j.empleado_id = e.jefe_id;</code></pre>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Deduplicar y normalizar la capa bronze</div>
+
+<ol>
+<li>Ejecuta: verás cuántas filas tiene <code>bronze_pedidos</code>, cuántos pedidos distintos hay y cuántos estados distintos aparecen escritos.</li>
+<li>Lee la segunda consulta: deduplica por <code>pedido_id</code> y normaliza el estado. Ejecuta y compara los conteos.</li>
+<li>Cambia <code>ORDER BY cargado_en DESC</code> por <code>ASC</code> y fíjate qué cambia: te quedarías con la <strong>primera</strong> versión en lugar de la última.</li>
+</ol>
+<pre><code class="language-sql">SELECT COUNT(*) AS filas, COUNT(DISTINCT pedido_id) AS pedidos, COUNT(DISTINCT estado) AS estados_escritos
+FROM bronze_pedidos;
+
+WITH versiones AS (
+  SELECT pedido_id, estado,
+         ROW_NUMBER() OVER (PARTITION BY pedido_id ORDER BY cargado_en DESC, registro_id DESC) AS rn
+  FROM bronze_pedidos
+)
+SELECT CASE LOWER(estado)
+         WHEN 'delivered' THEN 'entregado' WHEN 'shipped' THEN 'enviado'
+         WHEN 'pending' THEN 'pendiente' WHEN 'canceled' THEN 'cancelado'
+         WHEN 'returned' THEN 'devuelto' ELSE LOWER(estado) END AS estado,
+       COUNT(*) AS pedidos
+FROM versiones WHERE rn = 1
+GROUP BY 1
+ORDER BY pedidos DESC;</code></pre>
+<p>Reto: agrega la columna <code>monto</code> limpia y verifica con <code>WHERE monto_limpio = 0</code> si quedó algún monto que no se pudo convertir.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/statements/pivot">PIVOT (DuckDB)</a> · <a href="https://www.sqlite.org/lang_select.html#compound_select_statements">EXCEPT (SQLite)</a> · <a href="https://www.postgresql.org/docs/current/functions-subquery.html">Subconsultas EXISTS (PostgreSQL)</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Deduplicar sin desempate.</strong> Si dos versiones tienen el mismo <code>cargado_en</code>, agrega <code>registro_id DESC</code>.</li>
+<li><strong><code>NOT IN</code> con nulos.</strong> Devuelve vacío sin avisar.</li>
+<li><strong>Pivotear con <code>COUNT(CASE ... ELSE 0 END)</code>.</strong> <code>COUNT</code> cuenta el 0 también: usa <code>SUM(... ELSE 0)</code> o <code>COUNT(CASE ... END)</code> sin <code>ELSE</code>.</li>
+<li><strong>Comparar trimestres con dos consultas y restar a mano.</strong> Una sola pasada con <code>CASE</code> evita errores y es más rápida.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;¿Cómo harías esta deduplicación todos los días sobre 500 millones de filas?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;No recalcularía todo: procesaría solo lo que llegó desde la última carga y haría un <code>MERGE</code> contra la tabla silver por <code>pedido_id</code>, actualizando solo si la versión nueva es más reciente. En Databricks eso es <code>MERGE INTO</code> sobre Delta o un flujo <code>AUTO CDC</code> en Lakeflow Declarative Pipelines; así cada día se procesan miles de filas, no millones.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/entrevistas-sql-deduplicar-pivotear-comparar">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="entrevistas-sql-acumulados-y-retencion.html">← SQL de entrevista 3 - acumulados, crecimiento, sesiones y retención</a><a href="entrevistas-python-estructuras-de-datos.html">Python de entrevista 1 - diccionarios, conjuntos, pilas y ventanas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -536,6 +536,20 @@
     ]
   },
   {
+    "id": "entrevistas",
+    "titulo": "Entrevistas técnicas de datos",
+    "icono": "🎤",
+    "color": "#0ea5e9",
+    "descripcion": "Preparación completa para entrevistas de ingeniería y análisis de datos: el método para hablar mientras resuelves, los patrones de SQL que más se preguntan (top-N, rachas, acumulados, retención, deduplicar, pivotear), problemas de Python con estructuras de datos y con datos reales, la traducción a PySpark, casos de negocio de analista y diseño de sistemas de datos.",
+    "objetivos": [
+      "Traducir cualquier pregunta de negocio a SQL, Python o PySpark en voz alta y con supuestos explícitos",
+      "Reconocer los patrones de entrevista (top-N con empates, gaps & islands, acumulados, cohortes, deduplicar, pivotear, anti-join)",
+      "Resolver problemas de Python con diccionarios, conjuntos, pilas y ventanas deslizantes, explicando la complejidad",
+      "Procesar datos con Python puro: logs, intervalos, diferencias entre snapshots y validación de registros",
+      "Responder casos de analista con métricas bien definidas y diseñar un sistema de datos de punta a punta"
+    ]
+  },
+  {
     "id": "proyecto-pedalia",
     "titulo": "Proyecto integrador: Pedalia, de cero a producción",
     "icono": "🚲",
