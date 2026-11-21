@@ -452,6 +452,20 @@
     ]
   },
   {
+    "id": "nosql",
+    "titulo": "Bases NoSQL para ingenieros de datos",
+    "icono": "🗄️",
+    "color": "#d97706",
+    "descripcion": "Cuándo una base no relacional es la herramienta correcta y cómo trabajar con ella desde el lado de los datos: documentos, clave-valor, columnas anchas, búsqueda y vectores; modelar por patrón de acceso; consultar JSON con SQL; diseñar claves de partición sin particiones calientes; y llevar los documentos al lakehouse aplanando estructuras, explotando listas y manejando cambios de esquema.",
+    "objetivos": [
+      "Elegir entre una base relacional y cada tipo de NoSQL según el patrón de acceso",
+      "Modelar documentos decidiendo qué se embebe y qué se referencia",
+      "Consultar documentos JSON con SQL sin que un registro roto frene la consulta",
+      "Diseñar claves de partición y de ordenamiento que repartan la carga y permitan consultas por rango",
+      "Llevar colecciones de documentos al lakehouse con from_json, explode y deduplicación por versión"
+    ]
+  },
+  {
     "id": "terraform",
     "titulo": "Terraform: infraestructura como código",
     "icono": "🏗️",

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claves de partición, particiones calientes y claves compuestas · Academia de Datos</title><meta name="description" content="Las bases NoSQL escalan repartiendo los datos en particiones según una clave. Si la clave está mal elegida, casi todo cae en una sola partición - la partición caliente - y la base entera va a la velocidad de una máquina. Mides con datos reales cómo quedaría repartida la carga con distintas claves, aprendes a &quot;salar&quot; una clave caliente y a diseñar claves compuestas (partición más ordenamiento) que responden consultas por rango, como en DynamoDB y Cassandra."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/nosql-claves-y-particiones.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Claves de partición, particiones calientes y claves compuestas · Academia de Datos"><meta property="og:description" content="Las bases NoSQL escalan repartiendo los datos en particiones según una clave. Si la clave está mal elegida, casi todo cae en una sola partición - la partición caliente - y la base entera va a la velocidad de una máquina. Mides con datos reales cómo quedaría repartida la carga con distintas claves, aprendes a &quot;salar&quot; una clave caliente y a diseñar claves compuestas (partición más ordenamiento) que responden consultas por rango, como en DynamoDB y Cassandra."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/nosql-claves-y-particiones.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#nosql">🗄️ Bases NoSQL para ingenieros de datos</a> · Experto · 65 min</div>
+<h1>Claves de partición, particiones calientes y claves compuestas</h1><p class="resumen">Las bases NoSQL escalan repartiendo los datos en particiones según una clave. Si la clave está mal elegida, casi todo cae en una sola partición - la partición caliente - y la base entera va a la velocidad de una máquina. Mides con datos reales cómo quedaría repartida la carga con distintas claves, aprendes a &quot;salar&quot; una clave caliente y a diseñar claves compuestas (partición más ordenamiento) que responden consultas por rango, como en DynamoDB y Cassandra.</p>
+<a class="cta" href="../index.html#/l/nosql-claves-y-particiones">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar cómo una clave de partición reparte datos con una función hash</li><li>Medir la concentración de una clave candidata y detectar particiones calientes</li><li>Repartir una clave caliente con sal y saber qué cuesta al leer</li><li>Diseñar una clave compuesta que responda consultas por rango</li><li>Relacionar estas ideas con las particiones de un lakehouse y el sesgo en Spark</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un supermercado con diez cajas reparte a los clientes por la inicial del apellido. Si casi todos se apellidan &quot;García&quot;, nueve cajas quedan vacías y una tiene una fila enorme. La clave de partición es esa regla de reparto: si está mal elegida, tener diez cajas no sirve de nada.</p>
+</div>
+
+
+<h2>Cómo se reparte</h2>
+<p>La base aplica una función <strong>hash</strong> a la clave de partición y el resultado decide en qué partición (en qué máquina) vive cada registro: <code>particion = hash(clave) % cantidad_de_particiones</code>. La misma clave siempre cae en la misma partición, y claves distintas se reparten de forma pareja… <strong>si hay muchas claves distintas y ninguna domina</strong>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Clave candidata (eventos de la web)</th>
+<th>Valores distintos</th>
+<th>% en la partición más cargada</th>
+</tr>
+</thead><tbody><tr>
+<td><code>dispositivo</code></td>
+<td>3</td>
+<td>59,5 %</td>
+</tr>
+<tr>
+<td><code>pagina</code></td>
+<td>7</td>
+<td>31,1 %</td>
+</tr>
+<tr>
+<td><code>cliente_id</code></td>
+<td>1178</td>
+<td>14,4 % (¡los anónimos, con <code>NULL</code>!)</td>
+</tr>
+<tr>
+<td>día de <code>fecha_hora</code></td>
+<td>366</td>
+<td>0,5 %</td>
+</tr>
+</tbody></table></div>
+<p><code>dispositivo</code> tiene tan pocos valores que nunca puede usar más de 3 particiones, y una lleva el 60 %. <code>cliente_id</code> parece buena, pero todos los visitantes sin sesión comparten la clave <code>NULL</code> y forman una partición caliente.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La fecha como clave de partición</div>
+
+<p>El día reparte bien los datos <strong>guardados</strong> (0,5 % por día), pero mal las <strong>escrituras</strong>: todo lo que llega hoy va a la partición de hoy, y las otras 365 no reciben nada. Para escrituras masivas en tiempo real, la fecha va en la clave de <strong>ordenamiento</strong>, no en la de partición. (En un lakehouse es distinto: particionar archivos por fecha está bien, porque se escribe en lotes y se lee filtrando por fecha.)</p>
+</div>
+
+
+<h2>Salar una clave caliente</h2>
+<p>Si una clave recibe demasiadas escrituras (el <code>NULL</code> de los anónimos, o un producto en oferta), se le agrega un sufijo, la <strong>sal</strong>: <code>anonimo#0</code>, <code>anonimo#1</code>, …, <code>anonimo#9</code>. Cada escritura elige uno (por ejemplo, según el id del evento), y la carga se reparte en 10 particiones. El costo: para leer &quot;todo lo anónimo&quot; hay que consultar las 10 claves y juntar los resultados. Es el mismo truco que se usa en Spark para el sesgo (<em>skew</em>) en un join, que viste en la lección de PySpark de entrevistas.</p>
+<h2>Claves compuestas: partición más ordenamiento</h2>
+<p>DynamoDB y Cassandra permiten una clave de <strong>dos partes</strong>: la clave de partición decide dónde vive el registro, y la clave de <strong>ordenamiento</strong> lo mantiene ordenado dentro de la partición. Eso habilita consultas por rango dentro de una partición:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Patrón de acceso</th>
+<th>Clave de partición</th>
+<th>Clave de ordenamiento</th>
+<th>Consulta</th>
+</tr>
+</thead><tbody><tr>
+<td>Pedidos de un cliente por fecha</td>
+<td><code>CLIENTE#7</code></td>
+<td><code>PEDIDO#2024-03-15#101</code></td>
+<td><code>sk BETWEEN &#39;PEDIDO#2024-03&#39; AND &#39;PEDIDO#2024-03~&#39;</code></td>
+</tr>
+<tr>
+<td>Lecturas de un sensor</td>
+<td><code>SENSOR#42</code></td>
+<td>marca de tiempo</td>
+<td>Las de la última hora</td>
+</tr>
+<tr>
+<td>Mensajes de un chat</td>
+<td><code>CHAT#9</code></td>
+<td>marca de tiempo</td>
+<td>Los 50 más recientes</td>
+</tr>
+</tbody></table></div>
+<p>En DynamoDB, la operación <code>Query</code> exige la clave de partición exacta y permite condiciones sobre la de ordenamiento (<code>=</code>, <code>BETWEEN</code>, <code>begins_with</code>…). Sin la clave de partición, solo queda un <code>Scan</code> de toda la tabla, lento y caro (<a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html">documentación</a>).</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Primero los patrones de acceso</div>
+
+<p>En NoSQL el diseño empieza al revés que en relacional: primero escribes la lista de consultas que la app va a hacer (&quot;pedidos de un cliente por fecha&quot;, &quot;último estado de un pedido&quot;) y recién después eliges las claves que las responden con una sola lectura.</p>
+</div>
+
+
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Medir las claves candidatas con datos reales</div>
+
+<ol>
+<li>Ejecuta: la consulta calcula, para cuatro claves candidatas, cuántos valores distintos tienen y qué porcentaje cae en el valor más frecuente.</li>
+<li>Explica por qué <code>cliente_id</code> tiene 14,4 % en una sola partición (pista: filtra <code>WHERE cliente_id IS NULL</code>).</li>
+<li>Agrega una quinta candidata: la combinación <code>cliente_id || &#39;-&#39; || substr(fecha_hora, 1, 7)</code> (cliente y mes). ¿Mejora?</li>
+</ol>
+<pre><code class="language-sql">WITH total AS (SELECT COUNT(*) AS n FROM eventos_web)
+SELECT 'dispositivo' AS clave, COUNT(*) AS valores, ROUND(100.0 * MAX(c) / (SELECT n FROM total), 1) AS pct_max
+FROM (SELECT dispositivo, COUNT(*) AS c FROM eventos_web GROUP BY dispositivo)
+UNION ALL
+SELECT 'pagina', COUNT(*), ROUND(100.0 * MAX(c) / (SELECT n FROM total), 1)
+FROM (SELECT pagina, COUNT(*) AS c FROM eventos_web GROUP BY pagina)
+UNION ALL
+SELECT 'cliente_id', COUNT(*), ROUND(100.0 * MAX(c) / (SELECT n FROM total), 1)
+FROM (SELECT cliente_id, COUNT(*) AS c FROM eventos_web GROUP BY cliente_id)
+UNION ALL
+SELECT 'dia', COUNT(*), ROUND(100.0 * MAX(c) / (SELECT n FROM total), 1)
+FROM (SELECT substr(fecha_hora, 1, 10) AS dia, COUNT(*) AS c FROM eventos_web GROUP BY dia);</code></pre>
+<p>Reto: calcula la misma medida para <code>cliente_id</code> pero tratando los <code>NULL</code> con sal: <code>COALESCE(CAST(cliente_id AS TEXT), &#39;anon#&#39; || (evento_id % 10))</code>. ¿Cuánto baja el máximo?</p>
+<p>Documentación oficial: <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html">Diseño de claves de partición (DynamoDB)</a> · <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-sort-keys.html">Claves de ordenamiento (DynamoDB)</a> · <a href="https://cassandra.apache.org/doc/latest/cassandra/developing/data-modeling/index.html">Modelado de datos (Cassandra)</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Claves con pocos valores.</strong> Estado, país o dispositivo nunca usan más que unas pocas particiones.</li>
+<li><strong>Un valor por defecto compartido.</strong> <code>NULL</code>, <code>&quot;desconocido&quot;</code> o <code>0</code> concentran todo lo que no tiene dato.</li>
+<li><strong>La fecha actual como clave de partición en escrituras en tiempo real.</strong> Va en la clave de ordenamiento.</li>
+<li><strong>Diseñar sin la lista de consultas.</strong> En NoSQL, una consulta que no usa la clave es un recorrido completo.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;Diseña la tabla de DynamoDB para guardar el estado de los pedidos de una tienda.&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Empiezo por los patrones de acceso: ver un pedido por id, listar los pedidos de un cliente por fecha y listar los pedidos pendientes. Para los dos primeros uso una tabla con clave de partición <code>CLIENTE#id</code> y clave de ordenamiento <code>PEDIDO#fecha#id</code>, más un índice secundario por <code>pedido_id</code>. Para &#39;pendientes&#39;, un índice secundario disperso que solo tiene los pedidos con estado pendiente, con la clave de partición salada en 10 valores para no concentrar escrituras. Y para analítica, no consulto DynamoDB: exporto o uso DynamoDB Streams hacia el lakehouse.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/nosql-claves-y-particiones">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="nosql-documentos-y-json.html">← Documentos - qué embeber, qué referenciar y cómo consultarlos con SQL</a><a href="nosql-de-nosql-al-lakehouse.html">Llevar una base NoSQL al lakehouse →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -152,18 +152,23 @@ def _parse_type(s):
         return DecimalType(int(m.group(2)), int(m.group(3)))
     if t in ("decimal", "numeric"):
         return DecimalType(10, 0)
-    m = _re.match(r"^array\s*<(.+)>$", t)
+    m = _re.match(r"^array\s*<(.+)>$", t, _re.S)
     if m:
-        return ArrayType(_parse_type(m.group(1)))
+        return ArrayType(_parse_type(s.strip()[s.strip().index("<") + 1:-1]))
+    m = _re.match(r"^map\s*<(.+)>$", t, _re.S)
+    if m:
+        k, v = _partir(s.strip()[s.strip().index("<") + 1:-1])
+        return MapType(_parse_type(k), _parse_type(v))
+    if _re.match(r"^struct\s*<.*>$", t, _re.S):
+        return _parse_schema(s.strip()[s.strip().index("<") + 1:-1])
     t = _re.sub(r"\(.*\)$", "", t)
     if t in _SIMPLE:
         return _SIMPLE[t]()
     raise ValueError("Tipo desconocido: %s" % s)
 
 
-def _parse_schema(s):
-    """'nombre STRING, edad INT' o 'nombre: string, edad: int' -> StructType"""
-    fields = []
+def _partir(s):
+    """Parte por comas que no estén dentro de <...> o (...)."""
     depth, cur, parts = 0, "", []
     for ch in s:
         if ch in "<(":
@@ -177,10 +182,18 @@ def _parse_schema(s):
             cur += ch
     if cur.strip():
         parts.append(cur)
-    for p in parts:
+    return parts
+
+
+def _parse_schema(s):
+    """'nombre STRING, edad INT' o 'nombre: string, edad: int' -> StructType"""
+    fields = []
+    for p in _partir(s):
         p = p.strip()
-        if ":" in p:
-            name, typ = p.split(":", 1)
+        # "nombre: tipo" solo si los dos puntos van antes del tipo (en "lineas ARRAY<STRUCT<a: INT>>" no)
+        dos = _re.match(r"^`?([\w$]+)`?\s*:\s*(.+)$", p, _re.S)
+        if dos:
+            name, typ = dos.group(1), dos.group(2)
         else:
             bits = p.split(None, 1)
             if len(bits) != 2:
