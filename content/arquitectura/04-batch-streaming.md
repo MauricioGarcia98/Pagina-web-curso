@@ -115,11 +115,12 @@ Un stream no termina nunca, así que para agregar hay que cortarlo en **ventanas
 
 Si la ventana de 10:00–10:05 se cierra a las 10:05 en punto, los eventos que llegan tarde quedan afuera. Si esperas para siempre, nunca publicas nada. La **marca de agua** (*watermark*) es la regla de compromiso: "doy por cerrada una ventana cuando ya vi eventos **N minutos** posteriores a su fin". Lo que llegue después se descarta (o se manda a una tabla de tardíos).
 
-```text
-Marca de agua de 2 minutos:
-evento 10:04:50 llega 10:05:30  → entra en 10:00–10:05 (la ventana sigue abierta)
-evento 10:04:10 llega 10:07:30  → la marca ya pasó 10:07 → la ventana 10:00–10:05 está cerrada → tardío
-```
+Con una marca de agua de 2 minutos:
+
+| Evento ocurrió | Llegó | ¿Entra en la ventana 10:00–10:05? |
+|---|---|---|
+| 10:04:50 | 10:05:30 | Sí: la ventana sigue abierta (la marca va por 10:03:30) |
+| 10:04:10 | 10:07:30 | No: la marca ya pasó las 10:05, la ventana se cerró. Es un evento **tardío** |
 
 Más espera = más exactitud pero más demora. Es una decisión de negocio, no técnica.
 

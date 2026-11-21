@@ -9,13 +9,22 @@ autoevaluacion: ¿Qué hace la rama de calidad del DAG si los datos no pasan? | 
 
 En la lección anterior programaste las **reglas** del banco en Python (cuota francesa, tramos de mora, conciliación). Ahora esas reglas pasan a formar parte de un **pipeline** que corre todas las noches. Este es el diseño:
 
-```text
-                 ┌──────────────────────── Airflow: banco_cierre_diario (todos los días 03:00) ────────────────────────┐
- banco_cuotas ───┤ 1. calidad: ¿llegaron datos?  ──no──▶ avisar_sin_datos                                          │
- banco_trans. ───┤        │ sí                                                                                       │
- banco_prest. ───┤ 2. PySpark: silver.cartera_mora (un préstamo por fila)   3. PySpark: gold.perfil_gasto_cliente    │
- banco_clientes ─┤ 4. dbt: mora_por_segmento (tabla para el tablero de riesgo)                                       │
-                 └ 5. reportar (corre siempre que no haya fallas)                                                     ┘
+```diagrama
+titulo: Airflow banco_cierre_diario (todos los días 03:00)
+nodo src: Tablas del banco | icono=banco | col=0 | fila=1 | color=gris | sub=cuotas, transacciones, préstamos, clientes
+nodo q: 1. Calidad | icono=check | col=1 | fila=1 | color=amarillo | forma=rombo | sub=¿llegaron datos?
+nodo av: avisar_sin_datos | icono=alerta | col=1 | fila=2 | color=rojo
+nodo mora: 2. silver.cartera_mora | icono=spark | col=2 | fila=0 | color=azul | sub=PySpark: un préstamo por fila
+nodo gasto: 3. gold.perfil_gasto_cliente | icono=spark | col=2 | fila=1 | color=azul | sub=PySpark
+nodo dbt: 4. mora_por_segmento | icono=dbt | col=3 | fila=0 | color=naranja | sub=dbt: para el tablero de riesgo
+nodo rep: 5. reportar | icono=correo | col=4 | fila=1 | color=verde | sub=corre si no hubo fallas
+flecha src -> q
+flecha q -> av: no
+flecha q -> mora: sí
+flecha q -> gasto: sí
+flecha mora -> dbt
+flecha dbt -> rep
+flecha gasto -> rep
 ```
 
 | Pieza | Herramienta | Por qué esa herramienta |

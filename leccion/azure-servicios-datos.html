@@ -30,14 +30,10 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Arquitectura de referencia (lakehouse en Azure)</h2>
-<pre><code class="language-text"> Fuentes (ERP, APIs, archivos, eventos)
-     │  Azure Data Factory (copia batch)     Event Hubs (streaming)
-     ▼                                        ▼
- ADLS Gen2:  bronze  ──▶  silver  ──▶  gold        ← Azure Databricks (Spark + Delta + Unity Catalog)
-                                         │           dbt (modelos SQL)   Airflow / Workflows (orquestación)
-                                         ▼
-                        Power BI / Databricks SQL / ML
- Transversal: Entra ID + RBAC, Key Vault, Azure Monitor, Cost Management</code></pre>
+<figure class="diagrama"><figcaption>Arquitectura de referencia: un lakehouse en Azure</figcaption></figure>
+
+
+<p>Transversal a todo: Entra ID con RBAC para los permisos, Key Vault para los secretos, Azure Monitor para registros y alertas, y Cost Management para el costo.</p>
 <p>Cada servicio cumple un papel en ese recorrido:</p>
 <div class="table-wrap"><table><thead><tr>
 <th>Etapa</th>

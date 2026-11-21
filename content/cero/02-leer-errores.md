@@ -26,6 +26,17 @@ Un error es como el GPS diciendo "recalculando". No te reta: te avisa que te des
 
 Todos los mensajes de error, en cualquier lenguaje, responden tres preguntas:
 
+```diagrama
+titulo: Las tres preguntas que responde cualquier mensaje de error
+nodo err: Mensaje de error | icono=alerta | col=0 | fila=1 | color=rojo
+nodo q1: ¿Qué pasó? | icono=lupa | col=1 | fila=0 | color=azul | sub=el tipo: NameError, syntax error…
+nodo q2: ¿Dónde? | icono=documento | col=1 | fila=1 | color=violeta | sub=archivo y línea
+nodo q3: ¿Por qué? | icono=cerebro | col=1 | fila=2 | color=amarillo | sub=la explicación en el mensaje
+flecha err -> q1
+flecha err -> q2
+flecha err -> q3
+```
+
 1. **¿Dónde?** El archivo y la línea donde la computadora se trabó.
 2. **¿Qué tipo de problema?** Un nombre que clasifica el error: `NameError`, `SyntaxError`, `no such column`…
 3. **¿Por qué?** Una frase que explica el detalle: `name 'precio' is not defined` (el nombre `precio` no está definido).

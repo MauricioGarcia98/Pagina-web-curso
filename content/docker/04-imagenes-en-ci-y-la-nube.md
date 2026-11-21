@@ -52,6 +52,21 @@ jobs:
           cache-to: type=gha,mode=max
 ```
 
+```diagrama
+titulo: De un push a un trabajo en la nube
+nodo push: Push a main | icono=git | col=0 | fila=0 | color=gris
+nodo ci: GitHub Actions | icono=githubactions | col=1 | fila=0 | color=azul | sub=build con caché
+nodo sc: Escaneo | icono=escudo | col=2 | fila=0 | color=amarillo | forma=rombo | sub=¿críticas con arreglo?
+nodo reg: Registro | icono=docker | col=3 | fila=0 | color=verde | sub=pipeline:sha-3f9c2ab
+nodo job: Trabajo en la nube | icono=nube | col=4 | fila=0 | color=verde | sub=Container Apps Jobs, Cloud Run Jobs, ECS
+nodo stop: No se publica | icono=x | col=2 | fila=1 | color=rojo
+flecha push -> ci
+flecha ci -> sc
+flecha sc -> reg: no
+flecha sc -> stop: sí
+flecha reg -> job: el orquestador lo dispara
+```
+
 La caché `type=gha` guarda las capas entre ejecuciones del CI, para que un runner nuevo no reconstruya todo desde cero ([documentación oficial](https://docs.docker.com/build/ci/github-actions/)). El token lo provee GitHub para cada ejecución: no hay que guardar una contraseña ([registro de contenedores de GitHub](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)).
 
 ## Escanear antes de publicar

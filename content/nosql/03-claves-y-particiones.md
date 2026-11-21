@@ -33,6 +33,21 @@ El día reparte bien los datos **guardados** (0,5 % por día), pero mal las **es
 
 Si una clave recibe demasiadas escrituras (el `NULL` de los anónimos, o un producto en oferta), se le agrega un sufijo, la **sal**: `anonimo#0`, `anonimo#1`, …, `anonimo#9`. Cada escritura elige uno (por ejemplo, según el id del evento), y la carga se reparte en 10 particiones. El costo: para leer "todo lo anónimo" hay que consultar las 10 claves y juntar los resultados. Es el mismo truco que se usa en Spark para el sesgo (*skew*) en un join, que viste en la lección de PySpark de entrevistas.
 
+```diagrama
+titulo: Salar una clave caliente: repartir las escrituras en varias particiones
+nodo ev: Eventos de anónimos | icono=stream | col=0 | fila=1 | color=gris | sub=todos con clave NULL
+nodo a0: anon#0 | icono=cubo | col=1 | fila=0 | color=azul
+nodo a1: anon#1 | icono=cubo | col=1 | fila=1 | color=azul
+nodo a9: anon#9 | icono=cubo | col=1 | fila=2 | color=azul
+nodo lec: Leer todo lo anónimo | icono=lupa | col=2 | fila=1 | color=naranja | sub=consultar las 10 claves y juntar
+flecha ev -> a0: evento_id % 10
+flecha ev -> a1
+flecha ev -> a9
+flecha a0 -> lec
+flecha a1 -> lec
+flecha a9 -> lec
+```
+
 ## Claves compuestas: partición más ordenamiento
 
 DynamoDB y Cassandra permiten una clave de **dos partes**: la clave de partición decide dónde vive el registro, y la clave de **ordenamiento** lo mantiene ordenado dentro de la partición. Eso habilita consultas por rango dentro de una partición:

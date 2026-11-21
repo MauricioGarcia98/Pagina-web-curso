@@ -51,17 +51,28 @@ Hay archivos de **texto** (`.csv`, `.json`, `.py`, `.sql`, `.md`, `.log`): si lo
 
 Una **carpeta** (o *directorio*, que es lo mismo) es un contenedor de archivos y de **otras carpetas**. Así se arma un árbol:
 
-```text norun
-/                       ← la raíz: la carpeta que contiene todo
-└── home
-    └── ana             ← tu carpeta personal
-        ├── datos
-        │   ├── clientes.csv
-        │   └── 2024
-        │       └── diciembre
-        │           └── ventas.csv
-        └── informe.md
+```diagrama
+titulo: Las carpetas forman un árbol: cada una puede tener archivos y más carpetas
+nodo raiz: / (la raíz) | icono=carpeta | col=1 | fila=0 | color=gris | sub=la carpeta que contiene todo
+nodo home: home | icono=carpeta | col=1 | fila=1 | color=azul
+nodo ana: ana | icono=usuario | col=1 | fila=2 | color=azul | sub=tu carpeta personal
+nodo datos: datos | icono=carpeta | col=0 | fila=3 | color=verde
+nodo inf: informe.md | icono=documento | col=2 | fila=3 | color=naranja
+nodo cli: clientes.csv | icono=csv | col=0 | fila=4 | color=naranja
+nodo y: 2024 | icono=carpeta | col=1 | fila=4 | color=verde
+nodo dic: diciembre | icono=carpeta | col=1 | fila=5 | color=verde
+nodo ven: ventas.csv | icono=csv | col=2 | fila=5 | color=naranja
+flecha raiz -> home
+flecha home -> ana
+flecha ana -> datos
+flecha ana -> inf
+flecha datos -> cli
+flecha datos -> y
+flecha y -> dic
+flecha dic -> ven
 ```
+
+Las carpetas están en verde y azul, y los archivos en naranja.
 
 Cada carpeta puede tener adentro archivos y más carpetas, sin límite. Al principio de todo hay una carpeta que contiene a todas las demás: la **raíz**.
 
@@ -69,15 +80,33 @@ Cada carpeta puede tener adentro archivos y más carpetas, sin límite. Al princ
 
 Una **ruta** (*path*, en inglés) es la dirección completa para llegar a un archivo, carpeta por carpeta, como la dirección de una casa: país, ciudad, calle, número.
 
-```text norun
-/home/ana/datos/2024/diciembre/ventas.csv
-│ │    │   │     │    │         └── el archivo
-│ │    │   │     │    └── carpeta "diciembre"
-│ │    │   │     └── carpeta "2024"
-│ │    │   └── carpeta "datos"
-│ │    └── carpeta personal de ana
-│ └── carpeta "home"
-└── la raíz
+La ruta `/home/ana/datos/2024/diciembre/ventas.csv`, leída parte por parte:
+
+| Parte | Qué es |
+|---|---|
+| `/` | La raíz: la carpeta que contiene todo |
+| `home/` | La carpeta "home", donde viven las carpetas de las personas |
+| `ana/` | La carpeta personal de Ana |
+| `datos/` | Una carpeta dentro de la de Ana |
+| `2024/` | Una carpeta dentro de "datos" |
+| `diciembre/` | Una carpeta dentro de "2024" |
+| `ventas.csv` | El archivo (lo último de la ruta) |
+
+```diagrama
+titulo: Cada barra / es un paso hacia adentro
+nodo raiz: / (la raíz) | icono=carpeta | col=0 | fila=0 | color=gris
+nodo home: home | icono=carpeta | col=1 | fila=0 | color=azul
+nodo ana: ana | icono=usuario | col=2 | fila=0 | color=azul | sub=tu carpeta personal
+nodo datos: datos | icono=carpeta | col=3 | fila=0 | color=verde
+nodo y: 2024 | icono=carpeta | col=3 | fila=1 | color=verde
+nodo dic: diciembre | icono=carpeta | col=2 | fila=1 | color=verde
+nodo csv: ventas.csv | icono=csv | col=1 | fila=1 | color=naranja | sub=el archivo
+flecha raiz -> home
+flecha home -> ana
+flecha ana -> datos
+flecha datos -> y
+flecha y -> dic
+flecha dic -> csv
 ```
 
 Cada `/` separa una carpeta de la siguiente. Se lee de izquierda a derecha: "desde la raíz, entra a `home`, después a `ana`, después a `datos`…".

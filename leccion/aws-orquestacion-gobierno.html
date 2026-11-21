@@ -219,17 +219,10 @@ resource &quot;aws_glue_catalog_database&quot; &quot;silver&quot; {
 <pre data-norun><code class="language-bash">terraform init &amp;&amp; terraform plan -var entorno=dev &amp;&amp; terraform apply -var entorno=dev
 aws cloudformation deploy --template-file lake.yaml --stack-name lake-banco-dev --parameter-overrides Entorno=dev</code></pre>
 <h2>Arquitectura de referencia: el banco en AWS</h2>
-<pre><code class="language-text">         ┌─────────────── tiempo real ───────────────┐
- app ──► Kinesis ──► Lambda (regla de ráfaga) ──► SNS alerta al analista de fraude
-             └────► Firehose ──► s3://lake-banco/bronze/transacciones/fecha=…/ (Parquet)
- core bancario (Postgres) ──► DMS (CDC) ──► s3://lake-banco/bronze/cuentas, prestamos, cuotas
-                                   │
-               EventBridge 03:00 ─► Step Functions / MWAA
-                                   ├─ Glue job: bronze → silver (Iceberg, dedup, tipos)
-                                   ├─ Glue Data Quality: saldos no negativos, montos &gt; 0
-                                   ├─ dbt (dbt-athena): marts de mora, fraude y clientes
-                                   └─ Redshift Serverless: tablas gold para los dashboards
- gobierno: Lake Formation (columnas PII ocultas), CloudTrail, Budgets · IaC: Terraform + GitHub Actions</code></pre>
+<figure class="diagrama"><figcaption>Arquitectura de referencia: el banco en AWS</figcaption></figure>
+
+
+<p>Gobierno: Lake Formation oculta las columnas con datos personales, CloudTrail audita y Budgets controla el costo. La infraestructura se crea con Terraform y GitHub Actions.</p>
 <div class="callout callout-experto"><div class="callout-title">🚀 Cómo contar esto en una entrevista</div>
 
 <p>Recorre la arquitectura <strong>de izquierda a derecha</strong> y justifica cada decisión con un requisito: &quot;Kinesis porque la alerta de fraude debe salir en segundos; Iceberg en silver porque las cuentas cambian y necesito <code>MERGE</code>; Redshift solo para la capa gold porque los dashboards consultan cientos de veces por día; Lake Formation porque riesgo puede ver montos pero no datos personales&quot;. Después menciona <strong>fallas</strong>: reintentos, idempotencia, alertas y cómo reprocesar un día.</p>

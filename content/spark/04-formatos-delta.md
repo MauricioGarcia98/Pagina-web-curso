@@ -54,12 +54,19 @@ Problemas típicos del CSV, que vas a sufrir en la capa bronze:
 
 Un archivo Parquet se divide en **row groups** (bloques de, por ejemplo, 1 millón de filas), y dentro de cada uno, cada columna se guarda por separado. Al final del archivo hay un **pie** (*footer*) con estadísticas de cada bloque: el **mínimo y el máximo** de cada columna.
 
-```text
-ventas.parquet
-├── row group 1  │ fecha: min 2024-01-01  max 2024-01-31 │ total: min 0.5 max 980 │
-├── row group 2  │ fecha: min 2024-02-01  max 2024-02-29 │ ...
-└── footer (esquema + estadísticas)
+```diagrama
+titulo: Por dentro de un archivo Parquet: bloques con estadísticas y un pie al final
+direccion: abajo
+nodo f: ventas.parquet | icono=parquet | col=0 | fila=1 | color=gris
+nodo r1: Row group 1 | icono=tabla | col=1 | fila=0 | color=azul | sub=fecha: min 2024-01-01, max 2024-01-31 · total: min 0,5, max 980
+nodo r2: Row group 2 | icono=tabla | col=1 | fila=1 | color=azul | sub=fecha: min 2024-02-01, max 2024-02-29
+nodo ft: Footer | icono=documento | col=1 | fila=2 | color=amarillo | sub=esquema + estadísticas de cada bloque
+flecha f -> r1
+flecha f -> r2
+flecha f -> ft
 ```
+
+Si buscas pedidos de febrero, el lector mira el **footer**, ve que el row group 1 termina en enero y **lo saltea sin leerlo**.
 
 Si consultas `WHERE fecha = '2024-02-10'`, Spark lee el pie, ve que el row group 1 termina el 31 de enero y **se lo salta sin leerlo**. Esto es el *predicate pushdown* que viste en la lección anterior.
 
@@ -180,12 +187,14 @@ flecha sv -> ml: features
 
 Así viaja un pedido de Tienda Andina por las tres capas:
 
-```text
-BRONZE  {"id":"1001","cli":"  ANA@MAIL.COM ","total":"89,90","ts":"15/03/2024 10:22"}   ← texto tal cual llegó
-           │  limpiar tipos, normalizar email, parsear fecha, quitar duplicados
-SILVER  pedido_id=1001  email=ana@mail.com  total=89.90  fecha_pedido=2024-03-15 10:22
-           │  unir con clientes y productos, agregar por día y país
-GOLD    fecha=2024-03-15  pais=Chile  pedidos=1.284  ventas=98.410,50                      ← lo que ve el dashboard
+```diagrama
+titulo: Así viaja un pedido por las tres capas
+direccion: abajo
+nodo br: BRONZE · texto tal cual llegó | icono=capas | col=0 | fila=0 | color=naranja | ancho=300 | sub={"id":"1001", "cli":"  ANA@MAIL.COM ", "total":"89,90", "ts":"15/03/2024 10:22"}
+nodo sv: SILVER · limpio y tipado | icono=tabla | col=1 | fila=0 | color=gris | ancho=300 | sub=pedido_id 1001 · email ana@mail.com · total 89.90 · fecha 2024-03-15 10:22
+nodo gd: GOLD · lo que ve el tablero | icono=dashboard | col=2 | fila=0 | color=amarillo | ancho=300 | sub=fecha 2024-03-15 · Chile · 1.284 pedidos · ventas 98.410,50
+flecha br -> sv: limpiar tipos, normalizar email, parsear fecha, quitar duplicados
+flecha sv -> gd: unir con clientes y productos, agregar por día y país
 ```
 
 :::tip Por qué conservar bronze

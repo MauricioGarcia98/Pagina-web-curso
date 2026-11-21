@@ -16,6 +16,22 @@ Nadie arma un mueble mirando solo la caja: primero mira el dibujo, cuenta las pi
 
 Saber la sintaxis no alcanza. Puedes conocer `for`, `if`, `GROUP BY` y `JOIN` de memoria y aun así quedarte en blanco frente a un problema nuevo. Lo que distingue a quien resuelve de quien se traba no es saber más comandos: es **tener un orden para pensar**.
 
+```diagrama
+titulo: El método de seis pasos para cualquier problema nuevo
+nodo a: Entender | icono=lupa | col=0 | fila=0 | color=azul | sub=qué entra y qué sale
+nodo b: Ejemplo a mano | icono=tabla | col=1 | fila=0 | color=violeta | sub=4 datos inventados
+nodo c: Plan | icono=documento | col=2 | fila=0 | color=amarillo | sub=los pasos en castellano
+nodo d: Código | icono=codigo | col=2 | fila=1 | color=naranja | sub=un paso por función o CTE
+nodo e: Verificar | icono=check | col=1 | fila=1 | color=verde | sub=el ejemplo y los casos borde
+nodo f: Explicar | icono=mensaje | col=0 | fila=1 | color=gris | sub=qué hace y qué supone
+flecha a -> b
+flecha b -> c
+flecha c -> d
+flecha d -> e
+flecha e -> f
+flecha e -> c: si falla, vuelve al plan | estilo=punteada | color=rojo
+```
+
 El método tiene seis pasos. Sirve para un ejercicio de este curso, para una consulta que te pide tu jefa y para una entrevista.
 
 | Paso | Qué haces | Qué te preguntas |

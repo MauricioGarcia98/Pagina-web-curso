@@ -64,9 +64,17 @@ La convención que usa casi toda la comunidad dbt organiza los modelos en tres c
 
 El flujo siempre va en una dirección:
 
-```text
-sources ──► staging ──► intermediate ──► marts ──► dashboards, notebooks, ML
-(crudo)     (limpio)     (combinado)      (listo para el negocio)
+```diagrama
+titulo: Las capas de dbt: el flujo siempre va en una dirección
+nodo s: sources | icono=base | col=0 | fila=0 | color=gris | sub=crudo
+nodo st: staging | icono=transformar | col=1 | fila=0 | color=azul | sub=limpio
+nodo i: intermediate | icono=capas | col=2 | fila=0 | color=violeta | sub=combinado
+nodo m: marts | icono=tabla | col=3 | fila=0 | color=amarillo | sub=listo para el negocio
+nodo c: dashboards, notebooks, ML | icono=dashboard | col=4 | fila=0 | color=verde
+flecha s -> st
+flecha st -> i
+flecha i -> m
+flecha m -> c
 ```
 
 :::tip Regla de oro

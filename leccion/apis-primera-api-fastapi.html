@@ -65,6 +65,9 @@ print(r.status_code, r.json())   # 200 {'estado': 'ok'}</code></pre>
 
 <h2>Parámetros de ruta y de consulta</h2>
 <p>FastAPI decide de dónde sale cada parámetro mirando la firma de la función:</p>
+<figure class="diagrama"><figcaption>Qué hace FastAPI con cada pedido antes de llamar a tu función</figcaption></figure>
+
+
 <pre data-norun><code class="language-python">@app.get(&quot;/productos/{producto_id}&quot;)          # producto_id está en la ruta
 def producto(producto_id: int):               # → parámetro de ruta, convertido a int
     ...

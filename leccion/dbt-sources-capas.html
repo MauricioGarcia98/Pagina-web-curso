@@ -88,8 +88,9 @@ sources:
 </tr>
 </tbody></table></div>
 <p>El flujo siempre va en una dirección:</p>
-<pre><code class="language-text">sources ──► staging ──► intermediate ──► marts ──► dashboards, notebooks, ML
-(crudo)     (limpio)     (combinado)      (listo para el negocio)</code></pre>
+<figure class="diagrama"><figcaption>Las capas de dbt: el flujo siempre va en una dirección</figcaption></figure>
+
+
 <div class="callout callout-tip"><div class="callout-title">💡 Regla de oro</div>
 
 <p><code>source()</code> solo aparece en <strong>staging</strong>. Todo lo demás usa <code>ref()</code>. Así, si una fuente cambia, solo tocas un modelo.</p>

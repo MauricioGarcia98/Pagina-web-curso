@@ -52,6 +52,20 @@ La base NoSQL de una app está optimizada para las consultas de la app. Una cons
 2. **Como destino de servicio**: después de calcular una métrica o una recomendación en el lakehouse, la publicas en Redis o DynamoDB para que la app la lea en milisegundos (es el *reverse ETL* que viste en el proyecto Cuentas Claras).
 3. **Como índice**: los textos de soporte se indexan en un buscador o en una base de vectores para un asistente con RAG (proyecto Conecta).
 
+```diagrama
+titulo: Dónde aparecen las bases NoSQL en una plataforma de datos
+nodo app: App | icono=movil | col=0 | fila=1 | color=gris
+nodo doc: MongoDB / Cosmos DB | icono=mongodb | col=1 | fila=1 | color=verde | sub=fuente: los datos de la app
+nodo lh: Lakehouse | icono=capas | col=2 | fila=1 | color=naranja | sub=bronze, silver, gold
+nodo kv: Redis / DynamoDB | icono=redis | col=3 | fila=0 | color=rojo | sub=servicio: métricas listas en milisegundos
+nodo vec: Buscador / vectores | icono=vector | col=3 | fila=2 | color=violeta | sub=índice para RAG
+flecha app -> doc
+flecha doc -> lh: export o CDC
+flecha lh -> kv: reverse ETL
+flecha lh -> vec: indexar
+flecha kv -> app: lee | estilo=punteada
+```
+
 :::practica python Un almacén clave-valor con vencimiento
 1. Ejecuta: la clase imita lo básico de Redis, con `set`, `get` y un vencimiento (TTL). El tiempo se pasa como parámetro para poder probarla.
 2. Mira cómo la sesión vence a los 30 segundos y `get` devuelve `None`.

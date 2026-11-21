@@ -25,14 +25,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Combinar resultados &quot;hacia abajo&quot;</h2>
 <p>Los <code>JOIN</code> combinan tablas <strong>a lo ancho</strong>: pegan columnas de una tabla al lado de las de otra. Los <strong>operadores de conjuntos</strong> combinan resultados <strong>a lo largo</strong>: apilan las filas de una consulta <strong>debajo</strong> de las de otra.</p>
-<pre><code class="language-text">JOIN (a lo ancho)                 UNION (a lo largo)
-┌────┬──────┐ + ┌──────┐          ┌──────────┐
-│ id │ col1 │   │ col2 │          │ consulta │
-└────┴──────┘   └──────┘          │    A     │
-        =                         ├──────────┤
-┌────┬──────┬──────┐              │ consulta │
-│ id │ col1 │ col2 │              │    B     │
-└────┴──────┴──────┘              └──────────┘</code></pre>
+<figure class="diagrama"><figcaption>JOIN pega columnas al costado; UNION apila filas debajo</figcaption></figure>
+
+
 <p>Cuándo los necesitas:</p>
 <ul>
 <li>Juntar datos <strong>parecidos</strong> que viven en tablas distintas: ventas de la tienda online + ventas de la tienda física; clientes + empleados en un directorio único.</li>

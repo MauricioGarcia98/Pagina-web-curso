@@ -11,10 +11,13 @@ autoevaluacion: ¿Qué es un prefijo en S3? | ¿Para qué sirve una regla de cic
 
 **Amazon S3** (*Simple Storage Service*) guarda **objetos** (archivos) dentro de **buckets** (contenedores). Es prácticamente infinito, muy durable (11 nueves: 99,999999999 %) y barato. En AWS, **el data lake es S3**.
 
-```text
-s3://lake-tienda-dev/bronze/ventas/anio=2024/mes=12/ventas_2024_12.csv
-     └──── bucket ───┘└──────────────────── key (clave) ─────────────────┘
-```
+`s3://lake-tienda-dev/bronze/ventas/anio=2024/mes=12/ventas_2024_12.csv`, por partes:
+
+| Parte | Qué es |
+|---|---|
+| `s3://` | El esquema: dice que es S3 |
+| `lake-tienda-dev` | El **bucket**: el contenedor (nombre único en todo AWS) |
+| `bronze/ventas/anio=2024/mes=12/ventas_2024_12.csv` | La **key** (clave): parece una ruta de carpetas, pero es un solo nombre largo con barras |
 
 :::analogia No hay carpetas, hay etiquetas largas
 S3 no tiene carpetas de verdad: cada objeto tiene una **clave** larga como `bronze/ventas/anio=2024/mes=12/archivo.csv`. La consola y la CLI muestran las barras como si fueran carpetas (los llaman **prefijos**), pero en el fondo es un enorme diccionario `clave → archivo`. Por eso "renombrar una carpeta" en S3 significa copiar y borrar cada objeto.

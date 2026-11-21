@@ -32,9 +32,10 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><code>{% ... %}</code> significa &quot;ejecuta esta instrucción&quot; (un <code>if</code>, un <code>for</code>), sin escribir nada.</li>
 </ul>
 <p>Antes de enviar la consulta a la base, dbt <strong>compila</strong> el archivo: ejecuta el Jinja y obtiene SQL puro. Ese SQL queda guardado en <code>target/compiled/</code> para que lo leas. Cuando algo falla, siempre conviene mirar el compilado: es lo que la base recibió de verdad.</p>
-<pre><code class="language-text">models/marts/ventas_por_canal.sql           target/compiled/.../ventas_por_canal.sql
---------------------------------            -----------------------------------------
-from {{ ref('stg_pedidos') }} as p    ──▶   from main.stg_pedidos as p</code></pre>
+<p>Lo que escribes en <code>models/marts/ventas_por_canal.sql</code>:</p>
+<pre data-norun><code class="language-sql">from {{ ref('stg_pedidos') }} as p</code></pre>
+<p>Lo que dbt compila en <code>target/compiled/.../ventas_por_canal.sql</code> y manda a la base:</p>
+<pre data-norun><code class="language-sql">from main.stg_pedidos as p</code></pre>
 <h2>ref(): la función más importante</h2>
 <p>En lugar de escribir el nombre de la tabla, referencias otros modelos con <code>{{ ref(&#39;nombre_modelo&#39;) }}</code>:</p>
 <pre><code class="language-dbt">-- models/marts/ventas_por_canal.sql
@@ -53,9 +54,9 @@ group by p.canal</code></pre>
 <li><strong>Entornos</strong>: <code>ref(&#39;stg_pedidos&#39;)</code> se compila como <code>dev.dbt_ana.stg_pedidos</code> en desarrollo y <code>prod.analytics.stg_pedidos</code> en producción. El mismo código sirve para ambos.</li>
 <li><strong>Linaje y documentación</strong>: dbt dibuja el grafo de qué modelo depende de cuál.</li>
 </ol>
-<pre><code class="language-text">source(tienda.pedidos) ─▶ stg_pedidos ─────────┐
-source(tienda.detalle) ─▶ stg_detalle_pedidos ─┼─▶ ventas_por_canal
-                                               └─▶ fct_ventas ─▶ ...</code></pre>
+<figure class="diagrama"><figcaption>El linaje que dbt arma solo a partir de los ref()</figcaption></figure>
+
+
 <h2>ref() y source(): dos formas de nombrar una tabla</h2>
 <div class="table-wrap"><table><thead><tr>
 <th>Función</th>

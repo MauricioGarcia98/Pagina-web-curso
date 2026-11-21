@@ -14,6 +14,20 @@ autoevaluacion: ¿Sabes cómo pasar de un log de eventos al estado al cierre de 
 cuentas accesos
 ```
 
+```diagrama
+titulo: Tres sistemas, una métrica de ingresos que tiene que cuadrar con finanzas
+nodo crm: Contacto CRM | icono=equipo | col=0 | fila=0 | color=azul | sub=empresas, contactos, oportunidades
+nodo cob: Cobrable | icono=dinero | col=0 | fila=1 | color=verde | sub=suscripciones y facturas
+nodo med: Medidor | icono=grafico | col=0 | fila=2 | color=violeta | sub=uso del producto
+nodo lake: Lakehouse | icono=capas | col=1 | fila=1 | color=naranja | sub=MRR, churn, cuentas en riesgo
+nodo rev: Reverse ETL | icono=transformar | col=2 | fila=0 | color=amarillo | sub=puntaje de riesgo de vuelta al CRM
+flecha crm -> lake
+flecha cob -> lake
+flecha med -> lake
+flecha lake -> rev
+flecha rev -> crm | estilo=punteada
+```
+
 ## Contacto CRM · `https://api.contactocrm.example`
 
 `Authorization: Bearer pat-…` · **100 pedidos cada 10 segundos** (429 con `Retry-After`).

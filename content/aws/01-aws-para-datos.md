@@ -17,12 +17,17 @@ Montar tu propio centro de datos es como construir un edificio: caro, lento y ti
 
 ## Cómo está organizado AWS
 
-```text
-Organización (AWS Organizations)          ← la empresa: agrupa cuentas y aplica reglas
- └── Cuentas (account)  123456789012      ← unidad de facturación y de aislamiento: datos-dev, datos-prod
-      └── Regiones  us-east-1, sa-east-1   ← lugares del mundo
-           └── Zonas de disponibilidad      ← centros de datos separados dentro de la región (us-east-1a, 1b…)
-                └── Recursos                ← un bucket S3, un job de Glue, un cluster EMR…
+```diagrama
+titulo: Cómo se organiza AWS, de la empresa a cada recurso
+nodo org: Organización | icono=building-2 | col=0 | fila=0 | color=gris | sub=AWS Organizations: agrupa cuentas y aplica reglas
+nodo cta: Cuenta | icono=aws | col=1 | fila=0 | color=naranja | sub=123456789012 · facturación y aislamiento: datos-dev, datos-prod
+nodo reg: Región | icono=internet | col=2 | fila=0 | color=azul | sub=us-east-1, sa-east-1: lugares del mundo
+nodo az: Zona de disponibilidad | icono=servidor | col=3 | fila=0 | color=cian | sub=centros de datos separados: us-east-1a, 1b…
+nodo rec: Recursos | icono=cubo | col=4 | fila=0 | color=verde | sub=un bucket S3, un job de Glue, un clúster EMR
+flecha org -> cta
+flecha cta -> reg
+flecha reg -> az
+flecha az -> rec
 ```
 
 - **Cuenta**: es el equivalente a la *suscripción* de Azure o al *proyecto* de Google Cloud. Las empresas separan **dev**, **staging** y **prod** en cuentas distintas para que un error en desarrollo nunca toque producción.
@@ -34,13 +39,27 @@ Organización (AWS Organizations)          ← la empresa: agrupa cuentas y apli
 
 Lo que hace un data engineer en AWS casi siempre sigue este recorrido:
 
-```text
- FUENTES             INGESTA                 ALMACENAMIENTO          PROCESO                  CONSUMO
- apps, APIs,  ──►  Kinesis / Firehose  ──►   S3 (data lake)   ──►   Glue (Spark)       ──►  Athena (SQL)
- bases, logs       DMS (bases de datos)      bronze/silver/gold      EMR (Spark/Hadoop)       Redshift (warehouse)
-                   Lambda, AppFlow           Glue Data Catalog       Lambda (eventos)         QuickSight (BI)
-                                             Lake Formation          dbt / Redshift           SageMaker (ML)
-                         ORQUESTACIÓN: Step Functions · MWAA (Airflow) · EventBridge
+```diagrama
+titulo: El recorrido típico de los datos en AWS
+nodo f: Fuentes | icono=base | col=0 | fila=1 | sub=apps, APIs, bases, logs
+nodo kin: Kinesis / Firehose | icono=kinesis | col=1 | fila=0 | color=azul | sub=eventos
+nodo dms: DMS | icono=dms | col=1 | fila=1 | color=azul | sub=bases de datos (CDC)
+nodo lam: Lambda / AppFlow | icono=lambdaaws | col=1 | fila=2 | color=azul | sub=APIs y SaaS
+nodo s3: S3 (data lake) | icono=s3 | col=2 | fila=1 | color=naranja | sub=bronze/silver/gold · Glue Data Catalog · Lake Formation
+nodo glue: Glue / EMR | icono=glue | col=3 | fila=1 | color=rojo | sub=Spark · dbt sobre Redshift
+nodo ath: Athena / Redshift | icono=athena | col=4 | fila=0 | color=verde | sub=SQL y warehouse
+nodo qs: QuickSight / SageMaker | icono=quicksight | col=4 | fila=2 | color=verde | sub=BI y ML
+nodo orq: Step Functions · MWAA · EventBridge | icono=stepfunctions | col=3 | fila=2 | color=violeta | sub=orquestación
+flecha f -> kin
+flecha f -> dms
+flecha f -> lam
+flecha kin -> s3
+flecha dms -> s3
+flecha lam -> s3
+flecha s3 <-> glue
+flecha glue -> ath
+flecha glue -> qs
+flecha orq -> glue: dispara | estilo=punteada | color=violeta
 ```
 
 | Servicio | Para qué lo usa un data engineer | Analogía |

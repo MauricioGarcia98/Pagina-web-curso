@@ -27,9 +27,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>DAG: Directed Acyclic Graph</h2>
 <p>Un <strong>DAG</strong> (grafo dirigido acíclico) es el conjunto de <strong>tareas</strong> con sus <strong>dependencias</strong>:</p>
-<pre><code class="language-text">extraer_ventas ──┐
-                 ├──▶ transformar ──▶ dbt_build ──▶ notificar
-extraer_clientes ┘</code></pre>
+<figure class="diagrama"><figcaption>Un DAG: tareas con dependencias, sin ciclos</figcaption></figure>
+
+
 <ul>
 <li><strong>Dirigido</strong>: las flechas tienen sentido (A antes que B).</li>
 <li><strong>Acíclico</strong>: no hay ciclos (B no puede depender de A si A depende de B).</li>

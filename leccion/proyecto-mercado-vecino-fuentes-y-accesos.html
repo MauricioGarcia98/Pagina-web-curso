@@ -30,6 +30,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>1. La base operacional (PostgreSQL 16)</h2>
 <p>Réplica de lectura en Azure Database for PostgreSQL. Va <strong>unos segundos atrás</strong> de la base principal (replicación asincrónica) y no acepta escrituras: ni INSERT, ni tablas temporales.</p>
+<figure class="diagrama"><figcaption>Los sistemas de Mercado Vecino y por dónde llegan los datos</figcaption></figure>
+
+
 <pre><code class="language-bash"># la clave se puede pasar por variable de entorno (no queda en la URI)...
 export PGPASSWORD='&lt;la clave del correo&gt;'
 psql &quot;postgresql://lector_datos@mv-prod-replica.postgres.database.azure.com:5432/mercado?sslmode=require&quot;

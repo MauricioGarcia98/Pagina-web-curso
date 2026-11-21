@@ -14,12 +14,17 @@ Abre el [portal de Azure de práctica](#/azure) y busca cada parte. Usa el botó
 
 ## La jerarquía: dónde vive cada cosa
 
-```text
-Tenant de Microsoft Entra ID  (tu organización: usuarios, grupos, aplicaciones)
-└── Grupos de administración   (opcional: agrupar suscripciones para aplicar políticas)
-    └── Suscripción            (la "cuenta de facturación" y límite de permisos)
-        └── Grupo de recursos  (carpeta lógica: todo lo de un proyecto o entorno)
-            └── Recurso        (una cuenta de almacenamiento, un Key Vault, un workspace…)
+```diagrama
+titulo: La jerarquía de Azure: los permisos y políticas se heredan hacia abajo
+nodo ten: Tenant (Microsoft Entra ID) | icono=entra | col=0 | fila=0 | color=azul | sub=la organización: usuarios, grupos, identidades
+nodo mg: Grupos de administración (opcional) | icono=carpeta | col=1 | fila=0 | color=violeta | sub=agrupan suscripciones para aplicar políticas
+nodo sub: Suscripción | icono=azure | col=2 | fila=0 | color=cian | sub=quién paga y límite de acceso: sub-datos-dev, sub-datos-prod
+nodo rg: Grupo de recursos | icono=carpeta | col=3 | fila=0 | color=verde | sub=carpeta lógica de un proyecto o entorno: rg-datos-dev
+nodo rec: Recursos | icono=cubo | col=4 | fila=0 | color=naranja | sub=cuenta de almacenamiento, Key Vault, workspace de Databricks
+flecha ten -> mg
+flecha mg -> sub
+flecha sub -> rg
+flecha rg -> rec
 ```
 
 - **Tenant (inquilino)**: la identidad de tu organización en Microsoft Entra ID (antes Azure Active Directory). Ahí viven los usuarios y grupos.

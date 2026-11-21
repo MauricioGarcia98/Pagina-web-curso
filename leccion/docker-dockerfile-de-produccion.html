@@ -84,6 +84,9 @@ CMD [&quot;python&quot;, &quot;-m&quot;, &quot;pipeline&quot;]</code></pre>
 <p>La copia de <code>uv</code> desde su imagen oficial y el <code>--no-install-project</code> (instalar primero solo las dependencias, y el proyecto después) son los que recomienda la <a href="https://docs.astral.sh/uv/guides/integration/docker/">guía oficial de uv con Docker</a>. <code>PYTHONUNBUFFERED=1</code> hace que los <code>print</code> y los registros salgan enseguida en <code>docker logs</code>.</p>
 <h2>Configuración y secretos</h2>
 <p>La imagen es <strong>la misma</strong> en desarrollo, prueba y producción; lo que cambia se pasa al ejecutar:</p>
+<figure class="diagrama"><figcaption>Una sola imagen para todos los entornos; lo que cambia llega al ejecutar</figcaption></figure>
+
+
 <pre data-norun><code class="language-bash">docker run --rm -e ENTORNO=prod -e DB_HOST=db.interna --env-file secretos.env tienda-pipeline:1.4.0</code></pre>
 <div class="table-wrap"><table><thead><tr>
 <th>Dato</th>

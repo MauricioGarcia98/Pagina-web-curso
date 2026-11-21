@@ -27,15 +27,31 @@ En la primera lección viste que una base relacional **no repite** información:
 | **Clave primaria (PK)** | Columna que identifica **una sola** fila; nunca se repite ni es `NULL` | `clientes.cliente_id` |
 | **Clave foránea (FK)** | Columna que guarda la PK **de otra tabla**: una "flecha" hacia ella | `pedidos.cliente_id` → `clientes.cliente_id` |
 
-```text
-clientes                       pedidos
-┌────────────┬─────────┐       ┌───────────┬────────────┬──────────────┐
-│ cliente_id │ nombre  │       │ pedido_id │ cliente_id │ fecha_pedido │
-├────────────┼─────────┤       ├───────────┼────────────┼──────────────┤
-│ 562        │ Martina │◄──┬───│ 2715      │ 562        │ 2022-11-12   │
-│ 563        │ Diego   │   ├───│ 3479      │ 562        │ 2023-01-15   │
-└────────────┴─────────┘   └───│ 3575      │ 562        │ 2023-01-26   │
-                               └───────────┴────────────┴──────────────┘
+**clientes** (la PK es `cliente_id`)
+
+| cliente_id | nombre |
+|---|---|
+| 562 | Martina |
+| 563 | Diego |
+
+**pedidos** (la FK `cliente_id` apunta a `clientes`)
+
+| pedido_id | cliente_id | fecha_pedido |
+|---|---|---|
+| 2715 | **562** | 2022-11-12 |
+| 3479 | **562** | 2023-01-15 |
+| 3575 | **562** | 2023-01-26 |
+
+```diagrama
+titulo: Tres pedidos apuntan a Martina; Diego todavía no tiene pedidos
+nodo a: Pedido 2715 | icono=carrito | col=0 | fila=0 | sub=cliente_id 562
+nodo b: Pedido 3479 | icono=carrito | col=0 | fila=1 | sub=cliente_id 562
+nodo c: Pedido 3575 | icono=carrito | col=0 | fila=2 | sub=cliente_id 562
+nodo m: Martina | icono=usuario | col=1 | fila=1 | color=azul | sub=PK 562
+nodo d: Diego | icono=usuario | col=2 | fila=1 | color=gris | sub=PK 563 · sin pedidos
+flecha a -> m: FK
+flecha b -> m: FK
+flecha c -> m: FK
 ```
 
 Martina (cliente 562) aparece **una vez** en `clientes` y su id aparece en **cada uno** de sus pedidos. Eso es una relación **uno a muchos** (1:N).

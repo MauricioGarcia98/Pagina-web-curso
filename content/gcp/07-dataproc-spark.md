@@ -27,15 +27,15 @@ Dataproc es como alquilar una cuadrilla de computadoras por un rato para que pro
 
 ### Las piezas de un clúster
 
-```text
-                ┌─────────────────────────┐
-                │  MASTER (1 máquina)     │  ← corre el driver de Spark y YARN
-                └───────────┬─────────────┘
-       ┌────────────────────┼────────────────────┐
-┌──────▼──────┐      ┌──────▼──────┐      ┌──────▼──────────────────┐
-│ WORKER 1    │      │ WORKER 2    │      │ SECONDARY WORKERS (spot)│ ← baratos, pueden
-│ (primario)  │      │ (primario)  │      │ ×4, solo cómputo        │   desaparecer
-└─────────────┘      └─────────────┘      └─────────────────────────┘
+```diagrama
+titulo: Las piezas de un clúster de Dataproc
+nodo m: Master | icono=servidor | col=1 | fila=0 | color=azul | sub=1 máquina: driver de Spark y YARN
+nodo w1: Worker 1 (primario) | icono=servidor | col=0 | fila=1 | color=verde | sub=cómputo + HDFS
+nodo w2: Worker 2 (primario) | icono=servidor | col=1 | fila=1 | color=verde | sub=cómputo + HDFS
+nodo sw: Secondary workers ×4 (spot) | icono=dinero | col=2 | fila=1 | color=amarillo | sub=solo cómputo · baratos, pueden desaparecer
+flecha m -> w1
+flecha m -> w2
+flecha m -> sw
 ```
 
 - **Master**: coordina. Ahí corre el driver de Spark (lo que viste en "Arquitectura de Spark").

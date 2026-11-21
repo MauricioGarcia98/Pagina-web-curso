@@ -22,6 +22,23 @@ Son inventadas y solo funcionan en las herramientas de práctica, pero el hábit
 
 Réplica de lectura en Azure Database for PostgreSQL. Va **unos segundos atrás** de la base principal (replicación asincrónica) y no acepta escrituras: ni INSERT, ni tablas temporales.
 
+```diagrama
+titulo: Los sistemas de Mercado Vecino y por dónde llegan los datos
+nodo pg: PostgreSQL 16 | icono=postgres | col=0 | fila=0 | color=azul | forma=cilindro | sub=la base operacional
+nodo dbz: Debezium | icono=stream | col=1 | fila=0 | color=violeta | sub=lee el log de cambios (CDC)
+nodo eh: Event Hubs (Kafka) | icono=eventhubs | col=2 | fila=0 | color=cian | sub=un tópico por tabla
+nodo api: API de PagoYa | icono=webhook | col=0 | fila=1 | color=naranja | sub=pagos y reembolsos
+nodo wh: Webhooks firmados | icono=correo | col=1 | fila=1 | color=naranja | sub=avisos en tiempo real
+nodo liq: Liquidación diaria | icono=archivo | col=1 | fila=2 | color=amarillo | sub=lo que PagoYa te paga
+nodo lake: Tu lakehouse | icono=capas | col=3 | fila=1 | color=verde | sub=bronze → silver → gold
+flecha pg -> dbz
+flecha dbz -> eh
+flecha eh -> lake
+flecha api -> lake: consultar
+flecha wh -> lake: recibir
+flecha liq -> lake: conciliar
+```
+
 ```bash
 # la clave se puede pasar por variable de entorno (no queda en la URI)...
 export PGPASSWORD='<la clave del correo>'

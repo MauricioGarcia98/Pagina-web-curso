@@ -55,19 +55,37 @@ Las mayúsculas importan: `ls` funciona y `LS` no. Y los espacios separan las pa
 
 Los archivos se organizan en un árbol de **carpetas** (directorios). En la terminal siempre estás "parado" en una carpeta, que se llama **directorio de trabajo**. En la terminal del curso, la carpeta inicial es `/home/alumno`:
 
+```diagrama
+titulo: Las carpetas de la terminal del curso (empiezas parado en /home/alumno)
+nodo raiz: / (la raíz) | icono=carpeta | col=2 | fila=0 | color=gris | sub=todo cuelga de aquí
+nodo home: home | icono=carpeta | col=2 | fila=1 | color=azul
+nodo al: alumno (~) | icono=usuario | col=2 | fila=2 | color=azul | sub=tu carpeta personal
+nodo rd: README.md | icono=documento | col=0 | fila=3 | color=naranja
+nodo da: datos | icono=carpeta | col=1 | fila=3 | color=verde | sub=clientes.csv, ventas_2024_12.csv
+nodo lo: logs | icono=carpeta | col=2 | fila=3 | color=verde | sub=pipeline.log
+nodo dg: dags | icono=airflow | col=3 | fila=3 | color=verde | sub=DAGs de Airflow
+nodo sc: scripts | icono=carpeta | col=4 | fila=3 | color=verde
+nodo tb: tienda_dbt | icono=dbt | col=2 | fila=4 | color=violeta | sub=un proyecto dbt
+flecha raiz -> home
+flecha home -> al
+flecha al -> rd
+flecha al -> da
+flecha al -> lo
+flecha al -> dg
+flecha al -> sc
+flecha al -> tb
+```
+
+En la terminal, `tree` te muestra lo mismo como texto:
+
 ```text
-/                          ← la raíz: todo cuelga de aquí
-└── home/
-    └── alumno/            ← tu carpeta personal (también se escribe ~)
-        ├── README.md
-        ├── datos/
-        │   ├── clientes.csv
-        │   └── ventas_2024_12.csv
-        ├── logs/
-        │   └── pipeline.log
-        ├── dags/          ← DAGs de Airflow
-        ├── scripts/
-        └── tienda_dbt/    ← un proyecto dbt
+/home/alumno
+├── README.md
+├── datos/
+├── logs/
+├── dags/
+├── scripts/
+└── tienda_dbt/
 ```
 
 Hay dos formas de nombrar un archivo:

@@ -24,13 +24,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Cuenta, workspace y planos</h2>
-<pre><code class="language-text">Cuenta de Databricks  (account console: usuarios, workspaces, metastores, facturación)
-├── Metastore de Unity Catalog  (uno por región: el catálogo de todos los datos)
-└── Workspace  (adb-xxxx.azuredatabricks.net: notebooks, jobs, compute, SQL)
-      ├── Plano de control  → lo opera Databricks: la interfaz, los jobs, el catálogo
-      └── Plano de cómputo  → donde corren los datos:
-            · clásico: máquinas en TU suscripción (el grupo de recursos administrado)
-            · serverless: máquinas que administra Databricks, listas en segundos</code></pre>
+<figure class="diagrama"><figcaption>Cuenta, metastore, workspace y los dos planos</figcaption></figure>
+
+
 <ul>
 <li>La <strong>cuenta</strong> agrupa todo: usuarios y grupos (sincronizados desde Microsoft Entra ID), workspaces y metastores.</li>
 <li>Un <strong>workspace</strong> es el entorno donde se trabaja. Una empresa suele tener uno por entorno (dev, prod) o por área.</li>

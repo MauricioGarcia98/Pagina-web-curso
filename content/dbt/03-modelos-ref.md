@@ -24,10 +24,16 @@ Dentro del SQL aparecen cosas entre llaves dobles, como `{{ ref('stg_pedidos') }
 
 Antes de enviar la consulta a la base, dbt **compila** el archivo: ejecuta el Jinja y obtiene SQL puro. Ese SQL queda guardado en `target/compiled/` para que lo leas. Cuando algo falla, siempre conviene mirar el compilado: es lo que la base recibió de verdad.
 
-```text
-models/marts/ventas_por_canal.sql           target/compiled/.../ventas_por_canal.sql
---------------------------------            -----------------------------------------
-from {{ ref('stg_pedidos') }} as p    ──▶   from main.stg_pedidos as p
+Lo que escribes en `models/marts/ventas_por_canal.sql`:
+
+```sql norun
+from {{ ref('stg_pedidos') }} as p
+```
+
+Lo que dbt compila en `target/compiled/.../ventas_por_canal.sql` y manda a la base:
+
+```sql norun
+from main.stg_pedidos as p
 ```
 
 
@@ -55,10 +61,21 @@ Presiona ▶ Probar: verás el resultado y, abajo, el **SQL compilado**.
 2. **Entornos**: `ref('stg_pedidos')` se compila como `dev.dbt_ana.stg_pedidos` en desarrollo y `prod.analytics.stg_pedidos` en producción. El mismo código sirve para ambos.
 3. **Linaje y documentación**: dbt dibuja el grafo de qué modelo depende de cuál.
 
-```text
-source(tienda.pedidos) ─▶ stg_pedidos ─────────┐
-source(tienda.detalle) ─▶ stg_detalle_pedidos ─┼─▶ ventas_por_canal
-                                               └─▶ fct_ventas ─▶ ...
+```diagrama
+titulo: El linaje que dbt arma solo a partir de los ref()
+nodo sp: source(tienda.pedidos) | icono=base | col=0 | fila=0 | color=gris
+nodo sd: source(tienda.detalle) | icono=base | col=0 | fila=1 | color=gris
+nodo stp: stg_pedidos | icono=dbt | col=1 | fila=0 | color=azul
+nodo std: stg_detalle_pedidos | icono=dbt | col=1 | fila=1 | color=azul
+nodo vpc: ventas_por_canal | icono=dbt | col=2 | fila=0 | color=amarillo
+nodo fct: fct_ventas | icono=dbt | col=2 | fila=1 | color=amarillo
+nodo mas: … | icono=dashboard | col=3 | fila=1 | color=verde | sub=más modelos y tableros
+flecha sp -> stp
+flecha sd -> std
+flecha stp -> vpc
+flecha std -> vpc
+flecha stp -> fct
+flecha fct -> mas
 ```
 
 ## ref() y source(): dos formas de nombrar una tabla

@@ -27,6 +27,19 @@ Así lo plantean las herramientas de observabilidad de datos, como el monitoreo 
 
 Una regla simple y explicable: "alerta si las filas de hoy son menos de la mitad del promedio de los 7 días anteriores". Con funciones de ventana:
 
+```diagrama
+titulo: La regla de la caída: el día de hoy contra los 7 anteriores
+nodo h: 7 días anteriores | icono=calendario | col=0 | fila=0 | color=azul | sub=promedio: 16,6 cargas
+nodo d: Hoy: 17 de julio | icono=reloj | col=0 | fila=1 | color=gris | sub=4 cargas
+nodo c: ¿Hoy < 50 % del promedio? | icono=calculator | col=1 | fila=0 | color=amarillo | forma=rombo
+nodo al: Alerta con contexto | icono=alerta | col=2 | fila=0 | color=rojo | sub=hoy 4, lo normal es 17
+nodo nada: Sin alerta | icono=check | col=2 | fila=1 | color=verde
+flecha h -> c
+flecha d -> c
+flecha c -> al: sí
+flecha c -> nada: no
+```
+
 ```sql
 WITH d AS (
   SELECT substr(cargado_en, 1, 10) AS dia, COUNT(*) AS cargas

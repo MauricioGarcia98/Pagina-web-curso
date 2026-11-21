@@ -42,6 +42,16 @@ Ojo con el error típico: poner `return False` **dentro** del bucle, en un `else
 
 "¿Hay dos números en la lista que sumen 10?" La primera idea es probar todos los pares: un bucle dentro de otro. Con 100.000 números son 5.000 millones de pares.
 
+```diagrama
+titulo: Dos bucles anidados (O(n²)) contra un diccionario (O(n))
+nodo l1: Bucle sobre A | icono=flujo | col=0 | fila=0 | color=rojo | sub=por cada elemento de A…
+nodo l2: Bucle sobre B | icono=flujo | col=1 | fila=0 | color=rojo | sub=…recorrer todo B: n × n pasos
+nodo i1: Armar índice de B | icono=libro | col=0 | fila=1 | color=verde | sub=una pasada: {clave: fila}
+nodo i2: Recorrer A y buscar | icono=lupa | col=1 | fila=1 | color=verde | sub=cada búsqueda es directa: n + n pasos
+flecha l1 -> l2
+flecha i1 -> i2
+```
+
 La idea mejor: mientras recorres, guarda lo que ya viste. Para cada número `n`, el que necesitas es `10 - n`. Si ya lo viste, terminaste.
 
 ```python

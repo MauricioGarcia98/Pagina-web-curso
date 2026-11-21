@@ -76,6 +76,9 @@ jobs:
           tags: ghcr.io/${{ github.repository }}/pipeline:sha-${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max</code></pre>
+<figure class="diagrama"><figcaption>De un push a un trabajo en la nube</figcaption></figure>
+
+
 <p>La caché <code>type=gha</code> guarda las capas entre ejecuciones del CI, para que un runner nuevo no reconstruya todo desde cero (<a href="https://docs.docker.com/build/ci/github-actions/">documentación oficial</a>). El token lo provee GitHub para cada ejecución: no hay que guardar una contraseña (<a href="https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry">registro de contenedores de GitHub</a>).</p>
 <h2>Escanear antes de publicar</h2>
 <p>Herramientas como Docker Scout o Trivy listan las vulnerabilidades conocidas (CVE) de los paquetes de la imagen, con su severidad y la versión que las corrige. Frenar por <strong>todas</strong> las vulnerabilidades altas paraliza al equipo (muchas no tienen arreglo todavía); la regla habitual es: <strong>frenar si hay alguna crítica o alta que ya tiene versión corregida</strong>, porque esa se arregla actualizando.</p>

@@ -13,12 +13,26 @@ Ahora construimos las tablas que alimentan el tablero. Cada ejercicio es una pie
 
 Un pipeline profesional se diseña antes de escribirlo. Para este proyecto, el diseño es:
 
-```text
-bronze (crudo)            silver (limpio, grano fino)            gold (negocio)
-pedidos ─────────┐
-detalle_pedidos ─┼──▶  silver.fct_ventas  ──┬──▶ gold.ventas_mensuales_pais   → tablero de ventas
-productos ───────┘     (una fila por línea)  └──▶ gold.dim_clientes             → CRM / marketing
-clientes ─────────────────────────────────────────┘
+```diagrama
+titulo: El diseño del pipeline: de bronze a gold
+nodo p: pedidos | icono=tabla | col=0 | fila=0 | color=naranja
+nodo d: detalle_pedidos | icono=tabla | col=0 | fila=1 | color=naranja
+nodo pr: productos | icono=tabla | col=0 | fila=2 | color=naranja
+nodo c: clientes | icono=tabla | col=0 | fila=3 | color=naranja
+nodo f: silver.fct_ventas | icono=spark | col=1 | fila=1 | color=gris | sub=una fila por línea de pedido
+nodo vm: gold.ventas_mensuales_pais | icono=tabla | col=2 | fila=0 | color=amarillo
+nodo dc: gold.dim_clientes | icono=tabla | col=2 | fila=2 | color=amarillo
+nodo tb: Tablero de ventas | icono=dashboard | col=3 | fila=0 | color=verde
+nodo crm: CRM / marketing | icono=correo | col=3 | fila=2 | color=verde
+grupo gb: bronze (crudo) | nodos=p,d,pr,c | color=naranja
+flecha p -> f
+flecha d -> f
+flecha pr -> f
+flecha f -> vm
+flecha f -> dc
+flecha c -> dc
+flecha vm -> tb
+flecha dc -> crm
 ```
 
 | Tabla | Grano | Para qué | Decisiones clave |

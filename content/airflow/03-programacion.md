@@ -40,19 +40,25 @@ Cada DAG run tiene además una **fecha lógica** (`logical_date`): la fecha que 
 
 `cron` es el programador de tareas clásico de Linux, y su forma de escribir horarios se usa en casi todas las herramientas. Son cinco campos separados por espacios; un `*` significa "cualquiera":
 
-```text
-┌───────── minuto (0-59)
-│ ┌─────── hora (0-23)
-│ │ ┌───── día del mes (1-31)
-│ │ │ ┌─── mes (1-12)
-│ │ │ │ ┌─ día de la semana (0-6, 0 = domingo)
-│ │ │ │ │
-0 2 * * *      todos los días a las 2:00
-*/15 * * * *   cada 15 minutos
-0 8 1 * *      el día 1 de cada mes a las 8:00
-0 9 * * 1      los lunes a las 9:00
-30 6 * * 1-5   de lunes a viernes a las 6:30
-```
+Los cinco campos, en orden:
+
+| Posición | Campo | Valores |
+|---|---|---|
+| 1 | Minuto | 0-59 |
+| 2 | Hora | 0-23 |
+| 3 | Día del mes | 1-31 |
+| 4 | Mes | 1-12 |
+| 5 | Día de la semana | 0-6 (0 = domingo) |
+
+Ejemplos:
+
+| Expresión | Significa |
+|---|---|
+| `0 2 * * *` | Todos los días a las 2:00 |
+| `*/15 * * * *` | Cada 15 minutos |
+| `0 8 1 * *` | El día 1 de cada mes a las 8:00 |
+| `0 9 * * 1` | Los lunes a las 9:00 |
+| `30 6 * * 1-5` | De lunes a viernes a las 6:30 |
 
 Se lee de izquierda a derecha: `0 2 * * *` es "en el minuto 0, de la hora 2, de cualquier día, de cualquier mes, cualquier día de la semana". Una página como *crontab.guru* traduce cualquier expresión a palabras.
 

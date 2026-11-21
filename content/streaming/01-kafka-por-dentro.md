@@ -41,6 +41,22 @@ Si un tópico pasa de 6 a 12 particiones, `hash(clave) % 12` ya no da lo mismo q
 
 Las particiones de un tópico se reparten entre los consumidores de un grupo: **cada partición la lee un solo consumidor del grupo**. Con 6 particiones y 3 consumidores, cada uno lee 2. Con 8 consumidores, 2 quedan sin trabajo: las particiones son el límite del paralelismo. Si un consumidor se cae, el grupo se **rebalancea** y sus particiones pasan a otro.
 
+```diagrama
+titulo: Un tópico de 6 particiones y dos grupos que lo leen por separado
+nodo pr: Productor | icono=movil | col=0 | fila=1 | color=gris | sub=clave = pedido_id
+nodo t: Tópico pedidos | icono=kafka | col=1 | fila=1 | color=azul | sub=6 particiones
+nodo c1: Consumidor A | icono=servidor | col=2 | fila=0 | color=verde | sub=particiones 0 y 1
+nodo c2: Consumidor B | icono=servidor | col=2 | fila=1 | color=verde | sub=particiones 2 y 3
+nodo c3: Consumidor C | icono=servidor | col=2 | fila=2 | color=verde | sub=particiones 4 y 5
+nodo f: Grupo alertas-fraude | icono=alerta | col=3 | fila=1 | color=rojo | sub=lee las 6 con sus propios offsets
+grupo gs: Grupo silver | nodos=c1,c2,c3 | color=verde
+flecha pr -> t
+flecha t -> c1
+flecha t -> c2
+flecha t -> c3
+flecha t -> f | estilo=punteada
+```
+
 Dos grupos distintos leen el mismo tópico de forma independiente, cada uno con sus offsets: el equipo de silver y el de alertas de fraude pueden consumir `pedidos` sin molestarse.
 
 ## Retención y compactación

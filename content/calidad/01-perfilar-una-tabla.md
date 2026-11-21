@@ -44,6 +44,19 @@ En SQLite, `json_extract` sobre un texto que no es JSON válido **lanza un error
 
 El perfil no es el entregable: lo son las **reglas** que salen de él. Cada hallazgo se escribe como una regla verificable, que en la lección siguiente se convierte en una prueba.
 
+```diagrama
+titulo: Del perfil a una prueba automática que corre todos los días
+nodo t: Tabla nueva | icono=tabla | col=0 | fila=0 | color=gris | sub=bronze_pedidos
+nodo p: Perfil | icono=lupa | col=1 | fila=0 | color=azul | sub=filas, duplicados, nulos, variantes, formatos
+nodo h: Hallazgos | icono=alerta | col=2 | fila=0 | color=amarillo | sub=106 duplicados · 3 monedas · 82 montos nulos
+nodo r: Reglas escritas | icono=reglas | col=3 | fila=0 | color=violeta | sub=pedido_id único · moneda = USD
+nodo pr: Pruebas | icono=prueba | col=4 | fila=0 | color=verde | sub=corren en cada carga (lección 2)
+flecha t -> p
+flecha p -> h
+flecha h -> r
+flecha r -> pr
+```
+
 | Hallazgo del perfil | Regla |
 |---|---|
 | 106 filas con `pedido_id` repetido | "En silver, `pedido_id` es único: la carga más reciente gana" |

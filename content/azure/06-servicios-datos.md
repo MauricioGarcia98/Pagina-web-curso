@@ -17,16 +17,29 @@ Azure tiene un servicio para cada tarea, como una ferretería con un pasillo por
 
 ## Arquitectura de referencia (lakehouse en Azure)
 
-```text
- Fuentes (ERP, APIs, archivos, eventos)
-     │  Azure Data Factory (copia batch)     Event Hubs (streaming)
-     ▼                                        ▼
- ADLS Gen2:  bronze  ──▶  silver  ──▶  gold        ← Azure Databricks (Spark + Delta + Unity Catalog)
-                                         │           dbt (modelos SQL)   Airflow / Workflows (orquestación)
-                                         ▼
-                        Power BI / Databricks SQL / ML
- Transversal: Entra ID + RBAC, Key Vault, Azure Monitor, Cost Management
+```diagrama
+titulo: Arquitectura de referencia: un lakehouse en Azure
+nodo f: Fuentes | icono=base | col=0 | fila=1 | sub=ERP, APIs, archivos, eventos
+nodo adf: Data Factory | icono=adf | col=1 | fila=0 | color=azul | sub=copia batch
+nodo eh: Event Hubs | icono=eventhubs | col=1 | fila=2 | color=azul | sub=streaming
+nodo br: bronze | icono=adls | col=2 | fila=1 | color=naranja | sub=ADLS Gen2
+nodo sv: silver | icono=adls | col=3 | fila=1 | color=gris | sub=ADLS Gen2
+nodo go: gold | icono=adls | col=4 | fila=1 | color=amarillo | sub=ADLS Gen2
+nodo dbx: Azure Databricks + dbt | icono=databricks | col=3 | fila=0 | color=rojo | sub=Spark, Delta, Unity Catalog
+nodo con: Power BI · Databricks SQL · ML | icono=powerbi | col=5 | fila=1 | color=verde
+nodo orq: Airflow / Lakeflow Jobs | icono=airflow | col=3 | fila=2 | color=violeta | sub=orquestación
+flecha f -> adf
+flecha f -> eh
+flecha adf -> br
+flecha eh -> br
+flecha br -> sv
+flecha sv -> go
+flecha go -> con
+flecha dbx -> sv | estilo=punteada
+flecha orq -> sv | estilo=punteada | color=violeta
 ```
+
+Transversal a todo: Entra ID con RBAC para los permisos, Key Vault para los secretos, Azure Monitor para registros y alertas, y Cost Management para el costo.
 
 Cada servicio cumple un papel en ese recorrido:
 

@@ -30,10 +30,17 @@ Los músicos (Databricks, la base SQL, el almacenamiento) saben tocar. El direct
 
 ## Paso 2 — Las cinco piezas
 
-```text
-Trigger  ──dispara──▶  Pipeline  ──contiene──▶  Actividades
-                                                  │
-                                                  └─usan─▶ Datasets ──apuntan con─▶ Linked services
+```diagrama
+titulo: Las cinco piezas de Data Factory
+nodo tr: Trigger | icono=reloj | col=0 | fila=0 | color=amarillo | sub=cuándo corre
+nodo pl: Pipeline | icono=flujo | col=1 | fila=0 | color=azul | sub=el proceso completo
+nodo ac: Actividades | icono=engranaje | col=2 | fila=0 | color=violeta | sub=Copy, Lookup, ForEach…
+nodo ds: Datasets | icono=tabla | col=2 | fila=1 | color=naranja | sub=qué datos: un archivo, una tabla
+nodo ls: Linked services | icono=llave | col=1 | fila=1 | color=verde | sub=cómo conectarse: la "cadena de conexión"
+flecha tr -> pl: dispara
+flecha pl -> ac: contiene
+flecha ac -> ds: usan
+flecha ds -> ls: se conectan con
 ```
 
 | Pieza | Qué es | Ejemplo |

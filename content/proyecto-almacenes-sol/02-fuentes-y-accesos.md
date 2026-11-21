@@ -14,6 +14,19 @@ autoevaluacion: ¿Sabes cómo exportar una consulta a CSV con psql? | ¿Sabes cu
 sol accesos
 ```
 
+```diagrama
+titulo: Los sistemas de Almacenes del Sol
+nodo erp: ERP (PostgreSQL 9.6) | icono=postgres | col=0 | fila=0 | color=azul | forma=cilindro | sub=productos y precios sin historia
+nodo pos: API de las cajas | icono=tienda | col=0 | fila=1 | color=naranja | sub=ventas de cada tienda
+nodo pla: Planilla de metas | icono=tabla | col=0 | fila=2 | color=verde | sub=la mantiene Comercial a mano
+nodo scd: SCD tipo 2 | icono=reloj | col=1 | fila=0 | color=violeta | sub=fotos diarias para guardar la historia
+nodo lake: Lakehouse | icono=capas | col=2 | fila=1 | color=amarillo | sub=ventas contra metas, con el precio de cada día
+flecha erp -> scd
+flecha scd -> lake
+flecha pos -> lake
+flecha pla -> lake
+```
+
 ## El ERP · PostgreSQL 9.6 · `erp-sol.almacenes.example`
 
 Usuario de **solo lectura**. Tablas: `sucursales`, `categorias` y `productos` (`id`, `sku`, `nombre`, `categoria`, `precio`, `costo`, `activo`, `ult_modif`).

@@ -57,12 +57,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td><em>Storage credentials</em> y <em>external locations</em></td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-text">Metastore (uno por región, compartido por los workspaces)
- └── Catálogo        dev, prod, main             ← normalmente por entorno o unidad de negocio
-      └── Esquema    bronze, silver, gold, ventas ← por capa o dominio
-           ├── Tabla / Vista       prod.gold.ventas_diarias
-           ├── Volumen (archivos)  /Volumes/prod/crudo/archivos/
-           └── Función, Modelo</code></pre>
+<figure class="diagrama"><figcaption>Los niveles de Unity Catalog: catálogo.esquema.objeto</figcaption></figure>
+
+
 <p>Los permisos se <strong>heredan</strong> hacia abajo: <code>GRANT SELECT ON SCHEMA prod.gold TO analistas</code> da lectura sobre todas las tablas del esquema, incluidas las que se creen después. Y para leer una tabla hacen falta tres permisos encadenados: <code>USE CATALOG</code> en el catálogo, <code>USE SCHEMA</code> en el esquema y <code>SELECT</code> en la tabla.</p>
 <!-- dg:dbx04-uc -->
 <figure class="diagrama"><figcaption>La jerarquía de Unity Catalog: catálogo.esquema.tabla</figcaption></figure>

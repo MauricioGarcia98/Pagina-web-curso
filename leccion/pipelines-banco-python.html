@@ -24,9 +24,24 @@ banco_cuotas (cuota_id, prestamo_id, numero, fecha_vencimiento, fecha_pago, mont
 banco_transacciones (tx_id, cuenta_id, fecha_hora, tipo, monto, canal, comercio, ciudad, es_fraude)</code></pre>
 <h2>La cuota francesa</h2>
 <p>En Latinoamérica casi todos los préstamos personales usan el <strong>sistema francés</strong>: todas las cuotas son <strong>iguales</strong>; al principio pagas sobre todo intereses y al final sobre todo capital.</p>
-<pre><code class="language-text">                 r
-cuota = P · ─────────────      P = monto, r = tasa_anual / 12, n = plazo en meses
-            1 − (1 + r)^(−n)</code></pre>
+<p><strong>cuota = P · r / (1 − (1 + r)<sup>−n</sup>)</strong></p>
+<div class="table-wrap"><table><thead><tr>
+<th>Letra</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><code>P</code></td>
+<td>El monto del préstamo</td>
+</tr>
+<tr>
+<td><code>r</code></td>
+<td>La tasa mensual: <code>tasa_anual / 12</code></td>
+</tr>
+<tr>
+<td><code>n</code></td>
+<td>El plazo, en meses</td>
+</tr>
+</tbody></table></div>
 <p>Ejemplo real del caso: el préstamo 1 es de <strong>11.000</strong> al <strong>30 % anual</strong> en <strong>24 meses</strong> → r = 0,025 → la cuota es <strong>615,04</strong>. Puedes verificarlo en la tabla: <code>SELECT monto FROM banco_cuotas WHERE prestamo_id = 1 LIMIT 1</code>.</p>
 <p>Cada mes:</p>
 <ul>

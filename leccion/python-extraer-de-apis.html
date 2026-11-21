@@ -51,6 +51,9 @@ for p in datos[&quot;datos&quot;]:
 
 <h2>Paginación: hasta que no haya más</h2>
 <p>Ninguna API te da todo de una vez. Hay dos estilos y la de práctica tiene los dos.</p>
+<figure class="diagrama"><figcaption>El bucle de extracción: paginar, esperar si hace falta, reintentar</figcaption></figure>
+
+
 <p><strong>Por número de página</strong> (<code>/v1/productos</code>): pides <code>page=1</code>, <code>page=2</code>… hasta que la respuesta diga que no hay <code>siguiente</code>:</p>
 <pre><code class="language-python">import requests
 URL = &quot;https://api.tiendaandina.dev/v1/productos&quot;

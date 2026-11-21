@@ -129,10 +129,9 @@ aws redshift-data describe-statement --id $ID --query Status
 aws redshift-data get-statement-result --id $ID --query &quot;Records[][0].stringValue&quot;</code></pre>
 <h2>EMR: Spark (y más) en clusters que controlas</h2>
 <p><strong>Amazon EMR</strong> levanta clusters con Spark, Hive, Presto/Trino, Flink o HBase. Te da control total: tipo de máquina, versión, configuración de Spark, librerías nativas.</p>
-<pre><code class="language-text">Cluster EMR
-├── nodo primario (master)   → coordina, corre el driver de YARN/Spark
-├── nodos core               → ejecutan tareas y guardan HDFS
-└── nodos task (opcionales)  → solo cómputo: ideales para instancias SPOT (baratas, pueden desaparecer)</code></pre>
+<figure class="diagrama"><figcaption>Las piezas de un clúster EMR</figcaption></figure>
+
+
 <div class="table-wrap"><table><thead><tr>
 <th>Modalidad</th>
 <th>Para qué</th>
@@ -166,13 +165,35 @@ aws emr terminate-clusters --cluster-ids j-ABC123</code></pre>
 
 
 <h2>El árbol de decisión</h2>
-<pre><code class="language-text">¿Qué necesitas?
-├─ SQL esporádico sobre el lago ──────────────────────────► Athena
-├─ BI con muchas consultas y SLA de segundos ─────────────► Redshift (Serverless si la carga es irregular)
-├─ ETL Spark, equipo chico, sin administrar ──────────────► Glue
-├─ ETL Spark enorme, control fino, costo con spot ────────► EMR (o EMR Serverless)
-├─ Lakehouse con notebooks y Delta en AWS ────────────────► Databricks on AWS
-└─ Transformaciones SQL versionadas sobre Redshift/Athena ► dbt (dbt-redshift, dbt-athena)</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>¿Qué necesitas?</th>
+<th>Servicio</th>
+</tr>
+</thead><tbody><tr>
+<td>SQL esporádico sobre el lago</td>
+<td><strong>Athena</strong></td>
+</tr>
+<tr>
+<td>BI con muchas consultas y respuestas en segundos</td>
+<td><strong>Redshift</strong> (Serverless si la carga es irregular)</td>
+</tr>
+<tr>
+<td>ETL con Spark, equipo chico, sin administrar servidores</td>
+<td><strong>Glue</strong></td>
+</tr>
+<tr>
+<td>ETL con Spark enorme, control fino, ahorro con spot</td>
+<td><strong>EMR</strong> (o EMR Serverless)</td>
+</tr>
+<tr>
+<td>Lakehouse con notebooks y Delta en AWS</td>
+<td><strong>Databricks on AWS</strong></td>
+</tr>
+<tr>
+<td>Transformaciones SQL versionadas sobre Redshift o Athena</td>
+<td><strong>dbt</strong> (dbt-redshift, dbt-athena)</td>
+</tr>
+</tbody></table></div>
 <div class="recorrido"></div>
 
 

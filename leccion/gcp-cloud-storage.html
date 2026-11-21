@@ -26,8 +26,24 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Buckets y objetos</h2>
 <p>GCS guarda <strong>objetos</strong> (archivos) dentro de <strong>buckets</strong> (contenedores). Funciona igual que S3 en AWS o que los contenedores de ADLS en Azure.</p>
-<pre><code class="language-text">gs://lake-tienda-dev/bronze/ventas/fecha=2024-12-01/ventas.csv
-     └── bucket ───┘└──────────────── nombre del objeto ─────────┘</code></pre>
+<p><code>gs://lake-tienda-dev/bronze/ventas/fecha=2024-12-01/ventas.csv</code>, por partes:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><code>gs://</code></td>
+<td>El esquema: dice que es Cloud Storage</td>
+</tr>
+<tr>
+<td><code>lake-tienda-dev</code></td>
+<td>El <strong>bucket</strong>: el contenedor (nombre único en todo Google Cloud)</td>
+</tr>
+<tr>
+<td><code>bronze/ventas/fecha=2024-12-01/ventas.csv</code></td>
+<td>El <strong>nombre del objeto</strong>: parece una ruta de carpetas, pero es un solo nombre largo con barras</td>
+</tr>
+</tbody></table></div>
 <p>Tres ideas que hay que tener claras desde el principio:</p>
 <ol>
 <li><strong>No hay carpetas de verdad.</strong> El nombre del objeto es <code>bronze/ventas/fecha=2024-12-01/ventas.csv</code>, completo, con barras incluidas. La consola y <code>ls</code> muestran &quot;carpetas&quot; porque agrupan por lo que hay antes de cada <code>/</code> (los <strong>prefijos</strong>), pero no existe un objeto &quot;carpeta&quot;. Por eso no hace falta crear <code>bronze/</code> antes de copiar un archivo ahí.</li>

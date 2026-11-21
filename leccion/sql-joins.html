@@ -36,14 +36,45 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td><code>pedidos.cliente_id</code> → <code>clientes.cliente_id</code></td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-text">clientes                       pedidos
-┌────────────┬─────────┐       ┌───────────┬────────────┬──────────────┐
-│ cliente_id │ nombre  │       │ pedido_id │ cliente_id │ fecha_pedido │
-├────────────┼─────────┤       ├───────────┼────────────┼──────────────┤
-│ 562        │ Martina │◄──┬───│ 2715      │ 562        │ 2022-11-12   │
-│ 563        │ Diego   │   ├───│ 3479      │ 562        │ 2023-01-15   │
-└────────────┴─────────┘   └───│ 3575      │ 562        │ 2023-01-26   │
-                               └───────────┴────────────┴──────────────┘</code></pre>
+<p><strong>clientes</strong> (la PK es <code>cliente_id</code>)</p>
+<div class="table-wrap"><table><thead><tr>
+<th>cliente_id</th>
+<th>nombre</th>
+</tr>
+</thead><tbody><tr>
+<td>562</td>
+<td>Martina</td>
+</tr>
+<tr>
+<td>563</td>
+<td>Diego</td>
+</tr>
+</tbody></table></div>
+<p><strong>pedidos</strong> (la FK <code>cliente_id</code> apunta a <code>clientes</code>)</p>
+<div class="table-wrap"><table><thead><tr>
+<th>pedido_id</th>
+<th>cliente_id</th>
+<th>fecha_pedido</th>
+</tr>
+</thead><tbody><tr>
+<td>2715</td>
+<td><strong>562</strong></td>
+<td>2022-11-12</td>
+</tr>
+<tr>
+<td>3479</td>
+<td><strong>562</strong></td>
+<td>2023-01-15</td>
+</tr>
+<tr>
+<td>3575</td>
+<td><strong>562</strong></td>
+<td>2023-01-26</td>
+</tr>
+</tbody></table></div>
+<figure class="diagrama"><figcaption>Tres pedidos apuntan a Martina; Diego todavía no tiene pedidos</figcaption></figure>
+
+
 <p>Martina (cliente 562) aparece <strong>una vez</strong> en <code>clientes</code> y su id aparece en <strong>cada uno</strong> de sus pedidos. Eso es una relación <strong>uno a muchos</strong> (1:N).</p>
 <!-- dg:sql11-er -->
 <figure class="diagrama"><figcaption>Las tablas de Tienda Andina y las claves que las conectan (1 → N: &quot;uno a muchos&quot;)</figcaption></figure>

@@ -19,6 +19,18 @@ Un mecánico no cambia piezas al azar hasta que el auto arranque. Escucha el rui
 3. **Formula una hipótesis.** "Creo que falla porque `monto` viene como texto."
 4. **Compruébala con un print o un assert**, cambia una sola cosa y vuelve a probar.
 
+```diagrama
+titulo: Depurar con método, no a ciegas
+nodo a: Leer el error | icono=documento | col=0 | fila=0 | color=azul | sub=qué, dónde, por qué
+nodo b: Reproducir | icono=prueba | col=1 | fila=0 | color=violeta | sub=con el caso más chico posible
+nodo c: Una hipótesis | icono=cerebro | col=2 | fila=0 | color=amarillo | sub=cambiar una sola cosa
+nodo d: Verificar | icono=check | col=3 | fila=0 | color=verde | sub=y dejar un test para que no vuelva
+flecha a -> b
+flecha b -> c
+flecha c -> d
+flecha d -> c: no era eso | estilo=punteada | color=rojo
+```
+
 ## Leer un traceback
 
 ```text

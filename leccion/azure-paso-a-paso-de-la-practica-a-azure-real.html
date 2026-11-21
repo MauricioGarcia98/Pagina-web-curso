@@ -59,14 +59,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 2 — Cómo organiza Azure una empresa</h2>
-<pre><code class="language-text">Tenant
- └── Management group &quot;Empresa&quot;           ← políticas para todos
-      ├── Management group &quot;Plataforma&quot;
-      │    └── Suscripción conectividad, identidad, logs
-      └── Management group &quot;Datos&quot;
-           ├── Suscripción sub-datos-dev   ← presupuestos y permisos de dev
-           ├── Suscripción sub-datos-qa
-           └── Suscripción sub-datos-prod  ← bloqueos, alertas, sin acceso manual</code></pre>
+<figure class="diagrama"><figcaption>Cómo organiza Azure una empresa: grupos de administración y suscripciones por entorno</figcaption></figure>
+
+
 <div class="table-wrap"><table><thead><tr>
 <th>Pieza</th>
 <th>Para qué</th>

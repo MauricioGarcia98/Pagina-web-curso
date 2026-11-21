@@ -20,16 +20,17 @@ Un banco vive de prestar dinero y cobrarlo, y pierde por fraude y por morosidad.
 
 ## El modelo de datos
 
-```text
-banco_clientes (cliente_id, nombre, apellido, pais, fecha_alta, segmento, score_crediticio)
-   │ 1..N
-banco_cuentas (cuenta_id, cliente_id, tipo, fecha_apertura, estado)
-   │ 1..N
-banco_transacciones (tx_id, cuenta_id, fecha_hora, tipo, monto, canal, comercio, ciudad, es_fraude)
-
-banco_clientes 1..N banco_prestamos (prestamo_id, cliente_id, fecha_otorgado, monto, tasa_anual, plazo_meses, estado)
-                         │ 1..N
-                    banco_cuotas (cuota_id, prestamo_id, numero, fecha_vencimiento, fecha_pago, monto)
+```diagrama
+titulo: El modelo de datos del banco (1 → N: uno a muchos)
+nodo cli: banco_clientes | icono=usuario | col=0 | fila=0 | color=azul | sub=cliente_id, nombre, pais, segmento, score_crediticio
+nodo cta: banco_cuentas | icono=banco | col=1 | fila=0 | color=verde | sub=cuenta_id, cliente_id, tipo, estado
+nodo tx: banco_transacciones | icono=dinero | col=2 | fila=0 | color=naranja | sub=tx_id, cuenta_id, fecha_hora, monto, canal, es_fraude
+nodo pre: banco_prestamos | icono=documento | col=1 | fila=1 | color=violeta | sub=prestamo_id, cliente_id, monto, tasa_anual, plazo_meses
+nodo cuo: banco_cuotas | icono=calendario | col=2 | fila=1 | color=amarillo | sub=cuota_id, prestamo_id, numero, fecha_vencimiento, fecha_pago
+flecha cli -> cta: 1 → N
+flecha cta -> tx: 1 → N
+flecha cli -> pre: 1 → N
+flecha pre -> cuo: 1 → N
 ```
 
 **Reglas del negocio que debes saber:**

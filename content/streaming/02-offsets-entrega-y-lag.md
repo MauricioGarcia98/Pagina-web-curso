@@ -41,6 +41,19 @@ Que una herramienta prometa "exactly-once" suele querer decir "exactamente una v
 
 El **lag** de una partición es la diferencia entre el último offset escrito (el final del registro) y el offset confirmado del grupo: cuántos mensajes están esperando. Es la primera métrica que se monitorea en un stream.
 
+```diagrama
+titulo: El lag de una partición: lo escrito menos lo confirmado
+nodo prod: Productor | icono=movil | col=0 | fila=0 | color=gris
+nodo fin: Último offset escrito | icono=archivo | col=1 | fila=0 | color=azul | sub=1500
+nodo conf: Offset confirmado del grupo | icono=check | col=1 | fila=1 | color=verde | sub=700
+nodo lag: Lag = 800 mensajes esperando | icono=reloj | col=2 | fila=0 | color=rojo
+nodo acc: Si crece sin parar | icono=alerta | col=3 | fila=0 | color=naranja | sub=más consumidores o más particiones
+flecha prod -> fin: escribe
+flecha fin -> lag
+flecha conf -> lag
+flecha lag -> acc
+```
+
 | Lo que ves | Qué significa | Qué haces |
 |---|---|---|
 | Lag estable y bajo | El consumidor da abasto | Nada |

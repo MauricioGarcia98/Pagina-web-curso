@@ -114,9 +114,9 @@ df3.show()                                         # ¡ACCIÓN! Ahora sí se eje
 
 <h2>Por qué la pereza es buena: Catalyst</h2>
 <p>Como Spark ve el plan completo antes de ejecutar, su optimizador <strong>Catalyst</strong> puede reescribirlo para que sea más eficiente. El plan pasa por cuatro etapas:</p>
-<pre><code class="language-text">Tu código ──► Plan lógico ──► Plan lógico optimizado ──► Planes físicos ──► El más barato se ejecuta
-              (qué pediste)   (reglas de Catalyst)       (cómo hacerlo:      (Tungsten genera
-                                                          qué tipo de join…)  código para la CPU)</code></pre>
+<figure class="diagrama"><figcaption>Las cuatro etapas del plan en Catalyst</figcaption></figure>
+
+
 <p>Las optimizaciones más importantes:</p>
 <ul>
 <li><strong>Predicate pushdown</strong>: aplicar los filtros lo antes posible, incluso al leer el archivo. Si filtras <code>fecha = &#39;2024-03-15&#39;</code> sobre Parquet, Spark usa las estadísticas de cada archivo para <strong>saltarse</strong> los que no tienen esa fecha.</li>
@@ -174,11 +174,9 @@ por_canal.show()        # ACCIÓN: ejecuta</code></pre>
 <td>Caro: requiere <strong>shuffle</strong></td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-text">NARROW (filter)                         WIDE (groupBy canal)
- P1 ──► P1'                              P1 ─┬─► web
- P2 ──► P2'                              P2 ─┼─► app        cada salida recibe datos
- P3 ──► P3'                              P3 ─┴─► tienda     de TODAS las entradas
- cada una sigue sola                     = shuffle por la red</code></pre>
+<figure class="diagrama"><figcaption>Narrow: cada partición sigue sola · Wide: cada salida recibe de todas (shuffle)</figcaption></figure>
+
+
 <p>Un <code>filter</code> puede aplicarse a cada partición por separado: la máquina 1 filtra sus filas sin preguntarle nada a la máquina 2. Pero para contar todos los pedidos &quot;web&quot;, hay que <strong>juntar</strong> las filas web de todas las máquinas.</p>
 <p>El <strong>shuffle</strong> escribe datos a disco, los envía por la red y los vuelve a leer. Es casi siempre la parte más lenta de un job. Optimizar Spark es, en gran medida, <strong>minimizar los shuffles</strong> y su tamaño. Dos trucos que salen de esta idea:</p>
 <ol>

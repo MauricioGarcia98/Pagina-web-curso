@@ -23,6 +23,20 @@ COPY src/ ./src/                   # capa 5: tu código
 CMD ["uv", "run", "python", "-m", "src.pipeline"]
 ```
 
+```diagrama
+titulo: Las capas de la imagen y qué se reconstruye al cambiar el código
+direccion: abajo
+nodo c1: FROM python:3.13-slim | icono=capas | col=0 | fila=0 | color=gris | sub=en caché
+nodo c3: COPY pyproject.toml uv.lock | icono=archivo | col=1 | fila=0 | color=gris | sub=en caché
+nodo c4: RUN uv sync | icono=engranaje | col=2 | fila=0 | color=gris | sub=en caché (lo lento)
+nodo c5: COPY src/ | icono=codigo | col=3 | fila=0 | color=naranja | sub=se reconstruye: cambió tu código
+nodo c6: CMD | icono=terminal | col=4 | fila=0 | color=naranja | sub=se reconstruye (va después)
+flecha c1 -> c3
+flecha c3 -> c4
+flecha c4 -> c5
+flecha c5 -> c6
+```
+
 Al construir, Docker revisa cada instrucción en orden. La caché de una capa se invalida cuando:
 
 | Instrucción | Se invalida si… |

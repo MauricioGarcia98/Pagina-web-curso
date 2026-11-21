@@ -20,11 +20,13 @@ banco_transacciones (tx_id, cuenta_id, fecha_hora, tipo, monto, canal, comercio,
 
 En Latinoamérica casi todos los préstamos personales usan el **sistema francés**: todas las cuotas son **iguales**; al principio pagas sobre todo intereses y al final sobre todo capital.
 
-```text
-                 r
-cuota = P · ─────────────      P = monto, r = tasa_anual / 12, n = plazo en meses
-            1 − (1 + r)^(−n)
-```
+**cuota = P · r / (1 − (1 + r)<sup>−n</sup>)**
+
+| Letra | Qué es |
+|---|---|
+| `P` | El monto del préstamo |
+| `r` | La tasa mensual: `tasa_anual / 12` |
+| `n` | El plazo, en meses |
 
 Ejemplo real del caso: el préstamo 1 es de **11.000** al **30 % anual** en **24 meses** → r = 0,025 → la cuota es **615,04**. Puedes verificarlo en la tabla: `SELECT monto FROM banco_cuotas WHERE prestamo_id = 1 LIMIT 1`.
 

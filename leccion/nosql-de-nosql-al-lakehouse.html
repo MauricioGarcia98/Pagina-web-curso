@@ -49,6 +49,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Orden, duplicados y reprocesos</td>
 </tr>
 </tbody></table></div>
+<figure class="diagrama"><figcaption>Llevar una colección al lakehouse con su flujo de cambios</figcaption></figure>
+
+
 <p>Los flujos de cambios entregan eventos del tipo <code>{&quot;operacion&quot;: &quot;update&quot;, &quot;_id&quot;: 101, &quot;documento&quot;: {...}, &quot;ts&quot;: ...}</code>. Es la misma idea que el CDC de una base relacional que viste en el proyecto Mercado Vecino (<a href="https://www.mongodb.com/docs/manual/changestreams/">change streams de MongoDB</a>, <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html">DynamoDB Streams</a>).</p>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Cambios fuera de orden</div>
 

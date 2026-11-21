@@ -14,8 +14,13 @@ Get Metadata hace la lista de los sobres que hay en la carpeta; ForEach abre cad
 
 ## Paso 1 — El patrón "listar y recorrer"
 
-```text
-Get Metadata (childItems)  ──▶  ForEach (items = la lista)  ──▶  [ adentro: Copy con @item().name ]
+```diagrama
+titulo: El patrón "listar y recorrer"
+nodo gm: Get Metadata | icono=lupa | col=0 | fila=0 | color=azul | sub=childItems: la lista de archivos
+nodo fe: ForEach | icono=flujo | col=1 | fila=0 | color=violeta | sub=items = la lista
+nodo cp: Copy (adentro del ForEach) | icono=archivos | col=2 | fila=0 | color=verde | sub=un archivo por vuelta: @item().name
+flecha gm -> fe
+flecha fe -> cp: por cada archivo
 ```
 
 Sirve cuando no sabes cuántos archivos hay ni cómo se llaman, y quieres tratar cada uno por separado: copiarlo, registrarlo, validarlo.

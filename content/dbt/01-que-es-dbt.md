@@ -107,13 +107,21 @@ Fíjate en la salida de `dbt compile`: el modelo tiene `from {{ ref('stg_ventas'
 
 ## El flujo moderno de datos
 
-```text
- Fuentes ──(EL: Fivetran/ADF/Airbyte/Auto Loader)──▶ Bronze / raw
-                                                       │
-                                     dbt (T): staging ─▶ intermediate ─▶ marts (gold)
-                                                       │
-                                     BI / ML / reverse ETL
- Orquestación de todo: Airflow / Lakeflow Jobs / dbt Cloud
+```diagrama
+titulo: El flujo moderno de datos: EL trae, dbt transforma (la T)
+nodo f: Fuentes | icono=base | col=0 | fila=0 | sub=apps, bases, SaaS
+nodo br: Bronze / raw | icono=capas | col=1 | fila=0 | color=naranja | sub=lo trae EL: Fivetran, ADF, Airbyte, Auto Loader
+nodo stg: staging | icono=dbt | col=2 | fila=0 | color=azul | sub=dbt: limpiar y renombrar
+nodo int: intermediate | icono=dbt | col=3 | fila=0 | color=violeta | sub=dbt: combinar
+nodo mart: marts (gold) | icono=dbt | col=4 | fila=0 | color=amarillo | sub=dbt: listo para el negocio
+nodo con: BI / ML / reverse ETL | icono=dashboard | col=4 | fila=1 | color=verde
+nodo orq: Airflow / Lakeflow Jobs / dbt Cloud | icono=airflow | col=2 | fila=1 | color=gris | sub=orquesta todo
+flecha f -> br: EL
+flecha br -> stg
+flecha stg -> int
+flecha int -> mart
+flecha mart -> con
+flecha orq -> stg | estilo=punteada
 ```
 
 ## Analytics engineering

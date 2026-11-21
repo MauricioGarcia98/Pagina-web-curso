@@ -32,6 +32,21 @@ Algunas empresas mandan un ejercicio de 3-6 horas: un CSV sucio y preguntas. Ah�
 
 Este guion es el mismo método del módulo Lógica, adaptado a que alguien te escucha. Úsalo **siempre**, incluso con preguntas que parecen fáciles: las fáciles suelen esconder una trampa (empates, nulos, cancelados).
 
+```diagrama
+titulo: El guion de seis pasos, en voz alta
+nodo a: 1. Repetir | icono=mensaje | col=0 | fila=0 | color=azul | sub=la pregunta y el grano
+nodo b: 2. Aclarar | icono=lupa | col=1 | fila=0 | color=violeta | sub=empates, nulos, período
+nodo c: 3. Ejemplo | icono=tabla | col=2 | fila=0 | color=amarillo | sub=un caso chico a mano
+nodo d: 4. Plan | icono=documento | col=2 | fila=1 | color=naranja | sub=pasos en castellano
+nodo e: 5. Código | icono=codigo | col=1 | fila=1 | color=gris | sub=por capas, con nombres
+nodo f: 6. Probar | icono=check | col=0 | fila=1 | color=verde | sub=caso borde y complejidad
+flecha a -> b
+flecha b -> c
+flecha c -> d
+flecha d -> e
+flecha e -> f
+```
+
 | Paso | Qué dices en voz alta | Ejemplo |
 |---|---|---|
 | 1. Repetir | La pregunta con tus palabras y el **grano** del resultado | "Quieres una fila por departamento con su segundo salario más alto." |

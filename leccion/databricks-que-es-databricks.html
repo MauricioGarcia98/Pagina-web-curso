@@ -148,13 +148,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Un cluster tiene un <strong>driver</strong> y <strong>workers</strong> (¿te acuerdas de la arquitectura de Spark?), una versión de <strong>Databricks Runtime</strong> (Spark + librerías) y un tipo de máquina.</p>
 <h2>Unity Catalog</h2>
 <p>El <strong>gobierno de datos</strong> centralizado:</p>
-<pre><code class="language-text">Metastore (por región)
- └── Catálogo (main, dev, prod)
-      └── Esquema (bronze, silver, gold, ventas)
-           ├── Tablas y vistas        → main.ventas.pedidos
-           ├── Volúmenes (archivos)    → /Volumes/main/crudo/archivos/
-           ├── Funciones
-           └── Modelos de ML</code></pre>
+<figure class="diagrama"><figcaption>Los niveles de Unity Catalog: catálogo.esquema.objeto</figcaption></figure>
+
+
 <p>Permisos con SQL (<code>GRANT SELECT ON TABLE ... TO grupo</code>), linaje automático columna a columna, auditoría, y acceso al almacenamiento mediante <strong>storage credentials</strong> y <strong>external locations</strong>.</p>
 <h2>Costos: DBUs</h2>
 <p>Databricks cobra en <strong>DBUs</strong> (<em>Databricks Units</em>) por hora de cómputo, según el tipo de cómputo y el plan, <strong>además</strong> de las máquinas virtuales de la nube (en cómputo clásico). Consejos: auto-terminación de clusters, job clusters para producción, autoscaling, políticas de cómputo, y revisar las tablas de sistema de facturación (<code>system.billing.usage</code>).</p>

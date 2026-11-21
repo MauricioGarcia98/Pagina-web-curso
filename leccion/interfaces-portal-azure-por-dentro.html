@@ -24,11 +24,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>La jerarquía: dónde vive cada cosa</h2>
-<pre><code class="language-text">Tenant de Microsoft Entra ID  (tu organización: usuarios, grupos, aplicaciones)
-└── Grupos de administración   (opcional: agrupar suscripciones para aplicar políticas)
-    └── Suscripción            (la &quot;cuenta de facturación&quot; y límite de permisos)
-        └── Grupo de recursos  (carpeta lógica: todo lo de un proyecto o entorno)
-            └── Recurso        (una cuenta de almacenamiento, un Key Vault, un workspace…)</code></pre>
+<figure class="diagrama"><figcaption>La jerarquía de Azure: los permisos y políticas se heredan hacia abajo</figcaption></figure>
+
+
 <ul>
 <li><strong>Tenant (inquilino)</strong>: la identidad de tu organización en Microsoft Entra ID (antes Azure Active Directory). Ahí viven los usuarios y grupos.</li>
 <li><strong>Suscripción</strong>: todo lo que se crea se cobra a una suscripción. Las empresas suelen separar <em>desarrollo</em> y <em>producción</em> en suscripciones distintas.</li>

@@ -29,15 +29,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p><strong>Banco Austral</strong> es un banco digital que opera en cinco países. El equipo de riesgo y el de producto necesitan respuestas. Tú eres el/la analista de datos.</p>
 <h2>El modelo de datos</h2>
-<pre><code class="language-text">banco_clientes (cliente_id, nombre, apellido, pais, fecha_alta, segmento, score_crediticio)
-   │ 1..N
-banco_cuentas (cuenta_id, cliente_id, tipo, fecha_apertura, estado)
-   │ 1..N
-banco_transacciones (tx_id, cuenta_id, fecha_hora, tipo, monto, canal, comercio, ciudad, es_fraude)
+<figure class="diagrama"><figcaption>El modelo de datos del banco (1 → N: uno a muchos)</figcaption></figure>
 
-banco_clientes 1..N banco_prestamos (prestamo_id, cliente_id, fecha_otorgado, monto, tasa_anual, plazo_meses, estado)
-                         │ 1..N
-                    banco_cuotas (cuota_id, prestamo_id, numero, fecha_vencimiento, fecha_pago, monto)</code></pre>
+
 <p><strong>Reglas del negocio que debes saber:</strong></p>
 <ul>
 <li>En <code>banco_transacciones</code>, <code>monto</code> <strong>positivo</strong> = entra dinero (depósitos); <strong>negativo</strong> = sale (compras, retiros, transferencias, pagos de tarjeta).</li>

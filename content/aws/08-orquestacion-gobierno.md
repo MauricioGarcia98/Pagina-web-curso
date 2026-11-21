@@ -262,19 +262,35 @@ aws cloudformation deploy --template-file lake.yaml --stack-name lake-banco-dev 
 
 ## Arquitectura de referencia: el banco en AWS
 
-```text
-         ┌─────────────── tiempo real ───────────────┐
- app ──► Kinesis ──► Lambda (regla de ráfaga) ──► SNS alerta al analista de fraude
-             └────► Firehose ──► s3://lake-banco/bronze/transacciones/fecha=…/ (Parquet)
- core bancario (Postgres) ──► DMS (CDC) ──► s3://lake-banco/bronze/cuentas, prestamos, cuotas
-                                   │
-               EventBridge 03:00 ─► Step Functions / MWAA
-                                   ├─ Glue job: bronze → silver (Iceberg, dedup, tipos)
-                                   ├─ Glue Data Quality: saldos no negativos, montos > 0
-                                   ├─ dbt (dbt-athena): marts de mora, fraude y clientes
-                                   └─ Redshift Serverless: tablas gold para los dashboards
- gobierno: Lake Formation (columnas PII ocultas), CloudTrail, Budgets · IaC: Terraform + GitHub Actions
+```diagrama
+titulo: Arquitectura de referencia: el banco en AWS
+nodo app: App del banco | icono=movil | col=0 | fila=0 | sub=transacciones
+nodo kin: Kinesis | icono=kinesis | col=1 | fila=0 | color=azul
+nodo lam: Lambda | icono=lambdaaws | col=2 | fila=0 | color=rojo | sub=regla de ráfaga
+nodo sns: SNS | icono=sns | col=3 | fila=0 | color=rojo | sub=alerta al analista de fraude
+nodo fh: Firehose | icono=firehose | col=1 | fila=1 | color=cian
+nodo core: Core bancario | icono=postgres | col=0 | fila=2 | forma=cilindro | sub=cuentas, préstamos, cuotas
+nodo dms: DMS (CDC) | icono=dms | col=1 | fila=2 | color=azul
+nodo s3: S3 bronze | icono=s3 | col=2 | fila=1 | color=naranja | sub=Parquet por fecha
+nodo glue: Glue + Data Quality | icono=glue | col=3 | fila=1 | color=violeta | sub=silver en Iceberg: dedup, tipos, reglas
+nodo dbt: dbt-athena | icono=dbt | col=3 | fila=2 | color=naranja | sub=marts de mora, fraude y clientes
+nodo rs: Redshift Serverless | icono=redshift | col=4 | fila=2 | color=verde | sub=gold para dashboards
+nodo orq: EventBridge 03:00 → Step Functions | icono=stepfunctions | col=2 | fila=2 | color=violeta
+grupo rt: Tiempo real | nodos=kin,lam,sns | color=rojo
+flecha app -> kin
+flecha kin -> lam
+flecha lam -> sns
+flecha kin -> fh
+flecha fh -> s3
+flecha core -> dms
+flecha dms -> s3
+flecha s3 -> glue
+flecha glue -> dbt
+flecha dbt -> rs
+flecha orq -> glue | estilo=punteada | color=violeta
 ```
+
+Gobierno: Lake Formation oculta las columnas con datos personales, CloudTrail audita y Budgets controla el costo. La infraestructura se crea con Terraform y GitHub Actions.
 
 :::experto Cómo contar esto en una entrevista
 Recorre la arquitectura **de izquierda a derecha** y justifica cada decisión con un requisito: "Kinesis porque la alerta de fraude debe salir en segundos; Iceberg en silver porque las cuentas cambian y necesito `MERGE`; Redshift solo para la capa gold porque los dashboards consultan cientos de veces por día; Lake Formation porque riesgo puede ver montos pero no datos personales". Después menciona **fallas**: reintentos, idempotencia, alertas y cómo reprocesar un día.

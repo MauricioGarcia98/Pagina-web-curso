@@ -19,6 +19,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Sacar una foto diaria de una base de datos operativa</li><li>Paginar una API por sucursal y día</li><li>Leer una planilla hecha para personas</li><li>Aplicar reglas de negocio de ventas y margen</li></ul>
 <h2>Accesos</h2>
 <pre><code class="language-bash">sol accesos</code></pre>
+<figure class="diagrama"><figcaption>Los sistemas de Almacenes del Sol</figcaption></figure>
+
+
 <h2>El ERP · PostgreSQL 9.6 · <code>erp-sol.almacenes.example</code></h2>
 <p>Usuario de <strong>solo lectura</strong>. Tablas: <code>sucursales</code>, <code>categorias</code> y <code>productos</code> (<code>id</code>, <code>sku</code>, <code>nombre</code>, <code>categoria</code>, <code>precio</code>, <code>costo</code>, <code>activo</code>, <code>ult_modif</code>).</p>
 <pre><code class="language-bash">PGPASSWORD='…' psql -h erp-sol.almacenes.example -U consulta_bi -d erp -c &quot;SELECT sku, nombre, categoria, precio, costo FROM productos LIMIT 5&quot;</code></pre>

@@ -84,6 +84,9 @@ def crear(pedido: PedidoNuevo):
 <p><code>loc</code> es el camino al campo que falló: en el cuerpo, la lista <code>lineas</code>, el elemento <code>0</code>, el campo <code>cantidad</code>. Todos los errores vienen juntos, así el cliente corrige todo de una vez.</p>
 <h2>Reintentos sin duplicados: la clave de idempotencia</h2>
 <p>El cliente manda un <code>POST /pedidos</code>, la red se corta <strong>antes</strong> de recibir la respuesta, y reintenta. ¿Se creó el pedido la primera vez? No lo sabe. Si reintenta y se había creado, ahora hay dos.</p>
+<figure class="diagrama"><figcaption>La clave de idempotencia evita el pedido duplicado al reintentar</figcaption></figure>
+
+
 <p>La solución estándar: el cliente genera una clave única por operación y la manda en el encabezado <code>Idempotency-Key</code>. El servidor guarda la respuesta de cada clave; si vuelve a llegar la misma clave, devuelve la respuesta guardada <strong>sin crear nada</strong>. Así lo documenta, por ejemplo, la <a href="https://docs.stripe.com/api/idempotent_requests">API de Stripe</a>.</p>
 <pre data-norun><code class="language-python">from fastapi import Header
 

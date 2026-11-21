@@ -35,6 +35,20 @@ Imagina un documento que cada uno descarga, edita en su computadora y vuelve a s
 
 En un equipo casi nunca se trabaja directo en `main`. Cada tarea va en su **rama**:
 
+```diagrama
+titulo: El flujo de trabajo en equipo con ramas
+nodo m: main | icono=git | col=0 | fila=0 | color=azul | sub=lo que está en producción
+nodo r: Tu rama | icono=git | col=1 | fila=1 | color=violeta | sub=feature/limpieza-clientes
+nodo c: Commits | icono=check | col=2 | fila=1 | color=gris | sub=cambios chicos con mensaje claro
+nodo pr: Pull request | icono=github | col=3 | fila=1 | color=amarillo | sub=revisión y CI
+nodo mg: Merge a main | icono=git | col=3 | fila=0 | color=verde
+flecha m -> r: crear rama
+flecha r -> c
+flecha c -> pr: push
+flecha pr -> mg: aprobado
+flecha mg -> m | estilo=punteada
+```
+
 ```bash norun
 git switch -c feature/colombia      # crea la rama y te cambia a ella
 # ... editas, pruebas ...

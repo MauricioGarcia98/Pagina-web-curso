@@ -20,11 +20,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Ahora construimos las tablas que alimentan el tablero. Cada ejercicio es una pieza del pipeline; en Databricks, cada una sería una tarea de un job.</p>
 <h2>El diseño antes del código</h2>
 <p>Un pipeline profesional se diseña antes de escribirlo. Para este proyecto, el diseño es:</p>
-<pre><code class="language-text">bronze (crudo)            silver (limpio, grano fino)            gold (negocio)
-pedidos ─────────┐
-detalle_pedidos ─┼──▶  silver.fct_ventas  ──┬──▶ gold.ventas_mensuales_pais   → tablero de ventas
-productos ───────┘     (una fila por línea)  └──▶ gold.dim_clientes             → CRM / marketing
-clientes ─────────────────────────────────────────┘</code></pre>
+<figure class="diagrama"><figcaption>El diseño del pipeline: de bronze a gold</figcaption></figure>
+
+
 <div class="table-wrap"><table><thead><tr>
 <th>Tabla</th>
 <th>Grano</th>

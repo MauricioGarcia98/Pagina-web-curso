@@ -16,6 +16,19 @@ Un control de calidad en una fábrica no dice solo "hay piezas malas": separa **
 
 Así funcionan los tests de dbt por dentro (lo viste en [dbt: tests y documentación](#/l/dbt-tests-docs)): cada test se compila a una consulta que busca **violaciones**. Cero filas significa "pasa".
 
+```diagrama
+titulo: Una prueba es una consulta que busca violaciones: cero filas = pasa
+nodo r: Regla | icono=reglas | col=0 | fila=1 | color=violeta | sub=pedido_id es único
+nodo q: Consulta de violaciones | icono=codigo | col=1 | fila=1 | color=azul | sub=GROUP BY pedido_id HAVING COUNT(*) > 1
+nodo ok: 0 filas | icono=check | col=2 | fila=0 | color=verde | sub=la prueba pasa
+nodo mal: N filas | icono=x | col=2 | fila=2 | color=rojo | sub=falla, y ya tienes las culpables
+nodo inv: Investigar | icono=lupa | col=3 | fila=2 | color=naranja
+flecha r -> q
+flecha q -> ok
+flecha q -> mal
+flecha mal -> inv
+```
+
 | Prueba | La consulta devuelve… |
 |---|---|
 | `unique` | Las claves que aparecen más de una vez |

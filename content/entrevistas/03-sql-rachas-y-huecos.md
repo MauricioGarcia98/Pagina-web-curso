@@ -16,6 +16,21 @@ Imagina un calendario donde marcas con una X cada día que fuiste al gimnasio. L
 
 Numera los días de cada cliente en orden (`ROW_NUMBER`) y réstale ese número a la fecha. Dentro de una racha, la fecha sube de a 1 y el número de fila también, así que **la resta queda fija**. Cuando hay un salto, la fecha sube más que el número de fila y la resta cambia: empieza una isla nueva.
 
+```diagrama
+titulo: Dentro de una racha, fecha − número de fila queda fijo
+nodo d1: 2024-02-01 · fila 1 | icono=calendario | col=0 | fila=0 | color=azul | sub=grupo 2024-01-31
+nodo d2: 2024-02-02 · fila 2 | icono=calendario | col=1 | fila=0 | color=azul | sub=grupo 2024-01-31
+nodo d3: 2024-02-03 · fila 3 | icono=calendario | col=2 | fila=0 | color=azul | sub=grupo 2024-01-31
+nodo d4: 2024-02-07 · fila 4 | icono=calendario | col=0 | fila=1 | color=verde | sub=grupo 2024-02-03
+nodo d5: 2024-02-08 · fila 5 | icono=calendario | col=1 | fila=1 | color=verde | sub=grupo 2024-02-03
+grupo ra: Racha A: 3 días | nodos=d1,d2,d3 | color=azul
+grupo rb: Racha B: 2 días | nodos=d4,d5 | color=verde
+flecha d1 -> d2
+flecha d2 -> d3
+flecha d4 -> d5
+flecha d3 -> d4: hueco de 3 días: cambia el grupo | estilo=punteada | color=rojo
+```
+
 | fecha | ROW_NUMBER | fecha − ROW_NUMBER | isla |
 |---|---|---|---|
 | 2024-02-01 | 1 | 2024-01-31 | A |

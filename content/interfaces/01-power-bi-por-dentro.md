@@ -27,21 +27,16 @@ Lo que haces en Desktop termina publicado como **dos objetos** en el servicio: u
 
 ## La ventana de Power BI Desktop
 
-```text
-┌──────────────────────────────────────────────────────────────────────┐
-│ Barra de título: guardar · deshacer · nombre del archivo · buscar    │
-├──────────────────────────────────────────────────────────────────────┤
-│ Cinta: Archivo | Inicio | Insertar | Modelado | Vista | Optimizar…   │
-├──┬───────────────────────────────────────┬─────────┬────────┬────────┤
-│▣ │                                       │ Filtros │ Visua- │ Datos  │
-│▦ │            LIENZO                     │         │ liza-  │        │
-│⧉ │      (las páginas del informe)        │         │ ciones │        │
-│</│                                       │         │        │        │
-│T │                                       │         │        │        │
-├──┴───────────────────────────────────────┴─────────┴────────┴────────┤
-│ Pestañas de página: Página 1 | + ·············· zoom · ajustar        │
-└──────────────────────────────────────────────────────────────────────┘
-```
+| Zona | Dónde está | Para qué sirve |
+|---|---|---|
+| **Barra de título** | Arriba de todo | Guardar, deshacer, nombre del archivo y buscar |
+| **Cinta** | Debajo de la barra de título | Pestañas Archivo, Inicio, Insertar, Modelado, Vista, Optimizar… |
+| **Barra de vistas** | Columna angosta a la izquierda | Cambiar entre Informe, Tabla, Modelo, DAX y TMDL |
+| **Lienzo** | En el centro, lo más grande | Las páginas del informe con sus visuales |
+| **Filtros** | Primer panel a la derecha | Filtros de este visual, de la página o de todo el informe |
+| **Visualizaciones** | Segundo panel a la derecha | Elegir el tipo de visual y configurar sus campos y formato |
+| **Datos** | Último panel a la derecha | Las tablas, columnas y medidas del modelo |
+| **Pestañas de página** | Abajo | Cambiar de página, agregar páginas, zoom y ajuste |
 
 ### La cinta
 

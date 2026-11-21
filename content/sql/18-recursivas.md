@@ -24,15 +24,27 @@ Hay datos donde una fila apunta a **otra fila de la misma tabla**, formando una 
 - **Categorías**: "Laptops" está dentro de "Computadoras", que está dentro de "Tecnología".
 - **Cuentas contables**, carpetas de archivos, comentarios con respuestas, rutas entre ciudades.
 
-```text
-categorias                                    el árbol que forman
-categoria_id │ nombre       │ padre           Tecnología (1)
-─────────────┼──────────────┼───────          ├── Computadoras (5)
-1            │ Tecnología   │ NULL            │   └── Laptops (8)
-5            │ Computadoras │ 1               ├── Celulares (6)
-6            │ Celulares    │ 1               └── Audio (7)
-7            │ Audio        │ 1
-8            │ Laptops      │ 5
+**categorias** (cada fila guarda quién es su padre)
+
+| categoria_id | nombre | padre |
+|---|---|---|
+| 1 | Tecnología | NULL |
+| 5 | Computadoras | 1 |
+| 6 | Celulares | 1 |
+| 7 | Audio | 1 |
+| 8 | Laptops | 5 |
+
+```diagrama
+titulo: El árbol que forman: la columna padre apunta hacia arriba
+nodo t: Tecnología (1) | icono=carpeta | col=1 | fila=0 | color=azul | sub=padre NULL: es la raíz
+nodo c: Computadoras (5) | icono=carpeta | col=0 | fila=1 | color=verde | sub=padre 1
+nodo ce: Celulares (6) | icono=etiqueta | col=1 | fila=1 | color=verde | sub=padre 1
+nodo au: Audio (7) | icono=etiqueta | col=2 | fila=1 | color=verde | sub=padre 1
+nodo l: Laptops (8) | icono=etiqueta | col=0 | fila=2 | color=naranja | sub=padre 5
+flecha t -> c
+flecha t -> ce
+flecha t -> au
+flecha c -> l
 ```
 
 Con un self join (lección 12) subes **un** nivel: "el padre de Laptops es Computadoras". Pero ¿y si quieres **todos** los niveles, sin saber cuántos hay? Necesitarías un join para cada nivel, y la profundidad cambia. La solución es una **CTE recursiva**: una CTE que se usa **a sí misma** hasta que no hay más que recorrer.

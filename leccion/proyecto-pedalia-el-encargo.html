@@ -139,13 +139,10 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>El recorrido de un viaje</h2>
-<pre><code class="language-text">App de Pedalia ──(archivos diarios)──► landing ──Data Factory──► bronze ──Databricks──► silver ──► gold
-                                                                                                 │
-                                    Power BI ◄── Snowflake (finanzas) ◄──── archivos de gold ◄───┤
-                                    Power BI ◄── BigQuery  (marketing) ◄────────────────────────┘
-                                    Power BI ◄── Databricks (operaciones, directo a gold)
+<figure class="diagrama"><figcaption>El recorrido de un viaje en Pedalia</figcaption></figure>
 
-Airflow dispara y vigila cada flecha. GitHub guarda el código y lo despliega.</code></pre>
+
+<p>Airflow dispara y vigila cada flecha. GitHub guarda el código y lo despliega.</p>
 <h2>El plan que le mandas a tu jefa</h2>
 <pre><code class="language-markdown"># Plan · Datos de Pedalia (v1)
 

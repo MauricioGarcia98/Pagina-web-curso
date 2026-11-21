@@ -66,15 +66,28 @@ En la vida real se elige una plataforma. Acá hay dos razones para tener varias:
 
 ## El recorrido de un viaje
 
-```text
-App de Pedalia ──(archivos diarios)──► landing ──Data Factory──► bronze ──Databricks──► silver ──► gold
-                                                                                                 │
-                                    Power BI ◄── Snowflake (finanzas) ◄──── archivos de gold ◄───┤
-                                    Power BI ◄── BigQuery  (marketing) ◄────────────────────────┘
-                                    Power BI ◄── Databricks (operaciones, directo a gold)
+```diagrama
+titulo: El recorrido de un viaje en Pedalia
+nodo app: App de Pedalia | icono=movil | col=0 | fila=0 | sub=archivos diarios
+nodo la: landing | icono=carpeta | col=1 | fila=0 | color=gris
+nodo br: bronze | icono=capas | col=2 | fila=0 | color=naranja | sub=con Data Factory
+nodo sv: silver | icono=databricks | col=3 | fila=0 | color=gris | sub=con Databricks
+nodo gd: gold | icono=databricks | col=4 | fila=0 | color=amarillo
+nodo sf: Snowflake | icono=snowflake | col=3 | fila=1 | color=azul | sub=finanzas
+nodo bq: BigQuery | icono=bigquery | col=4 | fila=1 | color=azul | sub=marketing
+nodo pbi: Power BI | icono=powerbi | col=5 | fila=1 | color=verde | sub=finanzas, marketing y operaciones
+flecha app -> la
+flecha la -> br
+flecha br -> sv
+flecha sv -> gd
+flecha gd -> sf: archivos de gold
+flecha gd -> bq
+flecha gd -> pbi: operaciones, directo
+flecha sf -> pbi
+flecha bq -> pbi
+```
 
 Airflow dispara y vigila cada flecha. GitHub guarda el código y lo despliega.
-```
 
 ## El plan que le mandas a tu jefa
 

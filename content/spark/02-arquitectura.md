@@ -11,20 +11,18 @@ En la lección anterior viste la idea: repartir el trabajo entre muchas máquina
 
 ## Las piezas
 
-```text
-                 ┌──────────────────────┐
-                 │       DRIVER         │  tu programa (SparkSession):
-                 │  planifica el trabajo│  arma el plan y reparte tareas
-                 └─────────┬────────────┘
-                           │  pide recursos
-                 ┌─────────▼────────────┐
-                 │   CLUSTER MANAGER    │  YARN, Kubernetes, Standalone
-                 └─────────┬────────────┘  (en Databricks lo gestiona la plataforma)
-          ┌────────────────┼────────────────┐
-   ┌──────▼──────┐  ┌──────▼──────┐  ┌──────▼──────┐
-   │  EXECUTOR 1 │  │  EXECUTOR 2 │  │  EXECUTOR 3 │  procesos en los "workers"
-   │ [T][T][T][T]│  │ [T][T][T][T]│  │ [T][T][T][T]│  cada [T] = un core ejecutando una task
-   └─────────────┘  └─────────────┘  └─────────────┘
+```diagrama
+titulo: Las piezas de Spark: el driver planifica, los executors trabajan
+nodo dr: Driver | icono=cerebro | col=1 | fila=0 | color=azul | sub=tu programa (SparkSession): arma el plan y reparte tareas
+nodo cm: Cluster manager | icono=engranaje | col=1 | fila=1 | color=gris | sub=YARN, Kubernetes o Standalone (en Databricks lo gestiona la plataforma)
+nodo e1: Executor 1 | icono=servidor | col=0 | fila=2 | color=naranja | sub=4 cores = 4 tasks a la vez
+nodo e2: Executor 2 | icono=servidor | col=1 | fila=2 | color=naranja | sub=4 cores = 4 tasks a la vez
+nodo e3: Executor 3 | icono=servidor | col=2 | fila=2 | color=naranja | sub=4 cores = 4 tasks a la vez
+flecha dr -> cm: pide recursos
+flecha cm -> e1
+flecha cm -> e2
+flecha cm -> e3
+flecha dr -> e3: tareas | estilo=punteada | color=azul
 ```
 
 <!-- dg:sp02-cluster -->
@@ -109,11 +107,15 @@ Cuando ejecutas una **acción** (como `count()`, `show()` o escribir un archivo)
 1. El job se divide en **stages** (etapas). Un stage nuevo empieza cada vez que hay que **redistribuir datos entre máquinas** (un *shuffle*), por ejemplo en un `groupBy` o un `join`.
 2. Cada stage se divide en **tasks**: una por partición.
 
-```text
-job: df.groupBy("pais").count().show()
- ├── stage 1: leer archivos + contar parcial por partición   (200 tasks)
- │        ── shuffle: mover filas del mismo país a la misma partición ──
- └── stage 2: sumar los conteos parciales por país            (200 tasks)
+```diagrama
+titulo: Un job, dos stages: el shuffle marca el corte
+nodo job: Job | icono=codigo | col=0 | fila=0 | color=gris | sub=df.groupBy("pais").count().show()
+nodo s1: Stage 1 | icono=archivos | col=1 | fila=0 | color=azul | sub=leer archivos y contar parcial por partición · 200 tasks
+nodo sh: Shuffle | icono=red | col=2 | fila=0 | color=rojo | sub=mover las filas del mismo país a la misma partición
+nodo s2: Stage 2 | icono=calculator | col=3 | fila=0 | color=verde | sub=sumar los conteos parciales por país · 200 tasks
+flecha job -> s1
+flecha s1 -> sh
+flecha sh -> s2
 ```
 
 Es exactamente el MapReduce de la lección anterior: el stage 1 es el *map*, la línea del medio es el *shuffle* y el stage 2 es el *reduce*.

@@ -28,6 +28,19 @@ def escribir_lote(df, batch_id):
       .start())
 ```
 
+```diagrama
+titulo: Un stream idempotente con checkpoint
+nodo br: bronze.eventos | icono=capas | col=0 | fila=0 | color=naranja | sub=recibe datos nuevos
+nodo rs: readStream | icono=spark | col=1 | fila=0 | color=azul | sub=solo lo nuevo
+nodo cp: Checkpoint | icono=check | col=1 | fila=1 | color=gris | sub=qué ya se leyó y escribió
+nodo fb: foreachBatch | icono=transformar | col=2 | fila=0 | color=violeta | sub=dropDuplicates + left_anti contra silver
+nodo sv: silver.eventos | icono=tabla | col=3 | fila=0 | color=verde | sub=cada evento una sola vez
+flecha br -> rs
+flecha rs -> cp | doble | estilo=punteada
+flecha rs -> fb: micro-lote
+flecha fb -> sv: append o MERGE
+```
+
 | Pieza | Qué hace |
 |---|---|
 | `readStream.table(...)` | Lee la tabla de entrada como un flujo: cada corrida ve solo lo que llegó desde la anterior |

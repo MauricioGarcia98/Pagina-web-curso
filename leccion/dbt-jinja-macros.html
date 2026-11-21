@@ -20,8 +20,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Hasta ahora tus modelos eran SQL casi puro, con algún <code>{{ ref() }}</code>. Pero ese <code>{{ }}</code> es la punta de algo mucho más potente: dbt pasa cada modelo por <strong>Jinja</strong>, un lenguaje de plantillas de Python, <strong>antes</strong> de mandarlo al warehouse. Con Jinja puedes generar SQL repetitivo con un bucle, cambiar el SQL según el entorno y escribir <strong>macros</strong>: funciones que devuelven pedazos de SQL y se reutilizan en todo el proyecto.</p>
 <h2>Cómo funciona: plantilla → SQL compilado</h2>
 <p>dbt trabaja en dos pasos:</p>
-<pre><code class="language-text">models/ventas.sql          ──(1) Jinja compila──►   target/compiled/.../ventas.sql   ──(2) se ejecuta──►  warehouse
-(SQL + {{ }} {% %})                                  (SQL puro, sin nada de Jinja)</code></pre>
+<figure class="diagrama"><figcaption>dbt trabaja en dos pasos: compilar y ejecutar</figcaption></figure>
+
+
 <p>El warehouse <strong>nunca ve Jinja</strong>: solo recibe el SQL ya compilado. Por eso, cuando algo falla, lo primero es mirar el SQL compilado (<code>dbt compile</code>, o el desplegable &quot;Ver SQL compilado&quot; que aparece al ejecutar un ejemplo en este curso). Ahí ves exactamente lo que se ejecutó.</p>
 <div class="callout callout-analogia"><div class="callout-title">🧠 Jinja es una combinación de correspondencia</div>
 

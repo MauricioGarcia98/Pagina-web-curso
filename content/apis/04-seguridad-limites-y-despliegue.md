@@ -16,6 +16,25 @@ Un edificio de oficinas tiene un guardia en la entrada (la clave de API: ¿quié
 
 Una **dependencia** es una función que FastAPI ejecuta **antes** de tu ruta. Si lanza una excepción, la ruta no se ejecuta. Es el lugar natural para verificar quién llama:
 
+```diagrama
+titulo: Los controles por los que pasa un pedido antes de llegar a los datos
+nodo req: Pedido con X-API-Key | icono=internet | col=0 | fila=1 | color=gris
+nodo k: ¿Clave válida? | icono=llave | col=1 | fila=1 | color=amarillo | forma=rombo
+nodo l: ¿Dentro del límite? | icono=reloj | col=2 | fila=1 | color=amarillo | forma=rombo
+nodo p: ¿Tiene permiso? | icono=candado | col=3 | fila=1 | color=amarillo | forma=rombo
+nodo ok: Ruta + response_model | icono=check | col=4 | fila=1 | color=verde | sub=solo los campos públicos
+nodo e401: 401 | icono=x | col=1 | fila=2 | color=rojo
+nodo e429: 429 + Retry-After | icono=x | col=2 | fila=2 | color=rojo
+nodo e403: 403 | icono=x | col=3 | fila=2 | color=rojo
+flecha req -> k
+flecha k -> l: sí
+flecha l -> p: sí
+flecha p -> ok: sí
+flecha k -> e401: no
+flecha l -> e429: no
+flecha p -> e403: no
+```
+
 ```python norun
 from fastapi import Depends, Header, HTTPException
 

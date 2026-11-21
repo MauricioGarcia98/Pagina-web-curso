@@ -19,8 +19,24 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Organizar un lago en S3 con capas y particiones estilo Hive</li><li>Usar aws s3 cp, sync, ls y rm</li><li>Configurar clases de almacenamiento, versionado y ciclo de vida</li></ul>
 <h2>Qué es S3</h2>
 <p><strong>Amazon S3</strong> (<em>Simple Storage Service</em>) guarda <strong>objetos</strong> (archivos) dentro de <strong>buckets</strong> (contenedores). Es prácticamente infinito, muy durable (11 nueves: 99,999999999 %) y barato. En AWS, <strong>el data lake es S3</strong>.</p>
-<pre><code class="language-text">s3://lake-tienda-dev/bronze/ventas/anio=2024/mes=12/ventas_2024_12.csv
-     └──── bucket ───┘└──────────────────── key (clave) ─────────────────┘</code></pre>
+<p><code>s3://lake-tienda-dev/bronze/ventas/anio=2024/mes=12/ventas_2024_12.csv</code>, por partes:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><code>s3://</code></td>
+<td>El esquema: dice que es S3</td>
+</tr>
+<tr>
+<td><code>lake-tienda-dev</code></td>
+<td>El <strong>bucket</strong>: el contenedor (nombre único en todo AWS)</td>
+</tr>
+<tr>
+<td><code>bronze/ventas/anio=2024/mes=12/ventas_2024_12.csv</code></td>
+<td>La <strong>key</strong> (clave): parece una ruta de carpetas, pero es un solo nombre largo con barras</td>
+</tr>
+</tbody></table></div>
 <div class="callout callout-analogia"><div class="callout-title">🧠 No hay carpetas, hay etiquetas largas</div>
 
 <p>S3 no tiene carpetas de verdad: cada objeto tiene una <strong>clave</strong> larga como <code>bronze/ventas/anio=2024/mes=12/archivo.csv</code>. La consola y la CLI muestran las barras como si fueran carpetas (los llaman <strong>prefijos</strong>), pero en el fondo es un enorme diccionario <code>clave → archivo</code>. Por eso &quot;renombrar una carpeta&quot; en S3 significa copiar y borrar cada objeto.</p>

@@ -53,18 +53,17 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Las mayúsculas importan: <code>ls</code> funciona y <code>LS</code> no. Y los espacios separan las partes: para un archivo con espacios en el nombre, usa comillas (<code>cat &quot;mis ventas.csv&quot;</code>).</p>
 <h2>Dónde estás: rutas</h2>
 <p>Los archivos se organizan en un árbol de <strong>carpetas</strong> (directorios). En la terminal siempre estás &quot;parado&quot; en una carpeta, que se llama <strong>directorio de trabajo</strong>. En la terminal del curso, la carpeta inicial es <code>/home/alumno</code>:</p>
-<pre><code class="language-text">/                          ← la raíz: todo cuelga de aquí
-└── home/
-    └── alumno/            ← tu carpeta personal (también se escribe ~)
-        ├── README.md
-        ├── datos/
-        │   ├── clientes.csv
-        │   └── ventas_2024_12.csv
-        ├── logs/
-        │   └── pipeline.log
-        ├── dags/          ← DAGs de Airflow
-        ├── scripts/
-        └── tienda_dbt/    ← un proyecto dbt</code></pre>
+<figure class="diagrama"><figcaption>Las carpetas de la terminal del curso (empiezas parado en /home/alumno)</figcaption></figure>
+
+
+<p>En la terminal, <code>tree</code> te muestra lo mismo como texto:</p>
+<pre><code class="language-text">/home/alumno
+├── README.md
+├── datos/
+├── logs/
+├── dags/
+├── scripts/
+└── tienda_dbt/</code></pre>
 <p>Hay dos formas de nombrar un archivo:</p>
 <ul>
 <li><strong>Ruta absoluta</strong>: empieza con <code>/</code> y describe el camino completo desde la raíz: <code>/home/alumno/datos/clientes.csv</code>. Funciona estés donde estés.</li>

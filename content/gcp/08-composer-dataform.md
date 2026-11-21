@@ -201,13 +201,30 @@ FILTER USING (pais = 'Chile');
 
 ## Arquitectura de referencia: el caso streaming en GCP
 
-```text
- app/players ──► Pub/Sub "reproducciones" ──► suscripción BigQuery ──► streaming_bronze.reproducciones (particionada por día)
-                          └──────────────► Dataflow (ventanas de 1 min: top canciones en vivo) ──► Bigtable/BigQuery ──► pantalla en vivo
- base de suscripciones (Cloud SQL) ──► Datastream (CDC) ──► streaming_bronze.suscripciones
- Composer 03:00 ──► Dataform: silver (dedup, tipos) ──► gold (MAU, churn, MRR, skip rate) ──► assertions ──► Looker
- gobierno: policy tags en email/edad, row-level por país, Dataplex (calidad + linaje) · IaC: Terraform + Cloud Build
+```diagrama
+titulo: Arquitectura de referencia: el caso streaming en Google Cloud
+nodo app: App / players | icono=musica | col=0 | fila=0 | sub=reproducciones
+nodo ps: Pub/Sub | icono=pubsub | col=1 | fila=0 | color=azul | sub=tema reproducciones
+nodo bqb: streaming_bronze | icono=bigquery | col=2 | fila=0 | color=naranja | sub=reproducciones y suscripciones (por día)
+nodo df: Dataflow | icono=dataflow | col=2 | fila=1 | color=rojo | sub=ventanas de 1 min: top en vivo
+nodo bt: Bigtable | icono=bigtable | col=3 | fila=1 | color=cian | sub=pantalla en vivo
+nodo sql: Cloud SQL | icono=cloudsql | col=0 | fila=2 | forma=cilindro | sub=suscripciones
+nodo dst: Datastream | icono=datastream | col=1 | fila=2 | color=azul | sub=CDC
+nodo dfm: Dataform | icono=dataform | col=3 | fila=0 | color=violeta | sub=silver y gold: MAU, churn, MRR
+nodo lk: Looker | icono=dashboard | col=4 | fila=0 | color=verde
+nodo cmp: Composer 03:00 | icono=composer | col=3 | fila=2 | color=violeta | sub=orquesta Dataform
+flecha app -> ps
+flecha ps -> bqb: suscripción BigQuery
+flecha ps -> df
+flecha df -> bt
+flecha sql -> dst
+flecha dst -> bqb
+flecha bqb -> dfm
+flecha dfm -> lk: con assertions
+flecha cmp -> dfm: dispara | estilo=punteada | color=violeta
 ```
+
+Gobierno: policy tags en email y edad, seguridad por fila según país, y Dataplex para calidad y linaje. La infraestructura se crea con Terraform y Cloud Build.
 
 :::practica terminal Ver el Airflow administrado de Google Cloud
 1. Lista los entornos de Cloud Composer: cada entorno es un Airflow completo administrado por Google.

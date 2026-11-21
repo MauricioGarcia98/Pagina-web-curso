@@ -96,10 +96,10 @@ fila 3: 1003, Ana, web, 2024-03-16, 42.5   nombre: Ana, Luis, Ana, Marta, ...
 </ul>
 <h3>Por dentro de un Parquet</h3>
 <p>Un archivo Parquet se divide en <strong>row groups</strong> (bloques de, por ejemplo, 1 millón de filas), y dentro de cada uno, cada columna se guarda por separado. Al final del archivo hay un <strong>pie</strong> (<em>footer</em>) con estadísticas de cada bloque: el <strong>mínimo y el máximo</strong> de cada columna.</p>
-<pre><code class="language-text">ventas.parquet
-├── row group 1  │ fecha: min 2024-01-01  max 2024-01-31 │ total: min 0.5 max 980 │
-├── row group 2  │ fecha: min 2024-02-01  max 2024-02-29 │ ...
-└── footer (esquema + estadísticas)</code></pre>
+<figure class="diagrama"><figcaption>Por dentro de un archivo Parquet: bloques con estadísticas y un pie al final</figcaption></figure>
+
+
+<p>Si buscas pedidos de febrero, el lector mira el <strong>footer</strong>, ve que el row group 1 termina en enero y <strong>lo saltea sin leerlo</strong>.</p>
 <p>Si consultas <code>WHERE fecha = &#39;2024-02-10&#39;</code>, Spark lee el pie, ve que el row group 1 termina el 31 de enero y <strong>se lo salta sin leerlo</strong>. Esto es el <em>predicate pushdown</em> que viste en la lección anterior.</p>
 <h2>Particionado en disco</h2>
 <p>Al escribir puedes <strong>particionar por una columna</strong>: Spark crea una carpeta por cada valor.</p>
@@ -204,11 +204,9 @@ VACUUM silver.clientes RETAIN 168 HOURS;</code></pre>
 
 
 <p>Así viaja un pedido de Tienda Andina por las tres capas:</p>
-<pre><code class="language-text">BRONZE  {&quot;id&quot;:&quot;1001&quot;,&quot;cli&quot;:&quot;  ANA@MAIL.COM &quot;,&quot;total&quot;:&quot;89,90&quot;,&quot;ts&quot;:&quot;15/03/2024 10:22&quot;}   ← texto tal cual llegó
-           │  limpiar tipos, normalizar email, parsear fecha, quitar duplicados
-SILVER  pedido_id=1001  email=ana@mail.com  total=89.90  fecha_pedido=2024-03-15 10:22
-           │  unir con clientes y productos, agregar por día y país
-GOLD    fecha=2024-03-15  pais=Chile  pedidos=1.284  ventas=98.410,50                      ← lo que ve el dashboard</code></pre>
+<figure class="diagrama"><figcaption>Así viaja un pedido por las tres capas</figcaption></figure>
+
+
 <div class="callout callout-tip"><div class="callout-title">💡 Por qué conservar bronze</div>
 
 <p>Si mañana descubres un error en la limpieza, puedes <strong>reprocesar</strong> silver y gold desde bronze sin volver a pedir los datos al origen (que quizá ya no existan).</p>

@@ -60,6 +60,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Salar una clave caliente</h2>
 <p>Si una clave recibe demasiadas escrituras (el <code>NULL</code> de los anónimos, o un producto en oferta), se le agrega un sufijo, la <strong>sal</strong>: <code>anonimo#0</code>, <code>anonimo#1</code>, …, <code>anonimo#9</code>. Cada escritura elige uno (por ejemplo, según el id del evento), y la carga se reparte en 10 particiones. El costo: para leer &quot;todo lo anónimo&quot; hay que consultar las 10 claves y juntar los resultados. Es el mismo truco que se usa en Spark para el sesgo (<em>skew</em>) en un join, que viste en la lección de PySpark de entrevistas.</p>
+<figure class="diagrama"><figcaption>Salar una clave caliente: repartir las escrituras en varias particiones</figcaption></figure>
+
+
 <h2>Claves compuestas: partición más ordenamiento</h2>
 <p>DynamoDB y Cassandra permiten una clave de <strong>dos partes</strong>: la clave de partición decide dónde vive el registro, y la clave de <strong>ordenamiento</strong> lo mantiene ordenado dentro de la partición. Eso habilita consultas por rango dentro de una partición:</p>
 <div class="table-wrap"><table><thead><tr>

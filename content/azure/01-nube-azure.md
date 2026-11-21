@@ -37,12 +37,17 @@ Los data engineers trabajan casi siempre con **PaaS**: no instalas Spark ni parc
 
 Todo lo que creas en Azure vive dentro de una jerarquía de cajas. Entenderla es clave, porque los **permisos**, la **facturación** y las **políticas** se asignan en algún nivel y se heredan hacia abajo.
 
-```text
-Tenant (tu organización en Microsoft Entra ID: usuarios, grupos, identidades)
- └── Management groups (opcional, para empresas grandes)
-      └── Suscripciones (unidad de facturación y límites)   ← "sub-datos-prod", "sub-datos-dev"
-           └── Grupos de recursos (contenedores lógicos)    ← "rg-datos-dev"
-                └── Recursos                                ← cuenta de almacenamiento, workspace de Databricks, Key Vault…
+```diagrama
+titulo: La jerarquía de Azure: los permisos y políticas se heredan hacia abajo
+nodo ten: Tenant (Microsoft Entra ID) | icono=entra | col=0 | fila=0 | color=azul | sub=la organización: usuarios, grupos, identidades
+nodo mg: Grupos de administración (opcional) | icono=carpeta | col=1 | fila=0 | color=violeta | sub=agrupan suscripciones para aplicar políticas
+nodo sub: Suscripción | icono=azure | col=2 | fila=0 | color=cian | sub=quién paga y límite de acceso: sub-datos-dev, sub-datos-prod
+nodo rg: Grupo de recursos | icono=carpeta | col=3 | fila=0 | color=verde | sub=carpeta lógica de un proyecto o entorno: rg-datos-dev
+nodo rec: Recursos | icono=cubo | col=4 | fila=0 | color=naranja | sub=cuenta de almacenamiento, Key Vault, workspace de Databricks
+flecha ten -> mg
+flecha mg -> sub
+flecha sub -> rg
+flecha rg -> rec
 ```
 
 <!-- dg:az01-jerarquia -->
@@ -113,12 +118,30 @@ Además se ponen **etiquetas (tags)**, pares clave-valor como `proyecto=lakehous
 
 Así se vería la plataforma de datos de Tienda Andina en Azure:
 
-```text
-  ERP / web / app ──► Data Factory ──► ADLS Gen2 (bronze) ──► Databricks ──► ADLS (silver, gold) ──► Power BI
-       eventos     ──► Event Hubs  ──┘                         ▲    │
-                                         Key Vault (secretos) ─┘    └─► Azure Monitor (logs y alertas)
-                          Airflow o Data Factory orquestan todo el flujo cada noche
+```diagrama
+titulo: La plataforma de datos de Tienda Andina en Azure
+nodo src: ERP / web / app | icono=base | col=0 | fila=0 | sub=fuentes batch
+nodo ev: Eventos | icono=stream | col=0 | fila=1 | sub=en tiempo real
+nodo adf: Data Factory | icono=adf | col=1 | fila=0 | color=azul | sub=copia
+nodo eh: Event Hubs | icono=eventhubs | col=1 | fila=1 | color=azul
+nodo br: ADLS Gen2 bronze | icono=adls | col=2 | fila=0 | color=naranja
+nodo dbx: Databricks | icono=databricks | col=3 | fila=0 | color=rojo | sub=transforma
+nodo sg: ADLS silver y gold | icono=adls | col=4 | fila=0 | color=amarillo
+nodo pbi: Power BI | icono=powerbi | col=5 | fila=0 | color=verde
+nodo kv: Key Vault | icono=keyvault | col=3 | fila=1 | color=violeta | sub=secretos
+nodo mon: Azure Monitor | icono=monitor | col=4 | fila=1 | color=gris | sub=logs y alertas
+flecha src -> adf
+flecha ev -> eh
+flecha adf -> br
+flecha eh -> br
+flecha br -> dbx
+flecha dbx -> sg
+flecha sg -> pbi
+flecha kv -> dbx: secretos | estilo=punteada
+flecha dbx -> mon | estilo=punteada
 ```
+
+Airflow o Data Factory orquestan todo el flujo cada noche.
 
 ## Costos (¡importante!)
 

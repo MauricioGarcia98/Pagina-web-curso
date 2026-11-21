@@ -32,12 +32,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
-<pre><code class="language-text">Glue Data Catalog
-├── base de datos: lake_bronze
-│   ├── tabla: ventas     → s3://lake-tienda-dev/bronze/ventas/    (csv, particiones: anio, mes)
-│   └── tabla: clientes   → s3://lake-tienda-dev/bronze/clientes/  (csv)
-└── base de datos: lake_silver
-    └── tabla: ventas     → s3://lake-tienda-dev/silver/ventas/    (parquet, particiones: anio, mes)</code></pre>
+<figure class="diagrama"><figcaption>El Glue Data Catalog: bases de datos, tablas y dónde están sus archivos</figcaption></figure>
+
+
 <h2>Crawlers: descubrir el esquema solo</h2>
 <p>Un <strong>crawler</strong> recorre una ruta de S3, mira los archivos, deduce columnas, tipos y particiones, y crea o actualiza las tablas del catálogo.</p>
 <pre data-norun><code class="language-bash">aws glue create-database --database-input '{&quot;Name&quot;: &quot;lake_bronze&quot;}'

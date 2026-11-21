@@ -20,18 +20,38 @@ Tienda Andina quiere:
 
 ## La arquitectura
 
-```text
-                ┌──────────────────────── Azure ────────────────────────────┐
- ERP (SQL) ──ADF──▶ ADLS Gen2 /bronze ──┐                                     │
- API pagos ─Python─▶ ADLS Gen2 /bronze ──┤  Databricks (Unity Catalog)         │
- Clics web ─Event Hubs────────────────── ┤   Auto Loader → bronze (Delta)      │
-                                         │   PySpark     → silver (MERGE)      │
-                                         │   dbt         → gold (estrella)     │
-                                         │   SQL Warehouse → Power BI          │
-                                         └─────────────────────────────────────┘
- Orquestación: Airflow (o Lakeflow Jobs)          Secretos: Key Vault   IaC: Bicep + Declarative Automation Bundles
- CI/CD: GitHub Actions   Calidad: tests dbt + expectations   Observabilidad: alertas + system tables
+```diagrama
+titulo: La arquitectura del proyecto final en Azure
+nodo erp: ERP (SQL) | icono=base | col=0 | fila=0 | forma=cilindro
+nodo api: API de pagos | icono=webhook | col=0 | fila=1
+nodo web: Clics web | icono=web | col=0 | fila=2
+nodo adf: Data Factory | icono=adf | col=1 | fila=0 | color=azul
+nodo py: Script de Python | icono=python | col=1 | fila=1 | color=azul
+nodo eh: Event Hubs | icono=eventhubs | col=1 | fila=2 | color=azul
+nodo br: ADLS Gen2 bronze | icono=adls | col=2 | fila=1 | color=naranja | sub=Auto Loader → bronze Delta
+nodo sv: silver | icono=databricks | col=3 | fila=1 | color=gris | sub=PySpark con MERGE
+nodo gd: gold (estrella) | icono=dbt | col=4 | fila=1 | color=amarillo | sub=dbt
+nodo pbi: Power BI | icono=powerbi | col=5 | fila=1 | color=verde | sub=vía SQL Warehouse
+grupo dbx: Databricks (Unity Catalog) | nodos=sv,gd | color=rojo
+flecha erp -> adf
+flecha api -> py
+flecha web -> eh
+flecha adf -> br
+flecha py -> br
+flecha eh -> br
+flecha br -> sv
+flecha sv -> gd
+flecha gd -> pbi
 ```
+
+| Pieza transversal | Herramienta |
+|---|---|
+| Orquestación | Airflow (o Lakeflow Jobs) |
+| Secretos | Key Vault |
+| Infraestructura como código | Bicep + Declarative Automation Bundles |
+| CI/CD | GitHub Actions |
+| Calidad | Tests de dbt + expectations |
+| Observabilidad | Alertas + system tables |
 
 ```recorrido
 titulo: Un pedido recorre la arquitectura del proyecto

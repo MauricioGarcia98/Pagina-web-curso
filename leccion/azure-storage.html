@@ -58,10 +58,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>La jerarquía es:</p>
-<pre><code class="language-text">Storage Account  stdatosdev001                      ← la cuenta (un recurso de Azure)
- └── Contenedor (file system)  bronze               ← como un bucket; uno por capa
-      └── Carpetas  ventas/anio=2024/mes=12/        ← carpetas reales
-           └── Archivo  ventas.parquet</code></pre>
+<figure class="diagrama"><figcaption>De la cuenta de almacenamiento al archivo</figcaption></figure>
+
+
 <h2>Crear la cuenta</h2>
 <pre data-norun><code class="language-bash">az storage account create \
   --name stdatosdev001 \

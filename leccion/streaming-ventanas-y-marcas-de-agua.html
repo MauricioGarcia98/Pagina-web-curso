@@ -54,6 +54,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Con los tiempos en segundos, la ventana fija de un evento empieza en <code>ts - ts % tamaño</code>: con ventanas de 300 segundos, un evento en el segundo 1270 cae en la ventana <code>[1200, 1500)</code>.</p>
 <h2>La marca de agua</h2>
 <p>La <strong>marca de agua</strong> es &quot;el tiempo del evento más tardío que vi, menos el retraso que tolero&quot;. Una ventana se puede cerrar (y publicar su resultado definitivo) cuando la marca de agua pasa su final; un evento cuyo tiempo es anterior a la marca de agua llega <strong>demasiado tarde</strong> y se descarta (<a href="https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html">marcas de agua en Spark</a>, <a href="https://docs.databricks.com/aws/en/structured-streaming/watermarks">en Databricks</a>).</p>
+<figure class="diagrama"><figcaption>La marca de agua decide qué evento llega tarde</figcaption></figure>
+
+
 <div class="table-wrap"><table><thead><tr>
 <th>Retraso tolerado</th>
 <th>Ventaja</th>

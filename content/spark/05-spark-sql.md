@@ -13,10 +13,19 @@ Todo lo que aprendiste de SQL funciona en Spark. **Spark SQL** y la API de DataF
 
 Esta es la idea más tranquilizadora del módulo: una consulta escrita en SQL y la misma lógica escrita con la API de DataFrames **producen exactamente el mismo plan** de ejecución. Ambas pasan por **Catalyst**, el optimizador de Spark:
 
-```text
-spark.sql("SELECT …")  ─┐
-                         ├─▶  plan lógico  ─▶  Catalyst optimiza  ─▶  plan físico  ─▶  ejecución en el cluster
-df.filter(…).groupBy(…) ─┘
+```diagrama
+titulo: SQL y DataFrames terminan en el mismo plan
+nodo sql: spark.sql("SELECT …") | icono=codigo | col=0 | fila=0 | color=azul
+nodo df: df.filter(…).groupBy(…) | icono=python | col=0 | fila=1 | color=amarillo
+nodo pl: Plan lógico | icono=documento | col=1 | fila=0 | color=gris
+nodo cat: Catalyst optimiza | icono=reglas | col=2 | fila=0 | color=violeta
+nodo pf: Plan físico | icono=engranaje | col=3 | fila=0 | color=naranja
+nodo ex: Ejecución en el clúster | icono=spark | col=4 | fila=0 | color=verde
+flecha sql -> pl
+flecha df -> pl
+flecha pl -> cat
+flecha cat -> pf
+flecha pf -> ex
 ```
 
 No hay uno "más rápido". La elección es de **claridad y de equipo**:

@@ -63,6 +63,18 @@ secrets:
 
 Dentro de un contenedor, `localhost` es **ese mismo contenedor**. Si el pipeline usa `DB_HOST=localhost`, busca una base dentro de su propio contenedor y no la encuentra. Entre servicios se usa el nombre del servicio (`db`) y el puerto **interno** (5432); el puerto publicado (5433) es solo para conectarte desde tu computadora ([redes en Compose](https://docs.docker.com/compose/how-tos/networking/)).
 
+```diagrama
+titulo: Dentro de la red de Compose, los servicios se llaman por su nombre
+nodo pc: Tu computadora | icono=monitor | col=0 | fila=0 | color=gris | sub=DBeaver o psql a localhost:5433
+nodo db: Servicio db | icono=postgres | col=1 | fila=0 | color=azul | forma=cilindro | sub=Postgres en el puerto 5432 interno
+nodo vol: Volumen datos_db | icono=base | col=2 | fila=0 | color=naranja | sub=los datos sobreviven al contenedor
+nodo pl: Servicio pipeline | icono=python | col=1 | fila=1 | color=verde | sub=DB_HOST=db, puerto 5432
+grupo red: Red interna de Compose | nodos=db,pl | color=cian
+flecha pc -> db: puerto publicado 5433
+flecha pl -> db: db:5432
+flecha db -- vol | estilo=punteada
+```
+
 ## Volúmenes y bind mounts
 
 | | Volumen con nombre | Bind mount |

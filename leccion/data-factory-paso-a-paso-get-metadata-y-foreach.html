@@ -24,7 +24,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — El patrón &quot;listar y recorrer&quot;</h2>
-<pre><code class="language-text">Get Metadata (childItems)  ──▶  ForEach (items = la lista)  ──▶  [ adentro: Copy con @item().name ]</code></pre>
+<figure class="diagrama"><figcaption>El patrón &quot;listar y recorrer&quot;</figcaption></figure>
+
+
 <p>Sirve cuando no sabes cuántos archivos hay ni cómo se llaman, y quieres tratar cada uno por separado: copiarlo, registrarlo, validarlo.</p>
 <h2>Paso 2 — Get Metadata</h2>
 <p>Crea un pipeline <code>pl_copiar_carpeta</code>. Agrega <strong>Get Metadata</strong>, llámala <code>Listar archivos</code> y en <strong>Settings</strong>:</p>

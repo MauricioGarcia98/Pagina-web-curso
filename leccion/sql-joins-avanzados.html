@@ -27,12 +27,45 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Para esto existen los <strong>outer joins</strong> (externos): <code>LEFT</code>, <code>RIGHT</code> y <code>FULL</code>.</p>
 <h2>Las cinco formas de unir, con un ejemplo mínimo</h2>
 <p>Imagina dos tablitas:</p>
-<pre><code class="language-text">clientes            pedidos
-id │ nombre         pedido │ cliente_id
-───┼────────        ───────┼───────────
-1  │ Ana            10     │ 1
-2  │ Beto           11     │ 1
-3  │ Carla          12     │ 4      ← cliente que no existe</code></pre>
+<p><strong>clientes</strong></p>
+<div class="table-wrap"><table><thead><tr>
+<th>id</th>
+<th>nombre</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Ana</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Beto</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Carla</td>
+</tr>
+</tbody></table></div>
+<p><strong>pedidos</strong></p>
+<div class="table-wrap"><table><thead><tr>
+<th>pedido</th>
+<th>cliente_id</th>
+</tr>
+</thead><tbody><tr>
+<td>10</td>
+<td>1</td>
+</tr>
+<tr>
+<td>11</td>
+<td>1</td>
+</tr>
+<tr>
+<td>12</td>
+<td>4 ← un cliente que no existe</td>
+</tr>
+</tbody></table></div>
+<figure class="diagrama"><figcaption>Quién tiene pareja y quién no</figcaption></figure>
+
+
 <div class="table-wrap"><table><thead><tr>
 <th>Tipo</th>
 <th>Filas del resultado</th>

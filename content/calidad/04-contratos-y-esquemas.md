@@ -42,6 +42,22 @@ Herramientas como los contratos de dbt (`contract: enforced: true`) o las expect
 
 La pregunta clave ante un cambio de esquema: **¿los consumidores que leen con el esquema viejo siguen funcionando?**
 
+```diagrama
+titulo: ¿El cambio de esquema rompe a los consumidores?
+nodo c: Cambio en el esquema | icono=documento | col=0 | fila=1 | color=gris
+nodo ag: Agregar una columna nula | icono=check | col=1 | fila=0 | color=verde | sub=compatible
+nodo en: Ensanchar un tipo | icono=check | col=1 | fila=1 | color=verde | sub=int → long, int → double
+nodo el: Eliminar o renombrar | icono=x | col=1 | fila=2 | color=rojo | sub=incompatible
+nodo pub: Publicar con aviso | icono=correo | col=2 | fila=0 | color=verde
+nodo ver: Versión nueva | icono=git | col=2 | fila=2 | color=naranja | sub=pedidos_v2 + vista de transición
+flecha c -> ag
+flecha c -> en
+flecha c -> el
+flecha ag -> pub
+flecha en -> pub
+flecha el -> ver
+```
+
 | Cambio | ¿Rompe? | Por qué |
 |---|---|---|
 | Agregar una columna que puede ser nula | No | Quien no la conoce, la ignora |

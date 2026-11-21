@@ -16,6 +16,19 @@ autoevaluacion: ¿Sabes en qué orden llegan los mensajes de distintas particion
 ruta accesos
 ```
 
+```diagrama
+titulo: Los sistemas de Ruta Sur: telemetría en tiempo real y el sistema de transporte
+nodo cam: Camionetas | icono=camion | col=0 | fila=0 | color=gris | sub=posición y estado cada pocos segundos
+nodo kfk: Tópico rutasur.telemetria | icono=kafka | col=1 | fila=0 | color=azul | sub=4 particiones · clave = vehículo · 3 días
+nodo st: Stream con checkpoint | icono=spark | col=2 | fila=0 | color=rojo | sub=dedupe, tiempo del evento
+nodo tms: API del TMS | icono=web | col=1 | fila=1 | color=naranja | sub=entregas planificadas · 30 pedidos por minuto
+nodo gd: gold: entregas a tiempo | icono=dashboard | col=3 | fila=0 | color=verde | sub=SLA por ruta y conductor
+flecha cam -> kfk
+flecha kfk -> st
+flecha tms -> st: unir con lo planificado
+flecha st -> gd
+```
+
 Credenciales de prueba, solo tuyas. Van a un Key Vault.
 
 ## 2. La telemetría

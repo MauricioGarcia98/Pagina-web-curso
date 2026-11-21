@@ -11,10 +11,23 @@ autoevaluacion: ¿Por qué la entrega "al menos una vez" obliga a deduplicar? | 
 
 **Pub/Sub** recibe mensajes de quienes **publican** y los entrega a quienes están **suscritos**. Desacopla a los sistemas: la app que vende no necesita saber quién usa sus eventos.
 
-```text
- app de ventas ──publish──►  TEMA "ventas"  ──► suscripción "ventas-a-bigquery" ──► BigQuery (directo, sin código)
-                                           ├──► suscripción "ventas-fraude"     ──► Dataflow (regla de fraude)
-                                           └──► suscripción "ventas-auditoria"  ──► Cloud Storage (archivo)
+```diagrama
+titulo: Un tema, tres suscripciones: cada una recibe todos los mensajes
+nodo app: App de ventas | icono=movil | col=0 | fila=1 | sub=publica
+nodo tema: Tema "ventas" | icono=pubsub | col=1 | fila=1 | color=azul
+nodo s1: suscripción ventas-a-bigquery | icono=cola | col=2 | fila=0 | color=violeta
+nodo s2: suscripción ventas-fraude | icono=cola | col=2 | fila=1 | color=violeta
+nodo s3: suscripción ventas-auditoria | icono=cola | col=2 | fila=2 | color=violeta
+nodo bq: BigQuery | icono=bigquery | col=3 | fila=0 | color=naranja | sub=directo, sin código
+nodo df: Dataflow | icono=dataflow | col=3 | fila=1 | color=rojo | sub=regla de fraude
+nodo gcs: Cloud Storage | icono=gcs | col=3 | fila=2 | color=verde | sub=archivo de auditoría
+flecha app -> tema: publish
+flecha tema -> s1
+flecha tema -> s2
+flecha tema -> s3
+flecha s1 -> bq
+flecha s2 -> df
+flecha s3 -> gcs
 ```
 
 | Concepto | Qué es |

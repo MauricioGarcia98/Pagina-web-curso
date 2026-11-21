@@ -83,6 +83,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Ojo con el error típico: poner <code>return False</code> <strong>dentro</strong> del bucle, en un <code>else</code>. Así la función decide mirando solo el primer elemento.</p>
 <h2>Diccionario índice: de dos bucles a uno</h2>
 <p>&quot;¿Hay dos números en la lista que sumen 10?&quot; La primera idea es probar todos los pares: un bucle dentro de otro. Con 100.000 números son 5.000 millones de pares.</p>
+<figure class="diagrama"><figcaption>Dos bucles anidados (O(n²)) contra un diccionario (O(n))</figcaption></figure>
+
+
 <p>La idea mejor: mientras recorres, guarda lo que ya viste. Para cada número <code>n</code>, el que necesitas es <code>10 - n</code>. Si ya lo viste, terminaste.</p>
 <pre><code class="language-python">def dos_suman(numeros, objetivo):
     vistos = set()

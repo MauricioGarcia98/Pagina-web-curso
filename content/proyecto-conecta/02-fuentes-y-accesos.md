@@ -14,6 +14,24 @@ autoevaluacion: ¿Sabes leer un correo quoted-printable en Latin-1? | ¿Sabes qu
 conecta accesos
 ```
 
+```diagrama
+titulo: Los sistemas de Conecta y el lugar de la IA
+nodo mesa: Mesa de ayuda | icono=mensaje | col=0 | fila=0 | color=azul | sub=tickets
+nodo mail: Buzones de correo | icono=correo | col=0 | fila=1 | color=azul | sub=mensajes de clientes
+nodo pdf: Contratos en PDF | icono=documento | col=0 | fila=2 | color=gris
+nodo lake: Lakehouse | icono=capas | col=1 | fila=1 | color=naranja | sub=textos limpios y fragmentados
+nodo ia: Lumen IA | icono=robot | col=2 | fila=0 | color=violeta | sub=clasificar y extraer
+nodo vec: Embeddings + índice | icono=vector | col=2 | fila=2 | color=violeta | sub=búsqueda por significado
+nodo rag: Asistente con RAG | icono=chispa | col=3 | fila=1 | color=verde | sub=responde citando el contrato, con evaluación
+flecha mesa -> lake
+flecha mail -> lake
+flecha pdf -> lake
+flecha lake -> ia
+flecha lake -> vec
+flecha ia -> rag
+flecha vec -> rag
+```
+
 ## La mesa de ayuda · `https://api.mesa.conecta.example/v1`
 
 `Authorization: Bearer mz_…` · solo lectura.

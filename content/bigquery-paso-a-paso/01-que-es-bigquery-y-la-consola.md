@@ -23,11 +23,15 @@ Con una base tradicional alquilas un local y lo amueblas: eliges el tamaño del 
 
 ## Paso 2 — La jerarquía
 
-```text
-Proyecto de Google Cloud (tienda-andina-dev)
-└── Dataset (tienda, analitica…)   ← región y permisos
-    ├── Tablas
-    └── Vistas
+```diagrama
+titulo: Proyecto → dataset → tablas y vistas
+nodo p: Proyecto de Google Cloud | icono=gcp | col=0 | fila=0 | color=gris | sub=tienda-andina-dev
+nodo d: Dataset | icono=carpeta | col=1 | fila=0 | color=azul | sub=tienda, analitica… · región y permisos
+nodo t: Tablas | icono=tabla | col=2 | fila=0 | color=naranja
+nodo v: Vistas | icono=lupa | col=2 | fila=1 | color=verde
+flecha p -> d
+flecha d -> t
+flecha d -> v
 ```
 
 El nombre completo de una tabla es **`proyecto.dataset.tabla`**, por ejemplo `` `tienda-andina-dev.tienda.pedidos` `` (con backticks porque el proyecto tiene guiones). El SQL de BigQuery se llama **GoogleSQL**.

@@ -33,15 +33,23 @@ Si compartes capturas de tu portal (en un foro, un informe o un portafolio), tap
 
 ## Paso 2 — Cómo organiza Azure una empresa
 
-```text
-Tenant
- └── Management group "Empresa"           ← políticas para todos
-      ├── Management group "Plataforma"
-      │    └── Suscripción conectividad, identidad, logs
-      └── Management group "Datos"
-           ├── Suscripción sub-datos-dev   ← presupuestos y permisos de dev
-           ├── Suscripción sub-datos-qa
-           └── Suscripción sub-datos-prod  ← bloqueos, alertas, sin acceso manual
+```diagrama
+titulo: Cómo organiza Azure una empresa: grupos de administración y suscripciones por entorno
+nodo ten: Tenant | icono=entra | col=1 | fila=0 | color=azul
+nodo emp: Management group "Empresa" | icono=carpeta | col=1 | fila=1 | color=violeta | sub=políticas para todos
+nodo pla: Management group "Plataforma" | icono=carpeta | col=0 | fila=2 | color=gris
+nodo dat: Management group "Datos" | icono=carpeta | col=2 | fila=2 | color=violeta
+nodo con: Suscripciones de conectividad, identidad y logs | icono=azure | col=0 | fila=3 | color=gris
+nodo dev: sub-datos-dev | icono=azure | col=1 | fila=3 | color=verde | sub=presupuestos y permisos de dev
+nodo qa: sub-datos-qa | icono=azure | col=2 | fila=3 | color=amarillo
+nodo prod: sub-datos-prod | icono=azure | col=3 | fila=3 | color=rojo | sub=bloqueos, alertas, sin acceso manual
+flecha ten -> emp
+flecha emp -> pla
+flecha emp -> dat
+flecha pla -> con
+flecha dat -> dev
+flecha dat -> qa
+flecha dat -> prod
 ```
 
 | Pieza | Para qué |

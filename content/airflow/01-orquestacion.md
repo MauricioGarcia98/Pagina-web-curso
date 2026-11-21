@@ -19,10 +19,17 @@ Airflow no toca ningún instrumento: no procesa datos él mismo. Le indica a cad
 
 Un **DAG** (grafo dirigido acíclico) es el conjunto de **tareas** con sus **dependencias**:
 
-```text
-extraer_ventas ──┐
-                 ├──▶ transformar ──▶ dbt_build ──▶ notificar
-extraer_clientes ┘
+```diagrama
+titulo: Un DAG: tareas con dependencias, sin ciclos
+nodo ev: extraer_ventas | icono=archivos | col=0 | fila=0 | color=azul
+nodo ec: extraer_clientes | icono=archivos | col=0 | fila=1 | color=azul
+nodo t: transformar | icono=transformar | col=1 | fila=0 | color=violeta | sub=espera a las dos extracciones
+nodo d: dbt_build | icono=dbt | col=2 | fila=0 | color=naranja
+nodo n: notificar | icono=correo | col=3 | fila=0 | color=verde
+flecha ev -> t
+flecha ec -> t
+flecha t -> d
+flecha d -> n
 ```
 
 - **Dirigido**: las flechas tienen sentido (A antes que B).

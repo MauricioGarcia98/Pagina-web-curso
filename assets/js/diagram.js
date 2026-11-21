@@ -51,7 +51,22 @@
         n.col = c; n.fila = f;
       }
     }
-    const vertical = spec.direccion === 'abajo';
+    let vertical = spec.direccion === 'abajo';
+    // En pantallas angostas (teléfonos), un diagrama más ancho que alto se dibuja traspuesto: el flujo va de
+    // arriba hacia abajo y entra en el ancho de la pantalla, en lugar de quedar cortado y obligar a deslizar.
+    // En pantallas anchas pasa lo mismo con las cuadrículas (2+ filas) que no entran en la columna de la lección
+    // y que traspuestas sí entran; las tuberías de una sola fila se quedan horizontales.
+    {
+      const cols = Math.max(...nodos.map((n) => n.col)) + 1, filas = Math.max(...nodos.map((n) => n.fila)) + 1;
+      const ancho = vertical ? filas : cols, alto = vertical ? cols : filas;
+      const disponible = spec._ancho || 9999, estimado = (k) => k * CELDA_W + 2 * MARGEN;
+      // en escritorio: si achicándolo hasta ~55% entra, se achica (ver más abajo); si no, se traspone
+      const traspone = spec._estrecho
+        ? ancho > 2 && ancho > alto
+        : ancho > alto && estimado(ancho) * 0.72 > disponible && estimado(alto) * 0.72 <= disponible &&
+          (alto >= 2 || estimado(ancho) * 0.55 > disponible);
+      if (traspone) { vertical = !vertical; spec._traspuesto = true; }
+    }
     for (const n of nodos) {
       const w = n.ancho ? Number(n.ancho) : NODO_W;
       const util = n.forma === 'rombo' || n.forma === 'hexagono' || n.forma === 'circulo' ? w * 0.68 : w;
@@ -236,6 +251,8 @@
     let spec;
     try { spec = JSON.parse(fig.dataset.spec); } catch (e) { return; }
     fig.dataset.listo = '1';
+    spec._ancho = fig.clientWidth || window.innerWidth;
+    spec._estrecho = spec._ancho < 640;
     const porId = ubicar(spec);
     // grupos: rectángulo que envuelve a sus nodos
     const grupos = spec.grupos.map((g) => {
@@ -260,7 +277,7 @@
 
     const svg = el('svg', { viewBox: `${minX} ${minY} ${W} ${H}`, width: W, role: 'img', 'aria-label': spec.titulo || 'Diagrama', class: 'dg-svg' });
     svg.style.maxWidth = W + 'px';
-    svg.style.minWidth = Math.round(Math.min(W, Math.max(520, W * 0.72))) + 'px';   // muy ancho: se desplaza en vez de achicarse de más
+    svg.style.minWidth = Math.round(Math.min(W, Math.max(spec._estrecho ? 300 : 520, W * (spec._estrecho ? 0.47 : 0.72)))) + 'px';   // muy ancho: se desplaza en vez de achicarse de más
     const rc = rough.svg(svg);
     let semilla = 7;
     const base = () => ({ seed: semilla++, roughness: 1.1, bowing: 0.9, strokeWidth: 1.6 });
@@ -459,6 +476,10 @@
     bPng.addEventListener('click', () => exportar(svg, marco, spec.titulo, 'png'));
     bSvg.addEventListener('click', () => exportar(svg, marco, spec.titulo, 'svg'));
     fig.insertBefore(marco, fig.firstChild);
+    // si se pasa del ancho por poco (en escritorio hasta ~30%), achicarlo en vez de dejar una barra de desplazamiento
+    const cs = getComputedStyle(marco), minimo = parseFloat(svg.style.minWidth) || 0;
+    const visible = marco.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+    if (visible && minimo > visible && minimo < visible * (spec._estrecho ? 1.15 : 1.31)) svg.style.minWidth = visible + 'px';
   }
 
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

@@ -26,11 +26,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Cómo está organizado AWS</h2>
-<pre><code class="language-text">Organización (AWS Organizations)          ← la empresa: agrupa cuentas y aplica reglas
- └── Cuentas (account)  123456789012      ← unidad de facturación y de aislamiento: datos-dev, datos-prod
-      └── Regiones  us-east-1, sa-east-1   ← lugares del mundo
-           └── Zonas de disponibilidad      ← centros de datos separados dentro de la región (us-east-1a, 1b…)
-                └── Recursos                ← un bucket S3, un job de Glue, un cluster EMR…</code></pre>
+<figure class="diagrama"><figcaption>Cómo se organiza AWS, de la empresa a cada recurso</figcaption></figure>
+
+
 <ul>
 <li><strong>Cuenta</strong>: es el equivalente a la <em>suscripción</em> de Azure o al <em>proyecto</em> de Google Cloud. Las empresas separan <strong>dev</strong>, <strong>staging</strong> y <strong>prod</strong> en cuentas distintas para que un error en desarrollo nunca toque producción.</li>
 <li><strong>Región</strong>: un lugar físico (<code>us-east-1</code> Virginia, <code>sa-east-1</code> São Paulo, <code>mx-central-1</code> México, <code>eu-west-1</code> Irlanda). Los datos <strong>no salen</strong> de la región salvo que tú los copies, algo clave para leyes de privacidad.</li>
@@ -39,12 +37,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ul>
 <h2>El mapa de servicios de datos</h2>
 <p>Lo que hace un data engineer en AWS casi siempre sigue este recorrido:</p>
-<pre><code class="language-text"> FUENTES             INGESTA                 ALMACENAMIENTO          PROCESO                  CONSUMO
- apps, APIs,  ──►  Kinesis / Firehose  ──►   S3 (data lake)   ──►   Glue (Spark)       ──►  Athena (SQL)
- bases, logs       DMS (bases de datos)      bronze/silver/gold      EMR (Spark/Hadoop)       Redshift (warehouse)
-                   Lambda, AppFlow           Glue Data Catalog       Lambda (eventos)         QuickSight (BI)
-                                             Lake Formation          dbt / Redshift           SageMaker (ML)
-                         ORQUESTACIÓN: Step Functions · MWAA (Airflow) · EventBridge</code></pre>
+<figure class="diagrama"><figcaption>El recorrido típico de los datos en AWS</figcaption></figure>
+
+
 <div class="table-wrap"><table><thead><tr>
 <th>Servicio</th>
 <th>Para qué lo usa un data engineer</th>
