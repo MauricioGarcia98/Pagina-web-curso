@@ -122,6 +122,7 @@ pyJobs.push(...exampleJobs);
 
 if (pyJobs.length) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'academia-'));
+  // mismas tablas que registra el PySpark del navegador (assets/js/engines.js): si un ejercicio usa otra, aquí también falla
   const pick = Object.keys(T).filter((k) => !['logins', 'tipos_cambio', 'clientes_crudo'].includes(k));
   fs.writeFileSync(path.join(tmp, 'tables.json'), JSON.stringify(Object.fromEntries(pick.map((k) => [k, T[k]]))));
   fs.writeFileSync(path.join(tmp, 'jobs.json'), JSON.stringify(pyJobs));

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Casos de negocio para analistas - de la pregunta vaga a la métrica · Academia de Datos</title><meta name="description" content="La entrevista de analista de datos no pregunta &quot;escribe un JOIN&quot; - pregunta &quot;las ventas de agosto cayeron, ¿qué pasó?&quot; o &quot;¿funcionó el checkout nuevo?&quot;. Aprendes un marco para responder (definir la métrica, descomponerla, segmentar, descartar explicaciones aburridas, recomendar) y lo aplicas con SQL sobre los datos del curso, incluida una paradoja de Simpson real escondida en el experimento A/B."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-casos-de-analista.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Casos de negocio para analistas - de la pregunta vaga a la métrica · Academia de Datos"><meta property="og:description" content="La entrevista de analista de datos no pregunta &quot;escribe un JOIN&quot; - pregunta &quot;las ventas de agosto cayeron, ¿qué pasó?&quot; o &quot;¿funcionó el checkout nuevo?&quot;. Aprendes un marco para responder (definir la métrica, descomponerla, segmentar, descartar explicaciones aburridas, recomendar) y lo aplicas con SQL sobre los datos del curso, incluida una paradoja de Simpson real escondida en el experimento A/B."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-casos-de-analista.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#entrevistas">🎤 Entrevistas técnicas de datos</a> · Experto · 75 min</div>
+<h1>Casos de negocio para analistas - de la pregunta vaga a la métrica</h1><p class="resumen">La entrevista de analista de datos no pregunta &quot;escribe un JOIN&quot; - pregunta &quot;las ventas de agosto cayeron, ¿qué pasó?&quot; o &quot;¿funcionó el checkout nuevo?&quot;. Aprendes un marco para responder (definir la métrica, descomponerla, segmentar, descartar explicaciones aburridas, recomendar) y lo aplicas con SQL sobre los datos del curso, incluida una paradoja de Simpson real escondida en el experimento A/B.</p>
+<a class="cta" href="../index.html#/l/entrevistas-casos-de-analista">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Definir una métrica sin ambigüedad (numerador, denominador, filtros, período)</li><li>Descomponer un cambio en volumen y valor (pedidos × ticket promedio)</li><li>Segmentar por canal, dispositivo o cliente para encontrar dónde está el cambio</li><li>Reconocer la paradoja de Simpson y el efecto de mezcla en un experimento</li><li>Cerrar un caso con una recomendación accionable y sus riesgos</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un médico que escucha &quot;me siento mal&quot; no receta enseguida: pregunta desde cuándo, dónde duele, mide la fiebre y descarta lo común antes de lo raro. Un caso de negocio es igual: &quot;las ventas cayeron&quot; es el síntoma; tu trabajo es medir, ubicar el dolor y descartar las causas aburridas (un feriado, un dato mal cargado) antes de las interesantes.</p>
+</div>
+
+
+<h2>El marco en cinco pasos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Paso</th>
+<th>Pregunta que te haces</th>
+<th>Ejemplo con &quot;las ventas de agosto cayeron un 33 %&quot;</th>
+</tr>
+</thead><tbody><tr>
+<td>1. Definir</td>
+<td>¿Qué métrica exacta, qué período, contra qué?</td>
+<td>Ventas netas de pedidos no cancelados, agosto contra julio de 2024</td>
+</tr>
+<tr>
+<td>2. Validar</td>
+<td>¿El dato es real o es un problema de carga?</td>
+<td>¿Llegaron todos los archivos? ¿Cambió la definición de &quot;cancelado&quot;?</td>
+</tr>
+<tr>
+<td>3. Descomponer</td>
+<td>¿Bajó el volumen o el valor?</td>
+<td>Ventas = pedidos × ticket promedio</td>
+</tr>
+<tr>
+<td>4. Segmentar</td>
+<td>¿Dónde está concentrado el cambio?</td>
+<td>Por canal, país, dispositivo, cliente nuevo o recurrente</td>
+</tr>
+<tr>
+<td>5. Recomendar</td>
+<td>¿Qué haría, con qué riesgo, y cómo lo mido?</td>
+<td>&quot;Revisar la campaña de julio en web; si fue estacional, comparar con agosto de 2023&quot;</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Descartar lo aburrido primero</div>
+
+<p>Antes de proponer una teoría sofisticada, pregunta por lo aburrido: ¿cambió la cantidad de días del mes, hubo un feriado, un corte del sistema, un cambio en la forma de contar? En la práctica, una buena parte de las &quot;caídas&quot; son problemas de datos o de calendario.</p>
+</div>
+
+
+<h2>Definir una métrica sin ambigüedad</h2>
+<p>&quot;Tasa de cancelación&quot; puede significar tres cosas distintas. Escríbela completa:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Decisión</th>
+</tr>
+</thead><tbody><tr>
+<td>Numerador</td>
+<td>Pedidos con <code>estado = &#39;cancelado&#39;</code></td>
+</tr>
+<tr>
+<td>Denominador</td>
+<td><strong>Todos</strong> los pedidos del período (incluidos los cancelados)</td>
+</tr>
+<tr>
+<td>Período</td>
+<td>Por <code>fecha_pedido</code>, no por fecha de cancelación</td>
+</tr>
+<tr>
+<td>Grano</td>
+<td>Por canal</td>
+</tr>
+</tbody></table></div>
+<h2>Descomponer: volumen por valor</h2>
+<p><code>ventas = pedidos × ticket promedio</code>. Si las ventas caen, una de las dos (o las dos) cayó. Saber cuál cambia la conversación: menos pedidos sugiere tráfico o conversión; un ticket más bajo sugiere descuentos, mezcla de productos o clientes distintos.</p>
+<h2>La paradoja de Simpson</h2>
+<p>En el experimento del checkout (<code>experimento_checkout</code>), el total dice que los dos grupos convierten igual: 12,4 % el control y 12,5 % el checkout nuevo. Pero si separas por dispositivo:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>dispositivo</th>
+<th>control</th>
+<th>nuevo_checkout</th>
+</tr>
+</thead><tbody><tr>
+<td>escritorio</td>
+<td>16,0 % (595 clientes)</td>
+<td>16,6 % (295 clientes)</td>
+</tr>
+<tr>
+<td>móvil</td>
+<td>7,4 % (419 clientes)</td>
+<td>10,7 % (691 clientes)</td>
+</tr>
+</tbody></table></div>
+<p>El checkout nuevo <strong>gana en los dos dispositivos</strong> y aun así empata en el total. ¿Cómo? El grupo nuevo recibió muchos más usuarios móviles, que convierten menos en cualquier versión. Esa diferencia de <strong>mezcla</strong> arrastra su promedio hacia abajo. Es la paradoja de Simpson: una tendencia que aparece en cada grupo puede desaparecer o invertirse al juntarlos.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Qué concluir (y qué no)</div>
+
+<p>La paradoja no prueba que el checkout nuevo sea mejor: también dice que <strong>la asignación no fue pareja</strong> (un experimento bien aleatorizado reparte los dispositivos de forma parecida entre grupos). La recomendación correcta es: revisar por qué se desbalanceó la asignación, analizar por segmento con una prueba estadística en cada uno, y si se repite, correr el experimento de nuevo estratificando por dispositivo. Con estas muestras, la diferencia en escritorio es ruido; la de móvil hay que confirmarla.</p>
+</div>
+
+
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Encontrar la paradoja en el experimento</div>
+
+<ol>
+<li>Ejecuta la primera consulta: conversión por grupo, sin segmentar. Los grupos parecen iguales.</li>
+<li>Ejecuta la segunda: la misma métrica por dispositivo y grupo. Compara cada fila.</li>
+<li>Ejecuta la tercera: el porcentaje de usuarios móviles en cada grupo. Ahí está la explicación.</li>
+</ol>
+<pre><code class="language-sql">SELECT grupo, COUNT(*) AS clientes, ROUND(100.0 * SUM(convirtio) / COUNT(*), 1) AS conversion_pct
+FROM experimento_checkout GROUP BY grupo;
+
+SELECT dispositivo, grupo, COUNT(*) AS clientes, ROUND(100.0 * SUM(convirtio) / COUNT(*), 1) AS conversion_pct
+FROM experimento_checkout GROUP BY dispositivo, grupo ORDER BY dispositivo, grupo;
+
+SELECT grupo, ROUND(100.0 * SUM(CASE WHEN dispositivo = 'movil' THEN 1 ELSE 0 END) / COUNT(*), 1) AS pct_movil
+FROM experimento_checkout GROUP BY grupo;</code></pre>
+<p>Reto: calcula una conversión <strong>ajustada</strong> del grupo nuevo, ponderando cada dispositivo con la mezcla del grupo control (pista: conversión del nuevo en escritorio × % de escritorio del control + lo mismo para móvil).</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/aggregates">Agregaciones (DuckDB)</a> · <a href="https://www.sqlite.org/lang_expr.html#the_case_expression">CASE (SQLite)</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Responder con una teoría sin datos.</strong> &quot;Seguro fue la competencia&quot; no es un análisis.</li>
+<li><strong>Promediar porcentajes.</strong> El promedio de 16 % y 7 % no es la conversión total: pesa cada grupo por su tamaño.</li>
+<li><strong>Comparar contra un período no comparable.</strong> Agosto contra julio mezcla estacionalidad; agrega agosto del año anterior.</li>
+<li><strong>Olvidar la recomendación.</strong> El caso termina con &quot;qué haría yo&quot;, no con una tabla.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;El gerente quiere lanzar el checkout nuevo ya, porque &#39;gana en todos los dispositivos&#39;. ¿Qué le dices?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Que el resultado es prometedor en móvil pero todavía no es concluyente: la asignación al experimento quedó desbalanceada, y en escritorio la diferencia es tan chica que puede ser ruido. Propongo dos semanas más con asignación estratificada por dispositivo y una métrica de éxito definida de antemano. Si el gerente necesita decidir hoy, lanzaría solo en móvil, con una alarma si la conversión baja.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/entrevistas-casos-de-analista">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="entrevistas-pyspark-traducir-patrones.html">← PySpark de entrevista - traducir cada patrón de SQL a DataFrames</a><a href="entrevistas-simulacro-y-comportamiento.html">Simulacro final, preguntas de comportamiento y plan de dos semanas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

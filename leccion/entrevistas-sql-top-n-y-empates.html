@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL de entrevista 1 - top-N por grupo, empates y el N-ésimo valor · Academia de Datos</title><meta name="description" content="La familia de preguntas más repetida en entrevistas de SQL - &quot;los 3 mejores de cada grupo&quot;, &quot;el segundo más alto&quot;, &quot;el primer pedido de cada cliente&quot;, &quot;el 10 % superior&quot;. Aprendes a elegir entre ROW_NUMBER, RANK, DENSE_RANK y NTILE según lo que pide la pregunta sobre los empates, y a desempatar de forma determinista."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-sql-top-n-y-empates.html">
+<meta property="og:type" content="article"><meta property="og:title" content="SQL de entrevista 1 - top-N por grupo, empates y el N-ésimo valor · Academia de Datos"><meta property="og:description" content="La familia de preguntas más repetida en entrevistas de SQL - &quot;los 3 mejores de cada grupo&quot;, &quot;el segundo más alto&quot;, &quot;el primer pedido de cada cliente&quot;, &quot;el 10 % superior&quot;. Aprendes a elegir entre ROW_NUMBER, RANK, DENSE_RANK y NTILE según lo que pide la pregunta sobre los empates, y a desempatar de forma determinista."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-sql-top-n-y-empates.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#entrevistas">🎤 Entrevistas técnicas de datos</a> · Avanzado · 60 min</div>
+<h1>SQL de entrevista 1 - top-N por grupo, empates y el N-ésimo valor</h1><p class="resumen">La familia de preguntas más repetida en entrevistas de SQL - &quot;los 3 mejores de cada grupo&quot;, &quot;el segundo más alto&quot;, &quot;el primer pedido de cada cliente&quot;, &quot;el 10 % superior&quot;. Aprendes a elegir entre ROW_NUMBER, RANK, DENSE_RANK y NTILE según lo que pide la pregunta sobre los empates, y a desempatar de forma determinista.</p>
+<a class="cta" href="../index.html#/l/entrevistas-sql-top-n-y-empates">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir ROW_NUMBER, RANK o DENSE_RANK según cómo deben tratarse los empates</li><li>Resolver top-N por grupo con PARTITION BY y un filtro en una capa externa</li><li>Desempatar de forma determinista agregando una segunda columna al ORDER BY</li><li>Usar NTILE para percentiles y explicar sus límites</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un podio olímpico es un top-N con empates. Si dos atletas empatan el oro, ¿hay medalla de plata? Con <strong>RANK</strong> no (pasa de 1 a 3), con <strong>DENSE_RANK</strong> sí (1, 1, 2), y con <strong>ROW_NUMBER</strong> uno de los dos se queda sin oro aunque haya empatado. La pregunta de la entrevista te dice cuál de los tres podios quieren, y si no lo dice, <strong>preguntas</strong>.</p>
+</div>
+
+
+<h2>Las tres numeraciones, lado a lado</h2>
+<p>Con salarios 9000, 9000, 7000 y 6000 en un mismo departamento:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>salario</th>
+<th>ROW_NUMBER</th>
+<th>RANK</th>
+<th>DENSE_RANK</th>
+</tr>
+</thead><tbody><tr>
+<td>9000</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>9000</td>
+<td>2</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>7000</td>
+<td>3</td>
+<td>3</td>
+<td>2</td>
+</tr>
+<tr>
+<td>6000</td>
+<td>4</td>
+<td>4</td>
+<td>3</td>
+</tr>
+</tbody></table></div>
+<div class="table-wrap"><table><thead><tr>
+<th>Si la pregunta dice…</th>
+<th>Usa</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td>&quot;el primer pedido&quot;, &quot;uno por cliente&quot;, &quot;quedarse con el último&quot;</td>
+<td><code>ROW_NUMBER</code></td>
+<td>Exactamente una fila por grupo</td>
+</tr>
+<tr>
+<td>&quot;los 3 mejores, con empates incluidos&quot;</td>
+<td><code>RANK</code></td>
+<td>Los empatados comparten puesto; el top puede tener más de 3 filas</td>
+</tr>
+<tr>
+<td>&quot;el segundo valor más alto&quot;, &quot;los 3 valores más altos&quot;</td>
+<td><code>DENSE_RANK</code></td>
+<td>Cuenta <strong>valores</strong> distintos, no filas</td>
+</tr>
+<tr>
+<td>&quot;el 10 % superior&quot;, &quot;cuartiles&quot;</td>
+<td><code>NTILE</code></td>
+<td>Reparte las filas en baldes de igual tamaño</td>
+</tr>
+</tbody></table></div>
+<h2>La plantilla de top-N por grupo</h2>
+<p>Las funciones de ventana se calculan <strong>después</strong> del <code>WHERE</code>, así que no puedes escribir <code>WHERE RANK() OVER (...) &lt;= 3</code>. La solución es siempre la misma: calcular la posición en una capa y filtrar en la siguiente.</p>
+<pre><code class="language-sql">WITH ranking AS (
+  SELECT d.nombre AS departamento,
+         e.nombre || ' ' || e.apellido AS empleado,
+         e.salario,
+         DENSE_RANK() OVER (PARTITION BY e.departamento_id ORDER BY e.salario DESC) AS pos
+  FROM empleados e
+  JOIN departamentos d ON d.departamento_id = e.departamento_id
+  WHERE e.fecha_salida IS NULL
+)
+SELECT departamento, empleado, salario, pos
+FROM ranking
+WHERE pos &lt;= 2
+ORDER BY departamento, pos;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>PARTITION BY e.departamento_id</code></td>
+<td>Reinicia la numeración en cada departamento</td>
+</tr>
+<tr>
+<td><code>ORDER BY e.salario DESC</code></td>
+<td>El más alto recibe la posición 1</td>
+</tr>
+<tr>
+<td><code>WHERE e.fecha_salida IS NULL</code></td>
+<td>Se aplica <strong>antes</strong> de numerar: solo quienes siguen trabajando</td>
+</tr>
+<tr>
+<td><code>WHERE pos &lt;= 2</code> (afuera)</td>
+<td>Se aplica <strong>después</strong> de numerar</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-nota"><div class="callout-title">📝 QUALIFY</div>
+
+<p>Databricks, Snowflake, BigQuery y DuckDB tienen <code>QUALIFY</code>, que filtra por una función de ventana sin capa extra: <code>... QUALIFY DENSE_RANK() OVER (...) &lt;= 2</code>. SQLite, PostgreSQL, MySQL y SQL Server no lo tienen. En una entrevista, la versión con CTE funciona en todos lados; menciona <code>QUALIFY</code> como mejora si el motor lo soporta.</p>
+</div>
+
+
+<h2>Desempate determinista</h2>
+<p>&quot;El primer pedido de cada cliente&quot; parece fácil, pero un cliente puede tener <strong>dos pedidos el mismo día</strong>. Si ordenas solo por <code>fecha_pedido</code>, <code>ROW_NUMBER</code> elige uno al azar y la consulta puede dar resultados distintos cada vez que corre. Agrega una columna que nunca se repite:</p>
+<pre data-norun><code class="language-sql">ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha_pedido, pedido_id)</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Resultados que cambian entre ejecuciones</div>
+
+<p>Un <code>ROW_NUMBER</code> con empates en el <code>ORDER BY</code> es <strong>no determinista</strong>: en Spark o en un warehouse distribuido, dos ejecuciones pueden quedarse con filas distintas. En producción eso rompe pruebas y conciliaciones. Siempre termina el <code>ORDER BY</code> con la clave primaria.</p>
+</div>
+
+
+<h2>NTILE y percentiles</h2>
+<p><code>NTILE(10) OVER (ORDER BY gasto DESC)</code> reparte las filas en 10 baldes del mismo tamaño (los primeros baldes reciben una fila más si no se dividen exacto). El balde 1 es el 10 % superior <strong>por cantidad de filas</strong>, no por monto. Si la pregunta es &quot;clientes que suman el 80 % de las ventas&quot;, eso es Pareto, y se resuelve con un acumulado (lección 4), no con <code>NTILE</code>.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Las tres numeraciones sobre los mismos datos</div>
+
+<ol>
+<li>Ejecuta: verás <code>ROW_NUMBER</code>, <code>RANK</code> y <code>DENSE_RANK</code> sobre los salarios de un departamento.</li>
+<li>Busca dos filas con el mismo salario y compara las tres columnas.</li>
+<li>Cambia <code>departamento_id = 2</code> por <code>4</code> y predice, <strong>antes</strong> de ejecutar, dónde va a saltar <code>RANK</code>.</li>
+</ol>
+<pre><code class="language-sql">SELECT nombre, salario,
+       ROW_NUMBER() OVER (ORDER BY salario DESC, empleado_id) AS fila,
+       RANK()       OVER (ORDER BY salario DESC) AS rank,
+       DENSE_RANK() OVER (ORDER BY salario DESC) AS dense_rank
+FROM empleados
+WHERE departamento_id = 2
+ORDER BY salario DESC, empleado_id;</code></pre>
+<p>Reto: escribe la misma consulta con <code>PARTITION BY departamento_id</code> y sin el <code>WHERE</code>, y quédate con el top 3 de cada departamento usando una CTE.</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/window_functions">Funciones de ventana (DuckDB)</a> · <a href="https://duckdb.org/docs/current/sql/query_syntax/qualify">QUALIFY</a> · <a href="https://www.postgresql.org/docs/current/tutorial-window.html">Window functions (PostgreSQL)</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Filtrar la ventana en el mismo WHERE.</strong> Da error: calcula en una CTE y filtra afuera.</li>
+<li><strong>Usar ROW_NUMBER cuando piden empates.</strong> Pierdes filas que empataron.</li>
+<li><strong>Olvidar PARTITION BY.</strong> Obtienes el top global, no el top por grupo.</li>
+<li><strong>Ordenar ASC cuando piden &quot;los más altos&quot;.</strong> Revisa el sentido del <code>ORDER BY</code> de la ventana.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;¿Por qué usaste DENSE_RANK y no RANK?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Porque pediste el segundo <strong>salario</strong> más alto, no la segunda <strong>persona</strong>. Si dos personas empatan en el primero, con <code>RANK</code> la posición 2 no existe y la consulta devolvería vacío; <code>DENSE_RANK</code> cuenta valores distintos, así que la posición 2 es el siguiente salario.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/entrevistas-sql-top-n-y-empates">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="entrevistas-como-es-una-entrevista.html">← Cómo es una entrevista de datos y cómo hablar mientras resuelves</a><a href="entrevistas-sql-rachas-y-huecos.html">SQL de entrevista 2 - rachas y huecos (gaps &amp; islands) →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -137,6 +137,7 @@ print(&quot;✔ test OK&quot;)</code></pre>
 <li>Ejecuta: cada capa es una función que recibe y devuelve un DataFrame.</li>
 <li>Agrega a <code>a_silver</code> el descarte de pedidos <code>cancelado</code>.</li>
 <li>Agrega a <code>a_gold</code> la cantidad de pedidos por día además del total.</li>
+<li>Mira la columna <code>fecha</code> del resultado: bronze trae fechas en dos formatos (<code>2024-07-01</code> y <code>01/07/2024 00:00</code>), y el mismo día aparece en dos filas. Normalízala en <code>a_silver</code> con <code>F.coalesce(F.to_date(&quot;fecha&quot;, &quot;yyyy-MM-dd&quot;), F.to_date(&quot;fecha&quot;, &quot;dd/MM/yyyy HH:mm&quot;))</code> y vuelve a ejecutar.</li>
 </ol>
 <pre data-norun><code class="language-python">from pyspark.sql import DataFrame, functions as F
 

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL de entrevista 2 - rachas y huecos (gaps &amp; islands) · Academia de Datos</title><meta name="description" content="El patrón &quot;gaps and islands&quot; resuelve todas las preguntas de días seguidos - rachas de login, días consecutivos con ventas, huecos sin actividad, calendarios con días faltantes. Aprendes el truco de restar ROW_NUMBER a la fecha, el de LAG/LEAD para huecos, y cómo generar un calendario con una CTE recursiva para encontrar lo que no está."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-sql-rachas-y-huecos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="SQL de entrevista 2 - rachas y huecos (gaps &amp; islands) · Academia de Datos"><meta property="og:description" content="El patrón &quot;gaps and islands&quot; resuelve todas las preguntas de días seguidos - rachas de login, días consecutivos con ventas, huecos sin actividad, calendarios con días faltantes. Aprendes el truco de restar ROW_NUMBER a la fecha, el de LAG/LEAD para huecos, y cómo generar un calendario con una CTE recursiva para encontrar lo que no está."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-sql-rachas-y-huecos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#entrevistas">🎤 Entrevistas técnicas de datos</a> · Experto · 60 min</div>
+<h1>SQL de entrevista 2 - rachas y huecos (gaps &amp; islands)</h1><p class="resumen">El patrón &quot;gaps and islands&quot; resuelve todas las preguntas de días seguidos - rachas de login, días consecutivos con ventas, huecos sin actividad, calendarios con días faltantes. Aprendes el truco de restar ROW_NUMBER a la fecha, el de LAG/LEAD para huecos, y cómo generar un calendario con una CTE recursiva para encontrar lo que no está.</p>
+<a class="cta" href="../index.html#/l/entrevistas-sql-rachas-y-huecos">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar por qué fecha menos ROW_NUMBER es constante dentro de una racha</li><li>Listar islas (rachas) con inicio, fin y duración</li><li>Encontrar huecos entre eventos con LAG o LEAD</li><li>Generar un calendario con una CTE recursiva para detectar días faltantes</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Imagina un calendario donde marcas con una X cada día que fuiste al gimnasio. Las <strong>islas</strong> son los bloques de X seguidas (tus rachas) y los <strong>huecos</strong> son los blancos entre ellas. Las preguntas de entrevista sobre &quot;días consecutivos&quot; siempre piden una de esas dos cosas.</p>
+</div>
+
+
+<h2>El truco: fecha menos número de fila</h2>
+<p>Numera los días de cada cliente en orden (<code>ROW_NUMBER</code>) y réstale ese número a la fecha. Dentro de una racha, la fecha sube de a 1 y el número de fila también, así que <strong>la resta queda fija</strong>. Cuando hay un salto, la fecha sube más que el número de fila y la resta cambia: empieza una isla nueva.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>fecha</th>
+<th>ROW_NUMBER</th>
+<th>fecha − ROW_NUMBER</th>
+<th>isla</th>
+</tr>
+</thead><tbody><tr>
+<td>2024-02-01</td>
+<td>1</td>
+<td>2024-01-31</td>
+<td>A</td>
+</tr>
+<tr>
+<td>2024-02-02</td>
+<td>2</td>
+<td>2024-01-31</td>
+<td>A</td>
+</tr>
+<tr>
+<td>2024-02-03</td>
+<td>3</td>
+<td>2024-01-31</td>
+<td>A</td>
+</tr>
+<tr>
+<td>2024-02-07</td>
+<td>4</td>
+<td>2024-02-03</td>
+<td>B</td>
+</tr>
+<tr>
+<td>2024-02-08</td>
+<td>5</td>
+<td>2024-02-03</td>
+<td>B</td>
+</tr>
+</tbody></table></div>
+<p>Como las fechas están guardadas como texto, la resta se hace con <code>julianday(fecha)</code>, que devuelve un número de días. El valor del grupo no significa nada por sí mismo: solo sirve para agrupar.</p>
+<pre><code class="language-sql">WITH numerado AS (
+  SELECT cliente_id, fecha,
+         julianday(fecha) - ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha) AS grupo
+  FROM logins
+)
+SELECT cliente_id, MIN(fecha) AS inicio, MAX(fecha) AS fin, COUNT(*) AS dias
+FROM numerado
+GROUP BY cliente_id, grupo
+ORDER BY cliente_id, inicio;</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Fechas repetidas rompen el truco</div>
+
+<p>Si un cliente tiene <strong>dos logins el mismo día</strong>, <code>ROW_NUMBER</code> avanza dos veces mientras la fecha avanza una, y la racha se parte en dos. Primero deja una fila por día (<code>SELECT DISTINCT cliente_id, fecha</code>) o usa <code>DENSE_RANK</code> en lugar de <code>ROW_NUMBER</code>. En la tabla <code>logins</code> no hay repetidos, pero en una entrevista <strong>dilo</strong>: es exactamente el caso borde que esperan.</p>
+</div>
+
+
+<h2>Huecos con LAG y LEAD</h2>
+<p>Para los huecos no hace falta agrupar: compara cada fila con la siguiente. <code>LEAD(fecha)</code> trae la fecha del próximo login; si la diferencia es mayor que 1, entre medio hay días sin actividad.</p>
+<pre><code class="language-sql">WITH l AS (
+  SELECT cliente_id, fecha,
+         LEAD(fecha) OVER (PARTITION BY cliente_id ORDER BY fecha) AS siguiente
+  FROM logins
+)
+SELECT cliente_id,
+       date(fecha, '+1 day')      AS desde,
+       date(siguiente, '-1 day')  AS hasta,
+       CAST(julianday(siguiente) - julianday(fecha) - 1 AS INTEGER) AS dias_sin_login
+FROM l
+WHERE siguiente IS NOT NULL AND julianday(siguiente) - julianday(fecha) &gt; 1;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Patrón</th>
+<th>Herramienta</th>
+<th>Ejemplo de pregunta</th>
+</tr>
+</thead><tbody><tr>
+<td>Islas (rachas)</td>
+<td><code>fecha - ROW_NUMBER()</code> + <code>GROUP BY</code></td>
+<td>&quot;Racha más larga de login de cada usuario&quot;</td>
+</tr>
+<tr>
+<td>Huecos entre eventos</td>
+<td><code>LAG</code> / <code>LEAD</code></td>
+<td>&quot;Clientes que estuvieron más de 30 días sin comprar&quot;</td>
+</tr>
+<tr>
+<td>Días que no existen en la tabla</td>
+<td>Calendario recursivo + anti-join</td>
+<td>&quot;¿Qué días no hubo ventas?&quot;</td>
+</tr>
+<tr>
+<td>Sesiones</td>
+<td><code>LAG</code> + marca de inicio + suma acumulada</td>
+<td>&quot;Sesiones con 30 minutos de inactividad&quot; (lección 4)</td>
+</tr>
+</tbody></table></div>
+<h2>Lo que no está: el calendario</h2>
+<p>Una tabla de pedidos no tiene filas para los días <strong>sin</strong> pedidos, así que ningún <code>GROUP BY</code> los va a mostrar. Hay que generar todos los días y buscar los que faltan:</p>
+<pre><code class="language-sql">WITH RECURSIVE dias(fecha) AS (
+  SELECT '2024-01-01'
+  UNION ALL
+  SELECT date(fecha, '+1 day') FROM dias WHERE fecha &lt; '2024-01-31'
+)
+SELECT fecha
+FROM dias
+WHERE fecha NOT IN (SELECT fecha_pedido FROM pedidos WHERE canal = 'telefono');</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 En otros motores</div>
+
+<p>DuckDB, PostgreSQL y BigQuery tienen funciones que generan series de fechas (<code>generate_series</code>, <code>GENERATE_DATE_ARRAY</code>); en los warehouses suele existir una tabla <code>dim_fecha</code>. La CTE recursiva funciona en todos y demuestra que entiendes el problema.</p>
+</div>
+
+
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Ver el truco funcionando fila por fila</div>
+
+<ol>
+<li>Ejecuta: verás los logins del cliente 1 con su número de fila y el valor del grupo.</li>
+<li>Fíjate cómo el grupo se mantiene igual mientras los días son seguidos y cambia después de cada hueco.</li>
+<li>Agrega <code>GROUP BY grupo</code> con <code>MIN(fecha)</code>, <code>MAX(fecha)</code> y <code>COUNT(*)</code> para convertir las filas en rachas.</li>
+</ol>
+<pre><code class="language-sql">SELECT cliente_id, fecha,
+       ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha) AS fila,
+       julianday(fecha) - ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha) AS grupo
+FROM logins
+WHERE cliente_id = 1
+ORDER BY fecha
+LIMIT 30;</code></pre>
+<p>Reto: repite la consulta con <code>LAG(fecha)</code> y una columna <code>nueva_racha</code> que valga 1 cuando la diferencia con el día anterior no es 1. La suma acumulada de esa columna es otro número de isla: compáralo con el grupo.</p>
+<p>Documentación oficial: <a href="https://www.sqlite.org/windowfunctions.html">Funciones de ventana (SQLite)</a> · <a href="https://www.sqlite.org/lang_datefunc.html">Funciones de fecha (SQLite)</a> · <a href="https://www.sqlite.org/lang_with.html">CTE recursivas (SQLite)</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>No quitar duplicados antes del truco.</strong> Una fecha repetida parte la racha.</li>
+<li><strong>Restar fechas como texto.</strong> <code>&#39;2024-02-02&#39; - &#39;2024-02-01&#39;</code> no da 1 en SQLite: convierte con <code>julianday</code>.</li>
+<li><strong>Olvidar el PARTITION BY.</strong> Las rachas de un cliente se mezclan con las de otro.</li>
+<li><strong>Buscar días faltantes con GROUP BY.</strong> Lo que no existe no se agrupa: necesitas un calendario.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;Resuélvelo sin funciones de ventana.&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Un día empieza racha si el día anterior no existe para ese cliente: <code>WHERE NOT EXISTS (SELECT 1 FROM logins l2 WHERE l2.cliente_id = l.cliente_id AND l2.fecha = date(l.fecha, &#39;-1 day&#39;))</code>. Igual para el fin con el día siguiente. Después emparejo cada inicio con el primer fin mayor o igual. Funciona, pero es más lento: con ventanas se recorre la tabla una vez.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/entrevistas-sql-rachas-y-huecos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="entrevistas-sql-top-n-y-empates.html">← SQL de entrevista 1 - top-N por grupo, empates y el N-ésimo valor</a><a href="entrevistas-sql-acumulados-y-retencion.html">SQL de entrevista 3 - acumulados, crecimiento, sesiones y retención →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

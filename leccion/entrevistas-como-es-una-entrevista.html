@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cómo es una entrevista de datos y cómo hablar mientras resuelves · Academia de Datos</title><meta name="description" content="Los cinco formatos de entrevista técnica para ingeniería y análisis de datos, qué evalúa cada uno, y un guion de seis pasos para pensar en voz alta. Practicas el guion con una pregunta clásica de SQL y con preguntas de opción múltiple sobre qué decir en cada momento."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-como-es-una-entrevista.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Cómo es una entrevista de datos y cómo hablar mientras resuelves · Academia de Datos"><meta property="og:description" content="Los cinco formatos de entrevista técnica para ingeniería y análisis de datos, qué evalúa cada uno, y un guion de seis pasos para pensar en voz alta. Practicas el guion con una pregunta clásica de SQL y con preguntas de opción múltiple sobre qué decir en cada momento."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-como-es-una-entrevista.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#entrevistas">🎤 Entrevistas técnicas de datos</a> · Intermedio · 45 min</div>
+<h1>Cómo es una entrevista de datos y cómo hablar mientras resuelves</h1><p class="resumen">Los cinco formatos de entrevista técnica para ingeniería y análisis de datos, qué evalúa cada uno, y un guion de seis pasos para pensar en voz alta. Practicas el guion con una pregunta clásica de SQL y con preguntas de opción múltiple sobre qué decir en cada momento.</p>
+<a class="cta" href="../index.html#/l/entrevistas-como-es-una-entrevista">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Reconocer los formatos de entrevista (SQL en vivo, Python, tarea para la casa, caso de negocio, diseño de sistemas) y qué evalúa cada uno</li><li>Aplicar el guion de seis pasos sin quedarte en silencio</li><li>Convertir una pregunta de negocio en supuestos explícitos antes de escribir código</li><li>Probar tu respuesta con un caso chico y decir su complejidad</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una entrevista técnica se parece más a un examen oral que a uno escrito. El entrevistador no solo mira si la respuesta final es correcta: escucha <strong>cómo llegas</strong>. Dos personas con la misma consulta correcta reciben notas distintas si una explicó sus supuestos y la otra escribió en silencio.</p>
+</div>
+
+
+<h2>Los cinco formatos</h2>
+<p>Casi todas las empresas combinan algunos de estos formatos. Saber cuál te toca te dice qué practicar.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Formato</th>
+<th>Qué te piden</th>
+<th>Qué evalúan</th>
+<th>Dónde se practica en este módulo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>SQL en vivo</strong></td>
+<td>Una o varias preguntas sobre 2-4 tablas, en 20-45 minutos</td>
+<td>Joins sin duplicar, funciones de ventana, empates, nulos, claridad</td>
+<td>Lecciones 2 a 5</td>
+</tr>
+<tr>
+<td><strong>Python</strong></td>
+<td>Una función con estructuras de datos o procesar un archivo</td>
+<td>Diccionarios, conjuntos, complejidad, casos borde, código legible</td>
+<td>Lecciones 6 y 7</td>
+</tr>
+<tr>
+<td><strong>Spark / PySpark</strong></td>
+<td>Traducir una lógica a DataFrames, o explicar un plan</td>
+<td>Ventanas, joins, particiones, por qué algo es lento</td>
+<td>Lección 8</td>
+</tr>
+<tr>
+<td><strong>Caso de negocio</strong> (analistas)</td>
+<td>&quot;Las ventas bajaron 10 %: ¿qué miras?&quot;</td>
+<td>Definir métricas, segmentar, separar causa de casualidad</td>
+<td>Lección 9</td>
+</tr>
+<tr>
+<td><strong>Diseño de sistemas</strong> (ingenieros)</td>
+<td>&quot;Diseña el pipeline de pedidos de una tienda&quot;</td>
+<td>Preguntas de requisitos, capas, idempotencia, costo, calidad</td>
+<td>Lección 10</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-nota"><div class="callout-title">📝 Tarea para la casa (take-home)</div>
+
+<p>Algunas empresas mandan un ejercicio de 3-6 horas: un CSV sucio y preguntas. Ahí evalúan lo mismo que en vivo más <strong>la presentación</strong>: un README con supuestos, pruebas y qué harías con más tiempo. Los proyectos de <a href="#/m/portafolio">Portafolio</a> te dan exactamente esa práctica.</p>
+</div>
+
+
+<h2>El guion de seis pasos</h2>
+<p>Este guion es el mismo método del módulo Lógica, adaptado a que alguien te escucha. Úsalo <strong>siempre</strong>, incluso con preguntas que parecen fáciles: las fáciles suelen esconder una trampa (empates, nulos, cancelados).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Paso</th>
+<th>Qué dices en voz alta</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td>1. Repetir</td>
+<td>La pregunta con tus palabras y el <strong>grano</strong> del resultado</td>
+<td>&quot;Quieres una fila por departamento con su segundo salario más alto.&quot;</td>
+</tr>
+<tr>
+<td>2. Aclarar</td>
+<td>Supuestos sobre empates, nulos, período, filtros</td>
+<td>&quot;Si dos personas comparten el máximo, ¿el segundo es el siguiente valor distinto?&quot;</td>
+</tr>
+<tr>
+<td>3. Ejemplo</td>
+<td>Un caso chico resuelto a mano</td>
+<td>&quot;Con 10, 10 y 8, el segundo distinto es 8.&quot;</td>
+</tr>
+<tr>
+<td>4. Plan</td>
+<td>Pasos en castellano antes del código</td>
+<td>&quot;Saco salarios distintos, los ordeno por departamento y tomo la posición 2.&quot;</td>
+</tr>
+<tr>
+<td>5. Código</td>
+<td>Escribes por capas, nombrando cada CTE o función</td>
+<td><code>WITH distintos AS (...), ranking AS (...)</code></td>
+</tr>
+<tr>
+<td>6. Probar</td>
+<td>Corres el ejemplo, un caso borde y dices la complejidad</td>
+<td>&quot;Un departamento con una sola persona no aparece: ¿está bien así?&quot;</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Si no sabes algo</div>
+
+<p>Dilo y propone un camino: &quot;No recuerdo si este motor tiene <code>QUALIFY</code>; lo hago con una subconsulta, que funciona en todos&quot;. Inventar una función que no existe resta mucho más que admitir la duda.</p>
+</div>
+
+
+<h2>Un ejemplo completo, narrado</h2>
+<p><strong>Pregunta:</strong> &quot;¿Cuál es el segundo salario más alto de la empresa?&quot;</p>
+<ol>
+<li><strong>Repetir:</strong> &quot;Un solo número: el segundo valor más alto de <code>empleados.salario</code>.&quot;</li>
+<li><strong>Aclarar:</strong> &quot;¿Cuento empleados que ya se fueron? Asumo que sí, porque no lo pediste. Si el máximo está repetido, tomo el siguiente valor <strong>distinto</strong>.&quot;</li>
+<li><strong>Ejemplo:</strong> &quot;Con 9000, 9000 y 7000 la respuesta es 7000, no 9000.&quot;</li>
+<li><strong>Plan:</strong> &quot;Valores distintos, de mayor a menor, salteo uno y tomo uno.&quot;</li>
+<li><strong>Código:</strong></li>
+</ol>
+<pre><code class="language-sql">SELECT DISTINCT salario
+FROM empleados
+ORDER BY salario DESC
+LIMIT 1 OFFSET 1;</code></pre>
+<ol start="6">
+<li><strong>Probar:</strong> &quot;Si hubiera un solo salario distinto, esta consulta devuelve <strong>cero filas</strong>. Si me piden <code>NULL</code> en ese caso, lo envuelvo en una subconsulta: <code>SELECT (SELECT ... LIMIT 1 OFFSET 1) AS segundo</code>.&quot;</li>
+</ol>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Olvidar el DISTINCT</div>
+
+<p>Sin <code>DISTINCT</code>, si dos personas comparten el máximo, <code>OFFSET 1</code> devuelve el <strong>mismo</strong> máximo. Es el error más común en esta pregunta, y los entrevistadores la usan justamente para ver si piensas en empates.</p>
+</div>
+
+
+<h2>Qué preguntar siempre (la lista de aclaraciones)</h2>
+<ul>
+<li><strong>Grano:</strong> ¿una fila por qué? (cliente, día, cliente-mes…)</li>
+<li><strong>Empates:</strong> ¿todos los empatados, uno solo, o el siguiente valor distinto?</li>
+<li><strong>Nulos:</strong> ¿cuentan como cero, se excluyen o son un grupo propio?</li>
+<li><strong>Período y zona horaria:</strong> ¿qué fechas? ¿la fecha del pedido o la del pago?</li>
+<li><strong>Filtros de negocio:</strong> ¿se excluyen cancelados, devueltos, pruebas internas?</li>
+<li><strong>Formato de salida:</strong> nombres de columnas, orden, redondeo.</li>
+</ul>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El guion completo con una pregunta clásica</div>
+
+<ol>
+<li>Lee la pregunta: &quot;el segundo salario más alto <strong>de cada departamento</strong>&quot;. Antes de ejecutar, di en voz alta el grano y qué haces con los empates.</li>
+<li>Ejecuta: la consulta está escrita por capas, una CTE por paso del plan.</li>
+<li>Cambia <code>pos = 2</code> por <code>pos = 1</code> y verifica que coincide con <code>MAX(salario)</code> por departamento: así se prueba una consulta contra otra más simple.</li>
+</ol>
+<pre><code class="language-sql">WITH distintos AS (
+  SELECT DISTINCT departamento_id, salario FROM empleados
+),
+ranking AS (
+  SELECT departamento_id, salario,
+         DENSE_RANK() OVER (PARTITION BY departamento_id ORDER BY salario DESC) AS pos
+  FROM distintos
+)
+SELECT departamento_id, salario AS segundo_salario
+FROM ranking
+WHERE pos = 2
+ORDER BY departamento_id;</code></pre>
+<p>Reto: el departamento 1 tiene una sola persona y no aparece. Reescribe la consulta para que aparezca con <code>NULL</code> (pista: parte de <code>departamentos</code> y usa <code>LEFT JOIN</code>).</p>
+<p>Documentación oficial: <a href="https://duckdb.org/docs/current/sql/functions/window_functions">Funciones de ventana</a> · <a href="https://duckdb.org/docs/current/sql/query_syntax/limit">LIMIT y OFFSET</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Escribir antes de aclarar.</strong> Dos minutos de preguntas te ahorran rehacer la consulta entera.</li>
+<li><strong>Quedarte en silencio.</strong> Si estás pensando, dilo: &quot;estoy decidiendo si necesito una ventana o alcanza con GROUP BY&quot;.</li>
+<li><strong>Decir &quot;listo&quot; sin probar.</strong> Siempre cierra con un caso chico y un caso borde.</li>
+<li><strong>Optimizar demasiado pronto.</strong> Primero una versión correcta y clara; después, si te lo piden, la más rápida.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;Tu consulta está bien, pero la tabla tiene 2.000 millones de filas. ¿Qué cambia?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Primero filtraría por la partición de fecha para leer menos datos. Después miraría el plan con <code>EXPLAIN</code>: si hay un join grande, revisaría si una tabla es chica para hacer broadcast. Y si esta pregunta se hace todos los días, la materializaría en una tabla agregada que se actualiza incremental.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/entrevistas-como-es-una-entrevista">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="portafolio-observabilidad-de-datos.html">← Proyecto 12: Observabilidad de datos - salud, calidad y costos de la plataforma</a><a href="entrevistas-sql-top-n-y-empates.html">SQL de entrevista 1 - top-N por grupo, empates y el N-ésimo valor →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

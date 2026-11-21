@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python de entrevista 1 - diccionarios, conjuntos, pilas y ventanas · Academia de Datos</title><meta name="description" content="Los problemas de programación que más se preguntan en entrevistas de datos no piden algoritmos raros - piden elegir la estructura correcta. Con un diccionario cuentas y agrupas en una pasada, con un conjunto preguntas &quot;¿ya lo vi?&quot; al instante, con una pila validas lo que se abre y se cierra, y con dos punteros recorres una ventana sin repetir trabajo. Aprendes a decir la complejidad de cada solución."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-python-estructuras-de-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Python de entrevista 1 - diccionarios, conjuntos, pilas y ventanas · Academia de Datos"><meta property="og:description" content="Los problemas de programación que más se preguntan en entrevistas de datos no piden algoritmos raros - piden elegir la estructura correcta. Con un diccionario cuentas y agrupas en una pasada, con un conjunto preguntas &quot;¿ya lo vi?&quot; al instante, con una pila validas lo que se abre y se cierra, y con dos punteros recorres una ventana sin repetir trabajo. Aprendes a decir la complejidad de cada solución."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-python-estructuras-de-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#entrevistas">🎤 Entrevistas técnicas de datos</a> · Avanzado · 70 min</div>
+<h1>Python de entrevista 1 - diccionarios, conjuntos, pilas y ventanas</h1><p class="resumen">Los problemas de programación que más se preguntan en entrevistas de datos no piden algoritmos raros - piden elegir la estructura correcta. Con un diccionario cuentas y agrupas en una pasada, con un conjunto preguntas &quot;¿ya lo vi?&quot; al instante, con una pila validas lo que se abre y se cierra, y con dos punteros recorres una ventana sin repetir trabajo. Aprendes a decir la complejidad de cada solución.</p>
+<a class="cta" href="../index.html#/l/entrevistas-python-estructuras-de-datos">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir entre lista, diccionario, conjunto y pila según la operación que más se repite</li><li>Resolver en una sola pasada (O(n)) problemas que a primera vista piden dos bucles anidados</li><li>Explicar la complejidad en tiempo y memoria con notación O grande</li><li>Escribir casos de prueba con casos borde antes de dar la solución por terminada</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Buscar un nombre en una lista es como buscar a alguien en una fila caminando de punta a punta: cuanto más larga la fila, más tardas. Un diccionario o un conjunto es como una guía con el índice alfabético: vas directo a la página. Casi todos los problemas de entrevista se resuelven cambiando &quot;recorrer la fila&quot; por &quot;ir al índice&quot;.</p>
+</div>
+
+
+<h2>La tabla que tienes que saber de memoria</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Operación</th>
+<th>Lista</th>
+<th>Conjunto (<code>set</code>)</th>
+<th>Diccionario (<code>dict</code>)</th>
+</tr>
+</thead><tbody><tr>
+<td>¿Está <code>x</code>?</td>
+<td>O(n): recorre todo</td>
+<td>O(1) en promedio</td>
+<td>O(1) por clave</td>
+</tr>
+<tr>
+<td>Agregar al final</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>Contar apariciones</td>
+<td>O(n) cada vez</td>
+<td>—</td>
+<td>O(1) por elemento con un contador</td>
+</tr>
+<tr>
+<td>Mantener orden de llegada</td>
+<td>Sí</td>
+<td>No</td>
+<td>Sí (desde Python 3.7)</td>
+</tr>
+</tbody></table></div>
+<p><strong>O(n)</strong> quiere decir &quot;el tiempo crece en proporción a la cantidad de datos&quot;. <strong>O(n²)</strong> quiere decir que si duplicas los datos, el tiempo se multiplica por cuatro: con un millón de filas, eso es la diferencia entre un segundo y una semana.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 De la documentación oficial</div>
+
+<p>La <a href="https://wiki.python.org/moin/TimeComplexity">guía de complejidad de Python</a> lista el costo de cada operación de las estructuras incorporadas. <code>collections.Counter</code> y <code>collections.defaultdict</code> (<a href="https://docs.python.org/3/library/collections.html">documentación</a>) ahorran código al contar y agrupar.</p>
+</div>
+
+
+<h2>Cuatro patrones que resuelven casi todo</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Patrón</th>
+<th>Estructura</th>
+<th>Pregunta típica</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Contar</strong></td>
+<td><code>dict</code> o <code>Counter</code></td>
+<td>&quot;El primer carácter que no se repite&quot;, &quot;las k palabras más frecuentes&quot;</td>
+</tr>
+<tr>
+<td><strong>¿Ya lo vi?</strong></td>
+<td><code>set</code></td>
+<td>&quot;¿Hay duplicados?&quot;, &quot;dos números que suman k&quot;</td>
+</tr>
+<tr>
+<td><strong>Agrupar por una firma</strong></td>
+<td><code>dict</code> de listas</td>
+<td>&quot;Agrupar anagramas&quot;, &quot;índice invertido&quot;</td>
+</tr>
+<tr>
+<td><strong>Abrir y cerrar</strong></td>
+<td>lista usada como pila</td>
+<td>&quot;¿Están balanceados los paréntesis?&quot;, &quot;deshacer acciones&quot;</td>
+</tr>
+<tr>
+<td><strong>Ventana deslizante</strong></td>
+<td>dos índices + <code>dict</code> o <code>set</code></td>
+<td>&quot;La subcadena más larga sin repetir&quot;, &quot;promedio móvil&quot;</td>
+</tr>
+</tbody></table></div>
+<h2>Un ejemplo narrado: la mejor ganancia</h2>
+<p><strong>Pregunta:</strong> &quot;Te doy los precios de una acción día por día. Comprando una vez y vendiendo después, ¿cuál es la mayor ganancia posible?&quot;</p>
+<ul>
+<li><strong>Fuerza bruta:</strong> probar todos los pares (compra, venta). Dos bucles: O(n²).</li>
+<li><strong>Idea:</strong> al recorrer los días, recuerda el <strong>precio más bajo visto hasta ahora</strong>. La mejor venta de hoy es <code>precio_hoy - minimo</code>. Una pasada: O(n) en tiempo y O(1) en memoria.</li>
+</ul>
+<pre><code class="language-python">def mejor_ganancia(precios):
+    minimo = float(&quot;inf&quot;)
+    mejor = 0
+    for p in precios:
+        minimo = min(minimo, p)
+        mejor = max(mejor, p - minimo)
+    return mejor
+
+print(mejor_ganancia([7, 1, 5, 3, 6, 4]))  # 5: compra a 1, vende a 6
+print(mejor_ganancia([7, 6, 4, 3, 1]))     # 0: siempre baja, no conviene operar</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Olvidar el caso vacío o de un elemento</div>
+
+<p>Con <code>[]</code> o <code>[5]</code> no hay operación posible: la respuesta debe ser <code>0</code>, no un error. Antes de decir &quot;listo&quot;, prueba siempre: lista vacía, un elemento, todos iguales y el orden inverso.</p>
+</div>
+
+
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: De O(n²) a O(n) midiendo el tiempo</div>
+
+<ol>
+<li>Ejecuta: las dos funciones responden lo mismo (&quot;¿hay algún duplicado?&quot;), una con dos bucles y otra con un conjunto.</li>
+<li>Mira los tiempos impresos: con 2.000 elementos la diferencia ya se nota.</li>
+<li>Duplica <code>n</code> y vuelve a ejecutar: la versión con bucles tarda unas cuatro veces más; la del conjunto, unas dos.</li>
+</ol>
+<pre><code class="language-python">import time
+
+def hay_duplicados_lento(xs):
+    for i in range(len(xs)):
+        for j in range(i + 1, len(xs)):
+            if xs[i] == xs[j]:
+                return True
+    return False
+
+def hay_duplicados_rapido(xs):
+    vistos = set()
+    for x in xs:
+        if x in vistos:
+            return True
+        vistos.add(x)
+    return False
+
+n = 2000
+datos = list(range(n))  # sin duplicados: el peor caso, hay que mirar todo
+for f in (hay_duplicados_lento, hay_duplicados_rapido):
+    t = time.perf_counter()
+    r = f(datos)
+    print(f&quot;{f.__name__:24} -&gt; {r}  {time.perf_counter() - t:.4f} s&quot;)</code></pre>
+<p>Reto: escribe una tercera versión de una línea con <code>len(set(xs)) != len(xs)</code> y explica por qué es O(n) pero siempre recorre toda la lista, aunque el duplicado esté al principio.</p>
+<p>Documentación oficial: <a href="https://docs.python.org/3/library/stdtypes.html#set-types-set-frozenset">set</a> · <a href="https://docs.python.org/3/library/stdtypes.html#mapping-types-dict">dict</a> · <a href="https://docs.python.org/3/library/collections.html">collections</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Buscar con <code>in</code> dentro de una lista dentro de un bucle.</strong> Es O(n²) disfrazado: convierte la lista a <code>set</code> antes.</li>
+<li><strong>Modificar una lista mientras la recorres.</strong> Recorre una copia o construye una lista nueva.</li>
+<li><strong>Usar un <code>dict</code> cuando el orden de salida importa y no lo dices.</strong> Si la respuesta debe estar ordenada, ordénala explícitamente con <code>sorted</code>.</li>
+<li><strong>No decir la complejidad.</strong> Siempre cierra con &quot;esto es O(n) en tiempo y O(k) en memoria porque…&quot;.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;Tu solución usa un diccionario con todas las palabras. ¿Y si el archivo tiene 200 GB y no entra en memoria?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Leería el archivo por partes, en streaming, y contaría por bloques. Si ni siquiera el diccionario de conteos entra, particionaría por el hash de la palabra en varios archivos y contaría cada uno por separado: todas las apariciones de una palabra caen en el mismo archivo. Es exactamente lo que hace Spark con <code>groupBy</code>: un shuffle por hash de la clave.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/entrevistas-python-estructuras-de-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="entrevistas-sql-deduplicar-pivotear-comparar.html">← SQL de entrevista 4 - deduplicar, pivotear, anti-join y comparar períodos</a><a href="entrevistas-python-procesar-datos.html">Python de entrevista 2 - procesar datos reales sin pandas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

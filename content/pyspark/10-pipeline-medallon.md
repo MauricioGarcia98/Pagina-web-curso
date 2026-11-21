@@ -158,6 +158,7 @@ Si la capa silver se escribe con `mode("append")`, correr dos veces el mismo dí
 1. Ejecuta: cada capa es una función que recibe y devuelve un DataFrame.
 2. Agrega a `a_silver` el descarte de pedidos `cancelado`.
 3. Agrega a `a_gold` la cantidad de pedidos por día además del total.
+4. Mira la columna `fecha` del resultado: bronze trae fechas en dos formatos (`2024-07-01` y `01/07/2024 00:00`), y el mismo día aparece en dos filas. Normalízala en `a_silver` con `F.coalesce(F.to_date("fecha", "yyyy-MM-dd"), F.to_date("fecha", "dd/MM/yyyy HH:mm"))` y vuelve a ejecutar.
 
 ```python norun
 from pyspark.sql import DataFrame, functions as F

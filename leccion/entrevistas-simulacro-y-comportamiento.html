@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulacro final, preguntas de comportamiento y plan de dos semanas · Academia de Datos</title><meta name="description" content="Cierras el módulo con una entrevista completa cronometrada - una pregunta de SQL, una de Python, un caso y un diseño - y con la parte que muchos no preparan - las preguntas de comportamiento (&quot;cuéntame de una vez que un pipeline falló&quot;). Aprendes el método STAR para responderlas con hechos, qué preguntarle tú al entrevistador y un plan de estudio de dos semanas para llegar en forma."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-simulacro-y-comportamiento.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Simulacro final, preguntas de comportamiento y plan de dos semanas · Academia de Datos"><meta property="og:description" content="Cierras el módulo con una entrevista completa cronometrada - una pregunta de SQL, una de Python, un caso y un diseño - y con la parte que muchos no preparan - las preguntas de comportamiento (&quot;cuéntame de una vez que un pipeline falló&quot;). Aprendes el método STAR para responderlas con hechos, qué preguntarle tú al entrevistador y un plan de estudio de dos semanas para llegar en forma."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-simulacro-y-comportamiento.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#entrevistas">🎤 Entrevistas técnicas de datos</a> · Experto · 90 min</div>
+<h1>Simulacro final, preguntas de comportamiento y plan de dos semanas</h1><p class="resumen">Cierras el módulo con una entrevista completa cronometrada - una pregunta de SQL, una de Python, un caso y un diseño - y con la parte que muchos no preparan - las preguntas de comportamiento (&quot;cuéntame de una vez que un pipeline falló&quot;). Aprendes el método STAR para responderlas con hechos, qué preguntarle tú al entrevistador y un plan de estudio de dos semanas para llegar en forma.</p>
+<a class="cta" href="../index.html#/l/entrevistas-simulacro-y-comportamiento">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Resolver una entrevista completa en tiempo real aplicando el guion de seis pasos</li><li>Responder preguntas de comportamiento con el método STAR y resultados medibles</li><li>Preparar tres historias propias que sirvan para muchas preguntas</li><li>Hacer preguntas al entrevistador que muestren criterio</li><li>Seguir un plan de repaso de dos semanas con los ejercicios del curso</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un simulacro es el ensayo general de una obra de teatro: con vestuario, luces y sin parar si algo sale mal. Practicar ejercicios sueltos es ensayar escenas; el simulacro te enseña a manejar el tiempo, los nervios y las transiciones entre una pregunta y otra.</p>
+</div>
+
+
+<h2>Cómo hacer el simulacro</h2>
+<p>Pon un reloj y resuelve en orden, <strong>hablando en voz alta</strong> (grábate con el teléfono si estás solo: escucharte es la mejor corrección).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Bloque</th>
+<th>Tiempo</th>
+<th>Dónde está</th>
+</tr>
+</thead><tbody><tr>
+<td>SQL de nivel experto</td>
+<td>20 min</td>
+<td>Ejercicio &quot;El mejor cliente de cada país y su peso&quot; (abajo)</td>
+</tr>
+<tr>
+<td>Python</td>
+<td>20 min</td>
+<td>Ejercicio &quot;Top-k por grupo en Python puro&quot; (abajo)</td>
+</tr>
+<tr>
+<td>Caso de negocio</td>
+<td>15 min</td>
+<td>Ejercicio abierto &quot;La caída de agosto&quot; (abajo)</td>
+</tr>
+<tr>
+<td>Diseño de sistemas</td>
+<td>25 min</td>
+<td>Ejercicio abierto &quot;El pipeline de pedidos&quot; (abajo) y el método de <a href="#/l/arquitectura-referencias-entrevista">Arquitectura: la entrevista de diseño</a></td>
+</tr>
+<tr>
+<td>Comportamiento</td>
+<td>10 min</td>
+<td>Ejercicio abierto &quot;Tu historia STAR&quot; (abajo)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Si te pasas de tiempo</div>
+
+<p>En una entrevista real, a los 15 minutos de un problema de 20, di: &quot;Me quedan 5 minutos; prefiero entregar esta versión correcta sin el caso borde de empates y explicarte cómo lo agregaría&quot;. Una solución parcial bien explicada vale más que una completa que no llegaste a terminar.</p>
+</div>
+
+
+<h2>Preguntas de comportamiento: el método STAR</h2>
+<p>Las preguntas de comportamiento buscan evidencia de cómo trabajas: &quot;cuéntame de una vez que…&quot;. La respuesta se ordena en cuatro partes:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Letra</th>
+<th>Qué cuentas</th>
+<th>Peso aproximado</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>S</strong>ituación</td>
+<td>El contexto en una o dos frases</td>
+<td>10 %</td>
+</tr>
+<tr>
+<td><strong>T</strong>area</td>
+<td>Qué te tocaba resolver a <strong>ti</strong></td>
+<td>10 %</td>
+</tr>
+<tr>
+<td><strong>A</strong>cción</td>
+<td>Qué hiciste, paso a paso, en primera persona</td>
+<td>60 %</td>
+</tr>
+<tr>
+<td><strong>R</strong>esultado</td>
+<td>Qué cambió, con un número si es posible, y qué aprendiste</td>
+<td>20 %</td>
+</tr>
+</tbody></table></div>
+<p><strong>Ejemplo (con un proyecto del curso, si todavía no tienes experiencia laboral):</strong></p>
+<ul>
+<li><strong>S:</strong> &quot;En mi proyecto de portafolio de la tienda, el tablero de ventas mostraba cifras distintas cada mañana.&quot;</li>
+<li><strong>T:</strong> &quot;Me tocaba encontrar por qué y evitar que volviera a pasar.&quot;</li>
+<li><strong>A:</strong> &quot;Comparé las cargas de dos días y vi que el mismo pedido llegaba repetido cuando se reenviaba un archivo. Agregué una deduplicación por <code>pedido_id</code> quedándome con la carga más reciente, una prueba que falla si hay claves repetidas en silver, y una alerta si el conteo diario varía más de un 20 %.&quot;</li>
+<li><strong>R:</strong> &quot;Las cifras quedaron estables, la prueba detectó dos reenvíos más en el mes siguiente, y aprendí a poner las pruebas de unicidad desde el primer día.&quot;</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Hablar en plural todo el tiempo</div>
+
+<p>&quot;Hicimos&quot;, &quot;decidimos&quot;, &quot;el equipo implementó&quot;… El entrevistador no sabe qué hiciste <strong>tú</strong>. Reconoce al equipo en la situación y cuenta tus acciones en primera persona.</p>
+</div>
+
+
+<h3>Tres historias que sirven para casi todo</h3>
+<p>Prepara por escrito tres historias y adáptalas a la pregunta:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Historia</th>
+<th>Responde preguntas como</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Algo que falló y arreglaste</strong></td>
+<td>&quot;Un error tuyo&quot;, &quot;un incidente&quot;, &quot;trabajar bajo presión&quot;</td>
+</tr>
+<tr>
+<td><strong>Algo que mejoraste por iniciativa propia</strong></td>
+<td>&quot;Ir más allá de lo pedido&quot;, &quot;optimizar algo&quot;, &quot;automatizar&quot;</td>
+</tr>
+<tr>
+<td><strong>Un desacuerdo o un pedido ambiguo</strong></td>
+<td>&quot;Un conflicto&quot;, &quot;un cliente difícil&quot;, &quot;convencer a alguien con datos&quot;</td>
+</tr>
+</tbody></table></div>
+<h2>Qué preguntarle al entrevistador</h2>
+<p>Al final siempre te dan la palabra. Usa ese momento para mostrar criterio:</p>
+<ul>
+<li>&quot;¿Cómo se enteran hoy de que un dato está mal: por una alerta o por un usuario?&quot;</li>
+<li>&quot;¿Qué parte de la plataforma les gustaría reconstruir si pudieran?&quot;</li>
+<li>&quot;¿Cómo se ve un buen primer trimestre para esta posición?&quot;</li>
+<li>&quot;¿Cómo se revisa el código y quién aprueba los cambios en producción?&quot;</li>
+</ul>
+<h2>Plan de dos semanas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Días</th>
+<th>Qué repasar</th>
+<th>Ejercicios del curso</th>
+</tr>
+</thead><tbody><tr>
+<td>1-2</td>
+<td>Top-N, empates, N-ésimo valor</td>
+<td>Lección 2 de este módulo + <a href="#/l/sql-entrevistas">SQL: Entrevistas</a></td>
+</tr>
+<tr>
+<td>3-4</td>
+<td>Rachas, acumulados, retención</td>
+<td>Lecciones 3 y 4 + <a href="#/l/analisis-cohortes-retencion">Análisis: cohortes</a></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Deduplicar, pivotear, anti-join</td>
+<td>Lección 5 + <a href="#/l/sql-capa-bronze">SQL: capa bronze</a></td>
+</tr>
+<tr>
+<td>6-7</td>
+<td>Python: estructuras y datos</td>
+<td>Lecciones 6 y 7 + <a href="#/l/python-desafios">Python: desafíos</a></td>
+</tr>
+<tr>
+<td>8</td>
+<td>PySpark y rendimiento</td>
+<td>Lección 8 + <a href="#/l/pyspark-desafios">PySpark: desafíos</a></td>
+</tr>
+<tr>
+<td>9</td>
+<td>Casos de negocio</td>
+<td>Lección 9 + <a href="#/m/casos">Casos</a></td>
+</tr>
+<tr>
+<td>10-11</td>
+<td>Diseño de sistemas</td>
+<td><a href="#/m/arquitectura">Arquitectura</a>, lecciones 1 a 8</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Historias STAR escritas y ensayadas en voz alta</td>
+<td>Este ejercicio abierto</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Simulacro completo cronometrado</td>
+<td>Esta lección</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Descanso y repaso liviano de tus errores</td>
+<td>Tus notas</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Tu banco de historias y tu registro de errores</div>
+
+<ol>
+<li>Crea una nota con la plantilla de abajo.</li>
+<li>Escribe tus tres historias STAR: si todavía no trabajaste con datos, usa los proyectos del curso.</li>
+<li>Cada vez que falles un ejercicio de este módulo, anota en el registro qué patrón no reconociste. Antes de la entrevista, repasa solo ese registro.</li>
+</ol>
+<pre data-norun><code class="language-text"># Preparación de entrevistas
+
+## Historia 1: algo que falló y arreglé
+- S:
+- T:
+- A:
+- R (con un número):
+
+## Historia 2: algo que mejoré por iniciativa propia
+- S / T / A / R:
+
+## Historia 3: un pedido ambiguo o un desacuerdo
+- S / T / A / R:
+
+## Registro de errores
+| Fecha | Ejercicio | Qué patrón no vi | Cómo lo reconozco la próxima vez |
+|---|---|---|---|
+
+## Preguntas para el entrevistador
+-</code></pre>
+<p>Reto: graba tu respuesta STAR de la historia 1 y verifica que dure menos de dos minutos y que la parte de <strong>Acción</strong> sea la más larga.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Practicar sin reloj.</strong> El tiempo es parte de la prueba.</li>
+<li><strong>Historias sin resultado.</strong> Termina siempre con qué cambió y qué aprendiste.</li>
+<li><strong>Memorizar respuestas palabra por palabra.</strong> Memoriza la estructura y los hechos; las palabras salen solas.</li>
+<li><strong>No hacer preguntas al final.</strong> Parece falta de interés.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;¿Cuál es tu mayor debilidad?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Me costaba pedir ayuda cuando me trababa: perdía horas en algo que un compañero resolvía en minutos. Ahora me pongo un límite de 30 minutos; si no avanzo, escribo qué probé y pregunto. Eso me obligó a documentar mejor y, de paso, mis preguntas ayudan a otros que tienen la misma duda.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/entrevistas-simulacro-y-comportamiento">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="entrevistas-casos-de-analista.html">← Casos de negocio para analistas - de la pregunta vaga a la métrica</a><a href="proyecto-pedalia-el-encargo.html">El encargo - Pedalia necesita datos, y nadie sabe bien cuáles →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
