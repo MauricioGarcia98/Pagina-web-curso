@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seguridad, límites de uso y llevar la API a producción · Academia de Datos</title><meta name="description" content="Una API de datos pública o interna necesita saber quién llama, limitar cuánto llama y no devolver más de lo que debe. Proteges rutas con una clave usando dependencias, respondes 401 y 403 correctamente, ocultas campos sensibles con response_model, limitas el uso con 429 y Retry-After, versionas con routers, y ves cómo se despliega - variables de entorno para los secretos, uvicorn y un Dockerfile."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/apis-seguridad-limites-y-despliegue.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Seguridad, límites de uso y llevar la API a producción · Academia de Datos"><meta property="og:description" content="Una API de datos pública o interna necesita saber quién llama, limitar cuánto llama y no devolver más de lo que debe. Proteges rutas con una clave usando dependencias, respondes 401 y 403 correctamente, ocultas campos sensibles con response_model, limitas el uso con 429 y Retry-After, versionas con routers, y ves cómo se despliega - variables de entorno para los secretos, uvicorn y un Dockerfile."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/apis-seguridad-limites-y-despliegue.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#apis">🔌 APIs para datos: construir con FastAPI</a> · Experto · 70 min</div>
+<h1>Seguridad, límites de uso y llevar la API a producción</h1><p class="resumen">Una API de datos pública o interna necesita saber quién llama, limitar cuánto llama y no devolver más de lo que debe. Proteges rutas con una clave usando dependencias, respondes 401 y 403 correctamente, ocultas campos sensibles con response_model, limitas el uso con 429 y Retry-After, versionas con routers, y ves cómo se despliega - variables de entorno para los secretos, uvicorn y un Dockerfile.</p>
+<a class="cta" href="../index.html#/l/apis-seguridad-limites-y-despliegue">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Proteger rutas con una dependencia que verifica una clave de API</li><li>Distinguir cuándo responder 401 y cuándo 403</li><li>Ocultar campos sensibles de la respuesta con response_model</li><li>Implementar un límite de uso por ventana de tiempo que responde 429 con Retry-After</li><li>Organizar versiones con APIRouter y prefijos</li><li>Preparar la API para producción con secretos en variables de entorno y un contenedor</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un edificio de oficinas tiene un guardia en la entrada (la clave de API: ¿quién eres?), tarjetas que solo abren ciertos pisos (los permisos: ¿qué puedes ver?), un límite de visitas por día (el límite de uso) y no deja que nadie se lleve los archivos de personal (los campos sensibles). Una API en producción necesita las cuatro cosas.</p>
+</div>
+
+
+<h2>Dependencias: el guardia de la entrada</h2>
+<p>Una <strong>dependencia</strong> es una función que FastAPI ejecuta <strong>antes</strong> de tu ruta. Si lanza una excepción, la ruta no se ejecuta. Es el lugar natural para verificar quién llama:</p>
+<pre data-norun><code class="language-python">from fastapi import Depends, Header, HTTPException
+
+CLAVES = {&quot;clave-finanzas&quot;: &quot;finanzas&quot;, &quot;clave-comercial&quot;: &quot;comercial&quot;}
+
+def equipo_actual(x_api_key: str | None = Header(None)) -&gt; str:
+    if x_api_key is None or x_api_key not in CLAVES:
+        raise HTTPException(status_code=401, detail=&quot;Falta la clave o no es válida&quot;)
+    return CLAVES[x_api_key]
+
+@app.get(&quot;/reportes/ventas&quot;)
+def ventas(equipo: str = Depends(equipo_actual)):
+    return {&quot;equipo&quot;: equipo, &quot;total&quot;: 5351271.08}</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Situación</th>
+<th>Código</th>
+</tr>
+</thead><tbody><tr>
+<td>No mandó clave, o la clave no existe</td>
+<td><strong>401</strong> Unauthorized: &quot;no sé quién eres&quot;</td>
+</tr>
+<tr>
+<td>La clave es válida pero ese equipo no puede ver el recurso</td>
+<td><strong>403</strong> Forbidden: &quot;sé quién eres y no puedes&quot;</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las claves no van en el código</div>
+
+<p>En el ejemplo, las claves están en un diccionario para practicar. En producción viven en un gestor de secretos (Azure Key Vault, AWS Secrets Manager) o en variables de entorno que se leen al arrancar (<code>os.environ[&quot;API_KEY&quot;]</code>), y se guardan <strong>hasheadas</strong>, como las contraseñas. Una clave en el repositorio queda expuesta para siempre en el historial de Git.</p>
+</div>
+
+
+<h2>response_model: no devolver de más</h2>
+<p>Si la función devuelve el registro completo del cliente, el email y el teléfono salen en la respuesta. Con <code>response_model</code>, FastAPI <strong>filtra</strong> la salida a los campos del modelo, aunque la función devuelva más:</p>
+<pre data-norun><code class="language-python">class ClientePublico(BaseModel):
+    cliente_id: int
+    nombre: str
+    ciudad: str
+
+@app.get(&quot;/clientes/{cliente_id}&quot;, response_model=ClientePublico)
+def cliente(cliente_id: int):
+    return CLIENTES[cliente_id]      # trae email y teléfono, pero no salen</code></pre>
+<p>Es una red de seguridad: si mañana alguien agrega una columna sensible a la tabla, no aparece en la API por accidente. Ver <a href="https://fastapi.tiangolo.com/tutorial/response-model/">modelo de respuesta en la documentación</a>.</p>
+<h2>Límites de uso: 429 y Retry-After</h2>
+<p>Un límite de uso protege la API de un cliente con un bucle descontrolado. La forma más simple es la <strong>ventana fija</strong>: como máximo N pedidos por clave cada X segundos. Al pasarse, se responde <strong>429</strong> con el encabezado <code>Retry-After</code> (segundos que faltan para que se abra la ventana siguiente). Un cliente bien escrito espera ese tiempo antes de reintentar (lo viste del lado del cliente en <a href="#/l/python-extraer-de-apis">Python: extraer de una API</a>).</p>
+<pre data-norun><code class="language-python">raise HTTPException(status_code=429, detail=&quot;Demasiados pedidos&quot;, headers={&quot;Retry-After&quot;: &quot;12&quot;})</code></pre>
+<h2>Versiones con routers</h2>
+<pre data-norun><code class="language-python">from fastapi import APIRouter
+
+v1 = APIRouter(prefix=&quot;/v1&quot;)
+
+@v1.get(&quot;/productos&quot;)
+def productos_v1(): ...
+
+app.include_router(v1)        # la ruta queda en /v1/productos</code></pre>
+<p>Cuando necesites un cambio incompatible, creas <code>v2</code> y mantienes <code>v1</code> durante la transición.</p>
+<h2>Llevarla a producción</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tema</th>
+<th>Cómo</th>
+</tr>
+</thead><tbody><tr>
+<td>Servidor</td>
+<td><code>fastapi run main.py</code> (usa uvicorn) o <code>uvicorn main:app --host 0.0.0.0 --port 8000</code></td>
+</tr>
+<tr>
+<td>Contenedor</td>
+<td>Un <code>Dockerfile</code> con la imagen oficial de Python, <code>uv sync</code> y el comando de arriba (<a href="https://fastapi.tiangolo.com/deployment/docker/">guía oficial</a>)</td>
+</tr>
+<tr>
+<td>Secretos</td>
+<td>Variables de entorno o un gestor de secretos; nunca en el código</td>
+</tr>
+<tr>
+<td>Varias copias</td>
+<td>Detrás de un balanceador; el estado (claves de idempotencia, contadores) va en Redis o en una base, no en memoria</td>
+</tr>
+<tr>
+<td>Observabilidad</td>
+<td>Registros con el id de cada pedido, métricas de latencia y de códigos 4xx/5xx</td>
+</tr>
+<tr>
+<td>Documentación</td>
+<td><code>/docs</code> (Swagger UI) y <code>/openapi.json</code> salen solos: compártelos con quien consume la API</td>
+</tr>
+</tbody></table></div>
+<pre data-norun><code class="language-dockerfile">FROM python:3.13-slim
+WORKDIR /app
+COPY pyproject.toml uv.lock ./
+RUN pip install uv &amp;&amp; uv sync --frozen --no-dev
+COPY . .
+CMD [&quot;uv&quot;, &quot;run&quot;, &quot;fastapi&quot;, &quot;run&quot;, &quot;main.py&quot;, &quot;--port&quot;, &quot;8000&quot;]</code></pre>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Una API protegida, filtrada y con límite</div>
+
+<ol>
+<li>Ejecuta: la API exige clave, oculta el email de los clientes y limita a 3 pedidos por clave.</li>
+<li>Mira la respuesta del cuarto pedido: 429 con <code>Retry-After</code>.</li>
+<li>Agrega la regla de permisos: solo el equipo <code>finanzas</code> puede ver <code>/reportes/ventas</code>; el resto recibe 403.</li>
+</ol>
+<pre><code class="language-python">from fastapi import FastAPI, Depends, Header, HTTPException
+from fastapi.testclient import TestClient
+from pydantic import BaseModel
+
+CLAVES = {&quot;clave-finanzas&quot;: &quot;finanzas&quot;, &quot;clave-comercial&quot;: &quot;comercial&quot;}
+USOS = {}
+LIMITE = 3
+CLIENTES = {7: {&quot;cliente_id&quot;: 7, &quot;nombre&quot;: &quot;Lucía&quot;, &quot;ciudad&quot;: &quot;Lima&quot;, &quot;email&quot;: &quot;lucia@correo.com&quot;}}
+
+def equipo_actual(x_api_key: str | None = Header(None)) -&gt; str:
+    if x_api_key not in CLAVES:
+        raise HTTPException(status_code=401, detail=&quot;Falta la clave o no es válida&quot;)
+    USOS[x_api_key] = USOS.get(x_api_key, 0) + 1
+    if USOS[x_api_key] &gt; LIMITE:
+        raise HTTPException(status_code=429, detail=&quot;Demasiados pedidos&quot;, headers={&quot;Retry-After&quot;: &quot;60&quot;})
+    return CLAVES[x_api_key]
+
+class ClientePublico(BaseModel):
+    cliente_id: int
+    nombre: str
+    ciudad: str
+
+app = FastAPI()
+
+@app.get(&quot;/clientes/{cliente_id}&quot;, response_model=ClientePublico)
+def cliente(cliente_id: int, equipo: str = Depends(equipo_actual)):
+    if cliente_id not in CLIENTES:
+        raise HTTPException(status_code=404, detail=&quot;Cliente no encontrado&quot;)
+    return CLIENTES[cliente_id]
+
+c = TestClient(app)
+print(c.get(&quot;/clientes/7&quot;).status_code, &quot;sin clave&quot;)
+h = {&quot;X-API-Key&quot;: &quot;clave-comercial&quot;}
+for i in range(4):
+    r = c.get(&quot;/clientes/7&quot;, headers=h)
+    print(i + 1, r.status_code, r.json(), r.headers.get(&quot;retry-after&quot;))</code></pre>
+<p>Reto: cambia el contador por una ventana de tiempo real (guarda el inicio de la ventana y reinicia el conteo cuando pasan 60 segundos) y calcula el <code>Retry-After</code> exacto.</p>
+<p>Documentación oficial: <a href="https://fastapi.tiangolo.com/tutorial/dependencies/">Dependencias (FastAPI)</a> · <a href="https://fastapi.tiangolo.com/tutorial/security/">Seguridad (FastAPI)</a> · <a href="https://fastapi.tiangolo.com/tutorial/response-model/">Modelo de respuesta (FastAPI)</a> · <a href="https://fastapi.tiangolo.com/deployment/docker/">Despliegue con Docker (FastAPI)</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429">429 Too Many Requests (MDN, en inglés)</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Claves en el código o en el repositorio.</strong> Van en variables de entorno o en un gestor de secretos.</li>
+<li><strong>401 y 403 mezclados.</strong> 401: no te identificaste; 403: no tienes permiso.</li>
+<li><strong>Devolver el registro completo de la base.</strong> Usa <code>response_model</code> para mostrar solo lo público.</li>
+<li><strong>Contadores en memoria con varias copias de la API.</strong> Cada copia cuenta por su lado: el estado compartido va en Redis.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;Otro equipo te pide acceso a los datos de clientes por API. ¿Qué cuidas?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Que tengan una clave propia (así sé quién consulta y puedo revocarla), que la respuesta solo traiga los campos que necesitan con un <code>response_model</code> sin datos personales salvo que haya una razón aprobada, paginación con límite máximo, un límite de uso con 429, registros de acceso para auditoría y la documentación OpenAPI con el contrato. Si necesitan datos masivos, quizás no es una API sino compartir una tabla con permisos en el catálogo, como Delta Sharing o Unity Catalog.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/apis-seguridad-limites-y-despliegue">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="apis-recibir-y-validar-datos.html">← Recibir datos - modelos de pydantic, 422 e idempotencia</a><a href="casos-metodo.html">Cómo pensar un problema de negocio (el método) →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

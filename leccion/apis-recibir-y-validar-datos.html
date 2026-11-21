@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recibir datos - modelos de pydantic, 422 e idempotencia · Academia de Datos</title><meta name="description" content="Una API de datos también recibe - pedidos nuevos, eventos, correcciones. Defines la forma de lo que entra con modelos de pydantic (tipos, rangos, valores permitidos, listas anidadas), dejas que FastAPI responda 422 con el detalle exacto de cada error, devuelves 201 al crear, y evitas los duplicados que provocan los reintentos con una clave de idempotencia, como hacen Stripe y la mayoría de las APIs de pagos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/apis-recibir-y-validar-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Recibir datos - modelos de pydantic, 422 e idempotencia · Academia de Datos"><meta property="og:description" content="Una API de datos también recibe - pedidos nuevos, eventos, correcciones. Defines la forma de lo que entra con modelos de pydantic (tipos, rangos, valores permitidos, listas anidadas), dejas que FastAPI responda 422 con el detalle exacto de cada error, devuelves 201 al crear, y evitas los duplicados que provocan los reintentos con una clave de idempotencia, como hacen Stripe y la mayoría de las APIs de pagos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/apis-recibir-y-validar-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#apis">🔌 APIs para datos: construir con FastAPI</a> · Avanzado · 70 min</div>
+<h1>Recibir datos - modelos de pydantic, 422 e idempotencia</h1><p class="resumen">Una API de datos también recibe - pedidos nuevos, eventos, correcciones. Defines la forma de lo que entra con modelos de pydantic (tipos, rangos, valores permitidos, listas anidadas), dejas que FastAPI responda 422 con el detalle exacto de cada error, devuelves 201 al crear, y evitas los duplicados que provocan los reintentos con una clave de idempotencia, como hacen Stripe y la mayoría de las APIs de pagos.</p>
+<a class="cta" href="../index.html#/l/apis-recibir-y-validar-datos">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Definir modelos de pydantic con tipos, valores por defecto, Field con rangos y Literal</li><li>Recibir el cuerpo JSON de un POST como un modelo validado</li><li>Leer el detalle de un error 422 y saber qué campo falló</li><li>Responder 201 al crear y 404 al modificar algo que no existe</li><li>Hacer que un POST sea seguro de reintentar con una clave de idempotencia</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un formulario en papel con casilleros (&quot;cantidad: solo números del 1 al 100&quot;) evita que alguien escriba &quot;muchas&quot;. Un modelo de pydantic es ese formulario: FastAPI lo usa para rechazar lo que no encaja <strong>antes</strong> de que llegue a tu código, y dice exactamente qué casillero está mal.</p>
+</div>
+
+
+<h2>Un modelo describe lo que entra</h2>
+<pre><code class="language-python">from typing import Literal
+from pydantic import BaseModel, Field
+
+class Linea(BaseModel):
+    producto_id: int
+    cantidad: int = Field(ge=1, le=100)
+
+class PedidoNuevo(BaseModel):
+    cliente_id: int
+    canal: Literal[&quot;web&quot;, &quot;app&quot;, &quot;tienda&quot;, &quot;telefono&quot;] = &quot;web&quot;
+    lineas: list[Linea] = Field(min_length=1)
+    cupon: str | None = None</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Declaración</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>cliente_id: int</code></td>
+<td>Obligatorio y entero (<code>&quot;5&quot;</code> se convierte a <code>5</code>; <code>&quot;cinco&quot;</code> es error)</td>
+</tr>
+<tr>
+<td><code>canal: Literal[...] = &quot;web&quot;</code></td>
+<td>Solo esos valores; si no viene, <code>&quot;web&quot;</code></td>
+</tr>
+<tr>
+<td><code>lineas: list[Linea]</code></td>
+<td>Una lista de objetos que se validan uno por uno</td>
+</tr>
+<tr>
+<td><code>Field(ge=1, le=100)</code></td>
+<td>Rango permitido</td>
+</tr>
+<tr>
+<td><code>cupon: str | None = None</code></td>
+<td>Opcional</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-nota"><div class="callout-title">📝 Conversión &quot;lax&quot;</div>
+
+<p>pydantic v2 convierte lo razonable y rechaza lo ambiguo: <code>&quot;5&quot;</code> sirve para un <code>int</code>, pero <code>5</code> <strong>no</strong> sirve para un <code>str</code> (podría ser un error del cliente). Así lo define la <a href="https://docs.pydantic.dev/latest/concepts/conversion_table/">documentación de pydantic</a>.</p>
+</div>
+
+
+<h2>El cuerpo de un POST</h2>
+<p>Si un parámetro de la función es un modelo, FastAPI lo lee del <strong>cuerpo JSON</strong>:</p>
+<pre data-norun><code class="language-python">@app.post(&quot;/pedidos&quot;, status_code=201)
+def crear(pedido: PedidoNuevo):
+    nuevo = {&quot;pedido_id&quot;: len(PEDIDOS) + 1, **pedido.model_dump()}
+    PEDIDOS.append(nuevo)
+    return nuevo</code></pre>
+<p><code>model_dump()</code> convierte el modelo en un diccionario (incluidos los modelos anidados). <code>status_code=201</code> es el código correcto al crear.</p>
+<h2>Leer un 422</h2>
+<p>Si mandan <code>{&quot;cliente_id&quot;: 7, &quot;canal&quot;: &quot;fax&quot;, &quot;lineas&quot;: [{&quot;producto_id&quot;: 1, &quot;cantidad&quot;: 0}]}</code>:</p>
+<pre><code class="language-json">{&quot;detail&quot;: [
+  {&quot;type&quot;: &quot;literal_error&quot;, &quot;loc&quot;: [&quot;body&quot;, &quot;canal&quot;], &quot;msg&quot;: &quot;Input should be 'web', 'app', 'tienda' or 'telefono'&quot;, &quot;input&quot;: &quot;fax&quot;},
+  {&quot;type&quot;: &quot;greater_than_equal&quot;, &quot;loc&quot;: [&quot;body&quot;, &quot;lineas&quot;, 0, &quot;cantidad&quot;], &quot;msg&quot;: &quot;Input should be greater than or equal to 1&quot;, &quot;input&quot;: 0}
+]}</code></pre>
+<p><code>loc</code> es el camino al campo que falló: en el cuerpo, la lista <code>lineas</code>, el elemento <code>0</code>, el campo <code>cantidad</code>. Todos los errores vienen juntos, así el cliente corrige todo de una vez.</p>
+<h2>Reintentos sin duplicados: la clave de idempotencia</h2>
+<p>El cliente manda un <code>POST /pedidos</code>, la red se corta <strong>antes</strong> de recibir la respuesta, y reintenta. ¿Se creó el pedido la primera vez? No lo sabe. Si reintenta y se había creado, ahora hay dos.</p>
+<p>La solución estándar: el cliente genera una clave única por operación y la manda en el encabezado <code>Idempotency-Key</code>. El servidor guarda la respuesta de cada clave; si vuelve a llegar la misma clave, devuelve la respuesta guardada <strong>sin crear nada</strong>. Así lo documenta, por ejemplo, la <a href="https://docs.stripe.com/api/idempotent_requests">API de Stripe</a>.</p>
+<pre data-norun><code class="language-python">from fastapi import Header
+
+RESPUESTAS = {}
+
+@app.post(&quot;/pedidos&quot;, status_code=201)
+def crear(pedido: PedidoNuevo, idempotency_key: str | None = Header(None)):
+    if idempotency_key in RESPUESTAS:
+        return RESPUESTAS[idempotency_key]
+    nuevo = {&quot;pedido_id&quot;: len(PEDIDOS) + 1, **pedido.model_dump()}
+    PEDIDOS.append(nuevo)
+    if idempotency_key:
+        RESPUESTAS[idempotency_key] = nuevo
+    return nuevo</code></pre>
+<p><code>Header(None)</code> lee el encabezado; FastAPI convierte <code>idempotency_key</code> en <code>idempotency-key</code> (sin distinguir mayúsculas).</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Guardar las claves en memoria</div>
+
+<p>En este ejemplo las claves viven en un diccionario: si el servidor se reinicia o hay varias copias de la API, se pierden. En producción se guardan en una base o en Redis, con vencimiento (por ejemplo, 24 horas).</p>
+</div>
+
+
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Ver los errores 422 y la idempotencia en acción</div>
+
+<ol>
+<li>Ejecuta: se crea un pedido válido, uno inválido (mira el detalle del 422) y se repite un pedido con la misma clave.</li>
+<li>Comprueba que, con la misma <code>Idempotency-Key</code>, la lista de pedidos no crece.</li>
+<li>Agrega al modelo <code>Linea</code> un campo <code>precio_unitario: float = Field(gt=0)</code> y prueba qué pasa si mandas <code>0</code>.</li>
+</ol>
+<pre><code class="language-python">from typing import Literal
+from fastapi import FastAPI, Header
+from fastapi.testclient import TestClient
+from pydantic import BaseModel, Field
+
+class Linea(BaseModel):
+    producto_id: int
+    cantidad: int = Field(ge=1, le=100)
+
+class PedidoNuevo(BaseModel):
+    cliente_id: int
+    canal: Literal[&quot;web&quot;, &quot;app&quot;, &quot;tienda&quot;, &quot;telefono&quot;] = &quot;web&quot;
+    lineas: list[Linea] = Field(min_length=1)
+
+PEDIDOS, RESPUESTAS = [], {}
+app = FastAPI()
+
+@app.post(&quot;/pedidos&quot;, status_code=201)
+def crear(pedido: PedidoNuevo, idempotency_key: str | None = Header(None)):
+    if idempotency_key in RESPUESTAS:
+        return RESPUESTAS[idempotency_key]
+    nuevo = {&quot;pedido_id&quot;: len(PEDIDOS) + 1, **pedido.model_dump()}
+    PEDIDOS.append(nuevo)
+    if idempotency_key:
+        RESPUESTAS[idempotency_key] = nuevo
+    return nuevo
+
+c = TestClient(app)
+ok = {&quot;cliente_id&quot;: 7, &quot;lineas&quot;: [{&quot;producto_id&quot;: 1, &quot;cantidad&quot;: 2}]}
+print(c.post(&quot;/pedidos&quot;, json=ok).json())
+malo = {&quot;cliente_id&quot;: 7, &quot;canal&quot;: &quot;fax&quot;, &quot;lineas&quot;: [{&quot;producto_id&quot;: 1, &quot;cantidad&quot;: 0}]}
+r = c.post(&quot;/pedidos&quot;, json=malo)
+print(r.status_code)
+for e in r.json()[&quot;detail&quot;]:
+    print(&quot;  &quot;, e[&quot;loc&quot;], &quot;→&quot;, e[&quot;msg&quot;])
+for _ in range(3):
+    c.post(&quot;/pedidos&quot;, json=ok, headers={&quot;Idempotency-Key&quot;: &quot;pedido-abc-1&quot;})
+print(&quot;pedidos guardados:&quot;, len(PEDIDOS))   # 2: el primero y uno solo de los tres reintentos</code></pre>
+<p>Reto: haz que un reintento con la misma clave pero con un cuerpo <strong>distinto</strong> responda 409 (conflicto), como hace Stripe.</p>
+<p>Documentación oficial: <a href="https://fastapi.tiangolo.com/tutorial/body/">Cuerpo del pedido (FastAPI)</a> · <a href="https://fastapi.tiangolo.com/tutorial/body-fields/">Validación de campos (FastAPI)</a> · <a href="https://docs.pydantic.dev/latest/concepts/models/">Modelos (pydantic)</a> · <a href="https://docs.stripe.com/api/idempotent_requests">Pedidos idempotentes (Stripe)</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Validar con <code>if</code> a mano.</strong> Lo que se puede declarar en el modelo, se declara.</li>
+<li><strong>Devolver 200 al crear.</strong> El código correcto es 201.</li>
+<li><strong><code>POST</code> sin idempotencia en operaciones con dinero.</strong> Un reintento duplica el cobro.</li>
+<li><strong>Aceptar listas vacías sin pensarlo.</strong> Un pedido sin líneas casi nunca es válido: <code>Field(min_length=1)</code>.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;Te llegan eventos de una app móvil por una API, y a veces llegan repetidos. ¿Cómo lo manejas?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;Cada evento trae un id único generado en el teléfono. En la API, si un id ya se procesó, respondo como si fuera nuevo pero no lo guardo dos veces (idempotencia por clave). Y, como defensa en profundidad, la capa silver deduplica por ese id con <code>MERGE</code>, porque los duplicados también pueden entrar por otros caminos, como un reprocesamiento.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/apis-recibir-y-validar-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="apis-primera-api-fastapi.html">← Tu primera API con FastAPI - leer datos con GET</a><a href="apis-seguridad-limites-y-despliegue.html">Seguridad, límites de uso y llevar la API a producción →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
