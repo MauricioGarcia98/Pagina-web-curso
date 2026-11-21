@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diseñar una API de datos - recursos, códigos y paginación · Academia de Datos</title><meta name="description" content="Antes de escribir código, una API se diseña - qué recursos expone, con qué métodos, qué códigos de estado devuelve, cómo se filtra y cómo se pagina. Aprendes las convenciones de HTTP que cualquier cliente espera, la diferencia entre paginar por número de página y por cursor, y por qué el cursor es el estándar cuando los datos cambian mientras alguien los lee."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/apis-disenar-una-api-de-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Diseñar una API de datos - recursos, códigos y paginación · Academia de Datos"><meta property="og:description" content="Antes de escribir código, una API se diseña - qué recursos expone, con qué métodos, qué códigos de estado devuelve, cómo se filtra y cómo se pagina. Aprendes las convenciones de HTTP que cualquier cliente espera, la diferencia entre paginar por número de página y por cursor, y por qué el cursor es el estándar cuando los datos cambian mientras alguien los lee."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/apis-disenar-una-api-de-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#apis">🔌 APIs para datos: construir con FastAPI</a> · Intermedio · 50 min</div>
+<h1>Diseñar una API de datos - recursos, códigos y paginación</h1><p class="resumen">Antes de escribir código, una API se diseña - qué recursos expone, con qué métodos, qué códigos de estado devuelve, cómo se filtra y cómo se pagina. Aprendes las convenciones de HTTP que cualquier cliente espera, la diferencia entre paginar por número de página y por cursor, y por qué el cursor es el estándar cuando los datos cambian mientras alguien los lee.</p>
+<a class="cta" href="../index.html#/l/apis-disenar-una-api-de-datos">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Modelar recursos y elegir el método HTTP correcto para cada operación</li><li>Elegir el código de estado adecuado para cada respuesta</li><li>Diseñar filtros, orden y paginación en la URL</li><li>Explicar por qué la paginación por cursor no pierde ni repite filas</li><li>Versionar una API sin romper a sus clientes</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una API es el mostrador de un negocio: el cliente no entra a la trastienda (tu base de datos), pide por el mostrador con un formulario conocido y recibe una respuesta con un formato acordado. Diseñar la API es decidir qué se puede pedir, con qué formulario y qué contesta el mostrador cuando algo sale mal.</p>
+</div>
+
+
+<h2>Recursos y métodos</h2>
+<p>En una API REST, la URL nombra un <strong>recurso</strong> (un sustantivo) y el <strong>método HTTP</strong> dice qué haces con él.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Método</th>
+<th>Qué hace</th>
+<th>Ejemplo</th>
+<th>¿Idempotente?</th>
+</tr>
+</thead><tbody><tr>
+<td><code>GET</code></td>
+<td>Leer</td>
+<td><code>GET /productos/42</code></td>
+<td>Sí</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td>Crear</td>
+<td><code>POST /pedidos</code></td>
+<td><strong>No</strong> (dos POST crean dos pedidos)</td>
+</tr>
+<tr>
+<td><code>PUT</code></td>
+<td>Reemplazar completo</td>
+<td><code>PUT /productos/42</code></td>
+<td>Sí</td>
+</tr>
+<tr>
+<td><code>PATCH</code></td>
+<td>Modificar una parte</td>
+<td><code>PATCH /productos/42</code></td>
+<td>Depende</td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td>Borrar</td>
+<td><code>DELETE /productos/42</code></td>
+<td>Sí</td>
+</tr>
+</tbody></table></div>
+<p><strong>Idempotente</strong> significa que repetir la operación deja el mismo resultado que hacerla una vez. Importa porque las redes fallan y los clientes reintentan: un <code>GET</code> o un <code>PUT</code> repetido no hace daño; un <code>POST</code> repetido puede duplicar un pedido (en la lección 3 lo resuelves con una clave de idempotencia).</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Sustantivos, no verbos</div>
+
+<p><code>GET /productos?categoria=audio</code> y no <code>GET /obtenerProductosDeAudio</code>. El verbo ya está en el método.</p>
+</div>
+
+
+<h2>Códigos de estado</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Código</th>
+<th>Significa</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td>200 OK</td>
+<td>Salió bien</td>
+<td>Lectura o actualización exitosa</td>
+</tr>
+<tr>
+<td>201 Created</td>
+<td>Se creó</td>
+<td>Después de un <code>POST</code> exitoso</td>
+</tr>
+<tr>
+<td>204 No Content</td>
+<td>Salió bien, sin cuerpo</td>
+<td>Después de un <code>DELETE</code></td>
+</tr>
+<tr>
+<td>400 Bad Request</td>
+<td>El pedido está mal armado</td>
+<td>JSON roto</td>
+</tr>
+<tr>
+<td>401 Unauthorized</td>
+<td>No sé quién eres</td>
+<td>Falta la clave o es inválida</td>
+</tr>
+<tr>
+<td>403 Forbidden</td>
+<td>Sé quién eres, pero no puedes</td>
+<td>Clave válida sin permiso para ese recurso</td>
+</tr>
+<tr>
+<td>404 Not Found</td>
+<td>No existe</td>
+<td><code>GET /productos/999999</code></td>
+</tr>
+<tr>
+<td>409 Conflict</td>
+<td>Choca con el estado actual</td>
+<td>Crear algo que ya existe</td>
+</tr>
+<tr>
+<td>422 Unprocessable Content</td>
+<td>Los datos no son válidos</td>
+<td><code>cantidad: -3</code> (así responde FastAPI)</td>
+</tr>
+<tr>
+<td>429 Too Many Requests</td>
+<td>Te pasaste del límite</td>
+<td>Con el encabezado <code>Retry-After</code></td>
+</tr>
+<tr>
+<td>500 Internal Server Error</td>
+<td>Falló el servidor</td>
+<td>Un error no previsto</td>
+</tr>
+</tbody></table></div>
+<p>La regla general: <strong>4xx es culpa del cliente</strong> (puede corregir y reintentar distinto), <strong>5xx es culpa del servidor</strong> (reintentar igual puede funcionar más tarde).</p>
+<h2>Filtros, orden y paginación</h2>
+<p>Los filtros y la paginación van en la <strong>query</strong> de la URL: <code>GET /pedidos?canal=web&amp;desde=2024-07-01&amp;limite=100</code>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Paginación</th>
+<th>Cómo pide la página siguiente</th>
+<th>Problema</th>
+</tr>
+</thead><tbody><tr>
+<td>Por número u offset</td>
+<td><code>?pagina=3</code> o <code>?offset=200</code></td>
+<td>Si entran o se borran filas mientras paginas, <strong>se repiten o se pierden</strong> filas</td>
+</tr>
+<tr>
+<td>Por cursor</td>
+<td><code>?cursor=&lt;id del último que viste&gt;</code></td>
+<td>Ninguno de esos: &quot;dame los que vienen después de este&quot;</td>
+</tr>
+</tbody></table></div>
+<p>Con cursor, la respuesta incluye dónde seguir:</p>
+<pre><code class="language-json">{&quot;datos&quot;: [{&quot;pedido_id&quot;: 101}, {&quot;pedido_id&quot;: 102}], &quot;siguiente&quot;: 102}</code></pre>
+<p>y el cliente pide <code>?cursor=102</code> hasta que <code>siguiente</code> venga vacío. Así paginan las APIs de Stripe, GitHub (para muchos recursos) y la mayoría de las APIs de datos grandes.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ OFFSET con datos que cambian</div>
+
+<p>Estás en la página 3 (<code>OFFSET 200</code>) y entra un pedido nuevo al principio: todo se corre una posición, y la primera fila de la página 4 es la última que ya viste en la 3. Si se borra uno, te salteas una fila sin enterarte. Para extraer datos completos, usa cursor con una columna <strong>ordenada y única</strong> (<code>pedido_id</code>, o <code>(actualizado_en, id)</code>).</p>
+</div>
+
+
+<h2>Versionar sin romper</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Cambio</th>
+<th>¿Rompe a los clientes?</th>
+<th>Qué hacer</th>
+</tr>
+</thead><tbody><tr>
+<td>Agregar un campo a la respuesta</td>
+<td>No</td>
+<td>Hacerlo, los clientes lo ignoran</td>
+</tr>
+<tr>
+<td>Agregar un filtro opcional</td>
+<td>No</td>
+<td>Hacerlo</td>
+</tr>
+<tr>
+<td>Quitar o renombrar un campo</td>
+<td><strong>Sí</strong></td>
+<td>Versión nueva: <code>/v2/...</code>, y mantener <code>/v1</code> un tiempo</td>
+</tr>
+<tr>
+<td>Cambiar el tipo de un campo</td>
+<td><strong>Sí</strong></td>
+<td>Versión nueva</td>
+</tr>
+</tbody></table></div>
+<p>Es la misma lógica de compatibilidad que viste con los esquemas de tablas en <a href="#/l/calidad-contratos-y-esquemas">Calidad: contratos y esquemas</a>.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Paginar por cursor y comprobar que no se pierde nada</div>
+
+<ol>
+<li>Ejecuta: una función simula el servidor (devuelve páginas por cursor) y un bucle la recorre como lo haría un cliente.</li>
+<li>Fíjate en que el bucle termina cuando <code>siguiente</code> es <code>None</code>, y que se juntan todas las filas exactamente una vez.</li>
+<li>Cambia <code>limite=3</code> por <code>limite=1</code> y por <code>limite=100</code>: el total debe ser siempre el mismo.</li>
+</ol>
+<pre><code class="language-python">PEDIDOS = [{&quot;pedido_id&quot;: i, &quot;monto&quot;: i * 10} for i in (3, 5, 8, 9, 12, 15, 21)]
+
+def pagina(cursor=None, limite=3):
+    &quot;&quot;&quot;El servidor: los pedidos con id mayor al cursor, en orden, y dónde seguir.&quot;&quot;&quot;
+    resto = [p for p in PEDIDOS if cursor is None or p[&quot;pedido_id&quot;] &gt; cursor]
+    datos = resto[:limite]
+    siguiente = datos[-1][&quot;pedido_id&quot;] if len(resto) &gt; limite else None
+    return {&quot;datos&quot;: datos, &quot;siguiente&quot;: siguiente}
+
+todos, cursor, llamadas = [], None, 0
+while True:
+    r = pagina(cursor, limite=3)
+    llamadas += 1
+    todos += r[&quot;datos&quot;]
+    if r[&quot;siguiente&quot;] is None:
+        break
+    cursor = r[&quot;siguiente&quot;]
+
+print(llamadas, &quot;llamadas,&quot;, len(todos), &quot;pedidos:&quot;, [p[&quot;pedido_id&quot;] for p in todos])</code></pre>
+<p>Reto: entre la primera y la segunda llamada, agrega a <code>PEDIDOS</code> un pedido con id 1 (uno &quot;viejo&quot; que llegó tarde). ¿El cursor lo trae? ¿Qué columna usarías como cursor para no perderlo? (Pista: <code>actualizado_en</code>.)</p>
+<p>Documentación oficial: <a href="https://developer.mozilla.org/es/docs/Web/HTTP/Methods">Métodos HTTP (MDN)</a> · <a href="https://developer.mozilla.org/es/docs/Web/HTTP/Status">Códigos de estado HTTP (MDN)</a> · <a href="https://www.rfc-editor.org/rfc/rfc9110">RFC 9110: semántica de HTTP</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Verbos en la URL.</strong> <code>/crearPedido</code> en vez de <code>POST /pedidos</code>.</li>
+<li><strong>Todo devuelve 200.</strong> Con un error dentro del JSON, los clientes no pueden reaccionar bien.</li>
+<li><strong>Paginar con OFFSET para extraer todo.</strong> Se repiten o pierden filas si los datos cambian.</li>
+<li><strong>Romper el formato sin versión.</strong> Quitar un campo rompe a clientes que no conoces.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;¿Cómo diseñarías un endpoint para que otro equipo extraiga todos los pedidos de forma incremental?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;<code>GET /v1/pedidos?actualizado_desde=...&amp;cursor=...&amp;limite=500</code>, ordenado por <code>(actualizado_en, pedido_id)</code>, con el cursor como esa pareja codificada. La respuesta trae <code>datos</code> y <code>siguiente</code>. Así el cliente guarda el último cursor y la próxima corrida pide solo lo nuevo o modificado, sin repetir ni perder filas. Le pondría un límite de uso con 429 y <code>Retry-After</code>, y documentaría todo con OpenAPI, que FastAPI genera solo.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/apis-disenar-una-api-de-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="local-proyecto-local.html">← Proyecto: el pipeline de Rápido completo en tu computadora</a><a href="apis-primera-api-fastapi.html">Tu primera API con FastAPI - leer datos con GET →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

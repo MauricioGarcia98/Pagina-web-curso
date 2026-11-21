@@ -481,6 +481,21 @@
     ]
   },
   {
+    "id": "apis",
+    "titulo": "APIs para datos: construir con FastAPI",
+    "icono": "🔌",
+    "color": "#059669",
+    "descripcion": "Del otro lado de la API: diseñar recursos, códigos de estado y paginación, construir endpoints con FastAPI que sirven datos de la tienda, validar lo que entra con modelos de pydantic, evitar duplicados con claves de idempotencia, proteger con claves y límites de uso, y probar todo con TestClient. Se practica en el navegador con una versión reducida de FastAPI que responde igual que la real.",
+    "objetivos": [
+      "Diseñar una API de datos con recursos, métodos, códigos de estado y paginación por cursor",
+      "Construir endpoints GET con parámetros de ruta y de consulta validados",
+      "Recibir datos con modelos de pydantic y responder 422 con errores claros",
+      "Evitar duplicados con claves de idempotencia",
+      "Proteger una API con claves, límites de uso (429) y respuestas que no exponen datos sensibles",
+      "Probar una API con TestClient y llevarla a tu computadora con uvicorn y Docker"
+    ]
+  },
+  {
     "id": "casos",
     "titulo": "Casos de negocio con SQL",
     "icono": "💼",

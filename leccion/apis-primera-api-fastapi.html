@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tu primera API con FastAPI - leer datos con GET · Academia de Datos</title><meta name="description" content="Construyes una API que sirve datos de la tienda con FastAPI - una ruta de salud, un recurso por id con 404 cuando no existe, una lista con filtros y límites validados, un resumen agregado y una paginación por cursor. Cada ejercicio se prueba con TestClient, la misma herramienta que se usa en los proyectos reales para probar una API sin levantar un servidor."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/apis-primera-api-fastapi.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Tu primera API con FastAPI - leer datos con GET · Academia de Datos"><meta property="og:description" content="Construyes una API que sirve datos de la tienda con FastAPI - una ruta de salud, un recurso por id con 404 cuando no existe, una lista con filtros y límites validados, un resumen agregado y una paginación por cursor. Cada ejercicio se prueba con TestClient, la misma herramienta que se usa en los proyectos reales para probar una API sin levantar un servidor."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/apis-primera-api-fastapi.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#apis">🔌 APIs para datos: construir con FastAPI</a> · Avanzado · 65 min</div>
+<h1>Tu primera API con FastAPI - leer datos con GET</h1><p class="resumen">Construyes una API que sirve datos de la tienda con FastAPI - una ruta de salud, un recurso por id con 404 cuando no existe, una lista con filtros y límites validados, un resumen agregado y una paginación por cursor. Cada ejercicio se prueba con TestClient, la misma herramienta que se usa en los proyectos reales para probar una API sin levantar un servidor.</p>
+<a class="cta" href="../index.html#/l/apis-primera-api-fastapi">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una app de FastAPI y declarar rutas GET</li><li>Recibir parámetros de ruta y de consulta con tipos que FastAPI valida solo</li><li>Responder 404 con HTTPException cuando un recurso no existe</li><li>Limitar parámetros con Query(ge=, le=) y entender el 422 que devuelve FastAPI</li><li>Probar cada ruta con TestClient y asserts sobre el código y el JSON</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>FastAPI es como un recepcionista que lee la firma de tus funciones. Si escribes <code>def producto(producto_id: int)</code>, el recepcionista ya sabe que hay que pedir un número, convertirlo, y rechazar con un mensaje claro a quien mande letras. Tú solo escribes qué hacer con un pedido correcto.</p>
+</div>
+
+
+<h2>La app más chica</h2>
+<pre><code class="language-python">from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
+app = FastAPI(title=&quot;API de la tienda&quot;)
+
+@app.get(&quot;/salud&quot;)
+def salud():
+    return {&quot;estado&quot;: &quot;ok&quot;}
+
+cliente = TestClient(app)
+r = cliente.get(&quot;/salud&quot;)
+print(r.status_code, r.json())   # 200 {'estado': 'ok'}</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>FastAPI()</code></td>
+<td>Crea la aplicación</td>
+</tr>
+<tr>
+<td><code>@app.get(&quot;/salud&quot;)</code></td>
+<td>Esta función atiende <code>GET /salud</code></td>
+</tr>
+<tr>
+<td><code>return {...}</code></td>
+<td>FastAPI lo convierte a JSON</td>
+</tr>
+<tr>
+<td><code>TestClient(app)</code></td>
+<td>Un cliente que le habla a la app <strong>sin servidor</strong>: ideal para tests</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-nota"><div class="callout-title">📝 En tu computadora y en el navegador</div>
+
+<p>En este curso, FastAPI corre en el navegador con una <strong>versión reducida</strong> que tiene la misma interfaz y responde igual (mismos códigos y mismos mensajes de error). En tu computadora instalas la real con <code>uv add &quot;fastapi[standard]&quot;</code> y la levantas con <code>fastapi dev main.py</code>: queda en <code>http://127.0.0.1:8000</code>, con la documentación interactiva en <code>/docs</code>. El código es el mismo. Detalles en la <a href="https://fastapi.tiangolo.com/tutorial/first-steps/">documentación oficial</a>.</p>
+</div>
+
+
+<h2>Parámetros de ruta y de consulta</h2>
+<p>FastAPI decide de dónde sale cada parámetro mirando la firma de la función:</p>
+<pre data-norun><code class="language-python">@app.get(&quot;/productos/{producto_id}&quot;)          # producto_id está en la ruta
+def producto(producto_id: int):               # → parámetro de ruta, convertido a int
+    ...
+
+@app.get(&quot;/productos&quot;)
+def productos(categoria: str | None = None,   # no está en la ruta y es simple → query, opcional
+              limite: int = 10):              # → query con valor por defecto
+    ...</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Petición</th>
+<th>Qué recibe la función</th>
+</tr>
+</thead><tbody><tr>
+<td><code>GET /productos/7</code></td>
+<td><code>producto_id=7</code> (int)</td>
+</tr>
+<tr>
+<td><code>GET /productos/abc</code></td>
+<td>Nada: FastAPI responde <strong>422</strong> sin llamar a tu función</td>
+</tr>
+<tr>
+<td><code>GET /productos?categoria=audio&amp;limite=5</code></td>
+<td><code>categoria=&quot;audio&quot;</code>, <code>limite=5</code></td>
+</tr>
+<tr>
+<td><code>GET /productos</code></td>
+<td><code>categoria=None</code>, <code>limite=10</code></td>
+</tr>
+</tbody></table></div>
+<h2>Errores: HTTPException</h2>
+<pre data-norun><code class="language-python">from fastapi import HTTPException
+
+@app.get(&quot;/productos/{producto_id}&quot;)
+def producto(producto_id: int):
+    for p in PRODUCTOS:
+        if p[&quot;id&quot;] == producto_id:
+            return p
+    raise HTTPException(status_code=404, detail=&quot;Producto no encontrado&quot;)</code></pre>
+<p>La respuesta es <code>404</code> con el cuerpo <code>{&quot;detail&quot;: &quot;Producto no encontrado&quot;}</code>.</p>
+<h2>Límites con Query</h2>
+<p><code>limite: int = Query(10, ge=1, le=50)</code> valida que esté entre 1 y 50. Si piden <code>?limite=500</code>, FastAPI responde 422 con un detalle que dice exactamente qué falló y dónde:</p>
+<pre><code class="language-json">{&quot;detail&quot;: [{&quot;type&quot;: &quot;less_than_equal&quot;, &quot;loc&quot;: [&quot;query&quot;, &quot;limite&quot;],
+             &quot;msg&quot;: &quot;Input should be less than or equal to 50&quot;, &quot;input&quot;: &quot;500&quot;, &quot;ctx&quot;: {&quot;le&quot;: 50}}]}</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Sin límite, una API se cae</div>
+
+<p>Un endpoint de lista sin tope (<code>limite</code> sin <code>le=</code>) deja que alguien pida un millón de filas de una vez: la API se queda sin memoria o tarda minutos. Toda lista lleva un máximo y paginación.</p>
+</div>
+
+
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Una API completa en un solo archivo</div>
+
+<ol>
+<li>Ejecuta: la API tiene salud, un producto por id y una lista filtrable; abajo, el cliente de prueba hace pedidos y muestra las respuestas.</li>
+<li>Mira la respuesta de <code>/productos/abc</code> y de <code>?limite=500</code>: FastAPI responde 422 sin que hayas escrito ni una línea de validación.</li>
+<li>Agrega una ruta <code>GET /categorias</code> que devuelva la lista de categorías sin repetir, ordenada.</li>
+</ol>
+<pre><code class="language-python">from fastapi import FastAPI, HTTPException, Query
+from fastapi.testclient import TestClient
+
+PRODUCTOS = [
+    {&quot;id&quot;: 1, &quot;nombre&quot;: &quot;Parlante JBL Pro&quot;, &quot;categoria&quot;: &quot;audio&quot;, &quot;precio&quot;: 120.0},
+    {&quot;id&quot;: 2, &quot;nombre&quot;: &quot;Auricular Sony Air&quot;, &quot;categoria&quot;: &quot;audio&quot;, &quot;precio&quot;: 85.5},
+    {&quot;id&quot;: 3, &quot;nombre&quot;: &quot;Teclado Logitech Mini&quot;, &quot;categoria&quot;: &quot;pc&quot;, &quot;precio&quot;: 45.0},
+    {&quot;id&quot;: 4, &quot;nombre&quot;: &quot;Webcam Logitech Pro&quot;, &quot;categoria&quot;: &quot;pc&quot;, &quot;precio&quot;: 60.0},
+]
+
+app = FastAPI(title=&quot;API de la tienda&quot;)
+
+@app.get(&quot;/salud&quot;)
+def salud():
+    return {&quot;estado&quot;: &quot;ok&quot;}
+
+@app.get(&quot;/productos/{producto_id}&quot;)
+def producto(producto_id: int):
+    for p in PRODUCTOS:
+        if p[&quot;id&quot;] == producto_id:
+            return p
+    raise HTTPException(status_code=404, detail=&quot;Producto no encontrado&quot;)
+
+@app.get(&quot;/productos&quot;)
+def productos(categoria: str | None = None, limite: int = Query(10, ge=1, le=50)):
+    filtrados = [p for p in PRODUCTOS if categoria is None or p[&quot;categoria&quot;] == categoria]
+    return filtrados[:limite]
+
+c = TestClient(app)
+for url in [&quot;/salud&quot;, &quot;/productos/3&quot;, &quot;/productos/99&quot;, &quot;/productos/abc&quot;, &quot;/productos?categoria=audio&quot;, &quot;/productos?limite=500&quot;]:
+    r = c.get(url)
+    print(f&quot;{url:28} {r.status_code} {r.json()}&quot;)</code></pre>
+<p>Reto: agrega a <code>/productos</code> un parámetro <code>orden</code> que acepte <code>precio</code> o <code>nombre</code> y ordene la lista (pista: <code>typing.Literal[&quot;precio&quot;, &quot;nombre&quot;]</code> hace que FastAPI rechace cualquier otro valor con 422).</p>
+<p>Documentación oficial: <a href="https://fastapi.tiangolo.com/tutorial/first-steps/">Primeros pasos</a> · <a href="https://fastapi.tiangolo.com/tutorial/path-params/">Parámetros de ruta</a> · <a href="https://fastapi.tiangolo.com/tutorial/query-params/">Parámetros de consulta</a> · <a href="https://fastapi.tiangolo.com/tutorial/testing/">Testing</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Devolver <code>None</code> cuando no existe.</strong> Responde 404 con <code>HTTPException</code>.</li>
+<li><strong>Validar a mano lo que FastAPI ya valida.</strong> Declara el tipo y los límites en la firma.</li>
+<li><strong>Listas sin tope.</strong> Siempre <code>Query(..., le=...)</code>.</li>
+<li><strong>Probar abriendo el navegador.</strong> Un test con <code>TestClient</code> se repite en segundos y en cada cambio.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;¿Por qué FastAPI y no Flask para una API de datos?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;FastAPI usa los tipos de Python para validar entradas y salidas con pydantic y genera la documentación OpenAPI sola, en <code>/docs</code>. Eso elimina mucho código de validación y hace el contrato explícito. Además soporta funciones asíncronas para endpoints que esperan a otras APIs. Flask sigue siendo válido, pero ahí la validación y la documentación las agregas tú con otras librerías.&quot;</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/apis-primera-api-fastapi">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="apis-disenar-una-api-de-datos.html">← Diseñar una API de datos - recursos, códigos y paginación</a><a href="apis-recibir-y-validar-datos.html">Recibir datos - modelos de pydantic, 422 e idempotencia →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
