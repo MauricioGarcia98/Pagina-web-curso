@@ -251,7 +251,7 @@
 
   // Lo que depende del interior de SQLite (su plan de consulta, su catálogo, sus tipos) se sigue ejecutando en SQLite
   // (y también transacciones explícitas, triggers, ATTACH y tablas virtuales, que DuckDB no tiene o maneja distinto)
-  const SOLO_SQLITE = /\bEXPLAIN\s+QUERY\s+PLAN\b|\bPRAGMA\b|\bpragma_\w+\s*\(|\bsqlite_(master|schema|version|sequence)\b|\btypeof\s*\(|(^|;)\s*(BEGIN|COMMIT|END|ROLLBACK|SAVEPOINT|RELEASE)\b|\bCREATE\s+(TEMP(ORARY)?\s+)?TRIGGER\b|\bATTACH\b|\bVIRTUAL\s+TABLE\b|\bREPLACE\s+INTO\b|\bWITHOUT\s+ROWID\b|\blast_insert_rowid\s*\(|\bchanges\s*\(\s*\)/i;
+  const SOLO_SQLITE = /\bEXPLAIN\s+QUERY\s+PLAN\b|\bPRAGMA\b|\bpragma_\w+\s*\(|\bsqlite_(master|schema|version|sequence)\b|\btypeof\s*\(|(^|;)\s*(BEGIN|COMMIT|END|ROLLBACK|SAVEPOINT|RELEASE)\b|\bCREATE\s+(TEMP(ORARY)?\s+)?TRIGGER\b|\bATTACH\b|\bVIRTUAL\s+TABLE\b|\bREPLACE\s+INTO\b|\bWITHOUT\s+ROWID\b|\blast_insert_rowid\s*\(|\bchanges\s*\(\s*\)|\bjson_(each|tree)\s*\(/i;
   function soloSqlite(sql) { return !!sql && SOLO_SQLITE.test(enmascarar(sql).txt.replace(/§c\d+§/g, ' ')); }
 
   // Parte un script en sentencias (respeta textos y comentarios) y descarta las que solo tienen comentarios
