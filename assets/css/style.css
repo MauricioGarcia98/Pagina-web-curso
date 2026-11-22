@@ -580,7 +580,8 @@ figure.diagrama figcaption { text-align: center; font-size: 14px; color: var(--i
 .rep-def p { margin: 0 0 8px; }
 .rep-enun { text-align: left; } .rep-opts { text-align: left; margin: 10px 0 0; padding-left: 26px; display: grid; gap: 6px; } .rep-opts li::marker { font-weight: 700; color: var(--ink-3); }
 .rep-botones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
-.rep-botones .btn { flex: 1 1 140px; justify-content: center; }
+.rep-botones .btn { flex: 1 1 140px; justify-content: center; flex-direction: column; gap: 2px; }
+.rep-cuando { font-size: 12px; font-weight: 400; }
 .btn.rep-mal, .btn.rep-mal:hover { border-color: var(--bad); color: var(--bad); }
 .btn.rep-medio, .btn.rep-medio:hover { border-color: var(--warn); color: var(--warn); }
 .btn.rep-bien, .btn.rep-bien:hover { border-color: var(--ok); color: var(--ok); }
