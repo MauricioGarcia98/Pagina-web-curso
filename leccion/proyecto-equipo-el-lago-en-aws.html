@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El lago en AWS - cargar dos días, catalogar con Glue y consultar con Athena · Academia de Datos</title><meta name="description" content="Ejecutas el script versionado para cargar dos días de pedidos a S3, creas el rol que va a usar el crawler, catalogas la carpeta con Glue y respondes con Athena. Filtrar por la partición hace que la consulta lea un solo día y cueste menos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-equipo-el-lago-en-aws.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El lago en AWS - cargar dos días, catalogar con Glue y consultar con Athena · Academia de Datos"><meta property="og:description" content="Ejecutas el script versionado para cargar dos días de pedidos a S3, creas el rol que va a usar el crawler, catalogas la carpeta con Glue y respondes con Athena. Filtrar por la partición hace que la consulta lea un solo día y cueste menos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-equipo-el-lago-en-aws.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-equipo">🧩 Proyecto en equipo: del ticket al lago en AWS</a> · Intermedio · 40 min</div>
+<h1>El lago en AWS - cargar dos días, catalogar con Glue y consultar con Athena</h1><p class="resumen">Ejecutas el script versionado para cargar dos días de pedidos a S3, creas el rol que va a usar el crawler, catalogas la carpeta con Glue y respondes con Athena. Filtrar por la partición hace que la consulta lea un solo día y cueste menos.</p>
+<a class="cta" href="../index.html#/l/proyecto-equipo-el-lago-en-aws">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Generar la exportación de pedidos y cargarla a S3 con el script del repositorio</li><li>Crear un rol de IAM de mínimo privilegio para Glue</li><li>Catalogar los datos con un crawler y leer el esquema que detecta</li><li>Consultar con Athena filtrando por la partición y comparar los datos escaneados</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Lunes, 15:00</div>
+
+<p>El pull request está completo y el pipeline en verde. Ahora el script tiene que hacer su trabajo de verdad: llevar los pedidos al lago.</p>
+</div>
+
+
+<figure class="diagrama"><figcaption>Del CSV a la respuesta</figcaption></figure>
+
+
+<h2>1. Cargar dos días</h2>
+<p>En la <a href="#/lab/terminal">terminal</a>, genera la exportación de pedidos, crea el bucket (una sola vez) y carga dos días con el script:</p>
+<pre tabindex="0"><code class="language-bash">generar-datos ecommerce --filas 200 --semilla 7
+head -3 ~/datos/generados/ecommerce/pedidos.csv
+aws s3 mb s3://tienda-andina-lago-equipo
+cd ~/lago-pedidos
+bash cargar_pedidos.sh 2026-11-20
+bash cargar_pedidos.sh 2026-11-21
+aws s3 ls s3://tienda-andina-lago-equipo/raw/pedidos/</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(7)</span></summary><ol><li><code class="bx-linea">generar-datos ecommerce --filas 200 --semilla 7</code><span><code>generar-datos</code>: comando del curso que genera los datos de práctica (tus datos salen de una semilla propia)</span></li><li><code class="bx-linea">head -3 ~/datos/generados/ecommerce/pedidos.csv</code><span><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas). <code>-3</code> = las primeras 3 líneas</span></li><li><code class="bx-linea">aws s3 mb s3://tienda-andina-lago-equipo</code><span><code>aws</code>: la CLI de AWS: hace desde la terminal lo mismo que la consola de AWS. <code>s3</code> Amazon S3: buckets y archivos del lago (ls, cp, sync, mb, rm) (<code>mb</code>)</span></li><li><code class="bx-linea">cd ~/lago-pedidos</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">bash cargar_pedidos.sh 2026-11-20</code><span><code>bash</code>: ejecuta un script con Bash (o abre otra terminal Bash)</span></li><li><code class="bx-linea">bash cargar_pedidos.sh 2026-11-21</code><span><code>bash</code>: ejecuta un script con Bash (o abre otra terminal Bash)</span></li><li><code class="bx-linea">aws s3 ls s3://tienda-andina-lago-equipo/raw/pedidos/</code><span><code>aws</code>: la CLI de AWS: hace desde la terminal lo mismo que la consola de AWS. <code>s3</code> Amazon S3: buckets y archivos del lago (ls, cp, sync, mb, rm) (<code>ls</code>)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<p>La última línea muestra las dos carpetas: <code>fecha_carga=2026-11-20/</code> y <code>fecha_carga=2026-11-21/</code>. Si el nombre del bucket ya existe, elige otro y úsalo así: <code>BUCKET=mi-bucket bash cargar_pedidos.sh 2026-11-20</code>.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 Por qué con el script</div>
+
+<p>Podrías subir el archivo con un <code>aws s3 cp</code> suelto, pero el script es el que está <strong>versionado y probado</strong>. Si mañana hay que cambiar la ruta, se cambia en un solo lugar con un pull request, y todos cargan igual.</p>
+</div>
+
+
+<h2>2. El rol del crawler</h2>
+<p><a href="#/aws">Consola de AWS</a> → <strong>IAM → Roles → Create role</strong>:</p>
+<ol>
+<li><em>Trusted entity</em>: <strong>AWS service → Glue</strong>.</li>
+<li>Permisos: <strong>AWSGlueServiceRole</strong> y <strong>AmazonS3ReadOnlyAccess</strong>. Nada de <code>AdministratorAccess</code>.</li>
+<li>Nombre: <code>GlueCrawlerRole-lago-pedidos</code>.</li>
+</ol>
+<h2>3. Catalogar con Glue</h2>
+<ol>
+<li><strong>Glue → Databases → Add database</strong>: <code>lago_raw</code>.</li>
+<li><strong>Glue → Crawlers → Create crawler</strong>: nombre <code>cr-pedidos-raw</code>, <em>S3 path</em> <code>s3://tienda-andina-lago-equipo/raw/pedidos/</code>, el rol del paso anterior, database <code>lago_raw</code>.</li>
+<li>Selecciónalo y presiona <strong>Run</strong>. En <strong>Tables</strong>, abre <code>pedidos</code>: verás las columnas del CSV (todas <code>string</code>) y la clave de partición <strong>fecha_carga</strong>.</li>
+</ol>
+<h2>4. Consultar con Athena</h2>
+<ol>
+<li><strong>Athena → Settings</strong>: ubicación de resultados <code>s3://tienda-andina-lago-equipo/athena-resultados/</code>.</li>
+<li>En el <strong>Editor</strong>, con la database <code>lago_raw</code>, primero sin filtro:</li>
+</ol>
+<pre data-norun tabindex="0"><code class="language-sql">SELECT fecha_carga, COUNT(*) AS pedidos
+FROM &quot;lago_raw&quot;.&quot;pedidos&quot;
+GROUP BY fecha_carga;</code></pre>
+<ol start="3">
+<li>Y la respuesta para finanzas, solo de la última carga:</li>
+</ol>
+<pre data-norun tabindex="0"><code class="language-sql">SELECT canal, COUNT(*) AS pedidos
+FROM &quot;lago_raw&quot;.&quot;pedidos&quot;
+WHERE fecha_carga = '2026-11-21'
+GROUP BY canal
+ORDER BY pedidos DESC;</code></pre>
+<p>Compara <strong>Data scanned</strong> entre las dos consultas: la segunda lee una sola partición. Anota el resultado y la consulta: van a la story en la próxima lección.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Cargar dos veces el mismo día</div>
+
+<p>Si ejecutas <code>bash cargar_pedidos.sh 2026-11-21</code> otra vez, el archivo se <strong>reemplaza</strong> (misma clave): no se duplica. Esa es la ventaja de que cada carga tenga su carpeta. Si en cambio subieras con nombres distintos dentro de la misma carpeta, Athena contaría los pedidos dos veces.</p>
+</div>
+
+
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<ul>
+<li><strong>Terminal</strong>: con la <strong>AWS CLI</strong> instalada (<code>brew install awscli</code> o el instalador de Windows) y <code>aws configure sso</code> para entrar con tu usuario de la empresa. Los mismos comandos <code>aws s3 mb</code>, <code>aws s3 cp</code> y <code>aws s3 ls</code>.</li>
+<li><strong>Consola</strong> (<code>console.aws.amazon.com</code>): IAM, Glue y Athena están exactamente en los menús que usaste.</li>
+<li><strong>Costo</strong>: S3 y Glue cuestan centavos con estos volúmenes. Athena cobra 5 USD por TB escaneado, así que estas consultas cuestan fracciones de centavo.</li>
+<li><strong>Al terminar</strong>: borra el bucket (<code>aws s3 rb s3://… --force</code>) y el crawler.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio y úsalas en el README.</p>
+<ul>
+<li><code>03-s3.png</code>: el bucket con las dos carpetas <code>fecha_carga=…</code>.</li>
+<li><code>03-glue.png</code>: la tabla <code>pedidos</code> en Glue, con la partición <code>fecha_carga</code>.</li>
+<li><code>03-athena.png</code>: la consulta por canal con <em>Data scanned</em> visible.</li>
+</ul>
+<p>Antes de publicar, tapa el número de cuenta de AWS (arriba a la derecha) y los nombres reales de buckets de tu empresa.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Apuntar el crawler a la raíz del bucket</strong>: mezcla resultados de Athena con los datos. Siempre a la carpeta de la tabla.</li>
+<li><strong>Olvidar la ubicación de resultados de Athena</strong>: el error <em>No output location provided</em> no es un problema del SQL.</li>
+<li><strong>Filtrar por <code>fecha_pedido</code> esperando que baje el costo</strong>: no es la columna de partición; Athena lee todo igual.</li>
+<li><strong>Rol con permisos de más</strong> para que el crawler &quot;no falle&quot;.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>El script versionado carga cada día en su carpeta <strong>fecha_carga=…</strong>.</li>
+<li>El <strong>crawler</strong> asume un <strong>rol</strong> de mínimo privilegio y crea la tabla con su partición.</li>
+<li><strong>Athena</strong> responde con SQL. Filtrar por la partición lee menos y cuesta menos.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-equipo-el-lago-en-aws">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-equipo-el-codigo-en-azure-devops.html">← El código en Azure DevOps - el script, sus tests, el pipeline y el pull request</a><a href="proyecto-equipo-cerrar-el-ticket.html">Cerrar el ticket - responder con el número, su definición y la consulta →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

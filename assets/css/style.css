@@ -1277,3 +1277,11 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .bx .bx-tubo { color: var(--ink-3); font-size: 13px; }
 .bx .bx-com { color: var(--ink-3); }
 .bx-donde { margin: 0; padding: 8px 14px 10px; border-top: 1px dashed var(--line); color: var(--ink-3); font-size: 13px; }
+
+/* revisión del proyecto en equipo (Jira + Azure DevOps + AWS) */
+.eq-lista { list-style: none; padding: 0; margin: 8px 0 12px; display: grid; gap: 6px; }
+.eq-lista li { display: flex; gap: 10px; align-items: flex-start; padding: 6px 8px; border-radius: 8px; background: var(--surface-2); }
+.eq-lista li.ok { background: var(--ok-soft); }
+.eq-marca { font-weight: 800; width: 18px; color: var(--ink-3); }
+.eq-lista li.ok .eq-marca { color: var(--ok); }
+.eq-fin { margin: 10px 0 0; font-weight: 700; }

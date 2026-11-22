@@ -594,6 +594,19 @@
     ]
   },
   {
+    "id": "proyecto-equipo",
+    "titulo": "Proyecto en equipo: del ticket al lago en AWS",
+    "icono": "🧩",
+    "color": "#2563eb",
+    "descripcion": "Un pedido real recorre todas las herramientas de un equipo de datos: nace como una story en Jira, el código vive en Azure Repos con un pipeline que corre los tests y una revisión por pull request, y los datos terminan en un lago en AWS que se cataloga con Glue y se consulta con Athena. Al final respondes en el ticket y lo cierras. Una revisión automática lee el estado real de cada herramienta.",
+    "objetivos": [
+      "Convertir un pedido en una story con subtareas, estimación y sprint en Jira",
+      "Versionar un script en Azure Repos, con un pipeline en verde y un pull request revisado",
+      "Cargar datos particionados a S3 desde la terminal, catalogarlos con Glue y consultarlos con Athena",
+      "Responder en el ticket con el número, su definición y la consulta, y cerrar el trabajo"
+    ]
+  },
+  {
     "id": "portafolio",
     "titulo": "Proyectos de portafolio: de tu PC a Azure, Databricks e IA",
     "icono": "🚀",
