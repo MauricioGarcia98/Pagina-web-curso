@@ -1779,6 +1779,124 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     box.append(h('<p class="muted small">Vistas para dbt: stg_clientes, stg_productos, stg_pedidos, stg_detalle_pedidos (incluye la columna importe), stg_pagos.</p>'));
   }
 
+  // ---------------------------------------------------------------- banco de problemas SQL (#/sql-problemas)
+  // Todos los ejercicios SQL del curso en una sola lista, como un banco de preguntas de entrevista: se filtran por
+  // nivel, técnica, empresa y estado, y cada uno se resuelve en una página propia con el enunciado a la izquierda y
+  // el editor a la derecha. El índice (assets/content/_sql.js) lo arma tools/build.mjs y se descarga al entrar.
+  let SQL_BANCO = null, sqlBancoCarga = null;
+  window.__sqlBanco = (d) => { SQL_BANCO = d; };
+  const cargarBancoSql = () => {
+    if (SQL_BANCO) return Promise.resolve();
+    if (!sqlBancoCarga) sqlBancoCarga = cargarScript(`assets/content/_sql.js?v=${C.vSql || C.generado}`).catch((e) => { sqlBancoCarga = null; throw e; });
+    return sqlBancoCarga;
+  };
+  const NIVELES_SQL = ['Básico', 'Intermedio', 'Avanzado', 'Experto'];
+  const BASES_SQL = { tienda: 'Tienda', banco: 'Banco', streaming: 'Streaming', viajes: 'Viajes', clinica: 'Clínica', saas: 'SaaS', vuelos: 'Aerolínea', logistica: 'Logística', telco: 'Telco', seguros: 'Seguros', hotel: 'Hotelería', energia: 'Energía', delivery: 'Delivery' };
+  const FILTROS_SQL = ['q', 'd', 'tema', 'b', 'estado', 'e'];
+  const estadoProblema = (p) => (Store.exDone(p.id) ? 'resuelto' : Store.code(p.id) != null ? 'intentado' : 'pendiente');
+  function filtrarBancoSql(f) {
+    const q = normalBusq(f.q || '');
+    return SQL_BANCO.filter((p) => (!f.d || p.d === f.d) && (!f.tema || p.temas.includes(f.tema)) && (!f.b || p.b === f.b) && (!f.e || p.e)
+      && (!f.estado || (f.estado === 'pendiente' ? estadoProblema(p) !== 'resuelto' : estadoProblema(p) === f.estado))
+      && (!q || normalBusq(`${p.t} ${p.lt} ${p.tablas.join(' ')}`).includes(q)));
+  }
+  function viewSqlProblemas(r) {
+    main.innerHTML = '<div class="cargando-contenido"><span class="spinner"></span> Cargando los problemas…</div>';
+    const donde = location.hash;
+    cargarBancoSql().then(() => { if (location.hash !== donde) return; if (r.id) return viewSqlProblema(r.id); listaSqlProblemas(r.params); },
+      () => { main.innerHTML = '<div class="card" style="margin:24px"><h2>No se pudieron cargar los problemas</h2><p>Revisa tu conexión a internet y vuelve a intentar.</p></div>'; });
+  }
+  function listaSqlProblemas(params) {
+    const f = Object.fromEntries(FILTROS_SQL.map((k) => [k, params.get(k) || '']));
+    const temas = [...new Set(SQL_BANCO.flatMap((p) => p.temas))].sort((a, b) => a.localeCompare(b, 'es'));
+    const porNivel = NIVELES_SQL.map((n) => { const xs = SQL_BANCO.filter((p) => p.d === n); return [n, xs.filter((p) => Store.exDone(p.id)).length, xs.length]; });
+    const hechos = porNivel.reduce((a, x) => a + x[1], 0);
+    const opt = (v, t, sel) => `<option value="${esc(v)}" ${v === sel ? 'selected' : ''}>${esc(t)}</option>`;
+    main.innerHTML = `<div class="container sqlb">
+      <h1 style="margin-bottom:4px">🏆 Problemas de SQL</h1>
+      <p class="muted" style="margin-top:0;max-width:860px">Los ${SQL_BANCO.length} ejercicios SQL del curso en un solo lugar, como un banco de preguntas de entrevista. Cada uno se corrige solo en el navegador comparando tu resultado con el esperado. Elige un nivel o una técnica, o presiona <b>Al azar</b> para practicar como en una entrevista real: sin saber de antemano qué técnica hace falta.</p>
+      <div class="sqlb-stats">
+        <div class="sqlb-total"><b>${hechos}</b><span>de ${SQL_BANCO.length} resueltos</span></div>
+        ${porNivel.map(([n, h, t]) => `<a class="sqlb-nivel ${levelClass(n)}${f.d === n ? ' on' : ''}" href="#/sql-problemas?d=${encodeURIComponent(f.d === n ? '' : n)}" title="${f.d === n ? 'Quitar el filtro de nivel' : 'Ver solo los de nivel ' + esc(n)}"><span>${esc(n)}</span><b>${h}<small>/${t}</small></b><i style="--p:${t ? Math.round((h / t) * 100) : 0}%"></i></a>`).join('')}
+      </div>
+      <form class="sqlb-filtros" role="search" aria-label="Filtrar problemas">
+        <label class="sqlb-q"><span class="sr-only">Buscar</span><input type="search" name="q" value="${esc(f.q)}" placeholder="Buscar por título o tabla (por ejemplo: retención, pedidos)"></label>
+        <label><span class="sr-only">Nivel</span><select name="d">${opt('', 'Todos los niveles', f.d)}${NIVELES_SQL.map((n) => opt(n, n, f.d)).join('')}</select></label>
+        <label><span class="sr-only">Técnica</span><select name="tema">${opt('', 'Todas las técnicas', f.tema)}${temas.map((t) => opt(t, t, f.tema)).join('')}</select></label>
+        <label><span class="sr-only">Empresa</span><select name="b">${opt('', 'Todas las empresas', f.b)}${Object.entries(BASES_SQL).map(([k, v]) => opt(k, v, f.b)).join('')}</select></label>
+        <label><span class="sr-only">Estado</span><select name="estado">${opt('', 'Todos', f.estado)}${opt('pendiente', 'Sin resolver', f.estado)}${opt('intentado', 'Empezados', f.estado)}${opt('resuelto', 'Resueltos', f.estado)}</select></label>
+        <label class="sqlb-chk"><input type="checkbox" name="e" value="1" ${f.e ? 'checked' : ''}> Solo de entrevista y casos</label>
+        <button type="button" class="btn btn-primary btn-sm" data-azar>🎲 Al azar</button>
+      </form>
+      <p class="small muted" data-cuenta></p>
+      <div class="sqlb-tabla-w"><table class="sqlb-tabla"><thead><tr><th scope="col"><span class="sr-only">Estado</span></th><th scope="col">Problema</th><th scope="col">Técnicas</th><th scope="col">Empresa</th><th scope="col">Nivel</th></tr></thead><tbody data-filas></tbody></table></div>
+      <div style="text-align:center;margin:14px 0"><button class="btn" data-mas hidden>Mostrar más</button></div>
+      <p class="small muted">¿Te trabas? Cada problema tiene pistas de a una, la solución con su explicación y un enlace a la lección donde se enseña la técnica. Para el método general (entender, resolver a mano, planificar, escribir y verificar) mira el módulo <a href="#/m/logica">Lógica: resolver cualquier problema</a>.</p>
+    </div>`;
+    const form = $('.sqlb-filtros', main), filas = $('[data-filas]', main), mas = $('[data-mas]', main);
+    let lista = [], vistos = 0;
+    const PAG = 60;
+    const fila = (p) => { const e = estadoProblema(p); return `<tr class="sqlb-${e}"><td class="sqlb-est" title="${e === 'resuelto' ? 'Resuelto' : e === 'intentado' ? 'Empezado' : 'Sin resolver'}">${e === 'resuelto' ? '✓' : e === 'intentado' ? '◐' : ''}<span class="sr-only">${e}</span></td><td><a href="#/sql-problemas/${esc(p.id)}">${esc(p.t)}</a><div class="small muted">${esc(p.lt)}</div></td><td class="sqlb-temas">${p.temas.slice(0, 4).map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</td><td>${esc(BASES_SQL[p.b] || p.b)}</td><td><span class="badge ${levelClass(p.d)}">${esc(p.d)}</span></td></tr>`; };
+    const pintar = (todo) => {
+      const fx = Object.fromEntries(new FormData(form)); fx.e = fx.e ? '1' : '';
+      lista = filtrarBancoSql(fx);
+      const qs = new URLSearchParams(Object.entries(fx).filter(([, v]) => v)).toString();
+      try { sessionStorage.setItem('sqlb-orden', JSON.stringify(lista.map((p) => p.id))); sessionStorage.setItem('sqlb-q', qs); } catch (e) { /* sin almacenamiento */ }
+      history.replaceState(null, '', '#/sql-problemas' + (qs ? '?' + qs : ''));
+      if (todo !== false) { vistos = 0; filas.innerHTML = ''; }
+      const nuevos = lista.slice(vistos, vistos + PAG); vistos += nuevos.length;
+      filas.insertAdjacentHTML('beforeend', nuevos.map(fila).join('') || (vistos ? '' : '<tr><td colspan="5" class="muted" style="padding:18px">Ningún problema coincide con estos filtros.</td></tr>'));
+      mas.hidden = vistos >= lista.length;
+      $('[data-cuenta]', main).textContent = `${lista.length} problemas · ${lista.filter((p) => Store.exDone(p.id)).length} resueltos`;
+    };
+    let t = null;
+    form.addEventListener('input', (e) => { clearTimeout(t); t = setTimeout(pintar, e.target.name === 'q' ? 200 : 0); });
+    form.addEventListener('submit', (e) => { e.preventDefault(); pintar(); });
+    mas.addEventListener('click', () => pintar(false));
+    $('[data-azar]', main).addEventListener('click', () => {
+      const pend = lista.filter((p) => !Store.exDone(p.id)), pool = pend.length ? pend : lista;
+      if (!pool.length) return toast('No hay problemas con estos filtros');
+      location.hash = '#/sql-problemas/' + pool[Math.floor(Math.random() * pool.length)].id + '?azar=1';
+    });
+    pintar();
+  }
+  function viewSqlProblema(id) {
+    const p = SQL_BANCO.find((x) => x.id === id);
+    if (!p) { main.innerHTML = `<div class="container prose"><h1>Problema no encontrado</h1><p><a class="btn" href="#/sql-problemas">Ver todos los problemas</a></p></div>`; return; }
+    conContenido([p.m], () => {
+      const ex = EX_POR_ID.get(p.id), lec = LESSON_BY_ID.get(p.l);
+      if (!ex || !ex.enunciado) { main.innerHTML = '<div class="container"><p>No se pudo abrir el problema.</p></div>'; return; }
+      let orden = null; try { orden = JSON.parse(sessionStorage.getItem('sqlb-orden') || 'null'); } catch (e) { /* sin almacenamiento */ }
+      if (!Array.isArray(orden) || !orden.includes(id)) orden = SQL_BANCO.map((x) => x.id);
+      const i = orden.indexOf(id), ant = orden[i - 1], sig = orden[i + 1];
+      const azar = new URLSearchParams(location.hash.split('?')[1] || '').has('azar');
+      let volver = ''; try { volver = sessionStorage.getItem('sqlb-q') || ''; } catch (e) { /* sin almacenamiento */ }
+      main.innerHTML = `<div class="container sqlp">
+        <nav class="sqlp-nav" aria-label="Navegación entre problemas"><a class="btn btn-ghost btn-sm" href="#/sql-problemas${volver ? '?' + esc(volver) : ''}">← Todos los problemas</a><span class="spacer"></span>
+          ${ant ? `<a class="btn btn-sm" href="#/sql-problemas/${esc(ant)}">‹ Anterior</a>` : ''}<span class="small muted">${i + 1} de ${orden.length}</span>${sig ? `<a class="btn btn-sm" href="#/sql-problemas/${esc(sig)}">Siguiente ›</a>` : ''}
+          <button class="btn btn-sm" data-azar title="Otro problema sin resolver, al azar">🎲</button></nav>
+        <div class="sqlp-meta"><span class="badge ${levelClass(p.d)}">${esc(p.d)}</span><span class="chip">🏢 ${esc(BASES_SQL[p.b] || p.b)}</span>${p.tablas.map((t) => `<code class="chip">${esc(t)}</code>`).join('')}
+          ${p.temas.length ? `<button class="btn btn-ghost btn-sm" data-temas aria-expanded="false">🔍 Ver qué técnicas usa (pista)</button><span class="sqlp-temas" hidden>${p.temas.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</span>` : ''}</div>
+        <div data-slot></div>
+        <details class="sqlp-metodo" ${azar ? 'open' : ''}><summary>🧭 Cómo pensarlo antes de escribir (el método de entrevista)</summary>
+          <ol><li><b>¿Qué es una fila del resultado?</b> Lee las columnas que te piden: eso define el grano (un cliente, un cliente por mes, un pedido…). Casi todos los errores vienen de un grano equivocado.</li>
+          <li><b>¿De qué tablas sale cada columna y por qué claves se unen?</b> Usa el botón <b>📋 Tablas</b> del editor. Si una unión multiplica filas, el grano se rompe.</li>
+          <li><b>¿Qué casos borde hay?</b> Empates, nulos, clientes sin pedidos, el primer y el último día del período, divisiones por cero.</li>
+          <li><b>Escribe por capas.</b> Una CTE por paso y ejecuta cada una antes de seguir: es más fácil encontrar dónde se rompe.</li>
+          <li><b>Verifica.</b> Cuenta filas, mira un caso que puedas calcular a mano y lee el resultado en voz alta: ¿responde la pregunta?</li></ol>
+          <p class="small muted">En una entrevista, decir estos pasos en voz alta vale tanto como la consulta. Más en <a href="#/m/logica">Lógica: resolver cualquier problema</a> y <a href="#/m/entrevistas">Entrevistas técnicas de datos</a>.</p></details>
+        ${lec ? `<p class="small muted">Este problema es de la lección <a href="#/l/${esc(lec.id)}">${esc(lec.titulo)}</a>: si la técnica es nueva para ti, empieza por ahí.</p>` : ''}
+      </div>`;
+      mountExercise($('[data-slot]', main), ex, i + 1);
+      const card = $('.exercise', main); if (card) { card.classList.add('sqlp-card'); const h3 = $('.ex-head h3', card); if (h3) { h3.textContent = p.t; const h1 = document.createElement('h1'); h1.className = 'sqlp-h1'; h1.innerHTML = h3.innerHTML; h3.replaceWith(h1); } }
+      const bt = $('[data-temas]', main); if (bt) bt.addEventListener('click', () => { const s = $('.sqlp-temas', main); s.hidden = !s.hidden; bt.setAttribute('aria-expanded', String(!s.hidden)); bt.hidden = true; });
+      $('[data-azar]', main).addEventListener('click', () => {
+        const pool = orden.filter((x) => x !== id && !Store.exDone(x)); const lista = pool.length ? pool : orden.filter((x) => x !== id);
+        if (lista.length) location.hash = '#/sql-problemas/' + lista[Math.floor(Math.random() * lista.length)] + '?azar=1';
+      });
+    });
+  }
+
   // ---------------------------------------------------------------- etapas de la ruta
   // Los módulos se agrupan en etapas para que quien empieza de cero sepa qué viene primero y qué es opcional.
   const ETAPAS = [
@@ -2013,6 +2131,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     ['#/powerbi', '📊', 'Power BI Desktop', 'powerbi', 'apps'],
     ['#/vscode', '🟦', 'VS Code', 'vscode', 'apps'],
     ['#/lab/terminal', '⌨️', 'Terminal', 'lab-terminal', 'apps'],
+    ['#/sql-problemas', '🏆', 'Problemas de SQL (entrevista)', 'sql-problemas'],
     ['#/lab/sql', '🧪', 'SQL', 'lab-sql'],
     ['#/lab/python', '🐍', 'Python', 'lab-python'], ['#/lab/pyspark', '⚡', 'PySpark', 'lab-pyspark'],
     ['#/lab/dbt', '🔧', 'dbt', 'lab-dbt'], ['#/lab/airflow', '🌬️', 'Airflow', 'lab-airflow'],
@@ -4107,6 +4226,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (parts[0] === 'plan' && parts[1]) return { name: 'plan', cert: parts[1] };
     if (parts[0] === 'simulacro' && parts[1]) return { name: 'simulacro', cert: parts[1] };
     if (parts[0] === 'datos' && parts[1]) return { name: 'datos', id: parts[1] };
+    if (parts[0] === 'sql-problemas') return { name: 'sql-problemas', id: parts[1] || '', params };
     if (parts[0] === 'modelado') return { name: 'modelado' };
     if (parts[0] === 'diagnostico') return { name: 'diagnostico' };
     if (parts[0] === 'notas') return { name: 'notas', params };
@@ -4211,7 +4331,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', buscar: 'Buscar en el curso', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', 'mis-datos': 'Mis datos', cuenta: 'Mi cuenta', privacidad: 'Privacidad', terminos: 'Términos de uso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', github: 'GitHub (práctica)', fabric: 'Microsoft Fabric (práctica)', airflow: 'Airflow (práctica)', snowflake: 'Snowflake (práctica)', bigquery: 'BigQuery (práctica)', 'pedalia-dev': 'API de Pedalia (portal de desarrolladores)', jupyter: 'JupyterLab (práctica)', excel: 'Excel (práctica)', herramientas: 'Herramientas de práctica', vscode: 'VS Code (práctica)' };
+    const titles = { home: 'Academia de Datos', buscar: 'Buscar en el curso', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', 'mis-datos': 'Mis datos', cuenta: 'Mi cuenta', privacidad: 'Privacidad', terminos: 'Términos de uso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', github: 'GitHub (práctica)', fabric: 'Microsoft Fabric (práctica)', airflow: 'Airflow (práctica)', snowflake: 'Snowflake (práctica)', bigquery: 'BigQuery (práctica)', 'pedalia-dev': 'API de Pedalia (portal de desarrolladores)', jupyter: 'JupyterLab (práctica)', excel: 'Excel (práctica)', herramientas: 'Herramientas de práctica', 'sql-problemas': 'Problemas de SQL', vscode: 'VS Code (práctica)' };
     if (r.name === 'home') { viewHome(); ponerAnuncio('portada'); }
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'diagnostico') viewDiagnostico();
@@ -4234,6 +4354,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'generador') window.Generador.vista(main, { toast, params: r.params });
     else if (r.name === 'revisar-repo' && window.RevisarRepo) window.RevisarRepo.vista(main, { toast });
     else if (r.name === 'herramientas') viewHerramientas();
+    else if (r.name === 'sql-problemas') viewSqlProblemas(r);
     else if (r.name === 'vscode') viewVSCode();
     else if (r.name === 'powerbi' && r.sub && r.sub[0] === 'servicio' && window.PBIServicio) window.PBIServicio.vista(main, { Store, toast, ensureSql, cargarMonaco: () => Monaco.load() }, r.sub.slice(1));
     else if (r.name === 'powerbi' && window.PowerBI) window.PowerBI.vista(main, { Store, toast, ensureSql, cargarMonaco: () => Monaco.load() });

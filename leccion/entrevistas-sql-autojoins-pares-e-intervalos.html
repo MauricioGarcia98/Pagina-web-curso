@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL de entrevista 5 - autojoins, pares e intervalos que se superponen · Academia de Datos</title><meta name="description" content="Las preguntas que obligan a comparar una fila con otra fila de la misma tabla - el empleado contra su jefe, el producto contra el que se compró en el mismo pedido, la búsqueda contra la compra que vino después, una reserva contra otra del mismo huésped. Aprendes el autojoin con la condición que evita pares repetidos, la regla de superposición de intervalos y el barrido con +1 y -1 para saber cuántas cosas pasaban al mismo tiempo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-sql-autojoins-pares-e-intervalos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="SQL de entrevista 5 - autojoins, pares e intervalos que se superponen · Academia de Datos"><meta property="og:description" content="Las preguntas que obligan a comparar una fila con otra fila de la misma tabla - el empleado contra su jefe, el producto contra el que se compró en el mismo pedido, la búsqueda contra la compra que vino después, una reserva contra otra del mismo huésped. Aprendes el autojoin con la condición que evita pares repetidos, la regla de superposición de intervalos y el barrido con +1 y -1 para saber cuántas cosas pasaban al mismo tiempo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/entrevistas-sql-autojoins-pares-e-intervalos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#entrevistas">🎤 Entrevistas técnicas de datos</a> · Experto · 70 min</div>
+<h1>SQL de entrevista 5 - autojoins, pares e intervalos que se superponen</h1><p class="resumen">Las preguntas que obligan a comparar una fila con otra fila de la misma tabla - el empleado contra su jefe, el producto contra el que se compró en el mismo pedido, la búsqueda contra la compra que vino después, una reserva contra otra del mismo huésped. Aprendes el autojoin con la condición que evita pares repetidos, la regla de superposición de intervalos y el barrido con +1 y -1 para saber cuántas cosas pasaban al mismo tiempo.</p>
+<a class="cta" href="../index.html#/l/entrevistas-sql-autojoins-pares-e-intervalos">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Unir una tabla consigo misma con alias y una condición que no duplique pares</li><li>Encontrar &quot;A y después B dentro de N días&quot; con EXISTS</li><li>Detectar intervalos que se superponen con la regla inicio_a &lt; fin_b y inicio_b &lt; fin_a</li><li>Calcular la concurrencia máxima con un barrido de +1 y -1 y una suma acumulada</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un autojoin es fotocopiar una lista para poder ponerla al lado de sí misma. Con dos copias de la lista de empleados, en una hoja buscas a cada persona y en la otra a su jefe, y comparas los sueldos renglón por renglón. La tabla es la misma: lo que cambia es el <strong>papel</strong> que juega cada copia, y eso se lo das con el alias.</p>
+</div>
+
+
+<h2>Cómo reconocer que hace falta un autojoin</h2>
+<p>La pista está en la pregunta: compara una cosa <strong>con otra cosa del mismo tipo</strong>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>La pregunta dice…</th>
+<th>Las dos copias son…</th>
+<th>La condición de unión es…</th>
+</tr>
+</thead><tbody><tr>
+<td>&quot;empleados que ganan más que su jefe&quot;</td>
+<td>empleado y jefe</td>
+<td><code>j.empleado_id = e.jefe_id</code></td>
+</tr>
+<tr>
+<td>&quot;productos que se compran juntos&quot;</td>
+<td>producto A y producto B del mismo pedido</td>
+<td><code>b.pedido_id = a.pedido_id AND a.producto_id &lt; b.producto_id</code></td>
+</tr>
+<tr>
+<td>&quot;buscó y compró dentro de las 24 horas&quot;</td>
+<td>evento de búsqueda y evento de compra del mismo cliente</td>
+<td>mismo cliente y la compra entre la búsqueda y 24 h después</td>
+</tr>
+<tr>
+<td>&quot;reservas que se pisan&quot;</td>
+<td>reserva A y reserva B del mismo huésped</td>
+<td>mismo huésped y los intervalos se superponen</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Cómo pensarlo en voz alta</div>
+
+<ol>
+<li><strong>Ponle nombre a cada copia</strong> según su papel: <code>e</code> (empleado) y <code>j</code> (jefe), no <code>a</code> y <code>b</code> si puedes evitarlo.</li>
+<li><strong>Escribe la condición que relaciona las copias</strong> antes que nada: es la que define qué pares existen.</li>
+<li><strong>Pregúntate si el par (A, B) y el par (B, A) son lo mismo.</strong> Si lo son, quédate con uno solo usando <code>&lt;</code>.</li>
+<li><strong>Recién después filtra y agrega.</strong></li>
+</ol>
+</div>
+
+
+<h2>La jerarquía: cada empleado contra su jefe</h2>
+<p>La tabla <code>empleados</code> tiene <code>jefe_id</code>, que apunta a otro empleado de la misma tabla. Para traer los datos del jefe, se une la tabla consigo misma:</p>
+<pre tabindex="0"><code class="language-sql">SELECT e.nombre || ' ' || e.apellido AS empleado, e.salario,
+       j.nombre || ' ' || j.apellido AS jefe,     j.salario AS salario_jefe
+FROM empleados e
+JOIN empleados j ON j.empleado_id = e.jefe_id
+ORDER BY e.empleado_id
+LIMIT 5;</code></pre>
+<p>Con <code>JOIN</code> quedan afuera los empleados sin jefe (la dirección general). Si te piden &quot;todos los empleados con su jefe, aunque no tengan&quot;, usa <code>LEFT JOIN</code> y el jefe queda en <code>NULL</code>.</p>
+<h2>Pares: lo que se compra junto</h2>
+<p>Para saber qué productos aparecen en el mismo pedido, se une <code>detalle_pedidos</code> consigo misma por <code>pedido_id</code>. El detalle importante es <strong>cómo se compara el producto</strong>:</p>
+<figure class="diagrama"><figcaption>Con &lt; cada par aparece una sola vez</figcaption></figure>
+
+
+<pre tabindex="0"><code class="language-sql">SELECT a.producto_id AS producto_a, b.producto_id AS producto_b,
+       COUNT(DISTINCT a.pedido_id) AS pedidos
+FROM detalle_pedidos a
+JOIN detalle_pedidos b
+  ON b.pedido_id = a.pedido_id
+ AND a.producto_id &lt; b.producto_id
+GROUP BY a.producto_id, b.producto_id
+ORDER BY pedidos DESC, producto_a, producto_b
+LIMIT 5;</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El autojoin multiplica filas</div>
+
+<p>Un pedido con 4 productos genera 6 pares; uno con 20 productos genera 190. En una tabla grande, un autojoin sin una condición que lo limite (mismo pedido, mismo cliente, misma semana) puede tardar muchísimo. En una entrevista, decir &quot;esto crece como n² por pedido, así que primero filtro&quot; suma puntos.</p>
+</div>
+
+
+<h2>&quot;A y después B dentro de N días&quot;: EXISTS</h2>
+<p>&quot;¿Cuántos clientes buscaron algo y compraron dentro de las 24 horas siguientes?&quot; También compara dos eventos del mismo cliente, pero no te interesan los pares: solo saber <strong>si existe</strong> al menos una compra. Para eso, <code>EXISTS</code> es más claro que un <code>JOIN</code> y no multiplica filas:</p>
+<pre tabindex="0"><code class="language-sql">SELECT COUNT(DISTINCT b.cliente_id) AS clientes
+FROM eventos_web b
+WHERE b.tipo_evento = 'busqueda'
+  AND EXISTS (
+    SELECT 1
+    FROM eventos_web c
+    WHERE c.cliente_id  = b.cliente_id
+      AND c.tipo_evento = 'compra'
+      AND c.fecha_hora &gt;  b.fecha_hora
+      AND c.fecha_hora &lt;= datetime(b.fecha_hora, '+1 day')
+  );</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Si te piden…</th>
+<th>Usa</th>
+</tr>
+</thead><tbody><tr>
+<td>Los pares en sí (qué con qué, cuántas veces)</td>
+<td><code>JOIN</code> de la tabla consigo misma</td>
+</tr>
+<tr>
+<td>Solo saber si hay al menos uno</td>
+<td><code>EXISTS</code></td>
+</tr>
+<tr>
+<td>Saber si no hay ninguno</td>
+<td><code>NOT EXISTS</code></td>
+</tr>
+<tr>
+<td>El evento inmediatamente anterior o siguiente</td>
+<td><code>LAG</code> / <code>LEAD</code> (lección 2)</td>
+</tr>
+</tbody></table></div>
+<h2>Intervalos que se superponen</h2>
+<p>Dos intervalos se pisan cuando <strong>cada uno empieza antes de que termine el otro</strong>:</p>
+<pre tabindex="0"><code class="language-text">A:   |-------|
+B:        |-------|        se superponen: inicio_a &lt; fin_b  y  inicio_b &lt; fin_a
+C:                  |---|  no se superpone con A: inicio_c &gt;= fin_a</code></pre>
+<pre tabindex="0"><code class="language-sql">SELECT a.huesped_id, a.reserva_id AS reserva_a, b.reserva_id AS reserva_b
+FROM hotel_reservas a
+JOIN hotel_reservas b
+  ON b.huesped_id = a.huesped_id
+ AND a.reserva_id &lt; b.reserva_id
+WHERE a.estado &lt;&gt; 'cancelada' AND b.estado &lt;&gt; 'cancelada'
+  AND a.check_in &lt; b.check_out
+  AND b.check_in &lt; a.check_out
+LIMIT 5;</code></pre>
+<p>Con <code>&lt;</code> estricto, una reserva que sale el 10 y otra que entra el 10 <strong>no</strong> se superponen: es lo correcto en un hotel, porque la habitación se libera a la mañana y se ocupa a la tarde. Si la regla del negocio fuera distinta, cambias a <code>&lt;=</code>. <strong>Pregúntalo</strong>: es el caso borde de esta familia.</p>
+<h2>¿Cuántos al mismo tiempo? El barrido con +1 y -1</h2>
+<p>&quot;¿Cuál fue la mayor cantidad de habitaciones ocupadas a la vez en cada hotel?&quot; Comparar cada reserva con todas las demás es lento. El truco es convertir cada reserva en <strong>dos eventos</strong>: <code>+1</code> el día que entra y <code>-1</code> el día que sale. Ordenados por fecha, la suma acumulada dice cuántas había en cada momento.</p>
+<figure class="diagrama"><figcaption>Cada reserva suma 1 al entrar y resta 1 al salir</figcaption></figure>
+
+
+<pre tabindex="0"><code class="language-sql">WITH movimientos AS (
+  SELECT hotel_id, check_in AS fecha,  1 AS delta FROM hotel_reservas WHERE estado = 'completada'
+  UNION ALL
+  SELECT hotel_id, check_out,         -1         FROM hotel_reservas WHERE estado = 'completada'
+),
+en_curso AS (
+  SELECT hotel_id, fecha,
+         SUM(SUM(delta)) OVER (PARTITION BY hotel_id ORDER BY fecha) AS ocupadas
+  FROM movimientos
+  GROUP BY hotel_id, fecha
+)
+SELECT hotel_id, MAX(ocupadas) AS pico
+FROM en_curso
+GROUP BY hotel_id;</code></pre>
+<p><code>SUM(SUM(delta)) OVER (...)</code> parece raro: el <code>SUM</code> de adentro suma los eventos de cada fecha (por el <code>GROUP BY</code>) y el de afuera los acumula. Agrupar por fecha antes de acumular es lo que hace que una salida y una entrada del mismo día se compensen, en lugar de mostrar un pico falso.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Usar <code>&lt;&gt;</code> para armar pares.</strong> Cada par aparece dos veces y todos los conteos se duplican.</li>
+<li><strong>Olvidar la condición de unión del autojoin.</strong> Sin <code>pedido_id = pedido_id</code> (o mismo cliente, mismo huésped), cada fila se une con todas las demás.</li>
+<li><strong>Superposición con <code>BETWEEN</code>.</strong> Comprobar si el inicio de B cae dentro de A no detecta el caso en que B envuelve a A por completo. La regla correcta compara los cuatro extremos.</li>
+<li><strong>Un <code>JOIN</code> donde bastaba <code>EXISTS</code>.</strong> Si un cliente tiene tres compras después de una búsqueda, el <code>JOIN</code> lo cuenta tres veces.</li>
+<li><strong>Acumular sin agrupar por fecha en el barrido.</strong> El orden entre el <code>+1</code> y el <code>-1</code> del mismo día queda al azar y aparecen picos que no existieron.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>Pregunta:</strong> &quot;¿Cómo encontrarías los productos que más se compran juntos en una tabla de mil millones de líneas?&quot;</p>
+<p><strong>Respuesta modelo:</strong> &quot;La idea es un autojoin de las líneas por pedido con <code>producto_a &lt; producto_b</code> para no repetir pares, y después contar pedidos por par. Pero el autojoin crece con el cuadrado de los productos por pedido, así que primero reduciría: solo pedidos de los últimos 90 días, sacaría los pedidos gigantes (que suelen ser compras de empresas y meten ruido) y me quedaría con los productos que aparecen en un mínimo de pedidos. En Spark haría lo mismo, con la tabla particionada por fecha.&quot;</p>
+</div>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Practica como en una entrevista</div>
+
+<p>El <a href="#/sql-problemas?e=1">banco de problemas de SQL</a> reúne todos los ejercicios SQL del curso con filtros por nivel, técnica y empresa. Presiona <strong>🎲 Al azar</strong> para resolver uno sin saber de antemano qué técnica pide: así son las entrevistas.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/entrevistas-sql-autojoins-pares-e-intervalos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="entrevistas-sql-deduplicar-pivotear-comparar.html">← SQL de entrevista 4 - deduplicar, pivotear, anti-join y comparar períodos</a><a href="entrevistas-sql-estadistica-y-percentiles.html">SQL de entrevista 6 - medianas, percentiles, moda e histogramas sin funciones mágicas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

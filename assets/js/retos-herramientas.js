@@ -251,6 +251,16 @@
       ['jr-completar', 'Completa el sprint activo', 'Backlog o Board → Complete sprint → mueve lo abierto al siguiente sprint.', () => jrE('sprint-completar')],
       ['jr-iniciar', 'Planifica e inicia un sprint nuevo con objetivo', 'Backlog → arrastra issues al sprint → Start sprint → Sprint goal.', () => jrE('sprint-iniciar')],
       ['jr-velocidad', 'Mira la velocidad del equipo', 'Reports → Velocity report.', () => jrE('reportes') && (jrS().cerrados || []).length > 1],
+      ['jr-historia', 'Busca con el historial: WAS o CHANGED', 'Issues → status WAS "In Progress"  o  priority CHANGED BY martin.', () => jrE('jql-historia')],
+      ['jr-sprint-rep', 'Lee el Sprint Report', 'Reports → Sprint report: lo completado, lo no completado y lo agregado tarde (*).', () => jrE('reporte-sprint')],
+    ]],
+    ['Equipo real', [
+      ['jr-wip', 'Pon un límite de trabajo en curso a una columna', 'Configure board → Columns → Max en In Progress → Save.', () => jrE('wip') && Object.values((jrS().board || {}).wip || {}).some((w) => w && (w.max != null || w.min != null))],
+      ['jr-qf', 'Crea un quick filter propio y úsalo en el tablero', 'Configure board → Quick Filters → nombre y JQL → Add; después actívalo en el Board.', () => jrE('quickfilter-crear') && jrE('quickfilter')],
+      ['jr-flag', 'Marca con flag una issue trabada', 'Board → ••• en la tarjeta → Add flag (con un comentario de por qué).', () => (jrS().issues || []).some((x) => x.flag)],
+      ['jr-link', 'Vincula dos issues (una bloquea a la otra)', 'Abre una issue → 🔗 Link → blocks → la otra issue.', () => jrE('link')],
+      ['jr-smart', 'Haz un smart commit desde la terminal', 'git commit -m "TA-7 #comment Listo #time 1h #in-review" y git push a un repo remoto; mira Code.', () => (jrS().smart || []).some((r) => r.ok)],
+      ['jr-cfd', 'Mira el cumulative flow diagram', 'Reports → Cumulative flow diagram.', () => jrE('cfd')],
     ]],
   ] };
 

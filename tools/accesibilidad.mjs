@@ -10,7 +10,8 @@ const BASE = (process.argv[2] || 'http://localhost:8000/').replace(/\/?$/, '/');
 
 const PAGINAS = ['#/', '#/ruta', '#/glosario', '#/repaso', '#/certificaciones', '#/examenes', '#/progreso', '#/datos', '#/herramientas',
   '#/trabajo', '#/diagnostico', '#/generador', '#/modelado', '#/buscar?q=join', '#/l/cero-tu-computadora', '#/l/sql-introduccion',
-  '#/l/python-introduccion', '#/l/spark-lazy', '#/l/calidad-perfilar-una-tabla', '#/l/entrevistas-sql-rachas-y-huecos', '#/l/aws-orquestacion-gobierno'];
+  '#/l/python-introduccion', '#/l/spark-lazy', '#/l/calidad-perfilar-una-tabla', '#/l/entrevistas-sql-rachas-y-huecos', '#/l/aws-orquestacion-gobierno',
+  '#/sql-problemas', '#/sql-problemas/entrevistas-sql-autojoins-pares-e-intervalos-ej3', '#/l/entrevistas-sql-estadistica-y-percentiles'];
 
 const b = await chromium.launch();
 const problemas = [];

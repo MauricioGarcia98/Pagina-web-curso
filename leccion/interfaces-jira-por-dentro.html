@@ -15,7 +15,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
 <main><div class="migas"><a href="index.html#interfaces">🧭 Las herramientas por dentro: qué es cada cosa</a> · Básico-intermedio · 35 min</div>
 <h1>Jira por dentro - backlog, sprints, tablero y JQL en un equipo de datos</h1><p class="resumen">Jira es la herramienta de tickets más usada en las empresas. En tu primer trabajo, lo más probable es que tus tareas lleguen ahí. Recorrido por un proyecto Scrum: el backlog con sprints, el tablero, cada issue con su clave (TA-12), las estimaciones, la búsqueda con JQL y los reportes que mira el equipo en cada retrospectiva.</p>
-<a class="cta" href="../index.html#/l/interfaces-jira-por-dentro">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<a class="cta" href="../index.html#/l/interfaces-jira-por-dentro">▶ Abrir la lección interactiva (6 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer una issue - tipo, clave, estado, responsable, prioridad, story points y épica</li><li>Planificar un sprint desde el backlog e iniciarlo con un objetivo</li><li>Mover el trabajo en el tablero y completar el sprint</li><li>Buscar con JQL - currentUser(), openSprints(), IN, ~, ORDER BY</li><li>Leer el burndown y la velocidad</li></ul>
 <div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
 
@@ -80,6 +80,38 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>El tablero</h2>
 <p>Una columna por estado. Mueves la tarjeta cuando cambia su estado. Los avatares de arriba filtran por persona: en la reunión diaria, cada uno mira sus tarjetas.</p>
+<p>Lo que el tablero agrega encima de eso (todo está en la réplica, en <strong>Configure board</strong>):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Qué hace</th>
+<th>Por qué importa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Column constraints</strong> (límites WIP)</td>
+<td>Un mínimo y un máximo de issues por columna. La cabecera se pone roja si se pasa del máximo y amarilla si no llega al mínimo. Para Scrum se recomienda <em>Work item count, excluding subtasks</em></td>
+<td>Limitar lo que está &quot;en curso&quot; obliga a terminar antes de empezar otra cosa. Los límites cuentan todas las issues de la columna, aunque un filtro las oculte</td>
+</tr>
+<tr>
+<td><strong>Quick filters</strong></td>
+<td>Botones con una consulta JQL: <em>Only My Issues</em> (<code>assignee = currentUser()</code>), <em>Recently Updated</em> (<code>updatedDate &gt;= -1d</code>) y los que crees. Activar varios los combina con AND</td>
+<td>En la reunión diaria, filtras lo tuyo o lo que cambió desde ayer con un clic</td>
+</tr>
+<tr>
+<td><strong>Swimlanes</strong></td>
+<td>Filas por historia (con sus subtareas), por persona, por épica o por consulta JQL (por ejemplo <em>Expedite</em>: <code>priority = Highest</code>). Lo que no coincide va a <em>Everything Else</em></td>
+<td>Ves de un vistazo qué está trabado en cada historia o quién tiene demasiado</td>
+</tr>
+<tr>
+<td><strong>Flag</strong></td>
+<td>En el menú ••• de la tarjeta: <em>Add flag</em>. La tarjeta queda amarilla para todo el equipo. Se busca con <code>Flagged = Impediment</code></td>
+<td>Es la forma de decir &quot;estoy trabado&quot; sin esperar a la reunión</td>
+</tr>
+<tr>
+<td><strong>Linked work items</strong></td>
+<td>Vínculos <em>blocks / is blocked by</em>, <em>relates to</em>, <em>duplicates</em>, <em>clones</em>, <em>causes</em></td>
+<td>Saber que TA-7 no puede empezar hasta que se cierre TA-6 cambia el orden del sprint</td>
+</tr>
+</tbody></table></div>
 <figure class="captura"><img src="assets/img/guias/jira/j02-tablero.webp" alt="El tablero del sprint: To Do, In Progress, In Review y Done" loading="lazy"><figcaption>El tablero del sprint: To Do, In Progress, In Review y Done</figcaption></figure>
 
 
@@ -114,12 +146,52 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Las historias grandes</td>
 <td><code>&quot;story points&quot; &gt;= 5 ORDER BY &quot;story points&quot; DESC</code></td>
 </tr>
+<tr>
+<td>Lo que cambió en las últimas 24 horas</td>
+<td><code>updated &gt;= -24h</code></td>
+</tr>
+<tr>
+<td>Lo creado esta semana</td>
+<td><code>created &gt;= startOfWeek()</code></td>
+</tr>
+<tr>
+<td>Lo vencido y sin resolver</td>
+<td><code>due &lt; now() AND resolution = Unresolved</code></td>
+</tr>
+<tr>
+<td>Lo que alguna vez estuvo en progreso</td>
+<td><code>status WAS &quot;In Progress&quot;</code></td>
+</tr>
+<tr>
+<td>A quién le subieron la prioridad, y quién</td>
+<td><code>priority CHANGED FROM High TO Highest BY martin</code></td>
+</tr>
+<tr>
+<td>Lo que está trabado</td>
+<td><code>Flagged = Impediment</code></td>
+</tr>
+<tr>
+<td>Lo que bloquea a otras issues</td>
+<td><code>issueLinkType = blocks</code></td>
+</tr>
+<tr>
+<td>Lo vinculado a una issue</td>
+<td><code>issue in linkedIssues(TA-6)</code></td>
+</tr>
 </tbody></table></div>
+<p>Tres reglas que confunden a casi todos al principio:</p>
+<ul>
+<li><strong>AND se evalúa antes que OR.</strong> <code>status = Done AND type = Bug OR priority = Highest</code> trae los bugs terminados <em>y además</em> todo lo Highest. Usa paréntesis.</li>
+<li><strong><code>!=</code> y <code>NOT IN</code> no traen las issues con el campo vacío.</strong> <code>assignee != camila</code> no muestra las issues sin asignar; si las quieres, agrega <code>OR assignee IS EMPTY</code>.</li>
+<li><strong>Los campos de texto usan <code>~</code>, no <code>=</code>.</strong> <code>summary = silver</code> da error; <code>summary ~ silver</code> busca la palabra.</li>
+</ul>
 <p>Una búsqueda útil se guarda con <strong>Save filter</strong> y se usa en tableros y suscripciones por correo. Si escribes mal un campo, Jira te lo dice: <em>Field &#39;foo&#39; does not exist</em>.</p>
 <h2>Los reportes</h2>
 <ul>
 <li><strong>Burndown</strong>: puntos que faltan día a día, contra la línea ideal. Si la línea roja va por encima de la gris, el sprint viene atrasado.</li>
 <li><strong>Velocity</strong>: puntos comprometidos y completados en cada sprint. El promedio de completados (la <em>velocidad</em>) sirve para planificar el próximo sin comprometer de más.</li>
+<li><strong>Sprint report</strong>: lo completado y lo no completado del sprint. Un asterisco marca lo que se agregó después de empezar, y <code>3 → 5</code> muestra una estimación que cambió en el camino: las dos cosas son tema de la retrospectiva.</li>
+<li><strong>Cumulative flow diagram</strong>: una banda por columna a lo largo del tiempo. Si la banda de <em>In Progress</em> se ensancha, entra más trabajo del que sale: hay un cuello de botella.</li>
 </ul>
 <figure class="captura"><img src="assets/img/guias/jira/j03-velocidad.webp" alt="El reporte de velocidad: comprometido y completado por sprint" loading="lazy"><figcaption>El reporte de velocidad: comprometido y completado por sprint</figcaption></figure>
 
@@ -130,38 +202,71 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 git commit -m &quot;TA-6 Agrega México a PAISES&quot;</code></pre>
 <details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">git checkout -b TA-6-agregar-mexico</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella). <code>-b</code> = crea la rama nueva</span></li><li><code class="bx-linea">git commit -m &quot;TA-6 Agrega México a PAISES&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>commit</code> guarda una foto de los cambios preparados, con un mensaje. <code>-m</code> = el mensaje del commit</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Con la integración de GitHub, Bitbucket o GitLab activada, la issue muestra la rama, los commits y el pull request. Cualquiera puede rastrear qué código resolvió qué pedido.</p>
+<p>Con los <strong>smart commits</strong>, el mensaje del commit además actúa sobre la issue cuando llega al repositorio remoto:</p>
+<pre tabindex="0"><code class="language-bash">git commit -m &quot;TA-7 Total por canal #comment Listo para revisar #time 1h 30m #in-review&quot;
+git push</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">git commit -m &quot;TA-7 Total por canal #comment Listo para revisar #time 1h 30m #in-review&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>commit</code> guarda una foto de los cambios preparados, con un mensaje. <code>-m</code> = el mensaje del commit</span></li><li><code class="bx-linea">git push</code><span><code>git</code>: Git: guarda la historia de tu código. <code>push</code> sube tus commits al repositorio remoto (GitHub)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>#comment texto</code></td>
+<td>Agrega un comentario</td>
+</tr>
+<tr>
+<td><code>#time 1w 2d 4h 30m</code></td>
+<td>Registra tiempo trabajado (1w = 5 días, 1d = 8 horas)</td>
+</tr>
+<tr>
+<td><code>#in-review</code>, <code>#done</code>…</td>
+<td>Cambia el estado. Si el nombre tiene espacios, va con guiones; la primera palabra sola sirve solo si no es ambigua (<code>#in</code> no sirve, porque hay <em>In Progress</em> e <em>In Review</em>)</td>
+</tr>
+</tbody></table></div>
+<p>Todo va en una línea y una línea sin clave no hace nada. En una empresa, el email del commit (<code>git config user.email</code>) tiene que coincidir con tu usuario de Jira: es la causa más común de que un smart commit no funcione. En la réplica, el resultado de cada comando aparece en <strong>Code</strong>.</p>
 <h2>Qué tiene la réplica y qué no</h2>
 <div class="table-wrap"><table><thead><tr>
 <th>En la réplica</th>
 <th>Todavía no</th>
 </tr>
 </thead><tbody><tr>
-<td>Backlog con sprints (crear, iniciar, completar), tablero con arrastre y filtro por persona</td>
-<td>Tableros Kanban sin sprints, límites de WIP, swimlanes</td>
+<td>Backlog con sprints (crear, iniciar con fechas, completar hacia el backlog, un sprint futuro o uno nuevo), tablero con arrastre, filtro por persona, límites WIP, quick filters, swimlanes y flag</td>
+<td>Tableros Kanban sin sprints, sprints paralelos</td>
 </tr>
 <tr>
-<td>Issues con tipo, estado, responsable, prioridad, puntos, épica, subtareas, etiquetas, comentarios y actividad</td>
+<td>Issues con tipo, estado, responsable, informante, prioridad, puntos, épica, subtareas, etiquetas, vencimiento, resolución, vínculos, registro de trabajo, comentarios e historial</td>
 <td>Campos personalizados, flujos de trabajo editables, adjuntos</td>
 </tr>
 <tr>
-<td>JQL con AND/OR, IN, ~, IS EMPTY, currentUser(), openSprints() y ORDER BY</td>
-<td>Funciones avanzadas (<code>updatedDate</code>, <code>WAS</code>, <code>CHANGED</code>), dashboards</td>
+<td>JQL con AND/OR/NOT, todos los operadores (incluidos <code>WAS</code> y <code>CHANGED</code>), fechas relativas y las funciones más usadas</td>
+<td>Dashboards, suscripciones por correo</td>
 </tr>
 <tr>
-<td>Burndown y velocidad</td>
-<td>Informe de sprint, cumulative flow, automatizaciones</td>
+<td>Burndown, sprint report, velocidad y cumulative flow; smart commits desde la terminal</td>
+<td>Automatizaciones (Automation for Jira)</td>
 </tr>
 </tbody></table></div>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un sprint completo</div>
 
 <ol>
-<li>En el <strong>Backlog</strong>, abre <code>TA-7</code>, estímala y asígnatela.</li>
-<li>En el <strong>Board</strong>, lleva tus issues hasta <em>Done</em>.</li>
-<li>Busca con JQL tus issues abiertas ordenadas por prioridad y guarda el filtro.</li>
-<li><strong>Complete sprint</strong>: mueve lo abierto al Sprint 2 y mira la velocidad.</li>
-<li>Inicia el Sprint 2 con un objetivo y mira el burndown.</li>
+<li><p>En el <strong>Backlog</strong>, abre <code>TA-7</code>, estímala y asígnatela.</p>
+</li>
+<li><p>En el <strong>Board</strong>, lleva tus issues hasta <em>Done</em>.</p>
+</li>
+<li><p>Busca con JQL tus issues abiertas ordenadas por prioridad y guarda el filtro.</p>
+</li>
+<li><p><strong>Complete sprint</strong>: mueve lo abierto al Sprint 2 y mira la velocidad.</p>
+</li>
+<li><p>Inicia el Sprint 2 con un objetivo y mira el burndown.</p>
+</li>
+<li><p>En <strong>Configure board</strong>, pon un máximo de 2 en <em>In Progress</em> y mira qué pasa cuando lo superas.</p>
+</li>
+<li><p>Marca con flag una issue trabada y vincúlala con la que la bloquea.</p>
+</li>
+<li><p>Desde la terminal, haz un commit con <code>TA-7 #comment … #time 1h #in-review</code>, empújalo y mira <strong>Code</strong>.</p>
+</li>
 </ol>
-<p>Documentación oficial: <a href="https://support.atlassian.com/jira-software-cloud/docs/use-your-scrum-backlog/">usar el backlog</a> · <a href="https://support.atlassian.com/jira-service-management-cloud/docs/use-advanced-search-with-jira-query-language-jql/">JQL</a> · <a href="https://support.atlassian.com/jira-software-cloud/docs/view-and-understand-the-burndown-chart/">burndown</a></p>
+<p>Documentación oficial: <a href="https://support.atlassian.com/jira-software-cloud/docs/use-your-scrum-backlog/">usar el backlog</a> · <a href="https://support.atlassian.com/jira-service-management-cloud/docs/use-advanced-search-with-jira-query-language-jql/">JQL</a> · <a href="https://support.atlassian.com/jira-software-cloud/docs/jql-operators/">operadores</a> · <a href="https://support.atlassian.com/jira-software-cloud/docs/jql-keywords/">palabras clave</a> · <a href="https://support.atlassian.com/jira-software-cloud/docs/configure-columns/">columnas y límites</a> · <a href="https://support.atlassian.com/jira-software-cloud/docs/configure-quick-filters/">quick filters</a> · <a href="https://support.atlassian.com/jira-software-cloud/docs/configure-swimlanes/">swimlanes</a> · <a href="https://support.atlassian.com/jira-software-cloud/docs/flag-an-issue/">flag</a> · <a href="https://support.atlassian.com/jira-software-cloud/docs/link-issues/">vincular issues</a> · <a href="https://support.atlassian.com/jira-software-cloud/docs/process-issues-with-smart-commits/">smart commits</a> · <a href="https://support.atlassian.com/jira-software-cloud/docs/view-and-understand-the-sprint-report/">sprint report</a> · <a href="https://support.atlassian.com/jira-software-cloud/docs/view-and-understand-the-cumulative-flow-diagram/">cumulative flow</a> · <a href="https://support.atlassian.com/jira-software-cloud/docs/view-and-understand-the-burndown-chart/">burndown</a></p>
 </div>
 
 
@@ -172,11 +277,21 @@ git commit -m &quot;TA-6 Agrega México a PAISES&quot;</code></pre>
 <li><strong>Empezar una story sin criterios de aceptación</strong>: no hay forma de saber cuándo está terminada.</li>
 <li><strong>Dejar la issue en <em>To Do</em> mientras trabajas</strong>: el tablero miente y el equipo no puede ayudarte.</li>
 <li><strong>Meter más puntos de los que dice la velocidad</strong>: el sprint termina con la mitad sin hacer.</li>
+<li><strong>Usar <code>!=</code> esperando ver las issues vacías</strong>: <code>assignee != camila</code> no trae las sin asignar.</li>
+<li><strong>Un smart commit con <code>#in</code></strong>: es ambiguo entre <em>In Progress</em> e <em>In Review</em>; escribe <code>#in-progress</code>.</li>
 </ul>
 </div>
 
 
 <h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
 <div class="exercise-slot"></div>
 
 
@@ -201,7 +316,7 @@ git commit -m &quot;TA-6 Agrega México a PAISES&quot;</code></pre>
 <li><strong>Burndown</strong> y <strong>velocidad</strong> muestran cómo va el sprint y cuánto suele terminar el equipo.</li>
 </ul>
 
-<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/interfaces-jira-por-dentro">▶ Hacer los ejercicios</a>
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/interfaces-jira-por-dentro">▶ Hacer los ejercicios</a>
 <nav class="nav"><a href="interfaces-azure-devops-por-dentro.html">← Azure DevOps por dentro - Boards, Repos y Pipelines de un equipo de datos</a><a href="excel-la-pantalla.html">Excel desde cero - la pantalla, las celdas y tu primer libro →</a></nav></main>
 <footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
 </body></html>
