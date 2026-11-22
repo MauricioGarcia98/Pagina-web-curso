@@ -64,7 +64,7 @@
     github: ['octicons', 'github-actions', 'github', 'github-colab'],
     fabric: ['@databricks', '@iconos', 'fabric', 'fabric-editores'],
     airflow: ['airflow-iconos', 'airflow-motor', 'airflow', 'airflow-paginas', 'terminal-airflow'],
-    snowflake: ['snowflake-motor', 'snowflake'],
+    snowflake: ['snowflake-motor', 'snowflake', 'snowflake-paginas'],
     bigquery: ['@iconos', 'bigquery-motor', 'bigquery'],
     aws: ['aws-consola'],
     'azure-devops': ['azure-devops'],

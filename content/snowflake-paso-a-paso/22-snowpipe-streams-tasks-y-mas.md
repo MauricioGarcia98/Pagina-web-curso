@@ -8,13 +8,13 @@ prerrequisitos: snowflake-paso-a-paso-buenas-practicas
 autoevaluacion: ¿Sabes en qué se diferencia Snowpipe de COPY INTO? | ¿Sabes qué devuelve un stream? | ¿Sabes qué hace TARGET_LAG? | ¿Sabes cuándo conviene Airflow en lugar de tasks?
 ---
 
-:::nota En la práctica
-Estas funciones no están simuladas: la práctica te muestra qué son. El SQL de esta lección es el de Snowflake real.
+:::tip Practícalo mientras lees
+Todo lo de esta lección corre en el [Snowflake de práctica](#/snowflake): streams, tasks (con su historial en **Monitoring → Task History**), Snowpipe (en **Copy History**) y dynamic tables. El SQL es el de Snowflake real; solo cambian los nombres de las bases.
 :::
 
 ```captura
 archivo: snowflake/s22-tareas.webp
-texto: Task History - las ejecuciones de las tasks programadas (no simulado en la práctica)
+texto: Task History - el árbol de tareas (la raíz con su horario CRON y su hija con AFTER), su última corrida y la próxima
 ```
 
 :::analogia Una línea de producción automática
@@ -36,7 +36,7 @@ COPY INTO raw.pedidos_staging FROM @ventas_s3 FILE_FORMAT = (TYPE = CSV SKIP_HEA
 
 ```captura
 archivo: snowflake/s22-copy.webp
-texto: Copy History - el historial de cargas archivo por archivo (no simulado en la práctica)
+texto: Copy History - el historial de cargas archivo por archivo: filas, stage y el primer error si falló
 ```
 
 ## Paso 2 — Streams y tasks
@@ -60,6 +60,16 @@ AS
 ALTER TASK analitica.aplicar_pedidos RESUME;   -- las tasks se crean suspendidas
 ```
 
+Tres cosas del Snowflake real que la práctica también exige, y que confunden la primera vez:
+
+| Te aparece… | Por qué | Qué haces |
+|---|---|---|
+| `Cannot execute task, EXECUTE TASK privilege must be granted to owner role` | Para que una task corra sola, el rol dueño necesita un privilegio de la cuenta | `USE ROLE ACCOUNTADMIN; GRANT EXECUTE TASK ON ACCOUNT TO ROLE SYSADMIN;` |
+| `Unable to update graph with root task … since that root task is not suspended` | No se puede cambiar un árbol de tareas mientras corre | `ALTER TASK raiz SUSPEND;`, el cambio, y `RESUME` de nuevo (primero las hijas, después la raíz) |
+| La task corre pero no hace nada (`SKIPPED`) | Su `WHEN SYSTEM$STREAM_HAS_DATA(...)` dio falso: no había cambios nuevos | Es lo esperado: no gasta warehouse cuando no hay nada que procesar |
+
+Una lectura del stream (`SELECT * FROM cambios_pedidos`) **no** lo vacía: solo lo consume un DML que lo use (el `MERGE` de la task). Cada fila trae `METADATA$ACTION` (INSERT o DELETE) y `METADATA$ISUPDATE`.
+
 ## Paso 3 — Dynamic tables
 
 ```sql norun
@@ -72,7 +82,15 @@ AS
   GROUP BY fecha, canal;
 ```
 
-Declaras **qué** resultado quieres y **cuán atrasado** puede estar (`TARGET_LAG`); Snowflake se encarga de refrescarla, de forma incremental cuando puede. Reemplaza muchas combinaciones de stream + task.
+Declaras **qué** resultado quieres y **cuán atrasado** puede estar (`TARGET_LAG`); Snowflake se encarga de refrescarla, de forma incremental cuando puede. Reemplaza muchas combinaciones de stream + task. No admite `INSERT` ni `UPDATE` (la mantiene Snowflake) y su historial de refrescos está en **Task History → Dynamic Tables**.
+
+:::practica snowflake CDC de punta a punta: stream, task, Snowpipe y dynamic table
+1. Crea un stage y una tabla de llegada, y un pipe con `AUTO_INGEST = TRUE` que haga el `COPY INTO`. Sube un CSV al stage (Databases → el stage → **+ Files**) y ejecuta cualquier consulta: el pipe lo carga solo. Míralo en **Copy History**.
+2. `CREATE STREAM cambios ON TABLE llegada;` y comprueba que `SELECT * FROM cambios` está vacío. Sube otro archivo: ahora el stream muestra las filas nuevas con `METADATA$ACTION = 'INSERT'`.
+3. Crea una task con `WHEN SYSTEM$STREAM_HAS_DATA('cambios')` que haga `INSERT INTO historico SELECT … FROM cambios`. Dale `EXECUTE TASK` al rol dueño, haz `RESUME` y córrela con `EXECUTE TASK`.
+4. En **Task History → Task Runs** verás un `SUCCEEDED`; córrela otra vez sin cambios nuevos y verás `SKIPPED`.
+5. Crea una dynamic table con `TARGET_LAG = '1 minute'` sobre `historico` y prueba un `INSERT` en ella: el error te dice por qué no se puede.
+:::
 
 ## Paso 4 — Más de la plataforma
 

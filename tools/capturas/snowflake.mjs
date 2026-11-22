@@ -385,10 +385,14 @@ SHOW WAREHOUSES;`);
   if (HASTA <= 21) return;
 
   // ================================================================ lección 22: tareas, streams y más
+  for (const q of ['USE ROLE SYSADMIN', 'USE WAREHOUSE COMPUTE_WH', 'USE SCHEMA TIENDA_ANDINA.PUBLIC',
+    "CREATE OR REPLACE TASK t_resumen_diario WAREHOUSE = COMPUTE_WH SCHEDULE = 'USING CRON 0 6 * * * America/Argentina/Buenos_Aires' AS CREATE OR REPLACE TABLE resumen_diario AS SELECT fecha_pedido, canal, COUNT(*) AS pedidos FROM pedidos GROUP BY 1, 2",
+    'CREATE OR REPLACE TASK t_controles AFTER t_resumen_diario AS SELECT COUNT(*) FROM resumen_diario',
+    'USE ROLE ACCOUNTADMIN', 'GRANT EXECUTE TASK ON ACCOUNT TO ROLE SYSADMIN', 'USE ROLE SYSADMIN', 'ALTER TASK t_controles RESUME', 'ALTER TASK t_resumen_diario RESUME', 'EXECUTE TASK t_resumen_diario']) log(q.slice(0, 40), await sql(q));
   await ir('#/snowflake/tareas', 900);
-  await c.foto('s22-tareas', { marcas: [['.sf-aviso', null]] });
+  await c.foto('s22-tareas', { marcas: [['.sf-nodo', '1'], ['.sf-filtros', '2']] });
   await ir('#/snowflake/copy', 900);
-  await c.foto('s22-copy', { marcas: [['.sf-aviso', null]] });
+  await c.foto('s22-copy', { marcas: [['.sf-tabla', null]] });
   if (HASTA <= 22) return;
 
   // ================================================================ lección 23: de la práctica a Snowflake real

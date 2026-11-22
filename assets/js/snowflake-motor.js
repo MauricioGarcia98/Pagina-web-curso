@@ -33,6 +33,7 @@
     d.stages = d.stages || {};
     d.hojas = d.hojas || [{ id: 'h1', nombre: 'Mi primera hoja', sql: EJEMPLO_INICIAL, creada: Date.now() }];
     d.seq = d.seq || 1;
+    d.tasks = d.tasks || {}; d.taskHist = d.taskHist || []; d.streams = d.streams || {}; d.copias = d.copias || []; d.consumo = d.consumo || {}; d.compartidas = d.compartidas || {}; d.tableros = d.tableros || []; d.pipes = d.pipes || {}; d.dinamicas = d.dinamicas || {}; d.dynHist = d.dynHist || []; d.cuadernos = d.cuadernos || []; d.apps = d.apps || [];
     return d;
   }
   const guardar = () => { try { Store.saveSoon ? Store.saveSoon() : Store.save(); } catch (e) { /* sin almacenamiento */ } };
@@ -85,6 +86,9 @@ ORDER BY ventas DESC;
         for (const r of s.replay) { try { s.ctx = { ...s.ctx, db: r.db, esquema: r.esquema }; await usarContexto(); await ejecutarUna(r.sql, { replay: true }); } catch (e) { /* objeto que ya no se puede recrear */ } }
         s.ctx = ctx0;
       }
+      for (const [k, sh] of Object.entries(s.compartidas)) { const L = LISTADOS.find((x) => x.id === sh.id); if (L) { try { await crearListado(L); } catch (e) { delete s.compartidas[k]; } } }
+      for (const x of Object.values(s.streams)) { try { await baseStream(x, false); } catch (e) { /* la tabla ya no existe */ } }
+      for (const x of Object.values(s.dinamicas)) { try { await refrescarDinamica(x, 'RESTORE'); } catch (e) { /* el origen ya no existe */ } }
       await usarContexto();
       return con;
     })();
@@ -131,8 +135,13 @@ ORDER BY ventas DESC;
   function suspender(w, cuando = Date.now()) {
     if (w.estado !== 'STARTED') return;
     const seg = Math.max(60, (cuando - w.desde) / 1000);
-    w.creditos += (CREDITOS_HORA[w.tamano] || 1) * seg / 3600;
+    const cr = (CREDITOS_HORA[w.tamano] || 1) * seg / 3600;
+    w.creditos += cr; sumarConsumo(w.nombre, cr, cuando);
     w.estado = 'SUSPENDED'; guardar();
+  }
+  function sumarConsumo(quien, cr, cuando = Date.now()) {
+    const s = st(); const dia = new Date(cuando).toISOString().slice(0, 10);
+    const d = (s.consumo[dia] = s.consumo[dia] || {}); d[quien] = (d[quien] || 0) + cr;
   }
   function reanudar(w) { if (w.estado === 'STARTED') return; w.estado = 'STARTED'; w.desde = Date.now(); w.ultima = Date.now(); guardar(); }
 
@@ -552,13 +561,16 @@ ORDER BY ventas DESC;
           await con.query(`INSERT INTO ${ref(n)} SELECT * FROM ${lector}`);
           const despues = Number((await con.query(`SELECT count(*) AS n FROM ${ref(n)}`)).toArray()[0].n);
           res.push([`${x.nombre.toLowerCase()}/${nom}`, 'LOADED', a.texto.split('\n').filter(Boolean).length - (skip ? Number(skip[1]) : 0), despues - antes, null]);
+          if (!op.replay) s.copias.unshift({ cuando: Date.now(), tabla: clave, archivo: nom, stage: x.nombre, estado: 'Loaded', leidas: a.texto.split('\n').filter(Boolean).length - (skip ? Number(skip[1]) : 0), cargadas: despues - antes, tamano: a.texto.length, error: null, qid: op.qid });
           (cargados[clave] = cargados[clave] || []).push(nom);
         } catch (e) {
           res.push([`${x.nombre.toLowerCase()}/${nom}`, 'LOAD_FAILED', 0, 0, String(e.message).split('\n')[0].slice(0, 200)]);
+          if (!op.replay) s.copias.unshift({ cuando: Date.now(), tabla: clave, archivo: nom, stage: x.nombre, estado: 'Load failed', leidas: 0, cargadas: 0, tamano: a.texto.length, error: String(e.message).split('\n')[0].slice(0, 200), qid: op.qid });
           if (!onErr || /ABORT/i.test(onErr[1])) { await D._db.dropFile(tmp); throw err(`${String(e.message).split('\n')[0]}\n  File '${nom}'\n  Si el archivo tiene encabezado, agrega FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1).`, '100038'); }
         }
         await D._db.dropFile(tmp);
       }
+      if (s.copias.length > 300) s.copias.length = 300;
       guardar();
       if (!res.length) return { estado: 'Copy executed with 0 files processed.' };
       return { ...filas(['file', 'status', 'rows_parsed', 'rows_loaded', 'first_error'], res), persistir: true };
@@ -571,6 +583,127 @@ ORDER BY ventas DESC;
       const ult = b.pop(); await con.query(`ALTER TABLE ${ref(n, ult.oculto)} RENAME TO ${ident(n.tabla)}`); guardar();
       return { estado: `Table ${n.tabla} successfully restored.`, persistir: true };
     }
+
+    // --- TASKS: SQL programado dentro de Snowflake (CRON o cada N minutos), en árbol con AFTER
+    if ((m = /^CREATE\s+(OR\s+REPLACE\s+)?TASK\s+(IF\s+NOT\s+EXISTS\s+)?("?[\w$."]+"?)\s+([\s\S]+)$/i.exec(sql))) {
+      const n = nombreCompleto(m[3]); const k = `${n.db}.${n.esquema}.${n.tabla}`;
+      if (s.tasks[k] && !m[1]) { if (m[2]) return { estado: `${n.tabla} already exists, statement succeeded.` }; throw err(`SQL compilation error:\nObject '${n.tabla}' already exists.`, '002002'); }
+      const corte = /\sAS\s+(?=(SELECT|INSERT|MERGE|UPDATE|DELETE|CALL|COPY|CREATE|TRUNCATE|BEGIN|EXECUTE)\b)/i.exec(' ' + m[4]);
+      if (!corte) throw err('SQL compilation error:\nsyntax error: falta el cuerpo de la tarea (… AS INSERT INTO … / MERGE … / CALL …).', '001003');
+      const cab = (' ' + m[4]).slice(0, corte.index), cuerpo = (' ' + m[4]).slice(corte.index + corte[0].length).trim();
+      const wh = /WAREHOUSE\s*=\s*("?[\w$]+"?)/i.exec(cab); const sch = /SCHEDULE\s*=\s*'([^']+)'/i.exec(cab);
+      const after = /\bAFTER\s+([\s\S]+?)(?=\s+(WHEN|COMMENT|WAREHOUSE|SCHEDULE|USER_TASK\w*)\b|$)/i.exec(cab); const when = /\bWHEN\s+([\s\S]+?)(?=\s+COMMENT\b|$)/i.exec(cab);
+      const com = /COMMENT\s*=\s*'([^']*)'/i.exec(cab);
+      if (sch && after) throw err('SQL compilation error:\nInvalid task: a task with predecessors (AFTER) cannot have a SCHEDULE. Solo la tarea raíz del árbol tiene horario.', '091091');
+      if (wh && !s.warehouses[nombreSf(wh[1])]) throw err(`Warehouse '${nombreSf(wh[1])}' does not exist or not authorized.`, '002003');
+      if (sch) validarSchedule(sch[1]);
+      const preds = after ? after[1].split(',').map((x) => { const q = nombreCompleto(x.trim()); return `${q.db}.${q.esquema}.${q.tabla}`; }) : [];
+      for (const pk of preds) if (!s.tasks[pk]) throw err(`SQL compilation error:\nTask '${pk.split('.').pop()}' does not exist or not authorized.`, '002003');
+      if (s.tasks[k] && s.tasks[k].estado === 'started') throw err(`Unable to update graph with root task ${k} since that root task is not suspended.\nPrimero: ALTER TASK ${n.tabla} SUSPEND;`, '091089');
+      s.tasks[k] = { nombre: n.tabla, db: n.db, esquema: n.esquema, wh: wh ? nombreSf(wh[1]) : null, schedule: sch ? sch[1] : null, after: preds, cuando: when ? when[1].trim() : null, sql: cuerpo, estado: 'suspended', dueno: s.ctx.rol, creado: Date.now(), ultima: null, comentario: com ? com[1] : '' };
+      guardar(); return { estado: `Task ${n.tabla} successfully created.` };
+    }
+    if ((m = /^ALTER\s+TASK\s+(IF\s+EXISTS\s+)?("?[\w$."]+"?)\s+(RESUME|SUSPEND|SET\s+([\s\S]+)|MODIFY\s+AS\s+([\s\S]+)|MODIFY\s+WHEN\s+([\s\S]+))$/i.exec(sql))) {
+      const n = nombreCompleto(m[2]); const k = `${n.db}.${n.esquema}.${n.tabla}`; const t = s.tasks[k];
+      if (!t) { if (m[1]) return { estado: 'Statement executed successfully.' }; throw err(`Task '${n.tabla}' does not exist or not authorized.`, '002003'); }
+      const accion = m[3].toUpperCase();
+      if (accion === 'RESUME') {
+        const ef = rolesEfectivos(t.dueno);
+        if (!ef.has('ACCOUNTADMIN') && !s.grants.some((g) => g.tipo === 'ACCOUNT' && g.priv === 'EXECUTE TASK' && ef.has(g.a))) throw err(`Cannot execute task , EXECUTE TASK privilege must be granted to owner role\nEl dueño de la tarea es ${t.dueno}: un administrador tiene que ejecutar GRANT EXECUTE TASK ON ACCOUNT TO ROLE ${t.dueno};`, '091089');
+        if (t.wh && !ef.has('ACCOUNTADMIN') && !ef.has('SYSADMIN') && !s.grants.some((g) => g.tipo === 'WAREHOUSE' && g.obj === t.wh && ef.has(g.a))) throw err(`Cannot execute task, USAGE privilege on the task's warehouse must be granted to owner role (GRANT USAGE ON WAREHOUSE ${t.wh} TO ROLE ${t.dueno}).`, '091089');
+        if (!t.schedule && !t.after.length) throw err(`Task ${n.tabla} cannot be resumed: it has no SCHEDULE and no predecessors. Agrégale un horario (ALTER TASK ${n.tabla} SET SCHEDULE = '60 MINUTE') o ejecútala a mano con EXECUTE TASK.`, '091090');
+        t.estado = 'started'; t.reanudada = Date.now(); t.ultima = Date.now();
+      } else if (accion === 'SUSPEND') t.estado = 'suspended';
+      else {
+        if (t.estado === 'started') throw err(`Unable to update graph with root task ${k} since that root task is not suspended.\nPrimero: ALTER TASK ${n.tabla} SUSPEND;`, '091089');
+        if (m[4]) { const w = /WAREHOUSE\s*=\s*("?[\w$]+"?)/i.exec(m[4]); const sc = /SCHEDULE\s*=\s*'([^']+)'/i.exec(m[4]); const c = /COMMENT\s*=\s*'([^']*)'/i.exec(m[4]); if (w) t.wh = nombreSf(w[1]); if (sc) { validarSchedule(sc[1]); if (t.after.length) throw err('Invalid task: a task with predecessors cannot have a SCHEDULE.', '091091'); t.schedule = sc[1]; } if (c) t.comentario = c[1]; }
+        if (m[5]) t.sql = m[5].trim(); if (m[6]) t.cuando = m[6].trim();
+      }
+      guardar(); return { estado: 'Statement executed successfully.' };
+    }
+    if ((m = /^EXECUTE\s+TASK\s+("?[\w$."]+"?)$/i.exec(sql))) {
+      const n = nombreCompleto(m[1]); const k = `${n.db}.${n.esquema}.${n.tabla}`; const t = s.tasks[k];
+      if (!t) throw err(`Task '${n.tabla}' does not exist or not authorized.`, '002003');
+      if (t.after.length) throw err(`Task ${n.tabla} is not a root task: EXECUTE TASK solo dispara la tarea raíz del árbol (o una tarea sin predecesoras).`, '091092');
+      await correrArbol(k, Date.now(), 'EXECUTE TASK');
+      return { estado: `Task ${n.tabla} was successfully executed. Mira el resultado en Monitoring → Task History o en TASK_HISTORY().` };
+    }
+    if ((m = /^DROP\s+TASK\s+(IF\s+EXISTS\s+)?("?[\w$."]+"?)$/i.exec(sql))) {
+      const n = nombreCompleto(m[2]); const k = `${n.db}.${n.esquema}.${n.tabla}`;
+      if (!s.tasks[k]) { if (m[1]) return { estado: 'Statement executed successfully.' }; throw err(`Task '${n.tabla}' does not exist or not authorized.`, '002003'); }
+      delete s.tasks[k]; for (const t of Object.values(s.tasks)) t.after = t.after.filter((x) => x !== k); guardar();
+      return { estado: `${n.tabla} successfully dropped.` };
+    }
+    if (/^SHOW\s+TASKS/i.test(sql) || (m = /^(?:DESCRIBE|DESC)\s+TASK\s+("?[\w$."]+"?)$/i.exec(sql))) {
+      const una = m && m[1] ? (() => { const q = nombreCompleto(m[1]); return `${q.db}.${q.esquema}.${q.tabla}`; })() : null;
+      const lista = Object.entries(s.tasks).filter(([k, t]) => (una ? k === una : likeOk(sql, t.nombre)));
+      if (una && !lista.length) throw err('Task does not exist or not authorized.', '002003');
+      return filas(['created_on', 'name', 'database_name', 'schema_name', 'owner', 'comment', 'warehouse', 'schedule', 'predecessors', 'state', 'definition', 'condition', 'last_committed_on'], lista.map(([, t]) => [fecha(t.creado), t.nombre, t.db, t.esquema, t.dueno, t.comentario || '', t.wh || '(serverless)', t.schedule || '', JSON.stringify(t.after), t.estado, t.sql, t.cuando || '', t.ultima ? fecha(t.ultima) : '']));
+    }
+    if ((m = /^GRANT\s+EXECUTE\s+(MANAGED\s+)?TASK\s+ON\s+ACCOUNT\s+TO\s+(?:ROLE\s+)?("?[\w$]+"?)$/i.exec(sql))) {
+      const a = nombreSf(m[2]); if (!s.roles[a] && !ROLES_SISTEMA.includes(a)) throw err(`Role '${a}' does not exist or not authorized.`);
+      if (!rolesEfectivos(s.ctx.rol).has('ACCOUNTADMIN')) throw sinPermiso('account (GRANT EXECUTE TASK ON ACCOUNT lo otorga ACCOUNTADMIN)');
+      s.grants.push({ priv: 'EXECUTE TASK', tipo: 'ACCOUNT', obj: 'ACCOUNT', a, aTipo: 'ROLE', por: s.ctx.rol, cuando: Date.now() }); guardar();
+      return { estado: 'Statement executed successfully.' };
+    }
+    // --- STREAMS: los cambios (CDC) de una tabla desde la última vez que se consumieron
+    if ((m = /^CREATE\s+(OR\s+REPLACE\s+)?STREAM\s+(IF\s+NOT\s+EXISTS\s+)?("?[\w$."]+"?)\s+ON\s+TABLE\s+("?[\w$."]+"?)([\s\S]*)$/i.exec(sql))) {
+      const n = nombreCompleto(m[3]); const k = `${n.db}.${n.esquema}.${n.tabla}`; const tb = nombreCompleto(m[4]);
+      if (s.streams[k] && !m[1]) { if (m[2]) return { estado: `${n.tabla} already exists, statement succeeded.` }; throw err(`SQL compilation error:\nObject '${n.tabla}' already exists.`, '002002'); }
+      if (!(await tablas(tb.db, tb.esquema)).some((t) => t.nombre === tb.tabla && !t.vista)) throw err(`SQL compilation error:\nTable '${tb.db}.${tb.esquema}.${tb.tabla}' does not exist or not authorized.`, '002003');
+      if (!op.replay) exigirPermisos(`SELECT * FROM ${m[4]}`);
+      const x = { nombre: n.tabla, db: n.db, esquema: n.esquema, tabla: `${tb.db}.${tb.esquema}.${tb.tabla}`, modo: /APPEND_ONLY\s*=\s*TRUE/i.test(m[5]) ? 'APPEND_ONLY' : 'DEFAULT', inicial: /SHOW_INITIAL_ROWS\s*=\s*TRUE/i.test(m[5]), dueno: s.ctx.rol, creado: Date.now() };
+      s.streams[k] = x; await baseStream(x, x.inicial); guardar();
+      return { estado: `Stream ${n.tabla} successfully created.` };
+    }
+    if ((m = /^DROP\s+STREAM\s+(IF\s+EXISTS\s+)?("?[\w$."]+"?)$/i.exec(sql))) {
+      const n = nombreCompleto(m[2]); const k = `${n.db}.${n.esquema}.${n.tabla}`;
+      if (!s.streams[k]) { if (m[1]) return { estado: 'Statement executed successfully.' }; throw err(`Stream '${n.tabla}' does not exist or not authorized.`, '002003'); }
+      try { await con.query(`DROP TABLE IF EXISTS ${baseRef(s.streams[k])}`); } catch (e) { /* nada */ }
+      delete s.streams[k]; guardar(); return { estado: `${n.tabla} successfully dropped.` };
+    }
+    if (/^SHOW\s+STREAMS/i.test(sql)) return filas(['created_on', 'name', 'database_name', 'schema_name', 'owner', 'table_name', 'type', 'stale', 'mode'], Object.values(s.streams).filter((x) => likeOk(sql, x.nombre)).map((x) => [fecha(x.creado), x.nombre, x.db, x.esquema, x.dueno, x.tabla, 'DELTA', 'false', x.modo]));
+
+    // --- SNOWPIPE: un COPY INTO que se dispara solo cuando llegan archivos nuevos al stage
+    if ((m = /^CREATE\s+(OR\s+REPLACE\s+)?PIPE\s+(IF\s+NOT\s+EXISTS\s+)?("?[\w$."]+"?)\s+([\s\S]*?)\bAS\s+(COPY\s+INTO\s+[\s\S]+)$/i.exec(sql))) {
+      const n = nombreCompleto(m[3]); const k = `${n.db}.${n.esquema}.${n.tabla}`;
+      if (s.pipes[k] && !m[1]) { if (m[2]) return { estado: `${n.tabla} already exists, statement succeeded.` }; throw err(`SQL compilation error:\nObject '${n.tabla}' already exists.`, '002002'); }
+      const st2 = /FROM\s+@("?[\w$]+"?)/i.exec(m[5]); if (!st2 || !s.stages[nombreSf(st2[1])]) throw err('SQL compilation error:\nStage does not exist or not authorized.', '002003');
+      s.pipes[k] = { nombre: n.tabla, db: n.db, esquema: n.esquema, copy: m[5].trim(), auto: /AUTO_INGEST\s*=\s*TRUE/i.test(m[4]), estado: 'RUNNING', dueno: s.ctx.rol, creado: Date.now(), ultima: null, cargados: 0 };
+      guardar(); return { estado: `Pipe ${n.tabla} successfully created.${s.pipes[k].auto ? '' : ' Sin AUTO_INGEST: refréscalo con ALTER PIPE … REFRESH.'}` };
+    }
+    if ((m = /^ALTER\s+PIPE\s+("?[\w$."]+"?)\s+(REFRESH|SET\s+PIPE_EXECUTION_PAUSED\s*=\s*(TRUE|FALSE))$/i.exec(sql))) {
+      const n = nombreCompleto(m[1]); const x = s.pipes[`${n.db}.${n.esquema}.${n.tabla}`]; if (!x) throw err(`Pipe '${n.tabla}' does not exist or not authorized.`, '002003');
+      if (/^REFRESH/i.test(m[2])) { const r = await correrPipe(x); return filas(['File', 'Status'], r.map((f) => [f, 'SENT'])); }
+      x.estado = /TRUE/i.test(m[3]) ? 'PAUSED' : 'RUNNING'; guardar(); return { estado: 'Statement executed successfully.' };
+    }
+    if ((m = /^DROP\s+PIPE\s+(IF\s+EXISTS\s+)?("?[\w$."]+"?)$/i.exec(sql))) { const n = nombreCompleto(m[2]); const k = `${n.db}.${n.esquema}.${n.tabla}`; if (!s.pipes[k]) { if (m[1]) return { estado: 'Statement executed successfully.' }; throw err(`Pipe '${n.tabla}' does not exist or not authorized.`, '002003'); } delete s.pipes[k]; guardar(); return { estado: `${n.tabla} successfully dropped.` }; }
+    if (/^SHOW\s+PIPES/i.test(sql)) return filas(['created_on', 'name', 'database_name', 'schema_name', 'definition', 'owner', 'notification_channel', 'comment'], Object.values(s.pipes).filter((x) => likeOk(sql, x.nombre)).map((x) => [fecha(x.creado), x.nombre, x.db, x.esquema, x.copy, x.dueno, x.auto ? 'arn:aws:sqs:us-east-1:000000000000:sf-snowpipe-practica' : '', '']));
+    // --- DYNAMIC TABLES: una tabla que Snowflake mantiene sola a partir de una consulta, con un atraso máximo
+    if ((m = /^CREATE\s+(OR\s+REPLACE\s+)?DYNAMIC\s+TABLE\s+(IF\s+NOT\s+EXISTS\s+)?("?[\w$."]+"?)\s+([\s\S]*?)\bAS\s+(SELECT[\s\S]+|WITH[\s\S]+)$/i.exec(sql))) {
+      const n = nombreCompleto(m[3]); const k = `${n.db}.${n.esquema}.${n.tabla}`;
+      const lag = /TARGET_LAG\s*=\s*'(\d+)\s*(second|seconds|minute|minutes|hour|hours|day|days)'/i.exec(m[4]); const dl = /TARGET_LAG\s*=\s*DOWNSTREAM/i.test(m[4]);
+      if (!lag && !dl) throw err("SQL compilation error:\nMissing option(s): TARGET_LAG. Ejemplo: TARGET_LAG = '1 hour'.", '001003');
+      const wh = /WAREHOUSE\s*=\s*("?[\w$]+"?)/i.exec(m[4]); if (!wh) throw err('SQL compilation error:\nMissing option(s): WAREHOUSE.', '001003');
+      const ms = lag ? Number(lag[1]) * ({ s: 1e3, m: 6e4, h: 36e5, d: 864e5 }[lag[2][0].toLowerCase()]) : null;
+      if (ms != null && ms < 60e3) throw err("Invalid value for TARGET_LAG: el mínimo es '1 minute'.", '001003');
+      s.dinamicas[k] = { nombre: n.tabla, db: n.db, esquema: n.esquema, sql: m[5].trim(), lag: ms, lagTxt: lag ? `${lag[1]} ${lag[2]}` : 'DOWNSTREAM', wh: nombreSf(wh[1]), creado: Date.now(), ultima: null, ctx: { db: s.ctx.db, esquema: s.ctx.esquema }, estado: 'ACTIVE' };
+      await refrescarDinamica(s.dinamicas[k], 'CREATION');
+      return { estado: `Dynamic table ${n.tabla} successfully created.` };
+    }
+    if ((m = /^ALTER\s+DYNAMIC\s+TABLE\s+("?[\w$."]+"?)\s+(REFRESH|SUSPEND|RESUME)$/i.exec(sql))) {
+      const n = nombreCompleto(m[1]); const x = s.dinamicas[`${n.db}.${n.esquema}.${n.tabla}`]; if (!x) throw err(`Dynamic table '${n.tabla}' does not exist or not authorized.`, '002003');
+      const a = m[2].toUpperCase(); if (a === 'REFRESH') await refrescarDinamica(x, 'MANUAL'); else x.estado = a === 'SUSPEND' ? 'SUSPENDED' : 'ACTIVE';
+      guardar(); return { estado: 'Statement executed successfully.' };
+    }
+    if (/^SHOW\s+DYNAMIC\s+TABLES/i.test(sql)) return filas(['created_on', 'name', 'database_name', 'schema_name', 'target_lag', 'warehouse', 'scheduling_state', 'last_refresh', 'text'], Object.values(s.dinamicas).filter((x) => likeOk(sql, x.nombre)).map((x) => [fecha(x.creado), x.nombre, x.db, x.esquema, x.lagTxt, x.wh, x.estado === 'ACTIVE' ? 'RUNNING' : 'SUSPENDED', x.ultima ? fecha(x.ultima) : '', x.sql]));
+    if ((m = /^DROP\s+DYNAMIC\s+TABLE\s+(IF\s+EXISTS\s+)?("?[\w$."]+"?)$/i.exec(sql))) { const n = nombreCompleto(m[2]); const k = `${n.db}.${n.esquema}.${n.tabla}`; if (!s.dinamicas[k]) { if (m[1]) return { estado: 'Statement executed successfully.' }; throw err(`Dynamic table '${n.tabla}' does not exist or not authorized.`, '002003'); } await con.query(`DROP TABLE IF EXISTS ${ref(n)}`); delete s.dinamicas[k]; guardar(); return { estado: `${n.tabla} successfully dropped.` }; }
+    if ((m = /^SELECT\s+SYSTEM\$PIPE_STATUS\s*\(\s*'([^']+)'\s*\)\s*(?:AS\s+\w+)?$/i.exec(sql))) { const n = nombreCompleto(m[1]); const x = s.pipes[`${n.db}.${n.esquema}.${n.tabla}`]; if (!x) throw err(`Pipe '${m[1]}' does not exist or not authorized.`, '002003'); return filas(['SYSTEM$PIPE_STATUS'], [[JSON.stringify({ executionState: x.estado, pendingFileCount: 0, lastIngestedTimestamp: x.ultima ? new Date(x.ultima).toISOString() : null, lastIngestedFilePath: x.ultimoArchivo || null, notificationChannelName: x.auto ? 'arn:aws:sqs:us-east-1:000000000000:sf-snowpipe-practica' : null })]]); }
+    // un DML sobre una dynamic table no está permitido: la mantiene Snowflake
+    { const dml = /^(INSERT\s+(?:OVERWRITE\s+)?INTO|UPDATE|DELETE\s+FROM|MERGE\s+INTO)\s+("?[\w$."]+"?)/i.exec(sql); if (dml && !op.replay && !op.dinamica) { const q = nombreCompleto(dml[2]); if (s.dinamicas[`${q.db}.${q.esquema}.${q.tabla}`]) throw err(`SQL compilation error:\nDML operations are not supported on dynamic table '${q.tabla}'. Una dynamic table se define con su consulta: cambia las tablas de origen y Snowflake la refresca.`, '002201'); } }
+    // --- MARKETPLACE: una base compartida es de solo lectura
+    { const dml = /^(INSERT\s+(?:OVERWRITE\s+)?INTO|UPDATE|DELETE\s+FROM|MERGE\s+INTO|TRUNCATE\s+(?:TABLE\s+)?|DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?|CREATE\s+(?:OR\s+REPLACE\s+)?(?:TABLE|VIEW|SCHEMA)\s+(?:IF\s+NOT\s+EXISTS\s+)?)\s*("?[\w$."]+"?)/i.exec(sql);
+      if (dml && !op.replay) { const q = /SCHEMA\s/i.test(dml[1]) ? { db: (dml[2].includes('.') ? nombreSf(dml[2].split('.')[0]) : s.ctx.db) } : nombreCompleto(dml[2]); if (s.compartidas[q.db]) throw err(`SQL access control error:\nInsufficient privileges to operate on database '${q.db}'.\n${q.db} es una base compartida desde el Marketplace: es de solo lectura. Copia lo que necesites a tu base (CREATE TABLE mi_base.public.x AS SELECT … FROM ${q.db}…).`, '003001'); } }
     // --- todo lo demás va a DuckDB (con traducción)
     const esDml = /^(INSERT|UPDATE|DELETE|MERGE|TRUNCATE)\b/i.test(sql);
     const esDdl = /^(CREATE|ALTER|DROP|COMMENT)\b/i.test(sql);
@@ -579,6 +712,7 @@ ORDER BY ventas DESC;
     if (!soloMeta && !/^SELECT\s+(CURRENT_\w+\(\)\s*(,\s*CURRENT_\w+\(\)\s*)*|\d+|'[^']*')\s*;?$/i.test(sql)) await requiereWarehouse();
     let tr = traducir(sql);
     tr = resolverTimeTravel(tr);
+    tr = await reescribirObjetos(tr);
     // CREATE TABLE x CLONE y  →  copia (en Snowflake no copia datos: comparte los micro-particiones)
     tr = tr.replace(/^CREATE\s+(OR\s+REPLACE\s+)?(TRANSIENT\s+)?TABLE\s+([\w."]+)\s+CLONE\s+([\w."]+)\s*$/i, (mm, rep, tr2, a, b) => `CREATE ${rep || ''}TABLE ${a} AS SELECT * FROM ${b}`);
     tr = tr.replace(/^CREATE\s+(OR\s+REPLACE\s+)?TRANSIENT\s+TABLE/i, (mm, rep) => `CREATE ${rep || ''}TABLE`);
@@ -597,12 +731,14 @@ ORDER BY ventas DESC;
       let c;
       try { c = await mergeDuck(tr); } catch (e) { if (e.codigo) throw e; throw err(mensajeError(String(e.message || e), sql), '000904'); }
       anotarDueno(sql);
+      if (!op.replay) await consumirStreams(sql);
       return { ...filas(['number of rows inserted', 'number of rows updated', 'number of rows deleted'], [[c.ins, c.upd, c.del]]), persistir: true };
     }
     let r;
     try { r = await con.query(tr); }
     catch (e) { throw err(mensajeError(String(e.message || e), sql), '000904'); }
     anotarDueno(sql);
+    if ((esDml || /^CREATE\b[\s\S]*\bAS\s+SELECT\b/i.test(sql)) && !op.replay) await consumirStreams(sql);
     const campos = r.schema.fields; const D = window.SqlMotores.DUCK;
     if (campos.length === 1 && campos[0].name === 'Count' && (esDml || esDdl)) {
       const n = Number((r.toArray()[0] || {}).Count || 0);
@@ -623,7 +759,9 @@ ORDER BY ventas DESC;
     return { columns: campos.map((f) => encabezado(f.name)), values: r.toArray().map((fila) => campos.map((f) => D._celda(fila[f.name], f.type))) };
   }
 
+  let serverless = false;   // una tarea sin WAREHOUSE corre con cómputo administrado por Snowflake
   async function requiereWarehouse() {
+    if (serverless) return;
     const s = st();
     if (!s.ctx.wh) throw err("No active warehouse selected in the current session.  Select an active warehouse with the 'use warehouse' command.", '000606');
     const w = s.warehouses[s.ctx.wh];
@@ -657,14 +795,189 @@ ORDER BY ventas DESC;
   async function tablas(d, e) {
     const t = (await con.query(`SELECT table_name, estimated_size FROM duckdb_tables() WHERE database_name = '${d.toLowerCase()}' AND schema_name = '${e.toLowerCase()}'`)).toArray().map((r) => ({ nombre: r.table_name.toUpperCase(), filas: Number(r.estimated_size), vista: false }));
     const v = (await con.query(`SELECT view_name FROM duckdb_views() WHERE database_name = '${d.toLowerCase()}' AND schema_name = '${e.toLowerCase()}' AND NOT internal`)).toArray().map((r) => ({ nombre: r.view_name.toUpperCase(), vista: true }));
-    return [...t, ...v].filter((x) => !/^__(TT|DROP|STAGE)_/.test(x.nombre)).sort((a, b) => a.nombre.localeCompare(b.nombre));
+    return [...t, ...v].filter((x) => !/^__(TT|DROP|STAGE|STREAM|SF)_/i.test(x.nombre)).sort((a, b) => a.nombre.localeCompare(b.nombre));
   }
   async function columnas(d, e, t) { return (await con.query(`SELECT column_name, data_type, is_nullable FROM duckdb_columns() WHERE database_name = '${d.toLowerCase()}' AND schema_name = '${e.toLowerCase()}' AND table_name = '${t.toLowerCase()}' ORDER BY column_index`)).toArray().map((r) => ({ nombre: r.column_name.toUpperCase(), tipo: tipoSf(r.data_type), nulo: r.is_nullable })); }
   function tipoSf(t) { t = String(t).toUpperCase(); if (/^(INTEGER|BIGINT|SMALLINT|TINYINT|HUGEINT)$/.test(t)) return 'NUMBER(38,0)'; if (/^DECIMAL/.test(t)) return t.replace('DECIMAL', 'NUMBER'); if (/DOUBLE|FLOAT|REAL/.test(t)) return 'FLOAT'; if (t === 'VARCHAR') return 'VARCHAR(16777216)'; if (/TIMESTAMP/.test(t)) return 'TIMESTAMP_NTZ(9)'; if (t === 'JSON') return 'VARIANT'; return t; }
 
+
+  // ------------------------------------------------------------------ streams, tasks y monitoreo
+  const baseRef = (x) => `${ident(x.db)}.${ident(x.esquema)}.${ident('__stream_' + x.nombre.toLowerCase() + '_base')}`;
+  const tablaRef = (k) => k.split('.').map(ident).join('.');
+  async function baseStream(x, vacia) { await con.query(`CREATE OR REPLACE TABLE ${baseRef(x)} AS SELECT * FROM ${tablaRef(x.tabla)}${vacia ? ' LIMIT 0' : ''}`); }
+  function subStream(x) {
+    const T = tablaRef(x.tabla), B = baseRef(x);
+    const ins = `SELECT cur.*, 'INSERT' AS "METADATA$ACTION", FALSE AS "METADATA$ISUPDATE", md5(CAST(cur AS VARCHAR)) AS "METADATA$ROW_ID" FROM (SELECT * FROM ${T} EXCEPT ALL SELECT * FROM ${B}) cur`;
+    const del = `SELECT cur.*, 'DELETE' AS "METADATA$ACTION", FALSE AS "METADATA$ISUPDATE", md5(CAST(cur AS VARCHAR)) AS "METADATA$ROW_ID" FROM (SELECT * FROM ${B} EXCEPT ALL SELECT * FROM ${T}) cur`;
+    return `(${x.modo === 'APPEND_ONLY' ? ins : `${ins} UNION ALL ${del}`})`;
+  }
+  const PALABRAS_FIN = /^\s*(WHERE|JOIN|LEFT|RIGHT|INNER|FULL|CROSS|ON|GROUP|ORDER|LIMIT|HAVING|QUALIFY|UNION|EXCEPT|INTERSECT|WHEN|USING|\)|;|$)/i;
+  function streamsEn(texto) {
+    const s = st(); const out = [];
+    for (const [k, x] of Object.entries(s.streams)) { const re = new RegExp(`(?:\\b(?:FROM|JOIN|USING)\\s+)((?:"?\\w+"?\\.){0,2}"?${x.nombre}"?)(?![\\w.])`, 'i'); if (re.test(texto)) out.push([k, x]); }
+    return out;
+  }
+  async function crearTemp(nombre, cols, filasT) {
+    await con.query(`CREATE OR REPLACE TEMP TABLE ${nombre} (${cols.map(([c, t]) => `"${c}" ${t}`).join(', ')})`);
+    const lit = (v, t) => (v == null ? 'NULL' : t === 'VARCHAR' || t === 'TIMESTAMP' ? `'${String(v).replace(/'/g, "''")}'${t === 'TIMESTAMP' ? '::TIMESTAMP' : ''}` : String(v));
+    for (let i = 0; i < filasT.length; i += 200) { const lote = filasT.slice(i, i + 200); if (lote.length) await con.query(`INSERT INTO ${nombre} VALUES ${lote.map((f) => `(${f.map((v, j) => lit(v, cols[j][1])).join(', ')})`).join(', ')}`); }
+  }
+  const ts = (t) => (t ? new Date(t).toISOString().replace('T', ' ').slice(0, 19) : null);
+  async function reescribirObjetos(tr) {
+    const s = st();
+    if (/INFORMATION_SCHEMA\s*\.\s*TASK_HISTORY\s*\(/i.test(tr)) {
+      await crearTemp('__sf_task_history', [['QUERY_ID', 'VARCHAR'], ['NAME', 'VARCHAR'], ['DATABASE_NAME', 'VARCHAR'], ['SCHEMA_NAME', 'VARCHAR'], ['QUERY_TEXT', 'VARCHAR'], ['CONDITION_TEXT', 'VARCHAR'], ['STATE', 'VARCHAR'], ['ERROR_CODE', 'VARCHAR'], ['ERROR_MESSAGE', 'VARCHAR'], ['SCHEDULED_TIME', 'TIMESTAMP'], ['QUERY_START_TIME', 'TIMESTAMP'], ['COMPLETED_TIME', 'TIMESTAMP'], ['SCHEDULED_FROM', 'VARCHAR']], s.taskHist.map((h) => [h.id, h.nombre, h.db, h.esquema, h.sql, h.cond, h.estado, h.codigo, h.error, ts(h.programada), ts(h.inicio), ts(h.fin), h.disparo]));
+      tr = tr.replace(/TABLE\s*\(\s*(?:[\w"]+\s*\.\s*)?INFORMATION_SCHEMA\s*\.\s*TASK_HISTORY\s*\([^()]*(?:\([^()]*\)[^()]*)*\)\s*\)/gi, '__sf_task_history');
+    }
+    if (/INFORMATION_SCHEMA\s*\.\s*COPY_HISTORY\s*\(/i.test(tr)) {
+      await crearTemp('__sf_copy_history', [['FILE_NAME', 'VARCHAR'], ['STAGE_LOCATION', 'VARCHAR'], ['LAST_LOAD_TIME', 'TIMESTAMP'], ['ROW_COUNT', 'BIGINT'], ['ROW_PARSED', 'BIGINT'], ['FILE_SIZE', 'BIGINT'], ['FIRST_ERROR_MESSAGE', 'VARCHAR'], ['STATUS', 'VARCHAR'], ['TABLE_NAME', 'VARCHAR'], ['TABLE_CATALOG_NAME', 'VARCHAR'], ['TABLE_SCHEMA_NAME', 'VARCHAR']], s.copias.map((c) => [c.archivo, '@' + c.stage, ts(c.cuando), c.cargadas, c.leidas, c.tamano, c.error, c.estado, c.tabla.split('.')[2], c.tabla.split('.')[0], c.tabla.split('.')[1]]));
+      tr = tr.replace(/TABLE\s*\(\s*(?:[\w"]+\s*\.\s*)?INFORMATION_SCHEMA\s*\.\s*COPY_HISTORY\s*\([^()]*(?:\([^()]*\)[^()]*)*\)\s*\)/gi, '__sf_copy_history');
+    }
+    if (/SNOWFLAKE\s*\.\s*ACCOUNT_USAGE\s*\.\s*WAREHOUSE_METERING_HISTORY/i.test(tr)) {
+      const f = []; for (const [dia, ws] of Object.entries(s.consumo)) for (const [w, cr] of Object.entries(ws)) f.push([`${dia} 00:00:00`, `${dia} 23:59:59`, w, Math.round(cr * 1e6) / 1e6, Math.round(cr * 0.9 * 1e6) / 1e6, Math.round(cr * 0.1 * 1e6) / 1e6]);
+      await crearTemp('__sf_metering', [['START_TIME', 'TIMESTAMP'], ['END_TIME', 'TIMESTAMP'], ['WAREHOUSE_NAME', 'VARCHAR'], ['CREDITS_USED', 'DOUBLE'], ['CREDITS_USED_COMPUTE', 'DOUBLE'], ['CREDITS_USED_CLOUD_SERVICES', 'DOUBLE']], f);
+      tr = tr.replace(/SNOWFLAKE\s*\.\s*ACCOUNT_USAGE\s*\.\s*WAREHOUSE_METERING_HISTORY/gi, '__sf_metering');
+    }
+    // las columnas METADATA$… de un stream se escriben sin comillas en Snowflake
+    tr = tr.replace(/(^|[^"\w$])(METADATA\$(?:ACTION|ISUPDATE|ROW_ID))\b/gi, (mm, a1, c) => `${a1}"${c.toUpperCase()}"`);
+    // SYSTEM$STREAM_HAS_DATA('s') y las lecturas de un stream
+    tr = tr.replace(/SYSTEM\$STREAM_HAS_DATA\s*\(\s*'([^']+)'\s*\)/gi, (mm, nom) => { const q = nombreCompleto(nom); const x = s.streams[`${q.db}.${q.esquema}.${q.tabla}`]; if (!x) throw err(`SQL compilation error:\nStream '${nom}' does not exist or not authorized.`, '002003'); return `(SELECT count(*) > 0 FROM ${subStream(x)} AS __s)`; });
+    for (const [, x] of streamsEn(tr)) {
+      const re = new RegExp(`(\\b(?:FROM|JOIN|USING)\\s+)((?:"?\\w+"?\\.){0,2}"?${x.nombre}"?)(?![\\w.])`, 'gi');
+      tr = tr.replace(re, (mm, pre, nom, off, todo) => { const resto = todo.slice(off + mm.length); return `${pre}${subStream(x)}${PALABRAS_FIN.test(resto) ? ` AS ${ident(x.nombre)}` : ''}`; });
+    }
+    return tr;
+  }
+  // un DML que lee un stream lo consume: su "offset" avanza y el stream queda vacío hasta el próximo cambio
+  async function consumirStreams(sql) { for (const [, x] of streamsEn(sql)) { try { await baseStream(x, false); } catch (e) { /* la tabla ya no existe */ } } }
+
+  function validarSchedule(t) {
+    if (/^\s*\d+\s+(MINUTE|MINUTES|M|HOUR|HOURS|H|SECOND|SECONDS|S)\s*$/i.test(t)) { const n = parseInt(t, 10); if (/SECOND|^\s*\d+\s*S\s*$/i.test(t) && n < 10) throw err('Invalid value for SCHEDULE: el mínimo es 10 SECONDS.', '091093'); if (!(n > 0)) throw err('Invalid value for SCHEDULE.', '091093'); return; }
+    const m = /^\s*USING\s+CRON\s+(\S+\s+\S+\s+\S+\s+\S+\s+\S+)\s+([\w/+-]+)\s*$/i.exec(t);
+    if (!m) throw err(`Invalid value ['${t}'] for parameter 'SCHEDULE'. Usa '<n> MINUTE' o 'USING CRON <min> <hora> <día> <mes> <día_semana> <zona>', por ejemplo 'USING CRON 0 6 * * * America/Argentina/Buenos_Aires'.`, '091093');
+    try { new Intl.DateTimeFormat('en-US', { timeZone: m[2] }); } catch (e) { throw err(`Invalid time zone '${m[2]}' in SCHEDULE.`, '091093'); }
+  }
+  function cronCoincide(expr, tz, t) {
+    const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: tz, hour12: false, minute: 'numeric', hour: 'numeric', day: 'numeric', month: 'numeric', weekday: 'short' }).formatToParts(new Date(t)).map((x) => [x.type, x.value]));
+    const v = [Number(p.minute), Number(p.hour) % 24, Number(p.day), Number(p.month), ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(p.weekday)];
+    const campo = (f, x, max) => f.split(',').some((parte) => { let [r, paso] = parte.split('/'); paso = Number(paso || 1); let [a, b] = r === '*' ? [0, max] : r.split('-').map(Number); if (b == null) b = paso > 1 ? max : a; return x >= a && x <= b && (x - a) % paso === 0; });
+    const f = expr.trim().split(/\s+/); const maxs = [59, 23, 31, 12, 6];
+    return f.every((x, i) => campo(x, i === 4 && v[4] === 0 && /7/.test(x) ? 7 : v[i], maxs[i] + (i === 4 ? 1 : 0)) || (i === 4 && v[4] === 0 && campo(x, 7, 7)));
+  }
+  function vencimientos(t, desde, hasta) {
+    const out = [];
+    const mm = /^\s*(\d+)\s+(MINUTE|MINUTES|M|HOUR|HOURS|H|SECOND|SECONDS|S)\s*$/i.exec(t.schedule || '');
+    if (mm) { const paso = Number(mm[1]) * (/^H/i.test(mm[2]) ? 36e5 : /^S/i.test(mm[2]) ? 1e3 : 6e4); const base = t.reanudada || desde; let k = Math.floor((desde - base) / paso) + 1; for (let x = base + k * paso; x <= hasta && out.length < 50; x += paso) if (x > desde) out.push(x); return out.slice(-3); }
+    const c = /^\s*USING\s+CRON\s+(\S+\s+\S+\s+\S+\s+\S+\s+\S+)\s+([\w/+-]+)\s*$/i.exec(t.schedule || ''); if (!c) return out;
+    let x = Math.max(desde, hasta - 2 * 864e5); x = x - (x % 6e4) + 6e4;
+    for (; x <= hasta; x += 6e4) if (cronCoincide(c[1], c[2], x)) out.push(x);
+    return out.slice(-3);
+  }
+  async function correrUna(k, programada, disparo) {
+    const s = st(); const t = s.tasks[k]; if (!t) return false;
+    const ctx0 = { ...s.ctx }; s.ctx = { ...s.ctx, rol: t.dueno, wh: t.wh || ctx0.wh, db: t.db, esquema: t.esquema };
+    const qid = nuevoId(); const inicio = Date.now(); let estado = 'SUCCEEDED', error = null, codigo = null;
+    serverless = !t.wh;
+    try {
+      await usarContexto();
+      if (t.cuando) { const r = await con.query(`SELECT (${await reescribirObjetos(traducir(t.cuando))}) AS ok`); const ok = r.toArray()[0].ok; if (!ok) estado = 'SKIPPED'; }
+      if (estado !== 'SKIPPED') for (const sent of partir(t.sql)) await ejecutarUna(sent, { qid, tarea: true });
+    } catch (e) { estado = 'FAILED'; error = String(e.message || e); codigo = e.codigo || '100183'; }
+    serverless = false;
+    s.ctx = ctx0; try { await usarContexto(); } catch (e) { /* nada */ }
+    const fin = Date.now();
+    if (!t.wh && estado !== 'SKIPPED') sumarConsumo('SERVERLESS_TASKS', Math.max(1000, fin - inicio) / 36e5 * 1.5, fin);
+    s.taskHist.unshift({ id: qid, nombre: t.nombre, db: t.db, esquema: t.esquema, estado, programada, inicio, fin, error, codigo, sql: t.sql, cond: t.cuando, disparo: estado === 'SKIPPED' ? disparo + ' (WHEN = FALSE)' : disparo });
+    if (s.taskHist.length > 300) s.taskHist.length = 300;
+    if (estado !== 'SKIPPED') s.historial.unshift({ id: qid, sql: `-- TASK ${t.nombre} (${disparo})\n${t.sql}`, estado: estado === 'FAILED' ? 'Failed' : 'Succeeded', error, codigo, rol: t.dueno, wh: t.wh || 'SERVERLESS', tamano: t.wh && s.warehouses[t.wh] ? s.warehouses[t.wh].tamano : null, db: t.db, esquema: t.esquema, inicio, ms: Math.max(1, fin - inicio), filas: 0, usuario: 'SYSTEM', tarea: t.nombre });
+    return estado === 'SUCCEEDED';
+  }
+  async function correrArbol(k, programada, disparo) {
+    const s = st(); const ok = await correrUna(k, programada, disparo);
+    if (ok) for (const [hk, h] of Object.entries(s.tasks)) if (h.after.includes(k) && h.estado === 'started') await correrArbol(hk, programada, 'AFTER ' + s.tasks[k].nombre);
+    guardar(); avisar();
+  }
+  // la próxima corrida de una tarea raíz (para Task Graphs)
+  function proxima(t) {
+    if (!t || !t.schedule || t.estado !== 'started' || t.after.length) return null;
+    const ahora = Date.now(); const mm = /^\s*(\d+)\s+(MINUTE|MINUTES|M|HOUR|HOURS|H|SECOND|SECONDS|S)\s*$/i.exec(t.schedule);
+    if (mm) { const paso = Number(mm[1]) * (/^H/i.test(mm[2]) ? 36e5 : /^S/i.test(mm[2]) ? 1e3 : 6e4); const base = t.reanudada || ahora; return base + (Math.floor((ahora - base) / paso) + 1) * paso; }
+    const c = /^\s*USING\s+CRON\s+(\S+\s+\S+\s+\S+\s+\S+\s+\S+)\s+([\w/+-]+)\s*$/i.exec(t.schedule); if (!c) return null;
+    for (let x = ahora - (ahora % 6e4) + 6e4; x < ahora + 8 * 864e5; x += 6e4) if (cronCoincide(c[1], c[2], x)) return x;
+    return null;
+  }
+
+  async function refrescarDinamica(x, motivo) {
+    const s = st(); const inicio = Date.now(); let estado = 'SUCCEEDED', error = null;
+    const ctx0 = { ...s.ctx }; s.ctx = { ...s.ctx, db: x.ctx.db, esquema: x.ctx.esquema, wh: x.wh };
+    if (motivo === 'RESTORE') serverless = true;   // al recargar la página se reconstruye sin encender el warehouse
+    try { await usarContexto(); await requiereWarehouse(); await con.query(`CREATE OR REPLACE TABLE ${ref({ db: x.db, esquema: x.esquema, tabla: x.nombre })} AS ${await reescribirObjetos(resolverTimeTravel(traducir(x.sql)))}`); }
+    catch (e) { estado = 'FAILED'; error = String(e.message || e).split('\n')[0]; }
+    serverless = false;
+    s.ctx = ctx0; try { await usarContexto(); } catch (e) { /* nada */ }
+    x.ultima = Date.now();
+    s.dynHist.unshift({ nombre: x.nombre, db: x.db, esquema: x.esquema, motivo, estado, error, inicio, fin: Date.now() }); if (s.dynHist.length > 200) s.dynHist.length = 200;
+    guardar();
+  }
+  async function correrPipe(x) {
+    const s = st(); const antes = s.copias.length; const ctx0 = { ...s.ctx };
+    s.ctx = { ...s.ctx, db: x.db, esquema: x.esquema }; serverless = true;
+    try { await usarContexto(); await ejecutarUna(x.copy, { qid: nuevoId(), pipe: x.nombre }); } catch (e) { /* el error queda en Copy History */ }
+    serverless = false; s.ctx = ctx0; try { await usarContexto(); } catch (e) { /* nada */ }
+    const nuevos = s.copias.slice(0, s.copias.length - antes);
+    for (const c of nuevos) { c.pipe = x.nombre; if (c.estado === 'Loaded') { x.cargados += c.cargadas; x.ultimoArchivo = c.archivo; } }
+    if (nuevos.length) { x.ultima = Date.now(); sumarConsumo('SNOWPIPE', 0.0006 * nuevos.length + 0.001, Date.now()); }
+    guardar(); return nuevos.map((c) => c.archivo);
+  }
+  let enTareas = false;
+  // las tareas raíz que están "started" corren en los horarios que pasaron desde la última vez (hasta 3 por tarea)
+  async function correrTareasPendientes() {
+    if (enTareas || !con) return 0; enTareas = true; let n = 0;
+    try {
+      const s = st(); const ahora = Date.now();
+      for (const [k, t] of Object.entries(s.tasks)) {
+        if (t.estado !== 'started' || t.after.length || !t.schedule) continue;
+        const venc = vencimientos(t, t.ultima || t.reanudada || ahora, ahora);
+        for (const v of venc) { t.ultima = v; await correrArbol(k, v, 'SCHEDULE'); n++; }
+      }
+      // Snowpipe con AUTO_INGEST: carga los archivos nuevos del stage
+      for (const x of Object.values(s.pipes)) if (x.auto && x.estado === 'RUNNING') { if ((await correrPipe(x)).length) n++; }
+      // dynamic tables: se refrescan cuando su atraso supera TARGET_LAG
+      for (const x of Object.values(s.dinamicas)) if (x.estado === 'ACTIVE' && x.lag && Date.now() - (x.ultima || 0) > x.lag) { await refrescarDinamica(x, 'SCHEDULED'); n++; }
+    } finally { enTareas = false; }
+    return n;
+  }
+  // ------------------------------------------------------------------ Marketplace (listados ficticios, datos generados)
+  const LISTADOS = [
+    { id: 'feriados', titulo: 'Calendario y feriados de Latinoamérica', proveedor: 'Datos Abiertos del Sur (ficticio)', base: 'FERIADOS_LATAM', categoria: 'Público', desc: 'Calendario diario 2024-2026 y feriados nacionales de seis países. Sirve para explicar caídas de ventas en días no laborables y para planificar cargas.', tablas: ['CALENDARIO', 'FERIADOS'] },
+    { id: 'clima', titulo: 'Clima diario de capitales', proveedor: 'Meteo Andes (ficticio)', base: 'CLIMA_CAPITALES', categoria: 'Clima', desc: 'Temperatura máxima, mínima y lluvia por día en ocho ciudades durante 2024. Ideal para cruzar con ventas o con pedidos de delivery.', tablas: ['CLIMA_DIARIO'] },
+    { id: 'cambio', titulo: 'Tipos de cambio oficiales', proveedor: 'Cambio Abierto (ficticio)', base: 'TIPOS_DE_CAMBIO', categoria: 'Finanzas', desc: 'Valor en dólares de las monedas de la región por día hábil. El mismo dato que usa finanzas para consolidar ventas en USD.', tablas: ['TIPOS_CAMBIO'] },
+  ];
+  async function crearListado(L) {
+    const db = L.base;
+    await con.query(`ATTACH ':memory:' AS ${ident(db)}`); await con.query(`CREATE SCHEMA IF NOT EXISTS ${ident(db)}.public`);
+    if (L.id === 'feriados') {
+      await con.query(`CREATE TABLE ${ident(db)}.public.calendario AS SELECT CAST(d AS DATE) AS fecha, year(d) AS anio, month(d) AS mes, dayofmonth(d) AS dia, dayname(d) AS dia_semana, dayofweek(d) IN (0, 6) AS es_fin_de_semana FROM range(DATE '2024-01-01', DATE '2027-01-01', INTERVAL 1 DAY) t(d)`);
+      const F = [['01-01', 'Año Nuevo'], ['05-01', 'Día del Trabajador'], ['12-25', 'Navidad']]; const P = { Argentina: [['05-25', 'Revolución de Mayo'], ['07-09', 'Día de la Independencia']], Chile: [['09-18', 'Fiestas Patrias'], ['09-19', 'Día de las Glorias del Ejército']], Colombia: [['07-20', 'Día de la Independencia'], ['08-07', 'Batalla de Boyacá']], México: [['09-16', 'Día de la Independencia'], ['11-20', 'Revolución Mexicana']], Perú: [['07-28', 'Fiestas Patrias'], ['07-29', 'Fiestas Patrias']], Uruguay: [['07-18', 'Jura de la Constitución'], ['08-25', 'Declaratoria de la Independencia']] };
+      const filasF = []; for (const anio of [2024, 2025, 2026]) for (const [pais, ps] of Object.entries(P)) for (const [md, nom] of [...F, ...ps]) filasF.push(`('${pais}', DATE '${anio}-${md}', '${nom.replace(/'/g, "''")}', '${F.some((x) => x[0] === md) ? 'Regional' : 'Nacional'}')`);
+      await con.query(`CREATE TABLE ${ident(db)}.public.feriados AS SELECT * FROM (VALUES ${filasF.join(', ')}) t(pais, fecha, nombre, tipo)`);
+    } else if (L.id === 'clima') {
+      const C = [['Buenos Aires', 'Argentina', 18, -1], ['Santiago', 'Chile', 15, -1], ['Lima', 'Perú', 20, -1], ['Bogotá', 'Colombia', 14, 0], ['Ciudad de México', 'México', 17, 1], ['Montevideo', 'Uruguay', 16, -1], ['Quito', 'Ecuador', 14, 0], ['Asunción', 'Paraguay', 23, -1]];
+      await con.query(`CREATE TABLE ${ident(db)}.public.clima_diario AS SELECT c.ciudad, c.pais, CAST(d AS DATE) AS fecha, round(c.media + 6 * c.hemi * cos(2 * pi() * (dayofyear(d) - 15) / 365.0) * -1 + 4 + 3 * sin(hash(c.ciudad || CAST(d AS VARCHAR)) % 1000 / 159.0), 1) AS temp_max, round(c.media + 6 * c.hemi * cos(2 * pi() * (dayofyear(d) - 15) / 365.0) * -1 - 5 + 2 * cos(hash(CAST(d AS VARCHAR) || c.ciudad) % 1000 / 159.0), 1) AS temp_min, CASE WHEN hash(c.ciudad || CAST(d AS VARCHAR)) % 100 < 22 THEN round((hash(CAST(d AS VARCHAR)) % 400) / 10.0, 1) ELSE 0 END AS lluvia_mm FROM (VALUES ${C.map(([a, b, m2, h]) => `('${a}', '${b}', ${m2}, ${h})`).join(', ')}) c(ciudad, pais, media, hemi), range(DATE '2024-01-01', DATE '2025-01-01', INTERVAL 1 DAY) t(d)`);
+    } else if (L.id === 'cambio') {
+      await con.query(`CREATE TABLE ${ident(db)}.public.tipos_cambio AS SELECT * FROM tienda_andina.public.tipos_cambio`);
+    }
+  }
+  async function obtenerListado(id) {
+    await init(); const s = st(); const L = LISTADOS.find((x) => x.id === id); if (!L) throw new Error('Listado inexistente');
+    if (s.compartidas[L.base]) return L.base;
+    await crearListado(L); s.compartidas[L.base] = { id, cuando: Date.now() }; guardar(); avisar(); return L.base;
+  }
+
   // ------------------------------------------------------------------ API: ejecutar un bloque
   async function ejecutar(sqlTexto, op = {}) {
     await init(op.progreso);
+    if (!op.sinTareas) await correrTareasPendientes();
     const s = st(); const resultados = [];
     for (const sentencia of partir(sqlTexto)) {
       const qid = nuevoId(); const t0 = performance.now(); const inicio = Date.now();
@@ -711,7 +1024,7 @@ ORDER BY ventas DESC;
 
   window.SnowflakeMotor = {
     init, ejecutar, leer, partir, traducir, st, reiniciar, subirArchivo, tick, suspender: (n) => { const w = st().warehouses[n]; if (w) { suspender(w); avisar(); } }, reanudar: (n) => { const w = st().warehouses[n]; if (w) { reanudar(w); avisar(); } },
-    bases, esquemas, tablas, columnas, CREDITOS_HORA, ROLES_SISTEMA, USUARIO, oyentes,
+    bases, esquemas, tablas, columnas, CREDITOS_HORA, ROLES_SISTEMA, USUARIO, oyentes, LISTADOS, obtenerListado, correrTareasPendientes, vencimientos, proxima,
     conectar: (store) => { Store = store; st(); },
   };
 })();

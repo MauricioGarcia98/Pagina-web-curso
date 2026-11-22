@@ -50,7 +50,7 @@
     clearInterval(reloj); reloj = setInterval(() => { M().tick(); if (ruta[0] === 'warehouses' && document.contains(main)) dibujar(); }, 5000);
     dibujar();
   }
-  function alCambiar() { if (!document.contains(main) || !/^#\/snowflake/.test(location.hash)) return; if (ruta[0] === 'hojas' && ruta[1]) { pintarContexto(); return; } if (ruta[0] !== 'hojas') dibujar(); }
+  function alCambiar() { if (!document.contains(main) || !/^#\/snowflake/.test(location.hash)) return; if (ruta[0] === 'hojas' && ruta[1]) { pintarContexto(); return; } if (ruta[0] !== 'hojas' && !['dashboards', 'notebooks', 'streamlit', 'marketplace'].includes(ruta[0])) dibujar(); }
 
   function marco(contenido, seccion) {
     const s = M().st();
@@ -93,7 +93,7 @@
   }
   function dibujar() {
     const r = ruta[0] || '';
-    if (NO_SIMULADO[r]) { noSimulado(r); return montarMarco(); }
+    if (NO_SIMULADO[r] && !(window.SnowflakePaginas && window.SnowflakePaginas[r])) { noSimulado(r); return montarMarco(); }
     dibujarSeccion(); montarMarco();
   }
   function dibujarSeccion() {
@@ -104,6 +104,8 @@
     if (r === 'historial') return historial();
     if (r === 'warehouses') return warehouses();
     if (r === 'roles') return roles();
+    // Copy History, Task History, Cost Management, Dashboards, Marketplace, Notebooks y Streamlit (snowflake-paginas.js)
+    if (window.SnowflakePaginas && window.SnowflakePaginas[r]) return window.SnowflakePaginas[r]({ main, marco, ic, esc, href, M, toast, nuevaHoja, ruta, dibujar, Store });
     return inicio();
   }
 
