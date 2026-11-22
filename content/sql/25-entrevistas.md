@@ -84,6 +84,10 @@ cliente_id,gasto
 365,50034.86
 ```
 
+:::tip Practica como en una entrevista
+El [banco de problemas de SQL](#/sql-problemas?e=1) reúne todos los ejercicios SQL del curso con filtros por nivel, técnica y empresa. Presiona **🎲 Al azar** para resolver uno sin saber de antemano qué técnica pide: así son las entrevistas.
+:::
+
 ## Las familias de preguntas que más aparecen
 
 | Familia | Ejemplo | Técnica (lección) |

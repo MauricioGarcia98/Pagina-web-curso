@@ -217,6 +217,36 @@ function cliPattern(line) {
   return base + frags.map((f) => `(?=.* ${f}(?: |$))`).join('') + '( .*)?';
 }
 
+// Banco de problemas SQL (#/sql-problemas): todos los ejercicios SQL del curso con lo justo para listarlos y
+// filtrarlos. Los temas salen de la solución (qué técnica hace falta) y la base, de las tablas que usa.
+const TEMAS_SQL = [
+  ['Ventanas', /\bOVER\s*\(/i], ['Ranking', /\b(ROW_NUMBER|DENSE_RANK|RANK|NTILE|PERCENT_RANK|CUME_DIST)\s*\(/i],
+  ['LAG / LEAD', /\b(LAG|LEAD|FIRST_VALUE|LAST_VALUE|NTH_VALUE)\s*\(/i], ['Recursiva', /\bWITH\s+RECURSIVE\b/i],
+  ['CTE', /^\s*WITH\b|\)\s*,\s*\w+\s+AS\s*\(/im], ['Subconsultas', /(?<!\bAS\s*)\(\s*SELECT\b/i], ['Anti-join', /\bNOT\s+EXISTS\b|\bLEFT\s+JOIN\b[\s\S]*\bIS\s+NULL\b|\bNOT\s+IN\s*\(\s*SELECT/i],
+  ['JOIN', /\bJOIN\b/i], ['Agregación', /\bGROUP\s+BY\b|\b(COUNT|SUM|AVG|MIN|MAX)\s*\(/i], ['HAVING', /\bHAVING\b/i],
+  ['CASE', /\bCASE\b/i], ['Fechas', /\b(DATE|STRFTIME|JULIANDAY|DATE_TRUNC|DATEDIFF|DATE_DIFF|EXTRACT|INTERVAL)\b\s*[(']/i],
+  ['Conjuntos', /\b(UNION|INTERSECT|EXCEPT)\b/i], ['Texto', /\b(LIKE|SUBSTR|SUBSTRING|LOWER|UPPER|TRIM|REPLACE|INSTR|LENGTH)\b|\|\|/i], ['NULL', /\bCOALESCE\b|\bIFNULL\b|\bNULLIF\b|\bIS\s+(NOT\s+)?NULL\b/i],
+];
+const BASES_SQL = [['banco', 'Banco'], ['streaming', 'Streaming'], ['viajes', 'Viajes'], ['clinica', 'Clínica'], ['saas', 'SaaS'], ['vuelos', 'Aerolínea'], ['logistica', 'Logística'], ['telco', 'Telco'], ['seguros', 'Seguros'], ['hotel', 'Hotelería'], ['energia', 'Energía'], ['delivery', 'Delivery']];
+function bancoSql(modules) {
+  const plano = (h) => h.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&[a-z]+;|&#\d+;/g, ' ').replace(/\s+/g, ' ').trim();
+  const out = [];
+  for (const m of modules) for (const l of m.lecciones) for (const e of l.ejercicios) {
+    if (e.type !== 'sql') continue;
+    const sol = String(e.solucion || '').replace(/--[^\n]*/g, ' ');
+    const ctes = new Set([...sol.matchAll(/(?:\bWITH(?:\s+RECURSIVE)?|,)\s*(\w+)\s*(?:\([^)]*\))?\s+AS\s*\(/gi)].map((x) => x[1].toLowerCase()));
+    const tablas = [...new Set([...sol.matchAll(/\b(?:FROM|JOIN)\s+([a-z_][\w]*)/gi)].map((x) => x[1].toLowerCase()).filter((t) => !ctes.has(t) && !/^(select|lateral|unnest|generate_series|json_each|values)$/.test(t)))];
+    const base = (BASES_SQL.find(([p]) => tablas.some((t) => t.startsWith(p + '_'))) || ['tienda'])[0];
+    let titulo = e.titulo;
+    if (!titulo) { const t = plano(e.enunciado); titulo = t.split(/(?<=[.:?])\s/)[0]; if (titulo.length > 80) titulo = titulo.slice(0, 77).replace(/\s+\S*$/, '') + '…'; }
+    const temas = TEMAS_SQL.filter(([, re]) => re.test(sol)).map(([t]) => t);
+    if (/(^| )t\d|\bJOIN\s+(\w+)\s+\w+\b[\s\S]*\bJOIN\s+\2\b|\bFROM\s+(\w+)\s+\w+\s*(,|JOIN)\s*\3\b/i.test(sol)) temas.push('Autojoin');
+    const entrevista = ['entrevistas', 'casos', 'analisis', 'logica'].includes(m.id) || /entrevista/i.test(l.titulo);
+    out.push({ id: e.id, t: titulo, d: e.dificultad || l.nivel || 'Intermedio', m: m.id, l: l.id, lt: l.titulo, temas, tablas, b: base, ...(entrevista ? { e: 1 } : {}), ...(e.explicacion ? { x: 1 } : {}) });
+  }
+  return out;
+}
+
 function parseExercise(header, body, file, idx, lessonId) {
   const titleMatch = header.match(/titulo="([^"]+)"/);
   const words = header.replace(/titulo="[^"]*"/, '').trim().split(/\s+/);
@@ -758,6 +788,8 @@ function build() {
   });
   const jsBuscar = `window.__buscar(${JSON.stringify(buscar)});\n`;
   fs.writeFileSync(path.join(dirC, '_buscar.js'), jsBuscar);
+  const jsSql = `window.__sqlBanco(${JSON.stringify(bancoSql(modules))});\n`;
+  fs.writeFileSync(path.join(dirC, '_sql.js'), jsSql);
   // simuladores Python -> window.PY_SOURCES
   const pyRoot = path.join(ROOT, 'assets/py');
   const sources = {};
@@ -792,7 +824,7 @@ function build() {
   const jsExamenes = completas(examenes.filter((x) => x.id === x.modulo)), jsExamenesCert = completas(examenes.filter((x) => x.id !== x.modulo));
   fs.writeFileSync(path.join(dirC, '_examenes.js'), jsExamenes);
   fs.writeFileSync(path.join(dirC, '_examenes_cert.js'), jsExamenesCert);
-  const course = { generado: new Date().toISOString().slice(0, 10), vJs, vCss, vBuscar: hash(jsBuscar), vExtras: { glosario: hash(jsGlosario), examenes: hash(jsExamenes), examenes_cert: hash(jsExamenesCert) }, modulos: indice, glosario: glosarioIndice, examenes: examenesIndice, certificaciones };
+  const course = { generado: new Date().toISOString().slice(0, 10), vJs, vCss, vBuscar: hash(jsBuscar), vSql: hash(jsSql), vExtras: { glosario: hash(jsGlosario), examenes: hash(jsExamenes), examenes_cert: hash(jsExamenesCert) }, modulos: indice, glosario: glosarioIndice, examenes: examenesIndice, certificaciones };
   fs.writeFileSync(path.join(ROOT, 'assets/js/content.js'),
     '// Archivo generado por tools/build.mjs — no editar a mano. Edita content/**/*.md\nwindow.COURSE = ' + JSON.stringify(course) + ';\n');
 
