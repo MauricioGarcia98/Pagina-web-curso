@@ -197,6 +197,14 @@
       ['bq-dml', 'Modifica filas con UPDATE o DELETE (con WHERE)', 'BigQuery rechaza un UPDATE o DELETE sin WHERE.', () => bqJ((j) => /^\s*(UPDATE|DELETE)\b/i.test(j.sql))],
       ['bq-pbi', 'Importa en Power BI una tabla de BigQuery', 'En Power BI: Obtener datos → Google BigQuery → marca la tabla → Cargar. Queda como un job en Job history.', () => cruce('pbiBigQuery')],
     ]],
+    ['Automatizar y gobernar', [
+      ['bq-prog', 'Programa una consulta con destino y córrela', 'Scheduled queries → Create → destino y WRITE_APPEND → Run now.', () => (bqS().programadas || []).some((q) => (q.runs || []).some((r) => r.estado === 'SUCCEEDED'))],
+      ['bq-backfill', 'Haz un backfill de varios días con @run_date', 'En la consulta programada → Schedule backfill → un rango de 3 días.', () => (bqS().programadas || []).some((q) => (q.runs || []).filter((r) => r.motivo === 'BACKFILL').length >= 2)],
+      ['bq-dts', 'Trae archivos de un bucket con Data Transfer Service', 'Sube un CSV a un bucket (aws s3 cp o gcloud storage cp) → Data transfers → Create transfer.', () => (bqS().transferencias || []).some((t) => (t.runs || []).some((r) => r.estado === 'SUCCEEDED' && r.filas))],
+      ['bq-dataform', 'Ejecuta Dataform con assertions en verde', 'Dataform → Start execution.', () => ((bqS().dataform || {}).ejecuciones || []).some((e) => e.estado === 'SUCCEEDED')],
+      ['bq-hub', 'Suscríbete a un listing de Analytics Hub', 'Sharing (Analytics Hub) → Subscribe → nombre del linked dataset.', () => Object.keys(bqS().vinculados || {}).length > 0],
+      ['bq-reserva', 'Crea una reserva de slots y asigna el proyecto', 'Capacity management → Create reservation → Assign project.', () => ((bqS().capacidad || {}).reservas || []).some((r) => r.asignado)],
+    ]],
   ] };
 
   // Consola de AWS: mira el estado de la CLI simulada (Machine.cloud.aws) y los eventos de la consola

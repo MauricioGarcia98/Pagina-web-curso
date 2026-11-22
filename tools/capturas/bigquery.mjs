@@ -28,8 +28,8 @@ export default async function (c) {
   // ================================================================ Nivel 1 · lección 1: qué es BigQuery y la consola
   await ir('#/bigquery', 1500);
   await c.foto('q01-studio', { marcas: [['.bq-nav', '1'], ['#bqArbol', '2'], ['#bqEd', '3'], ['#bqVal', '4']] });
-  await ir('#/bigquery/resumen', 800);
-  await c.foto('q01-no-simulado', { marcas: [['.bq-aviso', null]] });
+  await ir('#/bigquery/resumen', 2500);
+  await c.foto('q01-no-simulado', { marcas: [['#bqKpis', '1'], ['.bq-acciones', '2']] });
   if (HASTA <= 1) return;
 
   // ================================================================ lección 2: la primera consulta y la estimación
@@ -308,10 +308,12 @@ WHERE table_name = 'pedidos';`);
   if (HASTA <= 17) return;
 
   // ================================================================ lección 18: automatizar
-  await ir('#/bigquery/programadas', 800);
-  await c.foto('q18-programadas', { marcas: [['.bq-aviso', null]] });
-  await ir('#/bigquery/dataform', 800);
-  await c.foto('q18-dataform', { marcas: [['.bq-aviso', null]] });
+  await p.evaluate(() => { const s = window.BigQueryMotor.st(); if (!s.programadas.some((x) => x.id === 'cap1')) s.programadas.push({ id: 'cap1', nombre: 'pedidos_por_canal_diario', sql: 'SELECT @run_date AS fecha_corrida, canal, COUNT(*) AS pedidos\nFROM tienda.pedidos\nGROUP BY canal', horario: 'every day 09:00', destino: { ds: 'tienda', tabla: 'pedidos_por_canal_diario' }, modo: 'WRITE_APPEND', activa: true, inicio: Date.now(), ultima: Date.now(), runs: [], creada: Date.now() }); });
+  await ir('#/bigquery/programadas/cap1', 800);
+  await p.click('#bqAhora'); await w(2500);
+  await c.foto('q18-programadas', { marcas: [['.bq-dl', '1'], ['.bq-tabla', '2']] });
+  await ir('#/bigquery/dataform', 1200);
+  await c.foto('q18-dataform', { marcas: [['.bq-df-arbol', '1'], ['.bq-df-ed', '2'], ['.bq-grafo', '3']] });
   if (HASTA <= 18) return;
 
   // ================================================================ lección 19: acceso y gobierno

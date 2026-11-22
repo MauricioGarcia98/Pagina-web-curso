@@ -45,6 +45,8 @@
       }
     } catch (e) { /* sin práctica */ }
     dibujar();
+    // las consultas programadas y las transferencias vencidas corren al abrir la consola
+    if (window.BigQueryPaginas && window.BigQueryPaginas.pendientes) window.BigQueryPaginas.pendientes({ M, Store, toast });
   }
   function marco(contenido, seccion) {
     return `<div class="bqp" id="bqp"><header class="bq-top"><button class="bq-icono bq-top-ic" title="Navigation menu">${ic('menu', 20)}</button><b class="bq-marca">Google Cloud</b><span class="bq-tag">práctica</span><button class="bq-proy" title="Select a project">${ic('proyecto', 15)} ${esc(M().PROYECTO)} ${ic('abajo', 14)}</button>
@@ -64,6 +66,8 @@
   }
   function dibujar() {
     const r = ruta[0] || '';
+    // Overview, Search, Data transfers, Scheduled queries, Dataform, Analytics Hub y Capacity (bigquery-paginas.js)
+    if (window.BigQueryPaginas && r && r[0] !== '_' && r !== 'pendientes' && typeof window.BigQueryPaginas[r] === 'function') { window.BigQueryPaginas[r]({ main, marco, ic, esc, href, M, toast, nuevaConsulta, ruta, dibujar, Store }); setTimeout(montarTop, 0); return; }
     if (NO_SIMULADO[r]) return noSimulado(r);
     setTimeout(montarTop, 0);
     if (r === 'jobs') return jobs();

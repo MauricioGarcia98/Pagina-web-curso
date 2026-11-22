@@ -58,14 +58,15 @@ El **validador** (arriba a la derecha del editor) hace un *dry run*: dice cuánt
 
 ```captura
 archivo: bigquery/q01-no-simulado.webp
-texto: Las secciones no simuladas explican qué son y qué practicar en su lugar
+texto: Overview - el proyecto, sus datasets y tablas, las consultas recientes y qué se puede practicar en cada sección
 ```
 
 | Real | Simulado |
 |---|---|
 | GoogleSQL corre de verdad (sobre DuckDB en tu navegador) | No hay proyecto de Google Cloud ni facturación |
 | La estimación de bytes por columnas y particiones, la caché y el historial de jobs | Los precios son los de lista y los datos son chicos |
-| Particiones, clustering, cargas, MERGE, time travel, INFORMATION_SCHEMA | Scheduled queries, Dataform, Data transfers y Analytics Hub se explican |
+| Particiones, clustering, cargas, MERGE, time travel, INFORMATION_SCHEMA | Las transferencias leen los buckets de la práctica, no Google Ads ni YouTube |
+| Scheduled queries, Data transfers desde S3 y Cloud Storage, Dataform, Analytics Hub y reservas de slots | Los horarios corren cuando abres la consola, como si hubieran corrido a su hora |
 
 :::errores
 - **Pensar que se paga por tiempo o por filas devueltas.** En el modelo on-demand se paga por los bytes que la consulta *lee*: una consulta que devuelve 5 filas puede leer toda la tabla.
