@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dataflow Gen2 y Copy job - mover y preparar datos sin código · Academia de Datos</title><meta name="description" content="No todo se resuelve con un notebook. Usas Dataflow Gen2 para limpiar y resumir una tabla con pasos de Power Query (y ves el código M que generan) y un Copy job para copiar una tabla de forma incremental con una marca de agua. Terminas sabiendo cuándo conviene cada uno frente a un pipeline o un notebook."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-dataflow-gen2-y-copy-job.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Dataflow Gen2 y Copy job - mover y preparar datos sin código · Academia de Datos"><meta property="og:description" content="No todo se resuelve con un notebook. Usas Dataflow Gen2 para limpiar y resumir una tabla con pasos de Power Query (y ves el código M que generan) y un Copy job para copiar una tabla de forma incremental con una marca de agua. Terminas sabiendo cuándo conviene cada uno frente a un pipeline o un notebook."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-dataflow-gen2-y-copy-job.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#fabric-paso-a-paso">🟩 Fabric paso a paso</a> · 6 · Avanzado completo · 40 min</div>
+<h1>Dataflow Gen2 y Copy job - mover y preparar datos sin código</h1><p class="resumen">No todo se resuelve con un notebook. Usas Dataflow Gen2 para limpiar y resumir una tabla con pasos de Power Query (y ves el código M que generan) y un Copy job para copiar una tabla de forma incremental con una marca de agua. Terminas sabiendo cuándo conviene cada uno frente a un pipeline o un notebook.</p>
+<a class="cta" href="../index.html#/l/fabric-paso-a-paso-dataflow-gen2-y-copy-job">▶ Abrir la lección interactiva (2 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Armar un Dataflow Gen2 con pasos y un destino</li><li>Leer el código M que generan los pasos</li><li>Configurar un Copy job incremental con marca de agua</li><li>Elegir entre Dataflow Gen2, Copy job, pipeline y notebook</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
+
+<p>Crea un Lakehouse, un <strong>Dataflow Gen2</strong> y un <strong>Copy job</strong> en tu workspace del <a href="#/fabric">Fabric de práctica</a>.</p>
+</div>
+
+
+<h2>Paso 1 — Dataflow Gen2: Power Query en la nube</h2>
+<ol>
+<li>Create → Get data → <strong>Dataflow Gen2</strong> → <code>LimpiezaPedidos</code>.</li>
+<li><strong>Get data</strong> → <em>Azure SQL Database (tienda)</em> → <code>pedidos</code>.</li>
+<li><strong>Filter rows</strong>: <code>canal == web</code>. <strong>Group by</strong>: <code>estado</code>, <em>Count rows</em>, columna nueva <code>pedidos</code>.</li>
+<li><strong>Data destination</strong> → tu Lakehouse, tabla <code>pedidos_web_por_estado</code>, método <strong>Replace</strong>.</li>
+<li><strong>Publish</strong>: se ejecuta y la tabla aparece en el Lakehouse. El historial queda en <em>Refresh history</em> y en el <strong>Monitor</strong>.</li>
+</ol>
+<p>Cada acción queda como un <strong>paso aplicado</strong> (<em>Applied steps</em>). En <strong>Advanced editor (M)</strong> ves el código que generaron:</p>
+<pre tabindex="0"><code class="language-text">let
+    Source = Sql.Database(&quot;tiendaandina.database.windows.net&quot;, &quot;tienda&quot;){[Item = &quot;pedidos&quot;]}[Data],
+    #&quot;Filtered rows&quot; = Table.SelectRows(#&quot;Source&quot;, each [canal] = &quot;web&quot;),
+    #&quot;Grouped rows&quot; = Table.Group(#&quot;Filtered rows&quot;, {&quot;estado&quot;}, {{&quot;pedidos&quot;, each List.Count([estado]), type number}})
+in
+    #&quot;Grouped rows&quot;</code></pre>
+<p>Es el mismo lenguaje de Power Query que usa <a href="#/m/powerbi-paso-a-paso">Power BI</a>: quien ya limpió datos en Power BI sabe usar un dataflow.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Método del destino</th>
+<th>Qué hace en cada refresh</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Replace</strong></td>
+<td>Borra la tabla y la vuelve a escribir completa</td>
+</tr>
+<tr>
+<td><strong>Append</strong></td>
+<td>Agrega las filas nuevas al final (cuidado: si el origen trae todo, duplica)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Copy job incremental</h2>
+<ol>
+<li>Create → Get data → <strong>Copy job</strong> → <code>CopiaPedidos</code>.</li>
+<li><strong>Edit</strong>: origen <code>pedidos</code>, destino tu Lakehouse, tabla <code>pedidos_copia</code>, modo <strong>Incremental copy</strong>, columna <code>pedido_id</code>.</li>
+<li><strong>Run</strong>: copia las 12.000 filas y guarda la <strong>marca de agua</strong> (el <code>pedido_id</code> más alto).</li>
+<li><strong>Run</strong> otra vez: <em>Sin filas nuevas desde la última corrida</em>. Solo se copiarían los pedidos con un id mayor.</li>
+</ol>
+<figure class="diagrama"><figcaption>Una copia incremental con marca de agua</figcaption></figure>
+
+
+<p>La columna de marca de agua tiene que <strong>solo crecer</strong>: un id autoincremental o una fecha de modificación. Si las filas viejas cambian sin cambiar esa columna, la copia incremental no se entera: para eso está CDC (la captura de cambios).</p>
+<h2>Paso 3 — ¿Qué uso?</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Si necesitas…</th>
+<th>Conviene</th>
+</tr>
+</thead><tbody><tr>
+<td>Copiar tablas tal cual, completas o incrementales</td>
+<td><strong>Copy job</strong></td>
+</tr>
+<tr>
+<td>Limpiar y resumir con pasos visuales, desde muchos orígenes</td>
+<td><strong>Dataflow Gen2</strong></td>
+</tr>
+<tr>
+<td>Orquestar varios pasos con dependencias, reintentos y horarios</td>
+<td><strong>Pipeline</strong> (que puede llamar a dataflows, copy jobs y notebooks)</td>
+</tr>
+<tr>
+<td>Lógica compleja, volúmenes grandes o pruebas de código</td>
+<td><strong>Notebook</strong> con PySpark</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Append en un dataflow cuyo origen trae todo.</strong> Cada refresh duplica la tabla: usa Replace o filtra lo nuevo.</li>
+<li><strong>Marca de agua en una columna que no siempre crece.</strong> Se pierden filas sin aviso.</li>
+<li><strong>Un dataflow para todo.</strong> Para miles de millones de filas o lógica con pruebas, un notebook es más rápido y mantenible.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Armaste un Dataflow Gen2 con pasos, destino y refresh.</li>
+<li>Leíste el código M que generan los pasos.</li>
+<li>Configuraste una copia incremental con marca de agua.</li>
+<li>Sabes elegir entre Copy job, Dataflow Gen2, pipeline y notebook.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/fabric-paso-a-paso-dataflow-gen2-y-copy-job">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fabric-paso-a-paso-tiempo-real-eventstream-eventhouse-kql.html">← Tiempo real - Eventstream, Eventhouse, KQL y Activator</a><a href="fabric-paso-a-paso-de-la-practica-a-fabric-real.html">De la práctica a Fabric real - lo que cambia y lo que no →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

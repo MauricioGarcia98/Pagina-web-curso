@@ -385,6 +385,14 @@
       ['fb-git', 'Conecta el workspace a Git', 'Workspace settings → Git integration (necesitas un repositorio tuyo en el GitHub de práctica).', () => Object.values(fbS().ws || {}).some((w) => w.git)],
       ['fb-pbi', 'Importa en Power BI una tabla de Fabric', 'En Power BI: Obtener datos → Lakehouses y warehouses de Fabric.', () => cruce('pbiFabric')],
     ]],
+    ['Tiempo real y sin código', [
+      ['fb-es', 'Publica un Eventstream con destino a un Eventhouse', 'Crea un Eventhouse; después un Eventstream → Add source (Cámaras de frío) → Add destination → Publish.', () => fbHay('eventstream', (i) => i.estado === 'Active' && (i.destinos || []).length > 0)],
+      ['fb-kql', 'Agrupa eventos por intervalos de tiempo con KQL', 'En el Eventhouse: una consulta con summarize … by bin(ts, 5m).', () => fbHay('eventhouse', (i) => /summarize[\s\S]*bin\s*\(/i.test(i.consulta || ''))],
+      ['fb-act', 'Recibe una alerta de Activator por objeto', 'Activator → New rule sobre el Eventstream, por ejemplo temperatura > 8 por cámara.', () => fbHay('activator', (i) => (i.alertas || []).length > 0)],
+      ['fb-df', 'Publica un Dataflow Gen2 con pasos y destino', 'Dataflow Gen2 → Get data → al menos un paso (Filter rows, Group by…) → Data destination → Publish.', () => fbHay('dataflow', (i) => (i.pasos || []).length > 0 && (i.runs || []).some((r) => r.ok))],
+      ['fb-cj', 'Corre un Copy job incremental dos veces', 'Copy job → Edit → Incremental copy con una columna que solo crece → Run, y Run otra vez.', () => fbHay('copyjob', (i) => i.cfg && i.cfg.modo === 'incremental' && (i.runs || []).filter((r) => r.ok).length >= 2)],
+      ['fb-ml', 'Guarda como modelo el mejor run de un experimento', 'Experiment → varios runs con distinto alpha → Save as ML model.', () => fbHay('experiment', (i) => (i.version || 0) > 0)],
+    ]],
   ] };
 
   let Store = null;

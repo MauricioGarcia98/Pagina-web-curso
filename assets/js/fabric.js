@@ -24,17 +24,17 @@
     warehouse: { n: 'Warehouse', ico: 'server', col: '#1b6ac9', g: 'Store data', d: 'Provide strategic insights from multiple sources into your entire business.' },
     notebook: { n: 'Notebook', ico: 'notebook', col: '#8a3ffc', g: 'Prepare data', d: 'Explore, analyze, and visualize data and build machine learning models.' },
     pipeline: { n: 'Pipeline', ico: 'git-merge', col: '#0078d4', g: 'Get data', d: 'Ingest data at scale and schedule data workflows.' },
-    dataflow: { n: 'Dataflow Gen2', ico: 'symbol-structure', col: '#d83b01', g: 'Get data', d: 'Prep, clean, and transform data with a low-code interface.', stub: true },
-    copyjob: { n: 'Copy job', ico: 'copy', col: '#0078d4', g: 'Get data', d: 'Copy data from sources to destinations, including incremental copy.', stub: true },
-    eventstream: { n: 'Eventstream', ico: 'pulse', col: '#c239b3', g: 'Get data', d: 'Capture, transform, and route real-time event streams.', stub: true },
-    eventhouse: { n: 'Eventhouse', ico: 'flame', col: '#c239b3', g: 'Store data', d: 'Store and analyze large volumes of events and time series.', stub: true },
-    sqldb: { n: 'SQL database', ico: 'database', col: '#1b6ac9', g: 'Store data', d: 'Build modern operational apps on a SQL database.', stub: true },
-    sjd: { n: 'Spark Job Definition', ico: 'flame', col: '#8a3ffc', g: 'Prepare data', d: 'Define, schedule, and manage Apache Spark jobs.', stub: true },
-    environment: { n: 'Environment', ico: 'settings-gear', col: '#8a3ffc', g: 'Prepare data', d: 'Set up shared libraries, Spark compute settings, and resources.', stub: true },
+    dataflow: { n: 'Dataflow Gen2', ico: 'symbol-structure', col: '#d83b01', g: 'Get data', d: 'Prep, clean, and transform data with a low-code interface.' },
+    copyjob: { n: 'Copy job', ico: 'copy', col: '#0078d4', g: 'Get data', d: 'Copy data from sources to destinations, including incremental copy.' },
+    eventstream: { n: 'Eventstream', ico: 'pulse', col: '#c239b3', g: 'Get data', d: 'Capture, transform, and route real-time event streams.' },
+    eventhouse: { n: 'Eventhouse', ico: 'flame', col: '#c239b3', g: 'Store data', d: 'Store and analyze large volumes of events and time series.' },
+    sqldb: { n: 'SQL database', ico: 'database', col: '#1b6ac9', g: 'Store data', d: 'Build modern operational apps on a SQL database.' },
+    sjd: { n: 'Spark Job Definition', ico: 'flame', col: '#8a3ffc', g: 'Prepare data', d: 'Define, schedule, and manage Apache Spark jobs.' },
+    environment: { n: 'Environment', ico: 'settings-gear', col: '#8a3ffc', g: 'Prepare data', d: 'Set up shared libraries, Spark compute settings, and resources.' },
     semanticmodel: { n: 'Semantic model', ico: 'type-hierarchy', col: '#c19c00', g: 'Analyze and train data', d: 'Model tables, relationships, and measures for reports.' },
-    report: { n: 'Report', ico: 'graph', col: '#c19c00', g: 'Analyze and train data', d: 'Create an interactive presentation of your data.', stub: true },
-    experiment: { n: 'Experiment', ico: 'beaker', col: '#107c10', g: 'Analyze and train data', d: 'Create, run, and track the development of multiple models.', stub: true },
-    activator: { n: 'Activator', ico: 'zap', col: '#c239b3', g: 'Track data', d: 'Monitor data and trigger actions when patterns occur.', stub: true },
+    report: { n: 'Report', ico: 'graph', col: '#c19c00', g: 'Analyze and train data', d: 'Create an interactive presentation of your data.' },
+    experiment: { n: 'Experiment', ico: 'beaker', col: '#107c10', g: 'Analyze and train data', d: 'Create, run, and track the development of multiple models.' },
+    activator: { n: 'Activator', ico: 'zap', col: '#c239b3', g: 'Track data', d: 'Monitor data and trigger actions when patterns occur.' },
   };
   const GRUPOS = ['Get data', 'Store data', 'Prepare data', 'Analyze and train data', 'Track data'];
   const MUESTRAS = ['clientes', 'productos', 'categorias', 'pedidos', 'detalle_pedidos', 'pagos', 'envios', 'devoluciones'];
@@ -345,7 +345,7 @@
   }
   function dialogoNuevoItem(wid, tipo) {
     const W = wsDe(wid), T = TIPOS[tipo];
-    const base = { lakehouse: 'Lakehouse', warehouse: 'Warehouse', notebook: 'Notebook', pipeline: 'Pipeline', semanticmodel: 'SemanticModel' }[tipo];
+    const base = { lakehouse: 'Lakehouse', warehouse: 'Warehouse', notebook: 'Notebook', pipeline: 'Pipeline', semanticmodel: 'SemanticModel', dataflow: 'Dataflow', copyjob: 'Copyjob', eventstream: 'Eventstream', eventhouse: 'Eventhouse', sqldb: 'SQLDatabase', sjd: 'SparkJobDefinition', environment: 'Environment', report: 'Report', experiment: 'Experiment', activator: 'Activator' }[tipo] || T.n.replace(/\W/g, '');
     modal(`<div class="fb-modal-h"><span class="fb-ico fb-ico-s" style="--c:${T.col}">${ci(T.ico)}</span><b>New ${T.n.toLowerCase()}</b><button class="fb-tb" data-cerrar>${ci('close')}</button></div><div class="fb-modal-b">
       <label class="fb-lbl">Name <span class="fb-rojo">*</span></label><input class="fb-input" id="niN" value="${esc(nombreLibre(W, base))}"><div class="fb-nota" id="niNota"></div>
       <label class="fb-lbl">Location</label><select class="fb-input" id="niW">${Object.entries(F().ws).map(([id, w]) => `<option value="${id}"${id === wid ? ' selected' : ''}>${esc(w.nombre)}</option>`).join('')}</select>

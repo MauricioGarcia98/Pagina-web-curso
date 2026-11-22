@@ -239,3 +239,23 @@ a.fb-nodo.sel { background: var(--sel); font-weight: 600; }
   .fb-tabla { display: block; overflow-x: auto; }
   .fb-flyout { left: 60px; width: calc(100vw - 76px); }
 }
+
+/* ítems de Real-Time Intelligence, Data Factory, SQL database, Data Engineering y Data Science (fabric-items.js) */
+.fb-res-w { overflow: auto; max-height: 380px; border: 1px solid var(--bd); border-radius: 6px; margin-top: 6px; }
+.fb-res-w .fb-tabla th { position: sticky; top: 0; background: var(--bg2); }
+.fb-pre { background: var(--bg2); border: 1px solid var(--bd); border-radius: 6px; padding: 10px 12px; font: 12.5px/1.5 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; overflow: auto; }
+.fb-error { background: color-mix(in srgb, var(--rojo) 10%, transparent); color: var(--rojo); border-radius: 6px; padding: 10px 12px; font: 12.5px/1.5 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; }
+.fb-kql { width: 100%; min-height: 150px; border: 1px solid var(--bd); border-radius: 6px; padding: 10px 12px; font: 13px/1.55 ui-monospace, Menlo, Consolas, monospace; background: var(--bg); color: var(--t); resize: vertical; }
+.fb-graf { width: 100%; max-width: 680px; height: auto; color: var(--t2); display: block; margin: 8px 0; }
+.fb-ayuda { margin: 12px 0; } .fb-ayuda summary { cursor: pointer; color: var(--t2); }
+.fb-kpis { display: flex; gap: 12px; flex-wrap: wrap; margin: 14px 0; } .fb-kpis > div { border: 1px solid var(--bd); border-radius: 8px; padding: 10px 14px; min-width: 180px; display: flex; flex-direction: column; gap: 2px; } .fb-kpis b { font-size: 20px; } .fb-kpis small { color: var(--t2); }
+.fb-chip { display: inline-block; font-size: 12px; font-weight: 600; border-radius: 10px; padding: 1px 9px; background: var(--bg2); color: var(--t2); vertical-align: middle; } .fb-chip-ok { background: color-mix(in srgb, #107c10 15%, transparent); color: #107c10; }
+.fb-es-canvas { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 18px; border: 1px dashed var(--bd); border-radius: 8px; background: var(--bg2); }
+.fb-es-nodo { display: flex; gap: 8px; align-items: center; border: 1px solid var(--bd); border-left: 4px solid var(--fx); border-radius: 6px; background: var(--bg); padding: 8px 12px; min-width: 200px; }
+.fb-es-src { border-left-color: #c239b3; } .fb-es-dst { border-left-color: #0f7b6c; } .fb-es-vacio { color: var(--t2); border-style: dashed; }
+.fb-es-dsts { display: flex; flex-direction: column; gap: 6px; } .fb-es-flecha { color: var(--t2); font-size: 20px; }
+.fb-dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; margin: 10px 0; } .fb-dl dt { color: var(--t2); }
+.fb-fila { display: flex; gap: 10px; flex-wrap: wrap; } .fb-fila > * { flex: 1; min-width: 160px; }
+.fb-radio { display: block; padding: 6px 0; } .fb-ok { color: #107c10; font-weight: 600; } .fb-der { text-align: right; }
+.fb-acciones { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; }
+.fb-mejor td { background: color-mix(in srgb, #107c10 8%, transparent); }
