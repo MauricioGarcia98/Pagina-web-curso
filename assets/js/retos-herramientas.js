@@ -233,6 +233,27 @@
     ]],
   ] };
 
+  // Jira: mira el estado de la réplica (Store.data.jira)
+  const jrS = () => (Store && Store.data.jira) || { issues: [], sprints: [], cerrados: [], filtros: [], ev: {} };
+  const jrE = (k) => (jrS().ev || {})[k] > 0;
+  RETOS.jira = { titulo: 'Retos de Jira', niveles: [
+    ['Básico', [
+      ['jr-crear', 'Crea una issue', 'Create → tipo Story → un resumen como "Como analista, quiero…".', () => jrE('crear')],
+      ['jr-mover', 'Mueve una issue a In Progress en el tablero', 'Board → arrastra la tarjeta (o cambia su estado).', () => jrE('board-mover')],
+      ['jr-estimar', 'Estima una historia en story points', 'Abre la issue → Story point estimate → Save.', () => jrE('estimar')],
+    ]],
+    ['Intermedio', [
+      ['jr-jql', 'Busca con JQL tus issues abiertas', 'Issues → assignee = currentUser() AND status != Done.', () => jrE('jql-compuesta')],
+      ['jr-orden', 'Ordena una búsqueda con ORDER BY', '… ORDER BY priority DESC.', () => jrE('jql-orden')],
+      ['jr-filtro', 'Guarda una búsqueda como filtro', 'Issues → Save filter.', () => (jrS().filtros || []).length > 0],
+    ]],
+    ['Avanzado', [
+      ['jr-completar', 'Completa el sprint activo', 'Backlog o Board → Complete sprint → mueve lo abierto al siguiente sprint.', () => jrE('sprint-completar')],
+      ['jr-iniciar', 'Planifica e inicia un sprint nuevo con objetivo', 'Backlog → arrastra issues al sprint → Start sprint → Sprint goal.', () => jrE('sprint-iniciar')],
+      ['jr-velocidad', 'Mira la velocidad del equipo', 'Reports → Velocity report.', () => jrE('reportes') && (jrS().cerrados || []).length > 1],
+    ]],
+  ] };
+
   // JupyterLab: mira el historial de celdas ejecutadas, los archivos y los eventos de la réplica
   const jpS = () => (Store && Store.data.jupyter) || { archivos: {}, hist: [], eventos: {} };
   const jpH = (f) => (jpS().hist || []).some((x) => f(x.code || '', x.tipos || []));

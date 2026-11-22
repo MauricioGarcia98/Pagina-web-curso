@@ -30,6 +30,7 @@
     snowflake: { nombre: 'Snowflake', ico: '❄️', ruta: '#/snowflake', rutas: ['snowflake'] },
     bigquery: { nombre: 'BigQuery', ico: '🔎', ruta: '#/bigquery', rutas: ['bigquery'] },
     aws: { nombre: 'la consola de AWS', ico: '🟧', ruta: '#/aws', rutas: ['aws'] },
+    jira: { nombre: 'Jira', ico: '🔹', ruta: '#/jira/backlog', rutas: ['jira'] },
     'azure-devops': { nombre: 'Azure DevOps', ico: '🔷', ruta: '#/azure-devops/tienda-andina', rutas: ['azure-devops'] },
     fabric: { nombre: 'Microsoft Fabric', ico: '🧵', ruta: '#/fabric', rutas: ['fabric'] },
     airflow: { nombre: 'Airflow', ico: '🌬️', ruta: '#/airflow', rutas: ['airflow'] },

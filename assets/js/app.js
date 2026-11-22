@@ -68,13 +68,14 @@
     bigquery: ['@iconos', 'bigquery-motor', 'bigquery'],
     aws: ['aws-consola'],
     'azure-devops': ['azure-devops'],
+    jira: ['jira'],
     jupyter: ['@iconos', 'jupyter-kernel', 'jupyter'],
     excel: ['@iconos', 'excel-motor', 'excel'],
     'pedalia-dev': ['pedalia-portal'],
   };
   const grupoCargas = {};
   // la hoja de estilos de cada herramienta se pide al abrirla (no frena la portada ni las lecciones)
-  const CSS_GRUPO = { powerbi: 'powerbi', databricks: 'databricks', azure: 'azure', github: 'github', fabric: 'fabric', airflow: 'airflow', snowflake: 'snowflake', bigquery: 'bigquery', aws: 'aws', 'azure-devops': 'azure-devops', jupyter: 'jupyter', excel: 'excel' };
+  const CSS_GRUPO = { powerbi: 'powerbi', databricks: 'databricks', azure: 'azure', github: 'github', fabric: 'fabric', airflow: 'airflow', snowflake: 'snowflake', bigquery: 'bigquery', aws: 'aws', 'azure-devops': 'azure-devops', jira: 'jira', jupyter: 'jupyter', excel: 'excel' };
   const cssPedidas = {};
   function cargarCss(nombre) {
     if (!cssPedidas[nombre]) cssPedidas[nombre] = new Promise((ok) => {
@@ -2005,6 +2006,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     ['#/bigquery', '🔎', 'BigQuery', 'bigquery', 'apps'],
     ['#/aws', '🟧', 'Consola de AWS', 'aws', 'apps'],
     ['#/azure-devops', '🔷', 'Azure DevOps', 'azure-devops', 'apps'],
+    ['#/jira', '🔹', 'Jira', 'jira', 'apps'],
     ['#/pedalia-dev', '🚲', 'API de Pedalia', 'pedalia-dev', 'apps'],
     ['#/jupyter', '📓', 'JupyterLab', 'jupyter', 'apps'],
     ['#/excel', '📗', 'Excel', 'excel', 'apps'],
@@ -2116,6 +2118,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     { id: 'bigquery', g: 'apps', href: '#/bigquery', ico: '🔎', nombre: 'BigQuery', real: 'la consola de BigQuery en Google Cloud', desc: 'El editor de BigQuery con su validador: te dice cuántos bytes va a procesar la consulta antes de ejecutarla, que es lo que se cobra. Datasets y tablas, particiones y clustering, caché de resultados, cargas desde archivo, historial de jobs y una página de costos.', puedes: ['Ver cómo cambian los bytes al nombrar columnas, filtrar por la partición o usar SELECT *', 'Crear tablas con PARTITION BY, CLUSTER BY y require_partition_filter', 'Cargar un CSV a una tabla y explorar su esquema, detalles y vista previa (gratis)', 'Encontrar tus consultas más caras y proyectar su costo a tamaño de empresa'], modulos: ['bigquery-paso-a-paso', 'gcp', 'cert-gcp', 'sql', 'interfaces', 'arquitectura'], rutas: ['bigquery'] },
     { id: 'aws', g: 'apps', href: '#/aws', ico: '🟧', nombre: 'Consola de AWS', real: 'la consola de AWS (console.aws.amazon.com)', desc: 'S3, Glue, Athena e IAM con el mismo estado que el comando aws de la terminal: creas un bucket, subes archivos particionados, un crawler los cataloga y Athena los consulta con SQL de verdad, mostrando los datos escaneados y el costo.', puedes: ['Crear un bucket con Block Public Access y subir datos particionados por mes', 'Crear una database y un crawler de Glue que descubre las tablas y sus particiones', 'Configurar la ubicación de resultados de Athena y consultar las tablas, viendo cuánto escanea cada consulta', 'Crear un rol de IAM con el mínimo privilegio para Glue'], modulos: ['aws', 'cert-aws', 'interfaces', 'arquitectura'], rutas: ['aws'] },
     { id: 'azure-devops', g: 'apps', href: '#/azure-devops', ico: '🔷', nombre: 'Azure DevOps', real: 'Azure DevOps (dev.azure.com)', desc: 'Boards con tablero Kanban, backlog y sprints (Epic › Feature › User Story › Task, y Bug), Repos conectados a la terminal (git push aparece al instante), pull requests con revisión y políticas de rama, y Pipelines con YAML que corren tus tests.', puedes: ['Mover historias por el tablero, estimarlas en puntos y planificar un sprint', 'Subir código desde la terminal a Azure Repos y abrir un pull request enlazado a un work item', 'Crear un pipeline con azure-pipelines.yml y leer por qué falla un paso', 'Exigir revisión y build verde en main con políticas de rama'], modulos: ['github', 'azure', 'cert-azure', 'interfaces', 'pipelines'], rutas: ['azure-devops'] },
+    { id: 'jira', g: 'apps', href: '#/jira', ico: '🔹', nombre: 'Jira', real: 'Jira (Atlassian)', desc: 'Un proyecto Scrum del equipo de datos: backlog con sprints que se inician y se completan, tablero con columnas por estado, issues con clave (TA-12), estimación en story points, búsqueda con JQL y reportes de burndown y velocidad.', puedes: ['Planificar un sprint arrastrando issues del backlog y darle un objetivo', 'Mover el trabajo por el tablero y completar el sprint viendo qué se arrastra', 'Buscar con JQL: assignee = currentUser(), sprint in openSprints(), ORDER BY', 'Leer el burndown y la velocidad del equipo'], modulos: ['interfaces', 'casos', 'entrevistas'], rutas: ['jira'] },
     { id: 'pedalia-dev', g: 'apps', href: '#/pedalia-dev', ico: '🚲', nombre: 'API de Pedalia', real: 'el portal de desarrolladores de un proveedor de APIs (como los de Stripe o GitHub)', desc: 'Una API inventada pero viva: los viajes ocurren mientras la usas, el token OAuth vence, hay límite por minuto y cuota diaria, mantenimientos, incidentes y una versión vieja que se apaga con fecha. El portal tiene tus apps y credenciales, el uso, el registro de pedidos, la documentación, la página de estado y el changelog.', puedes: ['Registrar una app y rotar su secreto sin cortar el servicio', 'Pedir un token y extraer viajes con paginación por cursor desde curl o Python', 'Ver en el registro cada pedido, con su código y su x-request-id', 'Provocar una degradación para probar tus reintentos'], modulos: ['proyecto-pedalia', 'incidentes', 'python'], rutas: ['pedalia-dev'] },
     { id: 'jupyter', g: 'apps', href: '#/jupyter', ico: '📓', nombre: 'JupyterLab', real: 'JupyterLab 4 (el entorno de notebooks del Proyecto Jupyter)', desc: 'Notebooks de Python que se ejecutan de verdad en tu navegador: celdas de código y Markdown, tablas de pandas, gráficos de matplotlib, magics como %timeit y !ls, explorador de archivos con los datos del curso en CSV y los mismos atajos de teclado.', puedes: ['Analizar los CSV del curso con pandas y graficar con matplotlib', 'Usar el modo comando (A, B, D D, M, Y) y el modo edición como en el real', 'Reiniciar el kernel, ejecutar todo y entender por qué importa el orden de las celdas', 'Descargar tus notebooks en formato .ipynb y abrirlos en un JupyterLab real'], modulos: ['python', 'analisis', 'interfaces', 'portafolio', 'local'], rutas: ['jupyter'] },
     { id: 'excel', g: 'apps', href: '#/excel', ico: '📗', nombre: 'Excel', real: 'Microsoft Excel (escritorio y web)', desc: 'Una hoja de cálculo con fórmulas de verdad: referencias relativas y absolutas, SUMIFS, COUNTIFS, XLOOKUP, IF, fechas y texto; filtros, ordenar, quitar duplicados, tablas dinámicas y gráficos, con las tablas del curso para analizar.', puedes: ['Cargar las tablas del curso con Data → Get Data y analizarlas con fórmulas', 'Arrastrar fórmulas y entender cuándo usar $A$1', 'Resumir con una tabla dinámica y graficar el resultado', 'Filtrar, ordenar y quitar duplicados como en el Excel real'], modulos: ['analisis', 'powerbi', 'interfaces', 'fundamentos', 'casos'], rutas: ['excel'] },
@@ -4121,6 +4124,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (parts[0] === 'bigquery') return { name: 'bigquery', sub: parts.slice(1) };
     if (parts[0] === 'aws') return { name: 'aws', sub: parts.slice(1) };
     if (parts[0] === 'azure-devops') return { name: 'azure-devops', sub: parts.slice(1) };
+    if (parts[0] === 'jira') return { name: 'jira', sub: parts.slice(1) };
     if (parts[0] === 'pedalia-dev') return { name: 'pedalia-dev', sub: parts.slice(1) };
     if (parts[0] === 'jupyter') return { name: 'jupyter', sub: parts.slice(1) };
     if (parts[0] === 'excel') return { name: 'excel', sub: parts.slice(1) };
@@ -4143,6 +4147,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     bigquery: { ico: '🔎', nombre: 'BigQuery', leccion: 'interfaces-bigquery-por-dentro' },
     aws: { ico: '🟧', nombre: 'Consola de AWS', leccion: 'interfaces-consola-aws-por-dentro' },
     'azure-devops': { ico: '🔷', nombre: 'Azure DevOps', leccion: 'interfaces-azure-devops-por-dentro' },
+    jira: { ico: '🔹', nombre: 'Jira', leccion: 'interfaces-jira-por-dentro' },
     jupyter: { ico: '📓', nombre: 'JupyterLab', leccion: 'interfaces-jupyterlab-por-dentro' },
     excel: { ico: '📗', nombre: 'Excel', leccion: 'interfaces-excel-por-dentro' },
   };
@@ -4240,6 +4245,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'bigquery' && window.BigQueryPractica) window.BigQueryPractica.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'aws' && window.AwsConsola) window.AwsConsola.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'azure-devops' && window.AzureDevOps) window.AzureDevOps.vista(main, { Store, toast }, r.sub);
+    else if (r.name === 'jira' && window.JiraPractica) window.JiraPractica.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'pedalia-dev' && window.PedaliaPortal) window.PedaliaPortal.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'jupyter' && window.JupyterPractica) window.JupyterPractica.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'excel' && window.ExcelPractica) window.ExcelPractica.vista(main, { Store, toast }, r.sub);
@@ -4259,7 +4265,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else main.innerHTML = `<div class="container prose"><h1>Página no encontrada</h1><p>La dirección <code>${esc(location.hash)}</code> no existe o cambió de lugar.</p><p><a class="btn btn-primary" href="#/">Ir al inicio</a> <a class="btn" href="#/ruta">Ver la ruta de aprendizaje</a> <a class="btn" href="#/herramientas">Herramientas de práctica</a></p><p class="muted">También puedes usar el buscador de arriba.${enlaceReporte('Página no encontrada', `**Dirección:** ${location.href}`).replace('class="badge badge-link"', 'style="margin-left:6px"')}</p></div>`;
     barraHerramienta(r);
     if (window.Practica) window.Practica.panel(r);
-    if (window.RetosHerramientas) { if (r.name === 'azure') window.RetosHerramientas.montar(r.sub && r.sub[0] === 'studio' ? 'adf' : 'azure', Store); else if (r.name === 'databricks') window.RetosHerramientas.montar('databricks', Store); else if (r.name === 'github') window.RetosHerramientas.montar('github', Store); else if (r.name === 'snowflake') window.RetosHerramientas.montar('snowflake', Store); else if (r.name === 'bigquery') window.RetosHerramientas.montar('bigquery', Store); else if (r.name === 'aws') window.RetosHerramientas.montar('aws', Store); else if (r.name === 'azure-devops') window.RetosHerramientas.montar('azure-devops', Store); else if (r.name === 'airflow') window.RetosHerramientas.montar('airflow', Store); else if (r.name === 'fabric') window.RetosHerramientas.montar('fabric', Store); else if (r.name === 'jupyter') window.RetosHerramientas.montar('jupyter', Store); else if (r.name === 'excel') window.RetosHerramientas.montar('excel', Store); else window.RetosHerramientas.desmontar(); }
+    if (window.RetosHerramientas) { if (r.name === 'azure') window.RetosHerramientas.montar(r.sub && r.sub[0] === 'studio' ? 'adf' : 'azure', Store); else if (r.name === 'databricks') window.RetosHerramientas.montar('databricks', Store); else if (r.name === 'github') window.RetosHerramientas.montar('github', Store); else if (r.name === 'snowflake') window.RetosHerramientas.montar('snowflake', Store); else if (r.name === 'bigquery') window.RetosHerramientas.montar('bigquery', Store); else if (r.name === 'aws') window.RetosHerramientas.montar('aws', Store); else if (r.name === 'azure-devops') window.RetosHerramientas.montar('azure-devops', Store); else if (r.name === 'jira') window.RetosHerramientas.montar('jira', Store); else if (r.name === 'airflow') window.RetosHerramientas.montar('airflow', Store); else if (r.name === 'fabric') window.RetosHerramientas.montar('fabric', Store); else if (r.name === 'jupyter') window.RetosHerramientas.montar('jupyter', Store); else if (r.name === 'excel') window.RetosHerramientas.montar('excel', Store); else window.RetosHerramientas.desmontar(); }
     document.title = r.lesson ? `${r.lesson.titulo} · Academia de Datos` : r.module ? `${r.module.titulo} · Academia de Datos` : (titles[r.name] || 'Academia de Datos');
     const anchor = location.hash.split('#')[2];
     if (anchor && document.getElementById(anchor)) document.getElementById(anchor).scrollIntoView();

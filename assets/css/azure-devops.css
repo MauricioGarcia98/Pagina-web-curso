@@ -49,7 +49,7 @@ body.ado-abierto { overflow: hidden; }
 .ado-card { background: var(--bg); border: 1px solid var(--bd); border-radius: 4px; padding: 14px 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
 .ado-card h2 { font-size: 16px; font-weight: 600; margin: 4px 0 10px; }
 .ado-grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
-.ado-btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--bd2); background: var(--bg); color: var(--t); border-radius: 2px; padding: 5px 14px; font: 600 14px inherit; cursor: pointer; white-space: nowrap; }
+.ado-btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--bd2); background: var(--bg); color: var(--t); border-radius: 2px; padding: 5px 14px; font-weight: 600; font-size: 14px; font-family: inherit; cursor: pointer; white-space: nowrap; }
 .ado-btn:hover:not(:disabled) { background: var(--bg3); }
 .ado-btn:disabled { opacity: .5; cursor: default; }
 .ado-btn-primario { background: var(--ac); border-color: var(--ac); color: #fff; }
@@ -98,13 +98,13 @@ body.ado-abierto { overflow: hidden; }
 .ado-t-m { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; color: var(--t2); }
 .ado-pts { margin-left: auto; background: var(--bg3); border-radius: 10px; padding: 0 7px; font-weight: 700; }
 .ado-t-tareas { font-size: 12px; color: var(--t2); margin-top: 6px; }
-.ado-t-sel { margin-top: 8px; width: 100%; font: 12px inherit; border: 1px solid var(--bd); background: var(--bg); color: var(--t2); border-radius: 2px; padding: 2px; }
+.ado-t-sel { margin-top: 8px; width: 100%; font-size: 12px; font-family: inherit; border: 1px solid var(--bd); background: var(--bg); color: var(--t2); border-radius: 2px; padding: 2px; }
 
 /* work item */
 .ado-wi { background: var(--bg); border: 1px solid var(--bd); border-top: 4px solid var(--c); border-radius: 4px; padding: 14px 18px; }
 .ado-wi-h { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .ado-wi-tipo { font-weight: 700; color: var(--t2); display: inline-flex; gap: 6px; align-items: center; }
-.ado-wi-tit { flex: 1; min-width: 220px; font: 600 20px inherit; border: 1px solid transparent; background: none; color: var(--t); padding: 4px 6px; }
+.ado-wi-tit { flex: 1; min-width: 220px; font-weight: 600; font-size: 20px; font-family: inherit; border: 1px solid transparent; background: none; color: var(--t); padding: 4px 6px; }
 .ado-wi-tit:hover, .ado-wi-tit:focus { border-color: var(--bd2); outline: 0; }
 .ado-wi-campos { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--bd); margin-bottom: 12px; }
 .ado-wi-campos label { display: inline-flex; align-items: center; gap: 6px; color: var(--t2); font-size: 13px; }

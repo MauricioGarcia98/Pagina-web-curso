@@ -18,6 +18,7 @@ const PAGINAS = [
   ['BigQuery', '#/bigquery', '.bqp'],
   ['Consola de AWS', '#/aws', '.awp'],
   ['Azure DevOps', '#/azure-devops/tienda-andina/boards', '.ado-kanban'],
+  ['Jira', '#/jira/board', '.jr-board'],
   ['JupyterLab', '#/jupyter', '.jlp'],
   ['Excel', '#/excel', '.xlp'],
 ];
