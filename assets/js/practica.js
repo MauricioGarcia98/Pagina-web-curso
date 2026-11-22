@@ -29,6 +29,7 @@
     excel: { nombre: 'Excel', ico: '📗', ruta: '#/excel', rutas: ['excel'] },
     snowflake: { nombre: 'Snowflake', ico: '❄️', ruta: '#/snowflake', rutas: ['snowflake'] },
     bigquery: { nombre: 'BigQuery', ico: '🔎', ruta: '#/bigquery', rutas: ['bigquery'] },
+    aws: { nombre: 'la consola de AWS', ico: '🟧', ruta: '#/aws', rutas: ['aws'] },
     fabric: { nombre: 'Microsoft Fabric', ico: '🧵', ruta: '#/fabric', rutas: ['fabric'] },
     airflow: { nombre: 'Airflow', ico: '🌬️', ruta: '#/airflow', rutas: ['airflow'] },
     modelado: { nombre: 'el laboratorio de modelado', ico: '📐', ruta: '#/modelado', rutas: ['modelado'] },

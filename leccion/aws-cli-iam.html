@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>AWS CLI e IAM, quién puede hacer qué</h1><p class="resumen">Instalar y configurar la AWS CLI, perfiles y SSO, --region, --output y --query (JMESPath), y los fundamentos de IAM, usuarios, roles, políticas y mínimo privilegio.</p>
 <a class="cta" href="../index.html#/l/aws-cli-iam">▶ Abrir la lección interactiva (8 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Configurar la AWS CLI con perfiles y región</li><li>Filtrar salidas con --query</li><li>Explicar IAM: usuarios, roles, políticas y mínimo privilegio</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Hazlo también en la consola</div>
+
+<p>En la <a href="#/aws">consola de AWS de práctica</a> (IAM → Roles → Create role) crea el rol de un servicio con el mínimo privilegio y mira su relación de confianza. Comparte el estado con el comando <code>aws</code> de la terminal: lo que crees en un lado aparece en el otro. Recorrido completo en <a href="#/l/interfaces-consola-aws-por-dentro">La consola de AWS por dentro</a>.</p>
+</div>
+
+
 <h2>La AWS CLI: AWS desde la terminal</h2>
 <p>Todo lo que se hace con clics en la consola web se puede hacer con el comando <code>aws</code>. Los data engineers prefieren la terminal porque <strong>se puede repetir, guardar en un script y versionar en Git</strong>.</p>
 <p>La forma de todos los comandos es siempre la misma:</p>

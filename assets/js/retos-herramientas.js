@@ -189,6 +189,29 @@
     ]],
   ] };
 
+  // Consola de AWS: mira el estado de la CLI simulada (Machine.cloud.aws) y los eventos de la consola
+  const awS = () => { try { return window.CloudSim.aws(); } catch (e) { return { buckets: {}, glueDbs: {}, crawlers: {}, roles: {} }; } };
+  const awE = (k) => (((Store && Store.data.awsConsola) || {}).ev || {})[k] > 0;
+  const awObj = (f) => Object.values(awS().buckets || {}).some((b) => Object.keys(b.objects || {}).some(f));
+  RETOS.aws = { titulo: 'Retos de la consola de AWS', niveles: [
+    ['Básico', [
+      ['aw-bucket', 'Crea un bucket de S3', 'S3 → Create bucket. Nombre único en minúsculas, con Block all public access encendido.', () => Object.keys(awS().buckets || {}).length > 0],
+      ['aw-subir', 'Sube archivos a una carpeta del bucket', 'Abre el bucket → Upload → Add files o los datos de ejemplo de pedidos.', () => awObj((k) => /\/[^/]+\.\w+$/.test(k))],
+      ['aw-part', 'Ten datos particionados por una columna (carpetas columna=valor)', 'Los datos de ejemplo de pedidos ya vienen en anio_mes=AAAA-MM/, o crea la carpeta a mano.', () => awObj((k) => /\/\w+=[^/]+\//.test(k))],
+    ]],
+    ['Intermedio', [
+      ['aw-db', 'Crea una database en el Data Catalog de Glue', 'Glue → Databases → Add database (por ejemplo, lago_bronze).', () => Object.keys(awS().glueDbs || {}).length > 0],
+      ['aw-rol', 'Crea un rol de IAM para Glue sin AdministratorAccess', 'IAM → Roles → Create role → Glue → AWSGlueServiceRole + AmazonS3ReadOnlyAccess.', () => awE('iam-rol')],
+      ['aw-crawler', 'Crea un crawler y ejecútalo: tiene que descubrir una tabla', 'Glue → Crawlers → Create crawler (S3 path de una carpeta) → Run.', () => Object.values(awS().glueDbs || {}).some((d) => Object.keys(d.tables || {}).length)],
+      ['aw-salida', 'Configura la ubicación de resultados de Athena', 'Athena → Settings → s3://tu-bucket/athena-resultados/.', () => !!awS().athenaOut],
+    ]],
+    ['Avanzado', [
+      ['aw-query', 'Consulta con Athena una tabla descubierta por el crawler', 'Athena → elige la database → SELECT … FROM "db"."tabla" → Run.', () => awE('athena-ok')],
+      ['aw-poda', 'Escanea menos datos filtrando por la partición', "WHERE anio_mes = '2024-01': mira Data scanned antes y después.", () => awE('athena-particion')],
+      ['aw-cli', 'Crea un bucket desde la terminal y encuéntralo en la consola', 'En la terminal del curso: aws s3 mb s3://<nombre-unico>. Después refresca la lista de buckets de S3.', () => Object.values(awS().buckets || {}).some((b) => !('versioning' in b))],
+    ]],
+  ] };
+
   // JupyterLab: mira el historial de celdas ejecutadas, los archivos y los eventos de la réplica
   const jpS = () => (Store && Store.data.jupyter) || { archivos: {}, hist: [], eventos: {} };
   const jpH = (f) => (jpS().hist || []).some((x) => f(x.code || '', x.tipos || []));

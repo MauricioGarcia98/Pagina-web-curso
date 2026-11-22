@@ -7,6 +7,10 @@ objetivos: Configurar la AWS CLI con perfiles y región | Filtrar salidas con --
 autoevaluacion: ¿Qué diferencia hay entre un usuario y un rol de IAM? | ¿Qué significa mínimo privilegio?
 ---
 
+:::tip Hazlo también en la consola
+En la [consola de AWS de práctica](#/aws) (IAM → Roles → Create role) crea el rol de un servicio con el mínimo privilegio y mira su relación de confianza. Comparte el estado con el comando `aws` de la terminal: lo que crees en un lado aparece en el otro. Recorrido completo en [La consola de AWS por dentro](#/l/interfaces-consola-aws-por-dentro).
+:::
+
 ## La AWS CLI: AWS desde la terminal
 
 Todo lo que se hace con clics en la consola web se puede hacer con el comando `aws`. Los data engineers prefieren la terminal porque **se puede repetir, guardar en un script y versionar en Git**.

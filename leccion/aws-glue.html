@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Glue, catálogo, crawlers y jobs de Spark</h1><p class="resumen">El Glue Data Catalog como &quot;índice&quot; del lago, crawlers que descubren esquemas y particiones, jobs de Spark sin servidor, job bookmarks y cuándo usar Glue o EMR.</p>
 <a class="cta" href="../index.html#/l/aws-glue">▶ Abrir la lección interactiva (10 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué guarda el Glue Data Catalog</li><li>Descubrir esquemas y particiones con un crawler</li><li>Elegir entre Glue, EMR y Lambda para un proceso</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Hazlo también en la consola</div>
+
+<p>En la <a href="#/aws">consola de AWS de práctica</a> (Glue → Crawlers) crea una database y un crawler sobre la carpeta de pedidos, ejecútalo y revisa el esquema que detectó. Comparte el estado con el comando <code>aws</code> de la terminal: lo que crees en un lado aparece en el otro. Recorrido completo en <a href="#/l/interfaces-consola-aws-por-dentro">La consola de AWS por dentro</a>.</p>
+</div>
+
+
 <h2>El problema que resuelve Glue</h2>
 <p>En S3 solo hay <strong>archivos</strong>. Para que alguien pueda escribir <code>SELECT * FROM ventas</code>, algún sistema tiene que saber:</p>
 <ul>

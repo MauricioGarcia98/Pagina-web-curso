@@ -7,6 +7,10 @@ objetivos: Explicar qué guarda el Glue Data Catalog | Descubrir esquemas y part
 autoevaluacion: ¿Qué hace un job bookmark? | ¿Cuándo elegirías EMR en vez de Glue?
 ---
 
+:::tip Hazlo también en la consola
+En la [consola de AWS de práctica](#/aws) (Glue → Crawlers) crea una database y un crawler sobre la carpeta de pedidos, ejecútalo y revisa el esquema que detectó. Comparte el estado con el comando `aws` de la terminal: lo que crees en un lado aparece en el otro. Recorrido completo en [La consola de AWS por dentro](#/l/interfaces-consola-aws-por-dentro).
+:::
+
 ## El problema que resuelve Glue
 
 En S3 solo hay **archivos**. Para que alguien pueda escribir `SELECT * FROM ventas`, algún sistema tiene que saber:

@@ -66,13 +66,14 @@
     airflow: ['airflow-iconos', 'airflow-motor', 'airflow', 'airflow-paginas', 'terminal-airflow'],
     snowflake: ['snowflake-motor', 'snowflake'],
     bigquery: ['@iconos', 'bigquery-motor', 'bigquery'],
+    aws: ['aws-consola'],
     jupyter: ['@iconos', 'jupyter-kernel', 'jupyter'],
     excel: ['@iconos', 'excel-motor', 'excel'],
     'pedalia-dev': ['pedalia-portal'],
   };
   const grupoCargas = {};
   // la hoja de estilos de cada herramienta se pide al abrirla (no frena la portada ni las lecciones)
-  const CSS_GRUPO = { powerbi: 'powerbi', databricks: 'databricks', azure: 'azure', github: 'github', fabric: 'fabric', airflow: 'airflow', snowflake: 'snowflake', bigquery: 'bigquery', jupyter: 'jupyter', excel: 'excel' };
+  const CSS_GRUPO = { powerbi: 'powerbi', databricks: 'databricks', azure: 'azure', github: 'github', fabric: 'fabric', airflow: 'airflow', snowflake: 'snowflake', bigquery: 'bigquery', aws: 'aws', jupyter: 'jupyter', excel: 'excel' };
   const cssPedidas = {};
   function cargarCss(nombre) {
     if (!cssPedidas[nombre]) cssPedidas[nombre] = new Promise((ok) => {
@@ -2001,6 +2002,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     ['#/airflow', '🌀', 'Airflow', 'airflow', 'apps'],
     ['#/snowflake', '❄️', 'Snowflake', 'snowflake', 'apps'],
     ['#/bigquery', '🔎', 'BigQuery', 'bigquery', 'apps'],
+    ['#/aws', '🟧', 'Consola de AWS', 'aws', 'apps'],
     ['#/pedalia-dev', '🚲', 'API de Pedalia', 'pedalia-dev', 'apps'],
     ['#/jupyter', '📓', 'JupyterLab', 'jupyter', 'apps'],
     ['#/excel', '📗', 'Excel', 'excel', 'apps'],
@@ -2110,6 +2112,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     { id: 'airflow', g: 'apps', href: '#/airflow', ico: '🌀', nombre: 'Airflow', real: 'la interfaz web de Apache Airflow 3', desc: 'La interfaz de Airflow 3 con tus DAGs de verdad: los lee de ~/airflow/dags en la terminal, los analiza con Python y los ejecuta. Grid, Graph, logs por intento, Trigger con parámetros, backfill, assets, variables y conexiones.', puedes: ['Despausar y disparar DAGs, ver la Grid y el Graph en vivo', 'Leer el log de una tarea que falla, arreglar el archivo en la terminal y hacer Clear', 'Programar por datos: un DAG que actualiza un asset dispara otro', 'Variables, Connections, Pools, backfill y el comando airflow en la terminal'], modulos: ['airflow-paso-a-paso', 'airflow', 'pipelines', 'proyecto', 'interfaces', 'local'], rutas: ['airflow'] },
     { id: 'snowflake', g: 'apps', href: '#/snowflake', ico: '❄️', nombre: 'Snowflake', real: 'Snowsight (app.snowflake.com)', desc: 'Hojas de SQL con el dialecto de Snowflake sobre la base del curso, warehouses virtuales que cobran créditos, bases y esquemas, stages con COPY INTO, Time Travel, UNDROP, clones, roles y Query History.', puedes: ['Ejecutar SQL con contexto de rol, warehouse, base y esquema (Ctrl+Enter)', 'Crear warehouses, ver cuándo se suspenden y cuántos créditos gastaste', 'Subir archivos a un stage y cargarlos con COPY INTO sin duplicar', 'Recuperar datos con Time Travel (BEFORE/AT) y tablas con UNDROP; dar permisos con roles'], modulos: ['snowflake-paso-a-paso', 'sql', 'arquitectura', 'interfaces', 'modelado'], rutas: ['snowflake'] },
     { id: 'bigquery', g: 'apps', href: '#/bigquery', ico: '🔎', nombre: 'BigQuery', real: 'la consola de BigQuery en Google Cloud', desc: 'El editor de BigQuery con su validador: te dice cuántos bytes va a procesar la consulta antes de ejecutarla, que es lo que se cobra. Datasets y tablas, particiones y clustering, caché de resultados, cargas desde archivo, historial de jobs y una página de costos.', puedes: ['Ver cómo cambian los bytes al nombrar columnas, filtrar por la partición o usar SELECT *', 'Crear tablas con PARTITION BY, CLUSTER BY y require_partition_filter', 'Cargar un CSV a una tabla y explorar su esquema, detalles y vista previa (gratis)', 'Encontrar tus consultas más caras y proyectar su costo a tamaño de empresa'], modulos: ['bigquery-paso-a-paso', 'gcp', 'cert-gcp', 'sql', 'interfaces', 'arquitectura'], rutas: ['bigquery'] },
+    { id: 'aws', g: 'apps', href: '#/aws', ico: '🟧', nombre: 'Consola de AWS', real: 'la consola de AWS (console.aws.amazon.com)', desc: 'S3, Glue, Athena e IAM con el mismo estado que el comando aws de la terminal: creas un bucket, subes archivos particionados, un crawler los cataloga y Athena los consulta con SQL de verdad, mostrando los datos escaneados y el costo.', puedes: ['Crear un bucket con Block Public Access y subir datos particionados por mes', 'Crear una database y un crawler de Glue que descubre las tablas y sus particiones', 'Configurar la ubicación de resultados de Athena y consultar las tablas, viendo cuánto escanea cada consulta', 'Crear un rol de IAM con el mínimo privilegio para Glue'], modulos: ['aws', 'cert-aws', 'interfaces', 'arquitectura'], rutas: ['aws'] },
     { id: 'pedalia-dev', g: 'apps', href: '#/pedalia-dev', ico: '🚲', nombre: 'API de Pedalia', real: 'el portal de desarrolladores de un proveedor de APIs (como los de Stripe o GitHub)', desc: 'Una API inventada pero viva: los viajes ocurren mientras la usas, el token OAuth vence, hay límite por minuto y cuota diaria, mantenimientos, incidentes y una versión vieja que se apaga con fecha. El portal tiene tus apps y credenciales, el uso, el registro de pedidos, la documentación, la página de estado y el changelog.', puedes: ['Registrar una app y rotar su secreto sin cortar el servicio', 'Pedir un token y extraer viajes con paginación por cursor desde curl o Python', 'Ver en el registro cada pedido, con su código y su x-request-id', 'Provocar una degradación para probar tus reintentos'], modulos: ['proyecto-pedalia', 'incidentes', 'python'], rutas: ['pedalia-dev'] },
     { id: 'jupyter', g: 'apps', href: '#/jupyter', ico: '📓', nombre: 'JupyterLab', real: 'JupyterLab 4 (el entorno de notebooks del Proyecto Jupyter)', desc: 'Notebooks de Python que se ejecutan de verdad en tu navegador: celdas de código y Markdown, tablas de pandas, gráficos de matplotlib, magics como %timeit y !ls, explorador de archivos con los datos del curso en CSV y los mismos atajos de teclado.', puedes: ['Analizar los CSV del curso con pandas y graficar con matplotlib', 'Usar el modo comando (A, B, D D, M, Y) y el modo edición como en el real', 'Reiniciar el kernel, ejecutar todo y entender por qué importa el orden de las celdas', 'Descargar tus notebooks en formato .ipynb y abrirlos en un JupyterLab real'], modulos: ['python', 'analisis', 'interfaces', 'portafolio', 'local'], rutas: ['jupyter'] },
     { id: 'excel', g: 'apps', href: '#/excel', ico: '📗', nombre: 'Excel', real: 'Microsoft Excel (escritorio y web)', desc: 'Una hoja de cálculo con fórmulas de verdad: referencias relativas y absolutas, SUMIFS, COUNTIFS, XLOOKUP, IF, fechas y texto; filtros, ordenar, quitar duplicados, tablas dinámicas y gráficos, con las tablas del curso para analizar.', puedes: ['Cargar las tablas del curso con Data → Get Data y analizarlas con fórmulas', 'Arrastrar fórmulas y entender cuándo usar $A$1', 'Resumir con una tabla dinámica y graficar el resultado', 'Filtrar, ordenar y quitar duplicados como en el Excel real'], modulos: ['analisis', 'powerbi', 'interfaces', 'fundamentos', 'casos'], rutas: ['excel'] },
@@ -4113,6 +4116,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (parts[0] === 'airflow') return { name: 'airflow', sub: parts.slice(1) };
     if (parts[0] === 'snowflake') return { name: 'snowflake', sub: parts.slice(1) };
     if (parts[0] === 'bigquery') return { name: 'bigquery', sub: parts.slice(1) };
+    if (parts[0] === 'aws') return { name: 'aws', sub: parts.slice(1) };
     if (parts[0] === 'pedalia-dev') return { name: 'pedalia-dev', sub: parts.slice(1) };
     if (parts[0] === 'jupyter') return { name: 'jupyter', sub: parts.slice(1) };
     if (parts[0] === 'excel') return { name: 'excel', sub: parts.slice(1) };
@@ -4133,6 +4137,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     airflow: { ico: '🌀', nombre: 'Airflow', leccion: 'interfaces-airflow-por-dentro' },
     snowflake: { ico: '❄️', nombre: 'Snowflake', leccion: 'interfaces-snowflake-por-dentro' },
     bigquery: { ico: '🔎', nombre: 'BigQuery', leccion: 'interfaces-bigquery-por-dentro' },
+    aws: { ico: '🟧', nombre: 'Consola de AWS', leccion: 'interfaces-consola-aws-por-dentro' },
     jupyter: { ico: '📓', nombre: 'JupyterLab', leccion: 'interfaces-jupyterlab-por-dentro' },
     excel: { ico: '📗', nombre: 'Excel', leccion: 'interfaces-excel-por-dentro' },
   };
@@ -4228,6 +4233,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'airflow' && window.AirflowUI) window.AirflowUI.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'snowflake' && window.SnowflakePractica) window.SnowflakePractica.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'bigquery' && window.BigQueryPractica) window.BigQueryPractica.vista(main, { Store, toast }, r.sub);
+    else if (r.name === 'aws' && window.AwsConsola) window.AwsConsola.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'pedalia-dev' && window.PedaliaPortal) window.PedaliaPortal.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'jupyter' && window.JupyterPractica) window.JupyterPractica.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'excel' && window.ExcelPractica) window.ExcelPractica.vista(main, { Store, toast }, r.sub);
@@ -4247,7 +4253,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else main.innerHTML = `<div class="container prose"><h1>Página no encontrada</h1><p>La dirección <code>${esc(location.hash)}</code> no existe o cambió de lugar.</p><p><a class="btn btn-primary" href="#/">Ir al inicio</a> <a class="btn" href="#/ruta">Ver la ruta de aprendizaje</a> <a class="btn" href="#/herramientas">Herramientas de práctica</a></p><p class="muted">También puedes usar el buscador de arriba.${enlaceReporte('Página no encontrada', `**Dirección:** ${location.href}`).replace('class="badge badge-link"', 'style="margin-left:6px"')}</p></div>`;
     barraHerramienta(r);
     if (window.Practica) window.Practica.panel(r);
-    if (window.RetosHerramientas) { if (r.name === 'azure') window.RetosHerramientas.montar(r.sub && r.sub[0] === 'studio' ? 'adf' : 'azure', Store); else if (r.name === 'databricks') window.RetosHerramientas.montar('databricks', Store); else if (r.name === 'github') window.RetosHerramientas.montar('github', Store); else if (r.name === 'snowflake') window.RetosHerramientas.montar('snowflake', Store); else if (r.name === 'bigquery') window.RetosHerramientas.montar('bigquery', Store); else if (r.name === 'airflow') window.RetosHerramientas.montar('airflow', Store); else if (r.name === 'fabric') window.RetosHerramientas.montar('fabric', Store); else if (r.name === 'jupyter') window.RetosHerramientas.montar('jupyter', Store); else if (r.name === 'excel') window.RetosHerramientas.montar('excel', Store); else window.RetosHerramientas.desmontar(); }
+    if (window.RetosHerramientas) { if (r.name === 'azure') window.RetosHerramientas.montar(r.sub && r.sub[0] === 'studio' ? 'adf' : 'azure', Store); else if (r.name === 'databricks') window.RetosHerramientas.montar('databricks', Store); else if (r.name === 'github') window.RetosHerramientas.montar('github', Store); else if (r.name === 'snowflake') window.RetosHerramientas.montar('snowflake', Store); else if (r.name === 'bigquery') window.RetosHerramientas.montar('bigquery', Store); else if (r.name === 'aws') window.RetosHerramientas.montar('aws', Store); else if (r.name === 'airflow') window.RetosHerramientas.montar('airflow', Store); else if (r.name === 'fabric') window.RetosHerramientas.montar('fabric', Store); else if (r.name === 'jupyter') window.RetosHerramientas.montar('jupyter', Store); else if (r.name === 'excel') window.RetosHerramientas.montar('excel', Store); else window.RetosHerramientas.desmontar(); }
     document.title = r.lesson ? `${r.lesson.titulo} · Academia de Datos` : r.module ? `${r.module.titulo} · Academia de Datos` : (titles[r.name] || 'Academia de Datos');
     const anchor = location.hash.split('#')[2];
     if (anchor && document.getElementById(anchor)) document.getElementById(anchor).scrollIntoView();

@@ -16,6 +16,7 @@ const PAGINAS = [
   ['GitHub', '#/github', '.ghp'],
   ['Snowflake', '#/snowflake', '.sfp'],
   ['BigQuery', '#/bigquery', '.bqp'],
+  ['Consola de AWS', '#/aws', '.awp'],
   ['JupyterLab', '#/jupyter', '.jlp'],
   ['Excel', '#/excel', '.xlp'],
 ];
