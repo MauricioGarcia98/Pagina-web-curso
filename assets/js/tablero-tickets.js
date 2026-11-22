@@ -13,6 +13,12 @@
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const ICON = { requerimiento: '📋', incidente: '🔥', pregunta: '❓' };
   const numero = (v) => Number(String(v).replace(/[%$\s]/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.'));
+  // el equipo trabaja estos tickets en Jira (un proyecto por cliente): estado actual y enlace a la issue
+  function enJira(id) {
+    const pref = String(id).split('-')[0];
+    let x = null; try { const J = window.__almacen && window.__almacen().data.jira; const P = J && J.proyectos && J.proyectos[pref]; x = P && P.issues.find((i) => i.n === Number(String(id).split('-')[1])); } catch (e) { x = null; }
+    return `<a class="tt-jira" href="#/jira/browse/${esc(id)}" title="Abrir ${esc(id)} en Jira">${x ? `<span class="tt-estado tt-${x.estado === 'Done' ? 'done' : x.estado === 'To Do' ? 'todo' : 'prog'}">${esc(x.estado)}</span>` : ''} Jira ↗</a>`;
+  }
   function panel(el, cfg) {
     const pintar = () => {
       const D = cfg.datos(); if (!D) { el.textContent = 'El almacenamiento del navegador no está disponible.'; return; }
@@ -22,7 +28,8 @@
       const txt = (k) => (typeof k.texto === 'function' ? k.texto(k.T, H) : k.texto);
       el.innerHTML = `<div class="card mv-panel"><h3 style="margin-top:0;font-size:1.05em">🗂️ ${esc(cfg.titulo || 'Tablero del equipo')}</h3>
         <p class="small muted">${visibles.length} tickets para ti · ${hechos} resueltos${futuros ? ` · <b>${futuros}</b> más van a llegar en los próximos días (como en un trabajo: no sabes cuáles ni cuándo)` : ''}.</p>
-        ${visibles.slice().reverse().map((k) => { const e = D.tickets[k.id] || {}; return `<details class="mv-ticket ${e.hecho ? 'hecho' : ''}" ${e.hecho ? '' : 'open'}><summary>${ICON[k.tipo] || '📋'} <b>${esc(k.id)}</b> · ${esc(k.titulo)} <span class="small muted">· ${esc(k.de)} · ${esc(cfg.hora ? cfg.hora(k.T) : new Date(k.T).toISOString().slice(0, 16))}</span> ${e.hecho ? '<span class="mv-ok">✅ resuelto</span>' : ''}</summary>
+        <p class="small muted">El equipo trabaja estos tickets en <a href="#/jira/projects">Jira</a>: cada uno es una issue de este proyecto. Ahí la tomas (Assign to me), la mueves por el tablero, enlazas tus commits con su clave y, cuando la pasas a <b>In Review</b>, el líder técnico la revisa contra los criterios de aceptación. Las preguntas del negocio se responden con un comentario en la issue. Este tablero es el resumen, y lo que resuelvas acá también se cierra en Jira.</p>
+        ${visibles.slice().reverse().map((k) => { const e = D.tickets[k.id] || {}; return `<details class="mv-ticket ${e.hecho ? 'hecho' : ''}" ${e.hecho ? '' : 'open'}><summary>${ICON[k.tipo] || '📋'} <b>${esc(k.id)}</b> · ${esc(k.titulo)} <span class="small muted">· ${esc(k.de)} · ${esc(cfg.hora ? cfg.hora(k.T) : new Date(k.T).toISOString().slice(0, 16))}</span> ${e.hecho ? '<span class="mv-ok">✅ resuelto</span>' : ''} ${enJira(k.id)}</summary>
           <p>${esc(txt(k))}</p>
           ${(k.comentarios || []).length ? `<div class="mv-hilo">${k.comentarios.map((c) => `<div class="small">💬 ${esc(c)}</div>`).join('')}</div>` : ''}
           ${k.criterios ? `<p class="small" style="margin-bottom:4px"><b>Criterios de aceptación</b></p><ul class="small">${k.criterios.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}

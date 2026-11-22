@@ -163,11 +163,14 @@
       comentarios: ['Operaciones: la hora en que el archivo apareció en el servidor. Sin contar reenvíos.'],
       respuesta: { tipo: 'texto', ayuda: 'El laboratorio', verificar: (v, T) => { const fs = fechas(T, 5); const prom = Object.keys(RA.LABS).map((L) => { const es = RA.mundo().entregas.filter((e) => e.lab === L && e.version === 1 && fs.includes(e.fecha) && e.llega <= T); return [L, es.reduce((a, e) => a + (e.llega - RA.msDeDia(e.fecha) - DIA), 0) / (es.length || 1)]; }); const max = Math.max(...prom.map((x) => x[1])); return prom.filter((x) => x[1] === max).some((x) => x[0] === labDe(v)) || 'No es el que entrega más tarde en promedio. Mira la hora de cada archivo con ls -l en el SFTP.'; } } },
   ];
-  function panelTablero(el) {
-    if (!window.TableroTickets) { setTimeout(() => panelTablero(el), 300); return; }
-    window.TableroTickets.panel(el, { titulo: 'Tablero del equipo de datos de Red Analítica', tickets: TICKETS,
+  // la misma cola de tickets se ve en el tablero de la lección y en Jira (proyecto RA), que es donde trabaja el equipo
+  const cfgTablero = () => ({ titulo: 'Tablero del equipo de datos de Red Analítica', tickets: TICKETS,
       contexto: () => { Host.sincronizar(); return { I: RA.inicioDiaLocal(RA.cfg.inicio), H: RA.hitos(), t: RA.ahora() }; },
       datos: () => Host.datos(), guardar: () => Host.guardar(), hora: (T) => new Date(T - 3 * HORA).toISOString().replace('T', ' ').slice(0, 16) });
+  (window.__tableros = window.__tableros || []).push({ clave: 'RA', nombre: 'Red Analítica', modulo: 'proyecto-red-analitica', cfg: cfgTablero, chequeos: () => (typeof CHEQUEOS !== 'undefined' ? CHEQUEOS : []) });
+  function panelTablero(el) {
+    if (!window.TableroTickets) { setTimeout(() => panelTablero(el), 300); return; }
+    window.TableroTickets.panel(el, cfgTablero());
   }
   function panelRevisar(el) {
     el.innerHTML = `<div class="card mv-panel"><h3 style="margin-top:0;font-size:1.05em">🔎 Revisar mi entrega</h3><p class="small muted">Lee tus herramientas (Key Vault, Databricks) y las compara con lo que mandaron de verdad los laboratorios.</p><button class="btn btn-primary btn-sm" data-revisar>Revisar ahora</button><ol class="pedalia-chequeos"></ol></div>`;

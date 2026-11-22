@@ -96,6 +96,44 @@ Escribe tu plan en una nota (en [Mis notas](#/notas) o en un papel). Como mínim
 El tópico del CDC retiene los mensajes **24 horas**. Si cargas el snapshot hoy y vuelves en dos días a consumir el CDC, te faltan cambios y tu tabla va a estar mal sin que nada falle. Organízate para hacer el snapshot y el primer consumo en la misma sesión.
 :::
 
+## Cómo se trabaja: el proyecto MV en Jira
+
+En una empresa nadie trabaja "desde un correo": cada pedido es un **ticket** con dueño, estado, fecha y criterios de aceptación. Trabajas en una consultora de datos y Mercado Vecino es un cliente, así que tiene su propio proyecto de Jira con la clave **MV**: lo abres en [Jira → Projects → Mercado Vecino](#/jira/projects/MV/board).
+
+```diagrama
+titulo: El recorrido de un ticket de Mercado Vecino, de punta a punta
+nodo pide: El negocio pide | icono=usuario | col=0 | fila=0 | color=gris | sub=Valentina Ruiz · Finanzas
+nodo todo: To Do | icono=list | col=1 | fila=0 | color=gris | sub=al sprint en curso, sin asignar
+nodo prog: In Progress | icono=engranaje | col=2 | fila=0 | color=azul | sub=Assign to me
+nodo code: Commits con la clave | icono=git | col=2 | fila=1 | color=violeta | sub=git commit -m "MV-101 …"
+nodo rev: In Review | icono=lupa | col=3 | fila=0 | color=naranja | sub=el líder revisa
+nodo done: Done | icono=check | col=4 | fila=0 | color=verde | sub=cumple los criterios
+flecha pide -> todo | explica=Cada pedido del negocio llega como una issue de MV: requerimientos como Story, incidentes como Bug con prioridad Highest y vencimiento al día siguiente, preguntas como Task. Entra al sprint en curso y sin responsable.
+flecha todo -> prog | explica=Lo tomas con Assign to me y lo pasas a In Progress. Así el equipo sabe quién está con qué y nadie hace el mismo trabajo dos veces.
+flecha prog -> code | explica=Cada commit nombra la clave del ticket. Con smart commits también comenta (#comment), registra tiempo (#time 2h) y cambia el estado (#in-review) cuando haces git push.
+flecha code -> rev | explica=Cuando crees que está listo, lo pasas a In Review.
+flecha rev -> done: cumple | explica=El líder técnico lo revisa contra los criterios de aceptación escritos en el ticket. Si cumple, lo pasa a Done y lo comenta.
+flecha rev -> prog: falta algo | estilo=punteada | color=rojo | explica=Si falta algo, lo devuelve a In Progress con un comentario que dice exactamente qué. Es lo normal: se corrige y se vuelve a pasar a In Review.
+```
+
+| Tipo de ticket | En Jira | Cómo se cierra |
+|---|---|---|
+| 📋 Requerimiento ("necesito una tabla con…") | **Story** con story points y épica *Entrega* | Pásalo a **In Review**: el líder corre los criterios de aceptación y lo aprueba o lo devuelve con un comentario |
+| 🔥 Incidente ("el tablero está mal desde ayer") | **Bug** con prioridad *Highest* y vencimiento al día siguiente | Igual que un requerimiento, pero primero: es lo urgente del sprint |
+| ❓ Pregunta del negocio ("¿cuánto fue…?") | **Task** con la etiqueta *consulta-negocio* | Responde con un **comentario** en la issue. Quien preguntó lo verifica: si coincide, agradece y lo cierra; si no, te dice qué no le cierra |
+
+Las búsquedas que más vas a usar en este proyecto:
+
+```sql norun
+project = MV AND assignee = currentUser() AND statusCategory != Done ORDER BY priority DESC
+project = MV AND type = Bug AND resolution = Unresolved
+project = MV AND labels = consulta-negocio AND status != Done
+```
+
+:::trabajo Un día normal en Mercado Vecino
+Empieza en el **Board** de MV: ¿llegó algo nuevo? ¿hay un Bug *Highest*? En la reunión diaria cuentas qué cerraste, qué vas a hacer y qué te traba (si algo te traba, ponle un **flag** a la tarjeta). Trabaja de a un ticket: tómalo, nombra la clave en cada commit y, cuando esté listo, pásalo a In Review. Al final del sprint, el **Sprint report** muestra lo entregado y lo que llegó a mitad de camino (marcado con un asterisco): de eso se habla en la retrospectiva.
+:::
+
 :::real En tu computadora y en la web real
 El pedido de finanzas llega por correo. En tu computadora, antes de tocar datos:
 

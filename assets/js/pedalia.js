@@ -400,16 +400,19 @@ Siguiente paso: subirlos al contenedor landing del lago, por ejemplo:
       criterios: ['Ningún pedido a /v1 desde este aviso', 'Al menos una extracción de /v2/trips después del aviso'],
       check: () => { const T = API().hitos().avisoBajaV1; const L = logApi().filter((x) => x.t > T); const v1 = L.filter((x) => x.ruta.startsWith('/v1')).length; const v2 = L.some((x) => x.ruta.startsWith('/v2/trips') && x.status === 200); return (!v1 && v2) || `${v1 ? `Hubo ${v1} pedidos a /v1 después del aviso. ` : ''}${v2 ? '' : 'Todavía no hay una extracción de /v2/trips después del aviso.'}`; } },
   ];
-  function panelTablero(el) {
-    const listo = () => window.ApiPedalia && window.ApiPedaliaHost && window.TableroTickets;
-    if (!listo()) { el.textContent = 'Cargando…'; setTimeout(() => panelTablero(el), 400); return; }
-    window.ApiPedaliaHost.sincronizar();
-    window.TableroTickets.panel(el, {
+  // la misma cola de tickets se ve en el tablero de la lección y en Jira (proyecto PD), que es donde trabaja el equipo
+  const cfgTablero = () => ({
       titulo: 'Tablero del equipo de datos de Pedalia', tickets: TICKETS_PD,
       contexto: () => { window.ApiPedaliaHost.sincronizar(); const H = API().hitos(); return { I: H.deprecacionV1, H, t: API().ahora() }; },
       datos: () => { const S = almacen(); if (!S) return null; S.data.pedalia = S.data.pedalia || {}; return S.data.pedalia; }, guardar: () => { try { almacen().save(); } catch (e) { /* lleno */ } },
       hora: (T) => new Date(T - 3 * HORA).toISOString().replace('T', ' ').slice(0, 16),
     });
+  (window.__tableros = window.__tableros || []).push({ clave: 'PD', nombre: 'Pedalia', modulo: 'proyecto-pedalia', cfg: cfgTablero, chequeos: () => (typeof CHEQUEOS !== 'undefined' ? CHEQUEOS : []) });
+  function panelTablero(el) {
+    const listo = () => window.ApiPedalia && window.ApiPedaliaHost && window.TableroTickets;
+    if (!listo()) { el.textContent = 'Cargando…'; setTimeout(() => panelTablero(el), 400); return; }
+    window.ApiPedaliaHost.sincronizar();
+    window.TableroTickets.panel(el, cfgTablero());
   }
 
   function montar(root) {

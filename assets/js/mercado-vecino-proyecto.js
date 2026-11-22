@@ -321,12 +321,15 @@
         return (!mal.length && !faltan.length) || `${mal.length ? 'No cuadra: ' + lista(mal, 3) + '. ¿Cargaste dos veces el mismo archivo con FORCE? ' : ''}${faltan.length ? 'Faltan: ' + lista(faltan, 3) : ''}`;
       } },
   ];
-  function panelTablero(el) {
-    window.TableroTickets.panel(el, {
+  // la misma cola de tickets se ve en el tablero de la lección y en Jira (proyecto MV), que es donde trabaja el equipo
+  const cfgTablero = () => ({
       titulo: 'Tablero del equipo de datos', tickets: TICKETS,
       contexto: () => { Host.sincronizar(); return { I: MV.inicioDiaLocal(MV.cfg.inicio), H: MV.hitos(), t: MV.ahora() }; },
       datos: () => Host.datos(), guardar: () => Host.guardar(), hora: (T) => MV.tsSql(T - 3 * 3600000).slice(0, 16),
     });
+  (window.__tableros = window.__tableros || []).push({ clave: 'MV', nombre: 'Mercado Vecino', modulo: 'proyecto-mercado-vecino', cfg: cfgTablero, chequeos: () => (typeof CHEQUEOS !== 'undefined' ? CHEQUEOS : []) });
+  function panelTablero(el) {
+    window.TableroTickets.panel(el, cfgTablero());
   }
 
 

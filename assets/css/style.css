@@ -1325,3 +1325,6 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
   .sqlp .exercise.sqlp-card > .ex-body { grid-column: 1; grid-row: 2 / span 30; border-right: 1px solid var(--line); align-self: stretch; }
 }
 .sqlp .ex-head h1.sqlp-h1 { font-size: 1.05rem; margin: 0; flex: 1; }
+.tt-jira { font-size: 12px; font-weight: 600; margin-left: 6px; white-space: nowrap; }
+.tt-estado { display: inline-block; font-size: 10.5px; text-transform: uppercase; border-radius: 3px; padding: 0 5px; margin-right: 3px; }
+.tt-todo { background: var(--surface-3); color: var(--ink-2); } .tt-prog { background: var(--info-soft); color: var(--tok-fn); } .tt-done { background: var(--ok-soft); color: var(--ok); }

@@ -146,9 +146,12 @@
       comentarios: ['Plataforma: sin contar repetidos (de cada event_id, la primera vez que llegó).'],
       respuesta: { tipo: 'numero', unidad: 'eventos', verificar: (v, T) => { const n = eventosDe(ayer(T)).filter((x) => x.ing - (x.ts + x.desvio) > 15 * MIN).length; return v === n || 'No coincide. Diferencia entre el timestamp de Kafka y la hora del dispositivo (ts_dispositivo, o ts en el firmware 2), mayor a 15 minutos, una vez por event_id.'; } } },
   ];
+  // la misma cola de tickets se ve en el tablero de la lección y en Jira (proyecto RS), que es donde trabaja el equipo
+  const cfgTablero = () => ({ titulo: 'Tablero del equipo de datos de Ruta Sur', tickets: TICKETS, contexto: () => { Host.sincronizar(); return { I: RS.inicioDiaLocal(RS.cfg.inicio), H: RS.hitos(), t: ahora() }; }, datos: () => Host.datos(), guardar: () => Host.guardar(), hora: (T) => new Date(T - 3 * HORA).toISOString().replace('T', ' ').slice(0, 16) });
+  (window.__tableros = window.__tableros || []).push({ clave: 'RS', nombre: 'Ruta Sur', modulo: 'proyecto-ruta-sur', cfg: cfgTablero, chequeos: () => (typeof CHEQUEOS !== 'undefined' ? CHEQUEOS : []) });
   function panelTablero(el) {
     if (!window.TableroTickets) { setTimeout(() => panelTablero(el), 300); return; }
-    window.TableroTickets.panel(el, { titulo: 'Tablero del equipo de datos de Ruta Sur', tickets: TICKETS, contexto: () => { Host.sincronizar(); return { I: RS.inicioDiaLocal(RS.cfg.inicio), H: RS.hitos(), t: ahora() }; }, datos: () => Host.datos(), guardar: () => Host.guardar(), hora: (T) => new Date(T - 3 * HORA).toISOString().replace('T', ' ').slice(0, 16) });
+    window.TableroTickets.panel(el, cfgTablero());
   }
   function panelRevisar(el) {
     el.innerHTML = `<div class="card mv-panel"><h3 style="margin-top:0;font-size:1.05em">🔎 Revisar mi entrega</h3><p class="small muted">Compara tus tablas con lo que pasó de verdad en la calle (y con lo que ya llegó al stream).</p><button class="btn btn-primary btn-sm" data-revisar>Revisar ahora</button><ol class="pedalia-chequeos"></ol></div>`;
