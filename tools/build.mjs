@@ -717,6 +717,15 @@ function build() {
   //  - assets/content/<módulo>.js: el texto de las lecciones y los ejercicios completos; se descarga al abrir el módulo
   //  - assets/content/_buscar.js: texto plano de las lecciones, solo para el buscador
   const dirC = path.join(ROOT, 'assets/content');
+  // el texto de cada lección partido en secciones (una por <h2>): [[título de la sección, texto], …]; la primera es
+  // la introducción, sin título. El buscador muestra el fragmento donde aparece la palabra y lleva a esa sección.
+  const textoPlano = (h) => h.replace(/<(script|style)[\s\S]*?<\/\1>/g, ' ').replace(/<[^>]+>/g, ' ')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&[a-z]+;|&#\d+;/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+  const seccionesParaBuscar = (html) => html.split(/(?=<h2[\s>])/).map((parte, i) => {
+    const m = i || /^<h2[\s>]/.test(parte) ? parte.match(/^<h2[^>]*>([\s\S]*?)<\/h2>/) : null;
+    return m ? [textoPlano(m[1]), textoPlano(parte.slice(m[0].length))] : ['', textoPlano(parte)];
+  }).filter(([h, t]) => h || t);
   fs.rmSync(dirC, { recursive: true, force: true }); fs.mkdirSync(dirC, { recursive: true });
   const hash = (txt) => { let h = 2166136261; for (let i = 0; i < txt.length; i++) { h ^= txt.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); };
   const buscar = {};
@@ -724,7 +733,7 @@ function build() {
     const datos = {};
     const lecciones = m.lecciones.map((l) => {
       datos[l.id] = { html: l.html, ejercicios: l.ejercicios };
-      buscar[l.id] = l.html.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').toLowerCase();
+      buscar[l.id] = seccionesParaBuscar(l.html);
       const enlaces = [...new Set([...l.html.matchAll(/href="(#\/[^"]*)"/g)].map((x) => x[1]))];
       return { ...l, html: '', htmlLen: l.html.length, enlaces, ejercicios: l.ejercicios.map((e) => ({ id: e.id, type: e.type, ...(e.dificultad ? { dificultad: e.dificultad } : {}) })) };
     });

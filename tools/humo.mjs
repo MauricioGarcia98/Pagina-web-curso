@@ -10,7 +10,7 @@ const PAGINAS = [
   ['primera lección', '#/l/cero-tu-computadora', 'article, .leccion'],
   ['laboratorio SQL', '#/lab/sql', '#out, textarea, .cm-editor'],
   ['exámenes', '#/examenes', 'main'],
-  ['buscar', '#/buscar?q=join', 'main'],
+  ['buscador (texto completo, fragmentos y secciones)', '#/buscar?q=idempotente', '.busq-lista .busq-frag mark'],
   ['Microsoft Fabric', '#/fabric', '.fbp'],
   ['Airflow', '#/airflow', '#afp'],
   ['GitHub', '#/github', '.ghp'],

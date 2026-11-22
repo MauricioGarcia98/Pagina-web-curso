@@ -3838,46 +3838,213 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   }
 
   // ---------------------------------------------------------------- búsqueda
-  // el texto completo de las lecciones para buscar se descarga la primera vez que se usa el buscador
-  let buscarPedido = false;
-  window.__glosarioListo = () => { const porT = new Map(C.glosario.map((g) => [g.termino, g])); for (const x of searchIndex) if (x.glos) { const g = porT.get(x.glos); if (g) x.body = ((g.alias || []).join(' ') + ' ' + (g.texto || '')).toLowerCase(); } };
-  window.__buscar = (textos) => { for (const x of searchIndex) if (x.lid && textos[x.lid]) x.body = (x.resumen + ' ' + textos[x.lid]).toLowerCase(); if (sIn.value.trim().length >= 2) sIn.dispatchEvent(new Event('input')); };
-  const searchIndex = [
-    ...LESSONS.map((l) => ({ t: l.titulo, s: `${l.modulo.icono} ${l.modulo.titulo} · ${l.nivel}`, href: '#/l/' + l.id, lid: l.id, resumen: l.resumen || '', body: (l.resumen || '').toLowerCase() })),
-    ...C.glosario.map((g) => ({ t: g.termino, s: '📖 Glosario · ' + g.area, href: '#/glosario?q=' + encodeURIComponent(g.termino), body: ((g.alias || []).join(' ') + ' ' + (g.texto || '')).toLowerCase(), glos: g.termino }))
+  // El índice liviano (títulos, resúmenes y glosario) está siempre. El texto de las lecciones, partido por sección,
+  // se descarga la primera vez que se usa el buscador (assets/content/_buscar.js). Cada resultado muestra el
+  // fragmento donde aparece lo buscado y lleva directo a esa sección de la lección.
+  let buscarPedido = false, textoBuscarListo = false;
+  const alLlegarTexto = new Set();
+  // minúsculas y sin tildes, con el mismo largo que el original para poder recortar el fragmento en el texto real
+  const normalBusq = (t) => {
+    const s = String(t || ''), r = s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    return r.length === s.length ? r : s.replace(/[\s\S]/g, (c) => { const x = c.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); return x.length === 1 ? x : c; });
+  };
+  const textoDeHtml = (h) => String(h || '').replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
+  // "tablas" encuentra "tabla", "joins" encuentra "join": se busca la raíz sin el plural
+  const raizBusq = (p) => (p.length > 5 && p.endsWith('es') ? p.slice(0, -2) : p.length > 3 && p.endsWith('s') && !p.endsWith('ss') ? p.slice(0, -1) : p);
+  const VACIAS = new Set('de la el en y o que los las un una unos unas con por para del al como se lo es son mi tu su qué que cual cuál hay a'.split(' ').map(normalBusq));
+  function palabrasBusq(q) {
+    const todas = normalBusq(q).split(/\s+/).map((p) => p.replace(/^[¿¡"'«(\[,.;:!?]+|["'»)\],.;:!?]+$/g, '')).filter(Boolean);
+    const utiles = todas.filter((p) => !VACIAS.has(p));
+    return [...new Set((utiles.length ? utiles : todas).map(raizBusq))];
+  }
+  const entradasBusq = [
+    ...LESSONS.map((l) => ({ tipo: 'leccion', t: l.titulo, s: `${l.modulo.icono} ${l.modulo.titulo} · ${l.nivel}`, href: '#/l/' + l.id, lid: l.id, resumen: l.resumen || '' })),
+    ...C.glosario.map((g) => ({ tipo: 'glosario', t: g.termino, s: '📖 Glosario · ' + g.area, href: '#/glosario?q=' + encodeURIComponent(g.termino), g, resumen: '' }))
   ];
+  for (const x of entradasBusq) { x.tn = normalBusq(x.t); x.rn = normalBusq(x.resumen); ponerSecciones(x, [['', x.resumen]]); }
+  function ponerSecciones(x, secs) {
+    x.secs = secs.map(([h, t]) => ({ h, t, hn: normalBusq(h), tn: normalBusq(t) }));
+    x.todo = x.tn + ' \n ' + x.secs.map((s) => s.hn + ' ' + s.tn).join(' \n ');
+  }
+  function glosarioAlDia(x) {
+    const g = x.g; if (x._gt === g.texto && x._gq === g.que) return;
+    x._gt = g.texto; x._gq = g.que;
+    ponerSecciones(x, [['', [(g.alias || []).join(', '), textoDeHtml(g.que || g.nino), textoDeHtml(g.texto)].filter(Boolean).join(' · ')]]);
+  }
+  window.__glosarioListo = () => { for (const x of entradasBusq) if (x.g) glosarioAlDia(x); };
+  window.__buscar = (textos) => {
+    for (const x of entradasBusq) if (x.lid && Array.isArray(textos[x.lid])) ponerSecciones(x, x.resumen ? [['', x.resumen], ...textos[x.lid]] : textos[x.lid]);
+    textoBuscarListo = true;
+    for (const f of alLlegarTexto) f();
+  };
+  function pedirTextoBusq() {
+    if (buscarPedido) return;
+    buscarPedido = true;
+    cargarExtra('glosario').then(() => window.__glosarioListo(), () => {});
+    cargarScript(`assets/content/_buscar.js?v=${C.vBuscar || C.generado}`).catch(() => { buscarPedido = false; });
+  }
+  const contarBusq = (texto, p, tope) => { let n = 0, i = -1; while (n < tope && (i = texto.indexOf(p, i + 1)) !== -1) n++; return n; };
+  const escRe = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // fragmento de ~170 caracteres alrededor de la primera coincidencia, con las palabras buscadas marcadas
+  function fragmentoBusq(sec, pal, largo = 170, antes = 50) {
+    let pos = -1;
+    for (const p of pal) { const i = sec.tn.indexOf(p); if (i !== -1 && (pos === -1 || i < pos)) pos = i; }
+    if (pos === -1) pos = 0;
+    let ini = Math.max(0, pos - antes);
+    if (ini > 0) { const esp = sec.t.indexOf(' ', ini); ini = esp !== -1 && esp < pos ? esp + 1 : ini; }
+    let fin = Math.min(sec.t.length, ini + largo);
+    if (fin < sec.t.length) { const esp = sec.t.lastIndexOf(' ', fin); if (esp > pos) fin = esp; }
+    const trozo = sec.t.slice(ini, fin), trozoN = sec.tn.slice(ini, fin);
+    // marcas sobre el texto normalizado, aplicadas en las mismas posiciones del texto real
+    const re = new RegExp(pal.map(escRe).sort((a, b) => b.length - a.length).join('|'), 'g');
+    let html = '', ult = 0, m;
+    while ((m = re.exec(trozoN))) { if (!m[0]) { re.lastIndex++; continue; } html += esc(trozo.slice(ult, m.index)) + '<mark>' + esc(trozo.slice(m.index, m.index + m[0].length)) + '</mark>'; ult = m.index + m[0].length; }
+    html += esc(trozo.slice(ult));
+    return (ini > 0 ? '…' : '') + html + (fin < sec.t.length ? '…' : '');
+  }
+  // sinónimos del glosario (nombre en inglés y en español, abreviaturas): "medallion" también encuentra "medallón"
+  let sinonimosBusq = null;
+  function variantesBusq(p) {
+    if (!sinonimosBusq) {
+      sinonimosBusq = new Map();
+      for (const g of C.glosario) {
+        const unas = [...new Set([g.termino, ...(g.alias || [])].map((t) => normalBusq(t).trim()).filter((t) => t && !/\s/.test(t) && t.length > 2).map(raizBusq))];
+        if (unas.length > 1) for (const u of unas) sinonimosBusq.set(u, [...new Set([...(sinonimosBusq.get(u) || []), ...unas])]);
+      }
+    }
+    return sinonimosBusq.get(p) || [p];
+  }
+  function buscarEnCurso(q) {
+    const qn = normalBusq(q).trim(), pal0 = palabrasBusq(q);
+    if (qn.length < 2 || !pal0.length) return [];
+    const grupos = pal0.map(variantesBusq), pal = [...new Set(grupos.flat())];
+    const exacta = new RegExp('(^|[^a-z0-9])' + escRe(qn) + '([^a-z0-9]|$)');
+    const res = [];
+    for (const x of entradasBusq) {
+      if (x.g) glosarioAlDia(x);
+      if (!grupos.every((vs) => vs.some((p) => x.todo.includes(p)))) continue;
+      let score = 0;
+      if (x.tn === qn) score += 60; else if (x.tn.startsWith(qn)) score += 40; else if (exacta.test(x.tn)) score += 30; else if (x.tn.includes(qn)) score += 20;
+      for (const p of pal) { if (x.tn.includes(p)) score += 8; if (x.rn.includes(p)) score += 4; }
+      // la mejor sección: la que nombra lo buscado en su título o lo repite más
+      let mejor = null, mejorSc = -1, cuerpo = 0;
+      for (const s of x.secs) {
+        let sc = 0, hay = 0;
+        for (const p of pal) { const n = contarBusq(s.tn, p, 6); if (n) hay++; sc += n; if (s.hn.includes(p)) { sc += 6; hay++; } }
+        if (!hay) continue;
+        sc += hay * 10;
+        if (sc > mejorSc) { mejorSc = sc; mejor = s; }
+        cuerpo += sc / 4;
+      }
+      // el texto suma, pero con tope: una lección larga que menciona mucho la palabra no le gana a la que la trata en el título
+      score += Math.min(14, cuerpo);
+      if (x.tipo === 'glosario' && x.tn === qn) score += 20;
+      const sec = mejor || x.secs[0];
+      const hrefSec = x.lid && sec && sec.h ? x.href + '?s=' + encodeURIComponent(slug(sec.h.replace(/^[^\p{L}\p{N}¿¡]+/u, ''))) : x.href;
+      // si el título ya nombra todo lo buscado, la lección entera es la respuesta: se abre desde arriba
+      const enTitulo = grupos.every((vs) => vs.some((p) => x.tn.includes(p)));
+      res.push({ x, score, sec: sec && sec.h ? sec.h : '', frag: sec && sec.t ? fragmentoBusq(sec, pal) : '', corto: () => (sec && sec.t ? fragmentoBusq(sec, pal, 120, 22) : ''), hrefSec, href: enTitulo ? x.href : hrefSec });
+    }
+    return res.sort((a, b) => b.score - a.score || a.x.t.localeCompare(b.x.t));
+  }
+  // ¿Quisiste decir…?: la palabra más parecida (distancia de edición) entre títulos y términos del glosario
+  let vocabBusq = null;
+  function sugerirBusq(q) {
+    if (!vocabBusq) {
+      const fuentes = [...entradasBusq.map((x) => x.tn), ...C.modulos.map((m) => normalBusq(m.titulo)), ...C.glosario.map((g) => normalBusq((g.alias || []).join(' ')))];
+      vocabBusq = [...new Set(fuentes.flatMap((t) => t.split(/[^a-z0-9]+/)).filter((w) => w.length > 3))];
+    }
+    // distancia de edición con trasposición (kafak → kafka cuenta como un solo cambio)
+    const dist = (a, b) => {
+      if (Math.abs(a.length - b.length) > 2) return 9;
+      const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+      for (let j = 1; j <= b.length; j++) d[0][j] = j;
+      for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) {
+        d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+      }
+      return d[a.length][b.length];
+    };
+    let cambio = false;
+    const out = normalBusq(q).split(/\s+/).filter(Boolean).map((w) => {
+      if (w.length < 4 || entradasBusq.some((x) => x.todo.includes(raizBusq(w)))) return w;
+      let mejor = w, d = w.length > 7 ? 3 : w.length > 4 ? 2 : 1;
+      for (const v of vocabBusq) { const k = dist(w, v); if (k < d || (k === d && mejor === w)) { d = k; mejor = v; } }
+      if (mejor !== w) cambio = true;
+      return mejor;
+    });
+    return cambio ? out.join(' ') : '';
+  }
   const sIn = $('#search'), sOut = $('#searchResults');
   let sSel = 0;
-  sIn.addEventListener('focus', () => { if (!buscarPedido) { buscarPedido = true; cargarExtra('glosario').catch(() => {}); cargarScript(`assets/content/_buscar.js?v=${C.vBuscar || C.generado}`).catch(() => { buscarPedido = false; }); } });
+  sIn.addEventListener('focus', pedirTextoBusq);
+  alLlegarTexto.add(() => { if (sIn.value.trim().length >= 2 && document.activeElement === sIn) sIn.dispatchEvent(new Event('input')); });
   sIn.addEventListener('input', () => {
-    const q = sIn.value.trim().toLowerCase();
+    const q = sIn.value.trim();
     if (q.length < 2) { sOut.hidden = true; return; }
-    // Orden: primero lo que coincide en el título (mejor si empieza con la búsqueda o es una palabra entera), después
-    // el resumen y, por último, cuántas veces aparece en el texto. Sin tildes y con todas las palabras de la búsqueda.
-    const sinTildes = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const qn = sinTildes(q); const palabras = qn.split(/\s+/).filter(Boolean);
-    const veces = (texto, p) => { let n = 0, i = -1; while (n < 8 && (i = texto.indexOf(p, i + 1)) !== -1) n++; return n; };
-    const res = searchIndex.map((x) => {
-      if (x._b !== x.body) { x._b = x.body; x._bn = sinTildes(x.body); x._tn = sinTildes(x.t); x._rn = sinTildes(x.resumen || ''); }
-      if (!palabras.every((p) => x._tn.includes(p) || x._bn.includes(p))) return { x, score: 0 };
-      let score = 0;
-      if (x._tn.startsWith(qn)) score += 40; else if (new RegExp('(^|[^a-z0-9])' + qn.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z0-9]|$)').test(x._tn)) score += 30; else if (x._tn.includes(qn)) score += 20;
-      for (const p of palabras) { if (x._tn.includes(p)) score += 8; if (x._rn.includes(p)) score += 4; score += veces(x._bn, p); }
-      return { x, score };
-    }).filter((r) => r.score > 0).sort((a, b) => b.score - a.score).slice(0, 12);
+    const todos = buscarEnCurso(q), res = todos.slice(0, 8);
     sSel = 0;
-    sOut.innerHTML = res.map((r, i) => `<a href="${r.x.href}" class="${i === 0 ? 'active' : ''}">${esc(r.x.t)}<small>${esc(r.x.s)}</small></a>`).join('') || '<div class="muted small" style="padding:8px">Sin resultados</div>';
+    const todosHref = '#/buscar?q=' + encodeURIComponent(q);
+    const sug = !todos.length && sugerirBusq(q);
+    sOut.innerHTML = res.map((r, i) => `<a href="${esc(r.href)}" class="${i === 0 ? 'active' : ''}">${esc(r.x.t)}<small>${esc(r.x.s)}${r.sec ? ` · ${esc(r.sec)}` : ''}</small>${r.frag ? `<span class="sr-frag">${r.corto()}</span>` : ''}</a>`).join('')
+      + (todos.length ? `<a href="${esc(todosHref)}" class="sr-todos">Ver todos los resultados (${todos.length}) →</a>`
+        : `<div class="muted small" style="padding:8px">Sin resultados${sug ? ` · <a href="#/buscar?q=${encodeURIComponent(sug)}" class="sr-sug">¿Quisiste decir <b>${esc(sug)}</b>?</a>` : ''}${textoBuscarListo ? '' : ' · <span>cargando el texto de las lecciones…</span>'}</div>`);
     sOut.hidden = false;
   });
   sIn.addEventListener('keydown', (e) => {
     const items = $$('a', sOut);
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); sSel = (sSel + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length; items.forEach((a, i) => a.classList.toggle('active', i === sSel)); }
-    if (e.key === 'Enter' && items[sSel]) { location.hash = items[sSel].getAttribute('href'); sOut.hidden = true; sIn.blur(); }
+    if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && items.length) { e.preventDefault(); sSel = (sSel + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length; items.forEach((a, i) => a.classList.toggle('active', i === sSel)); items[sSel].scrollIntoView({ block: 'nearest' }); }
+    if (e.key === 'Enter') {
+      const q = sIn.value.trim();
+      const dest = items[sSel] ? items[sSel].getAttribute('href') : q.length >= 2 ? '#/buscar?q=' + encodeURIComponent(q) : null;
+      if (dest) { location.hash = dest; sOut.hidden = true; sIn.blur(); }
+    }
     if (e.key === 'Escape') { sOut.hidden = true; sIn.blur(); }
   });
   sIn.addEventListener('blur', () => setTimeout(() => { sOut.hidden = true; }, 150));
   sOut.addEventListener('click', () => { sOut.hidden = true; sIn.value = ''; });
-  document.addEventListener('keydown', (e) => { if (e.key === '/' && !/INPUT|TEXTAREA/.test(document.activeElement.tagName) && !document.activeElement.closest('.CodeMirror')) { e.preventDefault(); sIn.focus(); } });
+  document.addEventListener('keydown', (e) => { if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) && !document.activeElement.isContentEditable && !document.activeElement.closest('.CodeMirror')) { e.preventDefault(); sIn.focus(); } });
+
+  // página con todos los resultados (#/buscar?q=…): filtros por tipo y por módulo, fragmento de cada sección
+  function viewBuscar(q, tipo, mod) {
+    pedirTextoBusq();
+    const dibujar = () => {
+      const todos = q.trim().length >= 2 ? buscarEnCurso(q) : [];
+      const nLec = todos.filter((r) => r.x.tipo === 'leccion').length, nGlos = todos.length - nLec;
+      const porMod = new Map();
+      for (const r of todos) if (r.x.lid) { const m = LESSON_BY_ID.get(r.x.lid).modulo; porMod.set(m.id, { m, n: ((porMod.get(m.id) || {}).n || 0) + 1 }); }
+      let res = todos.filter((r) => (tipo ? r.x.tipo === tipo : true) && (mod ? r.x.lid && LESSON_BY_ID.get(r.x.lid).modulo.id === mod : true));
+      const MAX = 60, mas = res.length > MAX; res = res.slice(0, MAX);
+      const url = (t, m) => '#/buscar?q=' + encodeURIComponent(q) + (t ? '&tipo=' + t : '') + (m ? '&m=' + m : '');
+      const sug = !todos.length && q.trim().length >= 2 ? sugerirBusq(q) : '';
+      main.innerHTML = `<div class="container">
+        <h1 style="margin-bottom:6px">🔎 Buscar en el curso</h1>
+        <form class="busq-form" role="search" id="busqForm"><label class="sr-only" for="busqQ">Qué quieres buscar</label>
+          <input id="busqQ" type="search" class="gloss-search" value="${esc(q)}" placeholder="Por ejemplo: join, partición, ventana, idempotente…" autocomplete="off">
+          <button class="btn btn-primary" type="submit">Buscar</button></form>
+        ${q.trim().length < 2 ? '<p class="muted">Escribe al menos dos letras. Se busca en el título, el texto y los ejemplos de las lecciones y en el glosario, sin importar tildes ni mayúsculas.</p>' : `
+        <p class="muted busq-resumen" aria-live="polite">${todos.length ? `<b>${todos.length}</b> resultado${todos.length === 1 ? '' : 's'} para <b>“${esc(q)}”</b>: ${nLec} ${nLec === 1 ? 'lección' : 'lecciones'} y ${nGlos} término${nGlos === 1 ? '' : 's'} del glosario.` : `Sin resultados para <b>“${esc(q)}”</b>.`}${textoBuscarListo ? '' : ' <span class="small">(cargando el texto completo de las lecciones…)</span>'}</p>
+        ${todos.length ? `<div class="chips busq-chips" role="group" aria-label="Filtrar por tipo">
+          <a class="chip ${!tipo ? 'active' : ''}" href="${url('', mod)}">Todo <span class="muted">${todos.length}</span></a>
+          <a class="chip ${tipo === 'leccion' ? 'active' : ''}" href="${url('leccion', mod)}">📚 Lecciones <span class="muted">${nLec}</span></a>
+          <a class="chip ${tipo === 'glosario' ? 'active' : ''}" href="${url('glosario', '')}">📖 Glosario <span class="muted">${nGlos}</span></a>
+        </div>
+        ${porMod.size > 1 && tipo !== 'glosario' ? `<div class="chips busq-chips busq-mods" role="group" aria-label="Filtrar por módulo">${mod ? `<a class="chip" href="${url(tipo, '')}">Todos los módulos</a>` : ''}${[...porMod.values()].sort((a, b) => b.n - a.n).slice(0, 10).map(({ m, n }) => `<a class="chip ${mod === m.id ? 'active' : ''}" href="${url(tipo, m.id)}">${m.icono} ${esc(m.titulo)} <span class="muted">${n}</span></a>`).join('')}</div>` : ''}` : ''}
+        <ol class="busq-lista">${res.map((r) => `<li class="card busq-item"><a href="${esc(r.href)}"><b class="busq-tit">${esc(r.x.t)}</b></a>
+          <div class="small muted">${esc(r.x.s)}${r.sec ? ` · sección <a href="${esc(r.hrefSec)}">${esc(r.sec)}</a>` : ''}</div>
+          ${r.frag ? `<p class="busq-frag">${r.frag}</p>` : ''}</li>`).join('')}</ol>
+        ${mas ? `<p class="muted small">Se muestran los primeros ${MAX}. Agrega otra palabra o filtra por módulo para afinar.</p>` : ''}
+        ${!todos.length ? `<div class="callout callout-nota"><p>${sug ? `¿Quisiste decir <a href="#/buscar?q=${encodeURIComponent(sug)}"><b>${esc(sug)}</b></a>? ` : ''}Prueba con una sola palabra, con el nombre en inglés (por ejemplo <i>join</i> en vez de <i>unión</i>) o mira el <a href="#/glosario">glosario</a> completo.</p></div>` : ''}`}
+      </div>`;
+      $('#busqForm').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#busqQ').value.trim(); location.hash = '#/buscar?q=' + encodeURIComponent(v); });
+    };
+    dibujar();
+    if (!textoBuscarListo) {
+      const donde = location.hash;
+      const f = () => { alLlegarTexto.delete(f); if (location.hash === donde) dibujar(); };
+      alLlegarTexto.add(f);
+    }
+  }
 
   // ---------------------------------------------------------------- router
   function parse() {
@@ -3886,7 +4053,8 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     const parts = pathPart.split('/').filter(Boolean);
     const params = new URLSearchParams(query || '');
     if (!parts.length) return { name: 'home' };
-    if (parts[0] === 'l' && LESSON_BY_ID.has(parts[1])) return { name: 'lesson', lesson: LESSON_BY_ID.get(parts[1]) };
+    if (parts[0] === 'l' && LESSON_BY_ID.has(parts[1])) return { name: 'lesson', lesson: LESSON_BY_ID.get(parts[1]), sec: params.get('s') || '' };
+    if (parts[0] === 'buscar') return { name: 'buscar', q: params.get('q') || '', tipo: ['leccion', 'glosario'].includes(params.get('tipo')) ? params.get('tipo') : '', mod: params.get('m') || '' };
     if (parts[0] === 'm' && MODULE_BY_ID.has(parts[1])) return { name: 'module', module: MODULE_BY_ID.get(parts[1]) };
     if (parts[0] === 'lab' && ['sql', 'python', 'pyspark', 'terminal', 'dbt', 'airflow'].includes(parts[1])) return { name: 'lab-' + parts[1], libre: params.get('modo') === 'libre' };
     if (parts[0] === 'examen' && (parts[1] === 'final' || EXAMENES.has(parts[1]))) return { name: 'examen', examen: parts[1], dom: params.has('d') ? Number(params.get('d')) : null };
@@ -3963,6 +4131,16 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     const html = X.bloqueAnuncio(tipo); if (!html) return;
     const donde = main.querySelector('.leccion-col') || main.querySelector('.page') || main; donde.insertAdjacentHTML('beforeend', html); X.activarAnuncios(main);
   }
+  // al llegar desde el buscador (#/l/<lección>?s=<sección>): baja a esa sección y la resalta un momento
+  function irASeccion(sec) {
+    setTimeout(() => {
+      const body = $('#lessonBody'); if (!body) return;
+      const h2 = document.getElementById(sec) || $$('h2', body).find((x) => slug(x.textContent.replace(/^[^\p{L}\p{N}¿¡]+/u, '')) === sec);
+      if (!h2) return;
+      h2.scrollIntoView({ block: 'start' });
+      h2.classList.add('busq-destino'); setTimeout(() => h2.classList.remove('busq-destino'), 2600);
+    }, 80);
+  }
   function route() {
     const r = parse();
     if (GRUPOS[r.name] && !(grupoCargas[r.name] && grupoCargas[r.name].listo)) {
@@ -3982,12 +4160,13 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', 'mis-datos': 'Mis datos', cuenta: 'Mi cuenta', privacidad: 'Privacidad', terminos: 'Términos de uso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', github: 'GitHub (práctica)', fabric: 'Microsoft Fabric (práctica)', airflow: 'Airflow (práctica)', snowflake: 'Snowflake (práctica)', bigquery: 'BigQuery (práctica)', 'pedalia-dev': 'API de Pedalia (portal de desarrolladores)', jupyter: 'JupyterLab (práctica)', excel: 'Excel (práctica)', herramientas: 'Herramientas de práctica', vscode: 'VS Code (práctica)' };
+    const titles = { home: 'Academia de Datos', buscar: 'Buscar en el curso', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', 'mis-datos': 'Mis datos', cuenta: 'Mi cuenta', privacidad: 'Privacidad', terminos: 'Términos de uso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', github: 'GitHub (práctica)', fabric: 'Microsoft Fabric (práctica)', airflow: 'Airflow (práctica)', snowflake: 'Snowflake (práctica)', bigquery: 'BigQuery (práctica)', 'pedalia-dev': 'API de Pedalia (portal de desarrolladores)', jupyter: 'JupyterLab (práctica)', excel: 'Excel (práctica)', herramientas: 'Herramientas de práctica', vscode: 'VS Code (práctica)' };
     if (r.name === 'home') { viewHome(); ponerAnuncio('portada'); }
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'diagnostico') viewDiagnostico();
     else if (r.name === 'module') viewModule(r.module);
-    else if (r.name === 'lesson') conContenido([r.lesson.modulo.id], () => { viewLesson(r.lesson); ponerAnuncio('leccion'); });
+    else if (r.name === 'lesson') conContenido([r.lesson.modulo.id], () => { viewLesson(r.lesson); ponerAnuncio('leccion'); if (r.sec) irASeccion(r.sec); });
+    else if (r.name === 'buscar') viewBuscar(r.q, r.tipo, r.mod);
     else if (r.name.startsWith('lab-') && !r.libre && window.Misiones) {
       const lab = r.name.slice(4);
       window.Misiones.vista(main, { h, Store, toast, createEditor, Engines: window.Engines, renderSqlOutput, renderConsole, ensureSql, ensureSqlCurso, loadingInto, pyLoadingMsg, compiledBlock, libre: () => { location.hash = `#/lab/${lab}?modo=libre`; } }, lab);
