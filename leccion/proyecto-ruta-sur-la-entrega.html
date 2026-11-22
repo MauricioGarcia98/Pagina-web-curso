@@ -89,12 +89,29 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>La revisión mira los últimos 3 días cerrados y acepta lo que era cierto hasta hace 6 horas (los eventos tardíos cambian el resultado).</p>
 <h2>Definición de terminado</h2>
 <ul>
-<li><input disabled="" type="checkbox"> La revisión pasa completa.</li>
-<li><input disabled="" type="checkbox"> Reprocesar un día no duplica nada.</li>
-<li><input disabled="" type="checkbox"> Sabes cuánto esperas eventos tardíos y qué pasa con los que llegan después.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  La revisión pasa completa.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Reprocesar un día no duplica nada.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Sabes cuánto esperas eventos tardíos y qué pasa con los que llegan después.</li>
 </ul>
 <h2>La revisión</h2>
 <div></div>
+
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>La revisión automática equivale a las pruebas del CI y a los <em>expectations</em> del pipeline en Databricks. Antes del pull request, corre en el SQL Editor la consulta de control de pedidos y pega el resultado en la descripción.</p>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>04-silver.png</code>: la telemetría limpia en el catálogo.</li>
+<li><code>04-gold.png</code>: la tabla de entregas con el SLA por pedido.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
+</div>
+
 
 <h2>Resumen</h2>
 <ul>

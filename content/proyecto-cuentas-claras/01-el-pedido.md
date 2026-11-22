@@ -34,6 +34,18 @@ Las definiciones exactas están en [Fuentes y accesos](#/l/proyecto-cuentas-clar
 "MRR" parece obvio hasta que preguntas: ¿un plan anual de 790 USD es 790 de MRR? (No: es 65,83.) ¿Una prueba gratis cuenta? (No.) ¿Un cliente moroso? (Depende de la empresa: acá sí, hasta que se da de baja.) Escribe la definición con finanzas **antes** de escribir SQL.
 :::
 
+:::real En tu computadora y en la web real
+En una empresa SaaS, "cuánto facturamos" tiene varias respuestas. Antes de tocar datos, escribe en `docs/definiciones.md` qué es **MRR**, qué cuenta como cliente activo y cómo se trata un descuento, y hazlo aprobar por finanzas.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `01-definiciones.png`: tus definiciones de negocio aprobadas.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

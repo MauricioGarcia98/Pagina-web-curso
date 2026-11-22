@@ -195,7 +195,7 @@ ORDER BY cliente_id, fecha_carga;</code></pre>
 <p><strong>Parquet</strong>: formato <strong>binario y columnar</strong>. Guarda los tipos, comprime muchísimo y permite leer solo las columnas que necesitas. Es el estándar en big data (Spark, Databricks, BigQuery, Athena). No se puede abrir con un editor de texto: se lee con herramientas de datos.</p>
 <p><strong>Delta Lake</strong> (y sus primos <strong>Iceberg</strong> y <strong>Hudi</strong>): Parquet + un registro de transacciones. Agrega actualizaciones seguras (ACID), historial de versiones (<em>time travel</em>) y <code>MERGE</code>. Lo verás en Spark y Databricks.</p>
 <div class="table-wrap"><table><thead><tr>
-<th></th>
+<th><span class="sr-only">Concepto</span></th>
 <th>CSV</th>
 <th>JSON</th>
 <th>Parquet</th>
@@ -283,7 +283,7 @@ ORDER BY cliente_id, fecha_carga;</code></pre>
 
 <p>¿Por qué no se analiza directo en la base de la app? Porque una consulta de &quot;ventas de los últimos 5 años&quot; lee millones de filas, y mientras tanto la app, que necesita responder en milisegundos para que los clientes puedan comprar, se pone lenta. Por eso los datos se <strong>copian</strong> a un sistema pensado para analizar. Esa copia es, justamente, el pipeline que construye un ingeniero de datos.</p>
 <div class="table-wrap"><table><thead><tr>
-<th></th>
+<th><span class="sr-only">Concepto</span></th>
 <th>OLTP (la app)</th>
 <th>OLAP (el análisis)</th>
 </tr>
@@ -357,6 +357,7 @@ wc -l datos/ventas_2024_12.csv
 duckdb -c &quot;COPY (SELECT * FROM 'datos/ventas_2024_12.csv') TO 'ventas.parquet' (FORMAT parquet)&quot;
 ls -lh datos/ventas_2024_12.csv ventas.parquet
 duckdb -c &quot;SELECT canal, COUNT(*) FROM 'ventas.parquet' GROUP BY canal&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(5)</span></summary><ol><li><code class="bx-linea">head -3 datos/ventas_2024_12.csv</code><span><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas). <code>-3</code> = las primeras 3 líneas</span></li><li><code class="bx-linea">wc -l datos/ventas_2024_12.csv</code><span><code>wc</code>: cuenta líneas, palabras y caracteres. <code>-l</code> = solo cuenta líneas (en un CSV, filas + el encabezado)</span></li><li><code class="bx-linea">duckdb -c &quot;COPY (SELECT * FROM 'datos/ventas_2024_12.csv') TO 'ventas.parquet' (FORMAT parquet)&quot;</code><span><code>duckdb</code>: DuckDB: base de datos analítica en un solo archivo; consulta CSV y Parquet directamente. <code>-c</code> = ejecuta esa consulta y sale</span></li><li><code class="bx-linea">ls -lh datos/ventas_2024_12.csv ventas.parquet</code><span><code>ls</code>: lista los archivos y carpetas. <code>-lh</code> = formato largo con tamaños legibles</span></li><li><code class="bx-linea">duckdb -c &quot;SELECT canal, COUNT(*) FROM 'ventas.parquet' GROUP BY canal&quot;</code><span><code>duckdb</code>: DuckDB: base de datos analítica en un solo archivo; consulta CSV y Parquet directamente. <code>-c</code> = ejecuta esa consulta y sale</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Reto: con <code>duckdb -c &quot;DESCRIBE SELECT * FROM &#39;ventas.parquet&#39;&quot;</code>, mira los tipos de cada columna: el CSV no los guarda, el Parquet sí.</p>
 <p>Documentación oficial: <a href="https://duckdb.org/docs/current/data/parquet/overview">Parquet en DuckDB</a> · <a href="https://parquet.apache.org/docs/overview/">Apache Parquet</a></p>
 </div>

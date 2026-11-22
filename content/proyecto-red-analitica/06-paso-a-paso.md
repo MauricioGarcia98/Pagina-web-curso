@@ -194,6 +194,20 @@ DELETE FROM red.silver.resultados WHERE paciente_id IN (SELECT paciente_id FROM 
 
 (El documento exacto lo dice el ticket del delegado de protección de datos.)
 
+:::real En tu computadora y en la web real
+Para repetirlo en tu nube: **Azure Portal** para la cuenta de almacenamiento y el **Key Vault** (la clave SSH privada se guarda como secreto, nunca en el repositorio); **Databricks** para las vistas por laboratorio, silver seudonimizada y gold; un **job** que baja los archivos del SFTP cada día. El borrado por derecho al olvido se prueba con una consulta antes y después, y se guarda como evidencia.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `06-vistas.png`: las vistas por laboratorio unidas en silver.
+- `06-seudonimo.png`: silver sin datos personales (solo el seudónimo).
+- `06-olvido.png`: la consulta antes y después del borrado.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

@@ -23,6 +23,18 @@ autoevaluacion: ¿Sabes cómo enterarte antes de que retiren un modelo? | ¿Sabe
 - **No reintentar**: 429 y 529 son normales; espera lo que dice `Retry-After` y vuelve a intentar.
 :::
 
+:::real En tu computadora y en la web real
+Cuando el proveedor retira un modelo, avisa con fecha en su página de *deprecations*: se prueba el modelo nuevo con la misma evaluación antes de cambiar. Un intento de inyección de prompt se registra como incidente de seguridad, con su ticket y su arreglo.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `04-cambio-modelo.png`: la evaluación del modelo viejo y del nuevo, lado a lado.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Resumen
 
 - Un proveedor de IA cambia: modelos que se retiran, caídas, respuestas distintas.

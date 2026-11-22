@@ -31,6 +31,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 pedalia estado
 ls -R ~/pedalia/entrega
 cat ~/pedalia/entrega/LEEME.md</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">pedalia exportar --dia 1</code><span><code>pedalia</code>: el sistema de la app de Pedalia en la terminal del curso (en una empresa sería su API o una exportación automática). <code>exportar</code> genera la exportación de un día, como haría el sistema de la app</span></li><li><code class="bx-linea">pedalia estado</code><span><code>pedalia</code>: el sistema de la app de Pedalia en la terminal del curso (en una empresa sería su API o una exportación automática). <code>estado</code> muestra qué días ya se exportaron y qué falta</span></li><li><code class="bx-linea">ls -R ~/pedalia/entrega</code><span><code>ls</code>: lista los archivos y carpetas. <code>-R</code> = entra también a las subcarpetas</span></li><li><code class="bx-linea">cat ~/pedalia/entrega/LEEME.md</code><span><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <h2>2. Mirar antes de cargar</h2>
 <div class="callout callout-analogia"><div class="callout-title">🧠 El control de llegada en un almacén</div>
 
@@ -41,14 +42,19 @@ cat ~/pedalia/entrega/LEEME.md</code></pre>
 <pre tabindex="0"><code class="language-bash">cd ~/pedalia/entrega/2026-11-09
 head -5 viajes_2026-11-09.csv            # columnas y formato
 wc -l viajes_2026-11-09.csv              # filas (incluye el encabezado)</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">cd ~/pedalia/entrega/2026-11-09</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">head -5 viajes_2026-11-09.csv</code><span><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas). <code>-5</code> = las primeras 5 líneas<br><i class="bx-com">Nota del ejemplo: columnas y formato</i></span></li><li><code class="bx-linea">wc -l viajes_2026-11-09.csv</code><span><code>wc</code>: cuenta líneas, palabras y caracteres. <code>-l</code> = solo cuenta líneas (en un CSV, filas + el encabezado)<br><i class="bx-com">Nota del ejemplo: filas (incluye el encabezado)</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p><strong>¿Hay viajes repetidos?</strong> El LEEME avisa que el sistema reintenta y puede repetir filas:</p>
 <pre tabindex="0"><code class="language-bash">cut -d, -f1 viajes_2026-11-09.csv | sort | uniq -d | wc -l      # cuántos viaje_id aparecen más de una vez</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">cut -d, -f1 viajes_2026-11-09.csv | sort | uniq -d | wc -l</code><span><code>cut</code>: corta columnas de un texto <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>sort</code>: ordena líneas <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>uniq</code>: junta líneas iguales que están seguidas (por eso casi siempre va después de <code>sort</code>). <code>-d</code> = muestra solo las repetidas <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>wc</code>: cuenta líneas, palabras y caracteres. <code>-l</code> = solo cuenta líneas (en un CSV, filas + el encabezado)<br><i class="bx-com">Nota del ejemplo: cuántos viaje_id aparecen más de una vez</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p><strong>¿Viajes sin cerrar?</strong> Fin vacío (columna 6):</p>
 <pre tabindex="0"><code class="language-bash">awk -F, 'NR &gt; 1 &amp;&amp; $6 == &quot;&quot;' viajes_2026-11-09.csv | wc -l</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">awk -F, 'NR &gt; 1 &amp;&amp; $6 == &quot;&quot;' viajes_2026-11-09.csv | wc -l</code><span><code>awk</code>: recorre un archivo línea por línea y filtra o calcula por columnas (<code>$1</code> es la primera, <code>NR</code> el número de fila). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe) <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>wc</code>: cuenta líneas, palabras y caracteres. <code>-l</code> = solo cuenta líneas (en un CSV, filas + el encabezado)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p><strong>¿Bicis fuera de estación?</strong> Destino 99:</p>
 <pre tabindex="0"><code class="language-bash">awk -F, 'NR &gt; 1 &amp;&amp; $4 == 99' viajes_2026-11-09.csv | wc -l</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">awk -F, 'NR &gt; 1 &amp;&amp; $4 == 99' viajes_2026-11-09.csv | wc -l</code><span><code>awk</code>: recorre un archivo línea por línea y filtra o calcula por columnas (<code>$1</code> es la primera, <code>NR</code> el número de fila). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe) <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>wc</code>: cuenta líneas, palabras y caracteres. <code>-l</code> = solo cuenta líneas (en un CSV, filas + el encabezado)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p><strong>Lo que nadie avisó con precisión:</strong> &quot;la estación 13 tuvo problemas de reloj&quot;. ¿Qué significa en los datos? Busca viajes que terminan antes de empezar. Como las fechas tienen formato <code>AAAA-MM-DD HH:MM:SS</code>, se pueden comparar como texto:</p>
 <pre tabindex="0"><code class="language-bash">awk -F, 'NR &gt; 1 &amp;&amp; $6 != &quot;&quot; &amp;&amp; $6 &lt; $5 {print $3}' viajes_2026-11-09.csv | sort | uniq -c</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">awk -F, 'NR &gt; 1 &amp;&amp; $6 != &quot;&quot; &amp;&amp; $6 &lt; $5 {print $3}' viajes_2026-11-09.csv | sort | uniq -c</code><span><code>awk</code>: recorre un archivo línea por línea y filtra o calcula por columnas (<code>$1</code> es la primera, <code>NR</code> el número de fila). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe) <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>sort</code>: ordena líneas <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>uniq</code>: junta líneas iguales que están seguidas (por eso casi siempre va después de <code>sort</code>). <code>-c</code> = antepone cuántas veces aparece cada una</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Todos salen de la estación 13. Ahora ya sabes <strong>qué</strong> problema causa el reloj: viajes con duración negativa.</p>
 <div class="callout callout-tip"><div class="callout-title">💡 Anota los números</div>
 
@@ -91,6 +97,7 @@ EOF
 git add docs/contrato.md
 git commit -m &quot;Contrato de datos de viajes v1&quot;
 git push -u origin docs/contrato</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(6)</span></summary><ol><li><code class="bx-linea">cd ~/pedalia-datos</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">git checkout -b docs/contrato</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella). <code>-b</code> = crea la rama nueva</span></li><li><code class="bx-linea">cat &gt; docs/contrato.md &lt;&lt; 'EOF'</code><span><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe). Lo que sigue hasta <code>EOF</code> es el contenido del archivo</span></li><li><code class="bx-linea">git add docs/contrato.md</code><span><code>git</code>: Git: guarda la historia de tu código. <code>add</code> prepara cambios para el próximo commit (los pasa al área de preparación)</span></li><li><code class="bx-linea">git commit -m &quot;Contrato de datos de viajes v1&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>commit</code> guarda una foto de los cambios preparados, con un mensaje. <code>-m</code> = el mensaje del commit</span></li><li><code class="bx-linea">git push -u origin docs/contrato</code><span><code>git</code>: Git: guarda la historia de tu código. <code>push</code> sube tus commits al repositorio remoto (GitHub). <code>-u</code> = recuerda la rama remota: después alcanza con <code>git push</code></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Abre el pull request y, en la descripción, pega los números que encontraste. En un equipo real, este PR lo revisan quien produce los datos (equipo de la app) y quien los usa (finanzas): es el momento de discutir las reglas, <strong>antes</strong> de que haya números publicados.</p>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ El contrato no es eterno</div>
 
@@ -106,6 +113,28 @@ git push -u origin docs/contrato</code></pre>
 <li><strong>Creer que el LEEME dice todo</strong>. Avisaba &quot;problemas de reloj&quot;, pero no que eso produce duraciones negativas. Siempre verifica con los datos.</li>
 <li><strong>Dejar las reglas en un chat</strong>: cuando alguien pregunte en tres meses por qué los viajes de la estación 13 no suman, la respuesta tiene que estar en el repositorio.</li>
 </ul>
+</div>
+
+
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>En la empresa, la exportación no la generas tú: el equipo de la app la deja en una carpeta compartida, un bucket o un SFTP, y te avisa por correo. Lo que sí es idéntico es <strong>cómo la miras</strong>:</p>
+<ol>
+<li>Abre la <strong>terminal</strong> de tu computadora y entra a la carpeta donde quedó el archivo (<code>cd</code>).</li>
+<li>Usa <code>head</code>, <code>wc -l</code>, <code>cut | sort | uniq -d</code> y <code>awk</code> exactamente como acá: funcionan igual en macOS, Linux y WSL. En Windows sin WSL, usa <strong>Git Bash</strong>.</li>
+<li>El contrato se escribe en VS Code (<code>docs/contrato.md</code>) y se sube con un <strong>pull request</strong> en github.com: botón <em>Compare &amp; pull request</em> después del <code>git push</code>.</li>
+</ol>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>03-exploracion.png</code>: la terminal con los conteos (filas, repetidas, sin fin, error de reloj).</li>
+<li><code>03-contrato-pr.png</code>: el pull request del contrato en github.com, con tus números en la descripción.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
 </div>
 
 

@@ -45,6 +45,7 @@ print(spark.version)</code></pre>
 python -m venv .venv &amp;&amp; source .venv/bin/activate
 pip install pyspark==4.2.1          # trae el motor completo (unos 400 MB)
 pyspark                             # abre una consola interactiva con `spark` ya creada</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">java -version</code><span><code>java</code>: ejecuta un programa de Java (Spark lo necesita instalado). <code>-version</code> = muestra la versión instalada<br><i class="bx-com">Nota del ejemplo: debe decir 17, 21 o 25; si no, instala un JDK (por ejemplo, Temurin)</i></span></li><li><code class="bx-linea">python -m venv .venv &amp;&amp; source .venv/bin/activate</code><span><code>python</code>: ejecuta Python: un archivo .py, un módulo (<code>-m</code>) o la consola interactiva. <code>-m</code> = ejecuta un módulo instalado (por ejemplo, <code>python -m venv</code> o <code>python -m pytest</code>) <span class="bx-tubo">→ si sale bien, sigue el próximo</span><br><code>source</code>: ejecuta un archivo en la terminal actual (por ejemplo, para activar un entorno virtual)</span></li><li><code class="bx-linea">pip install pyspark==4.2.1</code><span><code>pip</code>: el instalador de paquetes de Python. <code>install</code> instala paquetes (de PyPI o de un requirements.txt con <code>-r</code>)<br><i class="bx-com">Nota del ejemplo: trae el motor completo (unos 400 MB)</i></span></li><li><code class="bx-linea">pyspark</code><span><code>pyspark</code>: abre una consola de PySpark<br><i class="bx-com">Nota del ejemplo: abre una consola interactiva con `spark` ya creada</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>En tu computadora Spark corre en <strong>modo local</strong>: el driver y los executors son hilos del mismo proceso, y usa todos los núcleos del procesador (<code>local[*]</code>). Es la misma API que en un clúster, solo que en una máquina.</p>
 <p>Si en vez de correr Spark en tu máquina quieres <strong>conectarte</strong> a uno que ya existe (un clúster o Databricks), usa el cliente liviano de <strong>Spark Connect</strong>, que no necesita Java:</p>
 <pre data-norun tabindex="0"><code class="language-python"># pip install pyspark-client
@@ -54,7 +55,7 @@ spark = SparkSession.builder.remote(&quot;sc://mi-servidor:15002&quot;).getOrCre
 <h2>Qué es un DataFrame</h2>
 <p>Un <strong>DataFrame</strong> es una tabla: filas y columnas con nombre y tipo, como una tabla de SQL o una hoja de Excel. La diferencia está en lo que no ves:</p>
 <div class="table-wrap"><table><thead><tr>
-<th></th>
+<th><span class="sr-only">Concepto</span></th>
 <th>Tabla de SQLite / hoja de Excel</th>
 <th>DataFrame de Spark</th>
 </tr>

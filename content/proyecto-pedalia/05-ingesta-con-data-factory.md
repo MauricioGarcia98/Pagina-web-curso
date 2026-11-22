@@ -115,6 +115,27 @@ Abre el PR y fusiónalo cuando el check esté en verde.
 - **Error *UserErrorSourceBlobNotExist***: el comodín no encontró nada. Revisa que la fecha exista en landing y que la carpeta del dataset sea `pedalia` (el comodín se aplica desde ahí).
 :::
 
+:::real En tu computadora y en la web real
+En Azure real, todo esto se hace en **Azure Data Factory Studio** (`adf.azure.com`, o desde el recurso → *Launch studio*):
+
+1. **Manage → Linked services → New → Azure Data Lake Storage Gen2**, con *System-assigned managed identity* (sin claves).
+2. **Author → Datasets → New dataset** para el origen (landing) y el destino (bronze), con el parámetro de fecha.
+3. **Author → Pipelines → New pipeline**: arrastra una actividad *Copy data* y configura *Source* y *Sink*.
+4. **Publish all** y después **Add trigger → Trigger now** para probarlo. El resultado se ve en **Monitor**.
+
+Si conectas Git en *Manage → Git configuration*, cada cambio queda en el repositorio, igual que en el paso 6.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `05-pipeline.png`: el lienzo del pipeline con la actividad Copy.
+- `05-monitor.png`: la ejecución en verde en *Monitor*, con filas leídas y escritas.
+- `05-linked-service.png`: el linked service con identidad administrada (sin claves a la vista).
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

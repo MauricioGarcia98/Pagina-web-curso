@@ -38,6 +38,18 @@ Lo que devuelve un modelo hay que tratarlo como cualquier dato que llega de afue
 Es como contratar a un pasante muy rápido que nunca dice "no sé": hay que darle instrucciones claras, revisar una muestra de su trabajo, no mostrarle los datos que no necesita y no dejar que un cliente le dicte qué hacer.
 :::
 
+:::real En tu computadora y en la web real
+Un proyecto con un modelo de lenguaje necesita, desde el día uno, **qué datos pueden mandarse al modelo** (nada de datos personales sin permiso) y cómo se va a medir si responde bien. Escríbelo en `docs/ia.md` y apruébalo con quien pidió el proyecto.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `01-ia.png`: tus reglas de uso del modelo y de evaluación.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

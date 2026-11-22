@@ -86,6 +86,7 @@ jobs:
 <pre tabindex="0"><code class="language-bash">git add .github/workflows/tests.yml
 git commit -m &quot;CI: ruff y pytest en cada push y pull request&quot;
 git push</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">git add .github/workflows/tests.yml</code><span><code>git</code>: Git: guarda la historia de tu código. <code>add</code> prepara cambios para el próximo commit (los pasa al área de preparación)</span></li><li><code class="bx-linea">git commit -m &quot;CI: ruff y pytest en cada push y pull request&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>commit</code> guarda una foto de los cambios preparados, con un mensaje. <code>-m</code> = el mensaje del commit</span></li><li><code class="bx-linea">git push</code><span><code>git</code>: Git: guarda la historia de tu código. <code>push</code> sube tus commits al repositorio remoto (GitHub)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Pestaña <strong>Actions</strong>:</p>
 <figure class="captura"><img src="assets/img/guias/github/g13-actions.webp" alt="La lista de ejecuciones: el workflow tests corrió con el commit que acabas de subir" loading="lazy"><figcaption>La lista de ejecuciones: el workflow tests corrió con el commit que acabas de subir</figcaption></figure>
 
@@ -115,6 +116,7 @@ git push</code></pre>
 <p>Quita la línea <code>import csv</code> de <code>resumen.py</code>:</p>
 <pre tabindex="0"><code class="language-bash">git commit -am &quot;Quita el import sin usar que marcó ruff (F401)&quot;
 git push</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">git commit -am &quot;Quita el import sin usar que marcó ruff (F401)&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>commit</code> guarda una foto de los cambios preparados, con un mensaje</span></li><li><code class="bx-linea">git push</code><span><code>git</code>: Git: guarda la historia de tu código. <code>push</code> sube tus commits al repositorio remoto (GitHub)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <figure class="captura"><img src="assets/img/guias/github/g13-actions-verde.webp" alt="La segunda ejecución quedó en verde" loading="lazy"><figcaption>La segunda ejecución quedó en verde</figcaption></figure>
 
 
@@ -122,6 +124,7 @@ git push</code></pre>
 <h2>Paso 6 — Desde la terminal</h2>
 <pre tabindex="0"><code class="language-bash">gh run list            # últimas ejecuciones
 gh run view            # detalle de la última</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">gh run list</code><span><code>gh</code>: la CLI de GitHub: hace desde la terminal lo que harías en github.com. <code>run</code> mira las ejecuciones de GitHub Actions (<code>list</code>)<br><i class="bx-com">Nota del ejemplo: últimas ejecuciones</i></span></li><li><code class="bx-linea">gh run view</code><span><code>gh</code>: la CLI de GitHub: hace desde la terminal lo que harías en github.com. <code>run</code> mira las ejecuciones de GitHub Actions (<code>view</code>)<br><i class="bx-com">Nota del ejemplo: detalle de la última</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
 
 <ul>

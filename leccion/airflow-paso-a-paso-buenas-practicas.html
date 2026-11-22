@@ -90,18 +90,19 @@ def descargar():
 <pre data-norun tabindex="0"><code class="language-bash">export AIRFLOW__CORE__LOAD_EXAMPLES=False
 export AIRFLOW__CORE__PARALLELISM=64
 export AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL=60</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">export AIRFLOW__CORE__LOAD_EXAMPLES=False</code><span><code>export</code>: define una variable de entorno para esta terminal y los programas que lances desde ella</span></li><li><code class="bx-linea">export AIRFLOW__CORE__PARALLELISM=64</code><span><code>export</code>: define una variable de entorno para esta terminal y los programas que lances desde ella</span></li><li><code class="bx-linea">export AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL=60</code><span><code>export</code>: define una variable de entorno para esta terminal y los programas que lances desde ella</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <h2>Paso 6 — Lista de revisión de un pull request</h2>
 <figure class="captura"><img src="assets/img/guias/airflow/a21-details.webp" alt="Details de carga_ventas_tienda - dueño, etiquetas, catchup, start_date fija y límites" loading="lazy"><figcaption>Details de carga_ventas_tienda - dueño, etiquetas, catchup, start_date fija y límites</figcaption></figure>
 
 
 <ul>
-<li><input disabled="" type="checkbox"> <code>start_date</code> fija, <code>catchup</code> explícito.</li>
-<li><input disabled="" type="checkbox"> <code>owner</code> y <code>tags</code> definidos; <code>doc_md</code> dice qué hace y qué mirar si falla.</li>
-<li><input disabled="" type="checkbox"> Tareas idempotentes y atómicas.</li>
-<li><input disabled="" type="checkbox"> Nada pesado ni lecturas de variables en el nivel superior.</li>
-<li><input disabled="" type="checkbox"> Sin contraseñas en el código: conexiones o secrets backend.</li>
-<li><input disabled="" type="checkbox"> Reintentos y alertas de falla.</li>
-<li><input disabled="" type="checkbox"> Pasa la prueba de DagBag del CI.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  <code>start_date</code> fija, <code>catchup</code> explícito.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  <code>owner</code> y <code>tags</code> definidos; <code>doc_md</code> dice qué hace y qué mirar si falla.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Tareas idempotentes y atómicas.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Nada pesado ni lecturas de variables en el nivel superior.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Sin contraseñas en el código: conexiones o secrets backend.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Reintentos y alertas de falla.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Pasa la prueba de DagBag del CI.</li>
 </ul>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
 

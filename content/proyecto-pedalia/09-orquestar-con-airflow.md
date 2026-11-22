@@ -149,6 +149,26 @@ Arréglalo (vuelve al comodín correcto, publica) y usa **Clear** sobre la tarea
 - **Re-ejecutar todo el DAG desde cero** después de un arreglo: con **Clear** sobre la tarea que falló se retoma desde ahí, sin repetir lo que ya salió bien.
 :::
 
+:::real En tu computadora y en la web real
+Para correr Airflow en tu computadora, lo más simple es **Docker** con la **Astro CLI** (`astro dev init` y `astro dev start`), o el `docker-compose.yaml` oficial de Airflow. La interfaz queda en `http://localhost:8080`:
+
+1. **Admin → Connections**: una conexión por herramienta (Azure, Databricks, Snowflake, BigQuery). Los secretos van ahí, no en el código.
+2. Copias el archivo del DAG a la carpeta `dags/` y aparece solo en la lista.
+3. En el DAG, **Trigger DAG w/ config** para correrlo con una fecha concreta, y la vista **Grid** para ver cada tarea.
+
+En una empresa, Airflow suele ser administrado (Cloud Composer, MWAA o Astronomer) y el DAG llega por un pull request que despliega el CI.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `09-grid.png`: la vista Grid del DAG con todas las tareas en verde.
+- `09-conexiones.png`: la lista de conexiones (sin mostrar contraseñas).
+- `09-log-falla.png`: el log de una tarea que falló y cómo la reintentaste.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

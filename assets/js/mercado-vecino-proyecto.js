@@ -19,7 +19,7 @@
   function panelAccesos(el) {
     Host.sincronizar(); const C = MV.claves();
     const fila = (k, v, secreto) => `<tr><td class="small muted" style="white-space:nowrap">${esc(k)}</td><td><code class="mv-valor" data-secreto="${secreto ? 1 : 0}">${esc(secreto ? '••••••••••••' : v)}</code> <button class="btn btn-ghost btn-sm" data-copiar="${esc(v)}" title="Copiar">⧉</button>${secreto ? ` <button class="btn btn-ghost btn-sm" data-ver="${esc(v)}">ver</button>` : ''}</td></tr>`;
-    el.innerHTML = `<div class="card mv-panel"><h4 style="margin-top:0">✉️ Accesos para el equipo de datos</h4>
+    el.innerHTML = `<div class="card mv-panel"><h3 style="margin-top:0;font-size:1.05em">✉️ Accesos para el equipo de datos</h3>
       <p class="small muted">De: plataforma@mercadovecino.example · Credenciales de prueba, generadas solo para ti (otra persona tiene otras). En un trabajo real esto no se pega en el código: va al Key Vault. También las ves en la terminal con <code>mercado accesos</code>.</p>
       <table class="tabla-mini"><tbody>
         <tr><th colspan="2">Base operacional · réplica de solo lectura (PostgreSQL 16)</th></tr>
@@ -41,7 +41,7 @@
       const temas = MV.kafkaTemas(t); const liq = MV.liquidaciones(t)[0];
       const hoy = MV.diaLocal(t); const pedHoy = [...est.pedidos.values()].filter((p) => MV.diaLocal(p.creado_en) === hoy).length;
       const grupos = Object.entries(D.grupos || {});
-      el.innerHTML = `<div class="card mv-panel"><h4 style="margin-top:0">📡 Las fuentes, ahora mismo</h4>
+      el.innerHTML = `<div class="card mv-panel"><h3 style="margin-top:0;font-size:1.05em">📡 Las fuentes, ahora mismo</h3>
         <p class="small muted">Hora de la tienda: <b>${esc(MV.tsSql(t - 3 * HORA).slice(0, 16))}</b> (Ciudad del Río, UTC-3) · se actualiza sola cada 30 segundos.</p>
         <div class="mv-grilla">
           <div><b>🐘 Base</b><br><span class="small">${est.pedidos.size} pedidos (${pedHoy} hoy) · ${est.clientes.size} clientes</span></div>
@@ -170,7 +170,7 @@
   ];
 
   function panelRevisar(el) {
-    el.innerHTML = `<div class="card mv-panel"><h4 style="margin-top:0">🔎 Revisar mi entrega</h4><p class="small muted">Lee el estado real de tus herramientas (Key Vault, lago, Databricks) y lo compara con lo que pasó de verdad en la tienda. No modifica nada.</p><button class="btn btn-primary btn-sm" data-revisar>Revisar ahora</button><ol class="pedalia-chequeos"></ol></div>`;
+    el.innerHTML = `<div class="card mv-panel"><h3 style="margin-top:0;font-size:1.05em">🔎 Revisar mi entrega</h3><p class="small muted">Lee el estado real de tus herramientas (Key Vault, lago, Databricks) y lo compara con lo que pasó de verdad en la tienda. No modifica nada.</p><button class="btn btn-primary btn-sm" data-revisar>Revisar ahora</button><ol class="pedalia-chequeos"></ol></div>`;
     const ol = el.querySelector('ol');
     el.querySelector('[data-revisar]').addEventListener('click', async (ev) => {
       const b = ev.currentTarget; b.disabled = true; b.textContent = 'Revisando…'; ol.innerHTML = ''; Host.sincronizar();

@@ -21,6 +21,18 @@ autoevaluacion: ¿Sabes calcular el churn de MRR? | ¿Sabes qué le pasa a tu re
 - **Medir con un solo nombre de evento**: cuando la app cambia su plan de tracking, el uso "cae" sin que nadie haya dejado de usar el producto.
 :::
 
+:::real En tu computadora y en la web real
+Un cambio de precios o de nombres de eventos llega por correo o por el changelog del proveedor. Cada uno es un ticket: ajustas el código en una rama, lo pruebas, abres un pull request y avisas a finanzas si cambian números ya publicados.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `04-ticket.png`: un ticket resuelto y su pull request.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Resumen
 
 - Las métricas SaaS necesitan historia (eventos) y definiciones.

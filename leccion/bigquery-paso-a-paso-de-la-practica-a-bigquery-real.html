@@ -55,6 +55,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 gcloud config set project tienda-andina-dev
 bq ls
 bq query --use_legacy_sql=false 'SELECT canal, COUNT(*) AS pedidos FROM tienda.pedidos GROUP BY canal'</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">gcloud auth login</code><span><code>gcloud</code>: la CLI de Google Cloud: hace desde la terminal lo mismo que la consola de Google Cloud. <code>auth</code> inicia sesión y maneja credenciales (<code>login</code>)</span></li><li><code class="bx-linea">gcloud config set project tienda-andina-dev</code><span><code>gcloud</code>: la CLI de Google Cloud: hace desde la terminal lo mismo que la consola de Google Cloud. <code>config</code> elige proyecto, región y otros valores por defecto (<code>set project</code>)</span></li><li><code class="bx-linea">bq ls</code><span><code>bq</code>: la CLI de BigQuery. <code>ls</code> lista datasets o tablas</span></li><li><code class="bx-linea">bq query --use_legacy_sql=false 'SELECT canal, COUNT(*) AS pedidos FROM tienda.pedidos GROUP BY canal'</code><span><code>bq</code>: la CLI de BigQuery. <code>query</code> ejecuta una consulta SQL</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <figure class="captura"><img src="assets/img/guias/bigquery/q23-bq-cli.webp" alt="bq ls y bq query en la terminal del curso (con su propio proyecto simulado)" loading="lazy"><figcaption>bq ls y bq query en la terminal del curso (con su propio proyecto simulado)</figcaption></figure>
 
 
@@ -119,11 +120,11 @@ bq query --use_legacy_sql=false 'SELECT canal, COUNT(*) AS pedidos FROM tienda.p
 
 <h2>Paso 5 — Tu primera semana</h2>
 <ul>
-<li><input disabled="" type="checkbox"> Presupuesto con alertas y cuota diaria de bytes en el proyecto.</li>
-<li><input disabled="" type="checkbox"> Tu acceso: Job User en el proyecto y Data Viewer en los datasets que necesitas.</li>
-<li><input disabled="" type="checkbox"> Revisar <code>INFORMATION_SCHEMA.JOBS</code> para entender qué corre y cuánto cuesta.</li>
-<li><input disabled="" type="checkbox"> Aprender las tablas grandes: cómo están particionadas y con qué clustering.</li>
-<li><input disabled="" type="checkbox"> Cada consulta, primero con el validador.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Presupuesto con alertas y cuota diaria de bytes en el proyecto.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Tu acceso: Job User en el proyecto y Data Viewer en los datasets que necesitas.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Revisar <code>INFORMATION_SCHEMA.JOBS</code> para entender qué corre y cuánto cuesta.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Aprender las tablas grandes: cómo están particionadas y con qué clustering.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Cada consulta, primero con el validador.</li>
 </ul>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
 

@@ -262,6 +262,27 @@ with DAG("mercado_horario", start_date=datetime(2026, 11, 1), schedule="@hourly"
 
 Las líneas de cada liquidación también se pueden traer con Data Factory: un servicio vinculado REST con la cabecera `Authorization` sacada del Key Vault (`pagoya-auth`) y un Copy con la fecha como parámetro.
 
+:::real En tu computadora y en la web real
+Para repetir esta solución en tu propia nube:
+
+1. **Azure Portal**: grupo de recursos, cuenta de almacenamiento (con *hierarchical namespace*), **Key Vault** (*Secrets → Generate/Import*) y Event Hubs.
+2. **Databricks**: *Catalog* para el catálogo y los esquemas; *Workspace* para los notebooks; *Workflows* para el job que corre todo cada día; los secretos se leen con `dbutils.secrets.get` desde un *secret scope* respaldado por el Key Vault.
+3. **Terminal**: `az` para crear los recursos, `databricks` para desplegar el bundle y `git` para el repositorio.
+
+Al terminar, borra el grupo de recursos si usas crédito gratuito.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `06-arquitectura.png`: el diagrama de la solución (exportado con ⬇ PNG).
+- `06-merge.png`: el resultado del MERGE en silver.
+- `06-conciliacion.png`: la tabla de conciliación entre pedidos y pagos.
+- `06-job.png`: el job diario en verde.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

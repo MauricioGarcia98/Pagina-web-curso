@@ -175,6 +175,25 @@ Para tu portafolio: el repositorio `pedalia-datos` con el README (arquitectura, 
 - **No avisar mientras se arregla**: dos horas de silencio con un tablero viejo generan más daño que el incidente.
 :::
 
+:::real En tu computadora y en la web real
+En la vida real, la alerta llega por **correo, Slack/Teams o PagerDuty** (lo que configuraste en el job o en Airflow). El orden es el mismo de la lección:
+
+1. Avisas en el canal del equipo **antes** de arreglar: qué falla, a quién afecta y cuándo vuelves a escribir.
+2. Arreglas en una rama, con un pull request que alguien revisa.
+3. Re-ejecutas solo la tarea que falló (*Clear* sobre la tarea en Airflow, o *Repair run* en el job de Databricks).
+4. El postmortem va en el repositorio o en la wiki del equipo, sin buscar culpables.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `11-alerta.png`: la tarea en rojo y el error en el log.
+- `11-pr-arreglo.png`: el pull request del arreglo.
+- `11-postmortem.png`: el postmortem en Markdown en github.com.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

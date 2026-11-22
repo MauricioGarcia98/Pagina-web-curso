@@ -60,6 +60,18 @@ ORDER BY actualizado_en;
 Ninguna nota es mala intención: es lo que Diego sabía. Pero cada "cosa que sé" es una **hipótesis** hasta que la verificas contra las fuentes. Y cada "cosa rara" es un **caso de prueba** gratis: si tu solución explica todas, vas bien. Contrasta el documento con el hilo de Slack: ahí ya hay varias respuestas.
 :::
 
+:::real En tu computadora y en la web real
+En la empresa, estas notas están en la **wiki** (Confluence, Notion), en un repositorio viejo y en hilos de Slack/Teams. Léelas con un archivo abierto al lado (`docs/hallazgos.md` en VS Code) y anota, por cada nota: **qué dice**, **si sigue siendo cierto** (lo verificas con una consulta) y **qué decisión implica** para tu diseño.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `03-hallazgos.png`: tu `hallazgos.md` con lo que se confirmó y lo que no.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

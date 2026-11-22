@@ -88,6 +88,7 @@ CMD [&quot;python&quot;, &quot;-m&quot;, &quot;pipeline&quot;]</code></pre>
 
 
 <pre data-norun tabindex="0"><code class="language-bash">docker run --rm -e ENTORNO=prod -e DB_HOST=db.interna --env-file secretos.env tienda-pipeline:1.4.0</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">docker run --rm -e ENTORNO=prod -e DB_HOST=db.interna --env-file secretos.env tienda-pipeline:1.4.0</code><span><code>docker</code>: Docker: empaqueta una app con todo lo que necesita (imagen) y la ejecuta aislada (contenedor). <code>run</code> crea y arranca un contenedor desde una imagen. <code>--rm</code> = borra el contenedor al terminar; <code>-e</code> = define una variable de entorno</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <div class="table-wrap"><table><thead><tr>
 <th>Dato</th>
 <th>Dónde va</th>

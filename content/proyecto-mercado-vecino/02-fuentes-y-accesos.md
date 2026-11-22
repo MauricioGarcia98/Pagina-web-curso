@@ -249,6 +249,24 @@ PagoYa transfiere al banco **una vez por día** el neto de lo que se liquida ese
 
 `reporte.csv`: `fecha_liquidacion,tipo,pago_id,pedido_id,bruto,comision,neto,moneda`, montos en **pesos**.
 
+:::real En tu computadora y en la web real
+Cada fuente se toca de verdad así:
+
+- **PostgreSQL**: con `psql` en la terminal o con un cliente gráfico (DBeaver, gratis), usando el host, usuario y contraseña que te da IT. Nunca pegues la contraseña en el código: va en una variable de entorno o en el Key Vault.
+- **Debezium → Event Hubs (Kafka)**: lo levanta el equipo de plataforma; tú lees el tópico con `kcat` o con Spark.
+- **PagoYa (API)**: la documentación está en su portal de desarrolladores; pruebas con `curl` o con Postman/Bruno.
+- **Webhooks**: se configuran en el **portal web de PagoYa** (Configuración → Webhooks), apuntando al contenedor `landing` de tu lago.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `02-psql.png`: la terminal conectada a la base, con `\dt` mostrando las tablas.
+- `02-api.png`: una respuesta de la API de PagoYa (sin el token a la vista).
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

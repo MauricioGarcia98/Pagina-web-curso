@@ -29,6 +29,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p><a href="#/generador?esc=iot&n=40&semilla=11&desde=2024-01-01&hasta=2024-12-31&nulos=2&atipicos=1&tardios=2">🏭 Generar los datos del proyecto</a> · Escenario <strong>Sensores industriales</strong>: <code>plantas</code>, <code>dispositivos</code>, <code>lecturas</code> (una por hora y dispositivo, con huecos) y <code>fallas</code>. Antes de cada falla, la temperatura y la vibración derivan durante unas 48 horas.</p>
 <pre tabindex="0"><code class="language-bash">generar-datos iot --filas 6 --semilla 11
 duckdb -c &quot;SELECT estado, COUNT(*), ROUND(AVG(vibracion_mm_s),2) FROM '~/datos/generados/iot/lecturas.csv' GROUP BY estado&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">generar-datos iot --filas 6 --semilla 11</code><span><code>generar-datos</code>: comando del curso que genera los datos de práctica (tus datos salen de una semilla propia)</span></li><li><code class="bx-linea">duckdb -c &quot;SELECT estado, COUNT(*), ROUND(AVG(vibracion_mm_s),2) FROM '~/datos/generados/iot/lecturas.csv' GROUP BY estado&quot;</code><span><code>duckdb</code>: DuckDB: base de datos analítica en un solo archivo; consulta CSV y Parquet directamente. <code>-c</code> = ejecuta esa consulta y sale</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <h2>Arquitectura</h2>
 <figure class="diagrama"><figcaption>Mantenimiento predictivo</figcaption></figure>
 
@@ -104,12 +105,39 @@ with mlflow.start_run(run_name=&quot;hgb_v1&quot;):
 </div>
 
 
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Todo el proyecto se hace en <strong>tu computadora</strong>:</p>
+<ol>
+<li><strong>Terminal</strong>: Terminal en macOS, o Ubuntu con WSL en Windows (<code>wsl --install</code> en PowerShell como administrador). Ahí corres <code>git</code>, <code>uv</code> y las CLIs.</li>
+<li><strong>VS Code</strong> con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).</li>
+<li><strong>Una carpeta por proyecto</strong> con <code>git init</code> desde el primer minuto, y un repositorio público en <strong>github.com → New repository</strong> para mostrarlo.</li>
+</ol>
+<ul>
+<li><strong>Fases 1 y 2, local</strong>: DuckDB desde Python o desde un notebook de Jupyter (<code>uv add duckdb jupyterlab</code> y <code>uv run jupyter lab</code>).</li>
+<li><strong>Fase 3, MLflow</strong>: localmente con <code>uv run mlflow ui</code> (abre <code>http://localhost:5000</code>) o en Databricks, donde cada experimento queda en <em>Experiments</em> y el modelo en <em>Models</em> de Unity Catalog.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio y enlázalas desde el README.</p>
+<ul>
+<li><code>01-serie.png</code>: el gráfico de la serie de un sensor antes de una falla.</li>
+<li><code>02-features.png</code>: la tabla de features con la etiqueta, mostrando el corte temporal.</li>
+<li><code>03-mlflow.png</code>: la comparación de ejecuciones en MLflow (métricas y parámetros).</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.</p>
+</div>
+
+
 <h2>Entregables</h2>
 <ul>
-<li><input disabled="" type="checkbox"> Análisis de la serie: huecos, ciclo diario y deriva antes de las fallas (con gráfico).</li>
-<li><input disabled="" type="checkbox"> Tabla de features documentada y explicación de cómo evitaste la fuga.</li>
-<li><input disabled="" type="checkbox"> Comparación de al menos dos modelos (o un modelo contra una regla simple) en MLflow.</li>
-<li><input disabled="" type="checkbox"> Métrica de negocio: fallas anticipadas y falsas alarmas por semana sobre el período de prueba.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Análisis de la serie: huecos, ciclo diario y deriva antes de las fallas (con gráfico).</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Tabla de features documentada y explicación de cómo evitaste la fuga.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Comparación de al menos dos modelos (o un modelo contra una regla simple) en MLflow.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Métrica de negocio: fallas anticipadas y falsas alarmas por semana sobre el período de prueba.</li>
 </ul>
 <h2>Práctica</h2>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Anomalías en una serie de sensores</div>

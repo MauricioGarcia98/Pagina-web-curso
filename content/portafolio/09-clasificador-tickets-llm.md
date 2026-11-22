@@ -115,6 +115,28 @@ Y una sección de **errores analizados**: 10 casos mal clasificados con por qué
 Con un conjunto de evaluación etiquetado y una métrica por categoría, comparando contra una regla simple. Salida estructurada validada contra un esquema y una categoría de "no seguro" que deriva a una persona. Sin datos personales innecesarios en el prompt, registro de entradas y salidas para auditar, y monitoreo de costo, latencia y distribución de categorías.
 :::
 
+:::real En tu computadora y en la web real
+Todo el proyecto se hace en **tu computadora**:
+
+1. **Terminal**: Terminal en macOS, o Ubuntu con WSL en Windows (`wsl --install` en PowerShell como administrador). Ahí corres `git`, `uv` y las CLIs.
+2. **VS Code** con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).
+3. **Una carpeta por proyecto** con `git init` desde el primer minuto, y un repositorio público en **github.com → New repository** para mostrarlo.
+
+- La clave de la API del modelo va en una **variable de entorno** (`export ...` en la terminal o un archivo `.env` que está en `.gitignore`), nunca en el código ni en el repositorio.
+- En el portal del proveedor del modelo, configura un **límite de gasto** antes de correr el lote completo.
+- Prueba primero con 20 tickets, mira las respuestas a mano y recién después corre todo.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio y enlázalas desde el README.
+
+- `01-prompt.png`: el prompt final en el editor.
+- `02-evaluacion.png`: la matriz de confusión o la tabla de aciertos por categoría.
+- `03-costo.png`: el costo del lote completo según el portal del proveedor.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.
+:::
+
 ## Entregables
 
 - [ ] Prompt versionado y la tabla de resultados por versión.

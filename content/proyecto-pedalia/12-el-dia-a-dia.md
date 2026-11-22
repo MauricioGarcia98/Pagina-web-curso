@@ -39,6 +39,19 @@ Escribe la definición en una línea: qué cuentas, de qué día (en qué zona h
 - **INNER JOIN contra un maestro incompleto**: las filas sin pareja desaparecen. Un LEFT JOIN y un control de "huérfanos" lo hacen visible.
 :::
 
+:::real En tu computadora y en la web real
+En un equipo de datos, los tickets viven en **Jira, Azure DevOps Boards, Linear o GitHub Issues**. El flujo es el mismo que en el tablero de esta lección: tomas un ticket, lo pasas a *En curso*, preguntas en el hilo lo que no está claro, lo resuelves con un pull request que menciona el ticket (`Closes #12` en GitHub, o la clave `PED-12` en Jira) y respondes con el número **y su definición**.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `12-tablero.png`: el tablero con los tickets que resolviste.
+- `12-respuesta.png`: una respuesta a un área de negocio con el número, la definición y la consulta que lo respalda.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

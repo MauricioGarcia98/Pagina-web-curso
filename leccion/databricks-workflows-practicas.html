@@ -115,6 +115,7 @@ filas = dbutils.jobs.taskValues.get(taskKey=&quot;bronze&quot;, key=&quot;filas&
 <p>Abre la terminal (⌨ Terminal) y conéctate al workspace simulado:</p>
 <pre data-norun tabindex="0"><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
 code job.json</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net</code><span><code>databricks</code>: la CLI de Databricks: maneja el espacio de trabajo desde la terminal. <code>auth</code> inicia sesión y guarda el perfil del espacio de trabajo (<code>login</code>)</span></li><li><code class="bx-linea">code job.json</code><span><code>code</code>: abre un archivo o carpeta en VS Code (<code>code .</code> abre la carpeta actual)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>En el editor, pega este JSON (es el de arriba, más corto) y guarda:</p>
 <pre tabindex="0"><code class="language-json">{&quot;name&quot;: &quot;lakehouse_diario&quot;,
  &quot;parameters&quot;: [{&quot;name&quot;: &quot;fecha&quot;, &quot;default&quot;: &quot;2024-12-31&quot;}],
@@ -130,6 +131,7 @@ JOB=$(databricks jobs list | grep lakehouse_diario | cut -d&quot; &quot; -f1)
 databricks jobs run-now $JOB
 databricks jobs run-now $JOB --json '{&quot;job_parameters&quot;: {&quot;fecha&quot;: &quot;2024-12-30&quot;}}'
 databricks jobs list-runs --job-id $JOB</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(5)</span></summary><ol><li><code class="bx-linea">databricks jobs create --json @job.json</code><span><code>databricks</code>: la CLI de Databricks: maneja el espacio de trabajo desde la terminal. <code>jobs</code> crea, lista o ejecuta jobs (trabajos programados) (<code>create</code>)</span></li><li><code class="bx-linea">JOB=$(databricks jobs list | grep lakehouse_diario | cut -d&quot; &quot; -f1)</code><span><code>jobs</code>: lista los comandos que dejaste corriendo en segundo plano <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>grep</code>: busca líneas que contienen un texto o patrón <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>cut</code>: corta columnas de un texto</span></li><li><code class="bx-linea">databricks jobs run-now $JOB</code><span><code>databricks</code>: la CLI de Databricks: maneja el espacio de trabajo desde la terminal. <code>jobs</code> crea, lista o ejecuta jobs (trabajos programados) (<code>run-now</code>)</span></li><li><code class="bx-linea">databricks jobs run-now $JOB --json '{&quot;job_parameters&quot;: {&quot;fecha&quot;: &quot;2024-12-30&quot;}}'</code><span><code>databricks</code>: la CLI de Databricks: maneja el espacio de trabajo desde la terminal. <code>jobs</code> crea, lista o ejecuta jobs (trabajos programados) (<code>run-now</code>)</span></li><li><code class="bx-linea">databricks jobs list-runs --job-id $JOB</code><span><code>databricks</code>: la CLI de Databricks: maneja el espacio de trabajo desde la terminal. <code>jobs</code> crea, lista o ejecuta jobs (trabajos programados) (<code>list-runs</code>)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>En <code>run-now</code> vas a ver las tareas en el orden del DAG: bronze, silver y después las dos gold, con los parámetros que recibió el job. La segunda ejecución <strong>reprocesa el 30 de diciembre</strong> sin tocar el código: así se arregla un día que salió mal.</p>
 <p>Prueba también romperlo a propósito: cambia en <code>job.json</code> la dependencia de <code>gold_ventas</code> a <code>&quot;silverr&quot;</code> y vuelve a ejecutar <code>databricks jobs create --json @job.json</code>. Databricks rechaza el job porque la tarea de la que depende no existe.</p>
 <div class="recorrido"></div>
@@ -175,15 +177,15 @@ SELECT count(*) AS pedidos_hoy FROM silver.pedidos WHERE fecha_pedido = current_
 <h2>Checklist de un lakehouse profesional</h2>
 <p>Es el resumen de todo el módulo. Si tu proyecto cumple estos puntos, está al nivel de un equipo de datos profesional:</p>
 <ul>
-<li><input disabled="" type="checkbox"> Medallón: bronze (crudo, append), silver (limpio, deduplicado, MERGE), gold (negocio).</li>
-<li><input disabled="" type="checkbox"> Todo en <strong>Unity Catalog</strong>, con catálogos por entorno (<code>dev</code>, <code>prod</code>) y permisos por grupos.</li>
-<li><input disabled="" type="checkbox"> Código en <strong>Git</strong> + <strong>Declarative Automation Bundles</strong> (antes Asset Bundles) + CI/CD; nada se edita a mano en producción.</li>
-<li><input disabled="" type="checkbox"> Jobs con job clusters o serverless, reintentos, timeouts y alertas.</li>
-<li><input disabled="" type="checkbox"> Ingesta incremental (Auto Loader, <code>MERGE</code>, CDF) e idempotente.</li>
-<li><input disabled="" type="checkbox"> Tests: unitarios (pytest) de transformaciones, tests de datos (dbt / expectations).</li>
-<li><input disabled="" type="checkbox"> Mantenimiento: Predictive Optimization u <code>OPTIMIZE</code>/<code>VACUUM</code> programados; Liquid Clustering.</li>
-<li><input disabled="" type="checkbox"> Secretos en Key Vault / secret scopes; acceso a datos con managed identities.</li>
-<li><input disabled="" type="checkbox"> Costos vigilados: auto-terminación, políticas de cómputo, tags y tablas de facturación.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Medallón: bronze (crudo, append), silver (limpio, deduplicado, MERGE), gold (negocio).</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Todo en <strong>Unity Catalog</strong>, con catálogos por entorno (<code>dev</code>, <code>prod</code>) y permisos por grupos.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Código en <strong>Git</strong> + <strong>Declarative Automation Bundles</strong> (antes Asset Bundles) + CI/CD; nada se edita a mano en producción.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Jobs con job clusters o serverless, reintentos, timeouts y alertas.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Ingesta incremental (Auto Loader, <code>MERGE</code>, CDF) e idempotente.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Tests: unitarios (pytest) de transformaciones, tests de datos (dbt / expectations).</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Mantenimiento: Predictive Optimization u <code>OPTIMIZE</code>/<code>VACUUM</code> programados; Liquid Clustering.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Secretos en Key Vault / secret scopes; acceso a datos con managed identities.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Costos vigilados: auto-terminación, políticas de cómputo, tags y tablas de facturación.</li>
 </ul>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Crear y correr un job desde la interfaz</div>
 

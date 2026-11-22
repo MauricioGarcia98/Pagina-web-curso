@@ -220,7 +220,7 @@ Siguiente paso: subirlos al contenedor landing del lago, por ejemplo:
   function descargar(nombre, texto) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([texto], { type: 'text/plain' })); a.download = nombre; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
   function panelEntrega(el) {
     const s = semilla();
-    el.innerHTML = `<div class="card pedalia-panel"><h4 style="margin-top:0">🚲 Tu entrega de datos de Pedalia</h4>
+    el.innerHTML = `<div class="card pedalia-panel"><h3 style="margin-top:0;font-size:1.05em">🚲 Tu entrega de datos de Pedalia</h3>
       <p class="small muted">Semilla <b>${s}</b>: tus archivos son solo tuyos (otra persona recibe otros números). Lo más realista es exportarlos desde la terminal con <code>pedalia exportar</code>; si prefieres, puedes descargarlos acá y subirlos desde el portal.</p>
       <div class="pedalia-dias">${DIAS.map((d, i) => `<div><b>Día ${i + 1}</b> · ${d}${i === 2 ? ' <span class="small muted">(trae una sorpresa)</span>' : ''}<br><button class="btn btn-sm" data-bajar="${i + 1}">⬇ viajes y mantenimientos</button></div>`).join('')}</div>
       <p class="small" style="margin-bottom:0"><button class="btn btn-ghost btn-sm" data-bajar="est">⬇ estaciones.json</button></p></div>`;
@@ -340,7 +340,7 @@ Siguiente paso: subirlos al contenedor landing del lago, por ejemplo:
     }],
   ];
   function panelRevisar(el) {
-    el.innerHTML = `<div class="card pedalia-panel"><h4 style="margin-top:0">🔎 Revisar mi proyecto</h4><p class="small muted">Lee el estado real de cada herramienta de práctica y lo compara con lo que tiene que dar tu entrega (tus números). No modifica nada.</p><button class="btn btn-primary btn-sm" data-revisar>Revisar ahora</button><ol class="pedalia-chequeos"></ol></div>`;
+    el.innerHTML = `<div class="card pedalia-panel"><h3 style="margin-top:0;font-size:1.05em">🔎 Revisar mi proyecto</h3><p class="small muted">Lee el estado real de cada herramienta de práctica y lo compara con lo que tiene que dar tu entrega (tus números). No modifica nada.</p><button class="btn btn-primary btn-sm" data-revisar>Revisar ahora</button><ol class="pedalia-chequeos"></ol></div>`;
     const lista = el.querySelector('.pedalia-chequeos');
     el.querySelector('[data-revisar]').addEventListener('click', async (ev) => {
       const b = ev.currentTarget; b.disabled = true; b.textContent = 'Revisando…'; lista.innerHTML = '';

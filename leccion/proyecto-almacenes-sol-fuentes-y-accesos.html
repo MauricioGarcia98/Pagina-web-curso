@@ -19,12 +19,14 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Sacar una foto diaria de una base de datos operativa</li><li>Paginar una API por sucursal y día</li><li>Leer una planilla hecha para personas</li><li>Aplicar reglas de negocio de ventas y margen</li></ul>
 <h2>Accesos</h2>
 <pre tabindex="0"><code class="language-bash">sol accesos</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">sol accesos</code><span><code>sol</code>: el sistema interno de Almacenes del Sol en la terminal del curso. <code>accesos</code> muestra los accesos que te dio IT</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <figure class="diagrama"><figcaption>Los sistemas de Almacenes del Sol</figcaption></figure>
 
 
 <h2>El ERP · PostgreSQL 9.6 · <code>erp-sol.almacenes.example</code></h2>
 <p>Usuario de <strong>solo lectura</strong>. Tablas: <code>sucursales</code>, <code>categorias</code> y <code>productos</code> (<code>id</code>, <code>sku</code>, <code>nombre</code>, <code>categoria</code>, <code>precio</code>, <code>costo</code>, <code>activo</code>, <code>ult_modif</code>).</p>
 <pre tabindex="0"><code class="language-bash">PGPASSWORD='…' psql -h erp-sol.almacenes.example -U consulta_bi -d erp -c &quot;SELECT sku, nombre, categoria, precio, costo FROM productos LIMIT 5&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">PGPASSWORD='…' psql -h erp-sol.almacenes.example -U consulta_bi -d erp -c &quot;SELECT sku, nombre, categoria, precio, costo FROM productos LI…</code><span><code>psql</code>: el cliente de PostgreSQL en la terminal. <code>-h</code> = el servidor; <code>-U</code> = el usuario; <code>-d</code> = la base de datos; <code>-c</code> = ejecuta esa consulta y sale</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <ul>
 <li>El <strong>proceso nocturno de precios</strong> corre a las <strong>03:00</strong> y pisa <code>precio</code> y <code>costo</code>. Actualiza <code>ult_modif</code>. Saca la foto <strong>después</strong> de las 03:00 (y antes de que abran las sucursales, a las 08:00) para que sea el catálogo con el que se vendió ese día.</li>
 <li>No hay tabla de historial. Lo que cambió ayer ya no se ve hoy.</li>
@@ -58,6 +60,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </ul>
 <h2>La planilla de metas</h2>
 <pre tabindex="0"><code class="language-bash">sol metas descargar</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">sol metas descargar</code><span><code>sol</code>: el sistema interno de Almacenes del Sol en la terminal del curso. <code>metas</code> baja la planilla de metas que mantiene el área comercial</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>La mantiene Planeamiento a mano: una meta de ventas por sucursal y semana (de lunes a domingo). Es una planilla pensada para leerla una persona: títulos, separador <code>;</code>, montos con <code>$</code> y puntos de miles, una fila de totales. Puede cambiar de forma sin aviso.</p>
 <h2>Las reglas (acordadas con Dirección y Comercial)</h2>
 <ul>
@@ -74,6 +77,24 @@ JOIN sol.silver.dim_producto d
   ON d.sku = v.sku
  AND v.fecha &gt;= d.valido_desde
  AND (d.valido_hasta IS NULL OR v.fecha &lt; d.valido_hasta);</code></pre>
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>En la vida real: el ERP viejo (PostgreSQL 9.6) se consulta con <code>psql</code> o DBeaver usando un <strong>usuario de solo lectura</strong> que te da IT; la API de las cajas se prueba con <code>curl</code>; la planilla de metas suele estar en SharePoint o Google Drive y se descarga o se lee con su API. Las contraseñas van al Key Vault.</p>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>02-erp.png</code>: la conexión al ERP y sus tablas.</li>
+<li><code>02-cajas.png</code>: una respuesta de la API de las cajas (sin token).</li>
+<li><code>02-metas.png</code>: la planilla de metas.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -115,11 +115,11 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>La realidad sigue cambiando (llegan disputas, reembolsos, liquidaciones): la revisión acepta lo que era cierto en las <strong>últimas 6 horas</strong>. Si tu tabla es más vieja, vuelve a correr tu proceso.</p>
 <h2>Definición de terminado</h2>
 <ul>
-<li><input disabled="" type="checkbox"> Las cuatro tablas pasan la revisión.</li>
-<li><input disabled="" type="checkbox"> Las credenciales están en un Key Vault y tu código las lee de ahí (o de variables de entorno), no las tiene escritas.</li>
-<li><input disabled="" type="checkbox"> Puedes volver a correr todo sin duplicar nada (idempotente).</li>
-<li><input disabled="" type="checkbox"> Si mañana tu proceso no corre, sabes qué se pierde y cómo recuperarlo (escríbelo en una nota de operación).</li>
-<li><input disabled="" type="checkbox"> Le puedes explicar a Valentina, sin jerga, por qué la liquidación de un día no coincide con las ventas de ese día.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Las cuatro tablas pasan la revisión.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Las credenciales están en un Key Vault y tu código las lee de ahí (o de variables de entorno), no las tiene escritas.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Puedes volver a correr todo sin duplicar nada (idempotente).</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Si mañana tu proceso no corre, sabes qué se pierde y cómo recuperarlo (escríbelo en una nota de operación).</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Le puedes explicar a Valentina, sin jerga, por qué la liquidación de un día no coincide con las ventas de ese día.</li>
 </ul>
 <h2>La revisión</h2>
 <div></div>
@@ -137,6 +137,23 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Calidad</strong>: una tabla de &quot;entregas rechazadas&quot; (firma inválida, repetición) con el motivo, para que seguridad la mire.</li>
 <li><strong>Lo que viene</strong>: en <a href="#/l/proyecto-mercado-vecino-el-dia-a-dia">El día a día</a> van a llegar más pedidos (el resumen diario para el banco, la automatización, Snowflake, el repositorio) e incidentes.</li>
 </ul>
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>La &quot;revisión automática&quot; del curso equivale, en una empresa, a <strong>las pruebas del CI</strong> (GitHub Actions o Azure Pipelines) y a la <strong>revisión del pull request</strong> por otra persona. Antes de pedir revisión, corre tú mismo las consultas de control en Databricks (SQL Editor) y pega los resultados en la descripción del PR: así quien revisa no tiene que adivinar.</p>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>04-tablas.png</code>: las tablas entregadas en <em>Catalog Explorer</em>, con sus columnas.</li>
+<li><code>04-revision.png</code>: la revisión automática del curso (o los checks del CI) en verde.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

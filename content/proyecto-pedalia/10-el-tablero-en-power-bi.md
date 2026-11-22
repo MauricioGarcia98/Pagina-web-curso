@@ -91,6 +91,25 @@ La tarjeta **Viajes** del tablero tiene que dar lo mismo que `viajes`, e **Ingre
 - **Presentar sin comparar contra la fuente**: el primer número equivocado en una reunión le quita confianza a todo el tablero.
 :::
 
+:::real En tu computadora y en la web real
+**Power BI Desktop** es gratuito y solo funciona en Windows (en Mac, usa una máquina virtual o el servicio web):
+
+1. **Inicio → Obtener datos**: *Azure Databricks*, *Snowflake* y *Google BigQuery* son conectores nativos.
+2. **Vista de modelo**: relaciona las tablas con la tabla de fechas y márcala como tabla de fechas (*Herramientas de tabla → Marcar como tabla de fechas*).
+3. **Nueva medida** en la barra de fórmulas para cada medida DAX.
+4. **Archivo → Publicar** lo sube al servicio de Power BI (`app.powerbi.com`), donde se comparte y se programa la actualización.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `10-modelo.png`: la vista de modelo con las relaciones.
+- `10-informe.png`: la página principal del informe.
+- `10-cuadra.png`: la comparación de un total del informe contra la consulta en Databricks.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

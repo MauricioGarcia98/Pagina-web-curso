@@ -38,6 +38,18 @@ El ERP te muestra **el presente**. Si hoy sube el costo del aceite, mañana ya n
 Es como la libreta de precios de un almacén de barrio: si el dueño borra el precio viejo y escribe el nuevo encima, nadie puede saber después cuánto ganó el mes pasado. Si en vez de borrar tacha y anota la fecha, tiene la historia. Una SCD tipo 2 es tachar y anotar la fecha.
 :::
 
+:::real En tu computadora y en la web real
+En un supermercado, "cuánto ganamos" depende de cómo se cuente el costo. Escribe en `docs/definiciones.md` qué es venta neta, margen y cumplimiento de meta, y acuérdalo con Dirección y Comercial antes de programar.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `01-definiciones.png`: las definiciones acordadas.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

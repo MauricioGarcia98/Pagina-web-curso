@@ -103,6 +103,30 @@ FROM pedalia.gold.ingresos_diarios WHERE fecha = '2026-11-09';</code></pre>
 </div>
 
 
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p><strong>Power BI Desktop</strong> es gratuito y solo funciona en Windows (en Mac, usa una máquina virtual o el servicio web):</p>
+<ol>
+<li><strong>Inicio → Obtener datos</strong>: <em>Azure Databricks</em>, <em>Snowflake</em> y <em>Google BigQuery</em> son conectores nativos.</li>
+<li><strong>Vista de modelo</strong>: relaciona las tablas con la tabla de fechas y márcala como tabla de fechas (<em>Herramientas de tabla → Marcar como tabla de fechas</em>).</li>
+<li><strong>Nueva medida</strong> en la barra de fórmulas para cada medida DAX.</li>
+<li><strong>Archivo → Publicar</strong> lo sube al servicio de Power BI (<code>app.powerbi.com</code>), donde se comparte y se programa la actualización.</li>
+</ol>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>10-modelo.png</code>: la vista de modelo con las relaciones.</li>
+<li><code>10-informe.png</code>: la página principal del informe.</li>
+<li><code>10-cuadra.png</code>: la comparación de un total del informe contra la consulta en Databricks.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -65,10 +65,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 mkdir -p ~/sol/erp ~/sol/pos ~/sol/metas
 psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot; -c &quot;\dt&quot;
 psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot; -c &quot;SELECT sku, nombre, categoria, precio, costo, ult_modif FROM productos ORDER BY sku LIMIT 5&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">sol accesos</code><span><code>sol</code>: el sistema interno de Almacenes del Sol en la terminal del curso. <code>accesos</code> muestra los accesos que te dio IT</span></li><li><code class="bx-linea">mkdir -p ~/sol/erp ~/sol/pos ~/sol/metas</code><span><code>mkdir</code>: crea una carpeta. <code>-p</code> = crea también las carpetas intermedias y no falla si ya existe</span></li><li><code class="bx-linea">psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot; -c &quot;\dt&quot;</code><span><code>psql</code>: el cliente de PostgreSQL en la terminal. <code>-c</code> = ejecuta esa consulta y sale</span></li><li><code class="bx-linea">psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot; -c &quot;SELECT sku, nombre, categoria, precio, costo, ult_modif FROM…</code><span><code>psql</code>: el cliente de PostgreSQL en la terminal. <code>-c</code> = ejecuta esa consulta y sale</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>El ERP solo muestra el presente. La foto es la tabla completa, con la <strong>fecha en el nombre del archivo</strong> (de ahí sale <code>valido_desde</code>):</p>
 <pre tabindex="0"><code class="language-bash">HOY=$(date +%F)
 psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot; \
   -c &quot;\copy (SELECT sku, nombre, categoria, precio, costo FROM productos ORDER BY sku) TO '~/sol/erp/productos_$HOY.csv' WITH CSV HEADER&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot;    -c &quot;\copy (SELECT sku, nombre, categoria, precio, costo FROM …</code><span><code>psql</code>: el cliente de PostgreSQL en la terminal. <code>-c</code> = ejecuta esa consulta y sale</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Foto completa, no incremental</div>
 
 <p><code>ult_modif</code> parece un atajo (&quot;traer solo lo que cambió&quot;), pero la reorganización de categorías la cargaron a mano y no la tocó. Una foto completa por día pesa poco (44 filas) y no depende de que todos los procesos actualicen bien esa columna. Y se saca <strong>después de las 03:00</strong>, cuando ya corrió el proceso de precios.</p>
@@ -107,6 +109,7 @@ print(&quot;sin cierre todavía:&quot;, faltan)</code></pre>
 <h2>Paso 3 · La planilla</h2>
 <pre tabindex="0"><code class="language-bash">sol metas descargar -o ~/sol/metas/metas.csv
 head -5 ~/sol/metas/metas.csv</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">sol metas descargar -o ~/sol/metas/metas.csv</code><span><code>sol</code>: el sistema interno de Almacenes del Sol en la terminal del curso. <code>metas</code> baja la planilla de metas que mantiene el área comercial</span></li><li><code class="bx-linea">head -5 ~/sol/metas/metas.csv</code><span><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas). <code>-5</code> = las primeras 5 líneas</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Antes de la reorganización, la planilla tenía títulos, <code>;</code> y montos con <code>$</code> y puntos: había que saltear filas y limpiar. Después quedó en formato largo (una fila por sucursal y semana) con <code>codigo_sucursal</code>. Se une <strong>por código</strong>, nunca por nombre: el nombre de Centro cambió.</p>
 <h2>Paso 4 · Al lago</h2>
 <pre tabindex="0"><code class="language-bash">az login
@@ -116,6 +119,7 @@ az storage container create --account-name stsol -n landing
 ID=$(az storage account show -n stsol -g rg-sol --query id -o tsv)
 az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID
 az storage blob upload-batch --account-name stsol -d landing/sol -s ~/sol</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(6)</span></summary><ol><li><code class="bx-linea">az login</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>login</code> inicia sesión en tu cuenta de Azure (abre el navegador)</span></li><li><code class="bx-linea">az group create -n rg-sol -l eastus2</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>group</code> crea, lista o borra grupos de recursos (<code>create</code>). <code>-n</code> = nombre del recurso; <code>-l</code> = región donde se crea el recurso</span></li><li><code class="bx-linea">az storage account create -n stsol -g rg-sol -l eastus2 --sku Standard_LRS --hns true</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>account create</code>). <code>-n</code> = nombre del recurso; <code>-g</code> = grupo de recursos donde está o se crea el recurso; <code>-l</code> = región donde se crea el recurso; <code>--sku</code> = el plan o tamaño del recurso (define precio y capacidad)</span></li><li><code class="bx-linea">az storage container create --account-name stsol -n landing</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>container create</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>role</code> permisos: quién puede hacer qué (RBAC) (<code>assignment create</code>)</span></li><li><code class="bx-linea">az storage blob upload-batch --account-name stsol -d landing/sol -s ~/sol</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload-batch</code>)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <h2>Paso 5 · Databricks</h2>
 <p>Las fotos, con la fecha sacada del nombre del archivo (<code>productos_2026-11-16.csv</code> → posición 11, 10 caracteres):</p>
 <pre data-norun tabindex="0"><code class="language-sql">CREATE EXTERNAL LOCATION lago_sol URL 'abfss://landing@stsol.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
@@ -182,6 +186,7 @@ WHERE l.fecha = '2026-11-18' AND d.categoria = 'BEB';</code></pre>
 <pre tabindex="0"><code class="language-bash">az keyvault create -n kv-sol -g rg-sol -l eastus2
 az keyvault secret set --vault-name kv-sol -n erp-clave --value 'Sol…' -o none
 az keyvault secret set --vault-name kv-sol -n pos-key --value 'pos_…' -o none</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">az keyvault create -n kv-sol -g rg-sol -l eastus2</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>create</code>). <code>-n</code> = nombre del recurso; <code>-g</code> = grupo de recursos donde está o se crea el recurso; <code>-l</code> = región donde se crea el recurso</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-sol -n erp-clave --value 'Sol…' -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-sol -n pos-key --value 'pos_…' -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <pre data-norun tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import DAG
 from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
@@ -189,6 +194,23 @@ from airflow.providers.databricks.operators.databricks import DatabricksRunNowOp
 with DAG(&quot;sol_diario&quot;, start_date=datetime(2026, 11, 1), schedule=&quot;30 5 * * *&quot;, catchup=False, tags=[&quot;sol&quot;]):
     DatabricksRunNowOperator(task_id=&quot;foto_y_gold&quot;, job_name=&quot;sol_diario&quot;)</code></pre>
 <p>A las 05:30: después del proceso de precios (03:00) y del cierre de cajas (02:00), y antes de que abran las sucursales (08:00).</p>
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>En tu nube: la foto diaria del ERP se baja con una tarea programada; los tickets de las cajas y la planilla van al lago (<strong>Azure Storage</strong>); <strong>Databricks</strong> arma la dimensión SCD2 y las tablas gold; un <strong>DAG de Airflow</strong> coordina todo y lee los secretos del <strong>Key Vault</strong>.</p>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>05-dag.png</code>: el DAG con todas las tareas en verde.</li>
+<li><code>05-gold.png</code>: la tabla de cumplimiento semanal.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

@@ -27,7 +27,7 @@
   function panelFuentes(el) {
     const pintar = () => {
       Host.sincronizar(); const T = RS.temas()[0]; const D = Host.datos() || {}; const g = Object.entries(D.grupos || {});
-      el.innerHTML = `<div class="card mv-panel"><h4 style="margin-top:0">🚚 La telemetría, ahora</h4>
+      el.innerHTML = `<div class="card mv-panel"><h3 style="margin-top:0;font-size:1.05em">🚚 La telemetría, ahora</h3>
         <p class="small muted">Hora: <b>${esc(new Date(ahora() - 3 * HORA).toISOString().slice(0, 16).replace('T', ' '))}</b> (UTC-3) · tópico <code>${RS.TEMA}</code> · retención 3 días.</p>
         <div class="mv-grilla">${T.rangos.map((r) => `<div><b>Partición ${r.p}</b><br><span class="small">offsets ${r.bajo}–${r.alto - 1}${g.length ? '<br>' + g.map(([k, o]) => { const off = o[`${RS.TEMA}:${r.p}`]; return off == null ? '' : `grupo ${esc(k)}: ${off} (atraso ${r.alto - off})`; }).filter(Boolean).join('<br>') : ''}</span></div>`).join('')}</div></div>`;
     };
@@ -151,7 +151,7 @@
     window.TableroTickets.panel(el, { titulo: 'Tablero del equipo de datos de Ruta Sur', tickets: TICKETS, contexto: () => { Host.sincronizar(); return { I: RS.inicioDiaLocal(RS.cfg.inicio), H: RS.hitos(), t: ahora() }; }, datos: () => Host.datos(), guardar: () => Host.guardar(), hora: (T) => new Date(T - 3 * HORA).toISOString().replace('T', ' ').slice(0, 16) });
   }
   function panelRevisar(el) {
-    el.innerHTML = `<div class="card mv-panel"><h4 style="margin-top:0">🔎 Revisar mi entrega</h4><p class="small muted">Compara tus tablas con lo que pasó de verdad en la calle (y con lo que ya llegó al stream).</p><button class="btn btn-primary btn-sm" data-revisar>Revisar ahora</button><ol class="pedalia-chequeos"></ol></div>`;
+    el.innerHTML = `<div class="card mv-panel"><h3 style="margin-top:0;font-size:1.05em">🔎 Revisar mi entrega</h3><p class="small muted">Compara tus tablas con lo que pasó de verdad en la calle (y con lo que ya llegó al stream).</p><button class="btn btn-primary btn-sm" data-revisar>Revisar ahora</button><ol class="pedalia-chequeos"></ol></div>`;
     const ol = el.querySelector('ol');
     el.querySelector('[data-revisar]').addEventListener('click', async (ev) => { const b = ev.currentTarget; b.disabled = true; b.textContent = 'Revisando…'; ol.innerHTML = ''; Host.sincronizar(); let bien = 0; for (const [gr, txt, f] of CHEQUEOS) { const li = document.createElement('li'); ol.append(li); let r; try { r = await f(); } catch (e) { r = String(e.message || e); } if (r === true) bien++; li.className = r === true ? 'ok' : 'falta'; li.innerHTML = `${r === true ? '✅' : '⬜'} <b>${esc(gr)}</b> · ${esc(txt)}${r === true ? '' : `<div class="small muted">${esc(r)}</div>`}`; } b.disabled = false; b.textContent = `Revisar de nuevo (${bien} de ${CHEQUEOS.length})`; });
   }

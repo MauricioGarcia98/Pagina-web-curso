@@ -39,6 +39,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p><a href="#/generador?esc=banco&n=1500&semilla=7&desde=2024-01-01&hasta=2024-12-31&duplicados=1&nulos=2&formatos=2&tardios=4">🏭 Generar los datos del proyecto</a> · Escenario <strong>Banco digital</strong>: <code>clientes</code>, <code>cuentas</code>, <code>transacciones</code> (con <code>es_fraude</code>) y <code>prestamos</code>. El fraude sembrado tiene patrones reales: montos de 8 a 40 veces el gasto habitual del cliente, muchas veces en otro país y de madrugada.</p>
 <pre tabindex="0"><code class="language-bash">generar-datos banco --filas 300 --semilla 7
 duckdb -c &quot;SELECT es_fraude, COUNT(*), ROUND(AVG(ABS(monto)),2) FROM '~/datos/generados/banco/transacciones.csv' GROUP BY es_fraude&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">generar-datos banco --filas 300 --semilla 7</code><span><code>generar-datos</code>: comando del curso que genera los datos de práctica (tus datos salen de una semilla propia)</span></li><li><code class="bx-linea">duckdb -c &quot;SELECT es_fraude, COUNT(*), ROUND(AVG(ABS(monto)),2) FROM '~/datos/generados/banco/transacciones.csv' GROUP BY es_fraude&quot;</code><span><code>duckdb</code>: DuckDB: base de datos analítica en un solo archivo; consulta CSV y Parquet directamente. <code>-c</code> = ejecuta esa consulta y sale</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <h2>Arquitectura</h2>
 <figure class="diagrama"><figcaption>Fraude en tiempo casi real</figcaption></figure>
 
@@ -114,12 +115,39 @@ WHERE abs(s.monto) &gt; 8 * h.monto_habitual AND (hour(s.ts) &lt; 6 OR s.pais_tx
 </div>
 
 
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Todo el proyecto se hace en <strong>tu computadora</strong>:</p>
+<ol>
+<li><strong>Terminal</strong>: Terminal en macOS, o Ubuntu con WSL en Windows (<code>wsl --install</code> en PowerShell como administrador). Ahí corres <code>git</code>, <code>uv</code> y las CLIs.</li>
+<li><strong>VS Code</strong> con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).</li>
+<li><strong>Una carpeta por proyecto</strong> con <code>git init</code> desde el primer minuto, y un repositorio público en <strong>github.com → New repository</strong> para mostrarlo.</li>
+</ol>
+<ul>
+<li><strong>Fases 1 y 2, local</strong>: las reglas en SQL con DuckDB y el streaming simulado con un script de Python que escribe archivos de a poco (lo corres con <code>uv run</code>).</li>
+<li><strong>Fase 3, Databricks</strong>: <em>Jobs &amp; Pipelines → Create → ETL pipeline</em>, eliges tu archivo SQL o Python del pipeline y lo ejecutas; la página del pipeline muestra el grafo, las filas por tabla y las <em>expectations</em> que fallaron.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio y enlázalas desde el README.</p>
+<ul>
+<li><code>01-reglas.png</code>: la tabla de alertas con algunas transacciones marcadas.</li>
+<li><code>02-stream.png</code>: la terminal mientras llegan eventos simulados.</li>
+<li><code>03-pipeline.png</code>: el grafo del pipeline declarativo en Databricks con sus métricas de calidad.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.</p>
+</div>
+
+
 <h2>Entregables</h2>
 <ul>
-<li><input disabled="" type="checkbox"> Tabla de versiones de reglas con recall, precisión y alertas por día; la elegida y por qué.</li>
-<li><input disabled="" type="checkbox"> Pipeline local de micro-lotes y pipeline declarativo en Databricks.</li>
-<li><input disabled="" type="checkbox"> Expectativas de calidad y lo que filtraron.</li>
-<li><input disabled="" type="checkbox"> Cálculo de latencia de punta a punta y costo estimado (continuo contra disparado).</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Tabla de versiones de reglas con recall, precisión y alertas por día; la elegida y por qué.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Pipeline local de micro-lotes y pipeline declarativo en Databricks.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Expectativas de calidad y lo que filtraron.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Cálculo de latencia de punta a punta y costo estimado (continuo contra disparado).</li>
 </ul>
 <h2>Práctica</h2>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Reglas de fraude con ventanas</div>

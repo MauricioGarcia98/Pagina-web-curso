@@ -26,6 +26,18 @@ No alcanza con borrar de silver. Piensa en todas las copias que controlas: los a
 - **Comparar contra rangos con unidades mezcladas**: 7,2 mmol/L parece una glucosa bajísima si la comparas con 70–100.
 :::
 
+:::real En tu computadora y en la web real
+Los pedidos de corrección o de borrado de un paciente llegan por un canal formal (ticket con número de caso). Cada uno se resuelve con un pull request y se registra qué se hizo, cuándo y por quién: en datos de salud, la trazabilidad es obligatoria.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `05-ticket.png`: un ticket resuelto, con la evidencia de lo que cambió.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Resumen
 
 - Las fuentes externas **cambian sin avisar**: migraciones, reenvíos, archivos que faltan.

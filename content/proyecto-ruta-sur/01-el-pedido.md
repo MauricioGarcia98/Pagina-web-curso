@@ -43,6 +43,18 @@ Después, en [El día a día](#/l/proyecto-ruta-sur-el-dia-a-dia), llegan más p
 Cada evento tiene **dos horas**: cuándo pasó (la que reporta el dispositivo) y cuándo llegó al stream (la que pone Event Hubs). Casi siempre se diferencian en segundos. Pero una camioneta en una zona sin señal guarda los eventos y los manda juntos cuando vuelve la señal: llegan tarde y mezclados. Para el negocio importa **cuándo pasó**; para saber si ya tienes todo, importa **cuándo llegó**.
 :::
 
+:::real En tu computadora y en la web real
+En una empresa de logística, el pedido llega del área de operaciones. Antes de programar, escribe en `docs/sla.md` qué significa "cumplir" (¿llegar dentro de la ventana?, ¿con qué tolerancia?, ¿en qué zona horaria?) y valídalo con quien pidió el tablero.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `01-sla.png`: tu definición de SLA, aprobada.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

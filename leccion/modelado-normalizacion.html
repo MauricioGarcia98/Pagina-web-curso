@@ -161,7 +161,7 @@ GROUP BY huesped;</code></pre>
 <p>La 3FN es ideal para sistemas <strong>transaccionales</strong> (OLTP): muchas escrituras chicas, sin contradicciones. Pero en <strong>analítica</strong> (OLAP) las consultas leen millones de filas y unen muchas tablas; cada <code>JOIN</code> cuesta.</p>
 <p>Por eso los modelos analíticos se <strong>desnormalizan a propósito</strong>:</p>
 <div class="table-wrap"><table><thead><tr>
-<th></th>
+<th><span class="sr-only">Concepto</span></th>
 <th>Normalizado (3FN)</th>
 <th>Desnormalizado (estrella, tabla ancha)</th>
 </tr>

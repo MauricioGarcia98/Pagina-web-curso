@@ -34,6 +34,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Un token SAS es un permiso firmado con alcance, permisos y vencimiento. Para leer una carpeta, Snowflake necesita <strong>listar</strong> (<code>l</code>) y <strong>leer</strong> (<code>r</code>), nada más:</p>
 <pre tabindex="0"><code class="language-bash">az storage container generate-sas --account-name stpedaliadev -n gold \
   --permissions rl --expiry 2027-01-31T00:00Z -o tsv</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">az storage container generate-sas --account-name stpedaliadev -n gold    --permissions rl --expiry 2027-01-31T00:00Z -o tsv</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>container generate-sas</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Copia el resultado (empieza con <code>se=</code>). También puedes generarlo en el portal: cuenta → <strong>Shared access signature</strong>, con servicio Blob, tipos Container y Object, y permisos Read y List.</p>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ El token vence</div>
 
@@ -108,6 +109,27 @@ ORDER BY pase_dia DESC;</code></pre>
 <li><strong><code>COPY INTO</code> repetido sin pensar en la idempotencia</strong>: según cómo escribe el productor, terminas con duplicados o con una tabla vacía.</li>
 <li><strong><code>LOAD DATA INTO</code> en una carga diaria completa</strong>: cada día suma todo de nuevo y los viajes de marketing se multiplican.</li>
 </ul>
+</div>
+
+
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Las dos tienen prueba gratuita:</p>
+<ul>
+<li><strong>Snowflake</strong> (<code>app.snowflake.com</code>): <em>Projects → Worksheets</em> para el SQL; <em>Data → Databases</em> para ver lo creado. El <em>stage</em> externo apunta al contenedor <code>gold</code> con una <em>storage integration</em> (sin claves en el SQL).</li>
+<li><strong>BigQuery</strong> (<code>console.cloud.google.com/bigquery</code>): el panel <em>Explorer</em> muestra proyectos y datasets; el editor de consultas te dice <strong>cuántos bytes va a leer antes de ejecutar</strong> (arriba a la derecha). La carga se hace con <em>Create table → Upload / Google Cloud Storage</em> o con <code>bq load</code> en la terminal.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>08-snowflake.png</code>: la hoja de Snowflake con la tabla de finanzas consultada.</li>
+<li><code>08-bigquery.png</code>: la consulta de marketing en BigQuery, mostrando los bytes procesados.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
 </div>
 
 

@@ -53,6 +53,7 @@ cd ~/pedalia-datos
 git init -b main
 git config user.name &quot;Tu Nombre&quot;
 git config user.email &quot;tu@correo.com&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(5)</span></summary><ol><li><code class="bx-linea">mkdir -p ~/pedalia-datos/dags ~/pedalia-datos/sql/databricks ~/pedalia-datos/docs ~/pedalia-datos/.github/workflows</code><span><code>mkdir</code>: crea una carpeta. <code>-p</code> = crea también las carpetas intermedias y no falla si ya existe</span></li><li><code class="bx-linea">cd ~/pedalia-datos</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">git init -b main</code><span><code>git</code>: Git: guarda la historia de tu código. <code>init</code> convierte la carpeta en un repositorio (crea la carpeta oculta .git). <code>-b</code> = crea la rama nueva</span></li><li><code class="bx-linea">git config user.name &quot;Tu Nombre&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>config</code> configura Git (tu nombre, tu correo, la rama por defecto)</span></li><li><code class="bx-linea">git config user.email &quot;tu@correo.com&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>config</code> configura Git (tu nombre, tu correo, la rama por defecto)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <ol start="3">
 <li>Crea un README mínimo y el primer DAG de prueba (el definitivo llega en la lección de Airflow):</li>
 </ol>
@@ -73,6 +74,7 @@ EOF
 
 echo &quot;-- silver de viajes (lección 6)&quot; &gt; sql/databricks/silver_viajes.sql
 echo &quot;-- gold (lección 7)&quot; &gt; sql/databricks/gold.sql</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">cat &gt; README.md &lt;&lt; 'EOF'</code><span><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe). Lo que sigue hasta <code>EOF</code> es el contenido del archivo</span></li><li><code class="bx-linea">cat &gt; dags/pedalia_diario.py &lt;&lt; 'EOF'</code><span><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe). Lo que sigue hasta <code>EOF</code> es el contenido del archivo</span></li><li><code class="bx-linea">echo &quot;-- silver de viajes (lección 6)&quot; &gt; sql/databricks/silver_viajes.sql</code><span><code>echo</code>: escribe un texto en pantalla (o en un archivo, con <code>&gt;</code> o <code>&gt;&gt;</code>). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li><li><code class="bx-linea">echo &quot;-- gold (lección 7)&quot; &gt; sql/databricks/gold.sql</code><span><code>echo</code>: escribe un texto en pantalla (o en un archivo, con <code>&gt;</code> o <code>&gt;&gt;</code>). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <h2>3. El workflow de Actions</h2>
 <p>Este archivo corre <strong>en cada push y en cada pull request</strong>. El job <code>validar</code> revisa que el DAG compile y que el SQL esté en su lugar; el job <code>desplegar</code> copia el DAG a Airflow, pero <strong>solo</strong> cuando el cambio llega a <code>main</code>.</p>
 <pre tabindex="0"><code class="language-bash">cat &gt; .github/workflows/ci.yml &lt;&lt; 'EOF'
@@ -107,6 +109,7 @@ jobs:
           cp dags/*.py &quot;${{ vars.AIRFLOW_DAGS_DIR }}/&quot;
           ls &quot;${{ vars.AIRFLOW_DAGS_DIR }}&quot;
 EOF</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">cat &gt; .github/workflows/ci.yml &lt;&lt; 'EOF'</code><span><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe). Lo que sigue hasta <code>EOF</code> es el contenido del archivo</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <div class="callout callout-nota"><div class="callout-title">📝 ¿Por qué la ruta de despliegue es una variable?</div>
 
 <p>En la vida real, &quot;desplegar un DAG&quot; es copiarlo al lugar que lee Airflow: el bucket de Cloud Composer, el de MWAA en AWS o la carpeta del servidor. Esa ruta cambia entre desarrollo y producción, así que <strong>no se escribe en el workflow</strong>: va en una variable del repositorio. En esta práctica, el Airflow de práctica lee la carpeta <code>/home/alumno/airflow/dags</code>.</p>
@@ -127,6 +130,7 @@ EOF</code></pre>
 git commit -m &quot;Estructura del proyecto, DAG inicial y CI&quot;
 git remote add origin https://github.com/alumno/pedalia-datos.git
 git push -u origin main</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">git add .</code><span><code>git</code>: Git: guarda la historia de tu código. <code>add</code> prepara cambios para el próximo commit (los pasa al área de preparación). <code>.</code> = todos los archivos de la carpeta actual</span></li><li><code class="bx-linea">git commit -m &quot;Estructura del proyecto, DAG inicial y CI&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>commit</code> guarda una foto de los cambios preparados, con un mensaje. <code>-m</code> = el mensaje del commit</span></li><li><code class="bx-linea">git remote add origin https://github.com/alumno/pedalia-datos.git</code><span><code>git</code>: Git: guarda la historia de tu código. <code>remote</code> administra las direcciones de los repositorios remotos (origin)</span></li><li><code class="bx-linea">git push -u origin main</code><span><code>git</code>: Git: guarda la historia de tu código. <code>push</code> sube tus commits al repositorio remoto (GitHub). <code>-u</code> = recuerda la rama remota: después alcanza con <code>git push</code></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <ol start="6">
 <li>En la pestaña <strong>Actions</strong> del repositorio vas a ver la corrida: <code>validar</code> y después <code>desplegar</code>, las dos en verde. Abre <a href="#/airflow">Airflow</a>: el DAG <code>pedalia_diario</code> ya aparece en la lista. <strong>Lo desplegó el workflow, no tú.</strong></li>
 </ol>
@@ -141,6 +145,7 @@ git push -u origin main</code></pre>
 echo &quot;Guardia: ver canal #datos-pedalia&quot; &gt;&gt; README.md
 git commit -am &quot;Agrega el canal de guardia al README&quot;
 git push -u origin docs/contacto</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">git checkout -b docs/contacto</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella). <code>-b</code> = crea la rama nueva</span></li><li><code class="bx-linea">echo &quot;Guardia: ver canal #datos-pedalia&quot; &gt;&gt; README.md</code><span><code>echo</code>: escribe un texto en pantalla (o en un archivo, con <code>&gt;</code> o <code>&gt;&gt;</code>). <code>&gt;&gt;</code> agrega al final del archivo</span></li><li><code class="bx-linea">git commit -am &quot;Agrega el canal de guardia al README&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>commit</code> guarda una foto de los cambios preparados, con un mensaje</span></li><li><code class="bx-linea">git push -u origin docs/contacto</code><span><code>git</code>: Git: guarda la historia de tu código. <code>push</code> sube tus commits al repositorio remoto (GitHub). <code>-u</code> = recuerda la rama remota: después alcanza con <code>git push</code></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Abre el PR en el GitHub de práctica, espera el check verde y fusiónalo con <strong>Merge pull request</strong>.</p>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
 
@@ -150,6 +155,30 @@ git push -u origin docs/contacto</code></pre>
 <li><strong>Un CI que no valida nada</strong>: si el workflow solo imprime &quot;hola&quot;, el check verde no significa nada. Lo mínimo es que el código compile y que estén los archivos que se despliegan.</li>
 <li><strong>Desplegar desde un pull request</strong>: el <code>if: github.ref == &#39;refs/heads/main&#39;</code> evita que una rama a medio hacer llegue a producción.</li>
 </ul>
+</div>
+
+
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Todo esto se hace igual en tu computadora y en <strong>github.com</strong>:</p>
+<ol>
+<li><strong>Terminal</strong> (Terminal en macOS, Ubuntu/WSL o Git Bash en Windows): <code>git init</code>, <code>git add</code>, <code>git commit</code> y <code>git push</code> como en la lección. Antes, una sola vez: <code>git config --global user.name &quot;Tu Nombre&quot;</code> y <code>git config --global user.email tu@correo</code>.</li>
+<li><strong>github.com → botón + → New repository</strong>: lo creas vacío (sin README) y copias los comandos de <em>…or push an existing repository</em>.</li>
+<li><strong>Settings → Branches → Add branch ruleset</strong> (o <em>Rules → Rulesets</em>): proteges <code>main</code> pidiendo pull request y que pase el check.</li>
+<li><strong>Actions</strong>: el workflow corre solo con cada push. Lo ves en la pestaña <em>Actions</em> del repositorio.</li>
+</ol>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>02-estructura.png</code>: el árbol de carpetas del repositorio en github.com (pestaña <em>Code</em>).</li>
+<li><code>02-actions-verde.png</code>: la pestaña <em>Actions</em> con el workflow en verde.</li>
+<li><code>02-regla-main.png</code>: la regla de protección de <code>main</code> (Settings → Rules).</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
 </div>
 
 

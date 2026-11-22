@@ -70,12 +70,38 @@ HAVING count(*) &gt;= 3;</code></pre>
 </div>
 
 
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Todo el proyecto se hace en <strong>tu computadora</strong>:</p>
+<ol>
+<li><strong>Terminal</strong>: Terminal en macOS, o Ubuntu con WSL en Windows (<code>wsl --install</code> en PowerShell como administrador). Ahí corres <code>git</code>, <code>uv</code> y las CLIs.</li>
+<li><strong>VS Code</strong> con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).</li>
+<li><strong>Una carpeta por proyecto</strong> con <code>git init</code> desde el primer minuto, y un repositorio público en <strong>github.com → New repository</strong> para mostrarlo.</li>
+</ol>
+<ul>
+<li>La co-ocurrencia y la evaluación se corren en <strong>DuckDB local</strong> (o en el <em>SQL Editor</em> de Databricks).</li>
+<li>Guarda el corte temporal (qué semanas son entrenamiento y cuáles prueba) en un archivo del repositorio, para que cualquiera pueda repetir la evaluación.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio y enlázalas desde el README.</p>
+<ul>
+<li><code>01-coocurrencia.png</code>: las recomendaciones para un título de ejemplo.</li>
+<li><code>02-evaluacion.png</code>: la métrica de la evaluación con el corte temporal, comparada contra recomendar lo más popular.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.</p>
+</div>
+
+
 <h2>Entregables</h2>
 <ul>
-<li><input disabled="" type="checkbox"> Tablero de engagement: DAU, MAU, DAU/MAU, finalización por género.</li>
-<li><input disabled="" type="checkbox"> Tabla de recomendaciones con su explicación.</li>
-<li><input disabled="" type="checkbox"> Precisión@5 del modelo contra la línea base popular.</li>
-<li><input disabled="" type="checkbox"> Diseño del experimento: grupos, métrica principal (retención a 30 días de usuarios nuevos), duración y tamaño de muestra.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Tablero de engagement: DAU, MAU, DAU/MAU, finalización por género.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Tabla de recomendaciones con su explicación.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Precisión@5 del modelo contra la línea base popular.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Diseño del experimento: grupos, métrica principal (retención a 30 días de usuarios nuevos), duración y tamaño de muestra.</li>
 </ul>
 <h2>Práctica</h2>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Co-ocurrencia: &quot;quienes escucharon esto también escucharon&quot;</div>

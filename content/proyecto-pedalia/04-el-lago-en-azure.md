@@ -97,6 +97,25 @@ az storage blob list --account-name stpedaliadev -c landing -o table
 - **Esperar que el permiso funcione al instante**: en Azure real una asignación de rol tarda hasta unos minutos en aplicarse. Si da 403 justo después, espera y reintenta antes de cambiar otra cosa.
 :::
 
+:::real En tu computadora y en la web real
+En tu propia suscripción de Azure se hace igual, por dos caminos:
+
+- **Portal** (`portal.azure.com`): buscador de arriba → *Resource groups* → *Create*; después *Storage accounts* → *Create* (marca **Enable hierarchical namespace** para que sea un lago); después *Data factories* → *Create*. Los permisos se dan en el recurso → *Access control (IAM)* → *Add role assignment*.
+- **Terminal**: instala la Azure CLI (`brew install azure-cli` en macOS, `winget install Microsoft.AzureCLI` en Windows), entra con `az login` y corre los mismos comandos `az` de la lección.
+
+Con una cuenta gratuita, borra el grupo de recursos al terminar (`az group delete -n <grupo>`) para no gastar crédito.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `04-grupo-recursos.png`: el grupo de recursos con la cuenta de almacenamiento y el data factory.
+- `04-capas.png`: los contenedores `landing`, `bronze`, `silver` y `gold` de la cuenta.
+- `04-iam.png`: la asignación de rol de la identidad del data factory (mínimo privilegio).
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

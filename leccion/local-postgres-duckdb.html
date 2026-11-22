@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Dos bases, dos propósitos</h2>
 <div class="table-wrap"><table><thead><tr>
-<th></th>
+<th><span class="sr-only">Concepto</span></th>
 <th>PostgreSQL</th>
 <th>DuckDB</th>
 </tr>
@@ -61,6 +61,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
   -e POSTGRES_PASSWORD=secreto -e POSTGRES_DB=rapido \
   -p 5432:5432 -v pgdata:/var/lib/postgresql/data \
   postgres:16</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">docker run -d --name pg    -e POSTGRES_PASSWORD=secreto -e POSTGRES_DB=rapido    -p 5432:5432 -v pgdata:/var/lib/postgresql/data    postg…</code><span><code>docker</code>: Docker: empaqueta una app con todo lo que necesita (imagen) y la ejecuta aislada (contenedor). <code>run</code> crea y arranca un contenedor desde una imagen. <code>-d</code> = lo deja corriendo en segundo plano; <code>--name</code> = el nombre del contenedor; <code>-e</code> = define una variable de entorno; <code>-p</code> = conecta un puerto de tu computadora con uno del contenedor (local:contenedor); <code>-v</code> = monta una carpeta de tu computadora dentro del contenedor</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <h3>Conectarse: los cinco datos</h3>
 <p>Toda conexión a una base necesita lo mismo:</p>
 <div class="table-wrap"><table><thead><tr>
@@ -97,6 +98,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Los mismos datos, escritos como <strong>URL de conexión</strong> (la usan Python, dbt y casi todo): <code>postgresql://postgres:secreto@localhost:5432/rapido</code>.</p>
 <p><strong>Con psql</strong> (el cliente de terminal; en macOS <code>brew install libpq</code>, en Ubuntu <code>sudo apt install postgresql-client</code>, o desde el contenedor con <code>docker exec -it pg psql -U postgres -d rapido</code>):</p>
 <pre data-norun tabindex="0"><code class="language-bash">psql -h localhost -p 5432 -U postgres -d rapido</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">psql -h localhost -p 5432 -U postgres -d rapido</code><span><code>psql</code>: el cliente de PostgreSQL en la terminal. <code>-h</code> = el servidor; <code>-U</code> = el usuario; <code>-d</code> = la base de datos</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p><strong>Con un cliente gráfico</strong>: <strong>DBeaver</strong> (gratis, para todas las bases) o la extensión <strong>SQLTools</strong> de VS Code. Nueva conexión → PostgreSQL → los cinco datos de arriba.</p>
 <h3>Crear una tabla y cargar un CSV</h3>
 <pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE clientes (
@@ -172,6 +174,7 @@ D SELECT pais, COUNT(*) AS clientes
 <pre data-norun tabindex="0"><code class="language-sql">DESCRIBE SELECT * FROM read_csv_auto('datos/ventas_2024_12.csv');   -- columnas y tipos detectados</code></pre>
 <h3>Una base persistente y exportar a Parquet</h3>
 <pre data-norun tabindex="0"><code class="language-bash">duckdb lago.duckdb                     # crea (o abre) la base en un archivo</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">duckdb lago.duckdb</code><span><code>duckdb</code>: DuckDB: base de datos analítica en un solo archivo; consulta CSV y Parquet directamente<br><i class="bx-com">Nota del ejemplo: crea (o abre) la base en un archivo</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE clientes AS SELECT * FROM 'datos/clientes.csv';
 COPY (SELECT pais, COUNT(*) AS n FROM clientes GROUP BY pais)
   TO 'clientes_por_pais.parquet' (FORMAT parquet);</code></pre>
@@ -239,6 +242,7 @@ psql -h localhost -U postgres -c &quot;CREATE TABLE ventas (id INT, canal TEXT, 
 psql -h localhost -U postgres -c &quot;INSERT INTO ventas VALUES (1, 'web', 120), (2, 'app', 80), (3, 'web', 45);&quot;
 psql -h localhost -U postgres -c &quot;SELECT canal, SUM(monto) FROM ventas GROUP BY canal;&quot;
 duckdb -c &quot;SELECT canal, COUNT(*) AS ventas, ROUND(SUM(total), 2) AS total FROM 'datos/ventas_2024_12.csv' GROUP BY canal ORDER BY total DESC&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(5)</span></summary><ol><li><code class="bx-linea">docker run -d --name pg -e POSTGRES_PASSWORD=secreta -p 5432:5432 postgres:16</code><span><code>docker</code>: Docker: empaqueta una app con todo lo que necesita (imagen) y la ejecuta aislada (contenedor). <code>run</code> crea y arranca un contenedor desde una imagen. <code>-d</code> = lo deja corriendo en segundo plano; <code>--name</code> = el nombre del contenedor; <code>-e</code> = define una variable de entorno; <code>-p</code> = conecta un puerto de tu computadora con uno del contenedor (local:contenedor)</span></li><li><code class="bx-linea">psql -h localhost -U postgres -c &quot;CREATE TABLE ventas (id INT, canal TEXT, monto NUMERIC);&quot;</code><span><code>psql</code>: el cliente de PostgreSQL en la terminal. <code>-h</code> = el servidor; <code>-U</code> = el usuario; <code>-c</code> = ejecuta esa consulta y sale</span></li><li><code class="bx-linea">psql -h localhost -U postgres -c &quot;INSERT INTO ventas VALUES (1, 'web', 120), (2, 'app', 80), (3, 'web', 45);&quot;</code><span><code>psql</code>: el cliente de PostgreSQL en la terminal. <code>-h</code> = el servidor; <code>-U</code> = el usuario; <code>-c</code> = ejecuta esa consulta y sale</span></li><li><code class="bx-linea">psql -h localhost -U postgres -c &quot;SELECT canal, SUM(monto) FROM ventas GROUP BY canal;&quot;</code><span><code>psql</code>: el cliente de PostgreSQL en la terminal. <code>-h</code> = el servidor; <code>-U</code> = el usuario; <code>-c</code> = ejecuta esa consulta y sale</span></li><li><code class="bx-linea">duckdb -c &quot;SELECT canal, COUNT(*) AS ventas, ROUND(SUM(total), 2) AS total FROM 'datos/ventas_2024_12.csv' GROUP BY canal ORDER BY total …</code><span><code>duckdb</code>: DuckDB: base de datos analítica en un solo archivo; consulta CSV y Parquet directamente. <code>-c</code> = ejecuta esa consulta y sale</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Reto: con DuckDB, convierte el CSV a Parquet (<code>COPY (SELECT * FROM &#39;datos/ventas_2024_12.csv&#39;) TO &#39;ventas.parquet&#39; (FORMAT parquet)</code>) y compara el tamaño de los dos archivos con <code>ls -lh</code>.</p>
 <p>Documentación oficial: <a href="https://www.postgresql.org/docs/current/app-psql.html">psql</a> · <a href="https://duckdb.org/docs/current/data/csv/overview">leer CSV con DuckDB</a></p>
 </div>

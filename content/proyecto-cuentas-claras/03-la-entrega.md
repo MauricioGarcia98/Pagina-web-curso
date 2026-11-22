@@ -27,6 +27,20 @@ autoevaluacion: ¿Sabes qué clientes entran en cliente_360? | ¿Sabes qué empr
 
 <div data-cc="revisar"></div>
 
+:::real En tu computadora y en la web real
+El **reverse ETL** devuelve datos al CRM. En una empresa se hace con una herramienta (Hightouch, Census) o con un job propio que llama a la API del CRM. Pruébalo primero con pocos clientes y deja registro de qué se escribió.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `03-mrr.png`: la tabla de MRR mensual.
+- `03-cliente360.png`: la vista 360 de un cliente.
+- `03-reverse.png`: el campo actualizado en el CRM.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Resumen
 
 - MRR auditable por cliente y mes.

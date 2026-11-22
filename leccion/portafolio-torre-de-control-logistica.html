@@ -33,6 +33,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p><a href="#/generador?esc=logistica&n=5000&semilla=21&desde=2024-01-01&hasta=2024-12-31&duplicados=2&nulos=3&formatos=4&tardios=5">🏭 Generar los datos del proyecto</a> · Escenario <strong>Logística</strong>: <code>almacenes</code>, <code>envios</code> (fecha prometida y real) y <code>eventos_envio</code> (creado, retirado, en camino, en reparto, entregado).</p>
 <pre tabindex="0"><code class="language-bash">generar-datos logistica --filas 1500 --semilla 21
 duckdb -c &quot;SELECT transportista, COUNT(*) FROM '~/datos/generados/logistica/envios.csv' GROUP BY 1&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">generar-datos logistica --filas 1500 --semilla 21</code><span><code>generar-datos</code>: comando del curso que genera los datos de práctica (tus datos salen de una semilla propia)</span></li><li><code class="bx-linea">duckdb -c &quot;SELECT transportista, COUNT(*) FROM '~/datos/generados/logistica/envios.csv' GROUP BY 1&quot;</code><span><code>duckdb</code>: DuckDB: base de datos analítica en un solo archivo; consulta CSV y Parquet directamente. <code>-c</code> = ejecuta esa consulta y sale</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <h2>Arquitectura en Azure</h2>
 <figure class="diagrama"><figcaption>Torre de control logística en Azure</figcaption></figure>
 
@@ -67,6 +68,7 @@ az storage account create -n $ST -g rg-torre-lab -l eastus2 --sku Standard_LRS -
 az storage fs create -n raw --account-name $ST --auth-mode login
 az storage fs create -n curated --account-name $ST --auth-mode login
 echo &quot;Tu cuenta se llama: $ST&quot;         # anótalo: lo vas a usar en los pasos siguientes</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(5)</span></summary><ol><li><code class="bx-linea">az group create -n rg-torre-lab -l eastus2 --tags proyecto=lab</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>group</code> crea, lista o borra grupos de recursos (<code>create</code>). <code>-n</code> = nombre del recurso; <code>-l</code> = región donde se crea el recurso; <code>--tags</code> = etiquetas para saber de quién es y cuánto cuesta cada recurso</span></li><li><code class="bx-linea">az storage account create -n $ST -g rg-torre-lab -l eastus2 --sku Standard_LRS --kind StorageV2 --hns true</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>account create</code>). <code>-n</code> = nombre del recurso; <code>-g</code> = grupo de recursos donde está o se crea el recurso; <code>-l</code> = región donde se crea el recurso; <code>--sku</code> = el plan o tamaño del recurso (define precio y capacidad)</span></li><li><code class="bx-linea">az storage fs create -n raw --account-name $ST --auth-mode login</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>fs create</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az storage fs create -n curated --account-name $ST --auth-mode login</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>fs create</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">echo &quot;Tu cuenta se llama: $ST&quot;</code><span><code>echo</code>: escribe un texto en pantalla (o en un archivo, con <code>&gt;</code> o <code>&gt;&gt;</code>)<br><i class="bx-com">Nota del ejemplo: anótalo: lo vas a usar en los pasos siguientes</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <ul>
 <li><code>--hns true</code> activa el <strong>espacio de nombres jerárquico</strong>: eso convierte una cuenta de almacenamiento en ADLS Gen2 (carpetas reales, permisos por carpeta).</li>
 <li><strong>Data Factory</strong>: un pipeline con un parámetro <code>fecha</code> y una actividad de copia de la fuente a <code>raw/envios/fecha=@{pipeline().parameters.fecha}/</code>. Un trigger diario le pasa la fecha.</li>
@@ -105,12 +107,41 @@ echo &quot;Tu cuenta se llama: $ST&quot;         # anótalo: lo vas a usar en lo
 </div>
 
 
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Todo el proyecto se hace en <strong>tu computadora</strong>:</p>
+<ol>
+<li><strong>Terminal</strong>: Terminal en macOS, o Ubuntu con WSL en Windows (<code>wsl --install</code> en PowerShell como administrador). Ahí corres <code>git</code>, <code>uv</code> y las CLIs.</li>
+<li><strong>VS Code</strong> con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).</li>
+<li><strong>Una carpeta por proyecto</strong> con <code>git init</code> desde el primer minuto, y un repositorio público en <strong>github.com → New repository</strong> para mostrarlo.</li>
+</ol>
+<ul>
+<li><strong>Fase 1, local</strong>: los KPIs con DuckDB y Python.</li>
+<li><strong>Fase 2, Azure</strong> (cuenta gratuita en <code>azure.microsoft.com/free</code>): en <code>portal.azure.com</code> creas el grupo de recursos, la cuenta de almacenamiento con <em>hierarchical namespace</em>, Data Factory (<em>Launch studio</em> para el pipeline) y Databricks. También puedes crear todo con <code>az</code> desde la terminal después de <code>az login</code>.</li>
+</ul>
+<p>Al terminar, borra el grupo de recursos (<code>az group delete -n &lt;grupo&gt;</code>) para no gastar el crédito.</p>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio y enlázalas desde el README.</p>
+<ul>
+<li><code>01-kpis.png</code>: los KPIs calculados en local.</li>
+<li><code>02-recursos.png</code>: el grupo de recursos con todo lo creado en Azure.</li>
+<li><code>03-adf.png</code>: el pipeline de Data Factory y su ejecución en <em>Monitor</em>.</li>
+<li><code>04-tablero.png</code>: el tablero final con los indicadores de la torre de control.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.</p>
+</div>
+
+
 <h2>Entregables</h2>
 <ul>
-<li><input disabled="" type="checkbox"> Diccionario de KPIs con sus definiciones y decisiones (qué cuenta como &quot;tarde&quot;).</li>
-<li><input disabled="" type="checkbox"> Ranking de transportistas por OTD y tiempo de tránsito, con la recomendación para la negociación.</li>
-<li><input disabled="" type="checkbox"> Pipeline de Data Factory (o DAG de Airflow) parametrizado por fecha, con una captura de una ejecución.</li>
-<li><input disabled="" type="checkbox"> Explicación de seguridad: identidades administradas y RBAC.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Diccionario de KPIs con sus definiciones y decisiones (qué cuenta como &quot;tarde&quot;).</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Ranking de transportistas por OTD y tiempo de tránsito, con la recomendación para la negociación.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Pipeline de Data Factory (o DAG de Airflow) parametrizado por fecha, con una captura de una ejecución.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Explicación de seguridad: identidades administradas y RBAC.</li>
 </ul>
 <h2>Práctica</h2>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Los KPIs de la torre de control</div>

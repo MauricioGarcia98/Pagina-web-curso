@@ -72,6 +72,26 @@ Entrena (calcula co-ocurrencias) con los datos **hasta septiembre**; recomienda 
 Fuera de línea, con una partición temporal: entreno con el historial hasta una fecha y mido si recomiendo lo que el usuario consumió después, con métricas como precisión en los primeros K y cobertura del catálogo, comparando contra una línea base de populares. Después, una prueba A/B con métricas de negocio como tiempo de escucha y retención.
 :::
 
+:::real En tu computadora y en la web real
+Todo el proyecto se hace en **tu computadora**:
+
+1. **Terminal**: Terminal en macOS, o Ubuntu con WSL en Windows (`wsl --install` en PowerShell como administrador). Ahí corres `git`, `uv` y las CLIs.
+2. **VS Code** con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).
+3. **Una carpeta por proyecto** con `git init` desde el primer minuto, y un repositorio público en **github.com → New repository** para mostrarlo.
+
+- La co-ocurrencia y la evaluación se corren en **DuckDB local** (o en el *SQL Editor* de Databricks).
+- Guarda el corte temporal (qué semanas son entrenamiento y cuáles prueba) en un archivo del repositorio, para que cualquiera pueda repetir la evaluación.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio y enlázalas desde el README.
+
+- `01-coocurrencia.png`: las recomendaciones para un título de ejemplo.
+- `02-evaluacion.png`: la métrica de la evaluación con el corte temporal, comparada contra recomendar lo más popular.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.
+:::
+
 ## Entregables
 
 - [ ] Tablero de engagement: DAU, MAU, DAU/MAU, finalización por género.

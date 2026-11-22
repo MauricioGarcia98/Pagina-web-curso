@@ -202,6 +202,8 @@ pre code { background: none; padding: 0; }
 .callout-entrevista { border-left-color: var(--tok-fn); background: color-mix(in srgb, var(--tok-fn) 8%, var(--surface)); }
 .callout-escenario { border-left-color: #0ea5e9; background: color-mix(in srgb, #0ea5e9 9%, var(--surface)); }
 .callout-trabajo { border-left-color: #14b8a6; background: color-mix(in srgb, #14b8a6 9%, var(--surface)); }
+.callout-real { border-left-color: #2563eb; background: color-mix(in srgb, #2563eb 7%, var(--surface)); }
+.callout-capturas { border-left-color: #db2777; background: color-mix(in srgb, #db2777 7%, var(--surface)); }
 .callout-examen { border-left-color: #d97706; background: color-mix(in srgb, #d97706 9%, var(--surface)); }
 .callout-errores { border-left-color: var(--bad); background: var(--bad-soft); }
 
@@ -523,7 +525,7 @@ body.dock-open #main { padding-bottom: 400px; }
 .ex-editor .monaco-host, .inline-runner .monaco-host { border-radius: 0; }
 .file-ed .monaco-host { border-radius: 10px; overflow: hidden; }
 .monaco-editor .suggest-widget { border-radius: 8px; }
-.ex-editor .CodeMirror, .inline-runner .CodeMirror { background: #12151d; color: #dfe3ef; --tok-kw: #c4a7ff; --tok-str: #7ee0a1; --tok-num: #f5b971; --tok-fn: #8cb8ff; --tok-com: #9198ae; --tok-var: #ff8cc6; }  /* siempre oscuro: colores de sintaxis del tema oscuro */
+.ex-editor .CodeMirror, .inline-runner .CodeMirror { background: #12151d; color: #dfe3ef; --tok-kw: #c4a7ff; --tok-str: #7ee0a1; --tok-num: #f5b971; --tok-fn: #8cb8ff; --tok-com: #9198ae; --tok-var: #ff8cc6; --code-ink: #dfe3ef; --ink-2: #b4b9cb; }  /* siempre oscuro: colores de sintaxis del tema oscuro */
 .ex-editor .CodeMirror-gutters, .inline-runner .CodeMirror-gutters { background: #12151d; border-right-color: #232838; }
 
 @media (max-width: 900px) {
@@ -650,10 +652,31 @@ figure.diagrama figcaption { text-align: center; font-size: 14px; color: var(--i
 .dg-btn { border: 1px solid var(--line-2); background: var(--surface); color: var(--ink-2); border-radius: 8px; padding: 5px 10px; font: 600 13px var(--font); cursor: pointer; }
 .dg-btn:hover:not(:disabled), .dg-btn.activo { color: var(--brand); border-color: var(--brand); }
 .dg-btn:disabled { opacity: .4; cursor: default; }
-.dg-panel { display: flex; gap: 8px; align-items: center; padding: 10px 6px 4px; }
+.dg-panel { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px 10px; position: sticky; bottom: 8px; z-index: 5; background: var(--surface); border: 1px solid var(--brand); box-shadow: 0 8px 24px rgba(20, 22, 40, .16); border-radius: 12px; margin-top: 8px; }
 .dg-panel[hidden] { display: none; }
-.dg-panel-txt { flex: 1; font-size: 14px; color: var(--ink); line-height: 1.45; }
-.dg-panel-txt span { display: block; color: var(--ink-2); }
+.dg-panel-ctl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.dg-panel-num { font: 700 13px var(--font); color: var(--ink-2); margin-left: 4px; }
+.dg-play { min-width: 112px; }
+.dg-puntos { display: flex; flex-wrap: wrap; gap: 6px; }
+.dg-puntos button { width: 22px; height: 8px; border-radius: 4px; border: 0; padding: 0; background: var(--line-2); cursor: pointer; transition: background .2s, width .2s; }
+.dg-puntos button.hecho { background: color-mix(in srgb, var(--brand) 45%, var(--line-2)); }
+.dg-puntos button.actual { background: var(--brand); width: 34px; }
+.dg-puntos button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.dg-panel-txt { font-size: 15px; color: var(--ink); line-height: 1.5; min-height: 3em; }
+.dg-panel-txt p { margin: 6px 0 0; color: var(--ink-2); }
+.dg-ruta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.dg-chip { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line-2); font-weight: 700; font-size: 14px; }
+.dg-chip-fl { font-weight: 800; font-size: 18px; }
+/* el paquete que viaja y los nodos del paso actual */
+.dg-ficha { pointer-events: none; }
+.dg-ficha-punto { fill: currentColor; stroke: #fff; stroke-width: 2.5; }
+.dg-ficha-halo { fill: currentColor; opacity: .22; animation: dg-halo 1s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes dg-halo { 50% { transform: scale(1.35); opacity: .1; } }
+.dg-pasos .dg-n.dg-actual { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--brand) 55%, transparent)); }
+.dg-n { transform-box: fill-box; transform-origin: center; }
+.dg-pasos .dg-n.dg-llega { animation: dg-llega .5s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes dg-llega { 0% { transform: scale(1); } 45% { transform: scale(1.07); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .dg-ficha-halo, .dg-pasos .dg-n.dg-llega { animation: none; } }
 
 /* ---------------------------------------------------------------- casos de estudio y simulacro */
 .exam-caso { background: var(--surface-2); border: 1px solid var(--line); border-left: 4px solid var(--brand); border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; }
@@ -712,8 +735,8 @@ figure.diagrama figcaption { text-align: center; font-size: 14px; color: var(--i
 .motor-tabs [data-motor] { border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 14px; cursor: pointer; }
 .motor-tabs [data-motor] small { font-size: 11px; color: var(--ink-3); }
 .motor-tabs [data-motor]:hover { border-color: var(--brand); }
-.motor-tabs [data-motor].active { background: var(--brand); border-color: var(--brand); color: #fff; }
-.motor-tabs [data-motor].active small { color: rgba(255, 255, 255, .8); }
+.motor-tabs [data-motor].active { background: var(--brand); border-color: var(--brand); color: var(--brand-ink, #fff); }
+.motor-tabs [data-motor].active small { color: inherit; opacity: .85; }
 .motor-info { font-size: 13.5px; color: var(--ink-2); margin: 0 0 14px; line-height: 1.5; }
 .motor-info .badge { display: inline-block; font-size: 11.5px; font-weight: 600; border-radius: 999px; padding: 1px 8px; margin-right: 4px; }
 .motor-info .b-real { background: var(--ok-soft); color: var(--ok); }
@@ -1239,3 +1262,18 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .sqlg-panel { margin: 8px 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); }
 .sqlg-panel pre { margin: 8px 0 4px; max-height: 340px; overflow: auto; }
 .sqlg-error { border-color: var(--bad); }
+
+/* "Qué hace cada comando" debajo de los bloques de terminal (tools/explica-bash.mjs) */
+.bx { margin: -6px 0 18px; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 10px 10px; background: var(--surface-2); font-size: 14px; }
+.bx > summary { cursor: pointer; padding: 8px 12px; font-weight: 700; color: var(--brand); list-style: none; }
+.bx > summary::-webkit-details-marker { display: none; }
+.bx > summary::before { content: '▸ '; display: inline-block; transition: transform .15s; }
+.bx[open] > summary::before { transform: rotate(90deg); }
+.bx > summary span { color: var(--ink-3); font-weight: 500; }
+.bx ol { margin: 0; padding: 4px 14px 6px 34px; }
+.bx li { margin: 0 0 10px; line-height: 1.5; color: var(--ink-2); }
+.bx li > span { display: block; }
+.bx .bx-linea { display: inline-block; margin-bottom: 3px; font-size: 12.5px; white-space: pre-wrap; word-break: break-word; }
+.bx .bx-tubo { color: var(--ink-3); font-size: 13px; }
+.bx .bx-com { color: var(--ink-3); }
+.bx-donde { margin: 0; padding: 8px 14px 10px; border-top: 1px dashed var(--line); color: var(--ink-3); font-size: 13px; }

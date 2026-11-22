@@ -21,6 +21,18 @@ autoevaluacion: ¿Sabes por qué un incremental por fecha de modificación pierd
 - **Leer la planilla por posición**: cuando Planeamiento cambia columnas o nombres, usa el código de sucursal, no el nombre ni la columna 2.
 :::
 
+:::real En tu computadora y en la web real
+Una sucursal sin internet manda sus tickets tarde: en la vida real, el pipeline tiene que aceptar datos atrasados y recalcular los días afectados. Cada caso es un ticket con su pull request y un aviso a Comercial si cambian números ya publicados.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `04-ticket.png`: un ticket resuelto con la explicación del recálculo.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Resumen
 
 - Los cambios "por fuera" del proceso habitual existen: compara fotos completas.

@@ -209,6 +209,19 @@ with DAG("sol_diario", start_date=datetime(2026, 11, 1), schedule="30 5 * * *", 
 
 A las 05:30: después del proceso de precios (03:00) y del cierre de cajas (02:00), y antes de que abran las sucursales (08:00).
 
+:::real En tu computadora y en la web real
+En tu nube: la foto diaria del ERP se baja con una tarea programada; los tickets de las cajas y la planilla van al lago (**Azure Storage**); **Databricks** arma la dimensión SCD2 y las tablas gold; un **DAG de Airflow** coordina todo y lee los secretos del **Key Vault**.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `05-dag.png`: el DAG con todas las tareas en verde.
+- `05-gold.png`: la tabla de cumplimiento semanal.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

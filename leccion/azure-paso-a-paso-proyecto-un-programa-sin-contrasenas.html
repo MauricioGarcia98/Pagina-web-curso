@@ -91,6 +91,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>El servidor de ventas recibe el tenant ID y el client ID como configuración, y el secreto desde el vault o desde una variable de entorno que carga el equipo de infraestructura. Con la CLI, entrar como la aplicación es:</p>
 <pre tabindex="0"><code class="language-bash">az login --service-principal -u &lt;client-id&gt; --tenant &lt;tenant-id&gt; -p &quot;$SECRETO_DESDE_EL_VAULT&quot;
 az storage blob upload --account-name sttiendaandinadev -c bronze -n pedidos/2026/11/16/pedidos.csv -f pedidos.csv --auth-mode login</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">az login --service-principal -u &lt;client-id&gt; --tenant &lt;tenant-id&gt; -p &quot;$SECRETO_DESDE_EL_VAULT&quot;</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>login</code> inicia sesión en tu cuenta de Azure (abre el navegador)</span></li><li><code class="bx-linea">az storage blob upload --account-name sttiendaandinadev -c bronze -n pedidos/2026/11/16/pedidos.csv -f pedidos.csv --auth-mode login</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload</code>). <code>-n</code> = nombre del recurso</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
 
 <ul>
@@ -103,11 +104,11 @@ az storage blob upload --account-name sttiendaandinadev -c bronze -n pedidos/202
 
 <h2>✅ Lista de verificación</h2>
 <ul>
-<li><input disabled="" type="checkbox"> <code>sp-ingesta-ventas</code> existe en App registrations.</li>
-<li><input disabled="" type="checkbox"> Tiene un secreto que vence en 6 meses.</li>
-<li><input disabled="" type="checkbox"> El vault tiene <code>sp-ingesta-ventas-secret</code>.</li>
-<li><input disabled="" type="checkbox"> En IAM de la cuenta, la aplicación tiene <strong>solo</strong> Storage Blob Data Contributor.</li>
-<li><input disabled="" type="checkbox"> El valor del secreto no quedó en ningún archivo, chat ni nota.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  <code>sp-ingesta-ventas</code> existe en App registrations.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Tiene un secreto que vence en 6 meses.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  El vault tiene <code>sp-ingesta-ventas-secret</code>.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  En IAM de la cuenta, la aplicación tiene <strong>solo</strong> Storage Blob Data Contributor.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  El valor del secreto no quedó en ningún archivo, chat ni nota.</li>
 </ul>
 <details><summary>💡 Solución comentada</summary>
 

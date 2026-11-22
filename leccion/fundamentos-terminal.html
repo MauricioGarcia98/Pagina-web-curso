@@ -43,6 +43,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Anatomía de un comando</h2>
 <pre data-norun tabindex="0"><code class="language-bash">ls -l --all /home/ana</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">ls -l --all /home/ana</code><span><code>ls</code>: lista los archivos y carpetas. <code>-l</code> = en formato largo: permisos, tamaño y fecha</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <ul>
 <li><code>ls</code> → el <strong>programa</strong> (listar archivos).</li>
 <li><code>-l</code> → una <strong>opción corta</strong> (formato largo). Las cortas llevan un guion y una letra, y se pueden juntar: <code>-la</code> es lo mismo que <code>-l -a</code>.</li>
@@ -196,6 +197,7 @@ grep &quot;Chile&quot; datos/clientes.csv | wc -l
 
 # Guardar el resultado en un archivo (&gt; sobrescribe, &gt;&gt; agrega al final)
 grep &quot;Chile&quot; datos/clientes.csv &gt; clientes_chile.csv</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">grep &quot;Chile&quot; datos/clientes.csv | wc -l</code><span><code>grep</code>: busca líneas que contienen un texto o patrón <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>wc</code>: cuenta líneas, palabras y caracteres. <code>-l</code> = solo cuenta líneas (en un CSV, filas + el encabezado)</span></li><li><code class="bx-linea">grep &quot;Chile&quot; datos/clientes.csv &gt; clientes_chile.csv</code><span><code>grep</code>: busca líneas que contienen un texto o patrón. <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <div class="table-wrap"><table><thead><tr>
 <th>Símbolo</th>
 <th>Qué hace</th>
@@ -242,6 +244,7 @@ fg %1               # lo trae al frente y esperas que termine (Ctrl+C lo corta)
 kill %1             # o lo terminas sin traerlo
 echo $!             # el PID del último trabajo lanzado con &amp;
 wait                # espera a que terminen todos</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(6)</span></summary><ol><li><code class="bx-linea">sleep 30 &amp;</code><span><code>sleep</code>: espera la cantidad de segundos indicada<br><i class="bx-com">Nota del ejemplo: [1] 4123 → número de trabajo y PID</i></span></li><li><code class="bx-linea">jobs</code><span><code>jobs</code>: lista los comandos que dejaste corriendo en segundo plano<br><i class="bx-com">Nota del ejemplo: [1]+  Ejecutando   sleep 30 &amp;</i></span></li><li><code class="bx-linea">fg %1</code><span><code>fg</code>: trae al frente un comando que estaba en segundo plano<br><i class="bx-com">Nota del ejemplo: lo trae al frente y esperas que termine (Ctrl+C lo corta)</i></span></li><li><code class="bx-linea">kill %1</code><span><code>kill</code>: detiene un proceso por su número<br><i class="bx-com">Nota del ejemplo: o lo terminas sin traerlo</i></span></li><li><code class="bx-linea">echo $!</code><span><code>echo</code>: escribe un texto en pantalla (o en un archivo, con <code>&gt;</code> o <code>&gt;&gt;</code>)<br><i class="bx-com">Nota del ejemplo: el PID del último trabajo lanzado con &amp;</i></span></li><li><code class="bx-linea">wait</code><span><code>wait</code>: espera a que terminen los comandos en segundo plano<br><i class="bx-com">Nota del ejemplo: espera a que terminen todos</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Cuando un trabajo termina, bash avisa <code>[1]+  Hecho  sleep 30</code> antes del siguiente prompt. Ojo: si cierras la terminal, los trabajos mueren con ella; para que sigan, se usa <code>nohup comando &amp;</code> (o un servicio de verdad, como un scheduler).</p>
 <div class="recorrido"></div>
 
@@ -307,6 +310,7 @@ pedido_id,fecha,cliente_id,canal,estado,total
 <pre tabindex="0"><code class="language-bash">nano notas.txt
 vim etl.py
 code .</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">nano notas.txt</code><span><code>nano</code>: editor de texto simple dentro de la terminal (Ctrl+O guarda, Ctrl+X sale)</span></li><li><code class="bx-linea">vim etl.py</code><span><code>vim</code>: editor de texto de la terminal (:wq guarda y sale)</span></li><li><code class="bx-linea">code .</code><span><code>code</code>: abre un archivo o carpeta en VS Code (<code>code .</code> abre la carpeta actual)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <h3>Ejecutar lo que escribiste</h3>
 <p>El orden siempre es <strong>programa + archivo</strong>: <code>python hola.py</code> (no <code>hola.py python</code>). Según el editor:</p>
 <div class="table-wrap"><table><thead><tr>
@@ -337,6 +341,7 @@ code .</code></pre>
 <pre data-norun tabindex="0"><code class="language-bash">export AMBIENTE=desarrollo
 echo $AMBIENTE        # imprime: desarrollo
 echo $HOME            # tu carpeta personal: /home/alumno</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">export AMBIENTE=desarrollo</code><span><code>export</code>: define una variable de entorno para esta terminal y los programas que lances desde ella</span></li><li><code class="bx-linea">echo $AMBIENTE</code><span><code>echo</code>: escribe un texto en pantalla (o en un archivo, con <code>&gt;</code> o <code>&gt;&gt;</code>)<br><i class="bx-com">Nota del ejemplo: imprime: desarrollo</i></span></li><li><code class="bx-linea">echo $HOME</code><span><code>echo</code>: escribe un texto en pantalla (o en un archivo, con <code>&gt;</code> o <code>&gt;&gt;</code>)<br><i class="bx-com">Nota del ejemplo: tu carpeta personal: /home/alumno</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <ul>
 <li><code>export NOMBRE=valor</code> crea la variable (sin espacios alrededor del <code>=</code>).</li>
 <li><code>$NOMBRE</code> la lee.</li>
@@ -345,6 +350,7 @@ echo $HOME            # tu carpeta personal: /home/alumno</code></pre>
 <p>También se puede guardar en una variable <strong>el resultado de un comando</strong> con <code>$( ... )</code>. Lo vas a usar mucho con las CLIs de la nube:</p>
 <pre data-norun tabindex="0"><code class="language-bash">TOTAL=$(wc -l &lt; datos/ventas_2024_12.csv)
 echo &quot;El archivo tiene $TOTAL líneas&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">echo &quot;El archivo tiene $TOTAL líneas&quot;</code><span><code>echo</code>: escribe un texto en pantalla (o en un archivo, con <code>&gt;</code> o <code>&gt;&gt;</code>)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <div class="callout callout-tip"><div class="callout-title">💡 Truco de supervivencia</div>
 
 <ul>
@@ -413,6 +419,7 @@ mkdir -p ~/practica &amp;&amp; cd ~/practica
 echo &quot;ventas 2024 ok&quot; &gt; notas.txt
 cat notas.txt
 grep ventas notas.txt</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(6)</span></summary><ol><li><code class="bx-linea">pwd</code><span><code>pwd</code>: muestra en qué carpeta estás</span></li><li><code class="bx-linea">ls -la</code><span><code>ls</code>: lista los archivos y carpetas. <code>-la</code> = formato largo e incluye los ocultos</span></li><li><code class="bx-linea">mkdir -p ~/practica &amp;&amp; cd ~/practica</code><span><code>mkdir</code>: crea una carpeta. <code>-p</code> = crea también las carpetas intermedias y no falla si ya existe <span class="bx-tubo">→ si sale bien, sigue el próximo</span><br><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">echo &quot;ventas 2024 ok&quot; &gt; notas.txt</code><span><code>echo</code>: escribe un texto en pantalla (o en un archivo, con <code>&gt;</code> o <code>&gt;&gt;</code>). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li><li><code class="bx-linea">cat notas.txt</code><span><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo)</span></li><li><code class="bx-linea">grep ventas notas.txt</code><span><code>grep</code>: busca líneas que contienen un texto o patrón</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Reto: cuenta cuántas líneas tiene <code>notas.txt</code> con <code>wc -l</code> después de agregarle dos líneas más con <code>&gt;&gt;</code>.</p>
 <p>Documentación oficial: <a href="https://www.gnu.org/software/bash/manual/bash.html">manual de Bash</a></p>
 </div>

@@ -90,12 +90,40 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Todo el proyecto se hace en <strong>tu computadora</strong>:</p>
+<ol>
+<li><strong>Terminal</strong>: Terminal en macOS, o Ubuntu con WSL en Windows (<code>wsl --install</code> en PowerShell como administrador). Ahí corres <code>git</code>, <code>uv</code> y las CLIs.</li>
+<li><strong>VS Code</strong> con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).</li>
+<li><strong>Una carpeta por proyecto</strong> con <code>git init</code> desde el primer minuto, y un repositorio público en <strong>github.com → New repository</strong> para mostrarlo.</li>
+</ol>
+<ul>
+<li>Los checks se escriben en SQL y corren como tarea de un job (Databricks <em>Workflows</em>) o de Airflow; los resultados se guardan en una tabla.</li>
+<li>Los costos salen de las tablas de sistema de Databricks (<code>system.billing.usage</code>) o del portal de costos de la nube.</li>
+<li>El tablero se arma en <em>Dashboards</em> de Databricks o en Power BI.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio y enlázalas desde el README.</p>
+<ul>
+<li><code>01-checks.png</code>: la tabla de resultados de los checks del día.</li>
+<li><code>02-costos.png</code>: el costo por job o por equipo.</li>
+<li><code>03-tablero.png</code>: el tablero de salud de la plataforma.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.</p>
+</div>
+
+
 <h2>Entregables</h2>
 <ul>
-<li><input disabled="" type="checkbox"> Esquema <code>obs</code> y el job de checks genéricos configurado para al menos 4 tablas.</li>
-<li><input disabled="" type="checkbox"> Tablero de salud: semáforo por tabla, SLO del mes, costos por pipeline.</li>
-<li><input disabled="" type="checkbox"> Reglas de alerta con dueño, severidad y enlace al runbook; revisión del ruido de un mes.</li>
-<li><input disabled="" type="checkbox"> Un incidente provocado a propósito (por ejemplo, cargar un día con 12 % de nulos), detectado por el sistema, con su postmortem.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Esquema <code>obs</code> y el job de checks genéricos configurado para al menos 4 tablas.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Tablero de salud: semáforo por tabla, SLO del mes, costos por pipeline.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Reglas de alerta con dueño, severidad y enlace al runbook; revisión del ruido de un mes.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Un incidente provocado a propósito (por ejemplo, cargar un día con 12 % de nulos), detectado por el sistema, con su postmortem.</li>
 </ul>
 <h2>Práctica</h2>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Salud de las tablas en una sola consulta</div>

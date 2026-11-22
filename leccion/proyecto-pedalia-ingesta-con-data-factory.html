@@ -106,6 +106,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <pre tabindex="0"><code class="language-bash">az datafactory pipeline create-run -g rg-pedalia-dev --factory-name adf-pedalia-dev \
   -n pl_ingesta_pedalia --parameters '{&quot;fecha&quot;: &quot;2026-11-09&quot;}'
 az storage blob list --account-name stpedaliadev -c bronze -o table</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">az datafactory pipeline create-run -g rg-pedalia-dev --factory-name adf-pedalia-dev    -n pl_ingesta_pedalia --parameters '{&quot;fecha&quot;: &quot;202…</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>datafactory</code> Azure Data Factory: fábricas, pipelines y ejecuciones (<code>pipeline create-run</code>). <code>-g</code> = grupo de recursos donde está o se crea el recurso; <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az storage blob list --account-name stpedaliadev -c bronze -o table</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob list</code>). <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>En el Studio, <strong>Monitor → Pipeline runs</strong>: vas a ver la corrida con su <code>runId</code>, quién la disparó y cuánto tardó. Entra a la actividad para ver la entrada y la salida.</p>
 <h2>6. Al repositorio</h2>
 <p>En Data Factory real se conecta el Studio a un repositorio Git (Manage → Git configuration) y cada pipeline queda como un JSON en <code>pipeline/</code>. Acá guarda el JSON a mano:</p>
@@ -116,6 +117,7 @@ mkdir -p adf/pipeline
 # pega el JSON de arriba en el archivo
 nano adf/pipeline/pl_ingesta_pedalia.json
 git add adf &amp;&amp; git commit -m &quot;Pipeline de ingesta de Pedalia&quot; &amp;&amp; git push -u origin adf/ingesta</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(6)</span></summary><ol><li><code class="bx-linea">cd ~/pedalia-datos</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">git checkout main &amp;&amp; git pull</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella) <span class="bx-tubo">→ si sale bien, sigue el próximo</span><br><code>git</code>: Git: guarda la historia de tu código. <code>pull</code> trae los commits nuevos del remoto y los une a tu rama</span></li><li><code class="bx-linea">git checkout -b adf/ingesta</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella). <code>-b</code> = crea la rama nueva</span></li><li><code class="bx-linea">mkdir -p adf/pipeline</code><span><code>mkdir</code>: crea una carpeta. <code>-p</code> = crea también las carpetas intermedias y no falla si ya existe</span></li><li><code class="bx-linea">nano adf/pipeline/pl_ingesta_pedalia.json</code><span><code>nano</code>: editor de texto simple dentro de la terminal (Ctrl+O guarda, Ctrl+X sale)</span></li><li><code class="bx-linea">git add adf &amp;&amp; git commit -m &quot;Pipeline de ingesta de Pedalia&quot; &amp;&amp; git push -u origin adf/ingesta</code><span><code>git</code>: Git: guarda la historia de tu código. <code>add</code> prepara cambios para el próximo commit (los pasa al área de preparación) <span class="bx-tubo">→ si sale bien, sigue el próximo</span><br><code>git</code>: Git: guarda la historia de tu código. <code>commit</code> guarda una foto de los cambios preparados, con un mensaje. <code>-m</code> = el mensaje del commit <span class="bx-tubo">→ si sale bien, sigue el próximo</span><br><code>git</code>: Git: guarda la historia de tu código. <code>push</code> sube tus commits al repositorio remoto (GitHub). <code>-u</code> = recuerda la rama remota: después alcanza con <code>git push</code></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Abre el PR y fusiónalo cuando el check esté en verde.</p>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
 
@@ -125,6 +127,31 @@ git add adf &amp;&amp; git commit -m &quot;Pipeline de ingesta de Pedalia&quot; 
 <li><strong>Linked service con la clave de la cuenta</strong> en vez de identidad administrada: la clave da control total y hay que rotarla.</li>
 <li><strong>Error <em>UserErrorSourceBlobNotExist</em></strong>: el comodín no encontró nada. Revisa que la fecha exista en landing y que la carpeta del dataset sea <code>pedalia</code> (el comodín se aplica desde ahí).</li>
 </ul>
+</div>
+
+
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>En Azure real, todo esto se hace en <strong>Azure Data Factory Studio</strong> (<code>adf.azure.com</code>, o desde el recurso → <em>Launch studio</em>):</p>
+<ol>
+<li><strong>Manage → Linked services → New → Azure Data Lake Storage Gen2</strong>, con <em>System-assigned managed identity</em> (sin claves).</li>
+<li><strong>Author → Datasets → New dataset</strong> para el origen (landing) y el destino (bronze), con el parámetro de fecha.</li>
+<li><strong>Author → Pipelines → New pipeline</strong>: arrastra una actividad <em>Copy data</em> y configura <em>Source</em> y <em>Sink</em>.</li>
+<li><strong>Publish all</strong> y después <strong>Add trigger → Trigger now</strong> para probarlo. El resultado se ve en <strong>Monitor</strong>.</li>
+</ol>
+<p>Si conectas Git en <em>Manage → Git configuration</em>, cada cambio queda en el repositorio, igual que en el paso 6.</p>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>05-pipeline.png</code>: el lienzo del pipeline con la actividad Copy.</li>
+<li><code>05-monitor.png</code>: la ejecución en verde en <em>Monitor</em>, con filas leídas y escritas.</li>
+<li><code>05-linked-service.png</code>: el linked service con identidad administrada (sin claves a la vista).</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
 </div>
 
 

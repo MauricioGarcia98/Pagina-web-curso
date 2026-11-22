@@ -85,6 +85,27 @@ Un archivo con 40 preguntas reales y su **respuesta correcta calculada a mano** 
 Acceso de solo lectura con un usuario propio y permisos sobre vistas aprobadas, no sobre todas las tablas. Límites de filas y de tiempo de ejecución, validación de la consulta antes de correrla, y mostrar siempre la consulta y la fuente junto con la respuesta. Registro de todo para auditar y un conjunto de preguntas de evaluación con respuestas conocidas.
 :::
 
+:::real En tu computadora y en la web real
+Todo el proyecto se hace en **tu computadora**:
+
+1. **Terminal**: Terminal en macOS, o Ubuntu con WSL en Windows (`wsl --install` en PowerShell como administrador). Ahí corres `git`, `uv` y las CLIs.
+2. **VS Code** con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).
+3. **Una carpeta por proyecto** con `git init` desde el primer minuto, y un repositorio público en **github.com → New repository** para mostrarlo.
+
+- Con **Genie** en Databricks: *Genie → New space*, eliges las tablas, escribes las instrucciones y las consultas de ejemplo, y pruebas con preguntas reales.
+- Con un agente propio: Python local con la clave del modelo en una variable de entorno, y un usuario de base de datos de **solo lectura**.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio y enlázalas desde el README.
+
+- `01-espacio.png`: el espacio de Genie con sus tablas e instrucciones (o el código del agente).
+- `02-pregunta.png`: una pregunta en lenguaje natural con el SQL que generó y el resultado.
+- `03-guardrail.png`: una pregunta que el agente rechaza por sus reglas.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.
+:::
+
 ## Entregables
 
 - [ ] Descripciones de tablas y columnas, métricas definidas y ejemplos pregunta→SQL.

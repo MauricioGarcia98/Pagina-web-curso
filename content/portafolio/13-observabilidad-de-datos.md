@@ -76,6 +76,28 @@ En Databricks, la tabla de sistema `system.billing.usage` tiene el consumo (DBU)
 Frescura de las tablas clave contra lo acordado, volumen de filas por carga comparado con el histórico, cambios de esquema, resultados de los tests de calidad y duración y costo de cada pipeline. Guardaría los resultados con su historial, alertaría solo lo que requiere acción con un responsable y un runbook, y registraría cada incidente con su causa para prevenir repeticiones.
 :::
 
+:::real En tu computadora y en la web real
+Todo el proyecto se hace en **tu computadora**:
+
+1. **Terminal**: Terminal en macOS, o Ubuntu con WSL en Windows (`wsl --install` en PowerShell como administrador). Ahí corres `git`, `uv` y las CLIs.
+2. **VS Code** con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).
+3. **Una carpeta por proyecto** con `git init` desde el primer minuto, y un repositorio público en **github.com → New repository** para mostrarlo.
+
+- Los checks se escriben en SQL y corren como tarea de un job (Databricks *Workflows*) o de Airflow; los resultados se guardan en una tabla.
+- Los costos salen de las tablas de sistema de Databricks (`system.billing.usage`) o del portal de costos de la nube.
+- El tablero se arma en *Dashboards* de Databricks o en Power BI.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio y enlázalas desde el README.
+
+- `01-checks.png`: la tabla de resultados de los checks del día.
+- `02-costos.png`: el costo por job o por equipo.
+- `03-tablero.png`: el tablero de salud de la plataforma.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.
+:::
+
 ## Entregables
 
 - [ ] Esquema `obs` y el job de checks genéricos configurado para al menos 4 tablas.

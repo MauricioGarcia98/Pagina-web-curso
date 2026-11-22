@@ -158,12 +158,40 @@ jobs:
 </div>
 
 
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Todo el proyecto se hace en <strong>tu computadora</strong>:</p>
+<ol>
+<li><strong>Terminal</strong>: Terminal en macOS, o Ubuntu con WSL en Windows (<code>wsl --install</code> en PowerShell como administrador). Ahí corres <code>git</code>, <code>uv</code> y las CLIs.</li>
+<li><strong>VS Code</strong> con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).</li>
+<li><strong>Una carpeta por proyecto</strong> con <code>git init</code> desde el primer minuto, y un repositorio público en <strong>github.com → New repository</strong> para mostrarlo.</li>
+</ol>
+<ul>
+<li><strong>Terraform</strong> en tu computadora: <code>brew install terraform</code> (o <code>winget install Hashicorp.Terraform</code>), <code>terraform init</code>, <code>plan</code> y <code>apply</code> contra tu cuenta.</li>
+<li><strong>Bundle</strong>: <code>databricks bundle validate</code> y <code>databricks bundle deploy -t dev</code> desde la terminal, después de <code>databricks auth login</code>.</li>
+<li><strong>GitHub Actions</strong>: el workflow corre en github.com; las credenciales van en <em>Settings → Secrets and variables → Actions</em> (o con OIDC, sin secretos).</li>
+</ul>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio y enlázalas desde el README.</p>
+<ul>
+<li><code>01-plan.png</code>: la salida de <code>terraform plan</code> con los recursos a crear.</li>
+<li><code>02-bundle.png</code>: el job desplegado por el bundle en Databricks.</li>
+<li><code>03-actions.png</code>: el workflow de GitHub Actions en verde, con los pasos de plan y deploy.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.</p>
+</div>
+
+
 <h2>Entregables</h2>
 <ul>
-<li><input disabled="" type="checkbox"> Terraform con estado remoto y dos entornos.</li>
-<li><input disabled="" type="checkbox"> Bundle con targets dev y prod, y un job real (de cualquier proyecto anterior).</li>
-<li><input disabled="" type="checkbox"> CI que corre en cada PR y despliega a prod con aprobación.</li>
-<li><input disabled="" type="checkbox"> Documento &quot;cómo se promueve un cambio&quot; y qué se haría ante un deploy fallido (rollback).</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Terraform con estado remoto y dos entornos.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Bundle con targets dev y prod, y un job real (de cualquier proyecto anterior).</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  CI que corre en cada PR y despliega a prod con aprobación.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Documento &quot;cómo se promueve un cambio&quot; y qué se haría ante un deploy fallido (rollback).</li>
 </ul>
 <h2>Práctica</h2>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Infraestructura y código, validados como en CI</div>
@@ -185,6 +213,7 @@ databricks bundle init
 cd mi_proyecto
 databricks bundle validate
 databricks bundle deploy -t dev</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(12)</span></summary><ol><li><code class="bx-linea">aws configure</code><span><code>aws</code>: la CLI de AWS: hace desde la terminal lo mismo que la consola de AWS. <code>configure</code> guarda tus credenciales y la región por defecto</span></li><li><code class="bx-linea">mkdir -p ~/plataforma &amp;&amp; cd ~/plataforma</code><span><code>mkdir</code>: crea una carpeta. <code>-p</code> = crea también las carpetas intermedias y no falla si ya existe <span class="bx-tubo">→ si sale bien, sigue el próximo</span><br><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">printf 'resource &quot;aws_s3_bucket&quot; &quot;bronze&quot; {\n  bucket = &quot;plataforma-dev-bronze&quot;\n}\n' &gt; main.tf</code><span><code>printf</code>: escribe texto con formato (como echo, pero controlando saltos de línea y columnas). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li><li><code class="bx-linea">terraform init</code><span><code>terraform</code>: Terraform: crea y cambia infraestructura en la nube a partir de archivos .tf. <code>init</code> prepara la carpeta: descarga los proveedores y configura dónde se guarda el estado</span></li><li><code class="bx-linea">terraform fmt -check</code><span><code>terraform</code>: Terraform: crea y cambia infraestructura en la nube a partir de archivos .tf. <code>fmt</code> ordena el formato de los archivos .tf</span></li><li><code class="bx-linea">terraform validate</code><span><code>terraform</code>: Terraform: crea y cambia infraestructura en la nube a partir de archivos .tf. <code>validate</code> revisa que la configuración sea válida</span></li><li><code class="bx-linea">terraform plan</code><span><code>terraform</code>: Terraform: crea y cambia infraestructura en la nube a partir de archivos .tf. <code>plan</code> muestra qué va a crear, cambiar o borrar, sin hacerlo</span></li><li><code class="bx-linea">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net</code><span><code>databricks</code>: la CLI de Databricks: maneja el espacio de trabajo desde la terminal. <code>auth</code> inicia sesión y guarda el perfil del espacio de trabajo (<code>login</code>)</span></li><li><code class="bx-linea">databricks bundle init</code><span><code>databricks</code>: la CLI de Databricks: maneja el espacio de trabajo desde la terminal. <code>bundle</code> Declarative Automation Bundles: despliega jobs y pipelines como código (<code>init</code>)</span></li><li><code class="bx-linea">cd mi_proyecto</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">databricks bundle validate</code><span><code>databricks</code>: la CLI de Databricks: maneja el espacio de trabajo desde la terminal. <code>bundle</code> Declarative Automation Bundles: despliega jobs y pipelines como código (<code>validate</code>)</span></li><li><code class="bx-linea">databricks bundle deploy -t dev</code><span><code>databricks</code>: la CLI de Databricks: maneja el espacio de trabajo desde la terminal. <code>bundle</code> Declarative Automation Bundles: despliega jobs y pipelines como código (<code>deploy</code>)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Reto: escribe el workflow <code>.github/workflows/ci.yml</code> con estos pasos y la condición para desplegar a <code>prod</code> solo desde <code>main</code>.</p>
 <p>Documentación oficial: <a href="https://developer.hashicorp.com/terraform/tutorials/automation/github-actions">Terraform con GitHub Actions</a> · <a href="https://docs.databricks.com/aws/en/dev-tools/bundles/ci-cd">bundles en CI/CD</a></p>
 </div>

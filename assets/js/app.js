@@ -2625,7 +2625,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       <div class="lab">
         <aside class="card lab-side"><h4>Bases de datos</h4><div id="schema"><div class="muted small">Cargando…</div></div></aside>
         <div class="lab-main"><div class="card">
-          <div class="ex-tools" style="border-top:0"><span class="samples"><select id="samples"></select></span><span class="spacer"></span><button class="btn btn-ghost btn-sm" id="resetDb" title="Deshace los cambios que hiciste a las tablas (INSERT, UPDATE, DELETE, CREATE)">↺ Reiniciar base</button><button class="btn btn-ghost btn-sm" id="cero" title="Base original y el primer ejemplo en el editor">↺ Empezar de cero</button></div>
+          <div class="ex-tools" style="border-top:0"><span class="samples"><select id="samples" aria-label="Ejemplos de consultas"></select></span><span class="spacer"></span><button class="btn btn-ghost btn-sm" id="resetDb" title="Deshace los cambios que hiciste a las tablas (INSERT, UPDATE, DELETE, CREATE)">↺ Reiniciar base</button><button class="btn btn-ghost btn-sm" id="cero" title="Base original y el primer ejemplo en el editor">↺ Empezar de cero</button></div>
           <div id="ed"></div>
           <div class="ex-tools sqlg-barra"><button class="btn btn-ghost btn-sm" id="sqlgFmt" title="Ordena la consulta con sangrías y mayúsculas (sqlglot)">🧹 Formatear</button>
             <label class="small" for="sqlgDest">🔁 Traducir a</label><select id="sqlgDest" class="sqlg-dest">${SQLG_DIALECTOS.map(([k, n]) => `<option value="${k}">${esc(n)}</option>`).join('')}</select><button class="btn btn-ghost btn-sm" id="sqlgTrad">Traducir</button>

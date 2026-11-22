@@ -183,6 +183,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <pre tabindex="0"><code class="language-bash">curl https://api.tiendaandina.dev/v1/estado
 curl https://api.tiendaandina.dev/v1/productos/3
 curl &quot;https://api.tiendaandina.dev/v1/productos?page=1&amp;per_page=2&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">curl https://api.tiendaandina.dev/v1/estado</code><span><code>curl</code>: hace un pedido HTTP a una URL (bajar un archivo o llamar a una API)</span></li><li><code class="bx-linea">curl https://api.tiendaandina.dev/v1/productos/3</code><span><code>curl</code>: hace un pedido HTTP a una URL (bajar un archivo o llamar a una API)</span></li><li><code class="bx-linea">curl &quot;https://api.tiendaandina.dev/v1/productos?page=1&amp;per_page=2&quot;</code><span><code>curl</code>: hace un pedido HTTP a una URL (bajar un archivo o llamar a una API)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Y desde Python, con la librería <code>requests</code>:</p>
 <pre tabindex="0"><code class="language-python">import requests
 r = requests.get(&quot;https://api.tiendaandina.dev/v1/productos/3&quot;)
@@ -213,6 +214,7 @@ print(producto[&quot;nombre&quot;])</code></pre>
 </ol>
 <pre tabindex="0"><code class="language-bash">curl -s https://api.tiendaandina.dev/v1/productos | head -c 400
 curl -i -s https://api.tiendaandina.dev/v1/productos | head -15</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">curl -s https://api.tiendaandina.dev/v1/productos | head -c 400</code><span><code>curl</code>: hace un pedido HTTP a una URL (bajar un archivo o llamar a una API). <code>-s</code> = sin barra de progreso <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas)</span></li><li><code class="bx-linea">curl -i -s https://api.tiendaandina.dev/v1/productos | head -15</code><span><code>curl</code>: hace un pedido HTTP a una URL (bajar un archivo o llamar a una API). <code>-i</code> = muestra también los encabezados de la respuesta; <code>-s</code> = sin barra de progreso <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas). <code>-15</code> = las primeras 15 líneas</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Reto: guarda la respuesta en un archivo con <code>-o productos.json</code> y míralo con <code>cat</code>.</p>
 <p>Documentación oficial: <a href="https://developer.mozilla.org/es/docs/Web/HTTP/Overview">HTTP en MDN</a></p>
 </div>

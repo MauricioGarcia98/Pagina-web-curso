@@ -43,6 +43,7 @@ print(totl([1, 2]))</code></pre>
 <h2>Paso 2 — ruff: el linter que usa la industria</h2>
 <p>Corrige los dos puntos (<code>def total(precios):</code>) y guarda. Ahora, en la paleta (<strong>Ctrl + Shift + P</strong>) busca <strong>Python: ejecutar ruff</strong>, o en la terminal:</p>
 <pre tabindex="0"><code class="language-bash">ruff check scripts/con_errores.py</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">ruff check scripts/con_errores.py</code><span><code>ruff</code>: revisa el estilo y errores comunes del código Python (linter) y lo formatea. <code>check</code> busca problemas (con <code>--fix</code> arregla los automáticos)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <figure class="captura"><img src="assets/img/guias/vscode/v10-ruff.webp" alt="ruff encuentra el import que no se usa (F401) e indica que se puede arreglar solo" loading="lazy"><figcaption>ruff encuentra el import que no se usa (F401) e indica que se puede arreglar solo</figcaption></figure>
 
 
@@ -70,6 +71,7 @@ print(totl([1, 2]))</code></pre>
 <h2>Paso 3 — Que se arregle solo</h2>
 <pre tabindex="0"><code class="language-bash">ruff check --fix scripts/con_errores.py
 ruff format scripts/</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">ruff check --fix scripts/con_errores.py</code><span><code>ruff</code>: revisa el estilo y errores comunes del código Python (linter) y lo formatea. <code>check</code> busca problemas (con <code>--fix</code> arregla los automáticos)</span></li><li><code class="bx-linea">ruff format scripts/</code><span><code>ruff</code>: revisa el estilo y errores comunes del código Python (linter) y lo formatea. <code>format</code> formatea el código con un estilo uniforme</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <ul>
 <li><code>--fix</code> corrige lo que es seguro corregir (por ejemplo, borra el <code>import os</code> que sobra). Lo que requiere decidir (como <code>totl</code> → ¿<code>total</code>?) lo tienes que arreglar tú.</li>
 <li><code>ruff format</code> acomoda espacios, comillas y saltos de línea con un estilo estándar.</li>

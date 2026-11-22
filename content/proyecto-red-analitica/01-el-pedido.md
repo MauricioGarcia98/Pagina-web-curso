@@ -54,6 +54,18 @@ Escribe en tus notas:
 - Dónde guardas la clave SSH y la sal.
 - Cómo vas a enterarte si un laboratorio cambia el formato sin avisar.
 
+:::real En tu computadora y en la web real
+Con datos de salud, lo primero en una empresa real es **leer la política de privacidad** y saber quién es el responsable de los datos (DPO). En tu computadora: crea el repositorio, un `README.md` con el pedido y un `docs/privacidad.md` con lo que **no** puede salir del lago (nombres, documentos) y cómo se va a seudonimizar.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `01-privacidad.png`: tu `privacidad.md` con las reglas de datos sensibles.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

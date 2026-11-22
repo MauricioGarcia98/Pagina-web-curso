@@ -39,6 +39,19 @@ La revisión compara con todos los archivos entregados **antes de hoy** (los de 
 
 <div data-red="revisar"></div>
 
+:::real En tu computadora y en la web real
+En la empresa, el esquema canónico se acuerda con dirección médica en un pull request sobre `docs/esquema.md`, y la revisión automática equivale a las pruebas del CI y a los *expectations* del pipeline. Corre tus consultas de control en Databricks antes de pedir revisión.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `04-esquema.png`: la tabla silver con el esquema canónico en *Catalog Explorer*.
+- `04-revision.png`: la revisión en verde.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz
