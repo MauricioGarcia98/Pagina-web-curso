@@ -7,7 +7,7 @@ export default async function (c) {
     if (await p.$eval('#ghTerm', (x) => x.hidden).catch(() => true)) { await p.click('#ghTermB'); await c.espera(500); }
     await p.click('#ghTerm .term-input'); await p.keyboard.type(cmd); await p.keyboard.press('Enter'); await c.espera(espera);
   };
-  const cerrarTerminal = async () => { if (!(await p.$eval('#ghTerm', (x) => x.hidden).catch(() => true))) { await p.click('#ghTermX'); await c.espera(300); } };
+  const cerrarTerminal = async () => { if (!(await p.$eval('#ghTerm', (x) => x.hidden).catch(() => true))) { await p.click('#ghTerm .gh-term-cerrar'); await c.espera(300); } };
 
   // nivel 1: qué es GitHub y cómo se recorre un repositorio
   await ir('');
