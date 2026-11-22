@@ -33,15 +33,15 @@ nodo df: Dataflow | icono=dataflow | col=2 | fila=0 | sub=Beam: ventanas | color
 nodo gcs: Cloud Storage | icono=gcs | col=2 | fila=2 | forma=cilindro | color=verde
 nodo bq: BigQuery | icono=bigquery | col=3 | fila=1 | forma=cilindro | color=verde
 nodo dfm: Dataform | icono=dataform | col=4 | fila=1 | sub=SQL versionado | color=violeta
-flecha suc -> ps
-flecha ps -> df
-flecha df -> bq
-flecha sql -> ds
-flecha ds -> bq
-flecha hdp -> dp: migración
-flecha dp -> gcs
-flecha gcs -> bq: BigLake
-flecha bq -> dfm
+flecha suc -> ps | explica=Las sucursales publican cada venta en Pub/Sub.
+flecha ps -> df | explica=Dataflow procesa el stream con ventanas de tiempo.
+flecha df -> bq | explica=Y escribe en BigQuery.
+flecha sql -> ds | explica=Datastream captura los cambios de Cloud SQL (CDC).
+flecha ds -> bq | explica=Y los replica en BigQuery.
+flecha hdp -> dp: migración | explica=Los 200 trabajos de Spark de Hadoop se migran a Dataproc casi sin cambios.
+flecha dp -> gcs | explica=Dataproc escribe en Cloud Storage en lugar de HDFS.
+flecha gcs -> bq: BigLake | explica=BigQuery consulta esos archivos con tablas BigLake, sin copiarlos.
+flecha bq -> dfm | explica=Dataform arma las transformaciones en SQL versionado.
 ```
 
 ## Sección 2: ingerir y procesar datos

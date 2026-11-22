@@ -26,13 +26,13 @@ nodo ok: Ruta + response_model | icono=check | col=4 | fila=1 | color=verde | su
 nodo e401: 401 | icono=x | col=1 | fila=2 | color=rojo
 nodo e429: 429 + Retry-After | icono=x | col=2 | fila=2 | color=rojo
 nodo e403: 403 | icono=x | col=3 | fila=2 | color=rojo
-flecha req -> k
-flecha k -> l: sí
-flecha l -> p: sí
-flecha p -> ok: sí
-flecha k -> e401: no
-flecha l -> e429: no
-flecha p -> e403: no
+flecha req -> k | explica=Cada pedido trae su clave en el encabezado X-API-Key. Lo primero es verificarla.
+flecha k -> l: sí | explica=Si es válida, se revisa que el cliente no haya superado su límite de pedidos.
+flecha l -> p: sí | explica=Si está dentro del límite, se revisa que tenga permiso para ese recurso.
+flecha p -> ok: sí | explica=Recién entonces se ejecuta la ruta, y response_model filtra la respuesta para devolver solo los campos públicos.
+flecha k -> e401: no | explica=Sin clave válida: 401, no autenticado.
+flecha l -> e429: no | explica=Por encima del límite: 429, con Retry-After para saber cuándo volver a intentar.
+flecha p -> e403: no | explica=Autenticado pero sin permiso: 403.
 ```
 
 ```python norun

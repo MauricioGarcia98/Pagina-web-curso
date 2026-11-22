@@ -24,11 +24,11 @@ nodo ws: Workspaces | icono=carpeta | col=2 | fila=0 | sub=Ventas-Dev, Ventas-Pr
 nodo it: Ítems | icono=capas | col=3 | fila=0 | sub=lakehouse, warehouse,\neventhouse, pipelines… | color=violeta
 nodo ol: OneLake | icono=onelake | col=3 | fila=1 | forma=cilindro | sub=un lago por tenant, Delta Parquet | color=verde
 nodo ext: ADLS, S3, Snowflake… | icono=nube | col=1 | fila=1 | sub=fuera de Fabric
-flecha ten -> cap
-flecha cap -> ws: asigna cómputo
-flecha ws -> it
-flecha it -> ol: guardan sus datos
-flecha ext -> ol: shortcuts y mirroring | estilo=punteada
+flecha ten -> cap | explica=El tenant de Fabric es la organización. Compra capacidades, como una F64, medidas en unidades de cómputo (CU).
+flecha cap -> ws: asigna cómputo | explica=Cada workspace se asigna a una capacidad, que le da el cómputo con el que corre todo lo de adentro.
+flecha ws -> it | explica=En el workspace se crean los ítems: lakehouse, warehouse, eventhouse, pipelines, informes.
+flecha it -> ol: guardan sus datos | explica=Todos guardan sus datos en OneLake, un único lago por tenant, en formato Delta Parquet.
+flecha ext -> ol: shortcuts y mirroring | estilo=punteada | explica=Los datos de fuera de Fabric se ven en OneLake con shortcuts (sin copiar) o mirroring (réplica continua).
 ```
 
 ## Capacidad: el cómputo que se comparte
@@ -96,10 +96,10 @@ nodo git: Repositorio Git | icono=github | col=0 | fila=1 | sub=rama main
 nodo test: Workspace Test | icono=prueba | col=1 | fila=0 | color=amarillo
 nodo prod: Workspace Prod | icono=fabric | col=2 | fila=0 | color=verde
 nodo reg: Reglas de despliegue | icono=reglas | col=2 | fila=1 | sub=origen de datos por etapa | forma=nota
-flecha dev <-> git: commit / update
-flecha dev -> test: desplegar | paso=1
-flecha test -> prod: desplegar | paso=2
-flecha reg -> prod | estilo=punteada
+flecha dev <-> git: commit / update | explica=El workspace de desarrollo está conectado a Git: los cambios se confirman con commit y se traen con update.
+flecha dev -> test: desplegar | paso=1 | explica=Un deployment pipeline copia el contenido de Dev al workspace de Test.
+flecha test -> prod: desplegar | paso=2 | explica=Después de probarlo, se despliega a Prod.
+flecha reg -> prod | estilo=punteada | explica=Las reglas de despliegue cambian el origen de datos en cada etapa: en Prod el informe apunta a la base de Prod.
 ```
 
 ## Seguridad y gobierno

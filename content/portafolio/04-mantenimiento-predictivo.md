@@ -36,12 +36,12 @@ nodo m: Entrenamiento | icono=mlflow | col=2 | fila=0 | sub=MLflow: parámetros,
 nodo r: Registro | icono=unity | col=3 | fila=0 | sub=modelo en Unity Catalog\nalias "campeon"
 nodo p: Puntuación horaria | icono=reloj | col=3 | fila=1 | sub=Job cada hora
 nodo a: Alertas a mantenimiento | icono=alerta | col=2 | fila=1 | color=rojo
-flecha s -> f
-flecha l -> m
-flecha f -> m
-flecha m -> r
-flecha r -> p
-flecha p -> a
+flecha s -> f | explica=Con las lecturas horarias se calculan features por ventana: media, desvío y tendencia de las últimas 6 y 24 horas.
+flecha l -> m | explica=La etiqueta dice si la máquina falló en las 24 horas siguientes: es lo que el modelo aprende a predecir.
+flecha f -> m | explica=El modelo se entrena con las features y MLflow registra parámetros, métricas y el modelo.
+flecha m -> r | explica=El mejor modelo se registra en Unity Catalog con el alias "campeon".
+flecha r -> p | explica=Un job corre cada hora, carga el campeón y puntúa las máquinas.
+flecha p -> a | explica=Las que superan el umbral generan una alerta para mantenimiento.
 ```
 
 ## Fase 1: entender la serie (local, DuckDB)

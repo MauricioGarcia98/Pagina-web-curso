@@ -31,14 +31,14 @@ nodo kb: Knowledge Base | icono=knowledgebases | col=3 | fila=1 | sub=búsqueda 
 nodo vs: OpenSearch Serverless | icono=opensearch | col=4 | fila=1 | forma=cilindro | color=violeta
 nodo seg: API de seguimiento | icono=camion | col=3 | fila=2 | sub=herramienta (Lambda) | color=naranja
 nodo cw: CloudWatch | icono=cloudwatch | col=4 | fila=2 | sub=invocation logs, trazas | color=rosa
-flecha u -> api
-flecha api -> ag
-flecha ag -> gr | estilo=punteada
-flecha ag -> fm
-flecha ag -> kb
-flecha kb -> vs
-flecha ag -> seg
-flecha ag -> cw | estilo=punteada
+flecha u -> api | explica=El cliente entra por API Gateway, que lo autentica con Cognito y llama a una Lambda.
+flecha api -> ag | explica=La Lambda le pasa la pregunta al agente de AgentCore.
+flecha ag -> gr | estilo=punteada | explica=Los guardrails revisan la entrada y la salida.
+flecha ag -> fm | explica=El agente usa el modelo de Bedrock para planificar; el caché de prompts abarata las partes que se repiten.
+flecha ag -> kb | explica=Para las políticas, consulta la Knowledge Base con búsqueda híbrida y reranking.
+flecha kb -> vs | explica=Los vectores viven en OpenSearch Serverless.
+flecha ag -> seg | explica=Para saber dónde está un envío, llama a la API de seguimiento como herramienta.
+flecha ag -> cw | estilo=punteada | explica=Los logs de invocación y las trazas van a CloudWatch.
 ```
 
 ## Dominio 1: modelos, datos y cumplimiento

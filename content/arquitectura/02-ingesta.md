@@ -28,9 +28,9 @@ nodo full: Carga completa | icono=archivos | col=0 | fila=0 | color=gris | sub=c
 nodo inc: Incremental | icono=reloj | col=1 | fila=0 | color=azul | sub=solo lo nuevo (watermark)
 nodo cdc: CDC | icono=base | col=2 | fila=0 | color=violeta | sub=lee el log de la base
 nodo str: Streaming | icono=stream | col=3 | fila=0 | color=naranja | sub=eventos al instante
-flecha full -> inc: más volumen
-flecha inc -> cdc: necesitas borrados
-flecha cdc -> str: segundos
+flecha full -> inc: más volumen | explica=Copiar la tabla entera todos los días es lo más simple, pero cuando crece se vuelve lento y caro: entonces se trae solo lo nuevo, usando una columna como marca (updated_at).
+flecha inc -> cdc: necesitas borrados | explica=La carga incremental no ve los borrados. Si los necesitas, CDC lee el log de cambios de la base y captura inserts, updates y deletes.
+flecha cdc -> str: segundos | explica=Si el negocio necesita los datos en segundos, cada evento se procesa apenas ocurre: streaming. Cada paso agrega latencia menor y más complejidad.
 ```
 
 | Estrategia | Cómo funciona | Latencia típica | Ventajas | Desventajas | Úsala cuando… |
@@ -103,11 +103,11 @@ nodo dbz: Debezium | icono=engranaje | col=2 | fila=0 | color=violeta | sub=lee 
 nodo k: Kafka | icono=kafka | col=3 | fila=0 | color=gris | sub=un tópico por tabla
 nodo br: Bronze (cambios) | icono=bucket | col=3 | fila=1 | color=naranja | sub=todos los eventos
 nodo sv: Silver (estado) | icono=tabla | col=2 | fila=1 | color=azul | sub=MERGE: última versión
-flecha app -> db
-flecha db -> dbz: log de transacciones
-flecha dbz -> k: eventos
-flecha k -> br
-flecha br -> sv: aplica cambios
+flecha app -> db | explica=La app escribe en PostgreSQL como siempre: no sabe nada del pipeline.
+flecha db -> dbz: log de transacciones | explica=Toda base guarda un log de transacciones (en PostgreSQL, el WAL). Debezium lo lee sin cargar las tablas.
+flecha dbz -> k: eventos | explica=Cada cambio se convierte en un evento con el antes y el después de la fila, en un tópico de Kafka por tabla.
+flecha k -> br | explica=Bronze guarda todos los eventos, en orden: es la historia completa de cambios.
+flecha br -> sv: aplica cambios | explica=Silver aplica los cambios con MERGE y se queda con la última versión de cada fila: el estado actual de la tabla.
 ```
 
 Cada evento dice **qué operación** fue, el estado **antes** y **después**, y cuándo pasó. Simplificado:

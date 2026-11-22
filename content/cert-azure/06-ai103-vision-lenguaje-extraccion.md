@@ -102,12 +102,12 @@ nodo di: Modelo precompilado\nde facturas | icono=documento | col=2 | fila=0 | s
 nodo r: ¿Confianza > 0,9? | col=3 | fila=0 | forma=rombo | color=naranja | ancho=190
 nodo erp: ERP | icono=base | col=3 | fila=1 | forma=cilindro | color=verde
 nodo h: Revisión humana | icono=usuario | col=2 | fila=1 | color=rojo
-flecha f -> c
-flecha c -> di
-flecha di -> r
-flecha r -> erp: sí
-flecha r -> h: no
-flecha h -> erp | estilo=punteada
+flecha f -> c | explica=Un clasificador decide primero qué documento es: factura o remito.
+flecha c -> di | explica=Las facturas pasan por el modelo precompilado de facturas, que devuelve cada campo con su confianza.
+flecha di -> r | explica=Se revisa la confianza de los campos.
+flecha r -> erp: sí | explica=Si supera 0,9, la factura entra sola al ERP.
+flecha r -> h: no | explica=Si no, una persona la revisa.
+flecha h -> erp | estilo=punteada | explica=Con la corrección hecha, entra al ERP.
 ```
 
 :::examen Elegir el servicio

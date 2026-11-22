@@ -32,9 +32,9 @@ nodo m: Unidades = SUM(cantidad) | icono=codigo | col=0 | fila=1
 nodo a: Barra "web"\nfiltro: canal = web | icono=lupa | col=1 | fila=0
 nodo b: Barra "app"\nfiltro: canal = app | icono=lupa | col=1 | fila=1
 nodo c: Tarjeta total\nsin filtro de canal | icono=lupa | col=1 | fila=2
-flecha m -> a
-flecha m -> b
-flecha m -> c
+flecha m -> a | explica=Una medida se escribe una sola vez. En la barra "web", Power BI la calcula con el filtro canal = web.
+flecha m -> b | explica=En la barra "app", la misma medida da otro resultado porque el filtro es otro.
+flecha m -> c | explica=En la tarjeta total no hay filtro de canal: suma todo. El contexto de filtro decide el resultado.
 ```
 
 ## Las funciones que más se usan

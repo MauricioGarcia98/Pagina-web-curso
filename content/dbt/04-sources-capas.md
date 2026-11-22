@@ -71,10 +71,10 @@ nodo st: staging | icono=transformar | col=1 | fila=0 | color=azul | sub=limpio
 nodo i: intermediate | icono=capas | col=2 | fila=0 | color=violeta | sub=combinado
 nodo m: marts | icono=tabla | col=3 | fila=0 | color=amarillo | sub=listo para el negocio
 nodo c: dashboards, notebooks, ML | icono=dashboard | col=4 | fila=0 | color=verde
-flecha s -> st
-flecha st -> i
-flecha i -> m
-flecha m -> c
+flecha s -> st | explica=Las fuentes crudas solo las lee staging, que las limpia y renombra.
+flecha st -> i | explica=Intermediate combina modelos de staging.
+flecha i -> m | explica=Los marts quedan listos para el negocio.
+flecha m -> c | explica=Tableros, notebooks y modelos de ML leen de los marts, nunca de las fuentes crudas. Las flechas siempre van hacia la derecha: un mart nunca alimenta a staging.
 ```
 
 :::tip Regla de oro
@@ -94,12 +94,12 @@ nodo f: fct_ventas | icono=tabla | col=3 | fila=0 | color=naranja | sub=table
 nodo d: dim_clientes | icono=tabla | col=3 | fila=1 | color=naranja | sub=table
 grupo stg: staging | nodos=st1,st2 | color=azul
 grupo marts: marts | nodos=f,d | color=naranja
-flecha s1 -> st1
-flecha s2 -> st2
-flecha st1 -> int
-flecha int -> f
-flecha st2 -> d
-flecha seed -> d: ref()
+flecha s1 -> st1 | explica=La única forma de leer la tabla cruda de pedidos es con source(), y solo en staging. Se materializa como vista: no ocupa espacio.
+flecha s2 -> st2 | explica=Lo mismo para clientes: una vista de staging por fuente.
+flecha st1 -> int | explica=El modelo intermedio usa ref(). Es ephemeral: no se crea en el warehouse, dbt lo inserta como subconsulta donde se use.
+flecha int -> f | explica=fct_ventas se materializa como tabla: es lo que consulta el negocio y conviene que sea rápida.
+flecha st2 -> d | explica=dim_clientes parte de staging y también es una tabla.
+flecha seed -> d: ref() | explica=Un seed es un CSV chico versionado en el repositorio (por ejemplo, las regiones). Se usa con ref(), como cualquier modelo.
 ```
 
 ### Convención de nombres

@@ -146,10 +146,10 @@ nodo c: cargar_bronze | icono=bucket | col=1 | fila=0 | color=verde | sub=succes
 nodo t: dbt_run | icono=dbt | col=2 | fila=0 | color=rojo | sub=failed
 nodo p: dbt_test | icono=check | col=3 | fila=0 | color=gris | sub=upstream_failed
 nodo r: refrescar_tablero | icono=dashboard | col=3 | fila=1 | color=gris | sub=upstream_failed
-flecha e -> c
-flecha c -> t
-flecha t -> p
-flecha p -> r
+flecha e -> c | explica=Primero se extraen los datos de la fuente. Salió bien (success), así que corre el paso siguiente.
+flecha c -> t | explica=Los datos se cargan en bronze. También salió bien, así que arranca dbt.
+flecha t -> p | explica=dbt_run falló (failed). Todo lo que depende de él no puede correr con datos rotos.
+flecha p -> r | explica=Por eso dbt_test y refrescar_tablero quedan en upstream_failed: no se ejecutan. Así el tablero no muestra números a medias.
 ```
 
 ## Práctica

@@ -27,10 +27,10 @@ nodo proj: Proyecto dbt | icono=codigo | col=1 | fila=0 | color=naranja | sub=mo
 nodo prof: ~/.dbt/profiles.yml | icono=llave | col=1 | fila=1 | color=amarillo | sub=dónde conectarse\n(fuera del repo)
 nodo duck: rapido.duckdb | icono=base | col=2 | fila=0 | color=azul | sub=target dev
 nodo bq: BigQuery | icono=nube | col=2 | fila=1 | color=cian | sub=target prod (CI)
-flecha csv -> proj: source()
-flecha proj -> duck: dbt build --target dev
-flecha prof -> proj | estilo=punteada
-flecha proj -> bq: dbt build --target prod | estilo=punteada
+flecha csv -> proj: source() | explica=Un CSV de muestra hace de fuente: el proyecto lo lee con source().
+flecha proj -> duck: dbt build --target dev | explica=dbt build --target dev corre todo contra DuckDB, en tu máquina y gratis.
+flecha prof -> proj | estilo=punteada | explica=profiles.yml, fuera del repositorio, dice a qué base conectarse en cada target. Así las credenciales no se suben a Git.
+flecha proj -> bq: dbt build --target prod | estilo=punteada | explica=El mismo proyecto, con --target prod, corre en BigQuery desde la CI. Solo cambia el adaptador.
 ```
 
 El **código** del proyecto (modelos, pruebas, `dbt_project.yml`) es igual para todos y va a Git. **Dónde** se ejecuta lo dice el `profiles.yml`, que es personal (tiene credenciales) y vive en `~/.dbt/`, fuera del repositorio. Cambiar de DuckDB a BigQuery es cambiar de *target*, no de código.

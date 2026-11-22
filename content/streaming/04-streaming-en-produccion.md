@@ -35,10 +35,10 @@ nodo rs: readStream | icono=spark | col=1 | fila=0 | color=azul | sub=solo lo nu
 nodo cp: Checkpoint | icono=check | col=1 | fila=1 | color=gris | sub=qué ya se leyó y escribió
 nodo fb: foreachBatch | icono=transformar | col=2 | fila=0 | color=violeta | sub=dropDuplicates + left_anti contra silver
 nodo sv: silver.eventos | icono=tabla | col=3 | fila=0 | color=verde | sub=cada evento una sola vez
-flecha br -> rs
-flecha rs -> cp | doble | estilo=punteada
-flecha rs -> fb: micro-lote
-flecha fb -> sv: append o MERGE
+flecha br -> rs | explica=bronze.eventos recibe datos nuevos todo el tiempo. readStream lee solo lo que llegó desde la última vez.
+flecha rs -> cp | doble | estilo=punteada | explica=El checkpoint guarda qué se leyó y qué se escribió. Si el stream se cae, al reiniciar sigue desde ahí, sin perder ni repetir.
+flecha rs -> fb: micro-lote | explica=Cada micro-lote pasa por foreachBatch, que quita duplicados y descarta los eventos que ya están en silver.
+flecha fb -> sv: append o MERGE | explica=Se escribe con append o MERGE. Así cada evento queda una sola vez aunque un lote se procese de nuevo: el stream es idempotente.
 ```
 
 | Pieza | Qué hace |

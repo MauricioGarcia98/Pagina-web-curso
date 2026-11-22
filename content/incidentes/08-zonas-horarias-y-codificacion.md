@@ -35,11 +35,11 @@ nodo b: 01:30 EDT | icono=reloj | col=1 | fila=0 | sub=05:30 UTC | color=amarill
 nodo c: 01:59 EDT → 01:00 EST | icono=reloj | col=2 | fila=0 | sub=06:00 UTC: el reloj se atrasa | color=naranja
 nodo d: 01:30 EST | icono=reloj | col=3 | fila=0 | sub=06:30 UTC | color=amarillo
 nodo e: Misma hora local, dos instantes | icono=alerta | col=2 | fila=1 | color=rojo | sub=(sensor, ts_local) choca
-flecha a -> b
-flecha b -> c
-flecha c -> d
-flecha b -> e | estilo=punteada
-flecha d -> e | estilo=punteada
+flecha a -> b | explica=Antes del cambio de hora, Nueva York está en EDT, cuatro horas detrás de UTC.
+flecha b -> c | explica=A las 01:59 EDT el reloj vuelve a la 01:00, ahora en EST, cinco horas detrás de UTC.
+flecha c -> d | explica=Entre la 01:00 y las 02:00 la hora local pasa dos veces.
+flecha b -> e | estilo=punteada | explica=La primera vez, 01:30 local corresponde a las 05:30 UTC…
+flecha d -> e | estilo=punteada | explica=…y la segunda, a las 06:30 UTC. Si la clave es (sensor, ts_local), las dos lecturas chocan. Por eso se guarda en UTC.
 ```
 
 - Cuando el reloj **se atrasa** (fin del horario de verano), una hora local ocurre **dos veces** y ese día tiene **25 horas**. Una clave primaria `(sensor_id, ts_local)` choca, y un `ON CONFLICT DO NOTHING` descarta en silencio la segunda lectura.

@@ -18,11 +18,11 @@ nodo s1: slot | icono=servidor | col=2 | fila=0 | color=violeta | sub=CPU + memo
 nodo s2: slot | icono=servidor | col=2 | fila=1 | color=violeta | sub=miles en paralelo
 nodo s3: slot | icono=servidor | col=2 | fila=2 | color=violeta | sub=CPU + memoria
 nodo col: Colossus | icono=base | col=3 | fila=1 | color=naranja | forma=cilindro | sub=almacenamiento columnar comprimido (Capacitor)
-flecha sql -> dremel
-flecha dremel -> s1
-flecha dremel -> s2
-flecha dremel -> s3
-flecha s2 -> col: red Jupiter (petabits/s) | doble
+flecha sql -> dremel | explica=Tu consulta llega a Dremel, el motor de BigQuery, que la planifica y la parte en pedazos.
+flecha dremel -> s1 | explica=Cada pedazo lo ejecuta un slot: una unidad de CPU y memoria.
+flecha dremel -> s2 | explica=Puede usar miles de slots en paralelo, sin que tú elijas máquinas.
+flecha dremel -> s3 | explica=Cuando termina, los slots quedan libres para otra consulta.
+flecha s2 -> col: red Jupiter (petabits/s) | doble | explica=Los datos viven en Colossus, en formato columnar comprimido, separados del cómputo. Una red de petabits por segundo los lleva a los slots: por eso leer solo las columnas que usas abarata la consulta.
 ```
 
 - **Almacenamiento y cómputo separados**: guardas datos sin pagar cómputo; consultas sin "encender" nada.
@@ -44,11 +44,11 @@ nodo go: tienda_gold | icono=carpeta | col=2 | fila=1 | color=amarillo | sub=dat
 nodo v: ventas | icono=tabla | col=0 | fila=2 | sub=tabla
 nodo vc: ventas_por_canal | icono=tabla | col=2 | fila=2 | sub=tabla
 nodo ca: v_clientes_activos | icono=lupa | col=3 | fila=2 | sub=vista
-flecha pro -> br
-flecha pro -> go
-flecha br -> v
-flecha go -> vc
-flecha go -> ca
+flecha pro -> br | explica=El proyecto factura las consultas. Adentro, los datasets: tienda_bronze tiene una ubicación (US, EU…) que no se cambia después.
+flecha pro -> go | explica=tienda_gold es otro dataset del mismo proyecto.
+flecha br -> v | explica=La tabla ventas se nombra proyecto.dataset.tabla.
+flecha go -> vc | explica=ventas_por_canal es una tabla de gold.
+flecha go -> ca | explica=v_clientes_activos es una vista: guarda la consulta, no los datos, y se calcula cada vez que la consultas.
 ```
 
 Un **dataset** es como un esquema en otras bases: agrupa tablas y vistas, y tiene una ubicación fija (US, EU, southamerica-east1…).

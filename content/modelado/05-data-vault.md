@@ -38,11 +38,11 @@ nodo l: link_cliente_cuenta | icono=git | col=1 | fila=0 | color=verde | sub=rel
 nodo s1: sat_cliente_core | icono=archivos | col=0 | fila=1 | color=amarillo | sub=nombre, segmento (core)
 nodo s2: sat_cliente_fintech | icono=archivos | col=1 | fila=1 | color=amarillo | sub=email, app (fintech)
 nodo s3: sat_cuenta | icono=archivos | col=2 | fila=1 | color=amarillo | sub=estado, tipo
-flecha hc -- l
-flecha l -- hcu
-flecha hc -- s1
-flecha hc -- s2
-flecha hcu -- s3
+flecha hc -- l | explica=El hub de clientes guarda solo la clave de negocio (el documento). El link registra la relación entre un cliente y una cuenta.
+flecha l -- hcu | explica=El hub de cuentas guarda solo el número de cuenta. Si mañana aparece otra relación, se agrega otro link sin tocar los hubs.
+flecha hc -- s1 | explica=Los atributos van en satélites con historia: lo que dice el core bancario sobre el cliente…
+flecha hc -- s2 | explica=…y lo que dice la app fintech, en otro satélite. Cada fuente agrega lo suyo sin pisar a la otra.
+flecha hcu -- s3 | explica=El estado y el tipo de la cuenta, en su propio satélite.
 ```
 
 | Pieza | Qué guarda | Columnas típicas | Cambia… |
@@ -102,12 +102,12 @@ nodo st: Staging | icono=bucket | col=1 | fila=0 | color=naranja | sub=copia cru
 nodo rv: Raw Vault | icono=llave | col=2 | fila=0 | color=azul | sub=hubs, links, satélites
 nodo bv: Business Vault | icono=engranaje | col=2 | fila=1 | color=violeta | sub=reglas de negocio
 nodo mt: Marts (estrella) | icono=grafico | col=3 | fila=0 | color=verde | sub=fct_ y dim_ para el BI
-flecha f1 -> st
-flecha f2 -> st
-flecha st -> rv
-flecha rv -> bv
-flecha rv -> mt
-flecha bv -> mt
+flecha f1 -> st | explica=Los datos del core bancario se copian crudos a staging.
+flecha f2 -> st | explica=Los de la app fintech también.
+flecha st -> rv | explica=El Raw Vault los integra en hubs, links y satélites, sin aplicar reglas de negocio: es el registro fiel de todo.
+flecha rv -> bv | explica=El Business Vault agrega las reglas (deduplicar clientes, calcular indicadores).
+flecha rv -> mt | explica=Los marts en estrella se construyen desde el vault…
+flecha bv -> mt | explica=…usando también las reglas del Business Vault. El BI consume la estrella, que es fácil de consultar.
 ```
 
 ## ¿Cuándo sí y cuándo no?

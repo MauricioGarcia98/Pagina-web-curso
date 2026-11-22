@@ -34,10 +34,10 @@ nodo d: Hoy: 17 de julio | icono=reloj | col=0 | fila=1 | color=gris | sub=4 car
 nodo c: ¿Hoy < 50 % del promedio? | icono=calculator | col=1 | fila=0 | color=amarillo | forma=rombo
 nodo al: Alerta con contexto | icono=alerta | col=2 | fila=0 | color=rojo | sub=hoy 4, lo normal es 17
 nodo nada: Sin alerta | icono=check | col=2 | fila=1 | color=verde
-flecha h -> c
-flecha d -> c
-flecha c -> al: sí
-flecha c -> nada: no
+flecha h -> c | explica=Se toma como referencia el promedio de los 7 días anteriores: 16,6 cargas por día.
+flecha d -> c | explica=Hoy llegaron solo 4.
+flecha c -> al: sí | explica=Como 4 es menos de la mitad de lo normal, se dispara una alerta con contexto: "hoy 4, lo normal es 17". El contexto ayuda a decidir rápido si es un problema.
+flecha c -> nada: no | explica=Si hoy está dentro de lo normal, no se avisa: alertar de más hace que nadie mire las alertas.
 ```
 
 ```sql

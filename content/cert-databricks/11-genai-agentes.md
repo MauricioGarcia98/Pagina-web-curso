@@ -25,13 +25,13 @@ nodo h1: buscar_manual | icono=lupa | col=3 | fila=0 | sub=Vector Search
 nodo h2: estado_pedido | icono=tabla | col=3 | fila=1 | sub=función de UC
 nodo h3: abrir_ticket | icono=api | col=3 | fila=2 | sub=API externa
 nodo r: Respuesta final | icono=check | col=1 | fila=1
-flecha u -> m
-flecha m -> t: pide herramienta + argumentos
-flecha t -> h1
-flecha t -> h2
-flecha t -> h3
-flecha t -> m: resultado | estilo=punteada
-flecha m -> r
+flecha u -> m | explica=La pregunta llega al LLM junto con la lista de herramientas disponibles.
+flecha m -> t: pide herramienta + argumentos | explica=Si el LLM decide usar una herramienta, no la ejecuta: devuelve su nombre y los argumentos.
+flecha t -> h1 | explica=Tu código ejecuta la herramienta: buscar en el manual con Vector Search…
+flecha t -> h2 | explica=…consultar el estado de un pedido con una función de Unity Catalog…
+flecha t -> h3 | explica=…o abrir un ticket en una API externa.
+flecha t -> m: resultado | estilo=punteada | explica=El resultado vuelve al LLM, que puede pedir otra herramienta o responder.
+flecha m -> r | explica=Cuando tiene lo que necesita, da la respuesta final.
 ```
 
 Lo importante del **llamado a herramientas** (*tool calling* o *function calling*): el modelo **no ejecuta nada**. Recibe la lista de herramientas (nombre, descripción, parámetros en JSON Schema), y cuando decide usar una, devuelve un mensaje "llamar a `estado_pedido` con `{"pedido_id": 88213}`". **Tu código** ejecuta la herramienta y le devuelve el resultado al modelo. Por eso la **descripción** de cada herramienta es tan importante: es lo único que el modelo sabe para decidir cuándo usarla.

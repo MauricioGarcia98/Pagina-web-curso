@@ -23,13 +23,13 @@ nodo lake: Lakehouse | icono=capas | col=1 | fila=1 | color=naranja | sub=textos
 nodo ia: Lumen IA | icono=robot | col=2 | fila=0 | color=violeta | sub=clasificar y extraer
 nodo vec: Embeddings + índice | icono=vector | col=2 | fila=2 | color=violeta | sub=búsqueda por significado
 nodo rag: Asistente con RAG | icono=chispa | col=3 | fila=1 | color=verde | sub=responde citando el contrato, con evaluación
-flecha mesa -> lake
-flecha mail -> lake
-flecha pdf -> lake
-flecha lake -> ia
-flecha lake -> vec
-flecha ia -> rag
-flecha vec -> rag
+flecha mesa -> lake | explica=Los tickets de la mesa de ayuda se copian al lakehouse.
+flecha mail -> lake | explica=También los correos de los clientes.
+flecha pdf -> lake | explica=De los contratos en PDF se extrae el texto y se divide en fragmentos.
+flecha lake -> ia | explica=Lumen IA clasifica los tickets y extrae datos de los textos limpios.
+flecha lake -> vec | explica=Los fragmentos se convierten en embeddings y se indexan para buscar por significado.
+flecha ia -> rag | explica=El asistente usa las clasificaciones…
+flecha vec -> rag | explica=…y busca los fragmentos del contrato que corresponden, para responder citándolos. Sus respuestas se evalúan antes de ir a producción.
 ```
 
 ## La mesa de ayuda · `https://api.mesa.conecta.example/v1`

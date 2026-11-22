@@ -40,11 +40,11 @@ nodo loc: locals.tf | icono=engranaje | col=2 | fila=0 | color=violeta | sub=nom
 nodo res: main.tf | icono=nube | col=2 | fila=1 | color=naranja | sub=resources y data
 nodo out: outputs.tf | icono=check | col=1 | fila=1 | color=verde | sub=lo que otros\nnecesitan saber
 nodo cli: -var / TF_VAR_ | icono=equipo | col=0 | fila=1 | color=gris | sub=valores desde\nla CLI o la CI
-flecha tfv -> var
-flecha cli -> var | estilo=punteada
-flecha var -> loc
-flecha loc -> res
-flecha res -> out
+flecha tfv -> var | explica=Los valores de cada entorno (dev, prod) van en archivos .tfvars y llenan las variables.
+flecha cli -> var | estilo=punteada | explica=También se pueden pasar desde la línea de comandos o la CI, con -var o variables de entorno TF_VAR_.
+flecha var -> loc | explica=Las variables tienen tipo y validación. Los locals calculan a partir de ellas: nombres, etiquetas, reglas.
+flecha loc -> res | explica=Los recursos de main.tf usan los locals, así los nombres se arman en un solo lugar.
+flecha res -> out | explica=Los outputs exponen lo que otros necesitan saber (el nombre del bucket, un id), para otro proyecto o para la CI.
 ```
 
 ## Tipos de datos en HCL
@@ -243,10 +243,10 @@ nodo c: count | icono=alerta | col=1 | fila=0 | color=rojo | sub=[1] pasa de sil
 nodo cr: Resultado | icono=x | col=2 | fila=0 | color=rojo | sub=reemplaza silver por gold\ny borra el gold viejo
 nodo f: for_each | icono=check | col=1 | fila=1 | color=verde | sub=las claves no se mueven
 nodo fr: Resultado | icono=check | col=2 | fila=1 | color=verde | sub=borra solo ["silver"]
-flecha l1 -> c
-flecha c -> cr
-flecha l1 -> f
-flecha f -> fr
+flecha l1 -> c | explica=Con count, cada recurso se identifica por su posición en la lista. Si quitas "silver", "gold" pasa de la posición 2 a la 1.
+flecha c -> cr | explica=Terraform ve que el recurso 1 cambió y que el 2 desapareció: reemplaza silver por gold y borra el gold viejo. Puedes perder datos.
+flecha l1 -> f | explica=Con for_each, cada recurso se identifica por su clave ("bronze", "silver", "gold"), no por su posición.
+flecha f -> fr | explica=Quitar "silver" borra solo ese recurso: los demás no se tocan.
 ```
 
 Con `count`, cada instancia se identifica por su **posición**. Si quitas `silver` de la lista, `gold` pasa de la posición 2 a la 1, y Terraform cree que `[1]` cambió de nombre (lo **reemplaza**) y que `[2]` sobra (lo **borra**). Con un bucket de datos, eso es una catástrofe. Con `for_each`, cada instancia se identifica por su **clave**: quitar `silver` borra solo `["silver"]`.

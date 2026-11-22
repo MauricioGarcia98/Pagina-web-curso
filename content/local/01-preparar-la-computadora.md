@@ -32,13 +32,13 @@ nodo dock: Docker | icono=docker | col=0 | fila=1 | color=cian | sub=bases y ser
 nodo db: PostgreSQL y DuckDB | icono=base | col=1 | fila=1 | color=azul | sub=SQL local
 nodo tools: dbt, Airflow, Spark | icono=engranaje | col=2 | fila=1 | color=violeta | sub=las herramientas\ndel pipeline
 nodo nube: CLIs de nube\ny Terraform | icono=nube | col=3 | fila=1 | color=naranja | sub=aws, gcloud, az,\ndatabricks
-flecha so -> term
-flecha term -> ed
-flecha ed -> py
-flecha py -> tools
-flecha term -> dock
-flecha dock -> db
-flecha tools -> nube | estilo=punteada
+flecha so -> term | explica=Todo empieza en el sistema operativo: en Windows conviene WSL 2 (un Linux adentro), en macOS o Linux ya está todo.
+flecha term -> ed | explica=Desde la terminal y su gestor de paquetes (apt, brew, winget) se instala el resto, empezando por VS Code y Git.
+flecha ed -> py | explica=Python se instala con uv, que crea un entorno aislado por proyecto.
+flecha py -> tools | explica=Con Python, se agregan dbt, Airflow y PySpark a cada proyecto.
+flecha term -> dock | explica=Docker permite levantar bases y servicios sin instalarlos en tu máquina.
+flecha dock -> db | explica=PostgreSQL corre en un contenedor; DuckDB es un archivo que no necesita servidor.
+flecha tools -> nube | estilo=punteada | explica=Para trabajar con la nube, las CLIs (aws, gcloud, az, databricks) y Terraform.
 ```
 
 | Lección | Qué instalas | Para qué |

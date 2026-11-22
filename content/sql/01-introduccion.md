@@ -103,10 +103,10 @@ nodo ped: pedidos | icono=carrito | col=1 | fila=0 | color=naranja | sub=una fil
 nodo det: detalle_pedidos | icono=tabla | col=2 | fila=0 | color=violeta | sub=una fila por producto del pedido
 nodo pro: productos | icono=cubo | col=3 | fila=0 | color=verde | sub=una fila por producto
 nodo cat: categorias | icono=etiqueta | col=3 | fila=1 | color=amarillo | sub=una fila por categoría
-flecha cli -> ped: 1 cliente → N pedidos
-flecha ped -> det: 1 pedido → N líneas
-flecha det -> pro: N líneas → 1 producto
-flecha pro -> cat: N productos → 1 categoría
+flecha cli -> ped: 1 cliente → N pedidos | explica=Un cliente puede hacer muchos pedidos, pero cada pedido es de un solo cliente. El pedido guarda el cliente_id para saber de quién es.
+flecha ped -> det: 1 pedido → N líneas | explica=Un pedido tiene varias líneas, una por producto comprado: por eso el detalle va en otra tabla.
+flecha det -> pro: N líneas → 1 producto | explica=Cada línea apunta a un producto. Muchas líneas, de muchos pedidos, pueden ser del mismo producto.
+flecha pro -> cat: N productos → 1 categoría | explica=Cada producto pertenece a una categoría, y una categoría agrupa muchos productos.
 ```
 
 Se lee: "un cliente tiene **muchos** pedidos; un pedido tiene **muchas** líneas de detalle; cada línea apunta a **un** producto; cada producto pertenece a **una** categoría". Los símbolos `<` indican el lado "muchos".

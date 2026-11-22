@@ -34,9 +34,9 @@ nodo sa: Storage Account | icono=adls | col=0 | fila=0 | color=azul | sub=stdato
 nodo co: Contenedor | icono=carpeta | col=1 | fila=0 | color=naranja | sub=bronze · como un bucket, uno por capa
 nodo ca: Carpetas | icono=carpeta | col=2 | fila=0 | color=verde | sub=ventas/anio=2024/mes=12/ · carpetas reales
 nodo ar: Archivo | icono=archivo | col=3 | fila=0 | color=gris | sub=ventas.parquet
-flecha sa -> co
-flecha co -> ca
-flecha ca -> ar
+flecha sa -> co | explica=La cuenta de almacenamiento es el recurso de Azure (su nombre es único en todo Azure). Adentro se crean contenedores, uno por capa.
+flecha co -> ca | explica=Con el espacio de nombres jerárquico activado (ADLS Gen2), las carpetas son reales: renombrar una carpeta es una sola operación.
+flecha ca -> ar | explica=Los archivos viven en carpetas como ventas/anio=2024/mes=12/, que los motores reconocen como particiones.
 ```
 
 ## Crear la cuenta

@@ -26,11 +26,11 @@ nodo m: Modelo semántico\n(tablas y relaciones) | icono=cubo | col=2
 nodo dax: DAX\n(medidas) | icono=codigo | col=3
 nodo i: Informe\n(objetos visuales) | icono=dashboard | col=4
 nodo s: Power BI Service\n(publicar y compartir) | icono=nube | col=5
-flecha o -> pq
-flecha pq -> m: Cerrar y aplicar
-flecha m -> dax
-flecha dax -> i
-flecha i -> s: Publicar
+flecha o -> pq | explica=Se traen los datos desde Excel, CSV, una base SQL o la web.
+flecha pq -> m: Cerrar y aplicar | explica=Power Query los limpia y les da forma. Con Cerrar y aplicar se cargan al modelo.
+flecha m -> dax | explica=En el modelo se relacionan las tablas, y se escriben medidas en DAX.
+flecha dax -> i | explica=El informe usa las medidas en objetos visuales.
+flecha i -> s: Publicar | explica=Con Publicar, el informe sube a Power BI Service, donde se comparte y se programa la actualización.
 ```
 
 | Etapa | Herramienta | Lenguaje | Qué hace |
@@ -62,10 +62,10 @@ nodo ped: pedidos\n(hechos) | icono=tabla | col=1 | fila=0
 nodo det: detalle_pedidos\n(hechos) | icono=tabla | col=2 | fila=0
 nodo pro: productos\n(dimensión) | icono=cubo | col=2 | fila=1
 nodo cat: categorias\n(dimensión) | icono=etiqueta | col=1 | fila=1
-flecha cli -> ped: 1 → *
-flecha ped -> det: 1 → *
-flecha pro -> det: 1 → *
-flecha cat -> pro: 1 → *
+flecha cli -> ped: 1 → * | explica=Un filtro sobre clientes viaja hacia pedidos: si eliges un cliente, ves solo sus pedidos.
+flecha ped -> det: 1 → * | explica=De pedidos sigue hacia el detalle.
+flecha pro -> det: 1 → * | explica=Un filtro de producto llega al detalle.
+flecha cat -> pro: 1 → * | explica=Un filtro de categoría pasa por productos hasta el detalle. El filtro viaja del lado 1 al lado muchos.
 ```
 
 :::analogia

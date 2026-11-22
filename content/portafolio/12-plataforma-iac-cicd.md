@@ -33,12 +33,12 @@ nodo d: Deploy dev | icono=databricks | col=3 | fila=0 | sub=target dev
 nodo m: Merge a main | icono=git | col=2 | fila=1
 nodo p: Deploy prod | icono=databricks | col=3 | fila=1 | color=verde | sub=con aprobación
 nodo tf: Terraform | icono=terraform | col=1 | fila=1 | sub=infraestructura,\nestado remoto
-flecha dev -> pr
-flecha pr -> ci
-flecha ci -> d
-flecha ci -> m: aprobado
-flecha m -> p
-flecha tf -> p: crea lo que el bundle usa | estilo=punteada
+flecha dev -> pr | explica=Trabajas en una rama y abres un pull request.
+flecha pr -> ci | explica=CI corre lint, tests, terraform plan y bundle validate.
+flecha ci -> d | explica=Si pasa, se despliega al destino dev para probar.
+flecha ci -> m: aprobado | explica=Con la revisión aprobada, se hace merge a main.
+flecha m -> p | explica=El despliegue a prod pide una aprobación manual.
+flecha tf -> p: crea lo que el bundle usa | estilo=punteada | explica=Terraform crea la infraestructura que usa el bundle y guarda su estado en un backend remoto.
 ```
 
 ## Fase 1: Terraform

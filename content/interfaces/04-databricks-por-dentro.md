@@ -22,12 +22,12 @@ nodo ws: Workspace | icono=web | col=2 | fila=1 | color=azul | sub=adb-xxxx.azur
 nodo pc: Plano de control | icono=engranaje | col=1 | fila=2 | color=gris | sub=lo opera Databricks: la interfaz, los jobs, el catálogo
 nodo cl: Cómputo clásico | icono=servidor | col=2 | fila=2 | color=naranja | sub=máquinas en TU suscripción
 nodo sv: Cómputo serverless | icono=nube | col=3 | fila=2 | color=verde | sub=máquinas de Databricks, listas en segundos
-flecha cta -> met
-flecha cta -> ws
-flecha met -> ws: lo usa | estilo=punteada
-flecha ws -> pc
-flecha ws -> cl
-flecha ws -> sv
+flecha cta -> met | explica=Desde la consola de la cuenta se crea el metastore de Unity Catalog, uno por región.
+flecha cta -> ws | explica=También se crean los workspaces y se administran los usuarios y la facturación.
+flecha met -> ws: lo usa | estilo=punteada | explica=El workspace se asigna al metastore: así varios workspaces ven el mismo catálogo y los mismos permisos.
+flecha ws -> pc | explica=La interfaz, los jobs y el catálogo corren en el plano de control, que opera Databricks.
+flecha ws -> cl | explica=El cómputo clásico son máquinas que se crean en tu suscripción: tú pagas la nube y controlas la red.
+flecha ws -> sv | explica=El cómputo serverless corre en máquinas de Databricks y arranca en segundos.
 ```
 
 - La **cuenta** agrupa todo: usuarios y grupos (sincronizados desde Microsoft Entra ID), workspaces y metastores.

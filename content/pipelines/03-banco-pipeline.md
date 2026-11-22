@@ -18,13 +18,13 @@ nodo mora: 2. silver.cartera_mora | icono=spark | col=2 | fila=0 | color=azul | 
 nodo gasto: 3. gold.perfil_gasto_cliente | icono=spark | col=2 | fila=1 | color=azul | sub=PySpark
 nodo dbt: 4. mora_por_segmento | icono=dbt | col=3 | fila=0 | color=naranja | sub=dbt: para el tablero de riesgo
 nodo rep: 5. reportar | icono=correo | col=4 | fila=1 | color=verde | sub=corre si no hubo fallas
-flecha src -> q
-flecha q -> av: no
-flecha q -> mora: sí
-flecha q -> gasto: sí
-flecha mora -> dbt
-flecha dbt -> rep
-flecha gasto -> rep
+flecha src -> q | explica=Todos los días a las 03:00, el DAG primero revisa que las tablas del banco tengan los datos del día.
+flecha q -> av: no | explica=Si no llegaron datos, no tiene sentido calcular nada: se avisa al equipo y se detiene.
+flecha q -> mora: sí | explica=Si llegaron, PySpark arma la cartera en mora, con un préstamo por fila.
+flecha q -> gasto: sí | explica=En paralelo, otro job de PySpark calcula el perfil de gasto de cada cliente.
+flecha mora -> dbt | explica=dbt agrupa la mora por segmento para el tablero de riesgo.
+flecha dbt -> rep | explica=Cuando terminan las dos ramas, se envía el reporte.
+flecha gasto -> rep | explica=El reporte solo corre si las dos ramas salieron bien: así nunca se informa algo a medias.
 ```
 
 | Pieza | Herramienta | Por qué esa herramienta |

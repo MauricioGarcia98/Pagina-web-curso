@@ -24,12 +24,12 @@ nodo bq2: BigQuery resumen | icono=bigquery | col=2 | fila=1 | color=azul
 nodo reg: Model Registry | icono=ml | col=0 | fila=2 | sub=segmento-v1 | color=verde
 nodo ep: Endpoint Vertex AI | icono=agentplatform | col=1 | fila=2 | sub=min 1 réplica | color=rojo
 nodo web: Web | icono=usuario | col=2 | fila=2
-flecha app -> ps
-flecha ps -> bq
-flecha sch -> wf
-flecha wf -> bq2
-flecha reg -> ep
-flecha web -> ep: predict
+flecha app -> ps | explica=La app publica cada clic en el tema clics-lab.
+flecha ps -> bq | explica=Una suscripción de BigQuery escribe los mensajes directo en eventos_lab.clics, sin código.
+flecha sch -> wf | explica=Cloud Scheduler dispara el workflow todos los días a las 03:30, hora de Buenos Aires.
+flecha wf -> bq2 | explica=Workflows carga y transforma, y deja la tabla resumen.
+flecha reg -> ep | explica=La versión segmento-v1 del Model Registry se despliega en un endpoint con al menos una réplica, que cobra mientras exista.
+flecha web -> ep: predict | explica=La web le pide una predicción al endpoint.
 ```
 
 ## Costo en una cuenta real

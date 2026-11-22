@@ -64,11 +64,11 @@ nodo ai: Índice de AI Search | icono=aisearch | col=2 | fila=0 | sub=texto + ve
 nodo app: App o agente | icono=robot | col=1 | fila=1 | color=verde
 nodo q: Consulta híbrida\n+ ranker semántico | icono=lupa | col=2 | fila=1 | color=violeta
 nodo llm: Modelo en Foundry | icono=foundry | col=3 | fila=1 | sub=respuesta con citas | color=verde
-flecha blob -> idx
-flecha idx -> ai
-flecha app -> q
-flecha ai -> q | estilo=punteada
-flecha q -> llm: contexto
+flecha blob -> idx | explica=El indexador lee los PDF de Blob Storage. El skillset extrae el texto, lo divide en fragmentos y los convierte en vectores.
+flecha idx -> ai | explica=Todo queda en un índice de AI Search, con el texto y los vectores.
+flecha app -> q | explica=La app o el agente hace una consulta híbrida: por palabras y por significado, y el ranker semántico reordena los resultados.
+flecha ai -> q | estilo=punteada | explica=La consulta se resuelve contra el índice.
+flecha q -> llm: contexto | explica=Los mejores fragmentos van como contexto al modelo de Foundry, que responde citándolos.
 ```
 
 - **Índice**: campos con atributos (*searchable*, *filterable*, *sortable*, *facetable*, *retrievable*) y **campos vectoriales** con su dimensión y un **perfil vectorial** (algoritmo HNSW o búsqueda exhaustiva).

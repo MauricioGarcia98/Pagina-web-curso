@@ -61,10 +61,10 @@ nodo cli: dim_cliente | icono=usuario | col=0 | fila=1 | color=azul | sub=segmen
 nodo fct: fct_ventas | icono=tabla | col=1 | fila=1 | color=naranja | sub=1 fila por línea\nunidades, importe
 nodo prod: dim_producto | icono=carrito | col=2 | fila=1 | color=azul | sub=marca, categoría
 nodo canal: dim_canal | icono=web | col=1 | fila=2 | color=azul | sub=web, app, tienda
-flecha fecha -- fct
-flecha cli -- fct
-flecha prod -- fct
-flecha canal -- fct
+flecha fecha -- fct | explica=Cada venta apunta a un día de dim_fecha, que trae el mes, el día de la semana y si fue feriado. Así se agrupa por cualquiera de esos atributos sin cálculos.
+flecha cli -- fct | explica=Cada venta apunta al cliente que compró, con su segmento y su país.
+flecha prod -- fct | explica=Cada venta apunta al producto, con su marca y su categoría.
+flecha canal -- fct | explica=Y al canal por el que se vendió. En el centro, fct_ventas guarda los números (unidades, importe); alrededor, las dimensiones guardan las descripciones.
 ```
 
 ## Dimensiones lentamente cambiantes (SCD)

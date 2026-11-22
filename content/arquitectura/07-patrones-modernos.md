@@ -43,13 +43,13 @@ nodo p1: Producto: clientes_riesgo | icono=tabla | col=0 | fila=1 | color=verde 
 nodo p2: Producto: puntualidad | icono=tabla | col=1 | fila=1 | color=verde
 nodo p3: Producto: ventas_diarias | icono=tabla | col=2 | fila=1 | color=verde
 nodo gob: Gobierno federado | icono=escudo | col=3 | fila=1 | color=amarillo | sub=reglas comunes
-flecha d1 -> p1
-flecha d2 -> p2
-flecha d3 -> p3
-flecha p1 -- plat
-flecha p2 -- plat
-flecha p3 -- plat
-flecha gob -> p3 | estilo=punteada
+flecha d1 -> p1 | explica=En data mesh, cada dominio tiene su propio equipo y publica sus datos como productos: el banco publica clientes_riesgo.
+flecha d2 -> p2 | explica=La aerolínea publica su producto de puntualidad.
+flecha d3 -> p3 | explica=La tienda publica ventas_diarias.
+flecha p1 -- plat | explica=Todos los productos se construyen sobre la misma plataforma de autoservicio: lakehouse, CI, catálogo y permisos.
+flecha p2 -- plat | explica=Así cada dominio no reinventa la infraestructura.
+flecha p3 -- plat | explica=Cada producto tiene dueño, contrato y SLA, como cualquier producto.
+flecha gob -> p3 | estilo=punteada | explica=Un gobierno federado pone las reglas comunes (nombres, privacidad, calidad mínima) que todos los productos cumplen.
 ```
 
 :::cuidado Data mesh es una organización, no una herramienta
@@ -96,10 +96,10 @@ nodo lh: Lakehouse | icono=almacen | col=1 | fila=0 | color=azul | sub=calcula s
 nodo crm: CRM (Salesforce) | icono=equipo | col=2 | fila=0 | color=verde | sub=el vendedor ve el riesgo
 nodo mail: Herramienta de emails | icono=correo | col=2 | fila=1 | color=verde | sub=segmento "en riesgo"
 nodo ads: Publicidad | icono=grafico | col=0 | fila=1 | color=verde | sub=audiencias
-flecha app -> lh: ETL / ELT
-flecha lh -> crm: reverse ETL
-flecha lh -> mail: reverse ETL
-flecha lh -> ads: reverse ETL
+flecha app -> lh: ETL / ELT | explica=Los datos del CRM, la app y los pagos llegan al lakehouse con ETL o ELT.
+flecha lh -> crm: reverse ETL | explica=El lakehouse calcula segmentos y scores y los devuelve al CRM: el vendedor ve el riesgo de cada cliente en su pantalla.
+flecha lh -> mail: reverse ETL | explica=El segmento "en riesgo" va a la herramienta de emails para una campaña.
+flecha lh -> ads: reverse ETL | explica=Y las audiencias a publicidad. Reverse ETL lleva los datos a donde la gente ya trabaja.
 ```
 
 Ejemplo: el lakehouse calcula qué clientes de Ritmo están en riesgo de darse de baja; cada mañana, ese segmento se sincroniza con la herramienta de emails, que les envía una oferta. Herramientas: Hightouch, Census, o un pipeline propio que llama a la API del destino.

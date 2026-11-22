@@ -89,9 +89,9 @@ nodo hue: huespedes | icono=usuario | col=0 | fila=0 | color=verde | sub=huesped
 nodo hot: hoteles | icono=hotel | col=2 | fila=0 | color=azul | sub=hotel_id, nombre, ciudad
 nodo res: reservas | icono=archivo | col=1 | fila=0 | color=naranja | sub=reserva_id, fecha, noches\nhuesped_id, hotel_id
 nodo rh: reserva_habitaciones | icono=tabla | col=1 | fila=1 | color=amarillo | sub=reserva_id, habitacion, tarifa
-flecha hue -> res: 1 : N
-flecha hot -> res: 1 : N
-flecha res -> rh: 1 : N
+flecha hue -> res: 1 : N | explica=Los datos del huésped (nombre, email) viven solo en huespedes. La reserva guarda su huesped_id: si cambia el email, se cambia en un solo lugar.
+flecha hot -> res: 1 : N | explica=Lo mismo con el hotel: la reserva guarda el hotel_id, no repite el nombre ni la ciudad.
+flecha res -> rh: 1 : N | explica=Las habitaciones de cada reserva, con su tarifa, van en otra tabla: una reserva puede tener varias. Así ningún dato se repite: eso es la tercera forma normal.
 ```
 
 Ahora:

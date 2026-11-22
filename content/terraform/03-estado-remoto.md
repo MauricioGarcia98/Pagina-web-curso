@@ -54,11 +54,11 @@ nodo ci: CI/CD | icono=engranaje | col=0 | fila=2 | color=violeta | sub=GitHub A
 nodo lock: Bloqueo | icono=candado | col=1 | fila=1 | color=rojo | sub=uno a la vez
 nodo st: Bucket de estado | icono=bucket | col=2 | fila=1 | color=verde | sub=versionado + cifrado\nacceso restringido
 nodo nube: La plataforma | icono=nube | col=3 | fila=1 | color=naranja
-flecha ana -> lock
-flecha bruno -> lock
-flecha ci -> lock
-flecha lock -> st: lee y guarda
-flecha st -> nube: describe | estilo=punteada
+flecha ana -> lock | explica=Cuando Ana corre un apply, primero toma el bloqueo del estado.
+flecha bruno -> lock | explica=Si Bruno intenta aplicar al mismo tiempo, el bloqueo lo hace esperar: nadie pisa el trabajo de otro.
+flecha ci -> lock | explica=La CI/CD respeta el mismo bloqueo.
+flecha lock -> st: lee y guarda | explica=El estado vive en un bucket compartido, versionado y cifrado, con acceso restringido.
+flecha st -> nube: describe | estilo=punteada | explica=Ese estado describe lo que existe en la plataforma. Si se corrompe, el versionado permite volver a una versión anterior.
 ```
 
 - **Compartido**: todos leen y escriben el mismo archivo.
@@ -305,9 +305,9 @@ nodo red: Proyecto red | icono=servidor | col=0 | fila=0 | color=gris | sub=VPC,
 nodo out: outputs | icono=check | col=1 | fila=0 | color=verde | sub=subred_privada\nvpc_id
 nodo dat: Proyecto datos | icono=base | col=2 | fila=0 | color=azul | sub=lago, Glue, Redshift\nestado: datos/lago.tfstate
 nodo ml: Proyecto ML | icono=ml | col=2 | fila=1 | color=violeta | sub=lee los buckets\ndel proyecto datos
-flecha red -> out
-flecha out -> dat: terraform_remote_state
-flecha dat -> ml: terraform_remote_state | estilo=punteada
+flecha red -> out | explica=El proyecto de red crea la VPC y las subredes, con su propio estado, y expone sus ids como outputs.
+flecha out -> dat: terraform_remote_state | explica=El proyecto de datos lee esos outputs con terraform_remote_state, sin copiar valores a mano.
+flecha dat -> ml: terraform_remote_state | estilo=punteada | explica=El proyecto de ML, a su vez, lee los buckets del proyecto de datos. Cada equipo cambia lo suyo sin tocar a los demás.
 ```
 
 Dividir en proyectos chicos tiene ventajas: un plan más rápido, un error afecta menos cosas (*blast radius*) y cada equipo es dueño de lo suyo.

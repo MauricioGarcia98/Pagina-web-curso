@@ -49,9 +49,9 @@ nodo b: Pedido 3479 | icono=carrito | col=0 | fila=1 | sub=cliente_id 562
 nodo c: Pedido 3575 | icono=carrito | col=0 | fila=2 | sub=cliente_id 562
 nodo m: Martina | icono=usuario | col=1 | fila=1 | color=azul | sub=PK 562
 nodo d: Diego | icono=usuario | col=2 | fila=1 | color=gris | sub=PK 563 · sin pedidos
-flecha a -> m: FK
-flecha b -> m: FK
-flecha c -> m: FK
+flecha a -> m: FK | explica=El pedido 2715 tiene cliente_id 562: es una clave foránea (FK) que apunta a la clave primaria (PK) de Martina.
+flecha b -> m: FK | explica=El pedido 3479 también apunta a Martina. Un JOIN por cliente_id pega los datos de Martina al lado de cada uno de sus pedidos.
+flecha c -> m: FK | explica=El tercer pedido de Martina. Diego (563) no tiene ningún pedido apuntándolo: un INNER JOIN no lo mostraría, un LEFT JOIN desde clientes sí.
 ```
 
 Martina (cliente 562) aparece **una vez** en `clientes` y su id aparece en **cada uno** de sus pedidos. Eso es una relación **uno a muchos** (1:N).
@@ -65,11 +65,11 @@ nodo pag: pagos | icono=dinero | col=2 | fila=0 | color=verde | sub=FK pedido_id
 nodo det: detalle_pedidos | icono=tabla | col=1 | fila=1 | color=naranja | sub=FK pedido_id · FK producto_id
 nodo prod: productos | icono=tabla | col=2 | fila=1 | color=violeta | sub=PK producto_id · FK categoria_id
 nodo cat: categorias | icono=capas | col=3 | fila=1 | color=gris | sub=PK categoria_id
-flecha cli -> ped: 1 → N
-flecha ped -> pag: 1 → N
-flecha ped -> det: 1 → N
-flecha prod -> det: 1 → N
-flecha cat -> prod: 1 → N
+flecha cli -> ped: 1 → N | explica=Un cliente tiene muchos pedidos: se unen por pedidos.cliente_id = clientes.cliente_id.
+flecha ped -> pag: 1 → N | explica=Un pedido puede tener varios pagos (por ejemplo, en cuotas): se unen por pedido_id.
+flecha ped -> det: 1 → N | explica=Un pedido tiene varias líneas de detalle, también por pedido_id.
+flecha prod -> det: 1 → N | explica=Cada línea de detalle dice qué producto se compró, por producto_id.
+flecha cat -> prod: 1 → N | explica=Cada producto pertenece a una categoría, por categoria_id. Para ir de un pedido a su categoría hay que pasar por detalle y productos.
 ```
 
 ## Tu primer JOIN

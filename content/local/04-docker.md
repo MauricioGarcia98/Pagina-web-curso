@@ -37,10 +37,10 @@ nodo img: Imágenes locales | icono=capas | col=1 | fila=0 | color=azul | sub=do
 nodo pg: contenedor pg | icono=base | col=2 | fila=0 | color=cian | sub=postgres:16\npuerto 5432
 nodo vol: volumen pgdata | icono=almacen | col=3 | fila=0 | color=amarillo | sub=los datos sobreviven
 nodo tu: Tu terminal y VS Code | icono=equipo | col=2 | fila=1 | color=verde | sub=psql -h localhost -p 5432
-flecha hub -> img: pull
-flecha img -> pg: run
-flecha pg -> vol
-flecha tu -> pg: localhost:5432
+flecha hub -> img: pull | explica=docker pull descarga una imagen de Docker Hub (postgres, python, airflow) a tu máquina.
+flecha img -> pg: run | explica=docker run crea un contenedor a partir de la imagen: un PostgreSQL 16 escuchando en el puerto 5432.
+flecha pg -> vol | explica=Los datos se guardan en un volumen: si borras el contenedor, los datos siguen ahí.
+flecha tu -> pg: localhost:5432 | explica=Desde tu terminal o VS Code te conectas a localhost:5432, como si PostgreSQL estuviera instalado.
 ```
 
 ¿Y una máquina virtual? Una VM trae un sistema operativo completo (minutos para arrancar, GB de memoria); un contenedor comparte el núcleo del sistema y arranca en segundos.

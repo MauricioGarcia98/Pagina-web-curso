@@ -76,13 +76,13 @@ nodo q: Pregunta | icono=usuario | col=0 | fila=1
 nodo ret: Recuperar top-k | icono=lupa | col=1 | fila=1 | sub=híbrida + filtros | color=violeta
 nodo llm: LLM | icono=ml | col=2 | fila=1 | sub=prompt + contexto | color=verde
 nodo r: Respuesta con citas | icono=check | col=3 | fila=1
-flecha pdf -> parse
-flecha parse -> chunk
-flecha chunk -> idx: embeddings
-flecha q -> ret
-flecha idx -> ret | estilo=punteada
-flecha ret -> llm
-flecha llm -> r
+flecha pdf -> parse | explica=Los PDF se parsean con ai_parse_document para sacar el texto limpio.
+flecha parse -> chunk | explica=El texto se divide en fragmentos con sus metadatos, en una tabla Delta con Change Data Feed activado.
+flecha chunk -> idx: embeddings | explica=Un índice Delta Sync calcula los embeddings y se actualiza solo cuando la tabla cambia.
+flecha q -> ret | explica=Al llegar una pregunta, se recuperan los k fragmentos más relevantes con búsqueda híbrida y filtros.
+flecha idx -> ret | estilo=punteada | explica=La búsqueda se hace contra el índice.
+flecha ret -> llm | explica=Los fragmentos se agregan al prompt como contexto.
+flecha llm -> r | explica=El LLM responde citando de dónde sacó cada dato.
 ```
 
 ### 1. Parsear

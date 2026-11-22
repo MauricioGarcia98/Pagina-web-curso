@@ -29,10 +29,10 @@ nodo dl: Data lake | icono=bucket | col=1 | fila=0 | color=naranja | sub=2010: t
 nodo lh: Lakehouse | icono=capas | col=2 | fila=0 | color=verde | sub=2020: lake + transacciones
 nodo p1: Caro y solo tablas | icono=x | col=0 | fila=1 | color=rojo | sub=no sirve para logs, imágenes, ML
 nodo p2: "Pantano de datos" | icono=x | col=1 | fila=1 | color=rojo | sub=sin ACID, sin calidad, sin permisos finos
-flecha dw -> p1: problema
-flecha p1 -> dl: lo resuelve
-flecha dl -> p2: problema
-flecha p2 -> lh: lo resuelve
+flecha dw -> p1: problema | explica=El data warehouse dio SQL rápido y confiable, pero es caro y solo guarda tablas: no sirve para logs, imágenes o ML.
+flecha p1 -> dl: lo resuelve | explica=El data lake guarda todo, barato y en cualquier formato, en almacenamiento de objetos.
+flecha dl -> p2: problema | explica=Pero sin transacciones, sin control de calidad ni permisos finos, muchos lagos se volvieron pantanos donde nadie confía en nada.
+flecha p2 -> lh: lo resuelve | explica=El lakehouse agrega al lago una capa de tabla (Delta, Iceberg) con transacciones, versiones y permisos: lo mejor de los dos.
 ```
 
 | | Data warehouse | Data lake | Lakehouse |
@@ -59,9 +59,9 @@ nodo st: Almacenamiento de objetos | icono=bucket | col=1 | fila=1 | color=naran
 nodo c1: Spark (ETL) | icono=spark | col=0 | fila=0 | color=rojo | sub=se enciende de noche
 nodo c2: SQL warehouse (BI) | icono=lupa | col=1 | fila=0 | color=azul | sub=horario de oficina
 nodo c3: Notebook (ML) | icono=notebook | col=2 | fila=0 | color=violeta | sub=cuando un científico lo usa
-flecha c1 <-> st
-flecha c2 -> st: lee
-flecha c3 -> st: lee
+flecha c1 <-> st | explica=Los datos viven una sola vez en almacenamiento de objetos. Spark lo lee y lo escribe de noche para el ETL, y después se apaga.
+flecha c2 -> st: lee | explica=En horario de oficina, un SQL warehouse lee las mismas tablas para los tableros.
+flecha c3 -> st: lee | explica=Un notebook de ML lee lo mismo cuando alguien lo usa. Cada motor se paga solo mientras está encendido: el almacenamiento y el cómputo están separados.
 ```
 
 Ventajas: cada equipo usa el motor que necesita sin copiar los datos; el cómputo se escala o apaga por separado; si mañana aparece un motor mejor, los datos no se migran.
@@ -78,9 +78,9 @@ nodo motor: Motores | icono=spark | col=0 | fila=0 | sub=Spark, Trino, BigQuery,
 nodo cat: Catálogo | icono=lupa | col=1 | fila=0 | color=violeta | sub=Unity, Glue, Polaris: dónde está cada tabla
 nodo meta: Metadatos / log | icono=archivo | col=2 | fila=0 | color=amarillo | sub=versiones, esquema, estadísticas
 nodo pq: Archivos Parquet | icono=archivos | col=3 | fila=0 | color=naranja | sub=los datos
-flecha motor -> cat: ¿dónde está ventas?
-flecha cat -> meta: versión actual
-flecha meta -> pq: estos archivos
+flecha motor -> cat: ¿dónde está ventas? | explica=Un motor (Spark, Trino, BigQuery) recibe una consulta sobre ventas y le pregunta al catálogo dónde está esa tabla.
+flecha cat -> meta: versión actual | explica=El catálogo apunta a los metadatos de la tabla, que dicen cuál es la versión actual.
+flecha meta -> pq: estos archivos | explica=Los metadatos listan exactamente qué archivos Parquet forman esa versión, con sus estadísticas. El motor lee solo esos, y puede saltar los que no necesita.
 ```
 
 | Formato | Origen | Fortaleza | Dónde se usa más |

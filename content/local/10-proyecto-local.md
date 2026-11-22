@@ -27,12 +27,12 @@ nodo dbt: dbt + DuckDB | icono=transformar | col=3 | fila=0 | color=violeta | su
 nodo duck: rapido.duckdb | icono=base | col=3 | fila=1 | color=amarillo | sub=silver y gold
 nodo af: Airflow (Astro) | icono=orquestador | col=1 | fila=1 | color=cian | sub=todos los días 6:00
 nodo ci: GitHub Actions | icono=git | col=0 | fila=1 | color=verde | sub=ruff, pytest,\ndbt build
-flecha app -> ing
-flecha ing -> bronze
-flecha bronze -> dbt
-flecha dbt -> duck
-flecha af -> ing | estilo=punteada
-flecha af -> dbt | estilo=punteada
+flecha app -> ing | explica=Un Postgres en Docker hace de base de la app, con los pedidos.
+flecha ing -> bronze | explica=ingesta.py trae solo los pedidos nuevos (incremental por fecha) y los guarda en Parquet, un archivo por día.
+flecha bronze -> dbt | explica=dbt con DuckDB lee bronze, arma staging y marts, y corre las pruebas.
+flecha dbt -> duck | explica=Silver y gold quedan en rapido.duckdb.
+flecha af -> ing | estilo=punteada | explica=Airflow corre la ingesta todos los días a las 6:00…
+flecha af -> dbt | estilo=punteada | explica=…y después dbt. GitHub Actions corre ruff, pytest y dbt build en cada pull request.
 ```
 
 ## Paso 1: el repositorio

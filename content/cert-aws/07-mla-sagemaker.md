@@ -29,14 +29,14 @@ nodo mr: Model Registry | icono=sigla:MR:violeta | col=4 | fila=0 | sub=aprobaci
 nodo ep: Endpoint | icono=sigla:EP:naranja | col=5 | fila=0 | sub=blue/green, canary | color=naranja
 nodo mm: Model Monitor | icono=cloudwatch | col=5 | fila=1 | sub=deriva y calidad | color=rosa
 nodo pl: SageMaker Pipelines | icono=orquestador | col=1 | fila=1 | sub=automatiza todo | color=cian
-flecha s3 -> dw
-flecha dw -> fs
-flecha fs -> tr
-flecha hpo -> tr | estilo=punteada
-flecha tr -> mr
-flecha mr -> ep
-flecha ep -> mm
-flecha mm -> pl: dispara reentrenamiento | estilo=punteada
+flecha s3 -> dw | explica=Data Wrangler prepara los datos de S3.
+flecha dw -> fs | explica=Las features se guardan en Feature Store: offline para entrenar y online para predecir en milisegundos.
+flecha fs -> tr | explica=El training job entrena con instancias Spot y checkpoints.
+flecha hpo -> tr | estilo=punteada | explica=El ajuste automático lanza varios entrenamientos para encontrar los mejores hiperparámetros.
+flecha tr -> mr | explica=El modelo se registra en el Model Registry, donde se aprueba.
+flecha mr -> ep | explica=El aprobado se despliega en un endpoint de a poco: blue/green o canary.
+flecha ep -> mm | explica=Model Monitor compara los datos que llegan con los de entrenamiento.
+flecha mm -> pl: dispara reentrenamiento | estilo=punteada | explica=Si detecta deriva, puede disparar SageMaker Pipelines para reentrenar.
 ```
 
 ## Dominio 1 (28 %): preparación de datos

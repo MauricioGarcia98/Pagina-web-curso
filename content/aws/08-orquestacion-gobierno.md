@@ -277,17 +277,17 @@ nodo dbt: dbt-athena | icono=dbt | col=3 | fila=2 | color=naranja | sub=marts de
 nodo rs: Redshift Serverless | icono=redshift | col=4 | fila=2 | color=verde | sub=gold para dashboards
 nodo orq: EventBridge 03:00 → Step Functions | icono=stepfunctions | col=2 | fila=2 | color=violeta
 grupo rt: Tiempo real | nodos=kin,lam,sns | color=rojo
-flecha app -> kin
-flecha kin -> lam
-flecha lam -> sns
-flecha kin -> fh
-flecha fh -> s3
-flecha core -> dms
-flecha dms -> s3
-flecha s3 -> glue
-flecha glue -> dbt
-flecha dbt -> rs
-flecha orq -> glue | estilo=punteada | color=violeta
+flecha app -> kin | explica=Las transacciones de la app del banco entran a Kinesis.
+flecha kin -> lam | explica=Una Lambda busca ráfagas de transacciones sospechosas en tiempo real.
+flecha lam -> sns | explica=Si encuentra una, SNS avisa al analista de fraude.
+flecha kin -> fh | explica=Al mismo tiempo, Firehose guarda todas las transacciones…
+flecha fh -> s3 | explica=…en S3 bronze, en Parquet por fecha.
+flecha core -> dms | explica=Las cuentas, préstamos y cuotas del core bancario se replican con DMS (CDC).
+flecha dms -> s3 | explica=También aterrizan en S3 bronze.
+flecha s3 -> glue | explica=Glue limpia bronze y arma silver en Iceberg, con reglas de Data Quality que frenan los datos inválidos.
+flecha glue -> dbt | explica=dbt sobre Athena construye los marts de mora, fraude y clientes.
+flecha dbt -> rs | explica=Gold se sirve desde Redshift Serverless para los tableros.
+flecha orq -> glue | estilo=punteada | color=violeta | explica=Todos los días a las 03:00, EventBridge arranca una máquina de estados de Step Functions que corre cada paso en orden.
 ```
 
 Gobierno: Lake Formation oculta las columnas con datos personales, CloudTrail audita y Budgets controla el costo. La infraestructura se crea con Terraform y GitHub Actions.

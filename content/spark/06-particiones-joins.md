@@ -36,15 +36,15 @@ nodo ca: A | icono=cubo | col=3 | fila=0 | color=verde | sub=P1 + P2, donde est�
 nodo cb: B | icono=cubo | col=3 | fila=2 | color=verde | sub=P3 + P4, donde están
 grupo gr: repartition(3) · cada fila puede ir a cualquier destino | nodos=a1,a2,a3,ra,rb,rcc | color=rojo
 grupo gc: coalesce(2) · sin mover datos por la red | nodos=b1,b2,b3,ca,cb | color=verde
-flecha a1 -> ra
-flecha a1 -> rb
-flecha a2 -> rcc
-flecha a2 -> ra
-flecha a3 -> rb
-flecha a3 -> rcc
-flecha b1 -> ca
-flecha b2 -> ca
-flecha b3 -> cb
+flecha a1 -> ra | explica=repartition redistribuye todas las filas: cada partición nueva recibe filas de todas las viejas.
+flecha a1 -> rb | explica=La partición 1 manda filas a varias particiones nuevas.
+flecha a2 -> rcc | explica=Lo mismo la 2…
+flecha a2 -> ra | explica=…que también manda a A.
+flecha a3 -> rb | explica=Y la 3. Es un shuffle completo: caro, pero deja particiones parejas.
+flecha a3 -> rcc | explica=Úsalo para aumentar particiones o repartir por una columna.
+flecha b1 -> ca | explica=coalesce solo junta particiones vecinas donde están, sin mover datos por la red.
+flecha b2 -> ca | explica=P1 y P2 forman A en el mismo lugar.
+flecha b3 -> cb | explica=Sirve para reducir particiones antes de escribir (menos archivos chicos), pero puede dejar particiones desparejas.
 ```
 
 - `repartition` cuesta un shuffle, pero deja particiones **parejas**.
@@ -78,12 +78,12 @@ nodo e1: Executor 1 | icono=servidor | col=1 | fila=0 | color=verde | sub=sus pe
 nodo e2: Executor 2 | icono=servidor | col=1 | fila=1 | color=verde | sub=sus pedidos ⋈ copia de clientes
 nodo e3: Executor 3 | icono=servidor | col=1 | fila=2 | color=verde | sub=sus pedidos ⋈ copia de clientes
 nodo ped: pedidos (12.000 filas) | icono=tabla | col=2 | fila=1 | color=naranja | sub=grande: cada parte se queda donde está
-flecha cli -> e1: copia
-flecha cli -> e2: copia
-flecha cli -> e3: copia
-flecha ped -- e1 | estilo=punteada
-flecha ped -- e2 | estilo=punteada
-flecha ped -- e3 | estilo=punteada
+flecha cli -> e1: copia | explica=La tabla chica (clientes, 2.000 filas) se copia entera a cada executor.
+flecha cli -> e2: copia | explica=Cada executor tiene su propia copia…
+flecha cli -> e3: copia | explica=…así cada uno hace el join con sus pedidos sin pedirle nada a nadie.
+flecha ped -- e1 | estilo=punteada | explica=La tabla grande (pedidos) no se mueve: cada parte se queda donde está.
+flecha ped -- e2 | estilo=punteada | explica=No hay shuffle de la tabla grande, que es lo que más costaría.
+flecha ped -- e3 | estilo=punteada | explica=Por eso un broadcast join es mucho más rápido cuando una de las tablas cabe en memoria.
 ```
 
 ```python

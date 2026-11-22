@@ -37,15 +37,15 @@ nodo mr: Model Registry | icono=sigla:MR:violeta | col=3 | fila=0 | sub=versione
 nodo ep: Endpoint | icono=sigla:EP:naranja | col=4 | fila=0 | sub=división de tráfico | color=naranja
 nodo mo: Model Monitoring | icono=activity | col=4 | fila=1 | sub=skew y deriva | color=rosa
 nodo pl: Pipelines | icono=orquestador | col=3 | fila=1 | sub=Kubeflow / TFX | color=cian
-flecha bq -> fs
-flecha fs -> tr
-flecha wb -> tr | estilo=punteada
-flecha tr -> ex | estilo=punteada
-flecha tr -> mr
-flecha mr -> ep
-flecha ep -> mo
-flecha mo -> pl: reentrenar | estilo=punteada
-flecha pl -> tr | estilo=punteada
+flecha bq -> fs | explica=El Feature Store se arma sobre tablas de BigQuery.
+flecha fs -> tr | explica=El entrenamiento toma las features de ahí: código propio, AutoML o ajuste de hiperparámetros.
+flecha wb -> tr | estilo=punteada | explica=En Workbench se experimenta antes de automatizar.
+flecha tr -> ex | estilo=punteada | explica=Experiments y Metadata guardan parámetros, métricas y linaje de cada corrida.
+flecha tr -> mr | explica=El modelo se registra con versión y alias.
+flecha mr -> ep | explica=Se despliega en un endpoint, que puede dividir el tráfico entre versiones.
+flecha ep -> mo | explica=Model Monitoring detecta skew y deriva.
+flecha mo -> pl: reentrenar | estilo=punteada | explica=Si aparece deriva, se dispara el pipeline…
+flecha pl -> tr | estilo=punteada | explica=…que vuelve a entrenar el modelo.
 ```
 
 ## Sección 1: soluciones de bajo código

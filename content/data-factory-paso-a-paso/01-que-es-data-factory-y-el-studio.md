@@ -37,10 +37,10 @@ nodo pl: Pipeline | icono=flujo | col=1 | fila=0 | color=azul | sub=el proceso c
 nodo ac: Actividades | icono=engranaje | col=2 | fila=0 | color=violeta | sub=Copy, Lookup, ForEach…
 nodo ds: Datasets | icono=tabla | col=2 | fila=1 | color=naranja | sub=qué datos: un archivo, una tabla
 nodo ls: Linked services | icono=llave | col=1 | fila=1 | color=verde | sub=cómo conectarse: la "cadena de conexión"
-flecha tr -> pl: dispara
-flecha pl -> ac: contiene
-flecha ac -> ds: usan
-flecha ds -> ls: se conectan con
+flecha tr -> pl: dispara | explica=El trigger decide cuándo corre el pipeline: a una hora, cada cierto tiempo o cuando llega un archivo.
+flecha pl -> ac: contiene | explica=El pipeline contiene las actividades, en orden.
+flecha ac -> ds: usan | explica=Cada actividad usa datasets: qué archivo o qué tabla lee y dónde escribe.
+flecha ds -> ls: se conectan con | explica=El dataset usa un linked service para saber cómo conectarse: servidor, cuenta y credencial.
 ```
 
 | Pieza | Qué es | Ejemplo |

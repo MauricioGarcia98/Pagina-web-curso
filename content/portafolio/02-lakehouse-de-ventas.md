@@ -46,12 +46,12 @@ nodo gold: Gold (estrella) | icono=dbt | col=3 | fila=0 | color=amarillo | sub=f
 nodo bi: Tablero | icono=dashboard | col=3 | fila=1 | color=verde | sub=Streamlit local o\nAI/BI en Databricks
 nodo orq: Orquestación | icono=orquestador | col=1 | fila=1 | color=violeta | sub=Job de Databricks\no Airflow local
 nodo ci: CI | icono=githubactions | col=2 | fila=1 | sub=dbt build en cada PR
-flecha raw -> bronze
-flecha bronze -> silver
-flecha silver -> gold
-flecha gold -> bi
-flecha orq -> bronze: dispara | estilo=punteada
-flecha ci -> silver: prueba | estilo=punteada
+flecha raw -> bronze | explica=Los CSV crudos se cargan tal cual en bronze, con una columna _cargado_en para saber cuándo llegaron.
+flecha bronze -> silver | explica=En silver se eliminan duplicados, se corrigen los tipos y se normalizan los valores.
+flecha silver -> gold | explica=Gold es un modelo estrella: fct_ventas y sus dimensiones.
+flecha gold -> bi | explica=El tablero lee gold: Streamlit en local o AI/BI en Databricks.
+flecha orq -> bronze: dispara | estilo=punteada | explica=Un job de Databricks o Airflow dispara la carga todos los días.
+flecha ci -> silver: prueba | estilo=punteada | explica=En cada pull request, CI corre dbt build para probar los modelos antes del merge.
 ```
 
 ## Fase 1: en tu computadora (gratis)

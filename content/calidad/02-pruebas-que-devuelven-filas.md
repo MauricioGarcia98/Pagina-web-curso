@@ -23,10 +23,10 @@ nodo q: Consulta de violaciones | icono=codigo | col=1 | fila=1 | color=azul | s
 nodo ok: 0 filas | icono=check | col=2 | fila=0 | color=verde | sub=la prueba pasa
 nodo mal: N filas | icono=x | col=2 | fila=2 | color=rojo | sub=falla, y ya tienes las culpables
 nodo inv: Investigar | icono=lupa | col=3 | fila=2 | color=naranja
-flecha r -> q
-flecha q -> ok
-flecha q -> mal
-flecha mal -> inv
+flecha r -> q | explica=La regla se escribe como una consulta que busca lo que no debería existir: pedidos con el mismo id más de una vez.
+flecha q -> ok | explica=Si devuelve cero filas, no hay violaciones: la prueba pasa.
+flecha q -> mal | explica=Si devuelve filas, la prueba falla, y esas filas son justamente los casos culpables.
+flecha mal -> inv | explica=Con las filas en la mano se investiga la causa (un reintento, un cambio en la fuente) en lugar de adivinar.
 ```
 
 | Prueba | La consulta devuelve… |

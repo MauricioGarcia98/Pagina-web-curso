@@ -51,10 +51,10 @@ nodo lin: telco_lineas | icono=telefono | col=1 | fila=0 | color=naranja | sub=a
 nodo plan: telco_planes | icono=archivo | col=2 | fila=0 | color=gris | sub=GB, minutos, precio
 nodo cons: telco_consumos | icono=grafico | col=1 | fila=1 | color=verde | sub=1 fila por línea y mes
 nodo rec: telco_reclamos | icono=alerta | col=2 | fila=1 | color=rojo | sub=categoría, horas,\nresuelto
-flecha cli -> lin: 1 a N
-flecha plan -> lin: 1 a N
-flecha lin -> cons: 1 a N
-flecha lin -> rec: 1 a N
+flecha cli -> lin: 1 a N | explica=Un cliente (persona o empresa) puede tener muchas líneas. Por eso casi todo se mide por línea, no por cliente.
+flecha plan -> lin: 1 a N | explica=Cada línea tiene un plan actual; un plan lo usan muchas líneas.
+flecha lin -> cons: 1 a N | explica=El consumo se registra por línea y por mes.
+flecha lin -> rec: 1 a N | explica=Los reclamos también cuelgan de la línea, con su categoría y cuánto tardó en resolverse.
 ```
 
 - `fecha_baja` en `NULL` = la línea sigue activa.

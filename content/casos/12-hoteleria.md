@@ -51,10 +51,10 @@ nodo hue: hotel_huespedes | icono=usuario | col=0 | fila=1 | color=gris | sub=pa
 nodo res: hotel_reservas | icono=archivo | col=1 | fila=0 | color=naranja | sub=check-in, check-out,\ncanal, tarifa, estado
 nodo con: hotel_consumos | icono=comida | col=2 | fila=0 | color=verde | sub=restaurante, bar, spa…
 nodo rev: hotel_resenas | icono=check | col=2 | fila=1 | color=violeta | sub=puntaje 1 a 10
-flecha hot -> res: 1 a N
-flecha hue -> res: 1 a N
-flecha res -> con: 1 a N
-flecha res -> rev: 0 o 1
+flecha hot -> res: 1 a N | explica=Cada hotel recibe muchas reservas; su cantidad de habitaciones es la capacidad para calcular la ocupación.
+flecha hue -> res: 1 a N | explica=Un huésped puede reservar muchas veces.
+flecha res -> con: 1 a N | explica=Durante la estadía, los consumos (restaurante, spa) se asocian a la reserva.
+flecha res -> rev: 0 o 1 | explica=Cada reserva puede tener como mucho una reseña.
 ```
 
 - **Noches** de una reserva: `julianday(check_out) - julianday(check_in)` (el día de salida no se cuenta como noche).

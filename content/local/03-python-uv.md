@@ -30,9 +30,9 @@ nodo sis: Python del sistema | icono=servidor | col=1 | fila=0 | color=gris | su
 nodo a: proyecto-ingesta/.venv | icono=cubo | col=0 | fila=1 | color=azul | sub=pandas 1.5\nrequests 2.31
 nodo b: proyecto-dbt/.venv | icono=cubo | col=1 | fila=1 | color=verde | sub=dbt-duckdb 1.8\npandas 2.2
 nodo c: proyecto-spark/.venv | icono=cubo | col=2 | fila=1 | color=naranja | sub=pyspark 3.5\npandas 2.2
-flecha sis -> a | estilo=punteada
-flecha sis -> b | estilo=punteada
-flecha sis -> c | estilo=punteada
+flecha sis -> a | estilo=punteada | explica=El Python del sistema no se toca. El proyecto de ingesta tiene su propio entorno (.venv) con pandas 1.5.
+flecha sis -> b | estilo=punteada | explica=El proyecto de dbt usa pandas 2.2 en su entorno, sin chocar con el anterior.
+flecha sis -> c | estilo=punteada | explica=Y el de Spark tiene lo suyo. Cada proyecto con sus versiones: lo que funciona en uno no rompe al otro.
 ```
 
 Dos archivos describen las dependencias:

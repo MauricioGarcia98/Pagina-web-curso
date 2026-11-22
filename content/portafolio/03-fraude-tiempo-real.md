@@ -42,13 +42,13 @@ nodo sv: silver_tx | icono=lakeflow | col=3 | fila=0 | color=gris | sub=expectat
 nodo feat: Señales | icono=engranaje | col=3 | fila=1 | sub=monto vs habitual,\npaís, ráfagas
 nodo al: alertas | icono=alerta | col=2 | fila=1 | color=rojo | sub=tabla + aviso
 nodo eq: Analistas | icono=usuario | col=1 | fila=1 | sub=revisan y etiquetan
-flecha src -> vol
-flecha vol -> br: Auto Loader
-flecha br -> sv
-flecha sv -> feat
-flecha feat -> al: reglas
-flecha al -> eq
-flecha eq -> feat: la etiqueta mejora las reglas | estilo=punteada
+flecha src -> vol | explica=Cada transacción es un JSON. Llegan como archivos cada minuto, o por Kafka o Event Hubs.
+flecha vol -> br: Auto Loader | explica=Auto Loader los lee de a poco y los agrega a bronze_tx.
+flecha br -> sv | explica=silver_tx aplica expectativas de calidad: montos negativos o tarjetas vacías no siguen.
+flecha sv -> feat | explica=Se calculan señales: monto contra lo habitual del cliente, país distinto, muchas compras seguidas.
+flecha feat -> al: reglas | explica=Las reglas combinan esas señales y generan alertas.
+flecha al -> eq | explica=Los analistas revisan cada alerta y la etiquetan como fraude o falsa alarma.
+flecha eq -> feat: la etiqueta mejora las reglas | estilo=punteada | explica=Con esas etiquetas se mide qué reglas aciertan y se ajustan.
 ```
 
 ## Fase 1: las reglas, con datos (local)

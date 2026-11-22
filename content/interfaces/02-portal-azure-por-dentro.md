@@ -21,10 +21,10 @@ nodo mg: Grupos de administración (opcional) | icono=carpeta | col=1 | fila=0 |
 nodo sub: Suscripción | icono=azure | col=2 | fila=0 | color=cian | sub=quién paga y límite de acceso: sub-datos-dev, sub-datos-prod
 nodo rg: Grupo de recursos | icono=carpeta | col=3 | fila=0 | color=verde | sub=carpeta lógica de un proyecto o entorno: rg-datos-dev
 nodo rec: Recursos | icono=cubo | col=4 | fila=0 | color=naranja | sub=cuenta de almacenamiento, Key Vault, workspace de Databricks
-flecha ten -> mg
-flecha mg -> sub
-flecha sub -> rg
-flecha rg -> rec
+flecha ten -> mg | explica=El tenant de Entra ID es la organización. Debajo, si se usan, hay grupos de administración.
+flecha mg -> sub | explica=Una política asignada a un grupo de administración se aplica a todas sus suscripciones.
+flecha sub -> rg | explica=Un rol dado en la suscripción vale para todos sus grupos de recursos.
+flecha rg -> rec | explica=Y un rol dado en el grupo de recursos vale para cada recurso de adentro. Por eso conviene dar permisos lo más abajo posible.
 ```
 
 - **Tenant (inquilino)**: la identidad de tu organización en Microsoft Entra ID (antes Azure Active Directory). Ahí viven los usuarios y grupos.

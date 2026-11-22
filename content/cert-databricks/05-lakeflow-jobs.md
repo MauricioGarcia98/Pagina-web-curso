@@ -31,12 +31,12 @@ nodo c: ¿filas > 1000? | col=2 | fila=1 | sub=tarea If/else | color=amarillo | 
 nodo f: por_ciudad | icono=capas | col=3 | fila=0 | sub=For each (12 ciudades) | color=violeta
 nodo d: refrescar_dashboard | icono=dashboard | col=3 | fila=1 | sub=Run if: all succeeded | color=cian
 nodo a: alerta | icono=alerta | col=1 | fila=1 | sub=Run if: at least one failed | color=rojo
-flecha t -> i
-flecha i -> v
-flecha v -> c
-flecha c -> f: true
-flecha f -> d
-flecha i -> a | estilo=punteada
+flecha t -> i | explica=El job arranca cuando llegan archivos nuevos y lo primero que corre es el pipeline de ingesta.
+flecha i -> v | explica=La tarea validar cuenta las filas y guarda el número como task value.
+flecha v -> c | explica=Una tarea If/else lee ese valor.
+flecha c -> f: true | explica=Si hay más de 1000 filas, un For each corre la misma tarea una vez por cada una de las 12 ciudades.
+flecha f -> d | explica=El dashboard se refresca solo si todas las tareas anteriores terminaron bien.
+flecha i -> a | estilo=punteada | explica=Si alguna falla, la tarea de alerta corre gracias a "at least one failed".
 ```
 
 ## Tipos de tarea

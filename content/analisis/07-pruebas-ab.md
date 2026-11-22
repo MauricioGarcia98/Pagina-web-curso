@@ -59,10 +59,10 @@ nodo b: Nuevo checkout | icono=usuario | col=0 | fila=2 | sub=70 % móvil | colo
 nodo e: Escritorio | icono=laptop | col=1 | fila=0 | sub=convierte más
 nodo m: Móvil | icono=movil | col=1 | fila=2 | sub=convierte menos
 nodo t: Total | icono=grafico | col=2 | fila=1 | sub=parece un empate | color=rojo
-flecha a -> e
-flecha b -> m
-flecha e -> t
-flecha m -> t
+flecha a -> e | explica=El grupo de control tuvo más usuarios de escritorio, que convierten más.
+flecha b -> m | explica=El grupo con el checkout nuevo tuvo más usuarios de móvil, que convierten menos.
+flecha e -> t | explica=Al sumar todo, la mezcla distinta de dispositivos tapa el efecto…
+flecha m -> t | explica=…y el total parece un empate, aunque dentro de cada segmento el checkout nuevo gane. Por eso se compara por segmento: es la paradoja de Simpson.
 ```
 
 :::cuidado Mirar antes de tiempo

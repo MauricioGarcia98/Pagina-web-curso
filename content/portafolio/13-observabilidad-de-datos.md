@@ -36,11 +36,11 @@ nodo ch: Checks genéricos | icono=check | col=1 | fila=1 | sub=frescura, volume
 nodo obs: Esquema obs | icono=base | col=2 | fila=0 | forma=cilindro | sub=ejecuciones, checks,\nslo, costos, incidentes
 nodo tb: Tablero de salud | icono=dashboard | col=3 | fila=0 | color=verde
 nodo al: Alertas | icono=alerta | col=3 | fila=1 | color=rojo | sub=solo lo accionable
-flecha p -> obs
-flecha t -> ch
-flecha ch -> obs
-flecha obs -> tb
-flecha obs -> al
+flecha p -> obs | explica=Cada pipeline registra sus ejecuciones en el esquema obs: cuándo, cuánto tardó, cuántas filas.
+flecha t -> ch | explica=Sobre las tablas corren checks genéricos: frescura, volumen, nulos y unicidad.
+flecha ch -> obs | explica=Los resultados también se guardan en obs.
+flecha obs -> tb | explica=El tablero de salud lee obs.
+flecha obs -> al | explica=Solo se alerta lo accionable: si nadie va a hacer nada con un aviso, no se manda.
 ```
 
 ## Checks genéricos

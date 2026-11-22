@@ -152,12 +152,12 @@ nodo p: Desplegar | icono=nube | col=2 | fila=0 | sub=Model Serving + AI Gateway
 nodo m: Monitorear | icono=grafico | col=2 | fila=1 | sub=trazas + scorers | color=violeta
 nodo f: Feedback | icono=usuario | col=1 | fila=1 | sub=revisión humana
 nodo ds: Conjunto de evaluación | icono=mlflow | col=0 | fila=1 | sub=Unity Catalog | color=naranja
-flecha d -> e
-flecha e -> p
-flecha p -> m
-flecha m -> f
-flecha f -> ds
-flecha ds -> e | estilo=punteada
+flecha d -> e | explica=Cada versión del agente se evalúa con mlflow.genai.evaluate antes de desplegarla.
+flecha e -> p | explica=Si pasa, se despliega en Model Serving detrás de AI Gateway, que controla límites y registra el uso.
+flecha p -> m | explica=En producción se guardan trazas y los scorers miden la calidad de cada respuesta.
+flecha m -> f | explica=Las respuestas dudosas pasan a revisión humana.
+flecha f -> ds | explica=Los casos revisados se suman al conjunto de evaluación en Unity Catalog.
+flecha ds -> e | estilo=punteada | explica=Ese conjunto se usa en la próxima evaluación: el agente se prueba con los errores reales que ya tuvo.
 ```
 
 :::errores

@@ -70,12 +70,12 @@ nodo std: stg_detalle_pedidos | icono=dbt | col=1 | fila=1 | color=azul
 nodo vpc: ventas_por_canal | icono=dbt | col=2 | fila=0 | color=amarillo
 nodo fct: fct_ventas | icono=dbt | col=2 | fila=1 | color=amarillo
 nodo mas: … | icono=dashboard | col=3 | fila=1 | color=verde | sub=más modelos y tableros
-flecha sp -> stp
-flecha sd -> std
-flecha stp -> vpc
-flecha std -> vpc
-flecha stp -> fct
-flecha fct -> mas
+flecha sp -> stp | explica=stg_pedidos lee la fuente con source('tienda', 'pedidos'). Así dbt sabe que depende de esa tabla.
+flecha sd -> std | explica=stg_detalle_pedidos lee su propia fuente.
+flecha stp -> vpc | explica=ventas_por_canal usa ref('stg_pedidos'): dbt lo ejecuta después de stg_pedidos.
+flecha std -> vpc | explica=También usa ref('stg_detalle_pedidos'). Con dos ref(), espera a los dos.
+flecha stp -> fct | explica=fct_ventas también parte de stg_pedidos. dbt arma solo este grafo a partir de los ref(): no hay que decirle el orden.
+flecha fct -> mas | explica=Y así sigue: cada modelo nuevo que use ref('fct_ventas') queda conectado en el linaje.
 ```
 
 ## ref() y source(): dos formas de nombrar una tabla

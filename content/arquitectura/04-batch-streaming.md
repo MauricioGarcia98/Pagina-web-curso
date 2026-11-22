@@ -28,9 +28,9 @@ nodo b: Batch | icono=reloj | col=0 | fila=0 | color=azul | sub=horas o días\nr
 nodo mb: Micro-batch | icono=capas | col=1 | fila=0 | color=verde | sub=1 a 15 minutos\ntableros operativos
 nodo st: Streaming | icono=stream | col=2 | fila=0 | color=naranja | sub=segundos\nalertas, precios
 nodo rt: Tiempo real | icono=energia | col=3 | fila=0 | color=rojo | sub=milisegundos\nfraude en la transacción
-flecha b -> mb
-flecha mb -> st
-flecha st -> rt
+flecha b -> mb | explica=Batch procesa una vez por hora o por día: alcanza para reportes y cierres, y es lo más simple y barato.
+flecha mb -> st | explica=Micro-batch procesa cada pocos minutos: sirve para tableros operativos.
+flecha st -> rt | explica=Streaming baja a segundos y tiempo real a milisegundos. Cada paso hacia la derecha cuesta más en complejidad y operación: elige la latencia que el negocio de verdad necesita.
 ```
 
 | Modo | Cómo funciona | Herramientas | Ejemplo |
@@ -57,11 +57,11 @@ nodo q: Cola | icono=kafka | col=1 | fila=1 | color=gris | sub=Kafka · Kinesis 
 nodo sp: Speed layer | icono=stream | col=2 | fila=0 | color=naranja | sub=streaming: últimos minutos
 nodo bl: Batch layer | icono=spark | col=2 | fila=2 | color=azul | sub=batch: todo el historial
 nodo sv: Serving | icono=dashboard | col=3 | fila=1 | color=verde | sub=combina ambas vistas
-flecha ev -> q
-flecha q -> sp
-flecha q -> bl: se guarda en el lake
-flecha sp -> sv: aproximado, ya
-flecha bl -> sv: exacto, mañana
+flecha ev -> q | explica=Los eventos entran a una cola (Kafka, Kinesis o Pub/Sub).
+flecha q -> sp | explica=Un camino rápido los procesa en streaming para tener una vista de los últimos minutos.
+flecha q -> bl: se guarda en el lake | explica=Al mismo tiempo, todo se guarda en el lago y un camino batch recalcula el historial completo con exactitud.
+flecha sp -> sv: aproximado, ya | explica=La vista rápida es aproximada pero está disponible ya.
+flecha bl -> sv: exacto, mañana | explica=La vista batch es exacta pero llega más tarde. Servir combina las dos. El costo: mantener dos códigos que tienen que dar lo mismo.
 ```
 
 El mismo dato se procesa **dos veces**, con dos códigos distintos. Funciona, pero tiene un problema grave: mantener dos implementaciones de la misma lógica (una en streaming y otra en batch) que **deben dar el mismo resultado**, y nunca lo dan del todo.
@@ -75,11 +75,11 @@ nodo log: Log durable | icono=kafka | col=1 | fila=0 | color=gris | sub=retiene 
 nodo proc: Procesamiento en stream | icono=stream | col=2 | fila=0 | color=naranja | sub=un solo código
 nodo out: Tablas / servicio | icono=tabla | col=3 | fila=0 | color=verde | sub=siempre al día
 nodo rep: Reproceso | icono=reloj | col=2 | fila=1 | color=violeta | sub=se relee el log desde el inicio
-flecha ev -> log
-flecha log -> proc
-flecha proc -> out
-flecha log -> rep: si cambia la lógica | estilo=punteada
-flecha rep -> out | estilo=punteada
+flecha ev -> log | explica=En Kappa todo es un stream: los eventos van a un log durable que los retiene días o meses.
+flecha log -> proc | explica=Un solo código de streaming procesa los eventos.
+flecha proc -> out | explica=Las tablas de salida están siempre al día.
+flecha log -> rep: si cambia la lógica | estilo=punteada | explica=Si cambia la lógica, no hay un camino batch aparte: se vuelve a leer el log desde el principio con el código nuevo.
+flecha rep -> out | estilo=punteada | explica=El reproceso reconstruye las tablas. Un solo código, a cambio de guardar el log el tiempo suficiente.
 ```
 
 Un solo código. Si la lógica cambia, se **reproduce** el log desde el principio con la versión nueva. Hoy, con formatos de tabla que aceptan escrituras en streaming y en batch (Delta, Iceberg) y motores que hacen las dos cosas con el mismo código (Spark Structured Streaming, Flink, Beam/Dataflow), la mayoría de los diseños nuevos se parecen más a Kappa.

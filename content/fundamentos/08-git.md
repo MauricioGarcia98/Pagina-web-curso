@@ -180,12 +180,12 @@ nodo ci: CI automática | icono=engranaje | col=2 | fila=0 | color=amarillo | su
 nodo rev: Revisión | icono=equipo | col=2 | fila=1 | color=violeta | sub=una compañera aprueba
 nodo main: main | icono=git | col=1 | fila=1 | color=verde | sub=siempre funciona
 nodo prod: Producción | icono=nube | col=0 | fila=1 | color=naranja | sub=despliegue automático
-flecha rama -> pr: git push
-flecha pr -> ci: ejecuta
-flecha ci -> rev: en verde
-flecha rev -> main: merge
-flecha main -> prod: deploy
-flecha rev -> rama: pide cambios | estilo=punteada | color=rojo
+flecha rama -> pr: git push | explica=Trabajas en tu propia rama y, cuando el cambio está listo, la subes con git push y abres un pull request que explica qué cambiaste y por qué.
+flecha pr -> ci: ejecuta | explica=El pull request dispara la integración continua: corre los tests (pytest, dbt build) en una máquina limpia.
+flecha ci -> rev: en verde | explica=Con los tests en verde, una compañera revisa el código y deja comentarios.
+flecha rev -> main: merge | explica=Si lo aprueba, el cambio se une (merge) a main, la rama que siempre funciona.
+flecha main -> prod: deploy | explica=Cada cambio en main se despliega solo a producción.
+flecha rev -> rama: pide cambios | estilo=punteada | color=rojo | explica=Si la revisión pide cambios, vuelves a tu rama, corriges y subes otra vez: el pull request se actualiza solo.
 ```
 
 ## Buenas prácticas

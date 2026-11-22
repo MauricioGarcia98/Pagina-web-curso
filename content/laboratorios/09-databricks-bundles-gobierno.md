@@ -22,12 +22,12 @@ nodo pl: Pipeline ventas-silver | icono=lakeflow | col=2 | fila=2 | sub=serverle
 nodo uc: Unity Catalog dev.silver | icono=unity | col=3 | fila=1 | sub=grants | color=violeta
 nodo an: Analistas | icono=usuario | col=4 | fila=1
 nodo ms: Model Serving | icono=robot | col=4 | fila=2 | sub=Llama 3.3 70B | color=verde
-flecha git -> b
-flecha b -> job: deploy -t dev
-flecha b -> pl
-flecha pl -> uc
-flecha an -> uc: SELECT
-flecha an -> ms | estilo=punteada
+flecha git -> b | explica=databricks.yml, en el repositorio, define el bundle con sus destinos dev y prod.
+flecha b -> job: deploy -t dev | explica=bundle deploy -t dev crea o actualiza el job en el workspace.
+flecha b -> pl | explica=También el pipeline serverless ventas-silver.
+flecha pl -> uc | explica=El pipeline escribe en dev.silver, en Unity Catalog.
+flecha an -> uc: SELECT | explica=Los analistas pueden leer porque se les dio GRANT SELECT.
+flecha an -> ms | estilo=punteada | explica=También pueden usar el modelo Llama 3.3 70B desde Model Serving.
 ```
 
 ## Costo en una cuenta real

@@ -23,13 +23,13 @@ nodo m: Modelo | icono=ml | col=3 | fila=0 | color=violeta
 nodo cfg: Endpoint config | icono=engranaje | col=3 | fila=1 | color=violeta
 nodo ep: Endpoint | icono=api | col=4 | fila=1 | sub=cobra por hora | color=rojo
 nodo app: App de logística | icono=movil | col=4 | fila=2
-flecha s3 -> tj
-flecha tj -> ck | estilo=punteada
-flecha tj -> art
-flecha art -> m
-flecha m -> cfg
-flecha cfg -> ep
-flecha app -> ep: invoke-endpoint
+flecha s3 -> tj | explica=El training job lee los datos de S3 y entrena en una ml.m5.xlarge Spot, mucho más barata.
+flecha tj -> ck | estilo=punteada | explica=Guarda checkpoints: si AWS reclama la máquina Spot, el entrenamiento sigue desde ahí.
+flecha tj -> art | explica=Al terminar, deja el modelo entrenado como model.tar.gz en S3.
+flecha art -> m | explica=Con ese archivo y una imagen de inferencia se registra un modelo.
+flecha m -> cfg | explica=La configuración del endpoint dice qué modelo, en qué tipo de máquina y cuántas.
+flecha cfg -> ep | explica=El endpoint se crea a partir de esa configuración. Cobra por hora aunque nadie lo use: al terminar, se borra.
+flecha app -> ep: invoke-endpoint | explica=La app de logística le manda datos con invoke-endpoint y recibe la predicción de demora.
 ```
 
 ## Costo en una cuenta real

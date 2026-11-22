@@ -90,13 +90,13 @@ nodo t3: dbt_build | icono=transformar | col=3 | fila=0 | color=amarillo | sub=m
 nodo dbx: Databricks | icono=cubo | col=1 | fila=1 | color=rojo | sub=jobs y clústeres
 nodo bi: Dashboard 7:00 | icono=dashboard | col=3 | fila=1 | color=verde
 nodo al: Teams | icono=alerta | col=0 | fila=1 | color=rojo | sub=si algo falla
-flecha af -> t1
-flecha t1 -> t2
-flecha t2 -> t3
-flecha t1 -> dbx | estilo=punteada
-flecha t2 -> dbx | estilo=punteada
-flecha t3 -> bi
-flecha af -> al: on_failure_callback | estilo=punteada | color=rojo
+flecha af -> t1 | explica=Todos los días a las 03:00 Airflow arranca el DAG con la ingesta a bronze.
+flecha t1 -> t2 | explica=Cuando termina la ingesta, corre el notebook de silver.
+flecha t2 -> t3 | explica=Con silver lista, corre dbt build: los modelos de gold y sus tests.
+flecha t1 -> dbx | estilo=punteada | explica=Airflow no procesa los datos: le pide a Databricks que corra el job ya existente (RunNow) y espera a que termine.
+flecha t2 -> dbx | estilo=punteada | explica=El notebook de silver también corre en Databricks, en un clúster que se crea para la tarea y se apaga al terminar.
+flecha t3 -> bi | explica=Si todo sale bien, a las 7:00 el tablero muestra los datos de ayer.
+flecha af -> al: on_failure_callback | estilo=punteada | color=rojo | explica=Si cualquier tarea falla, la función on_failure_callback manda un aviso a Teams con el error.
 ```
 
 ## La configuración del DAG, línea por línea

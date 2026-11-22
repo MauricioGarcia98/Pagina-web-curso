@@ -23,10 +23,10 @@ nodo kfk: Tópico rutasur.telemetria | icono=kafka | col=1 | fila=0 | color=azul
 nodo st: Stream con checkpoint | icono=spark | col=2 | fila=0 | color=rojo | sub=dedupe, tiempo del evento
 nodo tms: API del TMS | icono=web | col=1 | fila=1 | color=naranja | sub=entregas planificadas · 30 pedidos por minuto
 nodo gd: gold: entregas a tiempo | icono=dashboard | col=3 | fila=0 | color=verde | sub=SLA por ruta y conductor
-flecha cam -> kfk
-flecha kfk -> st
-flecha tms -> st: unir con lo planificado
-flecha st -> gd
+flecha cam -> kfk | explica=Cada camioneta manda su posición y estado cada pocos segundos. La clave es el vehículo: sus eventos caen siempre en la misma partición, en orden.
+flecha kfk -> st | explica=El stream lee el tópico, elimina duplicados y usa la hora del evento. El checkpoint le permite seguir donde quedó si se reinicia.
+flecha tms -> st: unir con lo planificado | explica=Las entregas planificadas se traen de la API del TMS, respetando su límite de 30 pedidos por minuto.
+flecha st -> gd | explica=Comparando lo planificado con lo real se calcula el porcentaje de entregas a tiempo por ruta y conductor.
 ```
 
 Credenciales de prueba, solo tuyas. Van a un Key Vault.

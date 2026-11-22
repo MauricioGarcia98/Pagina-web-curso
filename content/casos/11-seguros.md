@@ -48,9 +48,9 @@ nodo cli: seguros_clientes | icono=usuario | col=0 | fila=0 | color=azul | sub=e
 nodo pol: seguros_polizas | icono=escudo | col=1 | fila=0 | color=verde | sub=ramo, prima, suma,\ncanal, vigencia 1 año
 nodo sin: seguros_siniestros | icono=alerta | col=2 | fila=0 | color=rojo | sub=ocurrencia, denuncia,\nreclamado, pagado
 nodo fr: fraude_confirmado | icono=lupa | col=2 | fila=1 | color=amarillo | sub=1 = la investigación\nconfirmó fraude
-flecha cli -> pol: 1 a N
-flecha pol -> sin: 1 a N
-flecha sin -> fr | estilo=punteada
+flecha cli -> pol: 1 a N | explica=Un cliente puede tener varias pólizas (auto, hogar), cada una con su prima y su vigencia de un año.
+flecha pol -> sin: 1 a N | explica=Los siniestros cuelgan de la póliza: qué se reclamó y qué se pagó.
+flecha sin -> fr | estilo=punteada | explica=Algunos siniestros terminan con fraude confirmado después de una investigación.
 ```
 
 - Todas las pólizas duran un año: la prima del período es `prima_mensual * 12`.

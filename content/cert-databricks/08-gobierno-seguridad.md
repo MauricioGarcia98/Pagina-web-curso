@@ -28,13 +28,13 @@ nodo v: Volúmenes | icono=archivos | col=3 | fila=1 | sub=archivos | color=azul
 nodo f: Funciones y modelos | icono=ml | col=3 | fila=2 | color=azul
 nodo cred: Storage credential\n+ External location | icono=llave | col=1 | fila=2 | color=naranja
 nodo sh: Shares y recipients | icono=nube | col=0 | fila=2 | sub=Delta Sharing | color=verde
-flecha ms -> cat
-flecha cat -> sch
-flecha sch -> t
-flecha sch -> v
-flecha sch -> f
-flecha ms -- cred | estilo=punteada
-flecha ms -- sh | estilo=punteada
+flecha ms -> cat | explica=El metastore, uno por región, contiene catálogos: prod, dev o uno foráneo que apunta a otra base.
+flecha cat -> sch | explica=Cada catálogo tiene esquemas. Los nombres completos tienen tres partes: catálogo.esquema.objeto.
+flecha sch -> t | explica=Los esquemas contienen tablas y vistas…
+flecha sch -> v | explica=…volúmenes para archivos…
+flecha sch -> f | explica=…y funciones y modelos. Un permiso dado en el catálogo o el esquema se hereda hacia abajo.
+flecha ms -- cred | estilo=punteada | explica=A nivel del metastore viven las credenciales de almacenamiento y las ubicaciones externas: cómo llega Databricks a tu nube.
+flecha ms -- sh | estilo=punteada | explica=También los shares y recipients de Delta Sharing, para compartir datos con otras organizaciones.
 ```
 
 - **Metastore**: el contenedor de nivel superior, uno por región; se asigna a los workspaces de esa región.

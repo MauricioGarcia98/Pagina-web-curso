@@ -61,9 +61,9 @@ nodo f: ventas.parquet | icono=parquet | col=0 | fila=1 | color=gris
 nodo r1: Row group 1 | icono=tabla | col=1 | fila=0 | color=azul | sub=fecha: min 2024-01-01, max 2024-01-31 · total: min 0,5, max 980
 nodo r2: Row group 2 | icono=tabla | col=1 | fila=1 | color=azul | sub=fecha: min 2024-02-01, max 2024-02-29
 nodo ft: Footer | icono=documento | col=1 | fila=2 | color=amarillo | sub=esquema + estadísticas de cada bloque
-flecha f -> r1
-flecha f -> r2
-flecha f -> ft
+flecha f -> r1 | explica=Un archivo Parquet se divide en bloques (row groups). Cada bloque guarda el mínimo y el máximo de cada columna: el primero tiene fechas de enero.
+flecha f -> r2 | explica=El segundo bloque tiene febrero. Si consultas solo enero, Spark salta el bloque 2 sin leerlo.
+flecha f -> ft | explica=El pie (footer) al final del archivo guarda el esquema y las estadísticas de cada bloque. Spark lo lee primero para decidir qué bloques abrir.
 ```
 
 Si buscas pedidos de febrero, el lector mira el **footer**, ve que el row group 1 termina en enero y **lo saltea sin leerlo**.
@@ -178,11 +178,11 @@ nodo sv: Silver | icono=spark | col=2 | fila=0 | color=gris | sub=limpio, sin du
 nodo gd: Gold | icono=grafico | col=3 | fila=0 | color=amarillo | sub=métricas del negocio
 nodo bi: BI y reportes | icono=dashboard | col=3 | fila=1 | color=verde
 nodo ml: Ciencia de datos | icono=ml | col=2 | fila=1 | color=violeta
-flecha src -> br: ingesta
-flecha br -> sv: limpia y tipa
-flecha sv -> gd: agrega y modela
-flecha gd -> bi
-flecha sv -> ml: features
+flecha src -> br: ingesta | explica=Los datos de las fuentes entran a bronze tal cual llegan. Bronze solo crece: no se borra ni se corrige, así siempre se puede reprocesar.
+flecha br -> sv: limpia y tipa | explica=Silver limpia: tipos correctos, sin duplicados, valores normalizados.
+flecha sv -> gd: agrega y modela | explica=Gold agrega y modela lo que necesita el negocio: métricas por día, por país, por producto.
+flecha gd -> bi | explica=Los tableros y reportes leen de gold.
+flecha sv -> ml: features | explica=Los científicos de datos suelen partir de silver, que tiene el detalle limpio, para construir sus variables.
 ```
 
 Así viaja un pedido de Tienda Andina por las tres capas:
@@ -193,8 +193,8 @@ direccion: abajo
 nodo br: BRONZE · texto tal cual llegó | icono=capas | col=0 | fila=0 | color=naranja | ancho=300 | sub={"id":"1001", "cli":"  ANA@MAIL.COM ", "total":"89,90", "ts":"15/03/2024 10:22"}
 nodo sv: SILVER · limpio y tipado | icono=tabla | col=1 | fila=0 | color=gris | ancho=300 | sub=pedido_id 1001 · email ana@mail.com · total 89.90 · fecha 2024-03-15 10:22
 nodo gd: GOLD · lo que ve el tablero | icono=dashboard | col=2 | fila=0 | color=amarillo | ancho=300 | sub=fecha 2024-03-15 · Chile · 1.284 pedidos · ventas 98.410,50
-flecha br -> sv: limpiar tipos, normalizar email, parsear fecha, quitar duplicados
-flecha sv -> gd: unir con clientes y productos, agregar por día y país
+flecha br -> sv: limpiar tipos, normalizar email, parsear fecha, quitar duplicados | explica=En bronze el pedido es texto tal cual llegó: el email con espacios y mayúsculas, el total con coma, la fecha en otro formato. Silver lo limpia y tipa: email normalizado, total 89.90 como número, fecha estándar.
+flecha sv -> gd: unir con clientes y productos, agregar por día y país | explica=Gold une el pedido con clientes y productos y lo agrega por día y país: el tablero ya no ve pedidos sueltos sino totales.
 ```
 
 :::tip Por qué conservar bronze

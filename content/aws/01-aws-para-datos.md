@@ -24,10 +24,10 @@ nodo cta: Cuenta | icono=aws | col=1 | fila=0 | color=naranja | sub=123456789012
 nodo reg: Región | icono=internet | col=2 | fila=0 | color=azul | sub=us-east-1, sa-east-1: lugares del mundo
 nodo az: Zona de disponibilidad | icono=servidor | col=3 | fila=0 | color=cian | sub=centros de datos separados: us-east-1a, 1b…
 nodo rec: Recursos | icono=cubo | col=4 | fila=0 | color=verde | sub=un bucket S3, un job de Glue, un clúster EMR
-flecha org -> cta
-flecha cta -> reg
-flecha reg -> az
-flecha az -> rec
+flecha org -> cta | explica=AWS Organizations agrupa todas las cuentas de la empresa y les aplica reglas comunes (por ejemplo, prohibir ciertas regiones).
+flecha cta -> reg | explica=Cada cuenta es una unidad de facturación y aislamiento: datos-dev y datos-prod son cuentas separadas. Dentro de una cuenta, los recursos se crean en una región.
+flecha reg -> az | explica=Una región tiene varias zonas de disponibilidad: centros de datos separados físicamente, para que una falla no tumbe todo.
+flecha az -> rec | explica=Los recursos (un bucket, un job de Glue, un clúster) viven en una región, y algunos en una zona concreta.
 ```
 
 - **Cuenta**: es el equivalente a la *suscripción* de Azure o al *proyecto* de Google Cloud. Las empresas separan **dev**, **staging** y **prod** en cuentas distintas para que un error en desarrollo nunca toque producción.
@@ -50,16 +50,16 @@ nodo glue: Glue / EMR | icono=glue | col=3 | fila=1 | color=rojo | sub=Spark · 
 nodo ath: Athena / Redshift | icono=athena | col=4 | fila=0 | color=verde | sub=SQL y warehouse
 nodo qs: QuickSight / SageMaker | icono=quicksight | col=4 | fila=2 | color=verde | sub=BI y ML
 nodo orq: Step Functions · MWAA · EventBridge | icono=stepfunctions | col=3 | fila=2 | color=violeta | sub=orquestación
-flecha f -> kin
-flecha f -> dms
-flecha f -> lam
-flecha kin -> s3
-flecha dms -> s3
-flecha lam -> s3
-flecha s3 <-> glue
-flecha glue -> ath
-flecha glue -> qs
-flecha orq -> glue: dispara | estilo=punteada | color=violeta
+flecha f -> kin | explica=Los eventos (clics, transacciones) entran por Kinesis o Firehose.
+flecha f -> dms | explica=Las bases de datos se replican con DMS, que captura los cambios (CDC).
+flecha f -> lam | explica=Las APIs y las aplicaciones SaaS se extraen con Lambda o AppFlow.
+flecha kin -> s3 | explica=Todo termina en S3, el lago de datos.
+flecha dms -> s3 | explica=Los cambios de las bases también.
+flecha lam -> s3 | explica=Y lo que viene de las APIs. El Glue Data Catalog describe las tablas y Lake Formation controla quién ve qué.
+flecha s3 <-> glue | explica=Glue o EMR (Spark) transforman bronze en silver y gold, leyendo y escribiendo en S3.
+flecha glue -> ath | explica=Athena consulta el lago con SQL; Redshift sirve como warehouse para el BI.
+flecha glue -> qs | explica=QuickSight arma tableros y SageMaker entrena modelos con esos datos.
+flecha orq -> glue: dispara | estilo=punteada | color=violeta | explica=Step Functions, Airflow administrado (MWAA) o EventBridge disparan los jobs a horario o ante un evento.
 ```
 
 | Servicio | Para qué lo usa un data engineer | Analogía |
@@ -87,14 +87,14 @@ nodo s3: S3 | icono=bucket | col=2 | fila=0 | color=verde | sub=el data lake
 nodo ath: Athena | icono=lupa | col=3 | fila=0 | color=azul | sub=SQL sobre S3
 nodo rs: Redshift | icono=almacen | col=2 | fila=1 | color=azul | sub=warehouse
 nodo qs: QuickSight | icono=dashboard | col=3 | fila=1 | color=violeta
-flecha src -> glue
-flecha app -> kin
-flecha glue -> s3
-flecha kin -> s3
-flecha s3 -> ath
-flecha s3 -> rs: COPY
-flecha rs -> qs
-flecha ath -> qs
+flecha src -> glue | explica=Glue extrae las bases y APIs, y además mantiene el catálogo de tablas.
+flecha app -> kin | explica=Los eventos de la app van a Kinesis o Firehose en streaming.
+flecha glue -> s3 | explica=Glue deja los datos procesados en S3.
+flecha kin -> s3 | explica=Firehose también escribe en S3, en lotes de pocos segundos.
+flecha s3 -> ath | explica=Athena consulta S3 directamente con SQL, pagando por dato escaneado.
+flecha s3 -> rs: COPY | explica=Lo que necesita consultas muy rápidas se carga en Redshift con COPY.
+flecha rs -> qs | explica=QuickSight lee de Redshift para los tableros…
+flecha ath -> qs | explica=…o de Athena, sin cargar nada.
 ```
 
 ## Las tres nubes lado a lado

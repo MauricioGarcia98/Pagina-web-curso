@@ -98,8 +98,8 @@ titulo: Las piezas de un clúster EMR
 nodo p: Nodo primario | icono=servidor | col=1 | fila=0 | color=azul | sub=coordina: driver de YARN/Spark
 nodo c: Nodos core | icono=servidor | col=0 | fila=1 | color=verde | sub=ejecutan tareas y guardan HDFS
 nodo t: Nodos task (opcionales) | icono=dinero | col=2 | fila=1 | color=amarillo | sub=solo cómputo: ideales para spot (baratos, pueden desaparecer)
-flecha p -> c
-flecha p -> t
+flecha p -> c | explica=El nodo primario coordina el clúster: corre el driver de Spark y reparte el trabajo. Los nodos core ejecutan tareas y guardan datos en HDFS.
+flecha p -> t | explica=Los nodos task solo aportan cómputo, sin guardar datos. Por eso se pueden usar instancias spot, mucho más baratas, aunque AWS las pueda reclamar.
 ```
 
 | Modalidad | Para qué |

@@ -36,14 +36,14 @@ nodo tc: clientes | icono=tabla | col=2 | fila=1 | sub=csv
 nodo tsv: ventas | icono=tabla | col=2 | fila=2 | sub=parquet · particiones anio, mes
 nodo s3b: s3://lake-tienda-dev/bronze/… | icono=s3 | col=3 | fila=0 | color=naranja | sub=los archivos
 nodo s3s: s3://lake-tienda-dev/silver/ventas/ | icono=s3 | col=3 | fila=2 | color=naranja | sub=los archivos
-flecha cat -> bb
-flecha cat -> bs
-flecha bb -> tv
-flecha bb -> tc
-flecha bs -> tsv
-flecha tv -> s3b: apunta a | estilo=punteada
-flecha tc -> s3b | estilo=punteada
-flecha tsv -> s3s: apunta a | estilo=punteada
+flecha cat -> bb | explica=El Data Catalog organiza las tablas en bases de datos. lake_bronze agrupa las tablas crudas.
+flecha cat -> bs | explica=lake_silver agrupa las limpias.
+flecha bb -> tv | explica=La tabla ventas de bronze está en CSV y particionada por año y mes.
+flecha bb -> tc | explica=clientes también está en bronze, en CSV.
+flecha bs -> tsv | explica=En silver, ventas está en Parquet, con las mismas particiones.
+flecha tv -> s3b: apunta a | estilo=punteada | explica=La tabla no contiene los datos: solo dice dónde están los archivos en S3 y qué columnas tienen.
+flecha tc -> s3b | estilo=punteada | explica=clientes apunta a su carpeta de bronze.
+flecha tsv -> s3s: apunta a | estilo=punteada | explica=La tabla de silver apunta a s3://lake-tienda-dev/silver/ventas/. Borrar la tabla no borra los archivos.
 ```
 
 ## Crawlers: descubrir el esquema solo

@@ -39,12 +39,12 @@ nodo mrr: mrr_mensual | icono=dbt | col=2 | fila=0 | color=amarillo | sub=empres
 nodo mov: movimientos_mrr | icono=grafico | col=3 | fila=0 | sub=nuevo, expansión,\ncontracción, churn
 nodo riesgo: riesgo_semanal | icono=alerta | col=2 | fila=1 | color=rojo | sub=uso 30 d vs 90 d
 nodo cs: Customer Success | icono=usuario | col=3 | fila=1
-flecha s -> st
-flecha st -> sn
-flecha st -> mrr
-flecha mrr -> mov
-flecha st -> riesgo
-flecha riesgo -> cs
+flecha s -> st | explica=Las fuentes se limpian en modelos de staging.
+flecha st -> sn | explica=Un snapshot guarda la historia de los planes (SCD tipo 2) para saber qué plan tenía cada empresa cada mes.
+flecha st -> mrr | explica=mrr_mensual calcula el ingreso recurrente por empresa y mes.
+flecha mrr -> mov | explica=Comparando cada mes con el anterior, cada cambio se clasifica en nuevo, expansión, contracción o churn.
+flecha st -> riesgo | explica=riesgo_semanal compara el uso de los últimos 30 días con el de los últimos 90.
+flecha riesgo -> cs | explica=Customer Success recibe la lista de cuentas en riesgo para contactarlas.
 ```
 
 ## El modelo central: MRR por empresa y mes

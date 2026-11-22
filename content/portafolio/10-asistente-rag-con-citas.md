@@ -32,12 +32,12 @@ nodo q: Pregunta | icono=usuario | col=0 | fila=1
 nodo r: Recuperación | icono=lupa | col=1 | fila=1 | sub=top 4 híbrido
 nodo llm: Generación | icono=bot | col=2 | fila=1 | sub=responde solo con\nlos fragmentos y cita
 nodo ev: Evaluación | icono=check | col=3 | fila=1 | sub=acierto@k, fidelidad,\n"no sé" correcto
-flecha kb -> ch
-flecha ch -> idx
-flecha q -> r
-flecha idx -> r
-flecha r -> llm
-flecha llm -> ev
+flecha kb -> ch | explica=Los documentos se dividen en fragmentos de unos 300 tokens, que se superponen un poco y llevan metadatos.
+flecha ch -> idx | explica=Se indexan con embeddings y por palabras.
+flecha q -> r | explica=Llega una pregunta y se recuperan los 4 fragmentos más relevantes con búsqueda híbrida.
+flecha idx -> r | explica=La búsqueda usa el índice.
+flecha r -> llm | explica=El modelo responde solo con esos fragmentos, y los cita.
+flecha llm -> ev | explica=Se evalúa si recuperó el fragmento correcto, si la respuesta es fiel a lo recuperado y si dice "no sé" cuando corresponde.
 ```
 
 ## Fase 1: local

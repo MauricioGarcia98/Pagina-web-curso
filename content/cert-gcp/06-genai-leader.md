@@ -34,10 +34,10 @@ nodo mod: Modelos | icono=gemini | col=1 | fila=0 | sub=Gemini, Imagen, Veo,\nMo
 nodo pla: Plataforma | icono=agentplatform | col=2 | fila=0 | sub=Gemini Enterprise\nAgent Platform | color=violeta
 nodo age: Agentes | icono=robot | col=3 | fila=0 | sub=ADK, Agent Engine,\nAgent Builder | color=verde
 nodo app: Aplicaciones | icono=geminient | col=4 | fila=0 | sub=Gemini Enterprise,\nGemini en Workspace | color=naranja
-flecha inf -> mod
-flecha mod -> pla
-flecha pla -> age
-flecha age -> app
+flecha inf -> mod | explica=Abajo está la infraestructura: TPU y GPU. Sobre ella corren los modelos.
+flecha mod -> pla | explica=Gemini, Imagen, Veo y los de Model Garden se usan desde la plataforma.
+flecha pla -> age | explica=La plataforma permite construir agentes con ADK, Agent Engine y Agent Builder.
+flecha age -> app | explica=Arriba, las aplicaciones listas para usar: Gemini Enterprise y Gemini en Workspace. Cuanto más arriba, menos hay que construir.
 ```
 
 | Producto | Para qué |

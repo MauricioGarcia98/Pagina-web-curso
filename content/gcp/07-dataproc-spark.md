@@ -33,9 +33,9 @@ nodo m: Master | icono=servidor | col=1 | fila=0 | color=azul | sub=1 máquina: 
 nodo w1: Worker 1 (primario) | icono=servidor | col=0 | fila=1 | color=verde | sub=cómputo + HDFS
 nodo w2: Worker 2 (primario) | icono=servidor | col=1 | fila=1 | color=verde | sub=cómputo + HDFS
 nodo sw: Secondary workers ×4 (spot) | icono=dinero | col=2 | fila=1 | color=amarillo | sub=solo cómputo · baratos, pueden desaparecer
-flecha m -> w1
-flecha m -> w2
-flecha m -> sw
+flecha m -> w1 | explica=El master corre el driver de Spark y YARN, y reparte el trabajo. Los workers primarios hacen cómputo y guardan datos en HDFS.
+flecha m -> w2 | explica=Se necesitan al menos dos workers primarios.
+flecha m -> sw | explica=Los workers secundarios son solo cómputo y pueden ser spot: mucho más baratos, aunque Google los pueda reclamar en cualquier momento.
 ```
 
 - **Master**: coordina. Ahí corre el driver de Spark (lo que viste en "Arquitectura de Spark").

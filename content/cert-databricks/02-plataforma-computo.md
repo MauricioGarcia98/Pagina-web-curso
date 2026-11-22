@@ -30,11 +30,11 @@ nodo srv: Cómputo serverless | icono=nube | col=2 | fila=0 | sub=en la cuenta d
 nodo cls: Cómputo clásico | icono=servidor | col=2 | fila=1 | sub=VMs en TU cuenta de nube | color=naranja
 nodo lake: Tu almacenamiento | icono=delta | col=3 | fila=0 | forma=cilindro | sub=S3, ADLS, GCS: tablas Delta | color=azul
 grupo cdb: Administrado por Databricks | nodos=ctl,srv | color=violeta
-flecha usr -> ctl
-flecha ctl -> srv: lanza
-flecha ctl -> cls: lanza | estilo=punteada
-flecha srv -> lake: lee/escribe
-flecha cls -> lake: lee/escribe
+flecha usr -> ctl | explica=Los usuarios y los pipelines de CI/CD hablan con el plano de control: la web, la CLI o la API.
+flecha ctl -> srv: lanza | explica=El plano de control lanza el cómputo serverless, que corre en la cuenta de Databricks.
+flecha ctl -> cls: lanza | estilo=punteada | explica=O lanza cómputo clásico: máquinas virtuales en tu propia cuenta de nube.
+flecha srv -> lake: lee/escribe | explica=El cómputo lee y escribe las tablas Delta en tu almacenamiento.
+flecha cls -> lake: lee/escribe | explica=El clásico también. En los dos casos, los datos quedan en tu cuenta, no en la de Databricks.
 ```
 
 - **Plano de control.** Lo opera Databricks: la interfaz web, el servicio de notebooks, el *scheduler* de Lakeflow Jobs, la API REST, el servicio de Unity Catalog (metadatos y permisos). Tus datos de negocio **no** se guardan acá; sí los metadatos, el código de los notebooks y los resultados que muestras en pantalla.

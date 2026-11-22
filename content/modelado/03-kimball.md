@@ -28,9 +28,9 @@ nodo p1: 1. Proceso de negocio | icono=engranaje | col=0 | fila=0 | color=azul |
 nodo p2: 2. Grano | icono=lupa | col=1 | fila=0 | color=rojo | sub=¿qué representa UNA fila?
 nodo p3: 3. Dimensiones | icono=capas | col=2 | fila=0 | color=verde | sub=¿por qué cortamos? quién, qué, dónde, cuándo
 nodo p4: 4. Hechos | icono=grafico | col=3 | fila=0 | color=naranja | sub=¿qué medimos? números
-flecha p1 -> p2
-flecha p2 -> p3
-flecha p3 -> p4
+flecha p1 -> p2 | explica=Primero se elige el proceso de negocio que se va a medir: por ejemplo, las ventas.
+flecha p2 -> p3 | explica=Después se fija el grano: qué representa exactamente una fila (una línea de pedido). Es la decisión más importante.
+flecha p3 -> p4 | explica=Con el grano claro, las dimensiones responden quién, qué, dónde y cuándo; y los hechos son los números que se miden en ese grano (cantidad, importe).
 ```
 
 **1. Elegir el proceso de negocio.** No "las ventas" en abstracto, sino un **evento** que ocurre y se registra: tomar un pedido, cobrar un pago, despachar un envío. Cada proceso será una tabla de hechos.
@@ -59,12 +59,12 @@ nodo d3: dim_producto | icono=carrito | col=2 | fila=0 | color=azul | sub=marca,
 nodo d4: dim_canal | icono=web | col=0 | fila=2 | color=azul | sub=web, app, tienda, teléfono
 nodo d5: dim_vendedor | icono=equipo | col=2 | fila=2 | color=azul | sub=cargo, departamento
 nodo dd: pedido_id | icono=archivo | col=0 | fila=1 | forma=nota | sub=dimensión degenerada
-flecha d1 -- f
-flecha d2 -- f
-flecha d3 -- f
-flecha d4 -- f
-flecha d5 -- f
-flecha dd -- f | estilo=punteada
+flecha d1 -- f | explica=Cada línea de venta apunta a un día, con su mes, trimestre y si fue feriado.
+flecha d2 -- f | explica=Al cliente, con su segmento y ubicación.
+flecha d3 -- f | explica=Al producto, con su marca y su jerarquía de categorías.
+flecha d4 -- f | explica=Al canal de venta.
+flecha d5 -- f | explica=Al vendedor, con su cargo y departamento.
+flecha dd -- f | estilo=punteada | explica=pedido_id queda en la tabla de hechos sin una dimensión propia: es una dimensión degenerada, útil para agrupar las líneas de un mismo pedido.
 ```
 
 El `pedido_id` queda en la tabla de hechos sin tabla propia: se llama **dimensión degenerada**. Sirve para contar pedidos (`COUNT(DISTINCT pedido_id)`) o agrupar líneas del mismo pedido.

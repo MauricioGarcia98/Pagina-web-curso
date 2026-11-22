@@ -24,12 +24,12 @@ nodo c: Plan | icono=documento | col=2 | fila=0 | color=amarillo | sub=los pasos
 nodo d: Código | icono=codigo | col=2 | fila=1 | color=naranja | sub=un paso por función o CTE
 nodo e: Verificar | icono=check | col=1 | fila=1 | color=verde | sub=el ejemplo y los casos borde
 nodo f: Explicar | icono=mensaje | col=0 | fila=1 | color=gris | sub=qué hace y qué supone
-flecha a -> b
-flecha b -> c
-flecha c -> d
-flecha d -> e
-flecha e -> f
-flecha e -> c: si falla, vuelve al plan | estilo=punteada | color=rojo
+flecha a -> b | explica=Primero se entiende qué entra y qué tiene que salir, sin pensar en código.
+flecha b -> c | explica=Se resuelve a mano con un ejemplo chico de cuatro datos inventados.
+flecha c -> d | explica=Los pasos que hiciste a mano se escriben como plan, en castellano.
+flecha d -> e | explica=Recién ahí se escribe el código, un paso por función o por CTE.
+flecha e -> f | explica=Se verifica con el ejemplo y con los casos borde (vacío, nulos, empates), y se explica qué hace y qué supone.
+flecha e -> c: si falla, vuelve al plan | estilo=punteada | color=rojo | explica=Si algo no da, se vuelve al plan: casi siempre el error está en el razonamiento, no en la sintaxis.
 ```
 
 El método tiene seis pasos. Sirve para un ejercicio de este curso, para una consulta que te pide tu jefa y para una entrevista.

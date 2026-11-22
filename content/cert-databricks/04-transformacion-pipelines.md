@@ -61,12 +61,12 @@ nodo bc: bronze_clientes_cdc | icono=tabla | col=1 | fila=1 | sub=streaming tabl
 nodo sp: silver_pedidos | icono=tabla | col=2 | fila=0 | sub=ST + expectativas | color=gris
 nodo sc: silver_clientes | icono=tabla | col=2 | fila=1 | sub=AUTO CDC · SCD 2 | color=gris
 nodo g: gold_ventas_diarias | icono=grafico | col=3 | fila=0 | sub=materialized view | color=amarillo
-flecha f -> bp
-flecha c -> bc
-flecha bp -> sp
-flecha bc -> sc
-flecha sp -> g
-flecha sc -> g
+flecha f -> bp | explica=Los archivos de pedidos alimentan bronze_pedidos, una streaming table que procesa solo lo nuevo.
+flecha c -> bc | explica=Los cambios de clientes van a otra streaming table, sin transformar.
+flecha bp -> sp | explica=silver_pedidos aplica expectativas: las filas que no cumplen se descartan o se registran.
+flecha bc -> sc | explica=AUTO CDC aplica los cambios en orden y guarda la historia de cada cliente como SCD tipo 2.
+flecha sp -> g | explica=gold_ventas_diarias es una materialized view que combina pedidos…
+flecha sc -> g | explica=…y clientes, y se recalcula cuando cambian.
 ```
 
 ### En SQL

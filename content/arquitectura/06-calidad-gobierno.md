@@ -44,12 +44,12 @@ nodo gd: Gold | icono=grafico | col=3 | fila=0 | color=amarillo
 nodo c1: ¿Llegó algo? ¿Cumple el contrato? | icono=alerta | col=1 | fila=1 | color=rojo | sub=frena la carga
 nodo c2: Únicos, no nulos, válidos | icono=check | col=2 | fila=1 | color=rojo | sub=frena la publicación
 nodo c3: Rangos y conciliación | icono=grafico | col=3 | fila=1 | color=amarillo | sub=alerta a una persona
-flecha src -> br
-flecha br -> sv
-flecha sv -> gd
-flecha c1 -> br | estilo=punteada
-flecha c2 -> sv | estilo=punteada
-flecha c3 -> gd | estilo=punteada
+flecha src -> br | explica=Los datos de la API de México llegan a bronze.
+flecha br -> sv | explica=De bronze pasan a silver…
+flecha sv -> gd | explica=…y de silver a gold.
+flecha c1 -> br | estilo=punteada | explica=Al entrar se controla que haya llegado algo y que cumpla el contrato (columnas, tipos). Si no, se frena la carga.
+flecha c2 -> sv | estilo=punteada | explica=En silver se controla que las claves sean únicas, no nulas y válidas. Si falla, no se publica.
+flecha c3 -> gd | estilo=punteada | explica=En gold se controlan rangos y que los totales concilien con la fuente. Un valor raro alerta a una persona en lugar de frenar todo.
 ```
 
 La decisión más importante: **¿el control frena o solo avisa?**
@@ -141,8 +141,8 @@ titulo: La misma tabla, vista por dos personas distintas
 nodo t: silver.clientes | icono=tabla | col=1 | fila=0 | color=gris | sub=todos los países, emails reales
 nodo a: Analista de Chile | icono=usuario | col=0 | fila=1 | color=azul | sub=solo Chile · email ****@gmail.com
 nodo s: Soporte (autorizado) | icono=usuario | col=2 | fila=1 | color=verde | sub=todos los países · email completo
-flecha t -> a: filtro de filas + máscara
-flecha t -> s: acceso completo
+flecha t -> a: filtro de filas + máscara | explica=La analista de Chile consulta la misma tabla, pero un filtro de filas le muestra solo Chile y una máscara oculta los emails.
+flecha t -> s: acceso completo | explica=Soporte, autorizado, ve todos los países y el email completo. Es una sola tabla: los permisos se aplican al consultarla, sin copias.
 ```
 
 | Técnica | Qué hace | Ejemplo |

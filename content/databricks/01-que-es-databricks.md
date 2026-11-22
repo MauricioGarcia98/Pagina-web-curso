@@ -54,10 +54,10 @@ nodo uc: Unity Catalog | icono=candado | col=2 | fila=0 | color=amarillo | sub=p
 nodo cl: Clústeres / serverless | icono=spark | col=1 | fila=1 | color=rojo | sub=cómputo
 nodo st: Tu almacenamiento | icono=bucket | col=2 | fila=1 | color=naranja | sub=S3 · ADLS · GCS (Delta)
 grupo nube: Tu cuenta de nube (plano de datos) | nodos=cl,st | color=azul
-flecha u -> cp
-flecha cp -> cl: lanza
-flecha cl <-> st: lee / escribe
-flecha uc -> cl: ¿puede leer? | estilo=punteada
+flecha u -> cp | explica=Entras al workspace desde el navegador o la CLI. Eso vive en el plano de control, que administra Databricks.
+flecha cp -> cl: lanza | explica=Cuando ejecutas algo, el plano de control lanza el cómputo: un clúster o serverless.
+flecha cl <-> st: lee / escribe | explica=El cómputo lee y escribe los datos en tu propio almacenamiento (S3, ADLS o GCS), en formato Delta. Los datos nunca salen de tu cuenta de nube.
+flecha uc -> cl: ¿puede leer? | estilo=punteada | explica=Antes de leer, Unity Catalog verifica que tengas permiso sobre esa tabla y registra el acceso para el linaje.
 ```
 
 ## Tipos de cómputo
@@ -83,11 +83,11 @@ nodo esq: Esquema | icono=carpeta | col=2 | fila=1 | color=verde | sub=bronze, s
 nodo tab: Tablas y vistas | icono=tabla | col=3 | fila=0 | color=naranja | sub=prod.gold.ventas_diarias
 nodo vol: Volúmenes | icono=archivos | col=3 | fila=1 | color=naranja | sub=archivos: /Volumes/prod/crudo/archivos/
 nodo fun: Funciones y modelos | icono=ml | col=3 | fila=2 | color=naranja | sub=funciones SQL/Python, modelos de ML
-flecha met -> cat
-flecha cat -> esq
-flecha esq -> tab
-flecha esq -> vol
-flecha esq -> fun
+flecha met -> cat | explica=El metastore es el nivel más alto: uno por región, compartido por todos los workspaces. Adentro van los catálogos (dev, prod).
+flecha cat -> esq | explica=Cada catálogo tiene esquemas, por capa (bronze, silver, gold) o por dominio (ventas).
+flecha esq -> tab | explica=En el esquema viven las tablas y vistas. Su nombre completo tiene tres partes: prod.gold.ventas_diarias.
+flecha esq -> vol | explica=Los volúmenes guardan archivos (CSV, imágenes, modelos) con los mismos permisos que las tablas.
+flecha esq -> fun | explica=También funciones SQL o Python y modelos de ML registrados.
 ```
 
 Permisos con SQL (`GRANT SELECT ON TABLE ... TO grupo`), linaje automático columna a columna, auditoría, y acceso al almacenamiento mediante **storage credentials** y **external locations**.

@@ -47,10 +47,10 @@ nodo med: energia_medidores | icono=energia | col=1 | fila=0 | color=amarillo | 
 nodo lec: energia_lecturas | icono=grafico | col=2 | fila=0 | color=verde | sub=kWh por mes\nestimada 0/1
 nodo fac: energia_facturas | icono=dinero | col=1 | fila=1 | color=violeta | sub=monto, vencimiento,\nfecha de pago
 nodo cor: energia_cortes | icono=alerta | col=0 | fila=1 | color=rojo | sub=por zona: inicio, fin,\nafectados
-flecha cli -> med: 1 a 1
-flecha med -> lec: 1 a N
-flecha cli -> fac: 1 a N
-flecha cor -- cli: por zona | estilo=punteada
+flecha cli -> med: 1 a 1 | explica=Cada cliente tiene un medidor, inteligente o analógico.
+flecha med -> lec: 1 a N | explica=El medidor genera una lectura por mes; algunas son estimadas cuando no se pudo leer.
+flecha cli -> fac: 1 a N | explica=Las facturas van al cliente, con su vencimiento y su fecha de pago.
+flecha cor -- cli: por zona | estilo=punteada | explica=Los cortes se registran por zona: se relacionan con los clientes de esa zona, no con un cliente puntual.
 ```
 
 - Cada cliente tiene un medidor. El **consumo** se lee en `energia_lecturas` (por medidor); la **plata**, en `energia_facturas` (por cliente).

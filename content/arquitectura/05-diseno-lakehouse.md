@@ -42,11 +42,11 @@ nodo g1: gold.fct_ventas | icono=grafico | col=2 | fila=0 | color=amarillo | sub
 nodo g2: gold.ventas_diarias_pais | icono=dashboard | col=3 | fila=0 | color=verde | sub=para el tablero
 nodo s2: silver.clientes | icono=usuario | col=1 | fila=1 | color=gris | sub=última versión (CDC)
 nodo d1: gold.dim_cliente | icono=usuario | col=2 | fila=1 | color=amarillo | sub=SCD tipo 2
-flecha b1 -> s1
-flecha s1 -> g1
-flecha g1 -> g2
-flecha s2 -> d1
-flecha d1 -> g2: país del cliente
+flecha b1 -> s1 | explica=El pedido llega a bronze como JSON tal cual, con la fecha de ingesta. Silver lo tipa y quita duplicados.
+flecha s1 -> g1 | explica=gold.fct_ventas tiene una fila por línea de pedido, con la venta neta.
+flecha g1 -> g2 | explica=ventas_diarias_pais agrega fct_ventas por día y país para el tablero.
+flecha s2 -> d1 | explica=Los clientes llegan por CDC: silver tiene la última versión. La dimensión de gold guarda la historia (SCD tipo 2) para saber dónde vivía el cliente cuando compró.
+flecha d1 -> g2: país del cliente | explica=El país de cada venta sale de la dimensión de clientes en la versión vigente al momento de la compra.
 ```
 
 :::tip Una regla que evita discusiones
@@ -64,11 +64,11 @@ nodo dev: Catálogo dev | icono=almacen | col=1 | fila=0 | color=azul | sub=cada
 nodo stg: Catálogo staging | icono=almacen | col=2 | fila=0 | color=amarillo | sub=CI: datos de muestra
 nodo prd: Catálogo prod | icono=almacen | col=3 | fila=0 | color=verde | sub=solo la cuenta de servicio escribe
 nodo src: Datos de prod (lectura) | icono=bucket | col=1 | fila=1 | color=naranja | sub=bronze compartido
-flecha git -> dev: dbt run --target dev
-flecha dev -> stg: pull request
-flecha stg -> prd: merge a main
-flecha src -> dev: lee | estilo=punteada
-flecha src -> stg: lee | estilo=punteada
+flecha git -> dev: dbt run --target dev | explica=Tu cambio en una rama se prueba en el catálogo dev, en un esquema propio, con dbt run --target dev.
+flecha dev -> stg: pull request | explica=Al abrir el pull request, la CI lo corre en staging con datos de muestra.
+flecha stg -> prd: merge a main | explica=Recién cuando se une a main se despliega en prod, donde solo escribe la cuenta de servicio del pipeline: ninguna persona.
+flecha src -> dev: lee | estilo=punteada | explica=Dev lee los datos reales de bronze, pero no puede escribir en prod.
+flecha src -> stg: lee | estilo=punteada | explica=Staging también lee de bronze. Los entornos se separan por catálogo y por permisos, no por copias enteras de los datos.
 ```
 
 | Entorno | Para qué | Quién escribe | Datos |

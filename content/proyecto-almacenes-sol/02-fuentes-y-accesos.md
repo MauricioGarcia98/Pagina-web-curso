@@ -21,10 +21,10 @@ nodo pos: API de las cajas | icono=tienda | col=0 | fila=1 | color=naranja | sub
 nodo pla: Planilla de metas | icono=tabla | col=0 | fila=2 | color=verde | sub=la mantiene Comercial a mano
 nodo scd: SCD tipo 2 | icono=reloj | col=1 | fila=0 | color=violeta | sub=fotos diarias para guardar la historia
 nodo lake: Lakehouse | icono=capas | col=2 | fila=1 | color=amarillo | sub=ventas contra metas, con el precio de cada día
-flecha erp -> scd
-flecha scd -> lake
-flecha pos -> lake
-flecha pla -> lake
+flecha erp -> scd | explica=El ERP guarda solo el precio actual. Una foto diaria con SCD tipo 2 guarda cada cambio con su fecha de inicio y fin.
+flecha scd -> lake | explica=Así cada venta se puede valorar con el precio que tenía ese día.
+flecha pos -> lake | explica=Las ventas de cada tienda llegan desde la API de las cajas.
+flecha pla -> lake | explica=Las metas vienen de una planilla que Comercial edita a mano, así que se validan antes de usarlas.
 ```
 
 ## El ERP · PostgreSQL 9.6 · `erp-sol.almacenes.example`

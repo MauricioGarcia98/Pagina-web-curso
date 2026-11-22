@@ -24,10 +24,10 @@ nodo e: ¿Es estacional? | icono=reloj | col=1 | fila=0 | sub=comparar con el a�
 nodo f: ¿Qué factor? | icono=grafico | col=2 | fila=0 | sub=volumen × ticket
 nodo s: ¿Qué segmento? | icono=lupa | col=3 | fila=0 | sub=canal, país, categoría
 nodo m: ¿Mezcla o tasa? | icono=transformar | col=4 | fila=0 | sub=cambió la composición o el comportamiento | color=verde
-flecha d -> e
-flecha e -> f
-flecha f -> s
-flecha s -> m
+flecha d -> e | explica=Primero se descarta que sea un problema de datos: días que faltan, cargas incompletas, una definición que cambió.
+flecha e -> f | explica=Después, si es estacional: se compara con el mismo período del año anterior.
+flecha f -> s | explica=Se separa la caída en sus factores: menos pedidos o pedidos más chicos.
+flecha s -> m | explica=Se busca en qué segmento se concentra (canal, país, categoría) y si cambió la mezcla o el comportamiento dentro de cada segmento.
 ```
 
 1. **¿Es un problema de datos?** Días sin cargar, un canal que dejó de enviar datos o un cambio de definición explican muchas “caídas”.

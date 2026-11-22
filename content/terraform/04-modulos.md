@@ -34,13 +34,13 @@ nodo pab: public_access_block | icono=candado | col=3 | fila=0 | color=rojo | su
 nodo ver: versioning | icono=capas | col=3 | fila=1 | color=verde | sub=según la entrada
 nodo lc: lifecycle | icono=reloj | col=2 | fila=1 | color=gris | sub=solo si dias > 0
 nodo vout: outputs | icono=check | col=1 | fila=1 | color=verde | sub=nombre, arn
-flecha raiz -> vin: entradas
-flecha vin -> b
-flecha b -> pab
-flecha b -> ver
-flecha b -> lc
-flecha lc -> vout | estilo=punteada
-flecha vout -> raiz: salidas
+flecha raiz -> vin: entradas | explica=El módulo raíz llama al módulo pasándole entradas: el nombre, los días de retención, si lleva versionado.
+flecha vin -> b | explica=El módulo crea el bucket con esas entradas.
+flecha b -> pab | explica=Siempre agrega el bloqueo de acceso público: ningún bucket del lago queda público por olvido.
+flecha b -> ver | explica=El versionado se activa según la entrada.
+flecha b -> lc | explica=La regla de ciclo de vida solo se crea si los días de retención son más que cero.
+flecha lc -> vout | estilo=punteada | explica=El módulo devuelve sus salidas: el nombre y el ARN del bucket.
+flecha vout -> raiz: salidas | explica=El módulo raíz usa esas salidas, por ejemplo para dar permisos sobre ese bucket.
 ```
 
 ## Escribir el módulo
@@ -244,11 +244,11 @@ nodo dev: envs/dev | icono=codigo | col=0 | fila=1 | color=azul | sub=retención
 nodo test: envs/test | icono=codigo | col=1 | fila=1 | color=amarillo
 nodo prod: envs/prod | icono=codigo | col=2 | fila=1 | color=rojo | sub=versionado + prevent_destroy
 nodo st: Bucket de estado | icono=bucket | col=3 | fila=1 | color=verde | sub=dev/ test/ prod/
-flecha dev -> m1
-flecha test -> m1
-flecha prod -> m1
-flecha prod -> m2
-flecha prod -> st | estilo=punteada
+flecha dev -> m1 | explica=dev usa el módulo capa_lago con retención de 7 días.
+flecha test -> m1 | explica=test usa el mismo módulo con sus propios valores.
+flecha prod -> m1 | explica=prod también, con versionado y prevent_destroy: Terraform se niega a borrarlo.
+flecha prod -> m2 | explica=prod además usa el módulo del catálogo de Glue. El código es el mismo; cambian los valores.
+flecha prod -> st | estilo=punteada | explica=Cada entorno guarda su estado en una carpeta distinta del bucket de estado: un apply en dev nunca toca prod.
 ```
 
 ## Módulos del registro público

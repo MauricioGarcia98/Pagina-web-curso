@@ -70,9 +70,9 @@ nodo db: Servicio db | icono=postgres | col=1 | fila=0 | color=azul | forma=cili
 nodo vol: Volumen datos_db | icono=base | col=2 | fila=0 | color=naranja | sub=los datos sobreviven al contenedor
 nodo pl: Servicio pipeline | icono=python | col=1 | fila=1 | color=verde | sub=DB_HOST=db, puerto 5432
 grupo red: Red interna de Compose | nodos=db,pl | color=cian
-flecha pc -> db: puerto publicado 5433
-flecha pl -> db: db:5432
-flecha db -- vol | estilo=punteada
+flecha pc -> db: puerto publicado 5433 | explica=Desde tu computadora te conectas a localhost:5433, el puerto que Compose publica hacia afuera.
+flecha pl -> db: db:5432 | explica=Dentro de la red de Compose, el pipeline llega a la base por el nombre del servicio (db) y el puerto interno 5432.
+flecha db -- vol | estilo=punteada | explica=Los datos de Postgres viven en un volumen: sobreviven aunque borres y vuelvas a crear el contenedor.
 ```
 
 ## Volúmenes y bind mounts

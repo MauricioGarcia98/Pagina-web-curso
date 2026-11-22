@@ -47,11 +47,11 @@ nodo l: 3. Local | icono=laptop | col=2 | fila=0 | sub=uv, DuckDB, dbt, tests\ng
 nodo n: 4. Nube | icono=nube | col=3 | fila=0 | sub=Databricks Free Edition\no Azure
 nodo a: 5. Automatizar | icono=orquestador | col=3 | fila=1 | sub=orquestación, CI/CD, IaC
 nodo e: 6. Entregar | icono=github | col=2 | fila=1 | sub=README, diagrama,\nmétricas y demo
-flecha p -> d
-flecha d -> l
-flecha l -> n
-flecha n -> a
-flecha a -> e
+flecha p -> d | explica=Cada proyecto empieza por el problema: quién usa el resultado, qué decide con él y qué número mejora. Con eso se sabe qué datos hacen falta.
+flecha d -> l | explica=Los datos salen del generador con semilla, que siembra problemas reales (duplicados, nulos) para que tengas algo que resolver.
+flecha l -> n | explica=Primero se resuelve en tu computadora, gratis y rápido: uv, DuckDB, dbt y tests.
+flecha n -> a | explica=Después se lleva a la nube: Databricks Free Edition o Azure.
+flecha a -> e | explica=Se automatiza con orquestación, CI/CD e infraestructura como código, y se entrega con README, diagrama, métricas y una demo.
 ```
 
 1. **Problema y valor**: quién usa el resultado, qué decisión toma y qué número mejora (dinero, tiempo, riesgo).

@@ -38,12 +38,12 @@ nodo cur: ADLS: curated | icono=adls | col=3 | fila=0 | color=gris | sub=Parquet
 nodo dbx: Transformación | icono=databricks | col=3 | fila=1 | sub=Databricks o\nSynapse serverless
 nodo bi: Power BI | icono=powerbi | col=2 | fila=1 | color=verde | sub=torre de control
 nodo kv: Key Vault + identidad | icono=keyvault | col=1 | fila=1 | sub=sin claves en el código
-flecha src -> adf
-flecha adf -> raw
-flecha raw -> dbx
-flecha dbx -> cur
-flecha cur -> bi
-flecha kv -> adf: secretos | estilo=punteada
+flecha src -> adf | explica=El sistema de envíos exporta un CSV por día.
+flecha adf -> raw | explica=Data Factory lo copia a la zona raw, en una carpeta por fecha, usando un parámetro.
+flecha raw -> dbx | explica=Databricks o Synapse serverless lee raw y limpia los datos.
+flecha dbx -> cur | explica=El resultado queda en curated, en Parquet.
+flecha cur -> bi | explica=Power BI arma la torre de control con curated.
+flecha kv -> adf: secretos | estilo=punteada | explica=Data Factory toma los secretos de Key Vault con su identidad administrada: no hay claves en el código.
 ```
 
 ## Fase 1: KPIs en tu computadora

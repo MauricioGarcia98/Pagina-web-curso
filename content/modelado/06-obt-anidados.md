@@ -32,11 +32,11 @@ nodo d2: dim_producto | icono=carrito | col=1 | fila=1 | color=azul
 nodo d3: dim_fecha | icono=reloj | col=2 | fila=1 | color=azul
 nodo obt: obt_ventas | icono=capas | col=2 | fila=0 | color=verde | sub=una fila por venta\ncon todos los atributos
 nodo bi: BI / analistas | icono=dashboard | col=3 | fila=0 | color=violeta | sub=sin JOINs
-flecha f -> obt: JOIN una vez, en el pipeline
-flecha d1 -> obt
-flecha d2 -> obt
-flecha d3 -> obt
-flecha obt -> bi
+flecha f -> obt: JOIN una vez, en el pipeline | explica=La tabla ancha (OBT) se arma en el pipeline haciendo los JOIN una sola vez, a partir de la estrella.
+flecha d1 -> obt | explica=Trae los atributos del cliente…
+flecha d2 -> obt | explica=…del producto…
+flecha d3 -> obt | explica=…y de la fecha, todo en una sola fila por venta.
+flecha obt -> bi | explica=Los analistas consultan sin escribir JOINs. Si algo cambia, se regenera desde la estrella, que sigue siendo la fuente de verdad.
 ```
 
 | | Estrella | OBT |

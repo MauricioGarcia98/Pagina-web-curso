@@ -26,10 +26,10 @@ nodo a: Aceptado | icono=comida | col=1 | fila=0 | color=naranja | sub=el restau
 nodo r: Retirado | icono=check | col=2 | fila=0 | color=amarillo | sub=el repartidor\nlo levanta
 nodo e: Entregado | icono=usuario | col=3 | fila=0 | color=verde | sub=llega al cliente
 nodo x: Calificación | icono=grafico | col=3 | fila=1 | color=violeta | sub=1 a 5 estrellas
-flecha c -> a: aceptación
-flecha a -> r: preparación
-flecha r -> e: viaje
-flecha e -> x | estilo=punteada
+flecha c -> a: aceptación | explica=El pedido se crea cuando el cliente paga. El tiempo hasta que el restaurante lo acepta es responsabilidad del restaurante.
+flecha a -> r: preparación | explica=La preparación va desde que se acepta hasta que el repartidor lo retira.
+flecha r -> e: viaje | explica=El viaje, desde el retiro hasta la entrega, es responsabilidad del repartidor.
+flecha e -> x | estilo=punteada | explica=Después de la entrega, el cliente califica. Separar cada etapa dice dónde se pierde el tiempo.
 ```
 
 Rápido gana una **comisión** sobre lo que vende el restaurante y el **costo de envío** que paga el cliente; los **cupones** son descuentos que paga Rápido.

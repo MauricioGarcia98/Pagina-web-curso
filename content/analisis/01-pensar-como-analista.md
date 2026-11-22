@@ -25,11 +25,11 @@ nodo g: Grano y métrica | icono=reglas | col=2 | fila=0 | sub=fila = …, fórm
 nodo s: Consulta | icono=codigo | col=3 | fila=0 | color=azul
 nodo v: Validar | icono=check | col=4 | fila=0 | sub=controles | color=verde
 nodo c: Comunicar | icono=dashboard | col=5 | fila=0 | sub=número + definición
-flecha q -> a
-flecha a -> g
-flecha g -> s
-flecha s -> v
-flecha v -> c
+flecha q -> a | explica=Llega una pregunta ambigua: "¿cuánto vendimos?".
+flecha a -> g | explica=Se aclara qué se cuenta, de qué período y qué se incluye (¿con devoluciones? ¿con impuestos?).
+flecha g -> s | explica=Se define el grano (qué es una fila) y la fórmula de la métrica antes de escribir SQL.
+flecha s -> v | explica=Se escribe la consulta.
+flecha v -> c | explica=Se valida con controles (¿cuadra con otra fuente? ¿hay días faltantes?) y se comunica el número junto con su definición.
 ```
 
 1. **Aclarar la pregunta.** “Ventas” puede ser cantidad de pedidos, unidades o dinero; bruto o con descuento; con o sin cancelados; por fecha de pedido o de pago.

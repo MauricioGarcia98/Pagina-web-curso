@@ -52,11 +52,11 @@ nodo val: Validar parámetros | icono=reglas | col=2 | fila=1 | color=violeta | 
 nodo e422: 422 con el detalle | icono=x | col=2 | fila=2 | color=rojo
 nodo fn: Tu función | icono=python | col=3 | fila=1 | color=verde | sub=recibe producto_id=7, limite=5
 nodo json: Respuesta JSON | icono=documento | col=4 | fila=1 | color=verde
-flecha req -> ruta
-flecha ruta -> val
-flecha val -> e422: inválido
-flecha val -> fn: válido
-flecha fn -> json
+flecha req -> ruta | explica=Llega el pedido. FastAPI busca qué función atiende esa ruta; si no hay ninguna, responde 404.
+flecha ruta -> val | explica=Valida los parámetros contra los tipos que declaraste: producto_id tiene que ser entero y limite entre 1 y 50.
+flecha val -> e422: inválido | explica=Si algo no cumple, responde 422 con el detalle de qué campo falló, sin llamar a tu función.
+flecha val -> fn: válido | explica=Si todo es válido, llama a tu función con los valores ya convertidos.
+flecha fn -> json | explica=Lo que devuelve tu función se convierte en JSON.
 ```
 
 ```python norun

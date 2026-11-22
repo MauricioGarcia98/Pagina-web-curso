@@ -66,14 +66,14 @@ nodo lo: logs | icono=carpeta | col=2 | fila=3 | color=verde | sub=pipeline.log
 nodo dg: dags | icono=airflow | col=3 | fila=3 | color=verde | sub=DAGs de Airflow
 nodo sc: scripts | icono=carpeta | col=4 | fila=3 | color=verde
 nodo tb: tienda_dbt | icono=dbt | col=2 | fila=4 | color=violeta | sub=un proyecto dbt
-flecha raiz -> home
-flecha home -> al
-flecha al -> rd
-flecha al -> da
-flecha al -> lo
-flecha al -> dg
-flecha al -> sc
-flecha al -> tb
+flecha raiz -> home | explica=Como en cualquier Linux o Mac, todo cuelga de la raíz (/).
+flecha home -> al | explica=Tu carpeta personal es /home/alumno. El atajo ~ significa exactamente esta carpeta.
+flecha al -> rd | explica=README.md explica qué hay en cada carpeta: léelo con cat README.md.
+flecha al -> da | explica=datos tiene los CSV de práctica (clientes, ventas).
+flecha al -> lo | explica=logs guarda lo que escribieron los procesos: ahí se mira por qué algo falló.
+flecha al -> dg | explica=dags tiene los archivos de Airflow que definen los pipelines.
+flecha al -> sc | explica=scripts guarda programas que se ejecutan desde la terminal.
+flecha al -> tb | explica=tienda_dbt es un proyecto dbt completo, con sus modelos y su configuración.
 ```
 
 En la terminal, `tree` te muestra lo mismo como texto:

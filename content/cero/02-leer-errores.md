@@ -32,9 +32,9 @@ nodo err: Mensaje de error | icono=alerta | col=0 | fila=1 | color=rojo
 nodo q1: ¿Qué pasó? | icono=lupa | col=1 | fila=0 | color=azul | sub=el tipo: NameError, syntax error…
 nodo q2: ¿Dónde? | icono=documento | col=1 | fila=1 | color=violeta | sub=archivo y línea
 nodo q3: ¿Por qué? | icono=cerebro | col=1 | fila=2 | color=amarillo | sub=la explicación en el mensaje
-flecha err -> q1
-flecha err -> q2
-flecha err -> q3
+flecha err -> q1 | explica=La primera palabra del error dice qué tipo de problema es: NameError (un nombre que no existe), SyntaxError (algo mal escrito), FileNotFoundError (un archivo que no está).
+flecha err -> q2 | explica=El mensaje dice el archivo y la línea donde ocurrió. Empieza a buscar ahí, y en la línea de arriba.
+flecha err -> q3 | explica=El resto del mensaje explica el porqué con palabras: por ejemplo "name 'totl' is not defined" dice que escribiste mal un nombre.
 ```
 
 1. **¿Dónde?** El archivo y la línea donde la computadora se trabó.

@@ -25,14 +25,14 @@ nodo dc: gold.dim_clientes | icono=tabla | col=2 | fila=2 | color=amarillo
 nodo tb: Tablero de ventas | icono=dashboard | col=3 | fila=0 | color=verde
 nodo crm: CRM / marketing | icono=correo | col=3 | fila=2 | color=verde
 grupo gb: bronze (crudo) | nodos=p,d,pr,c | color=naranja
-flecha p -> f
-flecha d -> f
-flecha pr -> f
-flecha f -> vm
-flecha f -> dc
-flecha c -> dc
-flecha vm -> tb
-flecha dc -> crm
+flecha p -> f | explica=Los pedidos aportan la fecha, el cliente y el estado.
+flecha d -> f | explica=El detalle define el grano: una fila por línea de pedido, con cantidad y precio.
+flecha pr -> f | explica=Los productos aportan la categoría y el costo, para calcular el margen.
+flecha f -> vm | explica=gold.ventas_mensuales_pais agrega la tabla de hechos por mes y país.
+flecha f -> dc | explica=De los hechos salen las métricas por cliente: cuánto compró y cuándo fue la última vez.
+flecha c -> dc | explica=Los datos del cliente (nombre, país, segmento) completan gold.dim_clientes.
+flecha vm -> tb | explica=El tablero de ventas lee la tabla mensual.
+flecha dc -> crm | explica=Marketing usa dim_clientes para armar campañas desde el CRM.
 ```
 
 | Tabla | Grano | Para qué | Decisiones clave |

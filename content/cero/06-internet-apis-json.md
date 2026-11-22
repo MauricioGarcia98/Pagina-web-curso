@@ -22,8 +22,8 @@ Internet es, en el fondo, millones de computadoras pidiéndose cosas:
 titulo: Un pedido y su respuesta
 nodo cl: Cliente | icono=monitor | col=0 | fila=0 | color=azul | sub=tu navegador o tu programa
 nodo sv: Servidor | icono=servidor | col=2 | fila=0 | color=verde | sub=api.tiendaandina.dev
-flecha cl -> sv: pedido: GET /v1/productos
-flecha sv -> cl: respuesta: 200 + JSON
+flecha cl -> sv: pedido: GET /v1/productos | explica=Tu programa (el cliente) le pide algo al servidor con un método (GET = traer) y una dirección (/v1/productos).
+flecha sv -> cl: respuesta: 200 + JSON | explica=El servidor responde con un código (200 = todo bien, 404 = no existe, 500 = falló el servidor) y los datos en JSON.
 ```
 
 - El **cliente** pide. Tu navegador, una app del celular, un programa de Python.

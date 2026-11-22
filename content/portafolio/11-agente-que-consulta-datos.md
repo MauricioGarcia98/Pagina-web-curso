@@ -36,12 +36,12 @@ nodo gr: Guardrails | icono=escudo | col=2 | fila=1 | color=rojo | sub=solo SELE
 nodo wh: SQL warehouse | icono=databricks | col=3 | fila=1 | sub=usuario de solo lectura
 nodo r: Respuesta + SQL | icono=dashboard | col=3 | fila=0 | color=verde
 nodo ev: Evaluación | icono=check | col=1 | fila=1 | sub=40 preguntas con\nrespuesta conocida
-flecha u -> ag
-flecha ctx -> ag
-flecha ag -> gr: SQL propuesto
-flecha gr -> wh
-flecha wh -> r
-flecha ev -> ag: mide | estilo=punteada
+flecha u -> ag | explica=La pregunta llega al agente: Genie o uno propio.
+flecha ctx -> ag | explica=Se le da contexto: descripciones de tablas, definiciones de métricas y ejemplos de pregunta y SQL.
+flecha ag -> gr: SQL propuesto | explica=El agente propone un SQL, que pasa por guardrails: solo SELECT, solo tablas de gold, con LIMIT y un tiempo máximo.
+flecha gr -> wh | explica=Se ejecuta en un SQL warehouse con un usuario de solo lectura.
+flecha wh -> r | explica=La respuesta muestra el resultado y el SQL que se usó.
+flecha ev -> ag: mide | estilo=punteada | explica=Se mide con 40 preguntas cuya respuesta ya se conoce.
 ```
 
 ## Fase 1: preparar el contexto

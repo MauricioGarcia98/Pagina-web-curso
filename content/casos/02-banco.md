@@ -27,10 +27,10 @@ nodo cta: banco_cuentas | icono=banco | col=1 | fila=0 | color=verde | sub=cuent
 nodo tx: banco_transacciones | icono=dinero | col=2 | fila=0 | color=naranja | sub=tx_id, cuenta_id, fecha_hora, monto, canal, es_fraude
 nodo pre: banco_prestamos | icono=documento | col=1 | fila=1 | color=violeta | sub=prestamo_id, cliente_id, monto, tasa_anual, plazo_meses
 nodo cuo: banco_cuotas | icono=calendario | col=2 | fila=1 | color=amarillo | sub=cuota_id, prestamo_id, numero, fecha_vencimiento, fecha_pago
-flecha cli -> cta: 1 → N
-flecha cta -> tx: 1 → N
-flecha cli -> pre: 1 → N
-flecha pre -> cuo: 1 → N
+flecha cli -> cta: 1 → N | explica=Un cliente del banco puede tener varias cuentas (corriente, ahorro); cada cuenta es de un cliente.
+flecha cta -> tx: 1 → N | explica=Cada cuenta registra muchas transacciones, con su monto, canal y si se marcó como fraude.
+flecha cli -> pre: 1 → N | explica=Un cliente también puede tener varios préstamos.
+flecha pre -> cuo: 1 → N | explica=Cada préstamo se paga en cuotas. Comparar la fecha de vencimiento con la de pago dice si hubo mora.
 ```
 
 **Reglas del negocio que debes saber:**

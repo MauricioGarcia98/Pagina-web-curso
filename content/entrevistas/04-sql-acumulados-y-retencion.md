@@ -77,10 +77,10 @@ nodo co: Cohorte 2023-04 | icono=equipo | col=1 | fila=0 | color=violeta | sub=3
 nodo act: Actividad cliente-mes | icono=calendario | col=1 | fila=1 | color=gris | sub=DISTINCT cliente, mes
 nodo v: Compraron en 2023-05 | icono=carrito | col=2 | fila=0 | color=verde | sub=12 clientes
 nodo r: Retención mes 1 | icono=grafico | col=3 | fila=0 | color=amarillo | sub=12 / 32 = 37,5 %
-flecha pc -> co
-flecha co -> v
-flecha act -> v
-flecha v -> r
+flecha pc -> co | explica=El primer pedido de cada cliente define su cohorte: los que compraron por primera vez en abril de 2023 son 32.
+flecha co -> v | explica=De esa cohorte, se buscan los que compraron en el mes siguiente.
+flecha act -> v | explica=Para eso se usa una tabla de actividad con una fila por cliente y mes en que compró.
+flecha v -> r | explica=12 de 32 volvieron: la retención del mes 1 es 37,5 %.
 ```
 
 ```sql

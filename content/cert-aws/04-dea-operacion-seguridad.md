@@ -32,10 +32,10 @@ nodo eb: EventBridge | icono=eventbridge | col=1 | fila=0 | sub=regla: estado FA
 nodo sns: Amazon SNS | icono=sns | col=2 | fila=0 | sub=correo, Slack, PagerDuty | color=rosa
 nodo cw: CloudWatch | icono=cloudwatch | col=1 | fila=1 | sub=métricas, logs, alarmas | color=rosa
 nodo ct: CloudTrail | icono=cloudtrail | col=0 | fila=1 | sub=quién llamó a qué API | color=rosa
-flecha job -> eb: evento de cambio de estado
-flecha eb -> sns
-flecha job -> cw: logs y métricas
-flecha cw -> sns: alarma | estilo=punteada
+flecha job -> eb: evento de cambio de estado | explica=Cuando el job cambia de estado, Glue emite un evento. Una regla de EventBridge filtra los FAILED.
+flecha eb -> sns | explica=La regla publica en SNS, que avisa por correo, Slack o PagerDuty.
+flecha job -> cw: logs y métricas | explica=Los logs y métricas del job van a CloudWatch.
+flecha cw -> sns: alarma | estilo=punteada | explica=Una alarma de CloudWatch también puede avisar por SNS, por ejemplo si el job tarda demasiado. CloudTrail, aparte, registra quién llamó a cada API.
 ```
 
 - **CloudWatch Logs y métricas**: los jobs de Glue, Lambda, Step Functions y EMR escriben allí. **Logs Insights** consulta logs con un lenguaje propio. **Alarmas** sobre métricas (por ejemplo, el `IteratorAge` de un consumidor de Kinesis que se atrasa).

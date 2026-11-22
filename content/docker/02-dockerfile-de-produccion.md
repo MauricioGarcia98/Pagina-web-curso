@@ -55,10 +55,10 @@ nodo img: Imagen tienda-pipeline:1.4.0 | icono=docker | col=0 | fila=1 | color=a
 nodo dev: Contenedor en dev | icono=servidor | col=1 | fila=0 | color=verde | sub=ENTORNO=dev, DB_HOST=localhost
 nodo prod: Contenedor en prod | icono=servidor | col=1 | fila=2 | color=rojo | sub=ENTORNO=prod, DB_HOST=db.interna
 nodo kv: Gestor de secretos | icono=keyvault | col=2 | fila=1 | color=violeta | sub=contraseñas y tokens
-flecha img -> dev
-flecha img -> prod
-flecha kv -> dev: inyecta al ejecutar | estilo=punteada
-flecha kv -> prod: inyecta al ejecutar | estilo=punteada
+flecha img -> dev | explica=La misma imagen corre en dev, con variables de entorno de dev.
+flecha img -> prod | explica=Y en prod, sin reconstruirla: solo cambian las variables. Lo que se probó es exactamente lo que se despliega.
+flecha kv -> dev: inyecta al ejecutar | estilo=punteada | explica=Las contraseñas no van dentro de la imagen: el gestor de secretos las inyecta al arrancar el contenedor.
+flecha kv -> prod: inyecta al ejecutar | estilo=punteada | explica=En prod, con los secretos de prod. Si la imagen se filtra, no lleva ninguna credencial.
 ```
 
 ```bash norun

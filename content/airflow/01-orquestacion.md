@@ -26,10 +26,10 @@ nodo ec: extraer_clientes | icono=archivos | col=0 | fila=1 | color=azul
 nodo t: transformar | icono=transformar | col=1 | fila=0 | color=violeta | sub=espera a las dos extracciones
 nodo d: dbt_build | icono=dbt | col=2 | fila=0 | color=naranja
 nodo n: notificar | icono=correo | col=3 | fila=0 | color=verde
-flecha ev -> t
-flecha ec -> t
-flecha t -> d
-flecha d -> n
+flecha ev -> t | explica=transformar necesita las ventas extraídas…
+flecha ec -> t | explica=…y también los clientes. Las dos extracciones pueden correr en paralelo; transformar espera a que terminen las dos.
+flecha t -> d | explica=Con los datos transformados, corre dbt build (modelos y tests).
+flecha d -> n | explica=Al final se notifica. No hay ciclos: ninguna tarea vuelve hacia atrás, por eso es un DAG (grafo dirigido acíclico).
 ```
 
 - **Dirigido**: las flechas tienen sentido (A antes que B).
@@ -125,13 +125,13 @@ nodo sch: Scheduler + executor | icono=reloj | col=2 | fila=0 | color=violeta | 
 nodo w: Workers | icono=servidor | col=3 | fila=0 | color=naranja | sub=ejecutan las tareas
 nodo api: API server + interfaz | icono=web | col=1 | fila=1 | color=azul | sub=ver, relanzar, logs
 nodo ext: Sistemas externos | icono=nube | col=4 | fila=0 | sub=Spark, dbt, bases, APIs
-flecha dags -> dp: parsea
-flecha dp -> meta: guarda los DAGs
-flecha sch <-> meta
-flecha sch -> w: envía tareas
-flecha w -> api: reporta estado | estilo=punteada
-flecha api <-> meta
-flecha w -> ext: dispara trabajo
+flecha dags -> dp: parsea | explica=Los DAGs son archivos .py versionados en Git. El dag processor los lee y valida cada cierto tiempo.
+flecha dp -> meta: guarda los DAGs | explica=Lo que encuentra lo guarda en la base de metadatos: qué DAGs hay y cómo son.
+flecha sch <-> meta | explica=El scheduler consulta la base para ver qué toca correr (por horario o por dependencias) y anota cada estado.
+flecha sch -> w: envía tareas | explica=Las tareas listas se envían a los workers a través del executor.
+flecha w -> api: reporta estado | estilo=punteada | explica=Los workers reportan cómo terminó cada tarea, y los logs quedan disponibles.
+flecha api <-> meta | explica=La interfaz web y la API leen y escriben en la misma base: por eso ves el estado al instante y puedes relanzar una tarea.
+flecha w -> ext: dispara trabajo | explica=Muchas veces el worker no procesa los datos: le dice a otro sistema (Spark, dbt, una base) que lo haga, y espera el resultado.
 ```
 
 :::cuidado Airflow orquesta, no procesa

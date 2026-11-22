@@ -40,12 +40,12 @@ nodo a0: anon#0 | icono=cubo | col=1 | fila=0 | color=azul
 nodo a1: anon#1 | icono=cubo | col=1 | fila=1 | color=azul
 nodo a9: anon#9 | icono=cubo | col=1 | fila=2 | color=azul
 nodo lec: Leer todo lo anónimo | icono=lupa | col=2 | fila=1 | color=naranja | sub=consultar las 10 claves y juntar
-flecha ev -> a0: evento_id % 10
-flecha ev -> a1
-flecha ev -> a9
-flecha a0 -> lec
-flecha a1 -> lec
-flecha a9 -> lec
+flecha ev -> a0: evento_id % 10 | explica=Todos los eventos anónimos tendrían la misma clave y caerían en una sola partición caliente. Se les agrega un sufijo según evento_id % 10.
+flecha ev -> a1 | explica=Así se reparten entre diez claves distintas…
+flecha ev -> a9 | explica=…y las escrituras se distribuyen en varias particiones.
+flecha a0 -> lec | explica=El costo está en la lectura: para leer todo lo anónimo hay que consultar las diez claves…
+flecha a1 -> lec | explica=…una por una…
+flecha a9 -> lec | explica=…y juntar los resultados.
 ```
 
 ## Claves compuestas: partición más ordenamiento

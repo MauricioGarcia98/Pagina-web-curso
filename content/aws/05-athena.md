@@ -22,10 +22,10 @@ nodo ath: Athena | icono=athena | col=1 | fila=0 | color=azul | sub=motor Trino 
 nodo cat: Glue Data Catalog | icono=glue | col=2 | fila=0 | color=violeta | sub=¿dónde están los archivos? ¿qué columnas y particiones?
 nodo s3: S3 | icono=s3 | col=1 | fila=1 | color=naranja | sub=lee solo los archivos necesarios
 nodo res: s3://…/athena-results/ | icono=archivo | col=2 | fila=1 | color=verde | sub=el resultado
-flecha sql -> ath: 1
-flecha ath -> cat: 2. pregunta
-flecha ath -> s3: 3. lee
-flecha s3 -> res: 4. guarda
+flecha sql -> ath: 1 | explica=Le mandas una consulta SQL a Athena, que es un motor Trino sin servidor: no hay nada que encender.
+flecha ath -> cat: 2. pregunta | explica=Athena le pregunta al Glue Data Catalog dónde están los archivos de la tabla, qué columnas tiene y cómo está particionada.
+flecha ath -> s3: 3. lee | explica=Lee de S3 solo los archivos necesarios: si filtras por la partición, salta las carpetas que no corresponden. Se cobra por lo que lee.
+flecha s3 -> res: 4. guarda | explica=El resultado se guarda como CSV en la ubicación de resultados que configuraste. Sin esa ubicación, Athena no ejecuta.
 ```
 
 Pagas por los datos **escaneados**: por eso importan las particiones y el formato columnar.

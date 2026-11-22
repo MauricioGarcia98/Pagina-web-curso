@@ -73,10 +73,10 @@ nodo idp: Inicio de sesión\nde la empresa (SSO) | icono=escudo | col=1 | fila=0
 nodo tmp: Credenciales\ntemporales | icono=llave | col=2 | fila=0 | color=amarillo | sub=vencen en 1–12 h
 nodo cli: CLIs, Terraform,\nPython, dbt | icono=codigo | col=3 | fila=0 | color=verde
 nodo mal: Access key fija\nen ~/.aws/credentials | icono=alerta | col=2 | fila=1 | color=rojo | sub=no vence:\nsi se filtra, sirve para siempre
-flecha tu -> idp: navegador
-flecha idp -> tmp
-flecha tmp -> cli
-flecha mal -> cli | estilo=punteada
+flecha tu -> idp: navegador | explica=Entras con el inicio de sesión de la empresa (SSO) en el navegador, con usuario y segundo factor.
+flecha idp -> tmp | explica=El SSO te da credenciales temporales que vencen solas en unas horas.
+flecha tmp -> cli | explica=Las CLIs, Terraform, Python y dbt usan esas credenciales.
+flecha mal -> cli | estilo=punteada | explica=Una access key fija guardada en tu disco no vence: si se filtra, sirve para siempre. Por eso se evita.
 ```
 
 | Nube | Recomendado | Evitar |

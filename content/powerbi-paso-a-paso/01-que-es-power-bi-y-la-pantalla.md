@@ -30,11 +30,11 @@ nodo c: Modelar | icono=red | col=2 | fila=0 | color=violeta | sub=relaciones
 nodo d: Medir | icono=codigo | col=3 | fila=0 | color=amarillo | sub=DAX
 nodo e: Visualizar | icono=grafico | col=4 | fila=0 | color=naranja | sub=informe
 nodo f: Publicar | icono=nube | col=5 | fila=0 | color=verde | sub=servicio
-flecha a -> b
-flecha b -> c
-flecha c -> d
-flecha d -> e
-flecha e -> f
+flecha a -> b | explica=Se conecta a la fuente: Excel, CSV o una base de datos.
+flecha b -> c | explica=Power Query limpia los datos y les da forma.
+flecha c -> d | explica=Se relacionan las tablas en la vista de modelo.
+flecha d -> e | explica=Se escriben las medidas en DAX.
+flecha e -> f | explica=Se arma el informe y se publica en el servicio para compartirlo.
 ```
 
 ## Paso 2 — La pantalla

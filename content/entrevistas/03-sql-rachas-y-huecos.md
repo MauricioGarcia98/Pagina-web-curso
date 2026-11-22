@@ -25,10 +25,10 @@ nodo d4: 2024-02-07 · fila 4 | icono=calendario | col=0 | fila=1 | color=verde 
 nodo d5: 2024-02-08 · fila 5 | icono=calendario | col=1 | fila=1 | color=verde | sub=grupo 2024-02-03
 grupo ra: Racha A: 3 días | nodos=d1,d2,d3 | color=azul
 grupo rb: Racha B: 2 días | nodos=d4,d5 | color=verde
-flecha d1 -> d2
-flecha d2 -> d3
-flecha d4 -> d5
-flecha d3 -> d4: hueco de 3 días: cambia el grupo | estilo=punteada | color=rojo
+flecha d1 -> d2 | explica=Fechas consecutivas: a cada fecha se le resta su número de fila y da siempre el mismo valor (2024-01-31).
+flecha d2 -> d3 | explica=Mientras la racha sigue, ese valor no cambia: identifica el grupo.
+flecha d4 -> d5 | explica=La nueva racha también tiene su valor fijo (2024-02-03).
+flecha d3 -> d4: hueco de 3 días: cambia el grupo | estilo=punteada | color=rojo | explica=Después de un hueco, la fecha salta más que el número de fila, y el valor cambia: empieza otro grupo. Agrupando por ese valor se obtiene cada racha.
 ```
 
 | fecha | ROW_NUMBER | fecha − ROW_NUMBER | isla |

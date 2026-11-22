@@ -30,11 +30,11 @@ nodo p3: 3. Dibujar | icono=codigo | col=2 | fila=0 | color=verde | sub=los 7 co
 nodo p4: 4. Profundizar | icono=engranaje | col=2 | fila=1 | color=verde | sub=2 o 3 piezas críticas
 nodo p5: 5. Cuidar | icono=escudo | col=1 | fila=1 | color=amarillo | sub=calidad, seguridad, fallas
 nodo p6: 6. Alternativas | icono=capas | col=0 | fila=1 | color=violeta | sub=qué descartaste y por qué
-flecha p1 -> p2
-flecha p2 -> p3
-flecha p3 -> p4
-flecha p4 -> p5
-flecha p5 -> p6
+flecha p1 -> p2 | explica=Primero se pregunta: para qué son los datos, cada cuánto se necesitan, quién los usa.
+flecha p2 -> p3 | explica=Después se estima: cuántos datos por día, cuánto crecen, cuánto costaría.
+flecha p3 -> p4 | explica=Se dibujan los siete componentes de izquierda a derecha.
+flecha p4 -> p5 | explica=Se profundiza en las dos o tres piezas críticas, no en todas.
+flecha p5 -> p6 | explica=Se explica cómo se cuida la calidad, la seguridad y qué pasa cuando algo falla. Al final, qué alternativas descartaste y por qué: eso muestra criterio.
 ```
 
 1. **Preguntar (5 minutos).** ¿Qué decisiones se van a tomar con los datos? ¿Quién los usa? ¿Qué latencia? ¿Qué volumen? ¿Qué nube usan hoy? ¿Hay regulación? Anota los requisitos en un costado de la pizarra.
@@ -82,13 +82,13 @@ nodo s3: S3 + Iceberg | icono=bucket | col=2 | fila=0 | color=verde | sub=bronze
 nodo glue: Glue / dbt | icono=transformar | col=2 | fila=1 | color=rojo | sub=silver y gold
 nodo ath: Athena / Redshift | icono=lupa | col=3 | fila=0 | color=azul | sub=SQL para BI
 nodo qs: QuickSight | icono=dashboard | col=3 | fila=1 | color=violeta
-flecha pg -> dms
-flecha api -> lam
-flecha dms -> s3
-flecha lam -> s3
-flecha s3 <-> glue
-flecha s3 -> ath
-flecha ath -> qs
+flecha pg -> dms | explica=DMS captura los cambios de la base de la tienda (CDC) cada 15 minutos.
+flecha api -> lam | explica=Una función Lambda extrae la API de pagos en JSON.
+flecha dms -> s3 | explica=Los cambios llegan a S3 en tablas Iceberg.
+flecha lam -> s3 | explica=Los pagos también.
+flecha s3 <-> glue | explica=Glue o dbt transforman bronze en silver y gold, sobre el mismo S3.
+flecha s3 -> ath | explica=Athena o Redshift consultan gold con SQL.
+flecha ath -> qs | explica=QuickSight arma los tableros.
 ```
 
 - **Orquestación:** MWAA (Airflow administrado) o Step Functions, diario a las 3:00.
@@ -110,12 +110,12 @@ nodo red: Memorystore | icono=energia | col=3 | fila=0 | color=rojo | sub=multip
 nodo bq: BigQuery | icono=almacen | col=2 | fila=1 | color=verde | sub=eventos + gold con Dataform
 nodo lk: Looker | icono=dashboard | col=3 | fila=1 | color=violeta | sub=reportes diarios
 nodo gcs: Cloud Storage | icono=bucket | col=1 | fila=1 | color=naranja | sub=crudo para reprocesar
-flecha app -> ps
-flecha ps -> df
-flecha df -> red: < 1 minuto
-flecha df -> bq: streaming insert
-flecha ps -> gcs: archivo
-flecha bq -> lk
+flecha app -> ps | explica=Las apps de pasajeros y conductores mandan solicitudes y GPS a Pub/Sub, cada evento con un id único.
+flecha ps -> df | explica=Dataflow procesa los eventos en ventanas por zona.
+flecha df -> red: < 1 minuto | explica=El multiplicador de precio por zona se guarda en Memorystore en menos de un minuto: la app lo lee al instante.
+flecha df -> bq: streaming insert | explica=Los eventos también se insertan en BigQuery, donde Dataform arma gold.
+flecha ps -> gcs: archivo | explica=Una copia cruda va a Cloud Storage para poder reprocesar si cambia la lógica.
+flecha bq -> lk | explica=Looker arma los reportes diarios desde BigQuery.
 ```
 
 - **Orquestación:** Cloud Composer para el batch diario de Dataform y los controles.
@@ -137,13 +137,13 @@ nodo dbx: Databricks + Unity Catalog | icono=spark | col=2 | fila=0 | color=rojo
 nodo fr: Modelo de fraude | icono=ml | col=2 | fila=1 | color=violeta | sub=streaming, < 2 s
 nodo pbi: Power BI | icono=dashboard | col=3 | fila=0 | color=amarillo | sub=riesgo y regulador
 nodo kv: Key Vault + red privada | icono=candado | col=3 | fila=1 | color=gris | sub=secretos, sin internet público
-flecha core -> adf
-flecha tx -> eh
-flecha adf -> dbx
-flecha eh -> fr
-flecha fr -> dbx: alertas y features
-flecha dbx -> pbi
-flecha kv -> dbx | estilo=punteada
+flecha core -> adf | explica=Data Factory copia los cambios del core bancario (SQL Server) cada noche.
+flecha tx -> eh | explica=Las transacciones de tarjetas llegan en streaming a Event Hubs.
+flecha adf -> dbx | explica=Databricks arma el medallón en Delta, con los datos personales enmascarados en Unity Catalog.
+flecha eh -> fr | explica=El modelo de fraude evalúa cada transacción en menos de 2 segundos.
+flecha fr -> dbx: alertas y features | explica=Las alertas y las variables del modelo se guardan en el lakehouse.
+flecha dbx -> pbi | explica=Power BI arma los tableros de riesgo y los reportes al regulador.
+flecha kv -> dbx | estilo=punteada | explica=Los secretos viven en Key Vault y todo corre en una red privada, sin acceso desde internet: un requisito típico de un banco.
 ```
 
 - **Seguridad:** todo en la región del país, red privada (private endpoints), llaves de cifrado propias, enmascaramiento y filtros por fila en Unity Catalog, auditoría de accesos, cuentas de servicio por pipeline.
