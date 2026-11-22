@@ -31,6 +31,18 @@ autoevaluacion: ¿Sabes qué es "al menos una vez"? | ¿Sabes por qué no puedes
 "Los eventos vienen en orden" no es cierto ni dentro de una camioneta: los que se guardaron sin señal llegan juntos y después. "El día termina a las 00:00" choca con el depósito: hay eventos de ayer que llegan hoy a la mañana. Decide **cuánto esperas** (tu marca de agua o *watermark*) antes de dar un día por cerrado, y qué haces si llega algo después: ¿recalculas? ¿avisas?
 :::
 
+:::real En tu computadora y en la web real
+Estas notas vendrían del proveedor de GPS (correo) y del equipo de operaciones (Slack/Teams). Verifica cada una con los datos del tópico antes de decidir tu diseño y anótala en `docs/hallazgos.md`.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `03-hallazgos.png`: lo que confirmaste de cada nota.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

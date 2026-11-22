@@ -21,6 +21,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>1. Accesos</h2>
 <pre tabindex="0"><code class="language-bash">ruta accesos</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">ruta accesos</code><span><code>ruta</code>: el sistema interno de Ruta Sur en la terminal del curso. <code>accesos</code> muestra los accesos que te dio IT (la API del TMS y su token)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <figure class="diagrama"><figcaption>Los sistemas de Ruta Sur: telemetría en tiempo real y el sistema de transporte</figcaption></figure>
 
 
@@ -59,6 +60,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <pre tabindex="0"><code class="language-bash">kcat -L
 kcat -C -t rutasur.telemetria -p 0 -o -5 -e -f '%p %o %T %k %s\n'
 kcat -G ruta-lago rutasur.telemetria -o beginning -e &gt; telemetria.jsonl</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">kcat -L</code><span><code>kcat</code>: cliente de Kafka en la terminal: lee o escribe mensajes de un tópico</span></li><li><code class="bx-linea">kcat -C -t rutasur.telemetria -p 0 -o -5 -e -f '%p %o %T %k %s\n'</code><span><code>kcat</code>: cliente de Kafka en la terminal: lee o escribe mensajes de un tópico. <code>-C</code> = modo consumidor: lee mensajes; <code>-t</code> = el tópico; <code>-o</code> = desde qué posición (offset) leer; <code>-e</code> = sale al llegar al final</span></li><li><code class="bx-linea">kcat -G ruta-lago rutasur.telemetria -o beginning -e &gt; telemetria.jsonl</code><span><code>kcat</code>: cliente de Kafka en la terminal: lee o escribe mensajes de un tópico. <code>-o</code> = desde qué posición (offset) leer; <code>-e</code> = sale al llegar al final. <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <pre data-norun tabindex="0"><code class="language-sql">-- Databricks: una tabla de streaming lee de Kafka y guarda hasta dónde leyó (checkpoint)
 CREATE OR REFRESH STREAMING TABLE ruta.bronze.telemetria AS
 SELECT CAST(value AS STRING) AS valor, partition, offset, timestamp AS ts_ingesta
@@ -88,6 +90,29 @@ REFRESH STREAMING TABLE ruta.bronze.telemetria;   -- solo agrega los mensajes nu
 </tr>
 </tbody></table></div>
 <pre tabindex="0"><code class="language-bash">curl -s &quot;https://api.rutasur.example/v1/rutas?fecha=2026-11-18&quot; -H &quot;X-Api-Key: $RS_API_KEY&quot; | head -40</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">curl -s &quot;https://api.rutasur.example/v1/rutas?fecha=2026-11-18&quot; -H &quot;X-Api-Key: $RS_API_KEY&quot; | head -40</code><span><code>curl</code>: hace un pedido HTTP a una URL (bajar un archivo o llamar a una API). <code>-s</code> = sin barra de progreso; <code>-H</code> = agrega un encabezado (por ejemplo, el token o el tipo de contenido) <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas). <code>-40</code> = las primeras 40 líneas</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>En la vida real:</p>
+<ul>
+<li><strong>La telemetría</strong>: los GPS publican en <strong>Event Hubs</strong> (o Kafka). Para mirar mensajes desde tu computadora usas <code>kcat -b &lt;servidor&gt; -t &lt;tópico&gt; -C -o end</code>.</li>
+<li><strong>El TMS</strong>: su API se prueba con <code>curl</code> o Postman con el token que te da IT. El token va en una variable de entorno, nunca en el código.</li>
+<li>En Azure Portal, el tópico se ve en el recurso de Event Hubs → <em>Event Hubs</em> → <em>Process data</em> para mirar mensajes en vivo.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>02-mensajes.png</code>: los mensajes del tópico en la terminal.</li>
+<li><code>02-tms.png</code>: una respuesta del TMS (sin el token).</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

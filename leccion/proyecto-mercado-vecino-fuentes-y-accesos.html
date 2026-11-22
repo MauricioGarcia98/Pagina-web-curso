@@ -42,6 +42,7 @@ psql -h mv-prod-replica.postgres.database.azure.com -U lector_datos -d mercado -
 
 # exportar a CSV desde el cliente (se escribe en tu máquina, no en el servidor)
 psql &quot;…&quot; -c &quot;\copy (SELECT * FROM clientes) TO 'clientes.csv' WITH (FORMAT csv, HEADER)&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">export PGPASSWORD='&lt;la clave del correo&gt;'</code><span><code>export</code>: define una variable de entorno para esta terminal y los programas que lances desde ella</span></li><li><code class="bx-linea">psql &quot;postgresql://lector_datos@mv-prod-replica.postgres.database.azure.com:5432/mercado?sslmode=require&quot;</code><span><code>psql</code>: el cliente de PostgreSQL en la terminal</span></li><li><code class="bx-linea">psql -h mv-prod-replica.postgres.database.azure.com -U lector_datos -d mercado -c '\dt'</code><span><code>psql</code>: el cliente de PostgreSQL en la terminal. <code>-h</code> = el servidor; <code>-U</code> = el usuario; <code>-d</code> = la base de datos; <code>-c</code> = ejecuta esa consulta y sale</span></li><li><code class="bx-linea">psql &quot;…&quot; -c &quot;\copy (SELECT * FROM clientes) TO 'clientes.csv' WITH (FORMAT csv, HEADER)&quot;</code><span><code>psql</code>: el cliente de PostgreSQL en la terminal. <code>-c</code> = ejecuta esa consulta y sale</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <h3>Esquema</h3>
 <div class="table-wrap"><table><thead><tr>
 <th>Tabla</th>
@@ -184,6 +185,7 @@ kcat -L                                                   # tópicos
 kcat -C -t mv_prod.public.pedidos -o beginning -e -c 3    # los 3 más viejos que quedan
 kcat -C -t mv_prod.public.pedidos -o beginning -e &gt; pedidos.jsonl
 kcat -G mi-grupo mv_prod.public.pedidos -o beginning -e   # con grupo: la próxima vez sigue desde donde quedó</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(5)</span></summary><ol><li><code class="bx-linea">mkdir -p ~/.config &amp;&amp; cat &gt; ~/.config/kcat.conf &lt;&lt;'CONF'</code><span><code>mkdir</code>: crea una carpeta. <code>-p</code> = crea también las carpetas intermedias y no falla si ya existe <span class="bx-tubo">→ si sale bien, sigue el próximo</span><br><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li><li><code class="bx-linea">kcat -L</code><span><code>kcat</code>: cliente de Kafka en la terminal: lee o escribe mensajes de un tópico<br><i class="bx-com">Nota del ejemplo: tópicos</i></span></li><li><code class="bx-linea">kcat -C -t mv_prod.public.pedidos -o beginning -e -c 3</code><span><code>kcat</code>: cliente de Kafka en la terminal: lee o escribe mensajes de un tópico. <code>-C</code> = modo consumidor: lee mensajes; <code>-t</code> = el tópico; <code>-o</code> = desde qué posición (offset) leer; <code>-e</code> = sale al llegar al final<br><i class="bx-com">Nota del ejemplo: los 3 más viejos que quedan</i></span></li><li><code class="bx-linea">kcat -C -t mv_prod.public.pedidos -o beginning -e &gt; pedidos.jsonl</code><span><code>kcat</code>: cliente de Kafka en la terminal: lee o escribe mensajes de un tópico. <code>-C</code> = modo consumidor: lee mensajes; <code>-t</code> = el tópico; <code>-o</code> = desde qué posición (offset) leer; <code>-e</code> = sale al llegar al final. <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li><li><code class="bx-linea">kcat -G mi-grupo mv_prod.public.pedidos -o beginning -e</code><span><code>kcat</code>: cliente de Kafka en la terminal: lee o escribe mensajes de un tópico. <code>-o</code> = desde qué posición (offset) leer; <code>-e</code> = sale al llegar al final<br><i class="bx-com">Nota del ejemplo: con grupo: la próxima vez sigue desde donde quedó</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Con <code>-G</code>, el offset se guarda al terminar. Un grupo nuevo sin <code>-o</code> empieza <strong>por el final</strong> (no ve nada viejo). Si el offset guardado ya venció por la retención, Kafka salta al más viejo disponible y avisa con <code>Offset out of range</code>: <strong>los mensajes del medio se perdieron</strong>.</p>
 <h3>Consumir desde Databricks (read_kafka)</h3>
 <pre data-norun tabindex="0"><code class="language-sql">SELECT CAST(value AS STRING) AS valor, offset, timestamp
@@ -252,6 +254,7 @@ FROM read_kafka(
 <p>PagoYa avisa cada evento con un <code>POST</code> a los endpoints registrados. El del equipo de datos lo das de alta tú:</p>
 <pre tabindex="0"><code class="language-bash">pagoya webhooks configurar --cuenta &lt;tu cuenta del lago&gt; --contenedor landing --prefijo pagoya/webhooks
 pagoya webhooks estado</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">pagoya webhooks configurar --cuenta &lt;tu cuenta del lago&gt; --contenedor landing --prefijo pagoya/webhooks</code><span><code>pagoya</code>: el panel de PagoYa (la pasarela de pagos) en la terminal del curso; en la vida real se configura en su portal web. <code>webhooks</code> configura o mira los avisos automáticos (webhooks) que PagoYa manda a tu lago con cada pago</span></li><li><code class="bx-linea">pagoya webhooks estado</code><span><code>pagoya</code>: el panel de PagoYa (la pasarela de pagos) en la terminal del curso; en la vida real se configura en su portal web. <code>webhooks</code> configura o mira los avisos automáticos (webhooks) que PagoYa manda a tu lago con cada pago</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Del otro lado está la función <strong>mv-webhooks</strong> (la escribió el ingeniero anterior): responde 200 y guarda <strong>cada entrega tal como llegó</strong>, sin verificar nada, en:</p>
 <pre tabindex="0"><code class="language-text">abfss://landing@&lt;cuenta&gt;.dfs.core.windows.net/pagoya/webhooks/fecha=AAAA-MM-DD/hora=HH/&lt;entrega_id&gt;.json</code></pre>
 <pre tabindex="0"><code class="language-json">{&quot;entrega_id&quot;: &quot;whd_5ed0f802465a4d37&quot;, &quot;recibido_en&quot;: &quot;2026-11-19T13:01:02.123Z&quot;, &quot;endpoint&quot;: &quot;we_75fcbebf33ebac&quot;,
@@ -303,6 +306,29 @@ valida = hmac.compare_digest(esperada, v1)</code></pre>
 </tr>
 </tbody></table></div>
 <p><code>reporte.csv</code>: <code>fecha_liquidacion,tipo,pago_id,pedido_id,bruto,comision,neto,moneda</code>, montos en <strong>pesos</strong>.</p>
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Cada fuente se toca de verdad así:</p>
+<ul>
+<li><strong>PostgreSQL</strong>: con <code>psql</code> en la terminal o con un cliente gráfico (DBeaver, gratis), usando el host, usuario y contraseña que te da IT. Nunca pegues la contraseña en el código: va en una variable de entorno o en el Key Vault.</li>
+<li><strong>Debezium → Event Hubs (Kafka)</strong>: lo levanta el equipo de plataforma; tú lees el tópico con <code>kcat</code> o con Spark.</li>
+<li><strong>PagoYa (API)</strong>: la documentación está en su portal de desarrolladores; pruebas con <code>curl</code> o con Postman/Bruno.</li>
+<li><strong>Webhooks</strong>: se configuran en el <strong>portal web de PagoYa</strong> (Configuración → Webhooks), apuntando al contenedor <code>landing</code> de tu lago.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>02-psql.png</code>: la terminal conectada a la base, con <code>\dt</code> mostrando las tablas.</li>
+<li><code>02-api.png</code>: una respuesta de la API de PagoYa (sin el token a la vista).</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

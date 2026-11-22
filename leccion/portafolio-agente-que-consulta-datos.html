@@ -98,12 +98,39 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </div>
 
 
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Todo el proyecto se hace en <strong>tu computadora</strong>:</p>
+<ol>
+<li><strong>Terminal</strong>: Terminal en macOS, o Ubuntu con WSL en Windows (<code>wsl --install</code> en PowerShell como administrador). Ahí corres <code>git</code>, <code>uv</code> y las CLIs.</li>
+<li><strong>VS Code</strong> con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).</li>
+<li><strong>Una carpeta por proyecto</strong> con <code>git init</code> desde el primer minuto, y un repositorio público en <strong>github.com → New repository</strong> para mostrarlo.</li>
+</ol>
+<ul>
+<li>Con <strong>Genie</strong> en Databricks: <em>Genie → New space</em>, eliges las tablas, escribes las instrucciones y las consultas de ejemplo, y pruebas con preguntas reales.</li>
+<li>Con un agente propio: Python local con la clave del modelo en una variable de entorno, y un usuario de base de datos de <strong>solo lectura</strong>.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio y enlázalas desde el README.</p>
+<ul>
+<li><code>01-espacio.png</code>: el espacio de Genie con sus tablas e instrucciones (o el código del agente).</li>
+<li><code>02-pregunta.png</code>: una pregunta en lenguaje natural con el SQL que generó y el resultado.</li>
+<li><code>03-guardrail.png</code>: una pregunta que el agente rechaza por sus reglas.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.</p>
+</div>
+
+
 <h2>Entregables</h2>
 <ul>
-<li><input disabled="" type="checkbox"> Descripciones de tablas y columnas, métricas definidas y ejemplos pregunta→SQL.</li>
-<li><input disabled="" type="checkbox"> Guardrails implementados y probados (intentos de <code>DELETE</code>, consultas a bronze, consultas sin filtro).</li>
-<li><input disabled="" type="checkbox"> Conjunto de evaluación y resultados por versión.</li>
-<li><input disabled="" type="checkbox"> Demo de 2 minutos con preguntas bien y mal respondidas, y por qué.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Descripciones de tablas y columnas, métricas definidas y ejemplos pregunta→SQL.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Guardrails implementados y probados (intentos de <code>DELETE</code>, consultas a bronze, consultas sin filtro).</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Conjunto de evaluación y resultados por versión.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Demo de 2 minutos con preguntas bien y mal respondidas, y por qué.</li>
 </ul>
 <h2>Práctica</h2>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un agente sobre tus datos, con guardas</div>

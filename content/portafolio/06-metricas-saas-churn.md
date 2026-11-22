@@ -95,6 +95,27 @@ Uso de los últimos 30 días contra el promedio de los 90 anteriores. Una caída
 Con la identidad contable: MRR inicial más nuevo y expansión, menos contracción y churn, tiene que dar el MRR final, y un test de dbt falla si no cuadra. Compararía el total con la facturación del sistema de cobro, revisaría casos borde como upgrades a mitad de mes y planes anuales, y documentaría cada definición.
 :::
 
+:::real En tu computadora y en la web real
+Todo el proyecto se hace en **tu computadora**:
+
+1. **Terminal**: Terminal en macOS, o Ubuntu con WSL en Windows (`wsl --install` en PowerShell como administrador). Ahí corres `git`, `uv` y las CLIs.
+2. **VS Code** con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).
+3. **Una carpeta por proyecto** con `git init` desde el primer minuto, y un repositorio público en **github.com → New repository** para mostrarlo.
+
+- **dbt local** con DuckDB: `dbt build` para los modelos y las pruebas, `dbt snapshot` para el historial de planes.
+- Para mostrarlo, publica la documentación de dbt (`dbt docs generate`) o lleva el mart a Databricks Free Edition como en el proyecto 1.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio y enlázalas desde el README.
+
+- `01-mrr.png`: la tabla de MRR por empresa y mes.
+- `02-snapshot.png`: una empresa con su historial de planes (dbt snapshot).
+- `03-riesgo.png`: la lista de clientes con riesgo de baja y la señal que lo explica.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.
+:::
+
 ## Entregables
 
 - [ ] `mrr_mensual` y `movimientos_mrr` con tests (el MRR de un mes = MRR anterior + nuevo + expansión − contracción − churn).

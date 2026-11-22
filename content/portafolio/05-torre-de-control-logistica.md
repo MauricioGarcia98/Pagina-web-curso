@@ -92,6 +92,30 @@ Todo vive en `rg-torre-lab`: al terminar, `az group delete -n rg-torre-lab --yes
 Mostrando en el tablero la hora de la última actualización de los datos y un indicador de frescura que cambia de color si se pasó el plazo acordado. Por detrás, un control de frescura sobre las tablas que alerta al equipo antes que al usuario. Y una definición escrita de cada indicador, para que no haya dudas sobre qué significa.
 :::
 
+:::real En tu computadora y en la web real
+Todo el proyecto se hace en **tu computadora**:
+
+1. **Terminal**: Terminal en macOS, o Ubuntu con WSL en Windows (`wsl --install` en PowerShell como administrador). Ahí corres `git`, `uv` y las CLIs.
+2. **VS Code** con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).
+3. **Una carpeta por proyecto** con `git init` desde el primer minuto, y un repositorio público en **github.com → New repository** para mostrarlo.
+
+- **Fase 1, local**: los KPIs con DuckDB y Python.
+- **Fase 2, Azure** (cuenta gratuita en `azure.microsoft.com/free`): en `portal.azure.com` creas el grupo de recursos, la cuenta de almacenamiento con *hierarchical namespace*, Data Factory (*Launch studio* para el pipeline) y Databricks. También puedes crear todo con `az` desde la terminal después de `az login`.
+
+Al terminar, borra el grupo de recursos (`az group delete -n <grupo>`) para no gastar el crédito.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio y enlázalas desde el README.
+
+- `01-kpis.png`: los KPIs calculados en local.
+- `02-recursos.png`: el grupo de recursos con todo lo creado en Azure.
+- `03-adf.png`: el pipeline de Data Factory y su ejecución en *Monitor*.
+- `04-tablero.png`: el tablero final con los indicadores de la torre de control.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.
+:::
+
 ## Entregables
 
 - [ ] Diccionario de KPIs con sus definiciones y decisiones (qué cuenta como "tarde").

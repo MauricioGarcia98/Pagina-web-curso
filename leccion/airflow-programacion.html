@@ -223,6 +223,7 @@ Ejecución que corre el 2024-01-02 a las 00:00
     --from-date 2024-01-01 --to-date 2024-01-31 \
     --reprocess-behavior failed \
     --max-active-runs 3</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">airflow backfill create --dag-id etl_ventas      --from-date 2024-01-01 --to-date 2024-01-31      --reprocess-behavior failed      --max-…</code><span><code>airflow</code>: la CLI de Apache Airflow</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <ul>
 <li><code>--reprocess-behavior</code> decide qué hacer con los días que ya corrieron: <code>none</code> (no repetirlos), <code>failed</code> (solo los que fallaron) o <code>completed</code> (todos).</li>
 <li><code>--max-active-runs</code> limita cuántos días corren a la vez, para no saturar la base de origen.</li>

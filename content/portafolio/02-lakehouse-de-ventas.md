@@ -14,7 +14,7 @@ La gerente comercial de una tienda online arma cada mes un Excel con las ventas:
 
 ## Valor y alcance
 
-| | Hoy | Con el proyecto |
+| Aspecto | Hoy | Con el proyecto |
 |---|---|---|
 | Frecuencia | Mensual | Diaria, 06:00 |
 | Esfuerzo | 2 días por mes | 0 (automático) |
@@ -237,6 +237,28 @@ st.line_chart(df, x="fecha", y="ventas", color="canal")
 
 :::entrevista "Cuéntame un proyecto de datos que hayas construido."
 Lo contaría con situación, decisiones y resultado: armé un lakehouse de ventas con capas bronze, silver y gold modeladas en dbt, con tests de claves y relaciones y documentación. Lo desarrollé localmente con DuckDB para iterar rápido y lo desplegué en Databricks cambiando solo el perfil y las fuentes, con un job que ejecuta `dbt build`. Explicaría por qué elegí incremental para los hechos, cómo manejé los duplicados y qué mediría para monitorear frescura y calidad.
+:::
+
+:::real En tu computadora y en la web real
+Todo el proyecto se hace en **tu computadora**:
+
+1. **Terminal**: Terminal en macOS, o Ubuntu con WSL en Windows (`wsl --install` en PowerShell como administrador). Ahí corres `git`, `uv` y las CLIs.
+2. **VS Code** con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).
+3. **Una carpeta por proyecto** con `git init` desde el primer minuto, y un repositorio público en **github.com → New repository** para mostrarlo.
+
+- **Fase 1, local**: `uv init`, `uv add dbt-duckdb`, `dbt init` y `dbt build` en la terminal. La documentación con linaje se abre con `dbt docs generate && dbt docs serve` en `http://localhost:8080`.
+- **Fase 2, Databricks Free Edition** (`databricks.com/learn/free-edition`): creas un *SQL warehouse*, cambias el perfil de dbt a `dbt-databricks` con el token de *Settings → Developer → Access tokens* (guardado en una variable de entorno, no en el repo) y corres el mismo `dbt build`.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio y enlázalas desde el README.
+
+- `01-linaje.png`: el grafo de linaje de `dbt docs` (de las fuentes a los marts).
+- `02-tests.png`: la terminal con `dbt build` mostrando las pruebas en verde.
+- `03-databricks.png`: las tablas del mart en *Catalog Explorer* de Databricks.
+- `04-consulta.png`: una consulta de negocio respondida desde el mart.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.
 :::
 
 ## Entregables

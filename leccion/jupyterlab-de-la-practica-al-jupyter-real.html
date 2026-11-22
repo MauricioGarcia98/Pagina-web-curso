@@ -67,6 +67,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 # Mac / Linux:  source .venv/bin/activate
 pip install jupyterlab pandas matplotlib
 jupyter lab</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">python -m venv .venv</code><span><code>python</code>: ejecuta Python: un archivo .py, un módulo (<code>-m</code>) o la consola interactiva. <code>-m</code> = ejecuta un módulo instalado (por ejemplo, <code>python -m venv</code> o <code>python -m pytest</code>)</span></li><li><code class="bx-linea">pip install jupyterlab pandas matplotlib</code><span><code>pip</code>: el instalador de paquetes de Python. <code>install</code> instala paquetes (de PyPI o de un requirements.txt con <code>-r</code>)</span></li><li><code class="bx-linea">jupyter lab</code><span><code>jupyter</code>: Jupyter: notebooks en el navegador. <code>lab</code> abre JupyterLab</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Se abre JupyterLab en el navegador (en <code>http://localhost:8888</code>), con la carpeta del proyecto en el explorador. La terminal tiene que quedar abierta mientras lo uses; para cerrarlo, <strong>File → Shut Down</strong> o Ctrl + C en la terminal.</p>
 <div class="callout callout-tip"><div class="callout-title">💡 Por qué un entorno por proyecto</div>
 
@@ -78,6 +79,7 @@ jupyter lab</code></pre>
 <p>Arriba a la derecha del notebook ves el kernel (<strong>Python 3 (ipykernel)</strong>). Si tienes varios entornos, regístralos para elegirlos desde JupyterLab:</p>
 <pre tabindex="0"><code class="language-bash">pip install ipykernel
 python -m ipykernel install --user --name analisis_ventas --display-name &quot;Python (analisis_ventas)&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">pip install ipykernel</code><span><code>pip</code>: el instalador de paquetes de Python. <code>install</code> instala paquetes (de PyPI o de un requirements.txt con <code>-r</code>)</span></li><li><code class="bx-linea">python -m ipykernel install --user --name analisis_ventas --display-name &quot;Python (analisis_ventas)&quot;</code><span><code>python</code>: ejecuta Python: un archivo .py, un módulo (<code>-m</code>) o la consola interactiva. <code>-m</code> = ejecuta un módulo instalado (por ejemplo, <code>python -m venv</code> o <code>python -m pytest</code>)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Después: <strong>Kernel → Change Kernel…</strong> y eliges el del proyecto.</p>
 <h2>Paso 4 — Instalar paquetes desde el notebook</h2>
 <pre data-norun tabindex="0"><code class="language-python">%pip install seaborn</code></pre>
@@ -86,6 +88,7 @@ python -m ipykernel install --user --name analisis_ventas --display-name &quot;P
 <h2>Paso 5 — Fijar versiones: requirements.txt</h2>
 <pre tabindex="0"><code class="language-bash">pip freeze &gt; requirements.txt          # guarda las versiones exactas
 pip install -r requirements.txt        # otra persona recrea el mismo entorno</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">pip freeze &gt; requirements.txt</code><span><code>pip</code>: el instalador de paquetes de Python. <code>freeze</code> lista los paquetes instalados con su versión exacta (para requirements.txt). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)<br><i class="bx-com">Nota del ejemplo: guarda las versiones exactas</i></span></li><li><code class="bx-linea">pip install -r requirements.txt</code><span><code>pip</code>: el instalador de paquetes de Python. <code>install</code> instala paquetes (de PyPI o de un requirements.txt con <code>-r</code>). <code>-r</code> = instala todo lo que dice el archivo<br><i class="bx-com">Nota del ejemplo: otra persona recrea el mismo entorno</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Junto con el notebook, el <code>requirements.txt</code> es lo que hace que tu análisis corra igual en otra computadora dentro de un año. (Con conda: <code>environment.yml</code>.)</p>
 <h2>Paso 6 — Lo que tiene el JupyterLab real y la práctica no</h2>
 <div class="table-wrap"><table><thead><tr>
@@ -152,10 +155,10 @@ pip install -r requirements.txt        # otra persona recrea el mismo entorno</c
 <p><strong>Settings → Settings Editor</strong> (o <strong>Help → Show Keyboard Shortcuts</strong>) muestra todos los atajos y permite cambiarlos. Los de este curso (Shift + Enter, A, B, M, Y, D D, Z, I I, 0 0) son los mismos que en JupyterLab real.</p>
 <h2>Tu checklist de transición</h2>
 <ul>
-<li><input disabled="" type="checkbox"> Abre un proyecto del curso en Colab o JupyterLab real y ejecútalo de punta a punta.</li>
-<li><input disabled="" type="checkbox"> Crea un entorno virtual para él y regístralo como kernel.</li>
-<li><input disabled="" type="checkbox"> Genera su <code>requirements.txt</code>.</li>
-<li><input disabled="" type="checkbox"> Exporta a HTML (File → Save and Export Notebook As → HTML) y ábrelo en el navegador.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Abre un proyecto del curso en Colab o JupyterLab real y ejecútalo de punta a punta.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Crea un entorno virtual para él y regístralo como kernel.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Genera su <code>requirements.txt</code>.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Exporta a HTML (File → Save and Export Notebook As → HTML) y ábrelo en el navegador.</li>
 </ul>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
 

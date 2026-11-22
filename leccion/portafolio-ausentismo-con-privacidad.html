@@ -87,12 +87,39 @@ GRANT SELECT ON TABLE workspace.clinica.gold_ausentismo TO `analistas`;</code></
 </div>
 
 
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Todo el proyecto se hace en <strong>tu computadora</strong>:</p>
+<ol>
+<li><strong>Terminal</strong>: Terminal en macOS, o Ubuntu con WSL en Windows (<code>wsl --install</code> en PowerShell como administrador). Ahí corres <code>git</code>, <code>uv</code> y las CLIs.</li>
+<li><strong>VS Code</strong> con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).</li>
+<li><strong>Una carpeta por proyecto</strong> con <code>git init</code> desde el primer minuto, y un repositorio público en <strong>github.com → New repository</strong> para mostrarlo.</li>
+</ol>
+<ul>
+<li><strong>Fases 1 y 2, local</strong>: el análisis con SQL y Python.</li>
+<li><strong>Fase 3, Unity Catalog</strong> en Databricks: <em>Catalog → tabla → Permissions</em> para los permisos por grupo, y las funciones de máscara y filtros de fila con SQL en el <em>SQL Editor</em>. Pruébalo entrando con un usuario de otro grupo (o con <code>current_user()</code> en una consulta) para mostrar que la máscara funciona.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio y enlázalas desde el README.</p>
+<ul>
+<li><code>01-ausentismo.png</code>: el análisis de ausentismo por franja.</li>
+<li><code>02-mascara.png</code>: la misma consulta vista por dos grupos distintos: con y sin la máscara.</li>
+<li><code>03-permisos.png</code>: la pestaña <em>Permissions</em> de la tabla.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.</p>
+</div>
+
+
 <h2>Entregables</h2>
 <ul>
-<li><input disabled="" type="checkbox"> Tabla de ausentismo por anticipación, día y especialidad, con la conclusión.</li>
-<li><input disabled="" type="checkbox"> Puntaje de riesgo y la estimación de horas recuperadas.</li>
-<li><input disabled="" type="checkbox"> Diseño del experimento de recordatorios (grupos, duración, métrica).</li>
-<li><input disabled="" type="checkbox"> Matriz de acceso por rol (qué ve cada uno) y el SQL de máscaras, filtros y permisos.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Tabla de ausentismo por anticipación, día y especialidad, con la conclusión.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Puntaje de riesgo y la estimación de horas recuperadas.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Diseño del experimento de recordatorios (grupos, duración, métrica).</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Matriz de acceso por rol (qué ve cada uno) y el SQL de máscaras, filtros y permisos.</li>
 </ul>
 <h2>Práctica</h2>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Datos de salud con máscaras de columna</div>

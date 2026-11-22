@@ -43,6 +43,14 @@ for (const m of modulos) {
   if (res.length) console.log(`${malos.length ? '✗' : '✓'} ${m.id}: ${res.length - malos.length}/${res.length}`);
   for (const r of malos) console.log(`    ✗ ${r[0]} (${r[1]}): ${r[3]}`);
 }
+// sqlglot (laboratorio SQL): formatear y traducir entre dialectos con el paquete autoalojado
+if (!SOLO.length) {
+  const q = "select strftime('%Y-%m', fecha) mes, ifnull(sum(total), 0) t from pedidos group by 1 order by 2 desc limit 5";
+  const r = await p.evaluate(async (q) => ({ sf: await window.Engines.PY.sqlglot('traducir', q, 'sqlite', 'snowflake'), ts: await window.Engines.PY.sqlglot('traducir', q, 'sqlite', 'tsql'), mal: await window.Engines.PY.sqlglot('formatear', 'select a,, from', 'sqlite') }), q);
+  const ok = r.sf.ok && /TO_CHAR/.test(r.sf.sql) && r.ts.ok && /TOP 5/.test(r.ts.sql) && !r.mal.ok && r.mal.errores && r.mal.errores[0].linea === 1;
+  console.log(`${ok ? '✓' : '✗'} sqlglot: traduce a Snowflake y SQL Server y explica los errores de sintaxis`);
+  if (!ok) { fallas++; console.log('    ' + JSON.stringify(r).slice(0, 400)); }
+}
 console.log(`\n${total} soluciones corregidas en el navegador, ${fallas} fallan · ${Math.round((Date.now() - t0) / 1000)} s`);
 if (errores.length) { console.log('Errores de página:'); [...new Set(errores)].slice(0, 10).forEach((e) => console.log('  ' + e)); }
 await b.close();

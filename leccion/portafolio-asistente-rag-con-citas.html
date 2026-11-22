@@ -109,12 +109,39 @@ Pregunta: {pregunta}</code></pre>
 </div>
 
 
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Todo el proyecto se hace en <strong>tu computadora</strong>:</p>
+<ol>
+<li><strong>Terminal</strong>: Terminal en macOS, o Ubuntu con WSL en Windows (<code>wsl --install</code> en PowerShell como administrador). Ahí corres <code>git</code>, <code>uv</code> y las CLIs.</li>
+<li><strong>VS Code</strong> con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).</li>
+<li><strong>Una carpeta por proyecto</strong> con <code>git init</code> desde el primer minuto, y un repositorio público en <strong>github.com → New repository</strong> para mostrarlo.</li>
+</ol>
+<ul>
+<li><strong>Fase 1, local</strong>: el índice de documentos y las preguntas con Python (<code>uv run</code>), con la clave del modelo en una variable de entorno.</li>
+<li><strong>Fase 3, nube</strong>: la misma lógica en Databricks (<em>Vector Search</em> y un <em>serving endpoint</em>) o en Azure (AI Search y Azure OpenAI), creados desde su portal. Configura el límite de gasto antes de probar.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio y enlázalas desde el README.</p>
+<ul>
+<li><code>01-respuesta.png</code>: una pregunta con su respuesta y las fuentes citadas.</li>
+<li><code>02-evaluacion.png</code>: la tabla de evaluación (respuestas correctas, citas correctas, &quot;no sé&quot; cuando corresponde).</li>
+<li><code>03-nube.png</code>: el endpoint funcionando en la nube.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.</p>
+</div>
+
+
 <h2>Entregables</h2>
 <ul>
-<li><input disabled="" type="checkbox"> Pipeline de ingesta (fragmentos con metadatos) y su actualización.</li>
-<li><input disabled="" type="checkbox"> Tabla de evaluación: acierto@k de los tres recuperadores, fidelidad y &quot;no sé&quot; correcto.</li>
-<li><input disabled="" type="checkbox"> Ejemplos de respuestas buenas y de fallas analizadas.</li>
-<li><input disabled="" type="checkbox"> Costo y latencia por pregunta.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Pipeline de ingesta (fragmentos con metadatos) y su actualización.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Tabla de evaluación: acierto@k de los tres recuperadores, fidelidad y &quot;no sé&quot; correcto.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Ejemplos de respuestas buenas y de fallas analizadas.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Costo y latencia por pregunta.</li>
 </ul>
 <h2>Práctica</h2>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Recuperar el fragmento correcto y citarlo</div>

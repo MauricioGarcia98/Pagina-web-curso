@@ -20,8 +20,8 @@ En [GitHub de práctica](#/github) → **New**:
 
 - **Repository name**: `portafolio-datos`
 - **Description**: `Mis proyectos de ingeniería y análisis de datos`
-- **Public**
-- **Add a README file**, **.gitignore: Python**, **License: MIT**
+- **Choose visibility**: **Public**
+- **Add README**: **On** · **Add .gitignore**: **Python** · **Add license**: **MIT License**
 
 ```captura
 archivo: github/g03-nuevo-repo.webp

@@ -24,6 +24,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 ssh-keygen -t ed25519 -f ~/.ssh/red_analitica -C &quot;equipo-datos&quot;
 red alta-clave ~/.ssh/red_analitica.pub       # IT la autoriza en unos minutos
 red estado</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">red accesos</code><span><code>red</code>: el sistema interno de Red Analítica en la terminal del curso. <code>accesos</code> muestra el correo de IT con host, puerto, usuario y la huella del servidor SFTP<br><i class="bx-com">Nota del ejemplo: el correo de IT: host, puerto, usuario y huella</i></span></li><li><code class="bx-linea">ssh-keygen -t ed25519 -f ~/.ssh/red_analitica -C &quot;equipo-datos&quot;</code><span><code>ssh-keygen</code>: crea un par de claves SSH: la privada (queda en tu computadora) y la pública (.pub, la que se comparte). <code>-t</code> = el tipo de clave (ed25519 es la recomendada); <code>-f</code> = dónde guardarla; <code>-C</code> = un comentario para reconocerla (tu correo)</span></li><li><code class="bx-linea">red alta-clave ~/.ssh/red_analitica.pub</code><span><code>red</code>: el sistema interno de Red Analítica en la terminal del curso. <code>alta-clave</code> le pide a IT que autorice tu clave SSH pública (nunca la privada)<br><i class="bx-com">Nota del ejemplo: IT la autoriza en unos minutos</i></span></li><li><code class="bx-linea">red estado</code><span><code>red</code>: el sistema interno de Red Analítica en la terminal del curso. <code>estado</code> muestra si tu clave ya está autorizada</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <figure class="diagrama"><figcaption>Cinco laboratorios, un SFTP y datos de salud que hay que proteger</figcaption></figure>
 
 
@@ -31,6 +32,7 @@ red estado</code></pre>
 <pre tabindex="0"><code class="language-bash">ssh-keyscan -p 2222 sftp.redanalitica.example &gt;&gt; ~/.ssh/known_hosts
 # o, después de comparar la huella que muestra el error:
 sftp -o StrictHostKeyChecking=accept-new -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">ssh-keyscan -p 2222 sftp.redanalitica.example &gt;&gt; ~/.ssh/known_hosts</code><span><code>ssh-keyscan</code>: obtiene la huella del servidor para compararla con la que te dio IT antes de confiar en él. <code>&gt;&gt;</code> agrega al final del archivo</span></li><li><code class="bx-linea">sftp -o StrictHostKeyChecking=accept-new -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example</code><span><code>sftp</code>: se conecta a un servidor SFTP para subir o bajar archivos de forma segura. <code>-i</code> = la clave privada que usas para entrar; <code>-P</code> = el puerto</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Comandos de la consola de <code>sftp</code>: <code>ls -l</code>, <code>cd</code>, <code>pwd</code>, <code>get archivo [destino]</code>, <code>mget patrón</code>, <code>lcd</code>, <code>lpwd</code>, <code>bye</code>. La cuenta es de <strong>solo lectura</strong>. Para un script se usa el modo lote:</p>
 <pre tabindex="0"><code class="language-bash">cat &gt; lote.txt &lt;&lt;'EOF2'
 cd /entrantes/norte
@@ -38,6 +40,7 @@ mget *.csv
 EOF2
 sftp -b lote.txt -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example
 scp -i ~/.ssh/red_analitica -P 2222 'equipo_datos@sftp.redanalitica.example:/entrantes/sur/*.jsonl' sur/</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">cat &gt; lote.txt &lt;&lt;'EOF2'</code><span><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe). Lo que sigue hasta <code>EOF</code> es el contenido del archivo</span></li><li><code class="bx-linea">sftp -b lote.txt -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example</code><span><code>sftp</code>: se conecta a un servidor SFTP para subir o bajar archivos de forma segura. <code>-b</code> = ejecuta los comandos de un archivo; <code>-i</code> = la clave privada que usas para entrar; <code>-P</code> = el puerto</span></li><li><code class="bx-linea">scp -i ~/.ssh/red_analitica -P 2222 'equipo_datos@sftp.redanalitica.example:/entrantes/sur/*.jsonl' sur/</code><span><code>scp</code>: copia archivos a otra computadora por SSH</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p><code>ls -l</code> muestra la hora en que cada archivo apareció en el servidor, en hora de Ciudad del Río.</p>
 <h2>2. Lo que manda cada laboratorio</h2>
 <p>Esta documentación la escribió cada laboratorio. Está como la mandaron.</p>
@@ -103,11 +106,35 @@ scp -i ~/.ssh/red_analitica -P 2222 'equipo_datos@sftp.redanalitica.example:/ent
 <h2>4. Herramientas que te van a servir</h2>
 <pre tabindex="0"><code class="language-bash">file CENTRO_17-11-2026.csv                        # codificación, BOM y fin de línea
 iconv -f LATIN1 -t UTF-8 entrada.csv -o salida.csv</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">file CENTRO_17-11-2026.csv</code><span><code>file</code>: dice qué tipo de archivo es y su codificación (UTF-8, Latin-1…)<br><i class="bx-com">Nota del ejemplo: codificación, BOM y fin de línea</i></span></li><li><code class="bx-linea">iconv -f LATIN1 -t UTF-8 entrada.csv -o salida.csv</code><span><code>iconv</code>: convierte la codificación de un archivo (por ejemplo, de Latin-1 a UTF-8). <code>-f</code> = la codificación de origen; <code>-t</code> = la codificación de destino</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <pre data-norun tabindex="0"><code class="language-sql">-- Databricks: opciones de read_files para archivos difíciles
 SELECT * FROM read_files('abfss://…/centro/', format =&gt; 'csv', sep =&gt; ';', header =&gt; true, encoding =&gt; 'ISO-8859-1');
 SELECT * FROM read_files('abfss://…/costa/', format =&gt; 'csv', header =&gt; true, skipRows =&gt; 3);
 SELECT patient:doc, value, unit FROM read_files('abfss://…/sur/', format =&gt; 'json');
 SELECT date_add('1899-12-30', CAST(46343.4375 AS INT));   -- serie de Excel → fecha</code></pre>
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Un SFTP real se usa así desde tu computadora:</p>
+<ol>
+<li><code>ssh-keygen -t ed25519 -f ~/.ssh/red_analitica</code> crea tu par de claves.</li>
+<li>Le mandas a IT <strong>solo la pública</strong> (<code>~/.ssh/red_analitica.pub</code>).</li>
+<li>Compruebas la huella del servidor con <code>ssh-keyscan</code> y la comparas con la del correo de IT <strong>antes</strong> de conectarte.</li>
+<li><code>sftp -i ~/.ssh/red_analitica usuario@host</code> y adentro <code>ls</code>, <code>get</code> y <code>mget</code>. Con interfaz gráfica: FileZilla o WinSCP, con la misma clave.</li>
+</ol>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>02-sftp.png</code>: la sesión de SFTP listando los archivos de cada laboratorio (tapa host y usuario).</li>
+<li><code>02-formatos.png</code>: un ejemplo de cada formato de laboratorio abierto en VS Code.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

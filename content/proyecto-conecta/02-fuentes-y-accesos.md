@@ -121,6 +121,19 @@ def coseno(a, b):  # los vectores ya vienen normalizados
     return sum(x * y for x, y in zip(a, b))
 ```
 
+:::real En tu computadora y en la web real
+En la vida real: la mesa de ayuda (Zendesk, Freshdesk o similar) tiene una API que se prueba con `curl`; los correos se leen con la API de Microsoft Graph o Gmail; los contratos están en SharePoint o Drive; el modelo de lenguaje se usa con su API y una clave guardada en el Key Vault, con un límite de gasto configurado en el portal del proveedor.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `02-mesa.png`: una respuesta de la API de la mesa de ayuda (sin token).
+- `02-modelo.png`: una llamada de prueba al modelo con su costo.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

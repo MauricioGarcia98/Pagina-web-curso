@@ -96,6 +96,23 @@ Escribe tu plan en una nota (en [Mis notas](#/notas) o en un papel). Como mínim
 El tópico del CDC retiene los mensajes **24 horas**. Si cargas el snapshot hoy y vuelves en dos días a consumir el CDC, te faltan cambios y tu tabla va a estar mal sin que nada falle. Organízate para hacer el snapshot y el primer consumo en la misma sesión.
 :::
 
+:::real En tu computadora y en la web real
+El pedido de finanzas llega por correo. En tu computadora, antes de tocar datos:
+
+1. Crea la carpeta del proyecto y un repositorio (`git init`) con un `README.md` que copie el pedido y la pregunta de negocio en una línea.
+2. Lista en `docs/preguntas.md` lo que falta saber (qué cuenta como venta, en qué moneda, qué día corta).
+3. Responde el correo con esas preguntas: es lo que haría cualquier ingeniero de datos con experiencia.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `01-readme.png`: el README del repositorio con el pedido y la definición de "venta".
+- `01-preguntas.png`: tu lista de preguntas a finanzas.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

@@ -119,6 +119,23 @@ Riesgos: el formato de los archivos puede cambiar sin aviso; los viajes tardíos
 - **Poner la lógica en el orquestador**: Airflow decide el orden; el cálculo va en Databricks, que escala y deja registro.
 :::
 
+:::real En tu computadora y en la web real
+En una empresa, este pedido llega por **correo o por Slack/Teams**, y el plan se responde por el mismo canal o en un documento compartido (Google Docs, Confluence, Notion). En tu computadora:
+
+1. Abre tu editor (VS Code) y crea `plan.md` en una carpeta de trabajo.
+2. Escribe una sección por pedido: **qué piden**, **la definición que propones** y **la pregunta que falta responder**.
+3. Mándalo antes de programar nada. Si la jefa responde "ok", ya tienes el alcance aprobado por escrito.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `01-plan.png`: tu `plan.md` abierto en VS Code, con las tres definiciones.
+- `01-recorrido.png`: el diagrama del recorrido de un viaje (puedes exportarlo con ⬇ PNG desde el diagrama de esta lección y rehacerlo con tus palabras).
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

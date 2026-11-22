@@ -183,6 +183,7 @@ chain(a, [b, c], d)</code></pre>
 airflow dags list
 airflow tasks list etl_ventas
 airflow dags test etl_ventas 2024-12-31</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">cat dags/etl_ventas.py</code><span><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo)</span></li><li><code class="bx-linea">airflow dags list</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>dags</code> lista, pausa o ejecuta DAGs</span></li><li><code class="bx-linea">airflow tasks list etl_ventas</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>tasks</code> prueba o mira tareas</span></li><li><code class="bx-linea">airflow dags test etl_ventas 2024-12-31</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>dags</code> lista, pausa o ejecuta DAGs</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p><code>airflow dags test</code> ejecuta el DAG completo <strong>una vez</strong>, en orden, sin el scheduler: es la forma de probar un DAG en tu computadora antes de subirlo. Puedes editar el archivo con <code>code dags/etl_ventas.py</code> y volver a probarlo.</p>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
 

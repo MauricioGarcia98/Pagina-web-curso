@@ -82,6 +82,20 @@ JOIN sol.silver.dim_producto d
  AND (d.valido_hasta IS NULL OR v.fecha < d.valido_hasta);
 ```
 
+:::real En tu computadora y en la web real
+En la vida real: el ERP viejo (PostgreSQL 9.6) se consulta con `psql` o DBeaver usando un **usuario de solo lectura** que te da IT; la API de las cajas se prueba con `curl`; la planilla de metas suele estar en SharePoint o Google Drive y se descarga o se lee con su API. Las contraseñas van al Key Vault.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `02-erp.png`: la conexión al ERP y sus tablas.
+- `02-cajas.png`: una respuesta de la API de las cajas (sin token).
+- `02-metas.png`: la planilla de metas.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

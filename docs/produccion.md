@@ -117,7 +117,7 @@ Cada push a `main` y cada pull request corre `.github/workflows/pruebas.yml` en 
 | Repaso espaciado | `node tools/fsrs.mjs` | que el algoritmo FSRS de las tarjetas dé intervalos con sentido y convierta las tarjetas del sistema anterior de cajas |
 | DuckDB | `node tools/duckdb.mjs` | que cada solución SQL corra en DuckDB, el motor del curso |
 | Humo | `node tools/humo.mjs` | que las páginas principales y las réplicas abran sin errores |
-| Ejercicios en el navegador | `node tools/ejercicios-navegador.mjs` | que cada solución de SQL, Python y PySpark pase también con los motores del navegador (DuckDB-WASM, SQLite y Pyodide) |
+| Ejercicios en el navegador | `node tools/ejercicios-navegador.mjs` | que cada solución de SQL, Python y PySpark pase también con los motores del navegador (DuckDB-WASM, SQLite y Pyodide), y que sqlglot formatee y traduzca SQL en el laboratorio |
 | Diagramas | `node tools/diagramas.mjs` | que cada diagrama se dibuje en teléfono y escritorio, sin texto fuera de su caja ni etiquetas encimadas |
 | Accesibilidad | `node tools/accesibilidad.mjs` | auditoría axe-core (WCAG 2.1 A y AA) de las páginas del curso en tema claro y oscuro |
 

@@ -34,6 +34,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <pre data-norun tabindex="0"><code class="language-bash">cd ~/airflow/dags
 ls
 nano hola_tienda.py</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">cd ~/airflow/dags</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">ls</code><span><code>ls</code>: lista los archivos y carpetas</span></li><li><code class="bx-linea">nano hola_tienda.py</code><span><code>nano</code>: editor de texto simple dentro de la terminal (Ctrl+O guarda, Ctrl+X sale)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <h2>Paso 2 — Escribir el Dag</h2>
 <pre data-norun tabindex="0"><code class="language-python">from datetime import datetime
 
@@ -114,6 +115,7 @@ with DAG(
 
 <h2>Paso 4 — Comprobar que Airflow lo leyó</h2>
 <pre data-norun tabindex="0"><code class="language-bash">airflow dags list</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">airflow dags list</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>dags</code> lista, pausa o ejecuta DAGs</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <figure class="captura"><img src="assets/img/guias/airflow/a03-cli.webp" alt="airflow dags list - hola_tienda aparece con su archivo, su dueño y pausado" loading="lazy"><figcaption>airflow dags list - hola_tienda aparece con su archivo, su dueño y pausado</figcaption></figure>
 
 

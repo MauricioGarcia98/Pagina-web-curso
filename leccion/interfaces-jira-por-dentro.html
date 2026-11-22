@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jira por dentro - backlog, sprints, tablero y JQL en un equipo de datos · Academia de Datos</title><meta name="description" content="Jira es la herramienta de tickets más usada en las empresas. En tu primer trabajo, lo más probable es que tus tareas lleguen ahí. Recorrido por un proyecto Scrum: el backlog con sprints, el tablero, cada issue con su clave (TA-12), las estimaciones, la búsqueda con JQL y los reportes que mira el equipo en cada retrospectiva."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-jira-por-dentro.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Jira por dentro - backlog, sprints, tablero y JQL en un equipo de datos · Academia de Datos"><meta property="og:description" content="Jira es la herramienta de tickets más usada en las empresas. En tu primer trabajo, lo más probable es que tus tareas lleguen ahí. Recorrido por un proyecto Scrum: el backlog con sprints, el tablero, cada issue con su clave (TA-12), las estimaciones, la búsqueda con JQL y los reportes que mira el equipo en cada retrospectiva."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-jira-por-dentro.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#interfaces">🧭 Las herramientas por dentro: qué es cada cosa</a> · Básico-intermedio · 35 min</div>
+<h1>Jira por dentro - backlog, sprints, tablero y JQL en un equipo de datos</h1><p class="resumen">Jira es la herramienta de tickets más usada en las empresas. En tu primer trabajo, lo más probable es que tus tareas lleguen ahí. Recorrido por un proyecto Scrum: el backlog con sprints, el tablero, cada issue con su clave (TA-12), las estimaciones, la búsqueda con JQL y los reportes que mira el equipo en cada retrospectiva.</p>
+<a class="cta" href="../index.html#/l/interfaces-jira-por-dentro">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer una issue - tipo, clave, estado, responsable, prioridad, story points y épica</li><li>Planificar un sprint desde el backlog e iniciarlo con un objetivo</li><li>Mover el trabajo en el tablero y completar el sprint</li><li>Buscar con JQL - currentUser(), openSprints(), IN, ~, ORDER BY</li><li>Leer el burndown y la velocidad</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
+
+<p>Abre <a href="#/jira/backlog">Jira de práctica</a>. Es un proyecto Scrum del equipo de datos de Tienda Andina, con un sprint en curso. No necesitas cuenta de Atlassian. Si tu empresa usa <a href="#/azure-devops/tienda-andina/boards">Azure DevOps</a>, las mismas ideas tienen otros nombres.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Jira es la pizarra del equipo, pero ordenada. Cada pedido es una tarjeta con número (<em>TA-12</em>). Cada tarjeta dice quién la tiene, qué tan urgente es y en qué estado está. El equipo trabaja en tandas de dos semanas (<em>sprints</em>): al empezar elige qué tarjetas entran, y al terminar mira qué cumplió.</p>
+</div>
+
+
+<h2>Una issue</h2>
+<p>Todo en Jira es una <strong>issue</strong>. Su <strong>clave</strong> junta el proyecto y un número (<code>TA-12</code>). Se nombra así en todos lados: en el chat, en las reuniones y en los mensajes de commit.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Campo</th>
+<th>Qué dice</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Tipo</strong></td>
+<td><em>Epic</em> (iniciativa grande), <em>Story</em> (algo con valor para alguien), <em>Task</em> (trabajo técnico), <em>Bug</em> (algo roto), <em>Subtask</em> (una parte de otra issue)</td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td><em>To Do → In Progress → In Review → Done</em></td>
+</tr>
+<tr>
+<td><strong>Assignee</strong></td>
+<td>Quién la tiene ahora. Si está vacío, nadie se hizo cargo</td>
+</tr>
+<tr>
+<td><strong>Priority</strong></td>
+<td><em>Highest</em> a <em>Lowest</em>. Un bug en producción suele ser <em>Highest</em></td>
+</tr>
+<tr>
+<td><strong>Story points</strong></td>
+<td>Cuánto esfuerzo se estima, en relación con otras issues (1, 2, 3, 5, 8…)</td>
+</tr>
+<tr>
+<td><strong>Parent (epic)</strong></td>
+<td>A qué iniciativa pertenece</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Una story bien escrita</div>
+
+<p>&quot;Como <strong>analista</strong>, quiero <strong>los pedidos de ayer en silver antes de las 7:00</strong>, para <strong>preparar la reunión diaria</strong>.&quot; Debajo van los <strong>criterios de aceptación</strong>: cómo se sabe que está terminada (el job corre a las 6:00, la cuenta de control cierra). Si no están, pregúntalos en un comentario de la issue <strong>antes</strong> de empezar.</p>
+</div>
+
+
+<h2>Backlog y sprints</h2>
+<figure class="diagrama"><figcaption>El ciclo de un sprint</figcaption></figure>
+
+
+<ol>
+<li><strong>Backlog</strong>: arriba, el sprint en curso; debajo, el siguiente; al final, todo lo pendiente. Arrastras una issue de un lugar a otro (o usas <em>Move to</em>).</li>
+<li><strong>Start sprint</strong>: elige la duración y escribe el <strong>objetivo</strong> del sprint: qué valor entrega el equipo al terminar.</li>
+<li><strong>Complete sprint</strong>: Jira cuenta lo terminado y pregunta adónde van las issues abiertas.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/jira/j01-backlog.webp" alt="El backlog: el sprint en curso con su objetivo, el próximo sprint y lo pendiente" loading="lazy"><figcaption>El backlog: el sprint en curso con su objetivo, el próximo sprint y lo pendiente</figcaption></figure>
+
+
+<h2>El tablero</h2>
+<p>Una columna por estado. Mueves la tarjeta cuando cambia su estado. Los avatares de arriba filtran por persona: en la reunión diaria, cada uno mira sus tarjetas.</p>
+<figure class="captura"><img src="assets/img/guias/jira/j02-tablero.webp" alt="El tablero del sprint: To Do, In Progress, In Review y Done" loading="lazy"><figcaption>El tablero del sprint: To Do, In Progress, In Review y Done</figcaption></figure>
+
+
+<h2>JQL: buscar como un profesional</h2>
+<p><strong>Issues</strong> (o <em>Filters</em>) acepta <strong>JQL</strong>, un lenguaje parecido a SQL para buscar issues:</p>
+<pre data-norun tabindex="0"><code class="language-sql">assignee = currentUser() AND status != Done ORDER BY priority DESC</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Quiero…</th>
+<th>JQL</th>
+</tr>
+</thead><tbody><tr>
+<td>Mis issues abiertas, primero las urgentes</td>
+<td><code>assignee = currentUser() AND status != Done ORDER BY priority DESC</code></td>
+</tr>
+<tr>
+<td>Lo del sprint en curso</td>
+<td><code>sprint in openSprints()</code></td>
+</tr>
+<tr>
+<td>Los bugs graves</td>
+<td><code>type = Bug AND priority in (Highest, High)</code></td>
+</tr>
+<tr>
+<td>Lo que nadie tomó</td>
+<td><code>assignee is EMPTY</code></td>
+</tr>
+<tr>
+<td>Lo que menciona &quot;silver&quot;</td>
+<td><code>text ~ &quot;silver&quot;</code></td>
+</tr>
+<tr>
+<td>Las historias grandes</td>
+<td><code>&quot;story points&quot; &gt;= 5 ORDER BY &quot;story points&quot; DESC</code></td>
+</tr>
+</tbody></table></div>
+<p>Una búsqueda útil se guarda con <strong>Save filter</strong> y se usa en tableros y suscripciones por correo. Si escribes mal un campo, Jira te lo dice: <em>Field &#39;foo&#39; does not exist</em>.</p>
+<h2>Los reportes</h2>
+<ul>
+<li><strong>Burndown</strong>: puntos que faltan día a día, contra la línea ideal. Si la línea roja va por encima de la gris, el sprint viene atrasado.</li>
+<li><strong>Velocity</strong>: puntos comprometidos y completados en cada sprint. El promedio de completados (la <em>velocidad</em>) sirve para planificar el próximo sin comprometer de más.</li>
+</ul>
+<figure class="captura"><img src="assets/img/guias/jira/j03-velocidad.webp" alt="El reporte de velocidad: comprometido y completado por sprint" loading="lazy"><figcaption>El reporte de velocidad: comprometido y completado por sprint</figcaption></figure>
+
+
+<h2>Jira y el código</h2>
+<p>Escribe la clave en el nombre de la rama y en el mensaje del commit:</p>
+<pre tabindex="0"><code class="language-bash">git checkout -b TA-6-agregar-mexico
+git commit -m &quot;TA-6 Agrega México a PAISES&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">git checkout -b TA-6-agregar-mexico</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella). <code>-b</code> = crea la rama nueva</span></li><li><code class="bx-linea">git commit -m &quot;TA-6 Agrega México a PAISES&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>commit</code> guarda una foto de los cambios preparados, con un mensaje. <code>-m</code> = el mensaje del commit</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<p>Con la integración de GitHub, Bitbucket o GitLab activada, la issue muestra la rama, los commits y el pull request. Cualquiera puede rastrear qué código resolvió qué pedido.</p>
+<h2>Qué tiene la réplica y qué no</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En la réplica</th>
+<th>Todavía no</th>
+</tr>
+</thead><tbody><tr>
+<td>Backlog con sprints (crear, iniciar, completar), tablero con arrastre y filtro por persona</td>
+<td>Tableros Kanban sin sprints, límites de WIP, swimlanes</td>
+</tr>
+<tr>
+<td>Issues con tipo, estado, responsable, prioridad, puntos, épica, subtareas, etiquetas, comentarios y actividad</td>
+<td>Campos personalizados, flujos de trabajo editables, adjuntos</td>
+</tr>
+<tr>
+<td>JQL con AND/OR, IN, ~, IS EMPTY, currentUser(), openSprints() y ORDER BY</td>
+<td>Funciones avanzadas (<code>updatedDate</code>, <code>WAS</code>, <code>CHANGED</code>), dashboards</td>
+</tr>
+<tr>
+<td>Burndown y velocidad</td>
+<td>Informe de sprint, cumulative flow, automatizaciones</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Un sprint completo</div>
+
+<ol>
+<li>En el <strong>Backlog</strong>, abre <code>TA-7</code>, estímala y asígnatela.</li>
+<li>En el <strong>Board</strong>, lleva tus issues hasta <em>Done</em>.</li>
+<li>Busca con JQL tus issues abiertas ordenadas por prioridad y guarda el filtro.</li>
+<li><strong>Complete sprint</strong>: mueve lo abierto al Sprint 2 y mira la velocidad.</li>
+<li>Inicia el Sprint 2 con un objetivo y mira el burndown.</li>
+</ol>
+<p>Documentación oficial: <a href="https://support.atlassian.com/jira-software-cloud/docs/use-your-scrum-backlog/">usar el backlog</a> · <a href="https://support.atlassian.com/jira-service-management-cloud/docs/use-advanced-search-with-jira-query-language-jql/">JQL</a> · <a href="https://support.atlassian.com/jira-software-cloud/docs/view-and-understand-the-burndown-chart/">burndown</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Trabajar en algo que no está en Jira</strong>: nadie sabe que lo estás haciendo y no cuenta en el sprint.</li>
+<li><strong>Empezar una story sin criterios de aceptación</strong>: no hay forma de saber cuándo está terminada.</li>
+<li><strong>Dejar la issue en <em>To Do</em> mientras trabajas</strong>: el tablero miente y el equipo no puede ayudarte.</li>
+<li><strong>Meter más puntos de los que dice la velocidad</strong>: el sprint termina con la mitad sin hacer.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Todo es una <strong>issue</strong> con clave (<code>TA-12</code>), tipo, estado, responsable, prioridad y puntos.</li>
+<li>El <strong>backlog</strong> tiene lo pendiente. Un <strong>sprint</strong> es lo que el equipo se compromete a terminar en una o dos semanas, con un objetivo.</li>
+<li>El <strong>tablero</strong> muestra el día a día. Al <strong>completar el sprint</strong>, lo abierto pasa al siguiente.</li>
+<li><strong>JQL</strong> busca issues con campos, operadores, funciones (<code>currentUser()</code>, <code>openSprints()</code>) y <code>ORDER BY</code>.</li>
+<li><strong>Burndown</strong> y <strong>velocidad</strong> muestran cómo va el sprint y cuánto suele terminar el equipo.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/interfaces-jira-por-dentro">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="interfaces-azure-devops-por-dentro.html">← Azure DevOps por dentro - Boards, Repos y Pipelines de un equipo de datos</a><a href="excel-la-pantalla.html">Excel desde cero - la pantalla, las celdas y tu primer libro →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -505,6 +505,43 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
           enviar({ id: msg.id, ...out });
           return;
         }
+        // sqlglot (assets/vendor, MIT): formatea SQL y lo traduce entre dialectos. Se carga la primera vez que se usa.
+        if (msg.kind === 'sqlglot') {
+          if (!loaded.has('sqlglot')) {
+            await py.loadPackage(msg.wheel);
+            await py.runPythonAsync(`
+import json as _json, logging as _logging
+import sqlglot as _sg
+from sqlglot.errors import ParseError as _ParseError, ErrorLevel as _ErrorLevel
+class _Avisos(_logging.Handler):
+    def __init__(self):
+        super().__init__(); self.lista = []
+    def emit(self, r):
+        self.lista.append(r.getMessage())
+_avisos = _Avisos()
+_logging.getLogger('sqlglot').addHandler(_avisos)
+_logging.getLogger('sqlglot').setLevel(_logging.WARNING)
+def _sqlglot(accion, sql, desde, hacia):
+    _avisos.lista = []
+    try:
+        destino = desde if accion == 'formatear' else hacia
+        partes = _sg.transpile(sql, read=desde, write=destino, pretty=True, unsupported_level=_ErrorLevel.WARN)
+        texto = ';\\n\\n'.join(p for p in partes if p.strip())
+        return _json.dumps({'ok': True, 'sql': texto + (';' if texto else ''), 'avisos': list(dict.fromkeys(_avisos.lista)), 'version': _sg.__version__})
+    except _ParseError as e:
+        errs = [{'linea': x.get('line'), 'col': x.get('col'), 'desc': x.get('description'), 'cerca': (x.get('start_context') or '') + (x.get('highlight') or '')} for x in e.errors]
+        return _json.dumps({'ok': False, 'errores': errs, 'error': str(e).split('\\n')[0]})
+    except Exception as e:
+        return _json.dumps({'ok': False, 'error': str(e).split('\\n')[0]})
+`);
+            loaded.add('sqlglot');
+          }
+          const f = py.globals.get('_sqlglot');
+          const r = JSON.parse(f(msg.accion, msg.code, msg.desde || 'sqlite', msg.hacia || 'duckdb'));
+          f.destroy();
+          enviar({ id: msg.id, ...r });
+          return;
+        }
         if (msg.kind === 'repl') {
           const f = py.globals.get('_repl');
           const r = f(msg.code);
@@ -587,6 +624,8 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
     dbt(template, opts = {}) { return this._send({ kind: 'dbt', mode: 'dbt', template, ...opts }); },
     warmup(mode) { return this._send({ kind: 'warmup', mode }); },
     shell({ code, argv, files, cwd, mode = 'python', env }) { return this._send({ kind: 'shell', mode, code, argv, files, cwd, env }); },
+    // formatear o traducir SQL con sqlglot (accion: 'formatear' | 'traducir')
+    sqlglot(accion, code, desde, hacia) { return this._send({ kind: 'sqlglot', mode: 'python', accion, code, desde, hacia, wheel: new URL('assets/vendor/sqlglot-26.17.1-py3-none-any.whl', location.href).href }, 60000); },
     repl(code, mode = 'python', opts = {}) { return this._send({ kind: 'repl', mode, code, libs: opts.libs }, opts.timeoutMs || 45000); }
   };
 

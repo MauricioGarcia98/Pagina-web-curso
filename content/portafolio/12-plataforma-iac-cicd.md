@@ -154,6 +154,28 @@ La autenticación de la CI usa **identidades federadas** (OIDC): GitHub presenta
 Infraestructura en Terraform o Bicep con estado remoto y un archivo de variables por entorno; jobs y pipelines en bundles con targets dev y prod. Cada cambio por pull request, con CI que corre validaciones, tests y el plan o what-if publicado en el PR. Al aprobar, el CI despliega a prod con una identidad de servicio vía OIDC, con aprobación manual para producción, y nadie cambia producción a mano.
 :::
 
+:::real En tu computadora y en la web real
+Todo el proyecto se hace en **tu computadora**:
+
+1. **Terminal**: Terminal en macOS, o Ubuntu con WSL en Windows (`wsl --install` en PowerShell como administrador). Ahí corres `git`, `uv` y las CLIs.
+2. **VS Code** con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).
+3. **Una carpeta por proyecto** con `git init` desde el primer minuto, y un repositorio público en **github.com → New repository** para mostrarlo.
+
+- **Terraform** en tu computadora: `brew install terraform` (o `winget install Hashicorp.Terraform`), `terraform init`, `plan` y `apply` contra tu cuenta.
+- **Bundle**: `databricks bundle validate` y `databricks bundle deploy -t dev` desde la terminal, después de `databricks auth login`.
+- **GitHub Actions**: el workflow corre en github.com; las credenciales van en *Settings → Secrets and variables → Actions* (o con OIDC, sin secretos).
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio y enlázalas desde el README.
+
+- `01-plan.png`: la salida de `terraform plan` con los recursos a crear.
+- `02-bundle.png`: el job desplegado por el bundle en Databricks.
+- `03-actions.png`: el workflow de GitHub Actions en verde, con los pasos de plan y deploy.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.
+:::
+
 ## Entregables
 
 - [ ] Terraform con estado remoto y dos entornos.

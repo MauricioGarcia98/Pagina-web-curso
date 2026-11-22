@@ -66,13 +66,16 @@
     airflow: ['airflow-iconos', 'airflow-motor', 'airflow', 'airflow-paginas', 'terminal-airflow'],
     snowflake: ['snowflake-motor', 'snowflake'],
     bigquery: ['@iconos', 'bigquery-motor', 'bigquery'],
+    aws: ['aws-consola'],
+    'azure-devops': ['azure-devops'],
+    jira: ['jira'],
     jupyter: ['@iconos', 'jupyter-kernel', 'jupyter'],
     excel: ['@iconos', 'excel-motor', 'excel'],
     'pedalia-dev': ['pedalia-portal'],
   };
   const grupoCargas = {};
   // la hoja de estilos de cada herramienta se pide al abrirla (no frena la portada ni las lecciones)
-  const CSS_GRUPO = { powerbi: 'powerbi', databricks: 'databricks', azure: 'azure', github: 'github', fabric: 'fabric', airflow: 'airflow', snowflake: 'snowflake', bigquery: 'bigquery', jupyter: 'jupyter', excel: 'excel' };
+  const CSS_GRUPO = { powerbi: 'powerbi', databricks: 'databricks', azure: 'azure', github: 'github', fabric: 'fabric', airflow: 'airflow', snowflake: 'snowflake', bigquery: 'bigquery', aws: 'aws', 'azure-devops': 'azure-devops', jira: 'jira', jupyter: 'jupyter', excel: 'excel' };
   const cssPedidas = {};
   function cargarCss(nombre) {
     if (!cssPedidas[nombre]) cssPedidas[nombre] = new Promise((ok) => {
@@ -2001,6 +2004,9 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     ['#/airflow', '🌀', 'Airflow', 'airflow', 'apps'],
     ['#/snowflake', '❄️', 'Snowflake', 'snowflake', 'apps'],
     ['#/bigquery', '🔎', 'BigQuery', 'bigquery', 'apps'],
+    ['#/aws', '🟧', 'Consola de AWS', 'aws', 'apps'],
+    ['#/azure-devops', '🔷', 'Azure DevOps', 'azure-devops', 'apps'],
+    ['#/jira', '🔹', 'Jira', 'jira', 'apps'],
     ['#/pedalia-dev', '🚲', 'API de Pedalia', 'pedalia-dev', 'apps'],
     ['#/jupyter', '📓', 'JupyterLab', 'jupyter', 'apps'],
     ['#/excel', '📗', 'Excel', 'excel', 'apps'],
@@ -2110,6 +2116,9 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     { id: 'airflow', g: 'apps', href: '#/airflow', ico: '🌀', nombre: 'Airflow', real: 'la interfaz web de Apache Airflow 3', desc: 'La interfaz de Airflow 3 con tus DAGs de verdad: los lee de ~/airflow/dags en la terminal, los analiza con Python y los ejecuta. Grid, Graph, logs por intento, Trigger con parámetros, backfill, assets, variables y conexiones.', puedes: ['Despausar y disparar DAGs, ver la Grid y el Graph en vivo', 'Leer el log de una tarea que falla, arreglar el archivo en la terminal y hacer Clear', 'Programar por datos: un DAG que actualiza un asset dispara otro', 'Variables, Connections, Pools, backfill y el comando airflow en la terminal'], modulos: ['airflow-paso-a-paso', 'airflow', 'pipelines', 'proyecto', 'interfaces', 'local'], rutas: ['airflow'] },
     { id: 'snowflake', g: 'apps', href: '#/snowflake', ico: '❄️', nombre: 'Snowflake', real: 'Snowsight (app.snowflake.com)', desc: 'Hojas de SQL con el dialecto de Snowflake sobre la base del curso, warehouses virtuales que cobran créditos, bases y esquemas, stages con COPY INTO, Time Travel, UNDROP, clones, roles y Query History.', puedes: ['Ejecutar SQL con contexto de rol, warehouse, base y esquema (Ctrl+Enter)', 'Crear warehouses, ver cuándo se suspenden y cuántos créditos gastaste', 'Subir archivos a un stage y cargarlos con COPY INTO sin duplicar', 'Recuperar datos con Time Travel (BEFORE/AT) y tablas con UNDROP; dar permisos con roles'], modulos: ['snowflake-paso-a-paso', 'sql', 'arquitectura', 'interfaces', 'modelado'], rutas: ['snowflake'] },
     { id: 'bigquery', g: 'apps', href: '#/bigquery', ico: '🔎', nombre: 'BigQuery', real: 'la consola de BigQuery en Google Cloud', desc: 'El editor de BigQuery con su validador: te dice cuántos bytes va a procesar la consulta antes de ejecutarla, que es lo que se cobra. Datasets y tablas, particiones y clustering, caché de resultados, cargas desde archivo, historial de jobs y una página de costos.', puedes: ['Ver cómo cambian los bytes al nombrar columnas, filtrar por la partición o usar SELECT *', 'Crear tablas con PARTITION BY, CLUSTER BY y require_partition_filter', 'Cargar un CSV a una tabla y explorar su esquema, detalles y vista previa (gratis)', 'Encontrar tus consultas más caras y proyectar su costo a tamaño de empresa'], modulos: ['bigquery-paso-a-paso', 'gcp', 'cert-gcp', 'sql', 'interfaces', 'arquitectura'], rutas: ['bigquery'] },
+    { id: 'aws', g: 'apps', href: '#/aws', ico: '🟧', nombre: 'Consola de AWS', real: 'la consola de AWS (console.aws.amazon.com)', desc: 'S3, Glue, Athena e IAM con el mismo estado que el comando aws de la terminal: creas un bucket, subes archivos particionados, un crawler los cataloga y Athena los consulta con SQL de verdad, mostrando los datos escaneados y el costo.', puedes: ['Crear un bucket con Block Public Access y subir datos particionados por mes', 'Crear una database y un crawler de Glue que descubre las tablas y sus particiones', 'Configurar la ubicación de resultados de Athena y consultar las tablas, viendo cuánto escanea cada consulta', 'Crear un rol de IAM con el mínimo privilegio para Glue'], modulos: ['aws', 'cert-aws', 'interfaces', 'arquitectura'], rutas: ['aws'] },
+    { id: 'azure-devops', g: 'apps', href: '#/azure-devops', ico: '🔷', nombre: 'Azure DevOps', real: 'Azure DevOps (dev.azure.com)', desc: 'Boards con tablero Kanban, backlog y sprints (Epic › Feature › User Story › Task, y Bug), Repos conectados a la terminal (git push aparece al instante), pull requests con revisión y políticas de rama, y Pipelines con YAML que corren tus tests.', puedes: ['Mover historias por el tablero, estimarlas en puntos y planificar un sprint', 'Subir código desde la terminal a Azure Repos y abrir un pull request enlazado a un work item', 'Crear un pipeline con azure-pipelines.yml y leer por qué falla un paso', 'Exigir revisión y build verde en main con políticas de rama'], modulos: ['github', 'azure', 'cert-azure', 'interfaces', 'pipelines'], rutas: ['azure-devops'] },
+    { id: 'jira', g: 'apps', href: '#/jira', ico: '🔹', nombre: 'Jira', real: 'Jira (Atlassian)', desc: 'Un proyecto Scrum del equipo de datos: backlog con sprints que se inician y se completan, tablero con columnas por estado, issues con clave (TA-12), estimación en story points, búsqueda con JQL y reportes de burndown y velocidad.', puedes: ['Planificar un sprint arrastrando issues del backlog y darle un objetivo', 'Mover el trabajo por el tablero y completar el sprint viendo qué se arrastra', 'Buscar con JQL: assignee = currentUser(), sprint in openSprints(), ORDER BY', 'Leer el burndown y la velocidad del equipo'], modulos: ['interfaces', 'casos', 'entrevistas'], rutas: ['jira'] },
     { id: 'pedalia-dev', g: 'apps', href: '#/pedalia-dev', ico: '🚲', nombre: 'API de Pedalia', real: 'el portal de desarrolladores de un proveedor de APIs (como los de Stripe o GitHub)', desc: 'Una API inventada pero viva: los viajes ocurren mientras la usas, el token OAuth vence, hay límite por minuto y cuota diaria, mantenimientos, incidentes y una versión vieja que se apaga con fecha. El portal tiene tus apps y credenciales, el uso, el registro de pedidos, la documentación, la página de estado y el changelog.', puedes: ['Registrar una app y rotar su secreto sin cortar el servicio', 'Pedir un token y extraer viajes con paginación por cursor desde curl o Python', 'Ver en el registro cada pedido, con su código y su x-request-id', 'Provocar una degradación para probar tus reintentos'], modulos: ['proyecto-pedalia', 'incidentes', 'python'], rutas: ['pedalia-dev'] },
     { id: 'jupyter', g: 'apps', href: '#/jupyter', ico: '📓', nombre: 'JupyterLab', real: 'JupyterLab 4 (el entorno de notebooks del Proyecto Jupyter)', desc: 'Notebooks de Python que se ejecutan de verdad en tu navegador: celdas de código y Markdown, tablas de pandas, gráficos de matplotlib, magics como %timeit y !ls, explorador de archivos con los datos del curso en CSV y los mismos atajos de teclado.', puedes: ['Analizar los CSV del curso con pandas y graficar con matplotlib', 'Usar el modo comando (A, B, D D, M, Y) y el modo edición como en el real', 'Reiniciar el kernel, ejecutar todo y entender por qué importa el orden de las celdas', 'Descargar tus notebooks en formato .ipynb y abrirlos en un JupyterLab real'], modulos: ['python', 'analisis', 'interfaces', 'portafolio', 'local'], rutas: ['jupyter'] },
     { id: 'excel', g: 'apps', href: '#/excel', ico: '📗', nombre: 'Excel', real: 'Microsoft Excel (escritorio y web)', desc: 'Una hoja de cálculo con fórmulas de verdad: referencias relativas y absolutas, SUMIFS, COUNTIFS, XLOOKUP, IF, fechas y texto; filtros, ordenar, quitar duplicados, tablas dinámicas y gráficos, con las tablas del curso para analizar.', puedes: ['Cargar las tablas del curso con Data → Get Data y analizarlas con fórmulas', 'Arrastrar fórmulas y entender cuándo usar $A$1', 'Resumir con una tabla dinámica y graficar el resultado', 'Filtrar, ordenar y quitar duplicados como en el Excel real'], modulos: ['analisis', 'powerbi', 'interfaces', 'fundamentos', 'casos'], rutas: ['excel'] },
@@ -2607,6 +2616,9 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       <div class="small"><p style="margin:6px 0">Cómo se calcula: tamaño promedio de cada columna que usa la consulta × filas de ${e.tablas.map((t) => `<code>${esc(t)}</code>`).join(', ')}. "En producción" supone tablas ${ESCALA_PROD.toLocaleString('es')} veces más grandes y el precio a demanda de BigQuery (US$ ${BQ_USD_TIB} por TiB, mínimo 10 MB por tabla). Si este tablero la ejecuta cada 5 minutos, son unas ${(12 * 24 * 30).toLocaleString('es')} ejecuciones al mes: <b>US$ ${(e.usd * 8640).toFixed(2).replace('.', ',')}</b>.</p>${consejos.length ? `<ul style="margin:4px 0 2px">${consejos.map((c) => `<li>${c}</li>`).join('')}</ul>` : '<p style="margin:4px 0">✓ Lee solo las columnas que necesita y filtra: buena práctica.</p>'}</div></details>`;
   }
 
+  // dialectos de sqlglot que ofrece el laboratorio, y cuál corresponde a cada motor del laboratorio
+  const SQLG_DIALECTOS = [['duckdb', 'DuckDB'], ['sqlite', 'SQLite'], ['postgres', 'PostgreSQL'], ['mysql', 'MySQL'], ['tsql', 'SQL Server (T-SQL)'], ['snowflake', 'Snowflake'], ['bigquery', 'BigQuery'], ['databricks', 'Databricks (Spark SQL)'], ['redshift', 'Amazon Redshift'], ['athena', 'Amazon Athena'], ['oracle', 'Oracle']];
+  const SQLG_DE_MOTOR = { sqlite: 'sqlite', postgres: 'postgres', mysql: 'mysql', duckdb: 'duckdb', sqlserver: 'tsql' };
   function viewLabSql() {
     const SM = window.SqlMotores;
     const MOT = SM.MOTORES;
@@ -2622,8 +2634,12 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       <div class="lab">
         <aside class="card lab-side"><h4>Bases de datos</h4><div id="schema"><div class="muted small">Cargando…</div></div></aside>
         <div class="lab-main"><div class="card">
-          <div class="ex-tools" style="border-top:0"><span class="samples"><select id="samples"></select></span><span class="spacer"></span><button class="btn btn-ghost btn-sm" id="resetDb" title="Deshace los cambios que hiciste a las tablas (INSERT, UPDATE, DELETE, CREATE)">↺ Reiniciar base</button><button class="btn btn-ghost btn-sm" id="cero" title="Base original y el primer ejemplo en el editor">↺ Empezar de cero</button></div>
+          <div class="ex-tools" style="border-top:0"><span class="samples"><select id="samples" aria-label="Ejemplos de consultas"></select></span><span class="spacer"></span><button class="btn btn-ghost btn-sm" id="resetDb" title="Deshace los cambios que hiciste a las tablas (INSERT, UPDATE, DELETE, CREATE)">↺ Reiniciar base</button><button class="btn btn-ghost btn-sm" id="cero" title="Base original y el primer ejemplo en el editor">↺ Empezar de cero</button></div>
           <div id="ed"></div>
+          <div class="ex-tools sqlg-barra"><button class="btn btn-ghost btn-sm" id="sqlgFmt" title="Ordena la consulta con sangrías y mayúsculas (sqlglot)">🧹 Formatear</button>
+            <label class="small" for="sqlgDest">🔁 Traducir a</label><select id="sqlgDest" class="sqlg-dest">${SQLG_DIALECTOS.map(([k, n]) => `<option value="${k}">${esc(n)}</option>`).join('')}</select><button class="btn btn-ghost btn-sm" id="sqlgTrad">Traducir</button>
+            <span class="small muted">con <a href="https://github.com/tobymao/sqlglot" target="_blank" rel="noopener">sqlglot</a>, en tu navegador</span></div>
+          <div id="sqlgHost"></div>
           <div class="ex-tools"><button class="btn btn-primary" id="run">▶ Ejecutar <span class="kbd">Ctrl+↵</span></button><span class="small muted">Se ejecutan todas las sentencias; se muestran los resultados de las últimas 3.</span></div>
           <div class="output" id="out"></div>
         </div><div id="expHost"></div></div>
@@ -2653,6 +2669,34 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       if (r.traducido) out.append(h(`<details class="motor-trad"><summary>Ver cómo se tradujo a SQLite</summary><pre data-lang="sql"><code>${esc(r.traducido)}</code></pre></details>`));
     };
     $('#run').addEventListener('click', run);
+    // sqlglot: formatear la consulta o traducirla a otro dialecto (Snowflake, BigQuery, Spark…)
+    const sqlgUsar = async (accion) => {
+      const host = $('#sqlgHost'), desde = SQLG_DE_MOTOR[motor] || 'sqlite', hacia = $('#sqlgDest').value;
+      const nombre = (k) => (SQLG_DIALECTOS.find((x) => x[0] === k) || [k, k])[1];
+      host.innerHTML = `<div class="sqlg-panel"><span class="spinner"></span> ${window.Engines.PY.status === 'ready' ? 'Procesando…' : 'Preparando sqlglot (la primera vez descarga Python en tu navegador, unos segundos)…'}</div>`;
+      const r = await window.Engines.PY.sqlglot(accion, ed.getValue(), desde, hacia);
+      if (!r.ok) {
+        const err = (r.errores || [])[0];
+        host.innerHTML = `<div class="sqlg-panel sqlg-error"><b>sqlglot no pudo leer la consulta</b>${err ? ` · línea ${err.linea}, columna ${err.col}: ${esc(err.desc || '')}${err.cerca ? `<pre class="console">${esc(err.cerca.slice(-120))} ⟵ aquí</pre>` : ''}` : `<p class="small">${esc(r.error || 'Error desconocido')}</p>`}<p class="small muted">Revisa comas, paréntesis y comillas cerca de ese punto. sqlglot lee el dialecto de ${esc(nombre(desde))}.</p><button class="btn btn-ghost btn-sm" data-sqlg-cerrar>Cerrar</button></div>`;
+        return;
+      }
+      const titulo = accion === 'formatear' ? 'Consulta formateada' : `Traducida de ${nombre(desde)} a ${nombre(hacia)}`;
+      host.innerHTML = `<div class="sqlg-panel"><div class="row" style="align-items:center;gap:8px"><b>${esc(titulo)}</b><span class="spacer"></span>
+          ${accion === 'formatear' || hacia === desde ? '<button class="btn btn-sm btn-primary" data-sqlg-usar>Usar en el editor</button>' : ''}<button class="btn btn-ghost btn-sm" data-sqlg-copiar>Copiar</button><button class="btn btn-ghost btn-sm" data-sqlg-cerrar>Cerrar</button></div>
+        ${r.avisos && r.avisos.length ? `<div class="motor-aviso">⚠️ ${r.avisos.map((a) => esc(a)).join('<br>⚠️ ')}</div>` : ''}
+        <pre data-lang="sql" tabindex="0"><code>${esc(r.sql)}</code></pre>
+        ${accion === 'traducir' && hacia !== desde ? `<p class="small muted">sqlglot traduce la sintaxis (funciones, comillas, LIMIT o TOP, fechas). Revisa siempre el resultado: si algo no tiene equivalente en ${esc(nombre(hacia))}, aparece un aviso arriba.</p>` : ''}</div>`;
+      $$('#sqlgHost pre').forEach((pre) => { try { highlight(pre); } catch (e) { /* sin resaltado */ } });
+      host.dataset.sql = r.sql;
+    };
+    $('#sqlgFmt').addEventListener('click', () => sqlgUsar('formatear'));
+    $('#sqlgTrad').addEventListener('click', () => sqlgUsar('traducir'));
+    $('#sqlgHost').addEventListener('click', (e) => {
+      const host = $('#sqlgHost');
+      if (e.target.closest('[data-sqlg-cerrar]')) host.textContent = '';
+      if (e.target.closest('[data-sqlg-usar]')) { ed.setValue(host.dataset.sql || ed.getValue()); host.textContent = ''; toast('Listo: la consulta formateada quedó en el editor'); }
+      if (e.target.closest('[data-sqlg-copiar]')) navigator.clipboard.writeText(host.dataset.sql || '').then(() => toast('Copiada'), () => toast('No se pudo copiar: selecciónala a mano'));
+    });
     $('#samples').addEventListener('change', (e) => { if (e.target.value !== '') { ed.setValue(ejemplos(motor)[e.target.value][1]); run(); } });
     $('#resetDb').addEventListener('click', async () => {
       if (motor === 'postgres' || motor === 'duckdb') { const E = motor === 'duckdb' ? SM.DUCK : SM.PG; if (E.estado !== 'listo') return; await E.reiniciar((msg) => loadingInto(out, msg)); out.innerHTML = ''; toast(`${SM.MOTORES[motor].nombre} reiniciado a su estado original`); return; }
@@ -4078,6 +4122,9 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (parts[0] === 'airflow') return { name: 'airflow', sub: parts.slice(1) };
     if (parts[0] === 'snowflake') return { name: 'snowflake', sub: parts.slice(1) };
     if (parts[0] === 'bigquery') return { name: 'bigquery', sub: parts.slice(1) };
+    if (parts[0] === 'aws') return { name: 'aws', sub: parts.slice(1) };
+    if (parts[0] === 'azure-devops') return { name: 'azure-devops', sub: parts.slice(1) };
+    if (parts[0] === 'jira') return { name: 'jira', sub: parts.slice(1) };
     if (parts[0] === 'pedalia-dev') return { name: 'pedalia-dev', sub: parts.slice(1) };
     if (parts[0] === 'jupyter') return { name: 'jupyter', sub: parts.slice(1) };
     if (parts[0] === 'excel') return { name: 'excel', sub: parts.slice(1) };
@@ -4098,6 +4145,9 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     airflow: { ico: '🌀', nombre: 'Airflow', leccion: 'interfaces-airflow-por-dentro' },
     snowflake: { ico: '❄️', nombre: 'Snowflake', leccion: 'interfaces-snowflake-por-dentro' },
     bigquery: { ico: '🔎', nombre: 'BigQuery', leccion: 'interfaces-bigquery-por-dentro' },
+    aws: { ico: '🟧', nombre: 'Consola de AWS', leccion: 'interfaces-consola-aws-por-dentro' },
+    'azure-devops': { ico: '🔷', nombre: 'Azure DevOps', leccion: 'interfaces-azure-devops-por-dentro' },
+    jira: { ico: '🔹', nombre: 'Jira', leccion: 'interfaces-jira-por-dentro' },
     jupyter: { ico: '📓', nombre: 'JupyterLab', leccion: 'interfaces-jupyterlab-por-dentro' },
     excel: { ico: '📗', nombre: 'Excel', leccion: 'interfaces-excel-por-dentro' },
   };
@@ -4193,6 +4243,9 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'airflow' && window.AirflowUI) window.AirflowUI.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'snowflake' && window.SnowflakePractica) window.SnowflakePractica.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'bigquery' && window.BigQueryPractica) window.BigQueryPractica.vista(main, { Store, toast }, r.sub);
+    else if (r.name === 'aws' && window.AwsConsola) window.AwsConsola.vista(main, { Store, toast }, r.sub);
+    else if (r.name === 'azure-devops' && window.AzureDevOps) window.AzureDevOps.vista(main, { Store, toast }, r.sub);
+    else if (r.name === 'jira' && window.JiraPractica) window.JiraPractica.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'pedalia-dev' && window.PedaliaPortal) window.PedaliaPortal.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'jupyter' && window.JupyterPractica) window.JupyterPractica.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'excel' && window.ExcelPractica) window.ExcelPractica.vista(main, { Store, toast }, r.sub);
@@ -4212,7 +4265,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else main.innerHTML = `<div class="container prose"><h1>Página no encontrada</h1><p>La dirección <code>${esc(location.hash)}</code> no existe o cambió de lugar.</p><p><a class="btn btn-primary" href="#/">Ir al inicio</a> <a class="btn" href="#/ruta">Ver la ruta de aprendizaje</a> <a class="btn" href="#/herramientas">Herramientas de práctica</a></p><p class="muted">También puedes usar el buscador de arriba.${enlaceReporte('Página no encontrada', `**Dirección:** ${location.href}`).replace('class="badge badge-link"', 'style="margin-left:6px"')}</p></div>`;
     barraHerramienta(r);
     if (window.Practica) window.Practica.panel(r);
-    if (window.RetosHerramientas) { if (r.name === 'azure') window.RetosHerramientas.montar(r.sub && r.sub[0] === 'studio' ? 'adf' : 'azure', Store); else if (r.name === 'databricks') window.RetosHerramientas.montar('databricks', Store); else if (r.name === 'github') window.RetosHerramientas.montar('github', Store); else if (r.name === 'snowflake') window.RetosHerramientas.montar('snowflake', Store); else if (r.name === 'bigquery') window.RetosHerramientas.montar('bigquery', Store); else if (r.name === 'airflow') window.RetosHerramientas.montar('airflow', Store); else if (r.name === 'fabric') window.RetosHerramientas.montar('fabric', Store); else if (r.name === 'jupyter') window.RetosHerramientas.montar('jupyter', Store); else if (r.name === 'excel') window.RetosHerramientas.montar('excel', Store); else window.RetosHerramientas.desmontar(); }
+    if (window.RetosHerramientas) { if (r.name === 'azure') window.RetosHerramientas.montar(r.sub && r.sub[0] === 'studio' ? 'adf' : 'azure', Store); else if (r.name === 'databricks') window.RetosHerramientas.montar('databricks', Store); else if (r.name === 'github') window.RetosHerramientas.montar('github', Store); else if (r.name === 'snowflake') window.RetosHerramientas.montar('snowflake', Store); else if (r.name === 'bigquery') window.RetosHerramientas.montar('bigquery', Store); else if (r.name === 'aws') window.RetosHerramientas.montar('aws', Store); else if (r.name === 'azure-devops') window.RetosHerramientas.montar('azure-devops', Store); else if (r.name === 'jira') window.RetosHerramientas.montar('jira', Store); else if (r.name === 'airflow') window.RetosHerramientas.montar('airflow', Store); else if (r.name === 'fabric') window.RetosHerramientas.montar('fabric', Store); else if (r.name === 'jupyter') window.RetosHerramientas.montar('jupyter', Store); else if (r.name === 'excel') window.RetosHerramientas.montar('excel', Store); else window.RetosHerramientas.desmontar(); }
     document.title = r.lesson ? `${r.lesson.titulo} · Academia de Datos` : r.module ? `${r.module.titulo} · Academia de Datos` : (titles[r.name] || 'Academia de Datos');
     const anchor = location.hash.split('#')[2];
     if (anchor && document.getElementById(anchor)) document.getElementById(anchor).scrollIntoView();

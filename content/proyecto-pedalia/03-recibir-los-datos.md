@@ -120,6 +120,23 @@ Si mañana finanzas decide que los viajes en curso sí cuentan, la regla cambia,
 - **Dejar las reglas en un chat**: cuando alguien pregunte en tres meses por qué los viajes de la estación 13 no suman, la respuesta tiene que estar en el repositorio.
 :::
 
+:::real En tu computadora y en la web real
+En la empresa, la exportación no la generas tú: el equipo de la app la deja en una carpeta compartida, un bucket o un SFTP, y te avisa por correo. Lo que sí es idéntico es **cómo la miras**:
+
+1. Abre la **terminal** de tu computadora y entra a la carpeta donde quedó el archivo (`cd`).
+2. Usa `head`, `wc -l`, `cut | sort | uniq -d` y `awk` exactamente como acá: funcionan igual en macOS, Linux y WSL. En Windows sin WSL, usa **Git Bash**.
+3. El contrato se escribe en VS Code (`docs/contrato.md`) y se sube con un **pull request** en github.com: botón *Compare & pull request* después del `git push`.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `03-exploracion.png`: la terminal con los conteos (filas, repetidas, sin fin, error de reloj).
+- `03-contrato-pr.png`: el pull request del contrato en github.com, con tus números en la descripción.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

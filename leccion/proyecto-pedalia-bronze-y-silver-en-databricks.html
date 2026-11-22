@@ -133,6 +133,30 @@ WHERE b.fin &lt;&gt; '' AND to_timestamp(b.fin, 'yyyy-MM-dd HH:mm:ss') &lt; to_t
 </div>
 
 
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>En un Databricks real (Azure Databricks o la <em>Free Edition</em> en <code>databricks.com</code>):</p>
+<ol>
+<li><strong>Catalog → External data → Credentials / External locations</strong> conecta el lago con una <em>access connector</em> (identidad administrada), sin claves en los notebooks.</li>
+<li><strong>Catalog → + → Create catalog</strong> y los esquemas <code>bronze</code>, <code>silver</code>, <code>gold</code>.</li>
+<li><strong>Workspace → Create → Notebook</strong> (o <em>SQL Editor</em>): pegas el SQL de la lección y lo ejecutas con un <strong>SQL warehouse</strong> o un clúster.</li>
+<li>La cuenta de control se corre en una celda aparte y su resultado se guarda en una tabla, para poder mostrarlo después.</li>
+</ol>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>06-catalogo.png</code>: el catálogo con los esquemas bronze y silver en <em>Catalog Explorer</em>.</li>
+<li><code>06-silver.png</code>: el resultado de la consulta silver con la cantidad de filas.</li>
+<li><code>06-control.png</code>: la cuenta de control cerrando (filas − descartes = válidos).</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

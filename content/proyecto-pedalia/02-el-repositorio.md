@@ -153,6 +153,25 @@ Abre el PR en el GitHub de práctica, espera el check verde y fusiónalo con **M
 - **Desplegar desde un pull request**: el `if: github.ref == 'refs/heads/main'` evita que una rama a medio hacer llegue a producción.
 :::
 
+:::real En tu computadora y en la web real
+Todo esto se hace igual en tu computadora y en **github.com**:
+
+1. **Terminal** (Terminal en macOS, Ubuntu/WSL o Git Bash en Windows): `git init`, `git add`, `git commit` y `git push` como en la lección. Antes, una sola vez: `git config --global user.name "Tu Nombre"` y `git config --global user.email tu@correo`.
+2. **github.com → botón + → New repository**: lo creas vacío (sin README) y copias los comandos de *…or push an existing repository*.
+3. **Settings → Branches → Add branch ruleset** (o *Rules → Rulesets*): proteges `main` pidiendo pull request y que pase el check.
+4. **Actions**: el workflow corre solo con cada push. Lo ves en la pestaña *Actions* del repositorio.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `02-estructura.png`: el árbol de carpetas del repositorio en github.com (pestaña *Code*).
+- `02-actions-verde.png`: la pestaña *Actions* con el workflow en verde.
+- `02-regla-main.png`: la regla de protección de `main` (Settings → Rules).
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

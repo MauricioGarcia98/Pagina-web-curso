@@ -112,6 +112,21 @@ Guarda el SQL de gold y de la exportación en `sql/databricks/gold.sql` y súbel
 - **Leer la carpeta antes de que aparezca `_SUCCESS`**: un archivo a medio escribir se carga incompleto. Los procesos que leen deben esperar la marca.
 :::
 
+:::real En tu computadora y en la web real
+En Databricks real, el job se crea en **Workflows → Jobs & Pipelines → Create job**: cada tarea es un notebook o un archivo SQL, con dependencias entre tareas, un horario (*Schedule*) y avisos por correo si falla (*Notifications*). La exportación a Parquet o CSV se escribe en un *external location* del lago, igual que acá.
+
+Si trabajas con código versionado, define el job como **Declarative Automation Bundle** (`databricks bundle init`, `databricks bundle deploy`) y queda en el repositorio.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `07-gold.png`: las tres tablas gold en el catálogo.
+- `07-job.png`: el job con sus tareas encadenadas y la última ejecución en verde.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

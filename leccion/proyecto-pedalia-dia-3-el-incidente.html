@@ -33,11 +33,13 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <pre tabindex="0"><code class="language-bash">pedalia exportar --dia 2
 az storage blob upload-batch --account-name stpedaliadev -d landing/pedalia/2026-11-10 -s ~/pedalia/entrega/2026-11-10
 airflow dags test pedalia_diario 2026-11-10</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">pedalia exportar --dia 2</code><span><code>pedalia</code>: el sistema de la app de Pedalia en la terminal del curso (en una empresa sería su API o una exportación automática). <code>exportar</code> genera la exportación de un día, como haría el sistema de la app</span></li><li><code class="bx-linea">az storage blob upload-batch --account-name stpedaliadev -d landing/pedalia/2026-11-10 -s ~/pedalia/entrega/2026-11-10</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload-batch</code>)</span></li><li><code class="bx-linea">airflow dags test pedalia_diario 2026-11-10</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>dags</code> lista, pausa o ejecuta DAGs</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Todas las tareas en verde. Revisa en Databricks que haya dos fechas en <code>pedalia.silver.viajes</code> y que el día 10 tenga menos viajes que el 9. ¿Por qué? Llovió el martes: es un dato real del negocio, no un error. Confírmalo con operaciones antes de &quot;arreglar&quot; algo que no está roto.</p>
 <h2>2. El día 3: la alerta</h2>
 <pre tabindex="0"><code class="language-bash">pedalia exportar --dia 3
 az storage blob upload-batch --account-name stpedaliadev -d landing/pedalia/2026-11-11 -s ~/pedalia/entrega/2026-11-11
 airflow dags test pedalia_diario 2026-11-11</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">pedalia exportar --dia 3</code><span><code>pedalia</code>: el sistema de la app de Pedalia en la terminal del curso (en una empresa sería su API o una exportación automática). <code>exportar</code> genera la exportación de un día, como haría el sistema de la app</span></li><li><code class="bx-linea">az storage blob upload-batch --account-name stpedaliadev -d landing/pedalia/2026-11-11 -s ~/pedalia/entrega/2026-11-11</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload-batch</code>)</span></li><li><code class="bx-linea">airflow dags test pedalia_diario 2026-11-11</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>dags</code> lista, pausa o ejecuta DAGs</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p><code>ingesta_adf</code> en verde. <code>transformar_databricks</code> en <strong>rojo</strong>. Las cargas de Snowflake y BigQuery, <strong>upstream_failed</strong>.</p>
 <h3>Seguir las huellas</h3>
 <ol>
@@ -49,6 +51,7 @@ airflow dags test pedalia_diario 2026-11-11</code></pre>
 <li><strong>Los datos</strong>: confírmalo en la terminal.</li>
 </ol>
 <pre tabindex="0"><code class="language-bash">head -3 ~/pedalia/entrega/2026-11-11/viajes_2026-11-11.csv</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">head -3 ~/pedalia/entrega/2026-11-11/viajes_2026-11-11.csv</code><span><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas). <code>-3</code> = las primeras 3 líneas</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>La app ahora manda <code>DD/MM/AAAA HH:MM</code>. Nadie avisó: el LEEME es el mismo.</p>
 <div class="callout callout-nota"><div class="callout-title">📝 Fallar fue lo correcto</div>
 
@@ -81,6 +84,7 @@ nano sql/databricks/silver_viajes.sql     # los dos formatos + la alarma
 nano docs/contrato.md                     # &quot;inicio, fin: AAAA-MM-DD HH:MM:SS o DD/MM/AAAA HH:MM (desde el 11/11)&quot;
 git commit -am &quot;Silver acepta el formato de fecha nuevo de la app (DD/MM/AAAA) y falla ante uno desconocido&quot;
 git push -u origin fix/formato-fecha-app</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(7)</span></summary><ol><li><code class="bx-linea">cd ~/pedalia-datos</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">git checkout main &amp;&amp; git pull</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella) <span class="bx-tubo">→ si sale bien, sigue el próximo</span><br><code>git</code>: Git: guarda la historia de tu código. <code>pull</code> trae los commits nuevos del remoto y los une a tu rama</span></li><li><code class="bx-linea">git checkout -b fix/formato-fecha-app</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella). <code>-b</code> = crea la rama nueva</span></li><li><code class="bx-linea">nano sql/databricks/silver_viajes.sql</code><span><code>nano</code>: editor de texto simple dentro de la terminal (Ctrl+O guarda, Ctrl+X sale)<br><i class="bx-com">Nota del ejemplo: los dos formatos + la alarma</i></span></li><li><code class="bx-linea">nano docs/contrato.md</code><span><code>nano</code>: editor de texto simple dentro de la terminal (Ctrl+O guarda, Ctrl+X sale)<br><i class="bx-com">Nota del ejemplo: &quot;inicio, fin: AAAA-MM-DD HH:MM:SS o DD/MM/AAAA HH:MM (desde el 11/11)&quot;</i></span></li><li><code class="bx-linea">git commit -am &quot;Silver acepta el formato de fecha nuevo de la app (DD/MM/AAAA) y falla ante uno desconocido&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>commit</code> guarda una foto de los cambios preparados, con un mensaje</span></li><li><code class="bx-linea">git push -u origin fix/formato-fecha-app</code><span><code>git</code>: Git: guarda la historia de tu código. <code>push</code> sube tus commits al repositorio remoto (GitHub). <code>-u</code> = recuerda la rama remota: después alcanza con <code>git push</code></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Abre el PR con una descripción que alguien pueda entender en seis meses: qué pasó, qué cambia, cómo lo probaste. Con el check en verde y la aprobación, fusiona. Después actualiza el SQL de la tarea <code>bronze_y_silver</code> en el job de Databricks.</p>
 <div class="callout callout-nota"><div class="callout-title">📝 En producción</div>
 
@@ -92,6 +96,7 @@ git push -u origin fix/formato-fecha-app</code></pre>
 <p>En <a href="#/airflow">Airflow</a>, la corrida del 11/11 → la tarea <code>transformar_databricks</code> → <strong>Clear</strong> (con <em>downstream</em>). Airflow vuelve a ejecutar la transformación y, si sale bien, las dos cargas. La ingesta no se repite: ya estaba bien.</p>
 <p>O desde la terminal:</p>
 <pre tabindex="0"><code class="language-bash">airflow dags test pedalia_diario 2026-11-11</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">airflow dags test pedalia_diario 2026-11-11</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>dags</code> lista, pausa o ejecuta DAGs</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Todo en verde. Avisa en el canal: &quot;✅ Resuelto. Los datos del 11/11 ya están en Snowflake, BigQuery y el tablero&quot;.</p>
 <h2>6. ¿Cuadra todo?</h2>
 <p>El panel de abajo lee el estado real de cada herramienta y lo compara con <strong>lo que tiene que dar tu entrega</strong> según el contrato (con tus datos, que son solo tuyos). No modifica nada: úsalo tantas veces como quieras.</p>
@@ -139,6 +144,30 @@ Los datos del 11/11 se publicaron a las 8:40, con 1 h 28 min de demora. No se pu
 <li><strong>Postmortem con culpables</strong> (&quot;el equipo de la app la rompió&quot;): la gente deja de contar lo que pasa. Se analizan sistemas y acuerdos, no personas.</li>
 <li><strong>No avisar mientras se arregla</strong>: dos horas de silencio con un tablero viejo generan más daño que el incidente.</li>
 </ul>
+</div>
+
+
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>En la vida real, la alerta llega por <strong>correo, Slack/Teams o PagerDuty</strong> (lo que configuraste en el job o en Airflow). El orden es el mismo de la lección:</p>
+<ol>
+<li>Avisas en el canal del equipo <strong>antes</strong> de arreglar: qué falla, a quién afecta y cuándo vuelves a escribir.</li>
+<li>Arreglas en una rama, con un pull request que alguien revisa.</li>
+<li>Re-ejecutas solo la tarea que falló (<em>Clear</em> sobre la tarea en Airflow, o <em>Repair run</em> en el job de Databricks).</li>
+<li>El postmortem va en el repositorio o en la wiki del equipo, sin buscar culpables.</li>
+</ol>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>11-alerta.png</code>: la tarea en rojo y el error en el log.</li>
+<li><code>11-pr-arreglo.png</code>: el pull request del arreglo.</li>
+<li><code>11-postmortem.png</code>: el postmortem en Markdown en github.com.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
 </div>
 
 

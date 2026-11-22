@@ -84,7 +84,7 @@ with DAG(&quot;etl_ventas&quot;, default_args=default_args, ...):
 <h2>Variables y Connections</h2>
 <p>Airflow guarda dos tipos de configuración en su base de metadatos:</p>
 <div class="table-wrap"><table><thead><tr>
-<th></th>
+<th><span class="sr-only">Concepto</span></th>
 <th>Variables</th>
 <th>Connections</th>
 </tr>
@@ -107,6 +107,7 @@ with DAG(&quot;etl_ventas&quot;, default_args=default_args, ...):
 <p>Se crean desde la interfaz web, la CLI o variables de entorno con un prefijo especial:</p>
 <pre tabindex="0"><code class="language-bash">export AIRFLOW_VAR_ENTORNO=prod                                   # Variable &quot;entorno&quot;
 export AIRFLOW_CONN_MI_DB='postgresql://usuario:clave@host:5432/ventas'   # Connection &quot;mi_db&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">export AIRFLOW_VAR_ENTORNO=prod</code><span><code>export</code>: define una variable de entorno para esta terminal y los programas que lances desde ella<br><i class="bx-com">Nota del ejemplo: Variable &quot;entorno&quot;</i></span></li><li><code class="bx-linea">export AIRFLOW_CONN_MI_DB='postgresql://usuario:clave@host:5432/ventas'</code><span><code>export</code>: define una variable de entorno para esta terminal y los programas que lances desde ella<br><i class="bx-com">Nota del ejemplo: Connection &quot;mi_db&quot;</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <div class="callout callout-tip"><div class="callout-title">💡 Prefiere plantillas a Variable.get</div>
 
 <p><code>{{ var.value.bucket }}</code> dentro de un parámetro con plantilla se resuelve <strong>cuando corre la tarea</strong>. <code>Variable.get(&quot;bucket&quot;)</code> en el nivel superior se ejecuta <strong>en cada parseo</strong>.</p>
@@ -191,13 +192,13 @@ def test_todas_las_tareas_tienen_reintentos():
 <p>Abre la terminal del curso (botón ⌨ Terminal) y prueba: <code>ls dags</code>, <code>airflow dags list</code>, <code>airflow tasks list etl_ventas</code> y <code>airflow dags test etl_ventas 2024-03-15</code>. Son DAGs reales que corre el mini-Airflow del curso.</p>
 <h2>Checklist antes de subir un DAG</h2>
 <ul>
-<li><input disabled="" type="checkbox"> ¿Cada tarea es idempotente y usa <code>{{ ds }}</code> en vez de &quot;hoy&quot;?</li>
-<li><input disabled="" type="checkbox"> ¿<code>start_date</code> es fija y <code>catchup</code> está decidido a propósito?</li>
-<li><input disabled="" type="checkbox"> ¿Hay <code>retries</code>, <code>execution_timeout</code> y una alerta de falla?</li>
-<li><input disabled="" type="checkbox"> ¿El nivel superior del archivo está libre de consultas, APIs y <code>Variable.get</code>?</li>
-<li><input disabled="" type="checkbox"> ¿El trabajo pesado corre fuera de Airflow (Spark, dbt, warehouse)?</li>
-<li><input disabled="" type="checkbox"> ¿Los secretos están en Connections?</li>
-<li><input disabled="" type="checkbox"> ¿Pasa el test de <code>DagBag</code> sin import errors?</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  ¿Cada tarea es idempotente y usa <code>{{ ds }}</code> en vez de &quot;hoy&quot;?</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  ¿<code>start_date</code> es fija y <code>catchup</code> está decidido a propósito?</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  ¿Hay <code>retries</code>, <code>execution_timeout</code> y una alerta de falla?</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  ¿El nivel superior del archivo está libre de consultas, APIs y <code>Variable.get</code>?</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  ¿El trabajo pesado corre fuera de Airflow (Spark, dbt, warehouse)?</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  ¿Los secretos están en Connections?</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  ¿Pasa el test de <code>DagBag</code> sin import errors?</li>
 </ul>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: La CLI de Airflow para revisar antes de subir</div>
 
@@ -213,6 +214,7 @@ airflow variables list
 airflow tasks list etl_ventas
 airflow tasks test etl_ventas extraer 2024-01-01
 airflow dags test etl_ventas 2024-01-01</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(7)</span></summary><ol><li><code class="bx-linea">airflow dags list</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>dags</code> lista, pausa o ejecuta DAGs</span></li><li><code class="bx-linea">airflow dags list-import-errors</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>dags</code> lista, pausa o ejecuta DAGs</span></li><li><code class="bx-linea">airflow variables set entorno dev</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>variables</code> administra variables</span></li><li><code class="bx-linea">airflow variables list</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>variables</code> administra variables</span></li><li><code class="bx-linea">airflow tasks list etl_ventas</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>tasks</code> prueba o mira tareas</span></li><li><code class="bx-linea">airflow tasks test etl_ventas extraer 2024-01-01</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>tasks</code> prueba o mira tareas</span></li><li><code class="bx-linea">airflow dags test etl_ventas 2024-01-01</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>dags</code> lista, pausa o ejecuta DAGs</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Reto: rompe a propósito <code>~/dags/etl_ventas.py</code> (borra un paréntesis) y verifica que <code>list-import-errors</code> lo detecta.</p>
 <p>Documentación oficial: <a href="https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html">buenas prácticas</a> · <a href="https://airflow.apache.org/docs/apache-airflow/stable/cli-and-env-variables-ref.html">referencia de la CLI</a></p>
 </div>

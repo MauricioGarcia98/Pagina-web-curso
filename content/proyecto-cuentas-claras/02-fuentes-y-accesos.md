@@ -87,6 +87,18 @@ SELECT * FROM (
   FROM meses m JOIN eventos e ON e.creado <= m.cierre) x WHERE rn = 1;
 ```
 
+:::real En tu computadora y en la web real
+Cada API se prueba primero desde la terminal con `curl` (o con Postman/Bruno), mirando la paginación y los límites de uso. Los tokens van en variables de entorno (`export CRM_TOKEN=…` solo en tu terminal) o en el Key Vault; nunca en el repositorio. Las URLs reales de cada proveedor están en su portal de desarrolladores.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `02-apis.png`: una respuesta de cada API (sin tokens).
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

@@ -302,9 +302,8 @@
     let g = main.querySelector('#ghp');
     if (!g) {
       main.innerHTML = `<div class="ghp" id="ghp"><div class="gh-pag" id="ghPag"></div>
-        <section class="gh-term" id="ghTerm" hidden><div class="gh-term-h"><b>${oc('terminal')} Terminal</b><span class="gh-dim">la misma máquina del curso: lo que subes con git push aparece arriba al instante</span><span class="gh-sp"></span><button class="gh-ib" id="ghTermX" title="Cerrar">${oc('x')}</button></div><div class="gh-term-b" id="ghTermBody"></div></section></div>`;
+        <section class="gh-term" id="ghTerm" hidden aria-label="Terminal"><div class="gh-term-b" id="ghTermBody"></div></section></div>`;
       g = main.querySelector('#ghp');
-      g.querySelector('#ghTermX').addEventListener('click', () => alternarTerminal(false));
     }
     const pag = g.querySelector('#ghPag');
     const mismaRuta = pag.dataset.ruta === location.hash;
@@ -357,8 +356,20 @@
   function montarTerminal(foco) {
     const b = document.getElementById('ghTermBody'); if (!b) return;
     if (!b.firstChild) {
-      // después de cada git o gh la página se vuelve a dibujar: el push, el PR o el merge se ven al instante
-      termObj = Sh().createTerminal(b, { compact: true, welcome: `${Sh().col.b('Terminal de práctica')} — la misma máquina del curso. Prueba: ${Sh().col.info('git clone https://github.com/tienda-andina/pipelines')}`, onCommand: (l) => { if (/^\s*(git|gh|reiniciar-remoto)\b/.test(l) && document.getElementById('ghp')) render(); } });
+      // como al abrir la terminal de una computadora: "Last login" y el prompt, sin carteles.
+      // Después de cada git o gh la página se vuelve a dibujar: el push, el PR o el merge se ven al instante.
+      const f = new Date(), dias = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], meses = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const dd = (n) => String(n).padStart(2, '0');
+      const login = `Last login: ${dias[f.getDay()]} ${meses[f.getMonth()]} ${f.getDate()} ${dd(f.getHours())}:${dd(f.getMinutes())}:${dd(f.getSeconds())} on ttys001`;
+      termObj = Sh().createTerminal(b, { compact: true, welcome: Sh().col.dim(login), onCommand: (l) => { if (/^\s*(git|gh|reiniciar-remoto)\b/.test(l) && document.getElementById('ghp')) render(); } });
+      // los tres puntos de la ventana funcionan como en macOS: cerrar, minimizar y agrandar
+      const term = b.querySelector('.term'), puntos = term && term.querySelectorAll('.term-dots i');
+      if (puntos && puntos.length === 3) {
+        const acciones = [['Cerrar la terminal', () => alternarTerminal(false)], ['Minimizar la terminal', () => alternarTerminal(false)], ['Agrandar o achicar la terminal', () => document.getElementById('ghTerm').classList.toggle('gh-term-max')]];
+        puntos.forEach((i, k) => { i.setAttribute('role', 'button'); i.setAttribute('tabindex', '0'); i.setAttribute('aria-label', acciones[k][0]); i.title = acciones[k][0]; i.addEventListener('click', acciones[k][1]); i.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); acciones[k][1](); } }); });
+        term.querySelector('.term-actions').insertAdjacentHTML('beforeend', ` <button type="button" class="gh-term-cerrar" title="Cerrar la terminal" aria-label="Cerrar la terminal">✕</button>`);
+        term.querySelector('.gh-term-cerrar').addEventListener('click', () => alternarTerminal(false));
+      }
     }
     if (foco) setTimeout(() => termObj && termObj.focus && termObj.focus(), 30);
   }
@@ -391,21 +402,36 @@
       if (tip) feed.push({ f: x.r.commits[tip].date, html: `${avatar(x.r.commits[tip].author)} ${usuario(x.r.commits[tip].author)} pushed to <a href="${repoUrl(x, 'tree', ramaDefecto(x.r))}">${esc(ramaDefecto(x.r))}</a> in <a href="${repoUrl(x)}">${esc(x.owner)}/${esc(x.repo)}</a> — <span class="gh-mono">${corto(tip)}</span> ${esc(titulo(x.r.commits[tip].msg))}` });
     }
     feed.sort((a, b) => String(b.f).localeCompare(String(a.f)));
+    const vacio = !rs.filter((x) => x.owner === YO).length;
+    // como "Explore repositories" de GitHub: los repositorios de las organizaciones del curso (el del equipo existe siempre)
+    const sugeridos = listaRepos().filter((x) => x.owner !== YO).slice(0, 3);
+    if (!sugeridos.some((x) => x.owner === 'tienda-andina' && x.repo === 'pipelines')) sugeridos.unshift({ owner: 'tienda-andina', repo: 'pipelines', r: { meta: { desc: 'Pipelines de datos del equipo de Tienda Andina' } } });
     const cuerpo = `<div class="gh-dash">
-      <aside class="gh-dash-izq"><div class="gh-dash-t"><b>Top repositories</b>${btn('New', { ico: 'repo', sm: true, tipo: 'primary', href: url('new') })}</div>
-        <input class="gh-input gh-input-sm" id="ghFiltroR" placeholder="Find a repository…">
-        <ul class="gh-dash-repos">${rs.map((x) => `<li data-n="${esc(x.owner + '/' + x.repo)}">${avatar(x.owner, 16)}<a href="${repoUrl(x)}">${esc(x.owner)}/${esc(x.repo)}</a></li>`).join('') || '<li class="gh-dim">Todavía no hay repositorios.</li>'}</ul></aside>
+      <aside class="gh-dash-izq">${vacio ? `<div class="gh-primer"><h2 class="gh-h4">Create your first project</h2><p class="gh-dim gh-sm">Ready to start building? Create a repository for a new idea or bring over an existing repository to keep contributing to it.</p>
+          <div class="gh-primer-b">${btn('Create repository', { ico: 'repo', tipo: 'primary', sm: true, href: url('new') })}${btn('Import repository', { ico: 'repo-push', sm: true, href: url('new', 'import') })}</div></div>
+          ${rs.length ? `<div class="gh-dash-t"><b>Top repositories</b></div><ul class="gh-dash-repos">${rs.map((x) => `<li data-n="${esc(x.owner + '/' + x.repo)}">${avatar(x.owner, 16)}<a href="${repoUrl(x)}">${esc(x.owner)}/${esc(x.repo)}</a></li>`).join('')}</ul>` : ''}
+          <div class="gh-dash-t gh-dash-t2"><b>Recent activity</b></div><p class="gh-dim gh-sm">When you take actions across GitHub, we’ll provide links to that activity here.</p>`
+        : `<div class="gh-dash-t"><b>Top repositories</b>${btn('New', { ico: 'repo', sm: true, tipo: 'primary', href: url('new') })}</div>
+        <input class="gh-input gh-input-sm" id="ghFiltroR" placeholder="Find a repository…" aria-label="Find a repository">
+        <ul class="gh-dash-repos">${rs.map((x) => `<li data-n="${esc(x.owner + '/' + x.repo)}">${avatar(x.owner, 16)}<a href="${repoUrl(x)}">${esc(x.owner)}/${esc(x.repo)}</a></li>`).join('')}</ul>`}</aside>
       <section class="gh-dash-centro"><h2 class="gh-h2">Home</h2>
-        ${pista(`Esta es la réplica de GitHub del curso. Los repositorios son los mismos que usa la <b>terminal</b> (botón ${oc('terminal')} arriba): <code>git clone</code>, <code>git push</code> y <code>gh pr create</code> se ven acá al instante. Empieza por <a href="${url('tienda-andina', 'pipelines')}">tienda-andina/pipelines</a> o crea un repositorio con <b>New</b>. ¿Primera vez? Sigue el <a href="#/m/github">curso de GitHub paso a paso</a>.`)}
-        ${rs.length ? '' : `<div class="gh-box gh-blank">${oc('repo', '', 24)}<h3>Crea tu primer repositorio</h3><p>O abre el repositorio de práctica del equipo de datos.</p>${btn('Abrir tienda-andina/pipelines', { tipo: 'primary', attr: 'id="ghSemilla"' })}</div>`}
-        <h3 class="gh-h3">Recent activity</h3>
-        <div class="gh-feed">${feed.slice(0, 25).map((e) => `<div class="gh-feed-i">${e.html}<span class="gh-dim"> · ${hace(e.f)}</span></div>`).join('') || '<p class="gh-dim">Cuando hagas push, abras issues o pull requests, aparecerán aquí.</p>'}</div></section>
+        ${vacio ? `<div class="gh-box gh-nuevo-rapido"><div class="gh-box-b"><h3 class="gh-h4">Start a new repository for ${esc(YO)}</h3><p class="gh-dim gh-sm">A repository contains all of your project’s files, revision history, and collaborator discussion.</p>
+          <label class="gh-lbl" for="ghRapNombre">Repository name <span class="gh-rojo">*</span></label><div class="gh-rap-fila">${avatar(YO, 20)}<span>${esc(YO)}</span><span class="gh-slash">/</span><input class="gh-input" id="ghRapNombre" placeholder="name your new repository..." autocomplete="off"></div>
+          <label class="gh-radio"><input type="radio" name="ghRapVis" value="pub" checked>${oc('repo')}<div><b>Public</b><div class="gh-dim gh-sm">Anyone on the internet can see this repository</div></div></label>
+          <label class="gh-radio"><input type="radio" name="ghRapVis" value="priv">${oc('lock')}<div><b>Private</b><div class="gh-dim gh-sm">You choose who can see and commit to this repository</div></div></label>
+          ${btn('Create a new repository', { tipo: 'primary', attr: 'id="ghRapCrear" disabled' })}</div></div>` : ''}
+        ${vacio ? '' : `<h3 class="gh-h3">Recent activity</h3>`}
+        <div class="gh-feed">${vacio ? '' : feed.slice(0, 25).map((e) => `<div class="gh-feed-i">${e.html}<span class="gh-dim"> · ${hace(e.f)}</span></div>`).join('') || (vacio ? '' : '<p class="gh-dim">When you push code, open issues or pull requests, your activity will show up here.</p>')}</div></section>
+      ${sugeridos.length ? `<aside class="gh-dash-der"><h3 class="gh-h4">Explore repositories</h3>${sugeridos.map((x) => `<div class="gh-explora">${avatar(x.owner, 16)} <a href="${repoUrl(x)}"><b>${esc(x.owner)}/${esc(x.repo)}</b></a>${x.r.meta.desc ? `<p class="gh-dim gh-sm">${esc(x.r.meta.desc)}</p>` : ''}</div>`).join('')}</aside>` : ''}
     </div>`;
     marco(null, '', cuerpo, { ancho: true });
     const f = main.querySelector('#ghFiltroR');
-    f.addEventListener('input', () => main.querySelectorAll('.gh-dash-repos li[data-n]').forEach((li) => { li.hidden = !li.dataset.n.toLowerCase().includes(f.value.toLowerCase()); }));
-    const s = main.querySelector('#ghSemilla');
-    if (s) s.addEventListener('click', () => { API().crearRemoto('https://github.com/tienda-andina/pipelines', true); guardar(); ir(url('tienda-andina', 'pipelines')); });
+    if (f) f.addEventListener('input', () => main.querySelectorAll('.gh-dash-repos li[data-n]').forEach((li) => { li.hidden = !li.dataset.n.toLowerCase().includes(f.value.toLowerCase()); }));
+    const rn = main.querySelector('#ghRapNombre'), rb = main.querySelector('#ghRapCrear');
+    if (rn) {
+      rn.addEventListener('input', () => { const v = rn.value.trim().replace(/[^\w.-]+/g, '-'); rb.disabled = !v || !!buscarRepo(YO, v); });
+      rb.addEventListener('click', () => { const v = rn.value.trim().replace(/[^\w.-]+/g, '-'); const x = crearRepo(YO, v, { privado: main.querySelector('[name=ghRapVis]:checked').value === 'priv' }); ir(repoUrl(x)); });
+    }
   }
   function vistaPerfil(owner) {
     const rs = listaRepos().filter((x) => x.owner.toLowerCase() === owner.toLowerCase());
@@ -442,19 +468,23 @@
     return buscarRepo(owner, nombre);
   }
   function vistaNuevo() {
-    const cuerpo = `<div class="gh-nuevo"><h1 class="gh-h1">Create a new repository</h1><p class="gh-dim">A repository contains all project files, including the revision history.</p><hr>
-      <div class="gh-form-fila"><div><label class="gh-lbl">Owner <span class="gh-rojo">*</span></label><select class="gh-input" id="nrOwner"><option>alumno</option><option>tienda-andina</option></select></div><span class="gh-slash">/</span>
-      <div class="gh-grow"><label class="gh-lbl">Repository name <span class="gh-rojo">*</span></label><input class="gh-input" id="nrNombre" autocomplete="off"><div class="gh-nota" id="nrNota"></div></div></div>
-      <p class="gh-dim">Great repository names are short and memorable. Need inspiration? How about <b class="gh-verde">ventas-pipeline</b>?</p>
-      <label class="gh-lbl">Description <span class="gh-dim">(optional)</span></label><input class="gh-input" id="nrDesc">
-      <hr><label class="gh-radio"><input type="radio" name="nrVis" value="pub" checked>${oc('repo')}<div><b>Public</b><div class="gh-dim">Anyone on the internet can see this repository. You choose who can commit.</div></div></label>
-      <label class="gh-radio"><input type="radio" name="nrVis" value="priv">${oc('lock')}<div><b>Private</b><div class="gh-dim">You choose who can see and commit to this repository.</div></div></label><hr>
-      <h3 class="gh-h4">Initialize this repository with:</h3>
-      <label class="gh-check"><input type="checkbox" id="nrReadme"><div><b>Add a README file</b><div class="gh-dim">This is where you can write a long description for your project.</div></div></label>
-      <label class="gh-lbl">Add .gitignore</label><select class="gh-input gh-input-auto" id="nrIgnore"><option value="">.gitignore template: None</option><option>Python</option><option>Node</option><option>Terraform</option></select>
-      <label class="gh-lbl">Choose a license</label><select class="gh-input gh-input-auto" id="nrLic"><option value="">License: None</option><option>MIT</option></select>
-      ${pista('Si vas a subir un proyecto que ya tienes en la terminal, <b>no</b> marques el README: crea el repositorio vacío y GitHub te muestra los comandos <code>git remote add origin …</code> y <code>git push -u origin main</code>.')}
-      <hr><div class="gh-der">${btn('Create repository', { tipo: 'primary', attr: 'id="nrCrear" disabled' })}</div></div>`;
+    const cuerpo = `<div class="gh-nuevo"><h1 class="gh-h1">Create a new repository</h1>
+      <p class="gh-dim">Repositories contain a project's files and version history. Have a project elsewhere? <a href="${url('new', 'import')}">Import a repository</a>.</p>
+      <p class="gh-dim gh-sm"><i>Required fields are marked with an asterisk (*).</i></p>
+      <section class="gh-nuevo-sec"><div class="gh-nuevo-num">1</div><div class="gh-grow"><h2 class="gh-h3">General</h2>
+        <div class="gh-form-fila"><div><label class="gh-lbl" for="nrOwner">Owner <span class="gh-rojo">*</span></label><select class="gh-input" id="nrOwner"><option>${esc(YO)}</option><option>tienda-andina</option></select></div><span class="gh-slash">/</span>
+        <div class="gh-grow"><label class="gh-lbl" for="nrNombre">Repository name <span class="gh-rojo">*</span></label><input class="gh-input" id="nrNombre" autocomplete="off"><div class="gh-nota" id="nrNota"></div></div></div>
+        <p class="gh-dim gh-sm">Great repository names are short and memorable. How about <b class="gh-verde">ventas-pipeline</b>?</p>
+        <label class="gh-lbl" for="nrDesc">Description</label><textarea class="gh-input gh-nr-desc" id="nrDesc" maxlength="350" rows="2"></textarea><div class="gh-dim gh-sm gh-der" id="nrDescN">0 / 350 characters</div></div></section>
+      <section class="gh-nuevo-sec"><div class="gh-nuevo-num">2</div><div class="gh-grow"><h2 class="gh-h3">Configuration</h2>
+        <div class="gh-conf">
+          <div class="gh-conf-f"><div><b>Choose visibility <span class="gh-rojo">*</span></b><div class="gh-dim gh-sm">Choose who can see and commit to this repository</div></div><select class="gh-input gh-input-auto" id="nrVis" aria-label="Choose visibility"><option value="pub">Public</option><option value="priv">Private</option></select></div>
+          <div class="gh-conf-f"><div><b>Start with a template</b><div class="gh-dim gh-sm">Templates pre-configure your repository with files.</div></div><select class="gh-input gh-input-auto" aria-label="Start with a template" disabled><option>No template</option></select></div>
+          <div class="gh-conf-f"><div><b>Add README</b><div class="gh-dim gh-sm">READMEs can be used as longer descriptions. <a href="#/l/github-crear-repositorio" target="_blank" rel="noopener">About READMEs</a></div></div><label class="gh-switch"><input type="checkbox" id="nrReadme" role="switch" aria-label="Add README"><span class="gh-switch-txt" aria-hidden="true">Off</span><i aria-hidden="true"></i></label></div>
+          <div class="gh-conf-f"><div><b>Add .gitignore</b><div class="gh-dim gh-sm">.gitignore tells git which files not to track.</div></div><select class="gh-input gh-input-auto" id="nrIgnore" aria-label="Add .gitignore"><option value="">No .gitignore</option><option>Python</option><option>Node</option><option>Terraform</option></select></div>
+          <div class="gh-conf-f"><div><b>Add license</b><div class="gh-dim gh-sm">Licenses explain how others can use your code.</div></div><select class="gh-input gh-input-auto" id="nrLic" aria-label="Add license"><option value="">No license</option><option value="MIT">MIT License</option></select></div>
+        </div></div></section>
+      <div class="gh-der">${btn('Create repository', { tipo: 'primary', attr: 'id="nrCrear" disabled' })}</div></div>`;
     marco(null, '', cuerpo);
     const n = main.querySelector('#nrNombre'), nota = main.querySelector('#nrNota'), b = main.querySelector('#nrCrear');
     const validar = () => {
@@ -467,10 +497,51 @@
       nota.innerHTML = msg; b.disabled = !okv;
     };
     n.addEventListener('input', validar); main.querySelector('#nrOwner').addEventListener('change', validar);
+    const d = main.querySelector('#nrDesc');
+    d.addEventListener('input', () => { main.querySelector('#nrDescN').textContent = `${d.value.length} / 350 characters`; });
+    const sw = main.querySelector('#nrReadme');
+    sw.addEventListener('change', () => { main.querySelector('.gh-switch-txt').textContent = sw.checked ? 'On' : 'Off'; });
     b.addEventListener('click', () => {
       const o = main.querySelector('#nrOwner').value, nombre = n.value.trim().replace(/[^\w.-]+/g, '-');
-      const x = crearRepo(o, nombre, { desc: main.querySelector('#nrDesc').value.trim(), privado: main.querySelector('[name=nrVis]:checked').value === 'priv', readme: main.querySelector('#nrReadme').checked, gitignore: main.querySelector('#nrIgnore').value, licencia: main.querySelector('#nrLic').value });
+      const x = crearRepo(o, nombre, { desc: d.value.trim(), privado: main.querySelector('#nrVis').value === 'priv', readme: sw.checked, gitignore: main.querySelector('#nrIgnore').value, licencia: main.querySelector('#nrLic').value });
       ir(repoUrl(x));
+    });
+  }
+  // importar: copia un repositorio que ya existe (en la práctica, uno de los remotos del curso) a tu cuenta
+  function vistaImportar() {
+    const cuerpo = `<div class="gh-nuevo"><h1 class="gh-h1">Import your project to GitHub</h1>
+      <p class="gh-dim">Import all the files, including revision history, from another version control system.</p><hr>
+      <label class="gh-lbl" for="imUrl">The URL for your source repository <span class="gh-rojo">*</span></label><input class="gh-input" id="imUrl" placeholder="https://github.com/tienda-andina/pipelines" autocomplete="off">
+      <p class="gh-dim gh-sm">Learn more about <a href="#/m/github">importing git repositories</a>.</p>
+      <h2 class="gh-h4">Your new repository details</h2>
+      <div class="gh-form-fila"><div><label class="gh-lbl" for="imOwner">Owner <span class="gh-rojo">*</span></label><select class="gh-input" id="imOwner"><option>${esc(YO)}</option></select></div><span class="gh-slash">/</span>
+      <div class="gh-grow"><label class="gh-lbl" for="imNombre">Repository name <span class="gh-rojo">*</span></label><input class="gh-input" id="imNombre" autocomplete="off"><div class="gh-nota" id="imNota"></div></div></div>
+      <label class="gh-radio"><input type="radio" name="imVis" value="pub" checked>${oc('repo')}<div><b>Public</b><div class="gh-dim gh-sm">Anyone on the internet can see this repository. You choose who can commit.</div></div></label>
+      <label class="gh-radio"><input type="radio" name="imVis" value="priv">${oc('lock')}<div><b>Private</b><div class="gh-dim gh-sm">You choose who can see and commit to this repository.</div></div></label><hr>
+      <div class="gh-der">${btn('Cancel', { href: url() })} ${btn('Begin import', { tipo: 'primary', attr: 'id="imOk" disabled' })}</div></div>`;
+    marco(null, '', cuerpo);
+    const u = main.querySelector('#imUrl'), nn = main.querySelector('#imNombre'), ok = main.querySelector('#imOk'), nota = main.querySelector('#imNota');
+    const origen = () => { const m = u.value.trim().match(/github\.com\/([\w.-]+)\/([\w.-]+?)(?:\.git)?\/?$/); return m ? { owner: m[1], repo: m[2] } : null; };
+    const validar = () => {
+      const o = origen(); if (o && !nn.dataset.tocado) nn.value = o.repo;
+      const v = nn.value.trim().replace(/[^\w.-]+/g, '-');
+      let msg = '';
+      if (u.value.trim() && !o) msg = `<span class="gh-rojo">${oc('alert')} Enter a valid URL, like https://github.com/owner/repo</span>`;
+      else if (v && buscarRepo(YO, v)) msg = `<span class="gh-rojo">${oc('alert')} The repository ${esc(v)} already exists on this account.</span>`;
+      nota.innerHTML = msg; ok.disabled = !o || !v || !!buscarRepo(YO, v);
+    };
+    u.addEventListener('input', validar); nn.addEventListener('input', () => { nn.dataset.tocado = '1'; validar(); });
+    ok.addEventListener('click', () => {
+      const o = origen(), v = nn.value.trim().replace(/[^\w.-]+/g, '-');
+      let src = buscarRepo(o.owner, o.repo);
+      if (!src && o.owner === 'tienda-andina' && o.repo === 'pipelines') { API().crearRemoto('https://github.com/tienda-andina/pipelines', true); src = buscarRepo(o.owner, o.repo); }
+      if (!src) { nota.innerHTML = `<span class="gh-rojo">${oc('alert')} No pudimos encontrar ese repositorio. En la práctica puedes importar los del curso, por ejemplo https://github.com/tienda-andina/pipelines</span>`; return; }
+      const R = API().crearRemoto(`https://github.com/${YO}/${v}`, false);
+      const copia = JSON.parse(JSON.stringify(src.r));
+      Object.assign(R, { commits: copia.commits, branches: copia.branches });
+      R.meta = { desc: (copia.meta && copia.meta.desc) || '', privado: main.querySelector('[name=imVis]:checked').value === 'priv', creado: ahora(), estrellas: 0, temas: [] };
+      guardar(); toast('Importing complete! Your new repository is ready.');
+      ir(url(YO, v));
     });
   }
 
@@ -818,7 +889,7 @@
     const [a, b, c, ...resto] = ruta;
     const C = window.GitHubColab;
     if (!a) { vistaDashboard(); return; }
-    if (a === 'new') { vistaNuevo(); return; }
+    if (a === 'new') { if (b === 'import') vistaImportar(); else vistaNuevo(); return; }
     if ((a === 'issues' || a === 'pulls' || a === 'notifications') && !b && C) { C.vistaMias(a); return; }
     if (!b) { vistaPerfil(a); return; }
     // el repositorio de práctica del equipo existe siempre (como si la organización ya lo tuviera)

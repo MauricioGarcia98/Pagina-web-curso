@@ -90,6 +90,23 @@ REFRESH STREAMING TABLE ruta.bronze.telemetria;   -- solo agrega los mensajes nu
 curl -s "https://api.rutasur.example/v1/rutas?fecha=2026-11-18" -H "X-Api-Key: $RS_API_KEY" | head -40
 ```
 
+:::real En tu computadora y en la web real
+En la vida real:
+
+- **La telemetría**: los GPS publican en **Event Hubs** (o Kafka). Para mirar mensajes desde tu computadora usas `kcat -b <servidor> -t <tópico> -C -o end`.
+- **El TMS**: su API se prueba con `curl` o Postman con el token que te da IT. El token va en una variable de entorno, nunca en el código.
+- En Azure Portal, el tópico se ve en el recurso de Event Hubs → *Event Hubs* → *Process data* para mirar mensajes en vivo.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `02-mensajes.png`: los mensajes del tópico en la terminal.
+- `02-tms.png`: una respuesta del TMS (sin el token).
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

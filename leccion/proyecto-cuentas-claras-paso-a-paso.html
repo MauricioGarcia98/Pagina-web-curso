@@ -70,6 +70,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 curl -s &quot;https://api.contactocrm.example/crm/v3/objects/companies?limit=2&quot; -H &quot;Authorization: Bearer pat-…&quot;
 curl -s &quot;https://api.cobrable.example/v1/events?limit=2&quot; -H &quot;Authorization: Bearer ck_live_…&quot;
 curl -s -u mx_…: &quot;https://api.medidor.example/api/2.0/users&quot; | head -c 300</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">cuentas accesos</code><span><code>cuentas</code>: el sistema interno de Cuentas Claras en la terminal del curso. <code>accesos</code> muestra los accesos que te dio IT</span></li><li><code class="bx-linea">curl -s &quot;https://api.contactocrm.example/crm/v3/objects/companies?limit=2&quot; -H &quot;Authorization: Bearer pat-…&quot;</code><span><code>curl</code>: hace un pedido HTTP a una URL (bajar un archivo o llamar a una API). <code>-s</code> = sin barra de progreso; <code>-H</code> = agrega un encabezado (por ejemplo, el token o el tipo de contenido)</span></li><li><code class="bx-linea">curl -s &quot;https://api.cobrable.example/v1/events?limit=2&quot; -H &quot;Authorization: Bearer ck_live_…&quot;</code><span><code>curl</code>: hace un pedido HTTP a una URL (bajar un archivo o llamar a una API). <code>-s</code> = sin barra de progreso; <code>-H</code> = agrega un encabezado (por ejemplo, el token o el tipo de contenido)</span></li><li><code class="bx-linea">curl -s -u mx_…: &quot;https://api.medidor.example/api/2.0/users&quot; | head -c 300</code><span><code>curl</code>: hace un pedido HTTP a una URL (bajar un archivo o llamar a una API). <code>-s</code> = sin barra de progreso <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Mira un evento de Cobrable completo: trae la suscripción <strong>como quedó</strong> después del cambio. Esa es la clave del MRR histórico.</p>
 <h2>Paso 2 · El CRM</h2>
 <p>Un <code>get</code> con reintento para el 429 (100 pedidos cada 10 segundos) y la paginación con <code>after</code>. Se piden también las <strong>archivadas</strong>: después de la fusión, los duplicados quedan archivados con <code>mergedInto</code>.</p>
@@ -222,6 +223,7 @@ az storage blob upload --account-name stcc -c landing -n gold/cliente_360.csv -f
 az keyvault secret set --vault-name kv-cc -n crm-token --value 'pat-…' -o none
 az keyvault secret set --vault-name kv-cc -n cobrable-key --value 'ck_live_…' -o none
 az keyvault secret set --vault-name kv-cc -n medidor-secreto --value 'mx_…' -o none</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(5)</span></summary><ol><li><code class="bx-linea">az storage blob upload --account-name stcc -c landing -n gold/mrr_mensual.csv -f ~/mrr_mensual.csv --overwrite</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az storage blob upload --account-name stcc -c landing -n gold/cliente_360.csv -f ~/cliente_360.csv --overwrite</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-cc -n crm-token --value 'pat-…' -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-cc -n cobrable-key --value 'ck_live_…' -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-cc -n medidor-secreto --value 'mx_…' -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>(El grupo de recursos, la cuenta de almacenamiento con <code>--hns true</code>, el contenedor <code>landing</code>, el permiso para el conector de Unity Catalog y el Key Vault se crean igual que en los otros proyectos.)</p>
 <pre data-norun tabindex="0"><code class="language-sql">CREATE CATALOG IF NOT EXISTS cc; CREATE SCHEMA IF NOT EXISTS cc.gold;
 
@@ -241,6 +243,24 @@ FROM read_files('abfss://landing@stcc.dfs.core.windows.net/gold/cliente_360.csv'
 SELECT round(100 * sum(a.mrr) / (SELECT sum(mrr) FROM cc.gold.mrr_mensual WHERE mes = '2026-09' AND movimiento &lt;&gt; 'churn'), 1)
 FROM cc.gold.mrr_mensual a JOIN cc.gold.mrr_mensual b ON a.cliente_id = b.cliente_id
 WHERE b.mes = '2026-10' AND b.movimiento = 'churn' AND a.mes = '2026-09';</code></pre>
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>En tu nube: el código Python que llama a las APIs corre como tarea de un <strong>job de Databricks</strong> (o en Airflow); los tokens se leen del <strong>Key Vault</strong> a través de un <em>secret scope</em>; el MRR y la vista 360 son tablas gold en Unity Catalog. Explora primero cada API desde la terminal y recién después escribe el código.</p>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>05-explorar.png</code>: la exploración inicial de una API en la terminal.</li>
+<li><code>05-mrr.png</code>: el MRR calculado desde el log de eventos.</li>
+<li><code>05-job.png</code>: el job diario en verde.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

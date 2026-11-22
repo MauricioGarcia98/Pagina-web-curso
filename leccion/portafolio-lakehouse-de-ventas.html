@@ -25,7 +25,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Valor y alcance</h2>
 <div class="table-wrap"><table><thead><tr>
-<th></th>
+<th>Aspecto</th>
 <th>Hoy</th>
 <th>Con el proyecto</th>
 </tr>
@@ -51,6 +51,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>En la terminal del curso puedes explorarlos ya mismo:</p>
 <pre tabindex="0"><code class="language-bash">generar-datos ecommerce --filas 500 --semilla 42 --problemas realista
 duckdb -c &quot;SELECT canal, COUNT(*) FROM '~/datos/generados/ecommerce/pedidos.csv' GROUP BY canal&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">generar-datos ecommerce --filas 500 --semilla 42 --problemas realista</code><span><code>generar-datos</code>: comando del curso que genera los datos de práctica (tus datos salen de una semilla propia)</span></li><li><code class="bx-linea">duckdb -c &quot;SELECT canal, COUNT(*) FROM '~/datos/generados/ecommerce/pedidos.csv' GROUP BY canal&quot;</code><span><code>duckdb</code>: DuckDB: base de datos analítica en un solo archivo; consulta CSV y Parquet directamente. <code>-c</code> = ejecuta esa consulta y sale</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Vas a ver <code>web</code>, <code>WEB</code> y <code>  web</code>: el primer problema de calidad. Anótalo para la sección &quot;Calidad de datos&quot; del README.</p>
 <h2>Arquitectura</h2>
 <figure class="diagrama"><figcaption>Lakehouse de ventas - local y en Databricks</figcaption></figure>
@@ -64,6 +65,7 @@ uv add dbt-duckdb duckdb pandas streamlit
 uv run dbt init transform        # elige duckdb
 mkdir -p data/raw &amp;&amp; echo &quot;data/&quot; &gt;&gt; .gitignore
 cp ~/datos/generados/ecommerce/*.csv data/raw/   # los CSV del generador (o descomprime acá el .zip que bajaste)</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(6)</span></summary><ol><li><code class="bx-linea">mkdir ventas-lakehouse &amp;&amp; cd ventas-lakehouse &amp;&amp; git init</code><span><code>mkdir</code>: crea una carpeta <span class="bx-tubo">→ si sale bien, sigue el próximo</span><br><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal <span class="bx-tubo">→ si sale bien, sigue el próximo</span><br><code>git</code>: Git: guarda la historia de tu código. <code>init</code> convierte la carpeta en un repositorio (crea la carpeta oculta .git)</span></li><li><code class="bx-linea">uv init --python 3.12</code><span><code>uv</code>: uv: administra proyectos de Python (versión de Python, entorno virtual y dependencias) y es muy rápido. <code>init</code> crea un proyecto nuevo con su pyproject.toml</span></li><li><code class="bx-linea">uv add dbt-duckdb duckdb pandas streamlit</code><span><code>uv</code>: uv: administra proyectos de Python (versión de Python, entorno virtual y dependencias) y es muy rápido. <code>add</code> agrega una dependencia al proyecto y la instala</span></li><li><code class="bx-linea">uv run dbt init transform</code><span><code>uv</code>: uv: administra proyectos de Python (versión de Python, entorno virtual y dependencias) y es muy rápido. <code>run</code> ejecuta un comando dentro del entorno del proyecto<br><i class="bx-com">Nota del ejemplo: elige duckdb</i></span></li><li><code class="bx-linea">mkdir -p data/raw &amp;&amp; echo &quot;data/&quot; &gt;&gt; .gitignore</code><span><code>mkdir</code>: crea una carpeta. <code>-p</code> = crea también las carpetas intermedias y no falla si ya existe <span class="bx-tubo">→ si sale bien, sigue el próximo</span><br><code>echo</code>: escribe un texto en pantalla (o en un archivo, con <code>&gt;</code> o <code>&gt;&gt;</code>). <code>&gt;&gt;</code> agrega al final del archivo</span></li><li><code class="bx-linea">cp ~/datos/generados/ecommerce/*.csv data/raw/</code><span><code>cp</code>: copia archivos<br><i class="bx-com">Nota del ejemplo: los CSV del generador (o descomprime acá el .zip que bajaste)</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p><code>transform/profiles.yml</code> (o <code>~/.dbt/profiles.yml</code>):</p>
 <pre tabindex="0"><code class="language-yaml">transform:
   target: dev
@@ -179,6 +181,7 @@ where p.estado in ('entregado', 'enviado')</code></pre>
       - dbt_utils.expression_is_true: { expression: &quot;venta_neta &gt;= 0&quot; }</code></pre>
 <p>Los huérfanos (<code>cliente_id</code> que no existe) quedan como <strong>warn</strong>: se reportan en el README con su cantidad y la decisión que tomaste (excluirlos, o asignarlos a un cliente &quot;desconocido&quot;).</p>
 <pre tabindex="0"><code class="language-bash">cd transform &amp;&amp; uv run dbt build          # corre modelos y tests en orden</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">cd transform &amp;&amp; uv run dbt build</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal <span class="bx-tubo">→ si sale bien, sigue el próximo</span><br><code>uv</code>: uv: administra proyectos de Python (versión de Python, entorno virtual y dependencias) y es muy rápido. <code>run</code> ejecuta un comando dentro del entorno del proyecto<br><i class="bx-com">Nota del ejemplo: corre modelos y tests en orden</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <h3>6. Un tablero rápido</h3>
 <pre data-norun tabindex="0"><code class="language-python"># app.py  →  uv run streamlit run app.py
 import duckdb, streamlit as st
@@ -192,6 +195,7 @@ st.line_chart(df, x=&quot;fecha&quot;, y=&quot;ventas&quot;, color=&quot;canal&q
 CREATE VOLUME IF NOT EXISTS workspace.ventas.crudo;</code></pre>
 </li>
 <li><strong>Subir los CSV</strong> desde tu computadora con la CLI (o arrastrando en la interfaz del volumen):<pre tabindex="0"><code class="language-bash">databricks fs cp -r data/raw dbfs:/Volumes/workspace/ventas/crudo/</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">databricks fs cp -r data/raw dbfs:/Volumes/workspace/ventas/crudo/</code><span><code>databricks</code>: la CLI de Databricks: maneja el espacio de trabajo desde la terminal. <code>fs</code> archivos de DBFS y de los volúmenes de Unity Catalog (<code>cp</code>)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 </li>
 <li><strong>Bronze</strong> con <code>read_files</code> (lee CSV, JSON o Parquet de un volumen):<pre tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE workspace.ventas.bronze_pedidos AS
 SELECT *, current_timestamp() AS _cargado_en, _metadata.file_path AS _archivo
@@ -225,13 +229,41 @@ FROM read_files('/Volumes/workspace/ventas/crudo/pedidos.csv', format =&gt; 'csv
 </div>
 
 
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Todo el proyecto se hace en <strong>tu computadora</strong>:</p>
+<ol>
+<li><strong>Terminal</strong>: Terminal en macOS, o Ubuntu con WSL en Windows (<code>wsl --install</code> en PowerShell como administrador). Ahí corres <code>git</code>, <code>uv</code> y las CLIs.</li>
+<li><strong>VS Code</strong> con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).</li>
+<li><strong>Una carpeta por proyecto</strong> con <code>git init</code> desde el primer minuto, y un repositorio público en <strong>github.com → New repository</strong> para mostrarlo.</li>
+</ol>
+<ul>
+<li><strong>Fase 1, local</strong>: <code>uv init</code>, <code>uv add dbt-duckdb</code>, <code>dbt init</code> y <code>dbt build</code> en la terminal. La documentación con linaje se abre con <code>dbt docs generate &amp;&amp; dbt docs serve</code> en <code>http://localhost:8080</code>.</li>
+<li><strong>Fase 2, Databricks Free Edition</strong> (<code>databricks.com/learn/free-edition</code>): creas un <em>SQL warehouse</em>, cambias el perfil de dbt a <code>dbt-databricks</code> con el token de <em>Settings → Developer → Access tokens</em> (guardado en una variable de entorno, no en el repo) y corres el mismo <code>dbt build</code>.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio y enlázalas desde el README.</p>
+<ul>
+<li><code>01-linaje.png</code>: el grafo de linaje de <code>dbt docs</code> (de las fuentes a los marts).</li>
+<li><code>02-tests.png</code>: la terminal con <code>dbt build</code> mostrando las pruebas en verde.</li>
+<li><code>03-databricks.png</code>: las tablas del mart en <em>Catalog Explorer</em> de Databricks.</li>
+<li><code>04-consulta.png</code>: una consulta de negocio respondida desde el mart.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.</p>
+</div>
+
+
 <h2>Entregables</h2>
 <ul>
-<li><input disabled="" type="checkbox"> README con problema, resultado (&quot;tablero diario en lugar de 2 días de Excel&quot;), diagrama y cómo correrlo.</li>
-<li><input disabled="" type="checkbox"> Sección <strong>Calidad de datos</strong>: cuántos duplicados, nulos, formatos, huérfanos y tardíos encontraste y qué decidiste con cada uno.</li>
-<li><input disabled="" type="checkbox"> <code>dbt build</code> en verde, con tests de unicidad, nulos, valores aceptados y relaciones.</li>
-<li><input disabled="" type="checkbox"> Captura del tablero y del job programado.</li>
-<li><input disabled="" type="checkbox"> Sección <strong>Dialectos</strong>: qué cambió de DuckDB a Databricks.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  README con problema, resultado (&quot;tablero diario en lugar de 2 días de Excel&quot;), diagrama y cómo correrlo.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Sección <strong>Calidad de datos</strong>: cuántos duplicados, nulos, formatos, huérfanos y tardíos encontraste y qué decidiste con cada uno.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  <code>dbt build</code> en verde, con tests de unicidad, nulos, valores aceptados y relaciones.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Captura del tablero y del job programado.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Sección <strong>Dialectos</strong>: qué cambió de DuckDB a Databricks.</li>
 </ul>
 <h2>Práctica</h2>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: La fase local del lakehouse: dbt y DuckDB</div>
@@ -247,6 +279,7 @@ dbt docs generate
 dbt ls -s +ventas_por_canal
 cd ~
 duckdb -c &quot;SELECT canal, COUNT(*) AS ventas FROM 'datos/ventas_2024_12.csv' GROUP BY canal ORDER BY ventas DESC&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(6)</span></summary><ol><li><code class="bx-linea">cd ~/tienda_dbt</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">dbt build</code><span><code>dbt</code>: dbt: transforma datos dentro del almacén con modelos SQL versionados y probados. <code>build</code> ejecuta modelos, pruebas, seeds y snapshots en orden</span></li><li><code class="bx-linea">dbt docs generate</code><span><code>dbt</code>: dbt: transforma datos dentro del almacén con modelos SQL versionados y probados. <code>docs</code> genera y sirve la documentación con el linaje</span></li><li><code class="bx-linea">dbt ls -s +ventas_por_canal</code><span><code>dbt</code>: dbt: transforma datos dentro del almacén con modelos SQL versionados y probados. <code>ls</code> lista los modelos y recursos. <code>-s</code> = solo esos modelos</span></li><li><code class="bx-linea">cd ~</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">duckdb -c &quot;SELECT canal, COUNT(*) AS ventas FROM 'datos/ventas_2024_12.csv' GROUP BY canal ORDER BY ventas DESC&quot;</code><span><code>duckdb</code>: DuckDB: base de datos analítica en un solo archivo; consulta CSV y Parquet directamente. <code>-c</code> = ejecuta esa consulta y sale</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Reto: agrega un modelo <code>marts/ventas_por_mes.sql</code> con su test <code>not_null</code> y vuelve a correr <code>dbt build</code>.</p>
 <p>Documentación oficial: <a href="https://docs.getdbt.com/docs/core/connect-data-platform/duckdb-setup">dbt con DuckDB</a> · <a href="https://docs.databricks.com/aws/en/getting-started/free-edition">Databricks Free Edition</a></p>
 </div>

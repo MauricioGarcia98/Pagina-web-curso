@@ -517,8 +517,9 @@
 
     const panel = document.createElement('div');
     panel.className = 'dg-panel'; panel.hidden = true;
-    panel.innerHTML = '<button type="button" class="dg-btn" data-p="-1">◀</button><div class="dg-panel-txt"></div><button type="button" class="dg-btn" data-p="1">▶</button><button type="button" class="dg-btn" data-p="x" title="Salir del paso a paso">✕</button>';
-    marco.appendChild(panel);
+    panel.innerHTML = `<div class="dg-panel-ctl"><button type="button" class="dg-btn" data-p="-1" aria-label="Paso anterior" title="Paso anterior (←)">◀</button><button type="button" class="dg-btn dg-play" data-p="play" title="Reproducir solo">▶ Reproducir</button><button type="button" class="dg-btn" data-p="1" aria-label="Paso siguiente" title="Paso siguiente (→)">▶▶</button>
+      <span class="dg-panel-num"></span><span class="dg-espacio"></span><button type="button" class="dg-btn" data-p="x" aria-label="Salir del paso a paso" title="Salir del paso a paso (Esc)">✕</button></div>
+      <div class="dg-puntos" role="group" aria-label="Ir a un paso"></div><div class="dg-panel-txt" aria-live="polite"></div>`;
 
     bFlujo?.addEventListener('click', () => {
       const on = marco.classList.toggle('dg-anima');
@@ -541,41 +542,130 @@
       }
       return res;
     })();
-    let paso = 0;
+    let paso = 0, reproduciendo = null, animando = [];
     const etiquetaNodo = (id) => porId[id].label.replace(/\n/g, ' ');
-    const mostrarPaso = () => {
+    const sinMovimiento = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const colorDe = (f) => (f.color ? COLORES[f.color][0] : 'var(--brand, #4f46e5)');
+    const nodoDom = (id) => svg.querySelector(`.dg-n[data-id="${CSS.escape(id)}"]`);
+    // el "paquete" que viaja por la flecha del paso actual
+    const ficha = el('g', { class: 'dg-ficha', 'aria-hidden': 'true' }, svg);
+    el('circle', { r: 15, class: 'dg-ficha-halo' }, ficha);
+    el('circle', { r: 8.5, class: 'dg-ficha-punto' }, ficha);
+    ficha.style.display = 'none';
+    const detener = () => { animando.forEach((x) => { try { x.cancel(); } catch (e) { /* ya terminó */ } }); animando = []; if (ficha._raf) cancelAnimationFrame(ficha._raf); ficha.style.display = 'none'; };
+    // dibuja la flecha como si se trazara a mano, hace viajar el paquete y, al llegar, hace "rebotar" el nodo destino
+    const animarFlecha = (f, alTerminar) => {
+      detener();
+      const gf = svg.querySelector(`.dg-f[data-i="${f.i}"]`), destino = nodoDom(f.a), origen = nodoDom(f.de);
+      svg.querySelectorAll('.dg-llega, .dg-sale').forEach((x) => x.classList.remove('dg-llega', 'dg-sale'));
+      if (origen) origen.classList.add('dg-sale');
+      if (!gf || sinMovimiento() || !gf.animate) { if (destino) destino.classList.add('dg-llega'); alTerminar && alTerminar(); return; }
+      const trazos = [...gf.querySelectorAll('path:not(.dg-flujo)')];
+      const DUR = 750;
+      trazos.forEach((t, k) => {
+        let L = 0; try { L = t.getTotalLength(); } catch (e) { /* sin largo */ }
+        if (!L) return;
+        const esPunta = k >= trazos.length - (f.sinpunta ? 0 : 2) - (f.doble ? 2 : 0) && trazos.length > 1;
+        t.style.strokeDasharray = L;
+        const an = t.animate([{ strokeDashoffset: L }, { strokeDashoffset: 0 }], { duration: esPunta ? 220 : DUR, delay: esPunta ? DUR - 60 : 0, easing: 'ease-in-out', fill: 'backwards' });
+        an.onfinish = () => { t.style.strokeDasharray = ''; };
+        an.oncancel = () => { t.style.strokeDasharray = ''; };
+        animando.push(an);
+      });
+      const ruta = gf.querySelector('.dg-flujo');
+      let largo = 0; try { largo = ruta.getTotalLength(); } catch (e) { /* sin ruta */ }
+      if (!largo) { if (destino) destino.classList.add('dg-llega'); alTerminar && alTerminar(); return; }
+      ficha.style.display = ''; ficha.style.color = colorDe(f);
+      svg.appendChild(ficha);   // siempre encima de todo
+      const t0 = performance.now() + 120, VIAJE = Math.min(1500, Math.max(700, largo * 2.2));
+      const mover = (ahora) => {
+        const u = Math.max(0, Math.min(1, (ahora - t0) / VIAJE)), e = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+        const pt = ruta.getPointAtLength(e * largo);
+        ficha.setAttribute('transform', `translate(${pt.x} ${pt.y})`);
+        if (u < 1) ficha._raf = requestAnimationFrame(mover);
+        else { ficha.style.display = 'none'; if (destino) { destino.classList.remove('dg-llega'); void destino.getBoundingClientRect(); destino.classList.add('dg-llega'); } alTerminar && alTerminar(); }
+      };
+      ficha._raf = requestAnimationFrame(mover);
+    };
+    const puntos = panel.querySelector('.dg-puntos');
+    puntos.innerHTML = orden.map((f, k) => `<button type="button" data-ir="${k}" aria-label="Paso ${k + 1}: ${esc(etiquetaNodo(f.de))} a ${esc(etiquetaNodo(f.a))}" title="Paso ${k + 1}"></button>`).join('');
+    const mostrarPaso = (animar = true) => {
       const vistos = new Set(), flechasVistas = new Set(orden.slice(0, paso + 1).map((f) => f.i));
       orden.slice(0, paso + 1).forEach((f) => { vistos.add(f.de); vistos.add(f.a); });
-      svg.querySelectorAll('.dg-n').forEach((x) => x.classList.toggle('dg-visto', vistos.has(x.dataset.id)));
-      svg.querySelectorAll('.dg-f, .dg-e').forEach((x) => { x.classList.toggle('dg-visto', flechasVistas.has(Number(x.dataset.i))); x.classList.toggle('dg-actual', Number(x.dataset.i) === orden[paso].i); });
       const f = orden[paso];
-      const desc = f.explica || f.label || '';
-      panel.querySelector('.dg-panel-txt').innerHTML = `<b>Paso ${paso + 1} de ${orden.length}:</b> ${esc(etiquetaNodo(f.de))} → ${esc(etiquetaNodo(f.a))}${desc ? `<span>${esc(desc.replace(/\n/g, ' '))}</span>` : ''}`;
+      svg.querySelectorAll('.dg-n').forEach((x) => { x.classList.toggle('dg-visto', vistos.has(x.dataset.id)); x.classList.toggle('dg-actual', x.dataset.id === f.de || x.dataset.id === f.a); });
+      svg.querySelectorAll('.dg-f, .dg-e').forEach((x) => { x.classList.toggle('dg-visto', flechasVistas.has(Number(x.dataset.i))); x.classList.toggle('dg-actual', Number(x.dataset.i) === f.i); });
+      // la explicación del paso: la escrita en la lección (explica=); si no hay, se arma con lo que dice el diagrama:
+      // qué hace la flecha (su etiqueta) y qué es cada nodo (su subtítulo)
+      const sub = (id) => String(porId[id].sub || '').replace(/\n/g, ' ').trim();
+      const mayus = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+      let desc = f.explica ? f.explica.replace(/\n/g, ' ') : '';
+      if (!desc) {
+        const partes = [];
+        const punto = (t) => (/[.…!?:]$/.test(t) ? t : t + '.');
+        if (f.label) partes.push(punto(mayus(f.label.replace(/\n/g, ' '))));
+        if (sub(f.a)) partes.push(punto(`${etiquetaNodo(f.a)}: ${sub(f.a)}`));
+        else if (paso === 0 && sub(f.de)) partes.push(punto(`${etiquetaNodo(f.de)}: ${sub(f.de)}`));
+        desc = partes.join(' ');
+      }
+      panel.querySelector('.dg-panel-num').textContent = `Paso ${paso + 1} de ${orden.length}`;
+      panel.querySelector('.dg-panel-txt').innerHTML = `<div class="dg-ruta"><span class="dg-chip">${esc(etiquetaNodo(f.de))}</span><span class="dg-chip-fl" style="color:${colorDe(f)}" aria-label="hacia">→</span><span class="dg-chip">${esc(etiquetaNodo(f.a))}</span></div>${desc ? `<p>${esc(desc)}</p>` : ''}`;
       panel.querySelector('[data-p="-1"]').disabled = paso === 0;
       panel.querySelector('[data-p="1"]').disabled = paso === orden.length - 1;
+      puntos.querySelectorAll('button').forEach((b, k) => { b.classList.toggle('hecho', k < paso); b.classList.toggle('actual', k === paso); b.setAttribute('aria-current', k === paso ? 'step' : 'false'); });
+      // en diagramas altos, la flecha del paso se trae a la vista (el panel queda fijo abajo)
+      const gfa = svg.querySelector(`.dg-f[data-i="${f.i}"]`);
+      if (gfa && animar) { const r = gfa.getBoundingClientRect(), alto = innerHeight - (panel.offsetHeight || 0) - 70; if (r.top < 70 || r.bottom > alto) window.scrollBy({ top: r.top - Math.max(80, (alto - r.height) / 2), behavior: sinMovimiento() ? 'auto' : 'smooth' }); }
+      if (animar) animarFlecha(f, () => { if (reproduciendo) programar(desc); });
     };
-    const salirPasos = () => { marco.classList.remove('dg-pasos'); panel.hidden = true; bPasos.classList.remove('activo'); };
+    // reproducir solo: cada paso queda en pantalla el tiempo que lleva leer su explicación
+    const programar = (desc) => {
+      clearTimeout(reproduciendo);
+      if (paso >= orden.length - 1) { pausar(); return; }
+      reproduciendo = setTimeout(() => { paso++; mostrarPaso(); }, Math.min(7000, 1800 + (desc || '').length * 38));
+    };
+    const bPlay = panel.querySelector('[data-p="play"]');
+    const pausar = () => { clearTimeout(reproduciendo); reproduciendo = null; bPlay.textContent = paso >= orden.length - 1 ? '↺ Repetir' : '▶ Reproducir'; bPlay.classList.remove('activo'); };
+    const reproducir = () => { if (paso >= orden.length - 1) paso = 0; reproduciendo = -1; bPlay.textContent = '⏸ Pausa'; bPlay.classList.add('activo'); mostrarPaso(); };
+    const salirPasos = () => { pausar(); detener(); marco.classList.remove('dg-pasos'); panel.hidden = true; bPasos.classList.remove('activo'); svg.querySelectorAll('.dg-llega, .dg-sale, .dg-n.dg-actual').forEach((x) => x.classList.remove('dg-llega', 'dg-sale', 'dg-actual')); };
+    const ir = (k) => { pausar(); paso = Math.max(0, Math.min(orden.length - 1, k)); mostrarPaso(); };
     bPasos?.addEventListener('click', () => {
       if (marco.classList.contains('dg-pasos')) return salirPasos();
       paso = 0; marco.classList.add('dg-pasos'); panel.hidden = false; bPasos.classList.add('activo');
-      svg.classList.remove('dg-foco'); mostrarPaso();
+      if (marco.classList.contains('dg-anima')) bFlujo.click();
+      svg.classList.remove('dg-foco'); pausar(); mostrarPaso();
+      marco.focus({ preventScroll: true });
     });
     panel.addEventListener('click', (e) => {
+      const d = e.target.closest('[data-ir]'); if (d) { ir(Number(d.dataset.ir)); return; }
       const p = e.target.closest('[data-p]')?.dataset.p;
       if (p === 'x') salirPasos();
-      else if (p) { paso = Math.max(0, Math.min(orden.length - 1, paso + Number(p))); mostrarPaso(); }
+      else if (p === 'play') { if (reproduciendo) pausar(); else reproducir(); }
+      else if (p) ir(paso + Number(p));
     });
     marco.tabIndex = -1;
-    marco.addEventListener('keydown', (e) => {
+    const teclas = (e) => {
       if (!marco.classList.contains('dg-pasos')) return;
-      if (e.key === 'ArrowRight' && paso < orden.length - 1) { paso++; mostrarPaso(); e.preventDefault(); }
-      if (e.key === 'ArrowLeft' && paso > 0) { paso--; mostrarPaso(); e.preventDefault(); }
+      if (e.key === 'ArrowRight' && paso < orden.length - 1) { ir(paso + 1); e.preventDefault(); }
+      if (e.key === 'ArrowLeft' && paso > 0) { ir(paso - 1); e.preventDefault(); }
+      if (e.key === ' ' && (e.target === marco)) { if (reproduciendo) pausar(); else reproducir(); e.preventDefault(); }
       if (e.key === 'Escape') salirPasos();
-    });
+    };
+    marco.addEventListener('keydown', teclas);
+    panel.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft' || e.key === 'Escape') teclas(e); });
 
     bPng.addEventListener('click', () => exportar(svg, marco, spec.titulo, 'png'));
     bSvg.addEventListener('click', () => exportar(svg, marco, spec.titulo, 'svg'));
     fig.insertBefore(marco, fig.firstChild);
+    marco.after(panel);   // fuera del marco (que se desplaza de costado) para que quede fijo abajo de la pantalla
+    // las etiquetas de las flechas se ubican después de calcular el tamaño: si alguna quedó afuera, se agranda el lienzo
+    try {
+      const bb = svg.getBBox(), [vx, vy, vw, vh] = svg.getAttribute('viewBox').split(' ').map(Number);
+      const x1 = Math.min(vx, bb.x - 8), y1 = Math.min(vy, bb.y - 8), x2 = Math.max(vx + vw, bb.x + bb.width + 8), y2 = Math.max(vy + vh, bb.y + bb.height + 8);
+      if (x1 < vx - 0.5 || y1 < vy - 0.5 || x2 > vx + vw + 0.5 || y2 > vy + vh + 0.5) {
+        svg.setAttribute('viewBox', `${x1} ${y1} ${x2 - x1} ${y2 - y1}`); svg.setAttribute('width', x2 - x1); svg.style.maxWidth = (x2 - x1) + 'px';
+      }
+    } catch (e) { /* sin medidas (oculto): se deja como está */ }
     // si se pasa del ancho por poco (en escritorio hasta ~30%), achicarlo en vez de dejar una barra de desplazamiento
     const cs = getComputedStyle(marco), minimo = parseFloat(svg.style.minWidth) || 0;
     const visible = marco.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
@@ -591,8 +681,8 @@
     const oscuro = luminancia('#' + (fondo.match(/\d+/g) || [255, 255, 255]).slice(0, 3).map((n) => Number(n).toString(16).padStart(2, '0')).join('')) < 0.5;
     const copia = svg.cloneNode(true);
     copia.removeAttribute('class'); copia.removeAttribute('style');
-    copia.querySelectorAll('.dg-flujo').forEach((x) => x.remove());
-    copia.querySelectorAll('[class]').forEach((x) => x.classList.remove('dg-on', 'dg-visto', 'dg-actual'));
+    copia.querySelectorAll('.dg-flujo, .dg-ficha').forEach((x) => x.remove());
+    copia.querySelectorAll('[class]').forEach((x) => x.classList.remove('dg-on', 'dg-visto', 'dg-actual', 'dg-llega', 'dg-sale'));
     copia.querySelectorAll('[stroke="currentColor"]').forEach((x) => x.setAttribute('stroke', tinta));
     copia.querySelectorAll('[fill="currentColor"]').forEach((x) => x.setAttribute('fill', tinta));
     const [vx, vy, vw, vh] = copia.getAttribute('viewBox').split(' ').map(Number);

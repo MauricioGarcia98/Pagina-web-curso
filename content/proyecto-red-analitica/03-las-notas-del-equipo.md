@@ -34,6 +34,18 @@ autoevaluacion: ¿Sabes qué validación avisaría que un laboratorio cambió el
 "Siempre las mismas columnas" se convierte en: *comparar el encabezado con el esperado y fallar si cambió*. "Todos llegan antes de las 07:00" se convierte en: *antes de cargar, verificar que llegaron los 5 archivos del día; si no, cargar los que hay y avisar*. Cuando un tercero promete "les avisamos", diseña como si no fuera a avisar.
 :::
 
+:::real En tu computadora y en la web real
+Estas notas estarían en la wiki de la consultora y en hilos de correo con cada laboratorio. Ábrelas al lado de tus archivos y verifica cada afirmación con los datos (por ejemplo, con `head` y `file` para la codificación). Anota en `docs/hallazgos.md` qué se confirmó.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `03-hallazgos.png`: tus hallazgos por laboratorio, verificados con los datos.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

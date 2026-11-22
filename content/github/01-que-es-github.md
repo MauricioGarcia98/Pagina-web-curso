@@ -59,7 +59,13 @@ texto: El panel de inicio: la barra superior (1) y el botón de la terminal de l
 | Íconos de issues, pull requests y bandeja | Tus issues, tus PR y las notificaciones |
 | Tu avatar | Tu perfil, tus repositorios y la configuración |
 
-A la izquierda, **Top repositories** lista tus repositorios. En el centro, el botón **Abrir tienda-andina/pipelines** lleva al repositorio del equipo de datos con el que vamos a practicar.
+Con una cuenta nueva, el panel se ve igual que en github.com:
+
+- **A la izquierda**, *Create your first project* tiene dos botones. **Create repository** crea un repositorio vacío. **Import repository** copia uno que ya existe en otro lado. Cuando tengas repositorios, ese lugar pasa a ser **Top repositories**, con el botón verde **New**.
+- **En el centro**, *Start a new repository* es un atajo: escribes el nombre, eliges *Public* o *Private* y lo creas sin salir del inicio.
+- **A la derecha**, *Explore repositories* sugiere repositorios. Ahí está **tienda-andina/pipelines**, el repositorio del equipo de datos con el que vamos a practicar.
+
+El ícono de terminal de la barra superior no existe en GitHub: es la terminal de tu computadora de práctica. Se abre abajo, como la terminal integrada de un editor. Los puntos rojo, amarillo y verde cierran, minimizan y agrandan la ventana.
 
 :::errores
 - **Confundir Git con GitHub.** Git guarda el historial en tu computadora; GitHub aloja repositorios y suma colaboración.

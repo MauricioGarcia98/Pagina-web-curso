@@ -76,6 +76,7 @@ USING CSV OPTIONS ('header' = 'true')
 SELECT * FROM pedalia.gold.uso_por_barrio;</code></pre>
 <p><code>OVERWRITE</code> reemplaza la carpeta completa: queda un archivo <code>part-00000-….csv</code> y un <code>_SUCCESS</code> vacío. Ese <code>_SUCCESS</code> es la señal, para quien lee, de que la escritura terminó entera. Míralo en el portal (contenedor <code>gold</code>) o con:</p>
 <pre tabindex="0"><code class="language-bash">az storage blob list --account-name stpedaliadev -c gold -o table</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">az storage blob list --account-name stpedaliadev -c gold -o table</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob list</code>). <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <div class="callout callout-nota"><div class="callout-title">📝 ¿Por qué CSV y no Parquet?</div>
 
 <p>En Databricks real exportarías Parquet: guarda los tipos, ocupa menos y lo leen Snowflake y BigQuery. En esta práctica la exportación es CSV para que puedas abrir el archivo y ver qué hay adentro. El patrón (carpeta por tabla + <code>_SUCCESS</code> + reemplazo completo) es el mismo.</p>
@@ -121,6 +122,24 @@ SELECT * FROM pedalia.gold.uso_por_barrio;</code></pre>
 <li><strong>Exportar sin <code>OVERWRITE</code></strong>: cada corrida agrega otro archivo y quien carga termina con los datos duplicados.</li>
 <li><strong>Leer la carpeta antes de que aparezca <code>_SUCCESS</code></strong>: un archivo a medio escribir se carga incompleto. Los procesos que leen deben esperar la marca.</li>
 </ul>
+</div>
+
+
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>En Databricks real, el job se crea en <strong>Workflows → Jobs &amp; Pipelines → Create job</strong>: cada tarea es un notebook o un archivo SQL, con dependencias entre tareas, un horario (<em>Schedule</em>) y avisos por correo si falla (<em>Notifications</em>). La exportación a Parquet o CSV se escribe en un <em>external location</em> del lago, igual que acá.</p>
+<p>Si trabajas con código versionado, define el job como <strong>Declarative Automation Bundle</strong> (<code>databricks bundle init</code>, <code>databricks bundle deploy</code>) y queda en el repositorio.</p>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>07-gold.png</code>: las tres tablas gold en el catálogo.</li>
+<li><code>07-job.png</code>: el job con sus tareas encadenadas y la última ejecución en verde.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
 </div>
 
 

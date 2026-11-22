@@ -95,7 +95,7 @@ SELECT * FROM table_changes('prod.silver.clientes', 120, 125) WHERE _change_type
 <pre data-norun tabindex="0"><code class="language-python"># Como stream: alimentar gold solo con lo que cambió en silver
 cambios = (spark.readStream.option(&quot;readChangeFeed&quot;, &quot;true&quot;).table(&quot;prod.silver.clientes&quot;))</code></pre>
 <div class="table-wrap"><table><thead><tr>
-<th></th>
+<th><span class="sr-only">Concepto</span></th>
 <th>Change Data Feed</th>
 <th>AUTO CDC</th>
 </tr>

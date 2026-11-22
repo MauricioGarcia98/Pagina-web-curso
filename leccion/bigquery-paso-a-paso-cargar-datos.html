@@ -42,6 +42,7 @@ FROM FILES (format = 'CSV', skip_leading_rows = 1, uris = ['gs://tienda-andina-l
 <pre data-norun tabindex="0"><code class="language-bash"># con la CLI
 bq load --source_format=CSV --skip_leading_rows=1 --time_partitioning_field=fecha \
   analitica.eventos_app gs://tienda-andina-landing/eventos/*.csv</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">bq load --source_format=CSV --skip_leading_rows=1 --time_partitioning_field=fecha    analitica.eventos_app gs://tienda-andina-landing/eve…</code><span><code>bq</code>: la CLI de BigQuery. <code>load</code> carga un archivo (CSV, Parquet) en una tabla</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <div class="table-wrap"><table><thead><tr>
 <th>Forma</th>
 <th>Cuándo</th>

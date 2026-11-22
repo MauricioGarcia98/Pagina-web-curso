@@ -86,6 +86,27 @@ Los datos de salud son una **categoría especial** en la mayoría de las leyes d
 Minimizando: solo los datos necesarios, con identificadores seudonimizados con un hash con sal o un token guardado aparte. Permisos por columna y por fila en el catálogo, con máscaras para datos sensibles, acceso por grupos con lo mínimo necesario y auditoría de quién consultó qué. Documentaría qué datos personales hay, su finalidad y su plazo de conservación.
 :::
 
+:::real En tu computadora y en la web real
+Todo el proyecto se hace en **tu computadora**:
+
+1. **Terminal**: Terminal en macOS, o Ubuntu con WSL en Windows (`wsl --install` en PowerShell como administrador). Ahí corres `git`, `uv` y las CLIs.
+2. **VS Code** con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).
+3. **Una carpeta por proyecto** con `git init` desde el primer minuto, y un repositorio público en **github.com → New repository** para mostrarlo.
+
+- **Fases 1 y 2, local**: el análisis con SQL y Python.
+- **Fase 3, Unity Catalog** en Databricks: *Catalog → tabla → Permissions* para los permisos por grupo, y las funciones de máscara y filtros de fila con SQL en el *SQL Editor*. Pruébalo entrando con un usuario de otro grupo (o con `current_user()` en una consulta) para mostrar que la máscara funciona.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio y enlázalas desde el README.
+
+- `01-ausentismo.png`: el análisis de ausentismo por franja.
+- `02-mascara.png`: la misma consulta vista por dos grupos distintos: con y sin la máscara.
+- `03-permisos.png`: la pestaña *Permissions* de la tabla.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.
+:::
+
 ## Entregables
 
 - [ ] Tabla de ausentismo por anticipación, día y especialidad, con la conclusión.

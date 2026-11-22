@@ -7,6 +7,10 @@ objetivos: Consultar archivos de S3 con Athena y tablas externas | Reducir el co
 autoevaluacion: ¿Por qué Athena cobra por TB escaneado y cómo lo reduces? | ¿Qué hace un CTAS a Parquet?
 ---
 
+:::tip Hazlo también en la consola
+En la [consola de AWS de práctica](#/aws) (Athena → Settings y Editor) configura la ubicación de resultados y compara los datos escaneados con y sin filtro de partición. Comparte el estado con el comando `aws` de la terminal: lo que crees en un lado aparece en el otro. Recorrido completo en [La consola de AWS por dentro](#/l/interfaces-consola-aws-por-dentro).
+:::
+
 ## Qué es Athena
 
 **Athena** es un motor de SQL **sin servidor** (por dentro es Trino/Presto) que consulta directamente los archivos de S3 usando las tablas del **Glue Data Catalog**. No hay nada que encender ni apagar: escribes SQL, Athena lee los archivos, y pagas **por TB escaneado** (~USD 5).

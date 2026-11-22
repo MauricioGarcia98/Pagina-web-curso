@@ -121,6 +121,24 @@ SELECT patient:doc, value, unit FROM read_files('abfss://…/sur/', format => 'j
 SELECT date_add('1899-12-30', CAST(46343.4375 AS INT));   -- serie de Excel → fecha
 ```
 
+:::real En tu computadora y en la web real
+Un SFTP real se usa así desde tu computadora:
+
+1. `ssh-keygen -t ed25519 -f ~/.ssh/red_analitica` crea tu par de claves.
+2. Le mandas a IT **solo la pública** (`~/.ssh/red_analitica.pub`).
+3. Compruebas la huella del servidor con `ssh-keyscan` y la comparas con la del correo de IT **antes** de conectarte.
+4. `sftp -i ~/.ssh/red_analitica usuario@host` y adentro `ls`, `get` y `mget`. Con interfaz gráfica: FileZilla o WinSCP, con la misma clave.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `02-sftp.png`: la sesión de SFTP listando los archivos de cada laboratorio (tapa host y usuario).
+- `02-formatos.png`: un ejemplo de cada formato de laboratorio abierto en VS Code.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

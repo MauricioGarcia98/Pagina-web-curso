@@ -118,6 +118,22 @@ Guarda el SQL en `sql/bigquery/marketing.sql`.
 - **`LOAD DATA INTO` en una carga diaria completa**: cada día suma todo de nuevo y los viajes de marketing se multiplican.
 :::
 
+:::real En tu computadora y en la web real
+Las dos tienen prueba gratuita:
+
+- **Snowflake** (`app.snowflake.com`): *Projects → Worksheets* para el SQL; *Data → Databases* para ver lo creado. El *stage* externo apunta al contenedor `gold` con una *storage integration* (sin claves en el SQL).
+- **BigQuery** (`console.cloud.google.com/bigquery`): el panel *Explorer* muestra proyectos y datasets; el editor de consultas te dice **cuántos bytes va a leer antes de ejecutar** (arriba a la derecha). La carga se hace con *Create table → Upload / Google Cloud Storage* o con `bq load` en la terminal.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `08-snowflake.png`: la hoja de Snowflake con la tabla de finanzas consultada.
+- `08-bigquery.png`: la consulta de marketing en BigQuery, mostrando los bytes procesados.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

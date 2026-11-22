@@ -101,6 +101,27 @@ Compara tres recuperadores (palabras, embeddings, híbrido) con el **mismo** con
 En dos partes. La recuperación: para un conjunto de preguntas sé qué documento contiene la respuesta y mido si aparece entre los primeros recuperados. La generación: si la respuesta es fiel al contexto, si cita las fuentes correctas y si dice no saber cuando corresponde, con revisión humana de una muestra o con un modelo evaluador calibrado. Lo corro en cada cambio.
 :::
 
+:::real En tu computadora y en la web real
+Todo el proyecto se hace en **tu computadora**:
+
+1. **Terminal**: Terminal en macOS, o Ubuntu con WSL en Windows (`wsl --install` en PowerShell como administrador). Ahí corres `git`, `uv` y las CLIs.
+2. **VS Code** con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).
+3. **Una carpeta por proyecto** con `git init` desde el primer minuto, y un repositorio público en **github.com → New repository** para mostrarlo.
+
+- **Fase 1, local**: el índice de documentos y las preguntas con Python (`uv run`), con la clave del modelo en una variable de entorno.
+- **Fase 3, nube**: la misma lógica en Databricks (*Vector Search* y un *serving endpoint*) o en Azure (AI Search y Azure OpenAI), creados desde su portal. Configura el límite de gasto antes de probar.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio y enlázalas desde el README.
+
+- `01-respuesta.png`: una pregunta con su respuesta y las fuentes citadas.
+- `02-evaluacion.png`: la tabla de evaluación (respuestas correctas, citas correctas, "no sé" cuando corresponde).
+- `03-nube.png`: el endpoint funcionando en la nube.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.
+:::
+
 ## Entregables
 
 - [ ] Pipeline de ingesta (fragmentos con metadatos) y su actualización.

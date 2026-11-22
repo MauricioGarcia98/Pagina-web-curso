@@ -33,6 +33,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p><a href="#/generador?esc=soporte&n=1500&semilla=88&desde=2024-01-01&hasta=2024-12-31&formatos=3&duplicados=1">🏭 Generar los datos del proyecto</a> · Escenario <strong>Soporte</strong>: <code>tickets</code> (mensaje, canal, país, y las etiquetas <code>categoria</code>, <code>sentimiento</code> y <code>prioridad</code>) y <code>base_conocimiento</code> (para el proyecto 9).</p>
 <pre tabindex="0"><code class="language-bash">generar-datos soporte --filas 300 --semilla 88
 duckdb -c &quot;SELECT categoria, COUNT(*) FROM '~/datos/generados/soporte/tickets.csv' GROUP BY 1&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">generar-datos soporte --filas 300 --semilla 88</code><span><code>generar-datos</code>: comando del curso que genera los datos de práctica (tus datos salen de una semilla propia)</span></li><li><code class="bx-linea">duckdb -c &quot;SELECT categoria, COUNT(*) FROM '~/datos/generados/soporte/tickets.csv' GROUP BY 1&quot;</code><span><code>duckdb</code>: DuckDB: base de datos analítica en un solo archivo; consulta CSV y Parquet directamente. <code>-c</code> = ejecuta esa consulta y sale</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <h2>Arquitectura</h2>
 <figure class="diagrama"><figcaption>Clasificación con LLM y evaluación</figcaption></figure>
 
@@ -119,12 +120,40 @@ FROM workspace.soporte.tickets;</code></pre>
 </div>
 
 
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Todo el proyecto se hace en <strong>tu computadora</strong>:</p>
+<ol>
+<li><strong>Terminal</strong>: Terminal en macOS, o Ubuntu con WSL en Windows (<code>wsl --install</code> en PowerShell como administrador). Ahí corres <code>git</code>, <code>uv</code> y las CLIs.</li>
+<li><strong>VS Code</strong> con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).</li>
+<li><strong>Una carpeta por proyecto</strong> con <code>git init</code> desde el primer minuto, y un repositorio público en <strong>github.com → New repository</strong> para mostrarlo.</li>
+</ol>
+<ul>
+<li>La clave de la API del modelo va en una <strong>variable de entorno</strong> (<code>export ...</code> en la terminal o un archivo <code>.env</code> que está en <code>.gitignore</code>), nunca en el código ni en el repositorio.</li>
+<li>En el portal del proveedor del modelo, configura un <strong>límite de gasto</strong> antes de correr el lote completo.</li>
+<li>Prueba primero con 20 tickets, mira las respuestas a mano y recién después corre todo.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio y enlázalas desde el README.</p>
+<ul>
+<li><code>01-prompt.png</code>: el prompt final en el editor.</li>
+<li><code>02-evaluacion.png</code>: la matriz de confusión o la tabla de aciertos por categoría.</li>
+<li><code>03-costo.png</code>: el costo del lote completo según el portal del proveedor.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.</p>
+</div>
+
+
 <h2>Entregables</h2>
 <ul>
-<li><input disabled="" type="checkbox"> Prompt versionado y la tabla de resultados por versión.</li>
-<li><input disabled="" type="checkbox"> Matriz de confusión y exactitud por categoría.</li>
-<li><input disabled="" type="checkbox"> Costo y latencia por 1.000 tickets en al menos dos opciones (local y nube).</li>
-<li><input disabled="" type="checkbox"> Decisión de activación: qué se automatiza y qué va a revisión humana.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Prompt versionado y la tabla de resultados por versión.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Matriz de confusión y exactitud por categoría.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Costo y latencia por 1.000 tickets en al menos dos opciones (local y nube).</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Decisión de activación: qué se automatiza y qué va a revisión humana.</li>
 </ul>
 <h2>Práctica</h2>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Evaluar un clasificador antes de confiar en él</div>

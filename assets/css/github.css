@@ -21,6 +21,8 @@ body.gh-abierto { overflow: hidden; }
 .ghp hr { border: 0; border-top: 1px solid var(--bd); margin: 16px 0; }
 .ghp .octicon { vertical-align: text-bottom; flex-shrink: 0; }
 .gh-pag { flex: 1; overflow: auto; min-height: 0; }
+/* espacio al final para que el botón flotante de retos no tape el último botón (por ejemplo, Create repository) */
+body:has(.rh-btn) .gh-pag::after { content: ""; display: block; height: 72px; }
 .gh-sp { flex: 1; }
 .gh-grow { flex: 1; min-width: 0; }
 .gh-dim { color: var(--fg2); }
@@ -283,6 +285,8 @@ a.gh-label-rama:hover { text-decoration: underline; }
 
 /* dashboard y perfil */
 .gh-dash { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 32px; }
+.gh-dash:has(.gh-dash-der) { grid-template-columns: 300px minmax(0, 1fr) 280px; }
+@media (max-width: 1100px) { .gh-dash:has(.gh-dash-der) { grid-template-columns: 300px minmax(0, 1fr); } .gh-dash-der { grid-column: 2; } }
 .gh-dash-izq { border-right: 1px solid var(--bd); padding-right: 24px; }
 .gh-dash-t { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .gh-dash-repos { list-style: none; padding: 0; margin: 8px 0; }
@@ -479,11 +483,44 @@ a.gh-label-rama:hover { text-decoration: underline; }
 .gh-md .nt-aviso { border-left: .25em solid var(--ac); padding: 8px 16px; margin-bottom: 16px; }
 
 /* terminal integrada */
-.gh-term { height: 38vh; min-height: 200px; border-top: 1px solid var(--bd); display: flex; flex-direction: column; background: var(--bg); flex-shrink: 0; }
+.gh-term { height: 40vh; min-height: 220px; border-top: 1px solid #30363d; display: flex; flex-direction: column; background: #0d1117; flex-shrink: 0; box-shadow: 0 -8px 24px rgba(0,0,0,.18); }
 .gh-term[hidden] { display: none; }
-.gh-term-h { display: flex; align-items: center; gap: 12px; padding: 4px 12px; border-bottom: 1px solid var(--bd); font-size: 12px; background: var(--bg2); }
+.gh-term.gh-term-max { height: 78vh; height: 78dvh; }
 .gh-term-b { flex: 1; min-height: 0; overflow: hidden; display: flex; }
 .gh-term-b > .term { flex: 1; border-radius: 0; margin: 0; height: 100%; max-height: none; }
+.gh-term .term-dots i { cursor: pointer; }
+.gh-term .term-dots i:focus-visible { outline: 2px solid #58a6ff; outline-offset: 2px; }
+.gh-term-cerrar { background: none; border: 0; color: inherit; font-size: 15px; line-height: 1; padding: 2px 6px; cursor: pointer; opacity: .85; }
+@media (max-width: 767px) { .gh-term { height: 50vh; height: 50dvh; } .gh-term.gh-term-max { height: 85dvh; } }
+
+/* panel de inicio sin repositorios y formulario de repositorio nuevo, como en github.com */
+.gh-primer { padding: 16px; border: 1px solid var(--bd); border-radius: 6px; margin-bottom: 16px; }
+.gh-primer .gh-h4 { margin: 0 0 6px; }
+.gh-primer-b { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.gh-dash-t2 { margin-top: 20px; }
+.gh-nuevo-rapido { margin-bottom: 24px; }
+.gh-nuevo-rapido .gh-h4 { margin-top: 0; }
+.gh-rap-fila { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.gh-rap-fila .gh-input { flex: 1; min-width: 0; }
+.gh-dash-der { padding-left: 24px; }
+.gh-explora { padding: 8px 0; border-bottom: 1px solid var(--bd); }
+.gh-explora p { margin: 4px 0 0; }
+.gh-nuevo-sec { display: flex; gap: 16px; margin: 24px 0; }
+.gh-nuevo-num { flex: none; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--bd); display: grid; place-items: center; font-weight: 600; font-size: 13px; }
+.gh-nuevo-sec .gh-h3 { margin: 2px 0 12px; }
+.gh-nr-desc { width: 100%; resize: vertical; min-height: 56px; }
+.gh-conf { border: 1px solid var(--bd); border-radius: 6px; }
+.gh-conf-f { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border-bottom: 1px solid var(--bd); }
+.gh-conf-f:last-child { border-bottom: 0; }
+.gh-switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; position: relative; flex: none; }
+.gh-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.gh-switch i { width: 40px; height: 22px; border-radius: 11px; background: var(--bd); position: relative; transition: background .15s; }
+.gh-switch i::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: left .15s; }
+.gh-switch input:checked ~ i { background: #1f883d; }
+.gh-switch input:checked ~ i::after { left: 21px; }
+.gh-switch input:focus-visible ~ i { outline: 2px solid #0969da; outline-offset: 2px; }
+.gh-switch-txt { font-size: 12px; color: var(--fg2, inherit); min-width: 22px; }
+@media (max-width: 767px) { .gh-dash:has(.gh-dash-der) { grid-template-columns: minmax(0, 1fr); } .gh-dash-der { padding-left: 0; grid-column: auto; } .gh-conf-f { flex-direction: column; align-items: flex-start; } .gh-nuevo-sec { gap: 10px; } }
 
 /* pantallas chicas */
 @media (max-width: 1011px) {
@@ -511,5 +548,6 @@ a.gh-label-rama:hover { text-decoration: underline; }
 }
 
 /* con la terminal abierta, el botón de retos sube */
-body.gh-term-on .rh-btn { bottom: calc(38vh + 18px); }
-body.gh-term-on .rh-panel { bottom: calc(38vh + 70px); max-height: calc(62vh - 120px); }
+body.gh-term-on .rh-btn { bottom: calc(40vh + 18px); }
+body.gh-term-on .rh-panel { bottom: calc(40vh + 70px); max-height: calc(60vh - 120px); }
+@media (max-width: 767px) { body.gh-term-on .rh-btn { bottom: calc(50dvh + 12px); } body.gh-term-on .rh-panel { bottom: calc(50dvh + 64px); max-height: calc(50dvh - 120px); } }

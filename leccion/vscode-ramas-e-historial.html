@@ -27,6 +27,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>En la terminal integrada (dentro de <code>ventas_app</code>):</p>
 <pre tabindex="0"><code class="language-bash">git checkout -b feature/validaciones
 git log --oneline</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">git checkout -b feature/validaciones</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella). <code>-b</code> = crea la rama nueva</span></li><li><code class="bx-linea">git log --oneline</code><span><code>git</code>: Git: guarda la historia de tu código. <code>log</code> muestra la historia de commits. <code>--oneline</code> = una línea por commit</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <figure class="captura"><img src="assets/img/guias/vscode/v14-rama.webp" alt="La barra de estado muestra la rama actual (1); git log lista los commits (2)" loading="lazy"><figcaption>La barra de estado muestra la rama actual (1); git log lista los commits (2)</figcaption></figure>
 
 
@@ -93,6 +94,7 @@ git log --oneline</code></pre>
 <pre tabindex="0"><code class="language-bash">git checkout main
 git merge feature/validaciones
 git branch -d feature/validaciones</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">git checkout main</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella)</span></li><li><code class="bx-linea">git merge feature/validaciones</code><span><code>git</code>: Git: guarda la historia de tu código. <code>merge</code> une otra rama a la rama actual</span></li><li><code class="bx-linea">git branch -d feature/validaciones</code><span><code>git</code>: Git: guarda la historia de tu código. <code>branch</code> lista, crea o borra ramas. <code>-d</code> = borra la rama (si ya está unida)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p><code>main</code> ahora tiene la validación. En un equipo, en lugar de fusionar en tu máquina, se abre un <strong>pull request</strong> para que alguien revise antes (lección 15 y proyecto 4).</p>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
 

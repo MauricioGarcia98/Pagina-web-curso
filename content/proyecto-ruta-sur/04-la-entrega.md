@@ -46,6 +46,19 @@ La revisión mira los últimos 3 días cerrados y acepta lo que era cierto hasta
 
 <div data-ruta="revisar"></div>
 
+:::real En tu computadora y en la web real
+La revisión automática equivale a las pruebas del CI y a los *expectations* del pipeline en Databricks. Antes del pull request, corre en el SQL Editor la consulta de control de pedidos y pega el resultado en la descripción.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `04-silver.png`: la telemetría limpia en el catálogo.
+- `04-gold.png`: la tabla de entregas con el SLA por pedido.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Resumen
 
 - Silver: dos firmwares, un esquema; sin repetidos.

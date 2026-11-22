@@ -110,6 +110,27 @@ En Databricks, el modelo queda en Unity Catalog; el job horario carga la versió
 No la exactitud, porque con fallas raras engaña. Usaría precisión y recall, o el área bajo la curva de precisión y recall, y elegiría el umbral según el costo de cada error con el área de operaciones: una falla no detectada cuesta mucho más que una inspección innecesaria. Evaluaría con una partición temporal, entrenando con el pasado y probando con el futuro, y registraría todo en MLflow.
 :::
 
+:::real En tu computadora y en la web real
+Todo el proyecto se hace en **tu computadora**:
+
+1. **Terminal**: Terminal en macOS, o Ubuntu con WSL en Windows (`wsl --install` en PowerShell como administrador). Ahí corres `git`, `uv` y las CLIs.
+2. **VS Code** con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).
+3. **Una carpeta por proyecto** con `git init` desde el primer minuto, y un repositorio público en **github.com → New repository** para mostrarlo.
+
+- **Fases 1 y 2, local**: DuckDB desde Python o desde un notebook de Jupyter (`uv add duckdb jupyterlab` y `uv run jupyter lab`).
+- **Fase 3, MLflow**: localmente con `uv run mlflow ui` (abre `http://localhost:5000`) o en Databricks, donde cada experimento queda en *Experiments* y el modelo en *Models* de Unity Catalog.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio y enlázalas desde el README.
+
+- `01-serie.png`: el gráfico de la serie de un sensor antes de una falla.
+- `02-features.png`: la tabla de features con la etiqueta, mostrando el corte temporal.
+- `03-mlflow.png`: la comparación de ejecuciones en MLflow (métricas y parámetros).
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.
+:::
+
 ## Entregables
 
 - [ ] Análisis de la serie: huecos, ciclo diario y deriva antes de las fallas (con gráfico).

@@ -20,7 +20,7 @@
       const visibles = cfg.tickets.map((k) => ({ ...k, T: k.cuando(I, H) })).filter((k) => k.T <= t).sort((a, b) => a.T - b.T);
       const futuros = cfg.tickets.length - visibles.length; const hechos = visibles.filter((k) => D.tickets[k.id] && D.tickets[k.id].hecho).length;
       const txt = (k) => (typeof k.texto === 'function' ? k.texto(k.T, H) : k.texto);
-      el.innerHTML = `<div class="card mv-panel"><h4 style="margin-top:0">🗂️ ${esc(cfg.titulo || 'Tablero del equipo')}</h4>
+      el.innerHTML = `<div class="card mv-panel"><h3 style="margin-top:0;font-size:1.05em">🗂️ ${esc(cfg.titulo || 'Tablero del equipo')}</h3>
         <p class="small muted">${visibles.length} tickets para ti · ${hechos} resueltos${futuros ? ` · <b>${futuros}</b> más van a llegar en los próximos días (como en un trabajo: no sabes cuáles ni cuándo)` : ''}.</p>
         ${visibles.slice().reverse().map((k) => { const e = D.tickets[k.id] || {}; return `<details class="mv-ticket ${e.hecho ? 'hecho' : ''}" ${e.hecho ? '' : 'open'}><summary>${ICON[k.tipo] || '📋'} <b>${esc(k.id)}</b> · ${esc(k.titulo)} <span class="small muted">· ${esc(k.de)} · ${esc(cfg.hora ? cfg.hora(k.T) : new Date(k.T).toISOString().slice(0, 16))}</span> ${e.hecho ? '<span class="mv-ok">✅ resuelto</span>' : ''}</summary>
           <p>${esc(txt(k))}</p>

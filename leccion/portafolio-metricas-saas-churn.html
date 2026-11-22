@@ -101,12 +101,39 @@ select empresa_id, plan, mrr from {{ ref('stg_suscripcion_actual') }}
 </div>
 
 
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Todo el proyecto se hace en <strong>tu computadora</strong>:</p>
+<ol>
+<li><strong>Terminal</strong>: Terminal en macOS, o Ubuntu con WSL en Windows (<code>wsl --install</code> en PowerShell como administrador). Ahí corres <code>git</code>, <code>uv</code> y las CLIs.</li>
+<li><strong>VS Code</strong> con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).</li>
+<li><strong>Una carpeta por proyecto</strong> con <code>git init</code> desde el primer minuto, y un repositorio público en <strong>github.com → New repository</strong> para mostrarlo.</li>
+</ol>
+<ul>
+<li><strong>dbt local</strong> con DuckDB: <code>dbt build</code> para los modelos y las pruebas, <code>dbt snapshot</code> para el historial de planes.</li>
+<li>Para mostrarlo, publica la documentación de dbt (<code>dbt docs generate</code>) o lleva el mart a Databricks Free Edition como en el proyecto 1.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio y enlázalas desde el README.</p>
+<ul>
+<li><code>01-mrr.png</code>: la tabla de MRR por empresa y mes.</li>
+<li><code>02-snapshot.png</code>: una empresa con su historial de planes (dbt snapshot).</li>
+<li><code>03-riesgo.png</code>: la lista de clientes con riesgo de baja y la señal que lo explica.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.</p>
+</div>
+
+
 <h2>Entregables</h2>
 <ul>
-<li><input disabled="" type="checkbox"> <code>mrr_mensual</code> y <code>movimientos_mrr</code> con tests (el MRR de un mes = MRR anterior + nuevo + expansión − contracción − churn).</li>
-<li><input disabled="" type="checkbox"> NRR por cohorte de alta.</li>
-<li><input disabled="" type="checkbox"> Snapshot de planes y una consulta &quot;plan vigente en una fecha&quot;.</li>
-<li><input disabled="" type="checkbox"> Lista de riesgo semanal y cuántas bajas reales anticipa.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  <code>mrr_mensual</code> y <code>movimientos_mrr</code> con tests (el MRR de un mes = MRR anterior + nuevo + expansión − contracción − churn).</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  NRR por cohorte de alta.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Snapshot de planes y una consulta &quot;plan vigente en una fecha&quot;.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Lista de riesgo semanal y cuántas bajas reales anticipa.</li>
 </ul>
 <h2>Práctica</h2>
 <div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: El modelo central: MRR por empresa y mes</div>

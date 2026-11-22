@@ -18,7 +18,7 @@
   function panelFuentes(el) {
     const pintar = () => {
       Host.sincronizar(); const S = RA.servidor(); const t = RA.ahora(); const hoy = RA.diaLocal(t); const ayer = RA.sumarDias(hoy, -1);
-      el.innerHTML = `<div class="card mv-panel"><h4 style="margin-top:0">🧪 El servidor SFTP, ahora</h4>
+      el.innerHTML = `<div class="card mv-panel"><h3 style="margin-top:0;font-size:1.05em">🧪 El servidor SFTP, ahora</h3>
         <p class="small muted">Hora de la red: <b>${esc(new Date(t - 3 * HORA).toISOString().slice(0, 16).replace('T', ' '))}</b> (UTC-3). Archivos de ayer (${esc(ayer)}):</p>
         <div class="mv-grilla">${Object.entries(RA.LABS).map(([k, L]) => { const f = S.filter((x) => x.e.lab === k && x.e.fecha === ayer); return `<div><b>${esc(L.nombre)}</b><br><span class="small">${f.length ? f.map((x) => `${esc(x.ruta.split('/').pop())} · llegó ${esc(new Date(x.mtime - 3 * HORA).toISOString().slice(11, 16))}`).join('<br>') : '<span style="color:var(--danger,#b91c1c)">todavía no llegó</span>'}</span></div>`; }).join('')}</div>
         <p class="small muted" style="margin-bottom:0">${S.length} archivos en el servidor (se borran a los 7 días).</p></div>`;
@@ -170,7 +170,7 @@
       datos: () => Host.datos(), guardar: () => Host.guardar(), hora: (T) => new Date(T - 3 * HORA).toISOString().replace('T', ' ').slice(0, 16) });
   }
   function panelRevisar(el) {
-    el.innerHTML = `<div class="card mv-panel"><h4 style="margin-top:0">🔎 Revisar mi entrega</h4><p class="small muted">Lee tus herramientas (Key Vault, Databricks) y las compara con lo que mandaron de verdad los laboratorios.</p><button class="btn btn-primary btn-sm" data-revisar>Revisar ahora</button><ol class="pedalia-chequeos"></ol></div>`;
+    el.innerHTML = `<div class="card mv-panel"><h3 style="margin-top:0;font-size:1.05em">🔎 Revisar mi entrega</h3><p class="small muted">Lee tus herramientas (Key Vault, Databricks) y las compara con lo que mandaron de verdad los laboratorios.</p><button class="btn btn-primary btn-sm" data-revisar>Revisar ahora</button><ol class="pedalia-chequeos"></ol></div>`;
     const ol = el.querySelector('ol');
     el.querySelector('[data-revisar]').addEventListener('click', async (ev) => {
       const b = ev.currentTarget; b.disabled = true; b.textContent = 'Revisando…'; ol.innerHTML = ''; Host.sincronizar(); let bien = 0;

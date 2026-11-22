@@ -7,6 +7,10 @@ objetivos: Organizar un lago en S3 con capas y particiones estilo Hive | Usar aw
 autoevaluacion: ¿Qué es un prefijo en S3? | ¿Para qué sirve una regla de ciclo de vida?
 ---
 
+:::tip Hazlo también en la consola
+En la [consola de AWS de práctica](#/aws) (S3 → Create bucket) crea el bucket, sube los pedidos de ejemplo particionados por mes y mira cada objeto. Comparte el estado con el comando `aws` de la terminal: lo que crees en un lado aparece en el otro. Recorrido completo en [La consola de AWS por dentro](#/l/interfaces-consola-aws-por-dentro).
+:::
+
 ## Qué es S3
 
 **Amazon S3** (*Simple Storage Service*) guarda **objetos** (archivos) dentro de **buckets** (contenedores). Es prácticamente infinito, muy durable (11 nueves: 99,999999999 %) y barato. En AWS, **el data lake es S3**.

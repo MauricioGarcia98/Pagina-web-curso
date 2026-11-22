@@ -19,6 +19,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Paginar APIs con cursor y con starting_after</li><li>Reconstruir el estado de suscripciones a partir de un log de eventos</li><li>Unir entidades por id externo y por dominio</li><li>Escribir en una API respetando límites</li></ul>
 <h2>Accesos</h2>
 <pre tabindex="0"><code class="language-bash">cuentas accesos</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">cuentas accesos</code><span><code>cuentas</code>: el sistema interno de Cuentas Claras en la terminal del curso. <code>accesos</code> muestra los accesos que te dio IT</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <figure class="diagrama"><figcaption>Tres sistemas, una métrica de ingresos que tiene que cuadrar con finanzas</figcaption></figure>
 
 
@@ -115,6 +116,22 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 SELECT * FROM (
   SELECT m.mes, e.*, ROW_NUMBER() OVER (PARTITION BY m.mes, e.cliente ORDER BY e.creado DESC) AS rn
   FROM meses m JOIN eventos e ON e.creado &lt;= m.cierre) x WHERE rn = 1;</code></pre>
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Cada API se prueba primero desde la terminal con <code>curl</code> (o con Postman/Bruno), mirando la paginación y los límites de uso. Los tokens van en variables de entorno (<code>export CRM_TOKEN=…</code> solo en tu terminal) o en el Key Vault; nunca en el repositorio. Las URLs reales de cada proveedor están en su portal de desarrolladores.</p>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>02-apis.png</code>: una respuesta de cada API (sin tokens).</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
+</div>
+
+
 <h2>Ejercicios</h2>
 <div class="exercise-slot"></div>
 

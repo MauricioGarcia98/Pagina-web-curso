@@ -76,6 +76,19 @@ La realidad sigue cambiando (llegan disputas, reembolsos, liquidaciones): la rev
 - **Calidad**: una tabla de "entregas rechazadas" (firma inválida, repetición) con el motivo, para que seguridad la mire.
 - **Lo que viene**: en [El día a día](#/l/proyecto-mercado-vecino-el-dia-a-dia) van a llegar más pedidos (el resumen diario para el banco, la automatización, Snowflake, el repositorio) e incidentes.
 
+:::real En tu computadora y en la web real
+La "revisión automática" del curso equivale, en una empresa, a **las pruebas del CI** (GitHub Actions o Azure Pipelines) y a la **revisión del pull request** por otra persona. Antes de pedir revisión, corre tú mismo las consultas de control en Databricks (SQL Editor) y pega los resultados en la descripción del PR: así quien revisa no tiene que adivinar.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `04-tablas.png`: las tablas entregadas en *Catalog Explorer*, con sus columnas.
+- `04-revision.png`: la revisión automática del curso (o los checks del CI) en verde.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

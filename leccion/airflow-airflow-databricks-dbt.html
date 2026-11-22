@@ -190,13 +190,13 @@ default_args = {&quot;on_failure_callback&quot;: avisar_falla, &quot;retries&quo
 </ol>
 <h2>Diseño de un DAG de producción: checklist</h2>
 <ul>
-<li><input disabled="" type="checkbox"> <code>start_date</code> fijo, <code>catchup</code> decidido a propósito y <code>max_active_runs</code> si hay dependencia entre días.</li>
-<li><input disabled="" type="checkbox"> Reintentos con espera y timeouts (<code>execution_timeout</code>) para que nada quede colgado.</li>
-<li><input disabled="" type="checkbox"> Tareas idempotentes, parametrizadas con <code>{{ ds }}</code> o el data interval.</li>
-<li><input disabled="" type="checkbox"> El cómputo pesado en Databricks o dbt; Airflow solo coordina.</li>
-<li><input disabled="" type="checkbox"> Alertas al fallar y SLAs o deadlines para lo crítico.</li>
-<li><input disabled="" type="checkbox"> Credenciales en Connections (respaldadas por Key Vault).</li>
-<li><input disabled="" type="checkbox"> Tests de importación en CI y despliegue automático de la carpeta <code>dags/</code>.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  <code>start_date</code> fijo, <code>catchup</code> decidido a propósito y <code>max_active_runs</code> si hay dependencia entre días.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Reintentos con espera y timeouts (<code>execution_timeout</code>) para que nada quede colgado.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Tareas idempotentes, parametrizadas con <code>{{ ds }}</code> o el data interval.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  El cómputo pesado en Databricks o dbt; Airflow solo coordina.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Alertas al fallar y SLAs o deadlines para lo crítico.</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Credenciales en Connections (respaldadas por Key Vault).</li>
+<li><input disabled="" type="checkbox" aria-label="Pendiente">  Tests de importación en CI y despliegue automático de la carpeta <code>dags/</code>.</li>
 </ul>
 <h2>Ejercicio integrador</h2>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Tokens en el código del DAG</div>

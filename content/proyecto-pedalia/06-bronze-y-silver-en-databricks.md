@@ -148,6 +148,25 @@ Cuando cierre, guarda la consulta de silver en el repositorio, en `sql/databrick
 - **Usar la hora de fin para la fecha del viaje**: el contrato dice día de **inicio**. Un viaje que cruza la medianoche cambiaría de día y los ingresos no cuadrarían con finanzas.
 :::
 
+:::real En tu computadora y en la web real
+En un Databricks real (Azure Databricks o la *Free Edition* en `databricks.com`):
+
+1. **Catalog → External data → Credentials / External locations** conecta el lago con una *access connector* (identidad administrada), sin claves en los notebooks.
+2. **Catalog → + → Create catalog** y los esquemas `bronze`, `silver`, `gold`.
+3. **Workspace → Create → Notebook** (o *SQL Editor*): pegas el SQL de la lección y lo ejecutas con un **SQL warehouse** o un clúster.
+4. La cuenta de control se corre en una celda aparte y su resultado se guarda en una tabla, para poder mostrarlo después.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `06-catalogo.png`: el catálogo con los esquemas bronze y silver en *Catalog Explorer*.
+- `06-silver.png`: el resultado de la consulta silver con la cantidad de filas.
+- `06-control.png`: la cuenta de control cerrando (filas − descartes = válidos).
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

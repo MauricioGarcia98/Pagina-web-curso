@@ -19,6 +19,18 @@ autoevaluacion: ¿Sabes detectar un reloj adelantado? | ¿Sabes calcular kilóme
 - **Cerrar el día y no volver a mirarlo**: los eventos tardíos cambian el SLA de días ya calculados.
 :::
 
+:::real En tu computadora y en la web real
+Un firmware nuevo o un apagón, en la vida real, se detectan por las alertas de calidad del pipeline o por un aviso del proveedor. Cada caso es un ticket, un pull request y un aviso a operaciones con qué datos están afectados y desde cuándo.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `05-alerta.png`: la alerta de calidad y el ticket que la resolvió.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Resumen
 
 - Los streams también cambian de esquema: valida y normaliza por versión.

@@ -247,6 +247,20 @@ FROM cc.gold.mrr_mensual a JOIN cc.gold.mrr_mensual b ON a.cliente_id = b.client
 WHERE b.mes = '2026-10' AND b.movimiento = 'churn' AND a.mes = '2026-09';
 ```
 
+:::real En tu computadora y en la web real
+En tu nube: el código Python que llama a las APIs corre como tarea de un **job de Databricks** (o en Airflow); los tokens se leen del **Key Vault** a través de un *secret scope*; el MRR y la vista 360 son tablas gold en Unity Catalog. Explora primero cada API desde la terminal y recién después escribe el código.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `05-explorar.png`: la exploración inicial de una API en la terminal.
+- `05-mrr.png`: el MRR calculado desde el log de eventos.
+- `05-job.png`: el job diario en verde.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

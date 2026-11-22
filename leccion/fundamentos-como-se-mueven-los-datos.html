@@ -47,7 +47,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tbody></table></div>
 <h2>Batch o streaming: ¿cuánto cuesta esperar?</h2>
 <div class="table-wrap"><table><thead><tr>
-<th></th>
+<th><span class="sr-only">Concepto</span></th>
 <th>Batch (por lotes)</th>
 <th>Streaming (tiempo real)</th>
 </tr>
@@ -83,7 +83,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>ETL o ELT</h2>
 <div class="table-wrap"><table><thead><tr>
-<th></th>
+<th><span class="sr-only">Concepto</span></th>
 <th>ETL (antes)</th>
 <th>ELT (hoy)</th>
 </tr>
@@ -130,6 +130,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <pre data-norun tabindex="0"><code class="language-bash">curl -s &quot;https://api.tiendaandina.dev/v1/productos?page=1&quot; -o productos.json
 ls -lh productos.json
 head -c 300 productos.json</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">curl -s &quot;https://api.tiendaandina.dev/v1/productos?page=1&quot; -o productos.json</code><span><code>curl</code>: hace un pedido HTTP a una URL (bajar un archivo o llamar a una API). <code>-s</code> = sin barra de progreso; <code>-o</code> = guarda la respuesta en un archivo</span></li><li><code class="bx-linea">ls -lh productos.json</code><span><code>ls</code>: lista los archivos y carpetas. <code>-lh</code> = formato largo con tamaños legibles</span></li><li><code class="bx-linea">head -c 300 productos.json</code><span><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Reto: pide la página 2 y guárdala en otro archivo. ¿Cómo sabrías cuántas páginas hay?</p>
 <p>Documentación oficial: <a href="https://curl.se/docs/manual.html">manual de curl</a></p>
 </div>

@@ -40,6 +40,7 @@ airflow connections add snowflake_default --conn-type snowflake \
 airflow connections add google_cloud_default --conn-type google_cloud_platform \
   --conn-extra '{&quot;project&quot;: &quot;tienda-andina-dev&quot;}'
 airflow connections list</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(5)</span></summary><ol><li><code class="bx-linea">airflow connections add azure_data_factory_default --conn-type azure_data_factory    --conn-extra '{&quot;resource_group_name&quot;: &quot;rg-pedalia-de…</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>connections</code> administra conexiones a sistemas externos</span></li><li><code class="bx-linea">airflow connections add databricks_default --conn-type databricks    --conn-host https://adb-1234567890123456.7.azuredatabricks.net</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>connections</code> administra conexiones a sistemas externos</span></li><li><code class="bx-linea">airflow connections add snowflake_default --conn-type snowflake    --conn-extra '{&quot;account&quot;: &quot;practica01&quot;, &quot;warehouse&quot;: &quot;COMPUTE_WH&quot;, &quot;da…</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>connections</code> administra conexiones a sistemas externos</span></li><li><code class="bx-linea">airflow connections add google_cloud_default --conn-type google_cloud_platform    --conn-extra '{&quot;project&quot;: &quot;tienda-andina-dev&quot;}'</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>connections</code> administra conexiones a sistemas externos</span></li><li><code class="bx-linea">airflow connections list</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>connections</code> administra conexiones a sistemas externos</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>También puedes crearlas en <a href="#/airflow">Airflow</a> → <strong>Admin → Connections</strong>.</p>
 <div class="callout callout-nota"><div class="callout-title">📝 En una cuenta real</div>
 
@@ -107,6 +108,7 @@ with DAG(
 
     ingesta &gt;&gt; transformar &gt;&gt; [finanzas, marketing]
 EOF</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">cd ~/pedalia-datos</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">git checkout main &amp;&amp; git pull</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella) <span class="bx-tubo">→ si sale bien, sigue el próximo</span><br><code>git</code>: Git: guarda la historia de tu código. <code>pull</code> trae los commits nuevos del remoto y los une a tu rama</span></li><li><code class="bx-linea">git checkout -b dag/pedalia-diario</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella). <code>-b</code> = crea la rama nueva</span></li><li><code class="bx-linea">cat &gt; dags/pedalia_diario.py &lt;&lt; 'EOF'</code><span><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe). Lo que sigue hasta <code>EOF</code> es el contenido del archivo</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Fíjate en tres decisiones:</p>
 <ul>
 <li><strong><code>{{ ds }}</code></strong> es la <strong>fecha lógica</strong> de la corrida, no la fecha de hoy. Con <code>schedule=&quot;0 7 * * *&quot;</code>, la corrida que arranca el 10/11 a las 7:00 tiene <code>ds = 2026-11-09</code>: procesa el día que <strong>terminó</strong>. Si mañana re-ejecutas la corrida del 9, vuelve a procesar el 9, no &quot;hoy&quot;.</li>
@@ -117,10 +119,12 @@ EOF</code></pre>
 <pre tabindex="0"><code class="language-bash">git add dags/pedalia_diario.py
 git commit -m &quot;DAG diario de Pedalia: ADF → Databricks → Snowflake y BigQuery&quot;
 git push -u origin dag/pedalia-diario</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">git add dags/pedalia_diario.py</code><span><code>git</code>: Git: guarda la historia de tu código. <code>add</code> prepara cambios para el próximo commit (los pasa al área de preparación)</span></li><li><code class="bx-linea">git commit -m &quot;DAG diario de Pedalia: ADF → Databricks → Snowflake y BigQuery&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>commit</code> guarda una foto de los cambios preparados, con un mensaje. <code>-m</code> = el mensaje del commit</span></li><li><code class="bx-linea">git push -u origin dag/pedalia-diario</code><span><code>git</code>: Git: guarda la historia de tu código. <code>push</code> sube tus commits al repositorio remoto (GitHub). <code>-u</code> = recuerda la rama remota: después alcanza con <code>git push</code></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Abre el PR. El job <code>validar</code> revisa que el DAG compile. Al fusionarlo, <code>desplegar</code> lo copia a Airflow: en unos segundos el DAG actualizado aparece en <a href="#/airflow">Airflow</a> con sus cuatro tareas en el <strong>Graph</strong>.</p>
 <h2>4. Ejecutarlo para un día concreto</h2>
 <p>Primero pruébalo completo para el 9 de noviembre, sin esperar al horario:</p>
 <pre tabindex="0"><code class="language-bash">airflow dags test pedalia_diario 2026-11-09</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">airflow dags test pedalia_diario 2026-11-09</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>dags</code> lista, pausa o ejecuta DAGs</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>O en la interfaz: el DAG → <strong>Trigger</strong> con fecha lógica <code>2026-11-09</code>. Mira cada tarea:</p>
 <ul>
 <li><code>ingesta_adf</code>: el log muestra el <strong>run ID</strong> del pipeline. Búscalo en Data Factory → <strong>Monitor</strong>: es la misma corrida.</li>
@@ -143,6 +147,30 @@ git push -u origin dag/pedalia-diario</code></pre>
 <li><strong>Buscar el error solo en Airflow</strong>: el log de Airflow dice <strong>qué</strong> tarea falló y te da el identificador; el <strong>por qué</strong> está en la herramienta que hizo el trabajo (Monitor de Data Factory, la corrida del job en Databricks, Query History en Snowflake).</li>
 <li><strong>Re-ejecutar todo el DAG desde cero</strong> después de un arreglo: con <strong>Clear</strong> sobre la tarea que falló se retoma desde ahí, sin repetir lo que ya salió bien.</li>
 </ul>
+</div>
+
+
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>Para correr Airflow en tu computadora, lo más simple es <strong>Docker</strong> con la <strong>Astro CLI</strong> (<code>astro dev init</code> y <code>astro dev start</code>), o el <code>docker-compose.yaml</code> oficial de Airflow. La interfaz queda en <code>http://localhost:8080</code>:</p>
+<ol>
+<li><strong>Admin → Connections</strong>: una conexión por herramienta (Azure, Databricks, Snowflake, BigQuery). Los secretos van ahí, no en el código.</li>
+<li>Copias el archivo del DAG a la carpeta <code>dags/</code> y aparece solo en la lista.</li>
+<li>En el DAG, <strong>Trigger DAG w/ config</strong> para correrlo con una fecha concreta, y la vista <strong>Grid</strong> para ver cada tarea.</li>
+</ol>
+<p>En una empresa, Airflow suele ser administrado (Cloud Composer, MWAA o Astronomer) y el DAG llega por un pull request que despliega el CI.</p>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
+<ul>
+<li><code>09-grid.png</code>: la vista Grid del DAG con todas las tareas en verde.</li>
+<li><code>09-conexiones.png</code>: la lista de conexiones (sin mostrar contraseñas).</li>
+<li><code>09-log-falla.png</code>: el log de una tarea que falló y cómo la reintentaste.</li>
+</ul>
+<p>Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.</p>
 </div>
 
 

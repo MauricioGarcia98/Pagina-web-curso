@@ -108,7 +108,7 @@ demoras_por_aeropuerto().test()</code></pre>
 <p>El DAG de esta lección crea una tarea por aeropuerto con un <code>for</code> sobre una <strong>lista fija</strong> escrita en el código. Eso está bien cuando la lista cambia muy de vez en cuando (se agrega un aeropuerto por año), porque el <code>for</code> se ejecuta cada vez que Airflow <strong>lee</strong> el archivo y las tareas aparecen en la interfaz con nombre propio (<code>procesar_SCL</code>, <code>procesar_LIM</code>).</p>
 <p>Cuando la lista depende de <strong>los datos del día</strong> (los aeropuertos que tuvieron vuelos hoy, los archivos que llegaron), el <code>for</code> no sirve: se usa el <strong>mapeo dinámico</strong> (<code>.expand()</code>) que viste en la lección de XCom y TaskFlow, que crea las copias en tiempo de ejecución.</p>
 <div class="table-wrap"><table><thead><tr>
-<th></th>
+<th><span class="sr-only">Concepto</span></th>
 <th><code>for</code> al nivel superior</th>
 <th><code>.expand()</code></th>
 </tr>

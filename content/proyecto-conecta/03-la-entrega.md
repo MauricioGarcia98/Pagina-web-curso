@@ -30,6 +30,19 @@ Desde dos días antes del arranque del proyecto hasta ayer. Sin repetidos. Al me
 
 <div data-conecta="revisar"></div>
 
+:::real En tu computadora y en la web real
+La evaluación de un asistente (RAG) se guarda como tabla para compararla en el tiempo. En una empresa, se corre en cada cambio de prompt o de modelo, igual que una prueba del CI. Antes del pull request, revisa a mano algunas respuestas además de las métricas.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `03-sla.png`: la tabla de SLA por empresa.
+- `03-evaluacion.png`: la evaluación del asistente con sus métricas.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Resumen
 
 - Una tabla para dos canales, deduplicada y clasificada.

@@ -58,6 +58,19 @@ Acciones:  qué cambiamos para enterarnos antes o para que no se repita (con res
 Que **nadie te avisa** de los cambios: la app agrega columnas, un proveedor rota un secreto, alguien reinicia un conector. Un buen pipeline no lo adivina, pero tampoco se queda callado: falla con un mensaje claro o genera una alerta. En cada postmortem pregúntate qué alerta te hubiera avisado antes que la persona que escribió el ticket.
 :::
 
+:::real En tu computadora y en la web real
+Los tickets de este tablero, en una empresa, llegan a **Jira o Azure DevOps Boards**, y los incidentes por la alerta del job. Para cada ticket: rama nueva (`git checkout -b fix/…`), el arreglo, un pull request que menciona el ticket y la respuesta al área con el número y su definición. Los postmortems van al repositorio.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `05-ticket.png`: un ticket resuelto con el hilo de aclaraciones.
+- `05-postmortem.png`: el postmortem de un incidente.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

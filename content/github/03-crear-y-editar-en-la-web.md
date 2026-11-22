@@ -14,22 +14,22 @@ Crear un repositorio es abrir una carpeta nueva en la carpeta compartida del equ
 
 ## Paso 1 — Crea el repositorio
 
-1. Botón **+** de la barra superior → **New repository** (o **New** en el panel).
-2. Completa:
+1. Botón **+** de la barra superior → **New repository**. También sirve **Create repository** en el panel de inicio, o **New** cuando ya tienes repositorios.
+2. El formulario tiene dos partes numeradas, igual que en github.com: **1 General** (dueño, nombre y descripción) y **2 Configuration** (visibilidad, README, .gitignore y licencia). Complétalo así:
 
 ```captura
 archivo: github/g03-nuevo-repo.webp
-texto: El nombre (1), Add a README (2), el .gitignore de Python (3) y la licencia (4)
+texto: El nombre (1), el interruptor Add README (2), el .gitignore de Python (3) y la licencia (4)
 ```
 
 | Campo | Qué poner |
 |---|---|
 | **Repository name** | Corto, en minúscula, con guiones: `ventas-app` |
-| **Description** | Una línea: qué hace |
-| **Public / Private** | Público: lo ve cualquiera (portafolio, código abierto). Privado: solo quienes invites (código de la empresa) |
-| **Add a README file** | Sí: el repositorio arranca con un primer commit y una página que explica qué es |
+| **Description** | Una línea: qué hace (hasta 350 caracteres; el contador está debajo) |
+| **Choose visibility** | **Public**: lo ve cualquiera (portafolio, código abierto). **Private**: solo quienes invites (código de la empresa) |
+| **Add README** | Interruptor en **On**: el repositorio arranca con un primer commit y una página que explica qué es |
 | **Add .gitignore** | La plantilla de tu lenguaje (**Python**): evita subir `__pycache__/`, entornos virtuales, etc. |
-| **Choose a license** | Para código público, **MIT** es la más simple: cualquiera puede usarlo citando el autor |
+| **Add license** | Para código público, **MIT License** es la más simple: cualquiera puede usarlo citando el autor |
 
 3. **Create repository**.
 

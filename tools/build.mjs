@@ -6,10 +6,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Marked } from 'marked';
 import { generarIconos } from './iconos.mjs';
+import { explicarBash } from './explica-bash.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CONTENT = path.join(ROOT, 'content');
 
+const COMANDOS_SIN_EXPLICAR = new Map();   // para ir completando tools/explica-bash.mjs (node tools/build.mjs --comandos)
 const escapeHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 const marked = new Marked({
@@ -19,15 +21,28 @@ const marked = new Marked({
       const words = (info || '').trim().split(/\s+/).filter(Boolean);
       const lang = words[0] || 'text';
       const norun = words.includes('norun') ? ' data-norun' : '';
-      return `<pre data-lang="${escapeHtml(lang)}"${norun} tabindex="0"><code class="language-${escapeHtml(lang)}">${escapeHtml(code.replace(/\n$/, ''))}</code></pre>\n`;
+      const pre = `<pre data-lang="${escapeHtml(lang)}"${norun} tabindex="0"><code class="language-${escapeHtml(lang)}">${escapeHtml(code.replace(/\n$/, ''))}</code></pre>\n`;
+      // bloques de terminal: debajo, "Qué hace cada comando" (tools/explica-bash.mjs)
+      if (['bash', 'sh', 'shell', 'zsh'].includes(lang) && !words.includes('sinexplicar')) {
+        const ex = explicarBash(code);
+        ex.faltan.forEach((x) => COMANDOS_SIN_EXPLICAR.set(x, (COMANDOS_SIN_EXPLICAR.get(x) || 0) + 1));
+        return pre + ex.html;
+      }
+      return pre;
+    },
+    // las casillas de las listas de tareas (- [ ] / - [x]) llevan nombre para los lectores de pantalla
+    checkbox(checked) {
+      return `<input ${checked ? 'checked="" ' : ''}disabled="" type="checkbox" aria-label="${checked ? 'Hecho' : 'Pendiente'}"> `;
     },
     table(header, body) {
+      // un encabezado vacío (la esquina de una tabla comparativa) se nombra para los lectores de pantalla
+      header = header.replace(/<th([^>]*)><\/th>/g, '<th$1><span class="sr-only">Concepto</span></th>');
       return `<div class="table-wrap"><table><thead>${header}</thead><tbody>${body}</tbody></table></div>\n`;
     }
   }
 });
 
-const CALLOUTS = { tip: '💡 Consejo', nota: '📝 Nota', cuidado: '⚠️ Cuidado', analogia: '🧠 Analogía', experto: '🚀 Nivel experto', entrevista: '🎯 Pregunta de entrevista', escenario: '🏢 El caso', trabajo: '🧑‍💻 En el trabajo real', errores: '🐞 Errores frecuentes', examen: '🏅 En el examen' };
+const CALLOUTS = { tip: '💡 Consejo', nota: '📝 Nota', cuidado: '⚠️ Cuidado', analogia: '🧠 Analogía', experto: '🚀 Nivel experto', entrevista: '🎯 Pregunta de entrevista', escenario: '🏢 El caso', trabajo: '🧑‍💻 En el trabajo real', errores: '🐞 Errores frecuentes', examen: '🏅 En el examen', real: '🖥️ En tu computadora y en la web real', capturas: '📸 Capturas para tu portafolio' };
 
 // ---------------------------------------------------------------- diagramas
 // ```diagrama
@@ -177,7 +192,7 @@ function md(text, file = '') {
   // :::practica <app>[:<motor>] <título> → bloque que abre la herramienta de práctica (practica.js le agrega el botón)
   text = text.replace(/^:::practica[ \t]+([a-z-]+)(?::([a-z/]+))?[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*$/gm, (_, app, motor, title, body) =>
     `<div class="callout callout-practica" data-app="${app}" data-motor="${motor || ''}" data-titulo="${escapeHtml(title)}"><div class="callout-title">🛠️ Practícalo en la herramienta${title ? ': ' + escapeHtml(title) : ''}</div>\n\n${body}\n</div>\n`);
-  text = text.replace(/^:::(tip|nota|cuidado|analogia|experto|entrevista|escenario|trabajo|errores|examen)[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*$/gm, (_, kind, title, body) =>
+  text = text.replace(/^:::(tip|nota|cuidado|analogia|experto|entrevista|escenario|trabajo|errores|examen|real|capturas)[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*$/gm, (_, kind, title, body) =>
     `<div class="callout callout-${kind}"><div class="callout-title">${escapeHtml(title ? CALLOUTS[kind].split(' ')[0] + ' ' + title : CALLOUTS[kind])}</div>\n\n${body}\n</div>\n`);
   return marked.parse(text);
 }
@@ -794,6 +809,7 @@ function build() {
 
   globalThis.__sellarIndex();
   paginasParaBuscadores(modules);
+  if (process.argv.includes('--comandos')) console.log('Comandos de terminal sin explicación:', [...COMANDOS_SIN_EXPLICAR].sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k}(${n})`).join(' '));
   console.log(`✔ ${glosario.length} términos de glosario · ${examenes.length} exámenes (${examenes.reduce((n, e) => n + e.preguntas.length, 0)} preguntas) · ${certificaciones.length} certificaciones (${certificaciones.reduce((n, c) => n + c.claves.length, 0)} tarjetas) · ${modules.length} módulos, ${nLessons} lecciones, ${nEx} ejercicios, ${Object.keys(sources).length} archivos Python`);
   return { ...course, modulos: modules, glosario, examenes } /* quien valida necesita todo completo, no el índice */;
 }

@@ -126,6 +126,27 @@ WHERE abs(s.monto) > 8 * h.monto_habitual AND (hour(s.ts) < 6 OR s.pais_tx <> h.
 Con una watermark que define cuánto atraso acepto, por ejemplo 10 minutos sobre la hora del evento, de modo que las ventanas se cierran después de ese margen y el estado no crece sin límite. Los eventos que llegan más tarde se envían a una tabla aparte para revisar o reprocesar en batch. Usaría checkpoints para no perder ni duplicar al reiniciar, y una escritura idempotente en Delta.
 :::
 
+:::real En tu computadora y en la web real
+Todo el proyecto se hace en **tu computadora**:
+
+1. **Terminal**: Terminal en macOS, o Ubuntu con WSL en Windows (`wsl --install` en PowerShell como administrador). Ahí corres `git`, `uv` y las CLIs.
+2. **VS Code** con las extensiones de Python, Jupyter y la del servicio que uses (Databricks, Azure).
+3. **Una carpeta por proyecto** con `git init` desde el primer minuto, y un repositorio público en **github.com → New repository** para mostrarlo.
+
+- **Fases 1 y 2, local**: las reglas en SQL con DuckDB y el streaming simulado con un script de Python que escribe archivos de a poco (lo corres con `uv run`).
+- **Fase 3, Databricks**: *Jobs & Pipelines → Create → ETL pipeline*, eliges tu archivo SQL o Python del pipeline y lo ejecutas; la página del pipeline muestra el grafo, las filas por tabla y las *expectations* que fallaron.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio y enlázalas desde el README.
+
+- `01-reglas.png`: la tabla de alertas con algunas transacciones marcadas.
+- `02-stream.png`: la terminal mientras llegan eventos simulados.
+- `03-pipeline.png`: el grafo del pipeline declarativo en Databricks con sus métricas de calidad.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, las URLs de tu espacio de trabajo y cualquier clave o token. En el README, pon cada captura debajo del paso que muestra, con una línea que diga qué se ve.
+:::
+
 ## Entregables
 
 - [ ] Tabla de versiones de reglas con recall, precisión y alertas por día; la elegida y por qué.

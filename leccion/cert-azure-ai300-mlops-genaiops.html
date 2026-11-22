@@ -66,6 +66,7 @@ environment: azureml:entorno-demanda@latest
 compute: azureml:cluster-cpu
 experiment_name: demanda</code></pre>
 <pre data-norun tabindex="0"><code class="language-bash">az ml job create --file job-entrenar.yml --workspace-name ws-ml-dev --resource-group rg-ml</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">az ml job create --file job-entrenar.yml --workspace-name ws-ml-dev --resource-group rg-ml</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>--resource-group</code> = grupo de recursos (la carpeta de Azure que agrupa lo de un proyecto)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <h2>El ciclo de vida del modelo</h2>
 <ul>
 <li><strong>Seguimiento con MLflow</strong>: Azure ML es compatible con MLflow; <code>mlflow.autolog()</code> registra parámetros, métricas y el modelo de cada job.</li>
@@ -99,6 +100,7 @@ experiment_name: demanda</code></pre>
 <pre data-norun tabindex="0"><code class="language-bash">az ml online-endpoint create --file endpoint.yml
 az ml online-deployment create --file deploy-verde.yml --endpoint-name demanda-api
 az ml online-endpoint update --name demanda-api --traffic &quot;azul=90 verde=10&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">az ml online-endpoint create --file endpoint.yml</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure</span></li><li><code class="bx-linea">az ml online-deployment create --file deploy-verde.yml --endpoint-name demanda-api</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure</span></li><li><code class="bx-linea">az ml online-endpoint update --name demanda-api --traffic &quot;azul=90 verde=10&quot;</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>--name</code> = nombre del recurso</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <h3>Monitorear el modelo</h3>
 <ul>
 <li><strong>Deriva de datos</strong> (<em>data drift</em>): la distribución de las entradas cambia respecto del entrenamiento. <strong>Deriva de predicción</strong>: cambian las salidas. <strong>Calidad</strong>: cuando llega la etiqueta real, se comparan métricas.</li>

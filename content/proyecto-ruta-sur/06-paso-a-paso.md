@@ -182,6 +182,19 @@ Para la pregunta de mantenimiento: los pings de ese vehículo en ese día, orden
 
 `REFRESH STREAMING TABLE` (lee solo lo nuevo desde el checkpoint), recrear silver y gold, y volver a bajar el plan. Los eventos de la camioneta que estuvo sin señal llegan al día siguiente: por eso el SLA de ayer puede cambiar esta mañana, y por eso gold se recalcula sobre varios días, no solo sobre ayer.
 
+:::real En tu computadora y en la web real
+En tu nube: **Event Hubs** en Azure Portal (crear el namespace y el tópico); **Databricks** con un pipeline declarativo (*Jobs & Pipelines → Create → ETL pipeline*) para la *streaming table* de bronze y las tablas silver y gold; el plan del TMS se baja con una tarea programada. El estado del stream (checkpoints) se ve en la página del pipeline.
+:::
+
+:::capturas Capturas para tu portafolio
+Guárdalas en `docs/capturas/` del repositorio del proyecto y úsalas en el README.
+
+- `06-pipeline.png`: el grafo del pipeline declarativo con bronze, silver y gold.
+- `06-gold.png`: el resultado de gold con el cumplimiento por pedido.
+
+Antes de publicar, tapa con un rectángulo los correos, los IDs de suscripción y de tenant, los nombres de cuentas reales y cualquier clave o token.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz
