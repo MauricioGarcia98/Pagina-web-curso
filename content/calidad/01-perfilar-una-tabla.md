@@ -51,10 +51,10 @@ nodo p: Perfil | icono=lupa | col=1 | fila=0 | color=azul | sub=filas, duplicado
 nodo h: Hallazgos | icono=alerta | col=2 | fila=0 | color=amarillo | sub=106 duplicados · 3 monedas · 82 montos nulos
 nodo r: Reglas escritas | icono=reglas | col=3 | fila=0 | color=violeta | sub=pedido_id único · moneda = USD
 nodo pr: Pruebas | icono=prueba | col=4 | fila=0 | color=verde | sub=corren en cada carga (lección 2)
-flecha t -> p
-flecha p -> h
-flecha h -> r
-flecha r -> pr
+flecha t -> p | explica=Antes de confiar en una tabla nueva, se la perfila: cuántas filas, duplicados, nulos, variantes de un mismo valor y formatos.
+flecha p -> h | explica=El perfil deja hallazgos concretos: 106 duplicados, tres monedas distintas, 82 montos nulos.
+flecha h -> r | explica=Cada hallazgo se convierte en una regla escrita: pedido_id es único, la moneda es USD.
+flecha r -> pr | explica=Cada regla se vuelve una prueba automática que corre en cada carga. Así el problema se detecta una vez y se vigila para siempre.
 ```
 
 | Hallazgo del perfil | Regla |

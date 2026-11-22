@@ -29,10 +29,10 @@ nodo loc: local[*] | icono=equipo | col=1 | fila=0 | color=verde | sub=driver + 
 nodo cl: Clúster | icono=spark | col=1 | fila=1 | color=naranja | sub=driver + N executors\n(Dataproc, EMR, Databricks)
 nodo dat: Muestra en tu disco | icono=archivos | col=2 | fila=0 | color=gris | sub=data/*.csv, *.parquet
 nodo lago: Lago en la nube | icono=bucket | col=2 | fila=1 | color=gris | sub=gs://, s3://, abfss://
-flecha cod -> loc: spark-submit --master local[*]
-flecha cod -> cl: spark-submit en el clúster
-flecha loc -> dat
-flecha cl -> lago
+flecha cod -> loc: spark-submit --master local[*] | explica=El mismo job.py corre en tu máquina con --master local[*]: un hilo por núcleo hace de executor.
+flecha cod -> cl: spark-submit en el clúster | explica=Y en un clúster (Dataproc, EMR, Databricks) sin cambiar el código.
+flecha loc -> dat | explica=En local, se prueba con una muestra chica en tu disco.
+flecha cl -> lago | explica=En el clúster, lee los datos reales del lago (gs://, s3://, abfss://).
 ```
 
 | `--master` | Qué significa |

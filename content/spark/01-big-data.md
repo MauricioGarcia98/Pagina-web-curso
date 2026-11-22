@@ -62,13 +62,13 @@ nodo m3: Máquina 3 · MAP | icono=servidor | col=0 | fila=2 | color=azul | sub=
 nodo rc: REDUCE Chile | icono=calculator | col=1 | fila=0 | color=verde | sub=2 + 1 = 3
 nodo rp: REDUCE Perú | icono=calculator | col=1 | fila=1 | color=verde | sub=1 + 1 + 1 = 3
 nodo rm: REDUCE México | icono=calculator | col=1 | fila=2 | color=verde | sub=1 + 2 = 3
-flecha m1 -> rc: shuffle
-flecha m2 -> rc
-flecha m1 -> rp
-flecha m2 -> rp
-flecha m3 -> rp
-flecha m2 -> rm
-flecha m3 -> rm
+flecha m1 -> rc: shuffle | explica=Cada máquina primero cuenta lo que tiene (MAP). Después viene el shuffle: los conteos de Chile de todas las máquinas viajan por la red hacia la misma máquina.
+flecha m2 -> rc | explica=La máquina 2 también tenía un pedido de Chile: lo manda al mismo lugar.
+flecha m1 -> rp | explica=Los conteos de Perú van a otra máquina, la que suma Perú.
+flecha m2 -> rp | explica=La máquina 2 manda su Perú 1.
+flecha m3 -> rp | explica=Y la 3 también. Con los tres conteos juntos, el REDUCE de Perú suma 1 + 1 + 1 = 3.
+flecha m2 -> rm | explica=México se junta en una tercera máquina.
+flecha m3 -> rm | explica=La máquina 3 tenía dos de México: el REDUCE suma 1 + 2 = 3. Ninguna máquina tuvo que ver todos los datos.
 ```
 
 En el **MAP** cada máquina cuenta lo suyo sin hablar con nadie. En el **SHUFFLE** se mandan todos los "Chile" a una máquina, todos los "Perú" a otra… En el **REDUCE** cada una suma los parciales de su país.
@@ -84,13 +84,13 @@ nodo r2: Perú | icono=check | col=2 | fila=1 | color=verde | sub=1 + 1 + 1 = 3
 nodo r3: México | icono=check | col=2 | fila=2 | color=verde | sub=1 + 2 = 3
 grupo map: MAP (en paralelo) | nodos=m1,m2,m3 | color=azul
 grupo red: REDUCE | nodos=r1,r2,r3 | color=verde
-flecha m1 -> r1
-flecha m1 -> r2
-flecha m2 -> r1
-flecha m2 -> r2: SHUFFLE (red) | color=rojo
-flecha m2 -> r3
-flecha m3 -> r2
-flecha m3 -> r3
+flecha m1 -> r1 | explica=La máquina 1 contó Chile 2 y lo envía al responsable de sumar Chile.
+flecha m1 -> r2 | explica=Su Perú 1 va al responsable de Perú.
+flecha m2 -> r1 | explica=La máquina 2 manda su Chile 1: Chile suma 2 + 1 = 3.
+flecha m2 -> r2: SHUFFLE (red) | color=rojo | explica=Este movimiento entre máquinas es el shuffle: pasa por la red y es la parte más cara de un trabajo distribuido.
+flecha m2 -> r3 | explica=El México de la máquina 2 va al responsable de México.
+flecha m3 -> r2 | explica=La máquina 3 completa Perú: 1 + 1 + 1 = 3.
+flecha m3 -> r3 | explica=Y México: 1 + 2 = 3. Cada resultado se calculó en paralelo.
 ```
 
 Las tres fases son la base de todo lo que hace Spark:

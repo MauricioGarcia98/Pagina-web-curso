@@ -46,13 +46,13 @@ nodo dim: gold: dims | icono=cubo | col=3 | fila=1 | color=amarillo | sub=dim_re
 nodo mart: mart_operaciones_diario | icono=grafico | col=2 | fila=1 | color=verde | sub=ciudad × día
 nodo dq: Controles de calidad | icono=escudo | col=1 | fila=1 | color=rojo | sub=frenan o avisan
 nodo bi: Tablero | icono=dashboard | col=1 | fila=2 | color=azul | sub=cada mañana 7:00
-flecha app -> br
-flecha br -> sv
-flecha sv -> fct
-flecha dim -> mart
-flecha fct -> mart
-flecha mart -> dq
-flecha dq -> bi: publica si pasa
+flecha app -> br | explica=Cada día se copia a bronze lo nuevo de la base de la app, sin tocar nada (ingesta incremental).
+flecha br -> sv | explica=stg_rapido_pedidos limpia los tipos y descarta los pedidos que no cumplen las reglas de validez.
+flecha sv -> fct | explica=fct_rapido_pedidos tiene una fila por pedido con los tiempos de cada etapa.
+flecha dim -> mart | explica=Las dimensiones aportan la ciudad del restaurante y el calendario.
+flecha fct -> mart | explica=El mart resume los pedidos por ciudad y día.
+flecha mart -> dq | explica=Antes de publicar se corren los controles de calidad: si fallan, se frena o se avisa.
+flecha dq -> bi: publica si pasa | explica=Si todo pasa, el tablero se actualiza para las 7:00.
 ```
 
 | Capa | Qué tiene | Quién la usa |

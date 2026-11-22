@@ -24,13 +24,13 @@ nodo rv: Revisión y merge a main | icono=usuario | col=3 | fila=1 | color=viole
 nodo dv: Despliegue a dev/staging | icono=nube | col=2 | fila=1 | color=cian | sub=automático
 nodo ap: Aprobación manual | icono=candado | col=1 | fila=1 | color=naranja
 nodo pd: Despliegue a prod y monitoreo | icono=monitor | col=0 | fila=1 | color=verde
-flecha is -> rm
-flecha rm -> pr
-flecha pr -> ci
-flecha ci -> rv
-flecha rv -> dv
-flecha dv -> ap
-flecha ap -> pd
+flecha is -> rm | explica=El trabajo empieza en un issue. Se crea una rama para él y se hacen commits.
+flecha rm -> pr | explica=Se abre un pull request que menciona el issue.
+flecha pr -> ci | explica=CI corre los tests, el lint y dbt build en un esquema temporal, sin tocar los datos reales.
+flecha ci -> rv | explica=Con CI en verde, alguien revisa y se hace merge a main.
+flecha rv -> dv | explica=El merge despliega solo a dev o staging.
+flecha dv -> ap | explica=Para producción, alguien tiene que aprobar a mano.
+flecha ap -> pd | explica=Se despliega a prod y se monitorea que todo siga bien.
 ```
 
 Todo lo que hiciste en el curso es parte de ese recorrido. Lo que agregan los equipos de datos son los pasos de **datos**: construir modelos contra una base real y desplegar jobs.

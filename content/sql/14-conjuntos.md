@@ -34,10 +34,10 @@ nodo ub: Consulta B | icono=tabla | col=2 | fila=1 | color=verde | sub=mismas co
 nodo ur: Resultado del UNION | icono=capas | col=3 | fila=0 | color=naranja | sub=filas de A y debajo las de B · más filas
 grupo gj: A lo ancho | nodos=ja,jb,jr | color=violeta
 grupo gu: A lo largo | nodos=ua,ub,ur | color=naranja
-flecha ja -> jr: por id
-flecha jb -> jr
-flecha ua -> ur
-flecha ub -> ur
+flecha ja -> jr: por id | explica=Un JOIN busca, para cada fila de A, la fila de B con el mismo id…
+flecha jb -> jr | explica=…y pega sus columnas al costado: el resultado tiene más columnas.
+flecha ua -> ur | explica=Un UNION toma las filas de la primera consulta…
+flecha ub -> ur | explica=…y apila debajo las de la segunda: el resultado tiene más filas. Por eso las dos consultas tienen que traer las mismas columnas, en el mismo orden.
 ```
 
 Cuándo los necesitas:

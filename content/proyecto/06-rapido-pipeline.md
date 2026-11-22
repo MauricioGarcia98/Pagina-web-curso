@@ -26,13 +26,13 @@ nodo dq: Compuerta de calidad | icono=escudo | col=3 | fila=1 | color=rojo | sub
 nodo pub: Publicar | icono=dashboard | col=2 | fila=1 | color=verde | sub=refresca el tablero
 nodo alerta: Alerta | icono=correo | col=1 | fila=1 | color=rojo | sub=si algo falla
 nodo af: Airflow | icono=orquestador | col=0 | fila=1 | color=azul | sub=0 6 * * *\nreintentos, backfill
-flecha ing -> stg
-flecha stg -> fct
-flecha fct -> mart
-flecha mart -> dq
-flecha dq -> pub: pasa
-flecha dq -> alerta: no pasa | estilo=punteada
-flecha af -> ing | estilo=punteada
+flecha ing -> stg | explica=Primero se copia el día de ayer a bronze, en GCS.
+flecha stg -> fct | explica=dbt arma la vista de staging con las reglas de validez y después el modelo incremental, que procesa solo la fecha nueva.
+flecha fct -> mart | explica=Con los hechos listos se calcula el mart diario, en PySpark o en dbt.
+flecha mart -> dq | explica=Un ShortCircuitOperator revisa la calidad.
+flecha dq -> pub: pasa | explica=Si los controles pasan, se refresca el tablero.
+flecha dq -> alerta: no pasa | estilo=punteada | explica=Si no pasan, se saltan las tareas siguientes y se manda una alerta: mejor un tablero de ayer que uno equivocado.
+flecha af -> ing | estilo=punteada | explica=Airflow dispara todo a las 6:00 (0 6 * * *), reintenta lo que falla y permite reprocesar días pasados (backfill).
 ```
 
 | Pieza | Herramienta | Por qué esa |

@@ -41,10 +41,10 @@ nodo v2: Versión 2 | icono=archivo | col=1 | fila=0 | color=gris | sub=Corporat
 nodo v3: Versión 3 (actual) | icono=check | col=2 | fila=0 | color=verde | sub=Corporativo, Santiago\n2024-09-15 → 9999-12-31
 nodo f1: Venta 2023-11-20 | icono=dinero | col=0 | fila=1 | color=amarillo | sub=se une con la versión 1
 nodo f2: Venta 2024-06-02 | icono=dinero | col=1 | fila=1 | color=amarillo | sub=se une con la versión 2
-flecha v1 -> v2: cambió el segmento
-flecha v2 -> v3: se mudó
-flecha f1 -> v1 | estilo=punteada
-flecha f2 -> v2 | estilo=punteada
+flecha v1 -> v2: cambió el segmento | explica=Cuando el cliente cambia de segmento, no se pisa el dato: se cierra la versión 1 con su fecha de fin y se abre una versión 2.
+flecha v2 -> v3: se mudó | explica=Cuando se muda, se cierra la versión 2 y se abre la 3, la actual, con fecha de fin 9999-12-31.
+flecha f1 -> v1 | estilo=punteada | explica=Una venta de 2023 se une con la versión que estaba vigente en ese momento: el cliente era Pyme.
+flecha f2 -> v2 | estilo=punteada | explica=Una venta de junio de 2024 se une con la versión 2. Así los reportes del pasado no cambian cuando cambia el cliente.
 ```
 
 | cliente_sk | cliente_id | segmento | ciudad | valido_desde | valido_hasta | es_actual |

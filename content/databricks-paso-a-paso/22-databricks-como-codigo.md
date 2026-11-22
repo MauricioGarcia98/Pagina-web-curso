@@ -114,10 +114,10 @@ nodo pr: Pull request | icono=github | col=1 | fila=0 | color=azul | sub=revisi�
 nodo ci: CI | icono=check | col=2 | fila=0 | color=amarillo | sub=bundle validate + tests
 nodo mg: Merge a main | icono=git | col=3 | fila=0 | color=violeta
 nodo cd: CD | icono=databricks | col=4 | fila=0 | color=verde | sub=bundle deploy -t prod con OIDC, sin tokens guardados
-flecha gf -> pr: commit
-flecha pr -> ci
-flecha ci -> mg: aprobado
-flecha mg -> cd
+flecha gf -> pr: commit | explica=Trabajas en una rama dentro de un Git folder del workspace y haces commit.
+flecha pr -> ci | explica=Al abrir el pull request, CI corre bundle validate y los tests.
+flecha ci -> mg: aprobado | explica=Si CI pasa y alguien aprueba la revisión, se hace merge a main.
+flecha mg -> cd | explica=El merge dispara bundle deploy -t prod. La autenticación es con OIDC, así que no hay tokens guardados en el repositorio.
 ```
 
 ```yaml

@@ -21,11 +21,11 @@ nodo bq: ventas_lab.pedidos | icono=bigquery | col=2 | fila=1 | sub=partición p
 nodo dr: Dry run | icono=lupa | col=3 | fila=0 | sub=bytes antes de pagar | color=naranja
 nodo ml: BigQuery ML | icono=ml | col=3 | fila=2 | sub=LOGISTIC_REG y ARIMA_PLUS | color=verde
 nodo tab: Tableros | icono=dashboard | col=4 | fila=1
-flecha csv -> gcs
-flecha gcs -> bq: bq load
-flecha bq -> dr | estilo=punteada
-flecha bq -> ml
-flecha bq -> tab
+flecha csv -> gcs | explica=El CSV se sube al bucket academia-lab-datos.
+flecha gcs -> bq: bq load | explica=bq load lo carga en una tabla particionada por fecha y agrupada por canal.
+flecha bq -> dr | estilo=punteada | explica=Un dry run dice cuántos bytes va a leer una consulta antes de ejecutarla y pagarla.
+flecha bq -> ml | explica=Con BigQuery ML se entrenan modelos con SQL: regresión logística y pronóstico con ARIMA_PLUS.
+flecha bq -> tab | explica=Los tableros leen la misma tabla.
 ```
 
 ## Costo en una cuenta real

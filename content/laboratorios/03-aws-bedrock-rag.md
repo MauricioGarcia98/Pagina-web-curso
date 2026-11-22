@@ -23,13 +23,13 @@ nodo vec: S3 Vectors | icono=vectorsearch | col=3 | fila=0 | forma=cilindro | co
 nodo app: Aplicación | icono=usuario | col=4 | fila=1
 nodo gr: Guardrail | icono=guardrails | col=3 | fila=2 | sub=temas, PII, prompt attack | color=rojo
 nodo fm: Nova Pro (perfil us.) | icono=bedrock | col=3 | fila=1 | sub=responde con citas | color=verde
-flecha doc -> s3
-flecha s3 -> kb: ingesta
-flecha kb -> emb
-flecha emb -> vec
-flecha app -> fm
-flecha fm -> kb: retrieve
-flecha app -> gr | estilo=punteada
+flecha doc -> s3 | explica=Las políticas en Markdown se suben a S3 junto con su .metadata.json, que permite filtrar por atributos.
+flecha s3 -> kb: ingesta | explica=La Knowledge Base ingiere los documentos y los parte en fragmentos de 60 tokens.
+flecha kb -> emb | explica=Cada fragmento se convierte en un vector con Titan Embeddings V2.
+flecha emb -> vec | explica=Los vectores se guardan en S3 Vectors.
+flecha app -> fm | explica=La aplicación le pregunta a Nova Pro, usando el perfil de inferencia us.
+flecha fm -> kb: retrieve | explica=Antes de responder, se recuperan de la Knowledge Base los fragmentos más parecidos a la pregunta, y la respuesta los cita.
+flecha app -> gr | estilo=punteada | explica=El guardrail filtra la entrada y la salida: temas prohibidos, datos personales e intentos de manipular el prompt.
 ```
 
 ## Costo en una cuenta real

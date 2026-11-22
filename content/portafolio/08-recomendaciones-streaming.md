@@ -32,11 +32,11 @@ nodo c: Co-ocurrencia | icono=red | col=1 | fila=1 | sub=pares de contenidos\nvi
 nodo rec: recomendaciones | icono=star | col=2 | fila=1 | sub=top 5 por usuario\n+ "porque viste X"
 nodo ev: Evaluación | icono=check | col=3 | fila=1 | sub=precisión@5 vs popular
 nodo ab: Experimento | icono=prueba | col=3 | fila=0 | sub=retención a 30 días
-flecha r -> e
-flecha r -> c
-flecha c -> rec
-flecha rec -> ev
-flecha ev -> ab
+flecha r -> e | explica=De las reproducciones salen las métricas de engagement: usuarios diarios sobre mensuales y tasa de finalización.
+flecha r -> c | explica=También la co-ocurrencia: qué pares de contenidos vieron las mismas personas.
+flecha c -> rec | explica=Con eso se recomiendan los 5 mejores por usuario, con el motivo: "porque viste X".
+flecha rec -> ev | explica=Se mide la precisión@5 contra recomendar lo más popular: si no le gana, no sirve.
+flecha ev -> ab | explica=Si gana, se prueba con un experimento que mide la retención a 30 días.
 ```
 
 ## La co-ocurrencia, en SQL

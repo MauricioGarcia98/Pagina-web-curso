@@ -28,9 +28,9 @@ nodo ar: Archivos de la app | icono=archivos | col=0 | fila=0 | color=gris | sub
 nodo br: bronze_pedidos | icono=capas | col=1 | fila=0 | color=naranja | sub=nunca se modifica: se puede reprocesar
 nodo pa: 7 pasos de limpieza | icono=transformar | col=2 | fila=0 | color=violeta | sub=deduplicar, tipar, normalizar
 nodo sv: silver | icono=tabla | col=3 | fila=0 | color=verde | sub=una fila por pedido, tipos correctos
-flecha ar -> br: cargar sin tocar
-flecha br -> pa
-flecha pa -> sv
+flecha ar -> br: cargar sin tocar | explica=Los archivos de la app se cargan en bronze tal cual llegaron, con reenvíos, fechas en tres formatos y montos como texto. No se corrige nada todavía.
+flecha br -> pa | explica=Como bronze nunca se modifica, siempre se puede volver a procesar. La limpieza se hace con reglas escritas, en siete pasos.
+flecha pa -> sv | explica=El resultado es silver: una fila por pedido, con los tipos correctos y los valores normalizados.
 ```
 
 Tres razones para no limpiar "en la entrada":

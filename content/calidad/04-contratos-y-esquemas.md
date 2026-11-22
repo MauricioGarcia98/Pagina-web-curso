@@ -50,12 +50,12 @@ nodo en: Ensanchar un tipo | icono=check | col=1 | fila=1 | color=verde | sub=in
 nodo el: Eliminar o renombrar | icono=x | col=1 | fila=2 | color=rojo | sub=incompatible
 nodo pub: Publicar con aviso | icono=correo | col=2 | fila=0 | color=verde
 nodo ver: Versión nueva | icono=git | col=2 | fila=2 | color=naranja | sub=pedidos_v2 + vista de transición
-flecha c -> ag
-flecha c -> en
-flecha c -> el
-flecha ag -> pub
-flecha en -> pub
-flecha el -> ver
+flecha c -> ag | explica=Agregar una columna que puede ser nula no rompe a nadie: las consultas viejas siguen funcionando.
+flecha c -> en | explica=Ensanchar un tipo (de int a long o a double) tampoco: los valores viejos siguen entrando.
+flecha c -> el | explica=Eliminar o renombrar una columna rompe a quien la use: es un cambio incompatible.
+flecha ag -> pub | explica=Los cambios compatibles se publican avisando a los consumidores qué hay de nuevo.
+flecha en -> pub | explica=Igual que agregar una columna: se publica con aviso.
+flecha el -> ver | explica=Para un cambio incompatible se crea una versión nueva (pedidos_v2) y una vista de transición, y se da tiempo a los consumidores para migrar.
 ```
 
 | Cambio | ¿Rompe? | Por qué |

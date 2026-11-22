@@ -62,14 +62,14 @@ nodo ok: Guardar los datos | icono=check | col=2 | fila=0 | color=verde | sub=¿
 nodo lim: 429: esperar Retry-After | icono=reloj | col=2 | fila=1 | color=naranja
 nodo err: 5xx: reintentar con backoff | icono=alerta | col=2 | fila=2 | color=rojo | sub=1 s, 2 s, 4 s…
 nodo fin: Fin | icono=check | col=3 | fila=0 | color=verde
-flecha p -> r
-flecha r -> ok: 200
-flecha r -> lim: 429
-flecha r -> err: 500
-flecha ok -> fin: no hay más
-flecha ok -> p: siguiente | estilo=punteada
-flecha lim -> p | estilo=punteada
-flecha err -> p | estilo=punteada
+flecha p -> r | explica=Se pide una página de resultados a la API (por ejemplo, 100 registros) y se mira el código de la respuesta.
+flecha r -> ok: 200 | explica=200 significa que todo salió bien: se guardan los datos de esa página.
+flecha r -> lim: 429 | explica=429 significa que pediste demasiado rápido. La respuesta dice cuántos segundos esperar (Retry-After).
+flecha r -> err: 500 | explica=Un 5xx es un error del servidor, muchas veces pasajero: se reintenta esperando cada vez más (1, 2, 4 segundos).
+flecha ok -> fin: no hay más | explica=Si la respuesta dice que no hay más páginas, la extracción terminó.
+flecha ok -> p: siguiente | estilo=punteada | explica=Si hay una página siguiente, se pide con el cursor o el número de página que vino en la respuesta.
+flecha lim -> p | estilo=punteada | explica=Después de esperar lo que pidió el servidor, se vuelve a pedir la misma página.
+flecha err -> p | estilo=punteada | explica=Pasado el tiempo de espera, se reintenta la misma página. Si falla demasiadas veces, el proceso se detiene y avisa.
 ```
 
 **Por número de página** (`/v1/productos`): pides `page=1`, `page=2`… hasta que la respuesta diga que no hay `siguiente`:

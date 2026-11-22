@@ -116,12 +116,12 @@ nodo int: intermediate | icono=dbt | col=3 | fila=0 | color=violeta | sub=dbt: c
 nodo mart: marts (gold) | icono=dbt | col=4 | fila=0 | color=amarillo | sub=dbt: listo para el negocio
 nodo con: BI / ML / reverse ETL | icono=dashboard | col=4 | fila=1 | color=verde
 nodo orq: Airflow / Lakeflow Jobs / dbt Cloud | icono=airflow | col=2 | fila=1 | color=gris | sub=orquesta todo
-flecha f -> br: EL
-flecha br -> stg
-flecha stg -> int
-flecha int -> mart
-flecha mart -> con
-flecha orq -> stg | estilo=punteada
+flecha f -> br: EL | explica=Una herramienta de EL (Fivetran, ADF, Airbyte, Auto Loader) copia los datos de las fuentes al warehouse sin transformarlos.
+flecha br -> stg | explica=dbt empieza acá: los modelos de staging limpian y renombran cada fuente, una tabla por fuente.
+flecha stg -> int | explica=Los modelos intermedios combinan staging (joins, cálculos repetidos).
+flecha int -> mart | explica=Los marts son las tablas que usa el negocio: ventas, clientes, métricas.
+flecha mart -> con | explica=Los tableros, los modelos de ML y el reverse ETL leen de los marts.
+flecha orq -> stg | estilo=punteada | explica=Un orquestador decide cuándo corre cada paso: primero la carga, después dbt build.
 ```
 
 ## Analytics engineering

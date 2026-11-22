@@ -68,9 +68,9 @@ titulo: Cómo te reconoce GitHub con SSH
 nodo pc: Tu computadora | icono=equipo | col=0 | fila=0 | color=azul | sub=~/.ssh/id_ed25519\n(clave privada)
 nodo gh: GitHub | icono=git | col=2 | fila=0 | color=gris | sub=Settings → SSH keys\n(clave pública)
 nodo par: Par de claves | icono=llave | col=1 | fila=1 | color=amarillo | sub=ssh-keygen\nlas crea juntas
-flecha par -> pc: privada
-flecha par -> gh: id_ed25519.pub
-flecha pc <-> gh: git push / pull
+flecha par -> pc: privada | explica=ssh-keygen crea un par de claves. La privada se queda en tu computadora y nunca se comparte.
+flecha par -> gh: id_ed25519.pub | explica=La pública (el archivo .pub) se pega en GitHub, en Settings → SSH keys.
+flecha pc <-> gh: git push / pull | explica=Cuando haces push o pull, GitHub comprueba que tu clave privada corresponde a la pública que tiene: así te reconoce sin contraseña.
 ```
 
 **Paso 1.** Crea la clave (pon una frase de contraseña cuando la pida):
@@ -154,12 +154,12 @@ nodo push: git push | icono=nube | col=2 | fila=0 | color=gris
 nodo pr: Pull request | icono=equipo | col=3 | fila=0 | color=violeta | sub=revisión + CI
 nodo merge: Merge a main | icono=check | col=3 | fila=1 | color=verde
 nodo pull: git pull | icono=archivos | col=0 | fila=1 | color=gris | sub=traer lo nuevo
-flecha main -> rama
-flecha rama -> push: commits
-flecha push -> pr
-flecha pr -> merge: aprobado
-flecha merge -> pull | estilo=punteada
-flecha pull -> main | estilo=punteada
+flecha main -> rama | explica=Desde main, que siempre funciona, creas una rama con git switch -c.
+flecha rama -> push: commits | explica=Haces commits en la rama y la subes con git push.
+flecha push -> pr | explica=En GitHub abres un pull request: lo revisan y corre la CI.
+flecha pr -> merge: aprobado | explica=Con la aprobación, se une a main.
+flecha merge -> pull | estilo=punteada | explica=En tu computadora traes lo nuevo con git pull…
+flecha pull -> main | estilo=punteada | explica=…y main local queda al día para empezar el próximo cambio.
 ```
 
 ```bash norun

@@ -22,12 +22,12 @@ nodo kms: KMS | icono=llave | col=2 | fila=0 | sub=alias/lago-silver-lab | color
 nodo cw: CloudWatch | icono=cloudwatch | col=2 | fila=2 | sub=alarma de fallos | color=rosa
 nodo sns: SNS | icono=sns | col=3 | fila=2 | sub=alertas-datos-lab | color=rosa
 nodo ddb: DynamoDB | icono=base | col=3 | fila=1 | sub=envios-lab | color=azul
-flecha eb -> job
-flecha job -> sm | estilo=punteada
-flecha job -> kms | estilo=punteada
-flecha job -> ddb
-flecha job -> cw
-flecha cw -> sns
+flecha eb -> job | explica=EventBridge arranca el job de Glue todas las noches a las 03:00.
+flecha job -> sm | estilo=punteada | explica=El job toma la contraseña de la base desde Secrets Manager, no del código.
+flecha job -> kms | estilo=punteada | explica=Los datos que escribe en silver se cifran con la clave de KMS.
+flecha job -> ddb | explica=Registra cada envío procesado en DynamoDB.
+flecha job -> cw | explica=Sus logs y métricas van a CloudWatch.
+flecha cw -> sns | explica=Si el job falla, la alarma de CloudWatch publica en SNS y llega el aviso.
 ```
 
 ## Costo en una cuenta real

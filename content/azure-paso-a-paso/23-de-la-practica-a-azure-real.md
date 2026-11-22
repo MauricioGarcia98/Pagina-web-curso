@@ -43,13 +43,13 @@ nodo con: Suscripciones de conectividad, identidad y logs | icono=azure | col=0 
 nodo dev: sub-datos-dev | icono=azure | col=1 | fila=3 | color=verde | sub=presupuestos y permisos de dev
 nodo qa: sub-datos-qa | icono=azure | col=2 | fila=3 | color=amarillo
 nodo prod: sub-datos-prod | icono=azure | col=3 | fila=3 | color=rojo | sub=bloqueos, alertas, sin acceso manual
-flecha ten -> emp
-flecha emp -> pla
-flecha emp -> dat
-flecha pla -> con
-flecha dat -> dev
-flecha dat -> qa
-flecha dat -> prod
+flecha ten -> emp | explica=Debajo del tenant hay un grupo de administración raíz, "Empresa", con las políticas que aplican a todos.
+flecha emp -> pla | explica=Plataforma agrupa lo compartido por todos los equipos.
+flecha emp -> dat | explica=Datos agrupa las suscripciones del equipo de datos.
+flecha pla -> con | explica=Ahí están las suscripciones de red, identidad y logs centrales.
+flecha dat -> dev | explica=Dev tiene presupuestos y permisos amplios para experimentar.
+flecha dat -> qa | explica=QA es para probar antes de producción.
+flecha dat -> prod | explica=Prod tiene bloqueos y alertas, y nadie cambia nada a mano: todo llega por pipelines.
 ```
 
 | Pieza | Para qué |

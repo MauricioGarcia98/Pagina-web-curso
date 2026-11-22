@@ -41,10 +41,10 @@ nodo c: Computadoras (5) | icono=carpeta | col=0 | fila=1 | color=verde | sub=pa
 nodo ce: Celulares (6) | icono=etiqueta | col=1 | fila=1 | color=verde | sub=padre 1
 nodo au: Audio (7) | icono=etiqueta | col=2 | fila=1 | color=verde | sub=padre 1
 nodo l: Laptops (8) | icono=etiqueta | col=0 | fila=2 | color=naranja | sub=padre 5
-flecha t -> c
-flecha t -> ce
-flecha t -> au
-flecha c -> l
+flecha t -> c | explica=Computadoras tiene padre 1: cuelga de Tecnología. Tecnología tiene padre NULL porque es la raíz.
+flecha t -> ce | explica=Celulares también cuelga de Tecnología.
+flecha t -> au | explica=Y Audio. Una CTE recursiva empieza por la raíz y en cada vuelta baja un nivel buscando quién tiene como padre a los que ya encontró.
+flecha c -> l | explica=Laptops está dos niveles abajo: su padre es Computadoras. La segunda vuelta de la recursión la encuentra.
 ```
 
 Con un self join (lección 12) subes **un** nivel: "el padre de Laptops es Computadoras". Pero ¿y si quieres **todos** los niveles, sin saber cuántos hay? Necesitarías un join para cada nivel, y la profundidad cambia. La solución es una **CTE recursiva**: una CTE que se usa **a sí misma** hasta que no hay más que recorrer.

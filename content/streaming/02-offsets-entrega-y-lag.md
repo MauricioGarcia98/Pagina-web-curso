@@ -48,10 +48,10 @@ nodo fin: Último offset escrito | icono=archivo | col=1 | fila=0 | color=azul |
 nodo conf: Offset confirmado del grupo | icono=check | col=1 | fila=1 | color=verde | sub=700
 nodo lag: Lag = 800 mensajes esperando | icono=reloj | col=2 | fila=0 | color=rojo
 nodo acc: Si crece sin parar | icono=alerta | col=3 | fila=0 | color=naranja | sub=más consumidores o más particiones
-flecha prod -> fin: escribe
-flecha fin -> lag
-flecha conf -> lag
-flecha lag -> acc
+flecha prod -> fin: escribe | explica=El productor va escribiendo: el último mensaje de la partición tiene offset 1500.
+flecha fin -> lag | explica=El lag es la distancia entre lo último escrito…
+flecha conf -> lag | explica=…y lo último que el grupo confirmó haber procesado (700): hay 800 mensajes esperando.
+flecha lag -> acc | explica=Un lag que sube y baja es normal. Si crece sin parar, los consumidores no dan abasto: hay que agregar consumidores (y particiones) o hacerlos más rápidos.
 ```
 
 | Lo que ves | Qué significa | Qué haces |

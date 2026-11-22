@@ -43,10 +43,10 @@ nodo t: Transformar | icono=transformar | col=1 | fila=0 | color=violeta | sub=c
 nodo g: Agrupar | icono=capas | col=2 | fila=0 | color=amarillo | sub=juntar por una clave
 nodo a: Agregar | icono=calculator | col=3 | fila=0 | color=naranja | sub=sumar, contar, promediar
 nodo o: Ordenar | icono=grafico | col=4 | fila=0 | color=verde | sub=y quizá quedarse con los primeros
-flecha f -> t
-flecha t -> g
-flecha g -> a
-flecha a -> o
+flecha f -> t | explica=Primero se filtran las filas que importan.
+flecha t -> g | explica=Se calculan las columnas nuevas que hagan falta.
+flecha g -> a | explica=Se agrupa por la clave de la pregunta (cliente, mes, país)…
+flecha a -> o | explica=…se agrega (suma, cuenta, promedio) y se ordena. Casi cualquier pregunta de datos es una combinación de estas cinco operaciones.
 ```
 
 Resolver un problema es, casi siempre, decidir **cuáles** de estas necesitas y **en qué orden**.

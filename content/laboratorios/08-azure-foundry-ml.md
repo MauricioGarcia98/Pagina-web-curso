@@ -23,12 +23,12 @@ nodo reg: Modelo riesgo v1 y v2 | icono=ml | col=1 | fila=2 | color=verde
 nodo ep: Online endpoint | icono=api | col=2 | fila=2 | sub=riesgo-credito | color=rojo
 nodo b: blue (v1) | icono=servidor | col=3 | fila=1 | color=azul
 nodo g: green (v2) | icono=servidor | col=3 | fila=3 | color=verde
-flecha app -> fd
-flecha fd -> dep
-flecha job -> reg
-flecha reg -> ep
-flecha ep -> b: 90 %
-flecha ep -> g: 10 %
+flecha app -> fd | explica=La aplicación se autentica en Foundry con su identidad administrada: no hay claves que guardar.
+flecha fd -> dep | explica=Llama al despliegue de chat gpt-4o-mini, de tipo DataZoneStandard.
+flecha job -> reg | explica=El job de Azure ML entrena en un cómputo que escala de 0 a 2 nodos y registra cada versión del modelo.
+flecha reg -> ep | explica=Las versiones se despliegan en el online endpoint riesgo-credito.
+flecha ep -> b: 90 % | explica=El 90 % del tráfico sigue yendo a v1 (blue)…
+flecha ep -> g: 10 % | explica=…y el 10 % prueba v2 (green). Si v2 se porta bien, se le pasa todo el tráfico; si no, se vuelve atrás.
 ```
 
 ## Costo en una cuenta real

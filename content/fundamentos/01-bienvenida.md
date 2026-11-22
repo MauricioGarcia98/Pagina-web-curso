@@ -70,12 +70,12 @@ nodo silver: Silver | icono=spark | col=1 | fila=1 | color=gris | sub=limpios co
 nodo gold: Gold | icono=transformar | col=2 | fila=1 | color=amarillo | sub=métricas con dbt
 nodo bi: Tablero | icono=dashboard | col=3 | fila=1 | color=verde | sub=8:00 la gerente
 grupo lake: Data lake en la nube | nodos=bronze,silver,gold | color=azul
-flecha app -> oltp: guarda
-flecha oltp -> bronze: copia nocturna
-flecha bronze -> silver: limpia
-flecha silver -> gold: calcula
-flecha gold -> bi: consulta
-flecha orq -> silver: orquesta | estilo=punteada | color=violeta
+flecha app -> oltp: guarda | explica=A las 10:22 Lucía compra en la app. La compra se guarda en la base de la app (OLTP), pensada para muchas escrituras pequeñas y rápidas.
+flecha oltp -> bronze: copia nocturna | explica=De noche, un proceso copia las compras del día a la capa bronze del lago, tal como vinieron, sin tocar la base de la app.
+flecha bronze -> silver: limpia | explica=Spark limpia los datos crudos: quita duplicados, arregla tipos y descarta lo inválido. El resultado es silver.
+flecha silver -> gold: calcula | explica=dbt calcula las métricas que usa el negocio (ventas por día, por tienda, por canal) a partir de silver. Eso es gold.
+flecha gold -> bi: consulta | explica=A las 8:00 la gerente abre el tablero, que lee de gold. Ve las ventas de ayer, incluida la compra de Lucía.
+flecha orq -> silver: orquesta | estilo=punteada | color=violeta | explica=Airflow es el director de orquesta: a las 3:00 arranca cada paso en orden y avisa si alguno falla.
 ```
 
 :::tip Lo vas a ver en movimiento

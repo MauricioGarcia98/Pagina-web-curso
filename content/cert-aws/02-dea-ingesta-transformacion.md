@@ -26,15 +26,15 @@ nodo fh: Data Firehose | icono=firehose | col=2 | fila=0 | sub=buffer y Parquet 
 nodo raw: S3 bronze | icono=s3 | col=3 | fila=1 | forma=cilindro | color=verde
 nodo glue: AWS Glue | icono=glue | col=4 | fila=1 | sub=Spark serverless | color=violeta
 nodo sil: S3 silver (Iceberg) | icono=s3 | col=5 | fila=1 | forma=cilindro | color=verde
-flecha gps -> kds
-flecha kds -> fh
-flecha fh -> raw
-flecha ora -> dms
-flecha dms -> raw
-flecha sf -> af
-flecha af -> raw
-flecha raw -> glue
-flecha glue -> sil
+flecha gps -> kds | explica=Los camiones mandan su GPS cada 5 segundos a Kinesis Data Streams, que escala con shards.
+flecha kds -> fh | explica=Firehose junta los registros en lotes y los convierte a Parquet.
+flecha fh -> raw | explica=Y los escribe en S3 bronze.
+flecha ora -> dms | explica=La base Oracle se replica con DMS: primero una carga completa y después solo los cambios (CDC).
+flecha dms -> raw | explica=Los cambios llegan a bronze.
+flecha sf -> af | explica=Salesforce se extrae con AppFlow, sin escribir código.
+flecha af -> raw | explica=También a bronze.
+flecha raw -> glue | explica=Glue transforma bronze con Spark sin servidores que administrar.
+flecha glue -> sil | explica=El resultado queda en silver como tablas Iceberg.
 ```
 
 ## Ingesta en streaming

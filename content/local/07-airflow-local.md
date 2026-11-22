@@ -34,10 +34,10 @@ nodo sch: Scheduler | icono=reloj | col=1 | fila=0 | color=violeta | sub=lee los
 nodo web: Webserver | icono=web | col=2 | fila=0 | color=cian | sub=localhost:8080
 nodo db: Postgres | icono=base | col=1 | fila=1 | color=gris | sub=metadatos: corridas,\nestados, conexiones
 nodo trig: Triggerer | icono=engranaje | col=2 | fila=1 | color=gris | sub=tareas diferibles
-flecha dags -> sch
-flecha sch -> db
-flecha web -> db
-flecha trig -> db
+flecha dags -> sch | explica=Tu carpeta dags/ se monta en los contenedores: el scheduler lee los DAGs y programa las tareas.
+flecha sch -> db | explica=Guarda cada corrida y su estado en Postgres.
+flecha web -> db | explica=La interfaz web (localhost:8080) lee de la misma base: por eso ves el estado al instante.
+flecha trig -> db | explica=El triggerer maneja las tareas que esperan algo (un archivo, un horario) sin ocupar un worker.
 ```
 
 ## Opción 1: `airflow standalone` (la más simple)

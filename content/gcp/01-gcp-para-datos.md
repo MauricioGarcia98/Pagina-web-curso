@@ -23,9 +23,9 @@ nodo org: Organización | icono=building-2 | col=0 | fila=0 | color=gris | sub=t
 nodo car: Carpetas (opcional) | icono=carpeta | col=1 | fila=0 | color=azul | sub=datos/, finanzas/: agrupan por área
 nodo pro: Proyecto | icono=gcp | col=2 | fila=0 | color=verde | sub=academia-datos-dev · recursos, permisos, APIs y facturación
 nodo rec: Recursos | icono=cubo | col=3 | fila=0 | color=naranja | sub=buckets, datasets, temas de Pub/Sub, clusters
-flecha org -> car: contiene
-flecha car -> pro: contiene
-flecha pro -> rec: contiene
+flecha org -> car: contiene | explica=La organización está ligada al dominio de la empresa. Opcionalmente, se divide en carpetas por área.
+flecha car -> pro: contiene | explica=El proyecto es la unidad central de Google Cloud: tiene sus recursos, sus permisos, sus APIs activadas y su facturación.
+flecha pro -> rec: contiene | explica=Los recursos (buckets, datasets, temas de Pub/Sub, clústeres) viven dentro de un proyecto.
 ```
 
 El **proyecto** es la pieza clave: casi todo (permisos, facturación, APIs activadas) se configura a ese nivel.
@@ -49,16 +49,16 @@ nodo df: Dataflow · Dataproc · Dataform | icono=dataflow | col=3 | fila=0 | co
 nodo con: Looker / Agent Platform | icono=dashboard | col=4 | fila=1 | color=verde | sub=tableros y ML
 nodo orq: Composer · Workflows · Scheduler | icono=composer | col=3 | fila=2 | color=violeta | sub=orquestación
 nodo gob: IAM · Dataplex · policy tags · Audit Logs | icono=candado | col=4 | fila=2 | color=amarillo | sub=gobierno
-flecha f -> ps
-flecha f -> ds
-flecha f -> dts
-flecha ps -> gcs
-flecha ds -> bq
-flecha dts -> bq
-flecha gcs -> df
-flecha df -> bq
-flecha bq -> con
-flecha orq -> df: dispara | estilo=punteada | color=violeta
+flecha f -> ps | explica=Los eventos se publican en Pub/Sub.
+flecha f -> ds | explica=Los cambios de las bases se replican con Datastream (CDC).
+flecha f -> dts | explica=Las aplicaciones SaaS y otras nubes se traen con Data Transfer Service.
+flecha ps -> gcs | explica=Los eventos se pueden guardar crudos en Cloud Storage, el lago.
+flecha ds -> bq | explica=Datastream escribe directo en BigQuery.
+flecha dts -> bq | explica=Data Transfer Service también carga en BigQuery.
+flecha gcs -> df | explica=Dataflow (Beam), Dataproc (Spark) o Dataform (SQL) transforman lo que está en el lago…
+flecha df -> bq | explica=…y escriben el resultado en BigQuery.
+flecha bq -> con | explica=Looker y la plataforma de agentes y ML consumen BigQuery.
+flecha orq -> df: dispara | estilo=punteada | color=violeta | explica=Composer (Airflow), Workflows o Scheduler disparan los pasos. IAM, Dataplex y las policy tags gobiernan el acceso.
 ```
 
 | Servicio | Para qué | Analogía |
@@ -85,13 +85,13 @@ nodo gcs: Cloud Storage | icono=bucket | col=1 | fila=0 | color=verde | sub=bron
 nodo bq: BigQuery | icono=almacen | col=2 | fila=0 | color=azul | sub=warehouse + SQL
 nodo cmp: Composer | icono=orquestador | col=3 | fila=1 | color=violeta | sub=Airflow
 nodo lk: Looker | icono=dashboard | col=3 | fila=0 | color=amarillo
-flecha src -> gcs: carga
-flecha app -> ps
-flecha ps -> df
-flecha df -> bq
-flecha gcs -> bq: load / BigLake
-flecha bq -> lk
-flecha cmp -> bq: orquesta | estilo=punteada
+flecha src -> gcs: carga | explica=Las exportaciones de bases y APIs se cargan en Cloud Storage, la capa bronze.
+flecha app -> ps | explica=Los eventos de la app entran a Pub/Sub.
+flecha ps -> df | explica=Dataflow los procesa en streaming…
+flecha df -> bq | explica=…y los escribe en BigQuery.
+flecha gcs -> bq: load / BigLake | explica=Lo que está en Cloud Storage se carga en BigQuery o se consulta en su lugar con BigLake.
+flecha bq -> lk | explica=Looker arma los tableros desde BigQuery.
+flecha cmp -> bq: orquesta | estilo=punteada | explica=Composer orquesta las cargas y transformaciones.
 ```
 
 ## Las tres nubes lado a lado

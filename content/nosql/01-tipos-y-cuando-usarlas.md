@@ -59,11 +59,11 @@ nodo doc: MongoDB / Cosmos DB | icono=mongodb | col=1 | fila=1 | color=verde | s
 nodo lh: Lakehouse | icono=capas | col=2 | fila=1 | color=naranja | sub=bronze, silver, gold
 nodo kv: Redis / DynamoDB | icono=redis | col=3 | fila=0 | color=rojo | sub=servicio: métricas listas en milisegundos
 nodo vec: Buscador / vectores | icono=vector | col=3 | fila=2 | color=violeta | sub=índice para RAG
-flecha app -> doc
-flecha doc -> lh: export o CDC
-flecha lh -> kv: reverse ETL
-flecha lh -> vec: indexar
-flecha kv -> app: lee | estilo=punteada
+flecha app -> doc | explica=La app guarda sus datos en una base de documentos (MongoDB, Cosmos DB): es una fuente más de la plataforma.
+flecha doc -> lh: export o CDC | explica=Esos datos llegan al lakehouse por exportación o por CDC, para analizarlos.
+flecha lh -> kv: reverse ETL | explica=Las métricas calculadas en el lakehouse se copian a una base clave-valor (Redis, DynamoDB)…
+flecha lh -> vec: indexar | explica=Los textos se indexan en un buscador o una base vectorial, para búsquedas con IA (RAG).
+flecha kv -> app: lee | estilo=punteada | explica=…de donde la app las lee en milisegundos. Cada base NoSQL resuelve un uso concreto.
 ```
 
 :::practica python Un almacén clave-valor con vencimiento

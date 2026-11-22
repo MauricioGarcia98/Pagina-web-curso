@@ -40,11 +40,11 @@ nodo c: 3. Ejemplo | icono=tabla | col=2 | fila=0 | color=amarillo | sub=un caso
 nodo d: 4. Plan | icono=documento | col=2 | fila=1 | color=naranja | sub=pasos en castellano
 nodo e: 5. Código | icono=codigo | col=1 | fila=1 | color=gris | sub=por capas, con nombres
 nodo f: 6. Probar | icono=check | col=0 | fila=1 | color=verde | sub=caso borde y complejidad
-flecha a -> b
-flecha b -> c
-flecha c -> d
-flecha d -> e
-flecha e -> f
+flecha a -> b | explica=Se repite la pregunta con tus palabras y se confirma el grano: así detectas malentendidos a tiempo.
+flecha b -> c | explica=Se aclaran los casos dudosos: empates, nulos, qué período.
+flecha c -> d | explica=Se resuelve a mano un ejemplo chico.
+flecha d -> e | explica=Se cuenta el plan en castellano antes de escribir.
+flecha e -> f | explica=Se escribe el código por capas, con buenos nombres, y se prueba con un caso borde. Hablar en voz alta muestra cómo piensas.
 ```
 
 | Paso | Qué dices en voz alta | Ejemplo |

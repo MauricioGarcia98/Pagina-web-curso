@@ -213,15 +213,15 @@ nodo dst: Datastream | icono=datastream | col=1 | fila=2 | color=azul | sub=CDC
 nodo dfm: Dataform | icono=dataform | col=3 | fila=0 | color=violeta | sub=silver y gold: MAU, churn, MRR
 nodo lk: Looker | icono=dashboard | col=4 | fila=0 | color=verde
 nodo cmp: Composer 03:00 | icono=composer | col=3 | fila=2 | color=violeta | sub=orquesta Dataform
-flecha app -> ps
-flecha ps -> bqb: suscripción BigQuery
-flecha ps -> df
-flecha df -> bt
-flecha sql -> dst
-flecha dst -> bqb
-flecha bqb -> dfm
-flecha dfm -> lk: con assertions
-flecha cmp -> dfm: dispara | estilo=punteada | color=violeta
+flecha app -> ps | explica=Las apps y los reproductores publican cada reproducción en Pub/Sub.
+flecha ps -> bqb: suscripción BigQuery | explica=Una suscripción de BigQuery guarda todo en bronze, particionado por día.
+flecha ps -> df | explica=Al mismo tiempo, Dataflow calcula ventanas de un minuto con el top de lo más escuchado.
+flecha df -> bt | explica=El top en vivo se guarda en Bigtable, que responde en milisegundos a la pantalla.
+flecha sql -> dst | explica=Las suscripciones viven en Cloud SQL; Datastream captura sus cambios.
+flecha dst -> bqb | explica=Los cambios también llegan a bronze.
+flecha bqb -> dfm | explica=Dataform arma silver y gold con SQL: usuarios activos por mes (MAU), bajas (churn) e ingresos recurrentes (MRR).
+flecha dfm -> lk: con assertions | explica=Looker muestra los indicadores. Las assertions de Dataform frenan la publicación si los datos no cumplen las reglas.
+flecha cmp -> dfm: dispara | estilo=punteada | color=violeta | explica=Composer dispara Dataform todos los días a las 03:00.
 ```
 
 Gobierno: policy tags en email y edad, seguridad por fila según país, y Dataplex para calidad y linaje. La infraestructura se crea con Terraform y Cloud Build.

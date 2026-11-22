@@ -30,13 +30,13 @@ nodo rev: Revisión | icono=usuario | col=3 | fila=1 | color=azul | sub=alguien 
 nodo dev: Apply en dev | icono=check | col=2 | fila=1 | color=verde | sub=automático al merge
 nodo prod: Apply en prod | icono=escudo | col=1 | fila=1 | color=rojo | sub=con aprobación manual
 nodo drift: Plan nocturno | icono=reloj | col=0 | fila=1 | color=cian | sub=avisa si hay drift
-flecha rama -> pr
-flecha pr -> ci
-flecha ci -> plan
-flecha plan -> rev
-flecha rev -> dev: merge a main
-flecha dev -> prod
-flecha drift -> prod | estilo=punteada
+flecha rama -> pr | explica=El cambio de infraestructura se hace en una rama y se abre un pull request, como cualquier código.
+flecha pr -> ci | explica=La CI corre los chequeos: formato, validación, tflint, checkov (seguridad) y tests.
+flecha ci -> plan | explica=Después corre terraform plan y lo publica como comentario del pull request.
+flecha plan -> rev | explica=Una persona lee el plan y aprueba: se revisa qué va a cambiar en la nube, no solo el código.
+flecha rev -> dev: merge a main | explica=Al unir a main, la CI aplica en dev automáticamente.
+flecha dev -> prod | explica=Producción se aplica con una aprobación manual.
+flecha drift -> prod | estilo=punteada | explica=Todas las noches un plan revisa si alguien cambió algo a mano en la consola (drift) y avisa.
 ```
 
 ## Pruebas con terraform test

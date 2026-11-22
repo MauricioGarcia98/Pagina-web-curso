@@ -37,11 +37,11 @@ nodo esq: Esquema | icono=carpeta | col=2 | fila=1 | color=verde | sub=bronze, s
 nodo tab: Tablas y vistas | icono=tabla | col=3 | fila=0 | color=naranja | sub=prod.gold.ventas_diarias
 nodo vol: Volúmenes | icono=archivos | col=3 | fila=1 | color=naranja | sub=archivos: /Volumes/prod/crudo/archivos/
 nodo fun: Funciones y modelos | icono=ml | col=3 | fila=2 | color=naranja | sub=funciones SQL/Python, modelos de ML
-flecha met -> cat
-flecha cat -> esq
-flecha esq -> tab
-flecha esq -> vol
-flecha esq -> fun
+flecha met -> cat | explica=Un metastore por región, compartido por los workspaces. De él cuelgan los catálogos.
+flecha cat -> esq | explica=Un catálogo por entorno o por área. Dentro, los esquemas.
+flecha esq -> tab | explica=Las tablas se nombran catálogo.esquema.tabla. Los permisos se pueden dar en cualquier nivel y se heredan hacia abajo.
+flecha esq -> vol | explica=Los volúmenes son la forma de guardar archivos con gobierno: /Volumes/catálogo/esquema/volumen/.
+flecha esq -> fun | explica=Funciones y modelos también son objetos del esquema, con sus permisos.
 ```
 
 Los permisos se **heredan** hacia abajo: `GRANT SELECT ON SCHEMA prod.gold TO analistas` da lectura sobre todas las tablas del esquema, incluidas las que se creen después. Y para leer una tabla hacen falta tres permisos encadenados: `USE CATALOG` en el catálogo, `USE SCHEMA` en el esquema y `SELECT` en la tabla.
@@ -55,11 +55,11 @@ nodo c2: dev | icono=almacen | col=2 | fila=1 | color=azul | sub=catálogo
 nodo e1: ventas | icono=capas | col=0 | fila=2 | color=gris | sub=esquema
 nodo t1: pedidos | icono=tabla | col=1 | fila=2 | color=naranja | sub=prod.ventas.pedidos
 nodo v1: vol_crudos | icono=archivos | col=1 | fila=1 | color=amarillo | sub=volumen (archivos)
-flecha meta -> c1
-flecha meta -> c2
-flecha c1 -> e1
-flecha e1 -> t1
-flecha e1 -> v1
+flecha meta -> c1 | explica=El catálogo prod guarda lo que usa el negocio.
+flecha meta -> c2 | explica=dev es para desarrollar y probar sin tocar producción.
+flecha c1 -> e1 | explica=En prod, el esquema ventas agrupa las tablas de ese dominio.
+flecha e1 -> t1 | explica=La tabla se llama prod.ventas.pedidos: catálogo, esquema y tabla.
+flecha e1 -> v1 | explica=Al lado de las tablas, un volumen guarda los archivos crudos del mismo dominio.
 ```
 
 ## Permisos con SQL

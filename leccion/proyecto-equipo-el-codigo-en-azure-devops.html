@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El código en Azure DevOps - el script, sus tests, el pipeline y el pull request · Academia de Datos</title><meta name="description" content="Escribes el script que sube los pedidos a S3, una validación con tests y el pipeline que los corre en cada cambio. Todo vive en Azure Repos, con la clave de la story en cada commit. Después proteges main y haces entrar un cambio por pull request, con revisión, como en cualquier equipo serio."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-equipo-el-codigo-en-azure-devops.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El código en Azure DevOps - el script, sus tests, el pipeline y el pull request · Academia de Datos"><meta property="og:description" content="Escribes el script que sube los pedidos a S3, una validación con tests y el pipeline que los corre en cada cambio. Todo vive en Azure Repos, con la clave de la story en cada commit. Después proteges main y haces entrar un cambio por pull request, con revisión, como en cualquier equipo serio."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-equipo-el-codigo-en-azure-devops.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto-equipo">🧩 Proyecto en equipo: del ticket al lago en AWS</a> · Intermedio · 45 min</div>
+<h1>El código en Azure DevOps - el script, sus tests, el pipeline y el pull request</h1><p class="resumen">Escribes el script que sube los pedidos a S3, una validación con tests y el pipeline que los corre en cada cambio. Todo vive en Azure Repos, con la clave de la story en cada commit. Después proteges main y haces entrar un cambio por pull request, con revisión, como en cualquier equipo serio.</p>
+<a class="cta" href="../index.html#/l/proyecto-equipo-el-codigo-en-azure-devops">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un repositorio y subirlo a Azure Repos desde la terminal</li><li>Escribir un script de carga parametrizado y una validación con pytest</li><li>Crear un pipeline YAML y llevarlo a verde leyendo sus logs</li><li>Proteger main y completar un pull request revisado</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Lunes, 11:00</div>
+
+<p>La story está en <em>In Progress</em>. Martín te recuerda la regla del equipo: <em>&quot;Nada entra a main sin pull request y sin el pipeline en verde.&quot;</em></p>
+</div>
+
+
+<figure class="diagrama"><figcaption>Del código en tu terminal a main</figcaption></figure>
+
+
+<h2>1. El repositorio y el script</h2>
+<p>Abre la <a href="#/lab/terminal">terminal del curso</a> y crea el proyecto:</p>
+<pre tabindex="0"><code class="language-bash">mkdir -p ~/lago-pedidos &amp;&amp; cd ~/lago-pedidos
+git init
+git branch -M main</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">mkdir -p ~/lago-pedidos &amp;&amp; cd ~/lago-pedidos</code><span><code>mkdir</code>: crea una carpeta. <code>-p</code> = crea también las carpetas intermedias y no falla si ya existe <span class="bx-tubo">→ si sale bien, sigue el próximo</span><br><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">git init</code><span><code>git</code>: Git: guarda la historia de tu código. <code>init</code> convierte la carpeta en un repositorio (crea la carpeta oculta .git)</span></li><li><code class="bx-linea">git branch -M main</code><span><code>git</code>: Git: guarda la historia de tu código. <code>branch</code> lista, crea o borra ramas. <code>-M</code> = renombra la rama</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<p>Si es la primera vez que usas git en esta terminal, dile quién eres (aparece como autor de cada commit):</p>
+<pre tabindex="0"><code class="language-bash">git config --global user.name &quot;Tu Nombre&quot;
+git config --global user.email &quot;tu@correo.com&quot;</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">git config --global user.name &quot;Tu Nombre&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>config</code> configura Git (tu nombre, tu correo, la rama por defecto). <code>--global</code> = para todos tus repositorios</span></li><li><code class="bx-linea">git config --global user.email &quot;tu@correo.com&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>config</code> configura Git (tu nombre, tu correo, la rama por defecto). <code>--global</code> = para todos tus repositorios</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<p>El script recibe la <strong>fecha de carga</strong> y el <strong>archivo</strong> como argumentos, con valores por defecto. Así se puede volver a cargar un día puntual sin tocar el código:</p>
+<pre tabindex="0"><code class="language-bash">cat &gt; cargar_pedidos.sh &lt;&lt; 'EOF'
+#!/usr/bin/env bash
+# Sube la exportación de pedidos a la capa raw del lago, en una carpeta por fecha de carga.
+# Uso: bash cargar_pedidos.sh [AAAA-MM-DD] [archivo.csv]
+set -e
+BUCKET=&quot;${BUCKET:-tienda-andina-lago-equipo}&quot;
+FECHA=&quot;${1:-$(date +%F)}&quot;
+ARCHIVO=&quot;${2:-$HOME/datos/generados/ecommerce/pedidos.csv}&quot;
+echo &quot;Subiendo $ARCHIVO a s3://$BUCKET/raw/pedidos/fecha_carga=$FECHA/&quot;
+aws s3 cp &quot;$ARCHIVO&quot; &quot;s3://$BUCKET/raw/pedidos/fecha_carga=$FECHA/pedidos.csv&quot;
+EOF</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">cat &gt; cargar_pedidos.sh &lt;&lt; 'EOF'</code><span><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe). Lo que sigue hasta <code>EOF</code> es el contenido del archivo</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<div class="table-wrap"><table><thead><tr>
+<th>Línea</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>set -e</code></td>
+<td>Si un comando falla, el script se detiene (no sigue como si nada)</td>
+</tr>
+<tr>
+<td><code>BUCKET=&quot;${BUCKET:-…}&quot;</code></td>
+<td>Usa la variable <code>BUCKET</code> si existe; si no, el bucket por defecto. Sirve para apuntar a otro entorno sin editar el script</td>
+</tr>
+<tr>
+<td><code>FECHA=&quot;${1:-$(date +%F)}&quot;</code></td>
+<td>El primer argumento, o la fecha de hoy (<code>2026-11-22</code>) si no se pasa</td>
+</tr>
+<tr>
+<td><code>fecha_carga=$FECHA/</code></td>
+<td>La carpeta con forma <code>columna=valor</code>: Glue y Athena la reconocen como <strong>partición</strong></td>
+</tr>
+</tbody></table></div>
+<h2>2. La validación y sus tests</h2>
+<p>Antes de subir un archivo, conviene comprobar que trae las columnas esperadas. Una función chica, con tests:</p>
+<pre tabindex="0"><code class="language-bash">cat &gt; validar.py &lt;&lt; 'EOF'
+COLUMNAS = [&quot;pedido_id&quot;, &quot;cliente_id&quot;, &quot;fecha_pedido&quot;, &quot;canal&quot;, &quot;estado&quot;, &quot;metodo_pago&quot;]
+
+def encabezado_valido(linea):
+    &quot;&quot;&quot;True si la primera línea del CSV tiene exactamente las columnas esperadas.&quot;&quot;&quot;
+    return [c.strip() for c in linea.strip().split(&quot;,&quot;)] == COLUMNAS
+EOF
+mkdir -p tests
+cat &gt; tests/test_validar.py &lt;&lt; 'EOF'
+from validar import encabezado_valido
+
+def test_encabezado_correcto():
+    assert encabezado_valido(&quot;pedido_id,cliente_id,fecha_pedido,canal,estado,metodo_pago&quot;)
+
+def test_falta_una_columna():
+    assert not encabezado_valido(&quot;pedido_id,cliente_id,fecha_pedido,canal&quot;)
+EOF
+printf &quot;pytest\n&quot; &gt; requirements.txt</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">cat &gt; validar.py &lt;&lt; 'EOF'</code><span><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe). Lo que sigue hasta <code>EOF</code> es el contenido del archivo</span></li><li><code class="bx-linea">mkdir -p tests</code><span><code>mkdir</code>: crea una carpeta. <code>-p</code> = crea también las carpetas intermedias y no falla si ya existe</span></li><li><code class="bx-linea">cat &gt; tests/test_validar.py &lt;&lt; 'EOF'</code><span><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe). Lo que sigue hasta <code>EOF</code> es el contenido del archivo</span></li><li><code class="bx-linea">printf &quot;pytest\n&quot; &gt; requirements.txt</code><span><code>printf</code>: escribe texto con formato (como echo, pero controlando saltos de línea y columnas). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<h2>3. Subirlo a Azure Repos</h2>
+<pre tabindex="0"><code class="language-bash">git add .
+git commit -m &quot;TA-12 Script de carga a S3 y validación del encabezado&quot;
+git remote add origin https://dev.azure.com/academia/tienda-andina/_git/lago-pedidos
+git push -u origin main</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">git add .</code><span><code>git</code>: Git: guarda la historia de tu código. <code>add</code> prepara cambios para el próximo commit (los pasa al área de preparación). <code>.</code> = todos los archivos de la carpeta actual</span></li><li><code class="bx-linea">git commit -m &quot;TA-12 Script de carga a S3 y validación del encabezado&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>commit</code> guarda una foto de los cambios preparados, con un mensaje. <code>-m</code> = el mensaje del commit</span></li><li><code class="bx-linea">git remote add origin https://dev.azure.com/academia/tienda-andina/_git/lago-pedidos</code><span><code>git</code>: Git: guarda la historia de tu código. <code>remote</code> administra las direcciones de los repositorios remotos (origin)</span></li><li><code class="bx-linea">git push -u origin main</code><span><code>git</code>: Git: guarda la historia de tu código. <code>push</code> sube tus commits al repositorio remoto (GitHub). <code>-u</code> = recuerda la rama remota: después alcanza con <code>git push</code></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<p>Cambia <code>TA-12</code> por tu clave. Abre <a href="#/azure-devops/tienda-andina/repos?repo=lago-pedidos">Azure DevOps → Repos</a>: ahí están tus archivos y el commit.</p>
+<h2>4. El pipeline</h2>
+<p><strong>Pipelines → New pipeline → Azure Repos Git → lago-pedidos → Python package → Save and run</strong>. El asistente agrega <code>azure-pipelines.yml</code> al repositorio y lo ejecuta:</p>
+<ul>
+<li><strong>Install dependencies</strong> instala lo que dice <code>requirements.txt</code>.</li>
+<li><strong>Run tests</strong> corre <code>pytest</code>: tus dos tests pasan.</li>
+</ul>
+<p>Si un paso queda en rojo, ábrelo y <strong>lee el log</strong>. Casi siempre falta un archivo (<code>requirements.txt</code>, o los tests en <code>tests/test_*.py</code>). Súbelo con otro commit y el push vuelve a disparar el pipeline.</p>
+<p>Como el asistente hizo un commit en Azure Repos, trae ese cambio a tu terminal:</p>
+<pre tabindex="0"><code class="language-bash">git pull</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">git pull</code><span><code>git</code>: Git: guarda la historia de tu código. <code>pull</code> trae los commits nuevos del remoto y los une a tu rama</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<h2>5. Proteger main y entrar por pull request</h2>
+<ol>
+<li><strong>Repos → Branches → main → Add branch policies</strong>: desde ahora, a main se entra con pull request, 1 revisor y la build en verde.</li>
+<li>En la terminal, un cambio en una rama que nombra la story:</li>
+</ol>
+<pre tabindex="0"><code class="language-bash">git checkout -b TA-12-readme
+printf &quot;# lago-pedidos\n\nCarga diaria de pedidos a S3 (raw/pedidos/fecha_carga=AAAA-MM-DD).\n\n    bash cargar_pedidos.sh 2026-11-21\n&quot; &gt; README.md
+git add README.md
+git commit -m &quot;TA-12 README con el uso del script&quot;
+git push -u origin TA-12-readme</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(5)</span></summary><ol><li><code class="bx-linea">git checkout -b TA-12-readme</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella). <code>-b</code> = crea la rama nueva</span></li><li><code class="bx-linea">printf &quot;# lago-pedidos\n\nCarga diaria de pedidos a S3 (raw/pedidos/fecha_carga=AAAA-MM-DD).\n\n    bash cargar_pedidos.sh 2026-11-21\n&quot; …</code><span><code>printf</code>: escribe texto con formato (como echo, pero controlando saltos de línea y columnas). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li><li><code class="bx-linea">git add README.md</code><span><code>git</code>: Git: guarda la historia de tu código. <code>add</code> prepara cambios para el próximo commit (los pasa al área de preparación)</span></li><li><code class="bx-linea">git commit -m &quot;TA-12 README con el uso del script&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>commit</code> guarda una foto de los cambios preparados, con un mensaje. <code>-m</code> = el mensaje del commit</span></li><li><code class="bx-linea">git push -u origin TA-12-readme</code><span><code>git</code>: Git: guarda la historia de tu código. <code>push</code> sube tus commits al repositorio remoto (GitHub). <code>-u</code> = recuerda la rama remota: después alcanza con <code>git push</code></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<ol start="3">
+<li><strong>Repos → Pull requests → New pull request</strong>: de <code>TA-12-readme</code> a <code>main</code>, con un título claro. <strong>Pedir revisión a Camila</strong> y esperar su aprobación. Cuando el check esté en verde, <strong>Complete</strong>.</li>
+<li>Vuelve a main en tu terminal y trae el merge:</li>
+</ol>
+<pre tabindex="0"><code class="language-bash">git checkout main
+git pull</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">git checkout main</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella)</span></li><li><code class="bx-linea">git pull</code><span><code>git</code>: Git: guarda la historia de tu código. <code>pull</code> trae los commits nuevos del remoto y los une a tu rama</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
+
+<p>En tu computadora, esto se hace igual en la <strong>Terminal</strong> (macOS), <strong>Ubuntu/WSL</strong> o <strong>Git Bash</strong> (Windows), con <code>git</code> y la <strong>AWS CLI</strong> instalados. En <strong>dev.azure.com</strong> de tu empresa:</p>
+<ul>
+<li>la primera vez que haces <code>git push</code>, Git Credential Manager abre el navegador para que entres con tu cuenta de Microsoft (no se escriben contraseñas en la URL);</li>
+<li>el pipeline corre en un agente de Microsoft, y para subir a AWS usaría una <em>service connection</em> de AWS (sin claves en el YAML).</li>
+</ul>
+<p>Si tu equipo usa GitHub en vez de Azure Repos, los pasos son los mismos con GitHub Actions y <em>branch protection rules</em>.</p>
+</div>
+
+
+<div class="callout callout-capturas"><div class="callout-title">📸 Capturas para tu portafolio</div>
+
+<p>Guárdalas en <code>docs/capturas/</code> del repositorio y úsalas en el README.</p>
+<ul>
+<li><code>02-repo.png</code>: Azure Repos con los archivos (<code>cargar_pedidos.sh</code>, <code>validar.py</code>, <code>tests/</code>, <code>azure-pipelines.yml</code>).</li>
+<li><code>02-pipeline.png</code>: la ejecución del pipeline en verde, con el paso <em>Run tests</em> abierto.</li>
+<li><code>02-pr.png</code>: el pull request completado, con la aprobación y el check en verde.</li>
+</ul>
+<p>Antes de publicar, tapa la URL de la organización y los correos si son de tu trabajo.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Escribir la fecha fija dentro del script</strong>: para recargar otro día hay que editar código. La fecha va como argumento.</li>
+<li><strong>Commits sin la clave de la story</strong>: en tres meses nadie sabe por qué se hizo ese cambio.</li>
+<li><strong>Subir directo a main</strong> &quot;porque es un cambio chiquito&quot;: con la política de rama, ni siquiera se puede.</li>
+<li><strong>Ignorar el log del pipeline</strong> y volver a ejecutarlo esperando que pase: el log dice qué falta.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>El script de carga es <strong>parametrizado</strong> (fecha y archivo como argumentos) y escribe en carpetas <code>fecha_carga=…</code>.</li>
+<li>Una validación chica con <strong>tests</strong> y un <strong>pipeline</strong> que los corre en cada push evitan subir archivos rotos.</li>
+<li>La <strong>clave de la story</strong> va en cada commit y en el nombre de la rama.</li>
+<li>Con la <strong>política de rama</strong>, a main se entra por pull request revisado y con la build en verde.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-equipo-el-codigo-en-azure-devops">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-equipo-el-pedido-en-jira.html">← El pedido en Jira - de un mensaje de finanzas a una story con subtareas</a><a href="proyecto-equipo-el-lago-en-aws.html">El lago en AWS - cargar dos días, catalogar con Glue y consultar con Athena →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

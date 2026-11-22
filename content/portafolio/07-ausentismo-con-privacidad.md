@@ -31,11 +31,11 @@ nodo g: gold_ausentismo | icono=grafico | col=2 | fila=0 | color=amarillo | sub=
 nodo rec: Recepción | icono=usuario | col=1 | fila=1 | sub=ve su sede, con nombres
 nodo an: Analistas | icono=usuario | col=2 | fila=1 | sub=ven tasas, no personas
 nodo wa: Recordatorios | icono=mensaje | col=3 | fila=0 | sub=solo id del turno\ny teléfono
-flecha raw -> sv
-flecha sv -> g
-flecha sv -> rec: SELECT con máscara
-flecha g -> an
-flecha sv -> wa: lista diaria | estilo=punteada
+flecha raw -> sv | explica=Bronze solo lo lee el pipeline. Silver aplica máscaras de columna y filtros por sede.
+flecha sv -> g | explica=Gold agrega por sede y período: no tiene datos personales.
+flecha sv -> rec: SELECT con máscara | explica=Recepción consulta silver y ve solo los pacientes de su sede, con nombres.
+flecha g -> an | explica=Los analistas leen gold: ven tasas, no personas.
+flecha sv -> wa: lista diaria | estilo=punteada | explica=Para los recordatorios se arma una lista diaria con lo mínimo: id del turno y teléfono.
 ```
 
 ## Fase 1: entender el ausentismo

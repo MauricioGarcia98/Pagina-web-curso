@@ -31,12 +31,12 @@ nodo db: Bases de datos | icono=base | col=2 | fila=1 | color=verde
 nodo es: Esquemas | icono=carpeta | col=2 | fila=2 | color=verde
 nodo tv: Tablas y vistas | icono=tabla | col=1 | fila=3 | color=gris
 nodo st: Stages | icono=archivos | col=3 | fila=3 | color=gris | sub=archivos para cargar
-flecha cta -> wh
-flecha cta -> ro
-flecha cta -> db
-flecha db -> es
-flecha es -> tv
-flecha es -> st
+flecha cta -> wh | explica=La cuenta tiene warehouses: el cómputo que se paga por segundo mientras está encendido.
+flecha cta -> ro | explica=También roles y usuarios: los permisos se dan a roles y los roles se asignan a usuarios.
+flecha cta -> db | explica=Y bases de datos, que están separadas del cómputo: cualquier warehouse puede consultarlas.
+flecha db -> es | explica=Cada base tiene esquemas.
+flecha es -> tv | explica=Los esquemas contienen tablas y vistas.
+flecha es -> st | explica=Y stages: el lugar donde se dejan los archivos antes de cargarlos con COPY INTO.
 ```
 
 El nombre completo de una tabla es **`BASE.ESQUEMA.TABLA`**, por ejemplo `TIENDA_ANDINA.PUBLIC.PEDIDOS`.

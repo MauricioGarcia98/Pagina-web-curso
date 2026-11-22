@@ -45,14 +45,14 @@ nodo cat: Glue Data Catalog | icono=tabla | col=1 | fila=1 | color=azul | sub=an
 nodo job: Job silver_pedidos | icono=spark | col=2 | fila=1 | color=rojo | sub=Glue 4.0 · 2 × G.1X
 nodo ath: Athena analistas | icono=lupa | col=3 | fila=1 | color=verde | sub=máx. 10 GB por consulta
 nodo rol: Rol IAM glue | icono=escudo | col=1 | fila=2 | color=rojo | sub=solo los 3 buckets
-flecha cr -> br: lee
-flecha cr -> cat: registra tablas
-flecha job -> br: lee
-flecha job -> sv: escribe
-flecha art -> job: script | estilo=punteada
-flecha ath -> cat
-flecha rol -> cr | estilo=punteada
-flecha rol -> job | estilo=punteada
+flecha cr -> br: lee | explica=Todas las noches a las 02:00, el crawler lee el bucket bronze…
+flecha cr -> cat: registra tablas | explica=…y registra las tablas en el Glue Data Catalog.
+flecha job -> br: lee | explica=El job de Glue lee los pedidos crudos de bronze…
+flecha job -> sv: escribe | explica=…y escribe silver.
+flecha art -> job: script | estilo=punteada | explica=El script del job vive en el bucket de artefactos, junto con los resultados de Athena.
+flecha ath -> cat | explica=Los analistas consultan con Athena usando el catálogo, con un límite de 10 GB por consulta para controlar el costo.
+flecha rol -> cr | estilo=punteada | explica=El crawler asume un rol de IAM que solo puede leer los tres buckets del lago.
+flecha rol -> job | estilo=punteada | explica=El job usa el mismo rol de permisos mínimos. Todo esto lo crea Terraform.
 ```
 
 ### Proveedor con etiquetas para todo
@@ -231,12 +231,12 @@ nodo gcs: andina-dev-bronze/silver/gold | icono=bucket | col=0 | fila=1 | color=
 nodo bq: andina_bronze/silver/gold | icono=base | col=2 | fila=1 | color=verde | sub=datasets de BigQuery
 nodo tabla: silver.pedidos | icono=tabla | col=3 | fila=1 | color=verde | sub=partición por fecha\ncluster por cliente_id
 nodo sa: etl-andina-dev | icono=llave | col=1 | fila=2 | color=rojo | sub=cuenta de servicio del ETL
-flecha app -> topic
-flecha topic -> subs
-flecha subs -> bq | estilo=punteada
-flecha bq -> tabla
-flecha sa -> gcs: objectAdmin por bucket
-flecha sa -> bq: dataEditor en silver
+flecha app -> topic | explica=La app publica los eventos de pedidos en un tema de Pub/Sub.
+flecha topic -> subs | explica=Una suscripción toma los mensajes del tema…
+flecha subs -> bq | estilo=punteada | explica=…y los escribe directo en BigQuery.
+flecha bq -> tabla | explica=silver.pedidos está particionada por fecha y agrupada (cluster) por cliente_id, para que las consultas lean poco.
+flecha sa -> gcs: objectAdmin por bucket | explica=La cuenta de servicio del ETL tiene permiso objectAdmin solo sobre los buckets del lago, uno por uno.
+flecha sa -> bq: dataEditor en silver | explica=Y dataEditor solo sobre el dataset silver. Permisos por recurso, nunca a todo el proyecto.
 ```
 
 ```hcl

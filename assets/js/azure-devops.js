@@ -63,6 +63,9 @@
   const repo = (n) => { const A = G(); if (!A) return null; return A.remoto(urlRepo(n)) || null; };
   function asegurarRepos() {
     const A = G(); if (!A) return;
+    // los repositorios creados desde la terminal (git remote add + git push) también aparecen en Repos
+    const pre = `https://dev.azure.com/${ORG}/${PROY}/_git/`;
+    for (const u of Object.keys(A.remotos())) if (u.startsWith(pre)) { const n = u.slice(pre.length); if (n && !st().repos.includes(n)) { st().repos.push(n); guardar(); } }
     for (const n of st().repos) if (!A.remoto(urlRepo(n))) A.crearRemoto(urlRepo(n), n === 'pipelines');
     try { window.Shell.Machine.save(); } catch (e) { /* nada */ }
   }
@@ -265,8 +268,8 @@
   function repoPrs() {
     asegurarRepos();
     const s = st();
-    if (ruta[2] === 'nuevo') return prNuevo();
-    if (ruta[2]) return prVer(Number(ruta[2]));
+    if (ruta[3] === 'nuevo') return prNuevo();
+    if (ruta[3]) return prVer(Number(ruta[3]));
     const cuerpo = `<div class="ado-barra"><h1 class="ado-h1">Pull requests</h1><span class="ado-sp"></span>${btn('New pull request', 'data-nuevo', 'primario')}</div><section class="ado-card"><table class="ado-tabla"><thead><tr><th>Title</th><th>Repository</th><th>Branches</th><th>Status</th></tr></thead><tbody>${s.prs.map((p) => `<tr><td>${ic('pr')} <a href="${PH('repos', 'prs', String(p.id))}">${p.id} · ${esc(p.titulo)}</a></td><td>${esc(p.repo)}</td><td><code>${esc(p.origen)}</code> → <code>${esc(p.destino)}</code></td><td>${p.estado === 'completed' ? `${ic('ok', 14)} Completed` : 'Active'}</td></tr>`).join('') || '<tr><td colspan="4" class="ado-dim">No pull requests. Sube una rama desde la terminal y crea uno.</td></tr>'}</tbody></table></section>`;
     main.innerHTML = marco('repos', 'prs', [[PROY, PH()], ['Repos', PH('repos')], ['Pull requests', '']], cuerpo); montar();
     main.querySelector('[data-nuevo]').onclick = () => { location.hash = PH('repos', 'prs', 'nuevo'); };
@@ -371,7 +374,7 @@ steps:
     }
     ps.push({ nombre: 'Finalize Job', log: ['Cleaning up task key', `Finishing: ${fallo ? 'Job failed' : 'Job succeeded'}`] });
     ps.forEach((x) => { if (!x.estado) x.estado = 'succeeded'; });
-    run.pasos = ps; pipe.runs.push(run); guardar();
+    run.pasos = ps; run.tip = r && r.branches[rama]; if (rama === 'main') pipe.ultimoTip = run.tip; pipe.runs.push(run); guardar();
     setTimeout(() => { run.estado = fallo ? 'failed' : 'succeeded'; run.fin = ahora(); guardar(); evento(fallo ? 'run-fallo' : 'run-ok'); if (/^#\/azure-devops/.test(location.hash)) dibujar(); }, 1800);
     return run;
   }
@@ -463,6 +466,8 @@ steps:
     asegurarRepos();
     // un push desde la terminal a un repo de Azure Repos dispara el pipeline con trigger: main
     if (!escuchando && G()) { escuchando = true; G().oyentesPush.push((u, rama) => { const mm = String(u).match(/dev\.azure\.com\/academia\/tienda-andina\/_git\/([\w.-]+)/); if (!mm || !Store) return; const s = st(); if (!s.repos.includes(mm[1])) { s.repos.push(mm[1]); guardar(); } evento('push'); const pipe = s.pipes.find((x) => x.repo === mm[1]); if (pipe && rama === 'main') { const yml = snap(repo(mm[1]), 'main')['azure-pipelines.yml']; if (yml) pipe.yaml = yml; correr(pipe, 'main', 'Individual CI'); } }); }
+    // pushes a main que llegaron mientras la réplica estaba cerrada: el trigger del pipeline corre ahora
+    for (const pipe of st().pipes) { const r = repo(pipe.repo), tip = r && r.branches.main; if (tip && pipe.runs.length && tip !== pipe.ultimoTip) { const yml = snap(r, 'main')['azure-pipelines.yml']; if (yml) pipe.yaml = yml; correr(pipe, 'main', 'Individual CI'); } }
     document.body.classList.add('ado-abierto');
     dibujar();
   }

@@ -27,9 +27,9 @@ nodo ped: Documento pedido 101 | icono=documento | col=0 | fila=1 | color=azul |
 nodo l1: Línea 1 (embebida) | icono=tabla | col=1 | fila=0 | color=verde | sub=producto 3 · cantidad 2 · precio al comprar
 nodo l2: Línea 2 (embebida) | icono=tabla | col=1 | fila=1 | color=verde | sub=producto 9 · cantidad 1
 nodo cli: Cliente 7 (referencia) | icono=usuario | col=1 | fila=2 | color=naranja | sub=vive en su colección; el pedido guarda solo su id
-flecha ped -> l1: dentro
-flecha ped -> l2: dentro
-flecha ped -> cli: apunta por id | estilo=punteada
+flecha ped -> l1: dentro | explica=Las líneas del pedido van dentro del documento: se leen y se escriben siempre juntas.
+flecha ped -> l2: dentro | explica=Cada línea guarda el precio al momento de la compra, que no debe cambiar aunque cambie el catálogo.
+flecha ped -> cli: apunta por id | estilo=punteada | explica=El cliente no se copia adentro: el pedido guarda solo su id, porque el cliente cambia y se usa en muchos pedidos.
 ```
 
 Las líneas están **embebidas** en el pedido (se leen siempre juntas). El cliente aparece embebido con solo dos campos; el resto del cliente vive en su propia colección y se **referencia** por `id`.

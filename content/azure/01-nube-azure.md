@@ -44,10 +44,10 @@ nodo mg: Grupos de administración (opcional) | icono=carpeta | col=1 | fila=0 |
 nodo sub: Suscripción | icono=azure | col=2 | fila=0 | color=cian | sub=quién paga y límite de acceso: sub-datos-dev, sub-datos-prod
 nodo rg: Grupo de recursos | icono=carpeta | col=3 | fila=0 | color=verde | sub=carpeta lógica de un proyecto o entorno: rg-datos-dev
 nodo rec: Recursos | icono=cubo | col=4 | fila=0 | color=naranja | sub=cuenta de almacenamiento, Key Vault, workspace de Databricks
-flecha ten -> mg
-flecha mg -> sub
-flecha sub -> rg
-flecha rg -> rec
+flecha ten -> mg | explica=El tenant de Microsoft Entra ID es la organización: ahí viven los usuarios, los grupos y las identidades. Debajo, opcionalmente, grupos de administración.
+flecha mg -> sub | explica=Los grupos de administración agrupan suscripciones para aplicarles políticas comunes (por ejemplo, solo ciertas regiones).
+flecha sub -> rg | explica=La suscripción define quién paga y es un límite de acceso: dev y prod suelen ser suscripciones distintas. Adentro, los grupos de recursos.
+flecha rg -> rec | explica=Un grupo de recursos es una carpeta lógica de un proyecto o entorno. Los recursos viven ahí, y un permiso dado arriba se hereda hacia abajo.
 ```
 
 <!-- dg:az01-jerarquia -->
@@ -60,12 +60,12 @@ nodo rg1: rg-datos-dev | icono=capas | col=0 | fila=2 | color=gris | sub=grupo d
 nodo rg2: rg-datos-prod | icono=capas | col=2 | fila=2 | color=gris | sub=grupo de recursos
 nodo r1: Lake + Databricks | icono=bucket | col=1 | fila=2 | color=naranja | sub=recursos de dev
 nodo r2: Lake + Key Vault | icono=candado | col=3 | fila=2 | color=naranja | sub=recursos de prod
-flecha t -> s1
-flecha t -> s2
-flecha s1 -> rg1
-flecha s2 -> rg2
-flecha rg1 -> r1
-flecha rg2 -> r2
+flecha t -> s1 | explica=Un solo tenant con los usuarios de la empresa, y una suscripción para desarrollo…
+flecha t -> s2 | explica=…y otra para producción: lo que se rompe en dev no toca prod, y cada una tiene su factura.
+flecha s1 -> rg1 | explica=Dentro de dev, un grupo de recursos para la plataforma de datos.
+flecha s2 -> rg2 | explica=Lo mismo en prod.
+flecha rg1 -> r1 | explica=En dev, el lago y un workspace de Databricks para desarrollar.
+flecha rg2 -> r2 | explica=En prod, el lago y el Key Vault con los secretos. Un permiso dado en el grupo de recursos aplica a todo lo que hay adentro.
 ```
 
 Nivel por nivel:
@@ -130,15 +130,15 @@ nodo sg: ADLS silver y gold | icono=adls | col=4 | fila=0 | color=amarillo
 nodo pbi: Power BI | icono=powerbi | col=5 | fila=0 | color=verde
 nodo kv: Key Vault | icono=keyvault | col=3 | fila=1 | color=violeta | sub=secretos
 nodo mon: Azure Monitor | icono=monitor | col=4 | fila=1 | color=gris | sub=logs y alertas
-flecha src -> adf
-flecha ev -> eh
-flecha adf -> br
-flecha eh -> br
-flecha br -> dbx
-flecha dbx -> sg
-flecha sg -> pbi
-flecha kv -> dbx: secretos | estilo=punteada
-flecha dbx -> mon | estilo=punteada
+flecha src -> adf | explica=Data Factory copia por lotes los datos del ERP, la web y la app.
+flecha ev -> eh | explica=Los eventos en tiempo real entran a Event Hubs.
+flecha adf -> br | explica=Lo copiado aterriza en la capa bronze de ADLS Gen2, tal cual.
+flecha eh -> br | explica=Los eventos también se guardan en bronze.
+flecha br -> dbx | explica=Databricks lee bronze y transforma.
+flecha dbx -> sg | explica=El resultado se escribe en las capas silver y gold, en formato Delta.
+flecha sg -> pbi | explica=Power BI lee gold para los tableros.
+flecha kv -> dbx: secretos | estilo=punteada | explica=Databricks toma las contraseñas y claves de Key Vault: nunca van escritas en el código.
+flecha dbx -> mon | estilo=punteada | explica=Los logs y métricas van a Azure Monitor, que alerta si algo falla.
 ```
 
 Airflow o Data Factory orquestan todo el flujo cada noche.

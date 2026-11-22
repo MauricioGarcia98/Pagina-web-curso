@@ -23,10 +23,10 @@ nodo mn: main | icono=git | col=1 | fila=0 | color=azul | sub=collaboration bran
 nodo ap: adf_publish | icono=documento | col=2 | fila=0 | color=violeta | sub=plantillas ARM
 nodo qa: Factory de qa | icono=adf | col=2 | fila=1 | color=amarillo
 nodo pr: Factory de prod | icono=adf | col=3 | fila=1 | color=verde
-flecha ft -> mn: pull request
-flecha mn -> ap: Publish
-flecha ap -> qa: CI/CD
-flecha qa -> pr: aprobado
+flecha ft -> mn: pull request | explica=Desarrollas en tu rama y la integras a main con un pull request.
+flecha mn -> ap: Publish | explica=Publish genera las plantillas ARM de la factory en la rama adf_publish.
+flecha ap -> qa: CI/CD | explica=Un pipeline de CI/CD despliega esas plantillas en la factory de qa.
+flecha qa -> pr: aprobado | explica=Si se aprueba, las mismas plantillas se despliegan en prod, cambiando solo los parámetros.
 ```
 
 | Pieza | Qué es |

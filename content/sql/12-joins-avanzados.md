@@ -54,8 +54,8 @@ nodo p12: Pedido 12 | icono=carrito | col=0 | fila=2 | color=rojo | sub=cliente_
 nodo ana: Ana (1) | icono=usuario | col=1 | fila=0 | color=azul | sub=2 pedidos
 nodo beto: Beto (2) | icono=usuario | col=1 | fila=1 | color=gris | sub=sin pedidos
 nodo carla: Carla (3) | icono=usuario | col=1 | fila=2 | color=gris | sub=sin pedidos
-flecha p10 -> ana
-flecha p11 -> ana
+flecha p10 -> ana | explica=El pedido 10 encuentra su pareja: Ana. Aparece en un INNER JOIN.
+flecha p11 -> ana | explica=El pedido 11 también es de Ana. Beto y Carla no tienen pedidos: solo aparecen con un LEFT JOIN desde clientes (con NULL en las columnas del pedido). El pedido 12 apunta a un cliente que no existe: solo aparece con un LEFT JOIN desde pedidos.
 ```
 
 | Tipo | Filas del resultado | En el ejemplo |

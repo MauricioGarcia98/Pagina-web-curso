@@ -48,10 +48,10 @@ nodo p: Pedidos | icono=carrito | col=1 | fila=0 | color=azul | sub=¿menos trá
 nodo t: Ticket promedio | icono=dinero | col=1 | fila=2 | color=violeta | sub=¿descuentos o mezcla de productos?
 nodo s1: Segmentar | icono=lupa | col=2 | fila=0 | color=amarillo | sub=por canal, país, dispositivo
 nodo s2: Segmentar | icono=lupa | col=2 | fila=2 | color=amarillo | sub=por categoría, cliente nuevo o recurrente
-flecha v -> p: ventas = pedidos ×
-flecha v -> t: × ticket
-flecha p -> s1
-flecha t -> s2
+flecha v -> p: ventas = pedidos × | explica=Las ventas son pedidos por ticket promedio. Primero se mira si cayeron los pedidos…
+flecha v -> t: × ticket | explica=…o el ticket promedio.
+flecha p -> s1 | explica=Si cayeron los pedidos, se segmenta por canal, país o dispositivo para ver dónde.
+flecha t -> s2 | explica=Si cayó el ticket, se segmenta por categoría o por clientes nuevos y recurrentes: puede ser un descuento o un cambio en la mezcla de productos.
 ```
 
 ## La paradoja de Simpson

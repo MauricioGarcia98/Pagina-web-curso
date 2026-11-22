@@ -37,11 +37,11 @@ nodo ej: Ejemplos SQL y funciones | icono=codigo | col=1 | fila=1 | color=azul |
 nodo txt: Instrucciones de texto | icono=documento | col=1 | fila=2 | color=gris | sub=último recurso
 nodo genie: Genie | icono=genie | col=2 | fila=1 | color=violeta | sub=elige contexto\ny escribe el SQL
 nodo resp: Respuesta | icono=dashboard | col=3 | fila=1 | color=verde
-flecha uc -> ks
-flecha ks -> genie
-flecha ej -> genie
-flecha txt -> genie | estilo=punteada
-flecha genie -> resp
+flecha uc -> ks | explica=Los comentarios de Unity Catalog son el punto de partida; el knowledge store agrega descripciones, sinónimos y joins.
+flecha ks -> genie | explica=Genie usa ese conocimiento para elegir tablas y columnas.
+flecha ej -> genie | explica=Los ejemplos de SQL le enseñan cómo se responden preguntas concretas; los que tienen parámetros cuentan como respuestas verificadas.
+flecha txt -> genie | estilo=punteada | explica=Las instrucciones de texto se usan como último recurso, cuando lo anterior no alcanza.
+flecha genie -> resp | explica=Genie escribe el SQL, lo ejecuta y responde mostrando la consulta que usó.
 ```
 
 Las herramientas, en el orden en que la documentación recomienda usarlas:

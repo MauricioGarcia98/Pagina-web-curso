@@ -60,9 +60,9 @@ nodo p42: Pedido 42 | icono=carrito | col=0 | fila=1 | sub=cliente_id = 528
 nodo p2: Pedido 2 | icono=carrito | col=0 | fila=2 | sub=cliente_id = 970
 nodo paula: Paula | icono=usuario | col=1 | fila=0 | color=azul | sub=cliente_id 528
 nodo santi: Santiago | icono=usuario | col=1 | fila=2 | color=verde | sub=cliente_id 970
-flecha p1 -> paula
-flecha p42 -> paula
-flecha p2 -> santi
+flecha p1 -> paula | explica=El pedido 1 no repite los datos de Paula: solo guarda su cliente_id (528). Con ese número se busca a Paula en la tabla de clientes.
+flecha p42 -> paula | explica=Paula hizo otro pedido, el 42, con el mismo cliente_id. Un cliente puede tener muchos pedidos: es una relación uno a muchos.
+flecha p2 -> santi | explica=El pedido 2 apunta a otro cliente, Santiago (970). Si Santiago cambia su correo, se cambia en un solo lugar.
 ```
 
 En `pedidos`, la columna `cliente_id` es una **clave foránea** (*foreign key*): apunta a la clave primaria de otra tabla. Así, el pedido no repite el nombre ni el país del cliente. Si Paula se muda a Chile, se cambia **en un solo lugar** y todos sus pedidos quedan bien. A esta forma de separar la información para no repetirla se la llama **normalización**. En SQL vas a volver a unir las tablas con `JOIN`.
@@ -190,12 +190,12 @@ nodo lake: Data lake | icono=bucket | col=2 | fila=0 | color=naranja | sub=S3 ·
 nodo wh: Warehouse / lakehouse | icono=almacen | col=2 | fila=1 | color=azul | sub=BigQuery, Databricks…
 nodo bi: Tableros | icono=dashboard | col=3 | fila=0 | color=verde | sub=Power BI, Looker
 nodo ml: Modelos de ML | icono=ml | col=3 | fila=1 | color=violeta | sub=predicciones
-flecha app -> oltp: guarda
-flecha oltp -> lake: copia (pipeline)
-flecha files -> lake: ingesta
-flecha lake -> wh: modela
-flecha wh -> bi
-flecha wh -> ml
+flecha app -> oltp: guarda | explica=La app, la web y las cajas escriben cada compra en una base OLTP, que aguanta miles de escrituras por segundo.
+flecha oltp -> lake: copia (pipeline) | explica=Un pipeline copia los datos de la base al lago, para analizar sin cargar la base que usa la app.
+flecha files -> lake: ingesta | explica=Los archivos y APIs de proveedores también llegan al lago (ingesta).
+flecha lake -> wh: modela | explica=En el warehouse o lakehouse los datos se modelan en tablas listas para analizar.
+flecha wh -> bi | explica=Los tableros leen las tablas modeladas.
+flecha wh -> ml | explica=Los modelos de machine learning también leen de ahí para entrenar y predecir.
 ```
 
 ¿Por qué no se analiza directo en la base de la app? Porque una consulta de "ventas de los últimos 5 años" lee millones de filas, y mientras tanto la app, que necesita responder en milisegundos para que los clientes puedan comprar, se pone lenta. Por eso los datos se **copian** a un sistema pensado para analizar. Esa copia es, justamente, el pipeline que construye un ingeniero de datos.

@@ -24,8 +24,8 @@ titulo: La tabla calendario: una fecha por día, unida a los hechos
 nodo cal: Calendario | icono=calendario | col=0 | fila=0 | color=azul | sub=Date, Año, Mes, Trimestre · marcada como tabla de fechas
 nodo ped: Pedidos | icono=tabla | col=1 | fila=0 | color=naranja | sub=fecha_pedido, monto
 nodo ti: TOTALYTD · SAMEPERIODLASTYEAR · DATEADD | icono=reloj | col=0 | fila=1 | color=violeta | sub=necesitan días completos y continuos
-flecha cal -> ped: 1 → N por fecha
-flecha ti -> cal: usan | estilo=punteada
+flecha cal -> ped: 1 → N por fecha | explica=La tabla calendario tiene una fila por día, sin huecos, y se relaciona con los pedidos por la fecha.
+flecha ti -> cal: usan | estilo=punteada | explica=Las funciones de inteligencia de tiempo (acumulado del año, mismo período del año pasado) recorren el calendario. Por eso la tabla tiene que estar marcada como tabla de fechas y tener todos los días.
 ```
 
 ```dax

@@ -21,11 +21,11 @@ nodo pl: Plan lógico | icono=documento | col=1 | fila=0 | color=gris
 nodo cat: Catalyst optimiza | icono=reglas | col=2 | fila=0 | color=violeta
 nodo pf: Plan físico | icono=engranaje | col=3 | fila=0 | color=naranja
 nodo ex: Ejecución en el clúster | icono=spark | col=4 | fila=0 | color=verde
-flecha sql -> pl
-flecha df -> pl
-flecha pl -> cat
-flecha cat -> pf
-flecha pf -> ex
+flecha sql -> pl | explica=Una consulta escrita con spark.sql() se convierte en un plan lógico…
+flecha df -> pl | explica=…y la misma consulta escrita con la API de DataFrames llega exactamente al mismo plan.
+flecha pl -> cat | explica=Catalyst optimiza el plan, sin importar cómo lo escribiste.
+flecha cat -> pf | explica=Elige el plan físico más barato.
+flecha pf -> ex | explica=Y se ejecuta en el clúster. Por eso SQL y DataFrames rinden igual: usa el que te resulte más claro.
 ```
 
 No hay uno "más rápido". La elección es de **claridad y de equipo**:

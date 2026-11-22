@@ -285,10 +285,10 @@ nodo m: Movimiento | icono=airflow | col=1 | fila=0 | sub=batch o streaming\nETL
 nodo a: Almacenamiento | icono=delta | col=2 | fila=0 | sub=lago, warehouse\nbronze, silver, gold
 nodo u: Uso | icono=dashboard | col=3 | fila=0 | sub=BI, analistas, ML, CRM
 nodo c: Calidad, linaje, dueños y privacidad | icono=escudo | col=1 | fila=1 | color=verde | ancho=420
-flecha o -> m
-flecha m -> a
-flecha a -> u
-flecha c -- a: cuida todo el camino | estilo=punteada
+flecha o -> m | explica=Los datos nacen en el origen: la app, las bases de la empresa y las APIs de proveedores.
+flecha m -> a | explica=Se mueven en tandas (batch, por ejemplo una vez por día) o al instante (streaming), transformándose antes (ETL) o después (ELT) de guardarse.
+flecha a -> u | explica=Se guardan en el lago o el warehouse, por capas (bronze, silver, gold), y desde ahí los usan los tableros, los analistas, los modelos de ML y el CRM.
+flecha c -- a: cuida todo el camino | estilo=punteada | explica=Durante todo el camino hay que cuidar la calidad, saber de dónde viene cada dato (linaje), quién es su dueño y proteger los datos personales.
 ```
 
 Con estas cinco lecciones tienes el mapa completo. Las siguientes de Fundamentos te dan las herramientas para empezar a recorrerlo: **formatos de datos**, **la terminal** y **Git**.

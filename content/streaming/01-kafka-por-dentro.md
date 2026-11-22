@@ -50,11 +50,11 @@ nodo c2: Consumidor B | icono=servidor | col=2 | fila=1 | color=verde | sub=part
 nodo c3: Consumidor C | icono=servidor | col=2 | fila=2 | color=verde | sub=particiones 4 y 5
 nodo f: Grupo alertas-fraude | icono=alerta | col=3 | fila=1 | color=rojo | sub=lee las 6 con sus propios offsets
 grupo gs: Grupo silver | nodos=c1,c2,c3 | color=verde
-flecha pr -> t
-flecha t -> c1
-flecha t -> c2
-flecha t -> c3
-flecha t -> f | estilo=punteada
+flecha pr -> t | explica=El productor escribe cada pedido en el tópico usando pedido_id como clave: todos los eventos del mismo pedido caen en la misma partición y conservan su orden.
+flecha t -> c1 | explica=Un grupo de consumidores se reparte las particiones: el consumidor A lee la 0 y la 1.
+flecha t -> c2 | explica=B lee la 2 y la 3. Ninguna partición se lee dos veces dentro del mismo grupo.
+flecha t -> c3 | explica=C lee la 4 y la 5. Con 6 particiones, el grupo puede tener hasta 6 consumidores trabajando en paralelo.
+flecha t -> f | estilo=punteada | explica=Otro grupo (alertas de fraude) lee las mismas 6 particiones con sus propios offsets: no le quita mensajes al primero.
 ```
 
 Dos grupos distintos leen el mismo tópico de forma independiente, cada uno con sus offsets: el equipo de silver y el de alertas de fraude pueden consumir `pedidos` sin molestarse.

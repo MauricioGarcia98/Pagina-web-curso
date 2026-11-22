@@ -21,13 +21,13 @@ nodo s3: suscripción ventas-auditoria | icono=cola | col=2 | fila=2 | color=vio
 nodo bq: BigQuery | icono=bigquery | col=3 | fila=0 | color=naranja | sub=directo, sin código
 nodo df: Dataflow | icono=dataflow | col=3 | fila=1 | color=rojo | sub=regla de fraude
 nodo gcs: Cloud Storage | icono=gcs | col=3 | fila=2 | color=verde | sub=archivo de auditoría
-flecha app -> tema: publish
-flecha tema -> s1
-flecha tema -> s2
-flecha tema -> s3
-flecha s1 -> bq
-flecha s2 -> df
-flecha s3 -> gcs
+flecha app -> tema: publish | explica=La app publica cada venta en el tema "ventas". No sabe quién la va a leer.
+flecha tema -> s1 | explica=Cada suscripción recibe una copia de todos los mensajes: esta los lleva a BigQuery.
+flecha tema -> s2 | explica=Otra los manda a la detección de fraude.
+flecha tema -> s3 | explica=Y otra a auditoría. Agregar un consumidor nuevo no afecta a los demás.
+flecha s1 -> bq | explica=Una suscripción de BigQuery escribe directo en una tabla, sin código.
+flecha s2 -> df | explica=Dataflow aplica la regla de fraude sobre cada mensaje.
+flecha s3 -> gcs | explica=La auditoría guarda los mensajes como archivos en Cloud Storage.
 ```
 
 | Concepto | Qué es |

@@ -25,10 +25,10 @@ nodo red: ¿Desde dónde llega? | icono=red | col=1 | fila=0 | color=azul | sub=
 nodo quien: ¿Quién es? | icono=usuario | col=2 | fila=0 | color=violeta | sub=identidad de Entra o credencial (clave, SAS)
 nodo que: ¿Qué puede hacer? | icono=candado | col=3 | fila=0 | color=verde | sub=rol (RBAC) o permisos de la SAS
 nodo ok: Acceso | icono=check | col=4 | fila=0 | color=verde
-flecha ped -> red
-flecha red -> quien: pasa
-flecha quien -> que: pasa
-flecha que -> ok: pasa
+flecha ped -> red | explica=Lo primero que mira Azure es desde dónde llega el pedido: si la red no está permitida, lo rechaza sin mirar nada más.
+flecha red -> quien: pasa | explica=Si la red pasa, verifica quién es: una identidad de Entra o una credencial como una clave o un token SAS.
+flecha quien -> que: pasa | explica=Después revisa qué puede hacer: el rol RBAC asignado o los permisos que trae la SAS.
+flecha que -> ok: pasa | explica=Solo si pasa las tres preguntas, el pedido llega a los datos.
 ```
 
 Si cualquiera de las tres respuestas es "no", el pedido se rechaza.

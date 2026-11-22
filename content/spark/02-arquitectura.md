@@ -18,11 +18,11 @@ nodo cm: Cluster manager | icono=engranaje | col=1 | fila=1 | color=gris | sub=Y
 nodo e1: Executor 1 | icono=servidor | col=0 | fila=2 | color=naranja | sub=4 cores = 4 tasks a la vez
 nodo e2: Executor 2 | icono=servidor | col=1 | fila=2 | color=naranja | sub=4 cores = 4 tasks a la vez
 nodo e3: Executor 3 | icono=servidor | col=2 | fila=2 | color=naranja | sub=4 cores = 4 tasks a la vez
-flecha dr -> cm: pide recursos
-flecha cm -> e1
-flecha cm -> e2
-flecha cm -> e3
-flecha dr -> e3: tareas | estilo=punteada | color=azul
+flecha dr -> cm: pide recursos | explica=Tu programa (el driver) le pide al cluster manager máquinas para trabajar.
+flecha cm -> e1 | explica=El cluster manager arranca los executors: procesos en otras máquinas que hacen el trabajo pesado.
+flecha cm -> e2 | explica=Cada executor tiene varios cores. Con 4 cores corre 4 tareas a la vez.
+flecha cm -> e3 | explica=Más executors significa más tareas en paralelo.
+flecha dr -> e3: tareas | estilo=punteada | color=azul | explica=El driver arma el plan, lo parte en tareas (una por partición de datos) y las reparte entre los executors.
 ```
 
 <!-- dg:sp02-cluster -->
@@ -34,11 +34,11 @@ nodo e1: Executor 1 | icono=servidor | col=0 | fila=1 | color=naranja | sub=4 co
 nodo e2: Executor 2 | icono=servidor | col=1 | fila=1 | color=naranja | sub=4 cores · 4 tasks
 nodo e3: Executor 3 | icono=servidor | col=2 | fila=1 | color=naranja | sub=4 cores · 4 tasks
 nodo lake: Data lake | icono=bucket | col=3 | fila=1 | color=azul | sub=Parquet / Delta
-flecha drv <-> cm: pide recursos
-flecha drv -> e1: tasks
-flecha drv -> e2: tasks
-flecha drv -> e3: tasks
-flecha e3 <-> lake: lee / escribe
+flecha drv <-> cm: pide recursos | explica=El driver negocia con el cluster manager (YARN o Kubernetes) cuántos executors y de qué tamaño. En Databricks esto lo resuelve la plataforma.
+flecha drv -> e1: tasks | explica=Le envía tareas al executor 1…
+flecha drv -> e2: tasks | explica=…al 2…
+flecha drv -> e3: tasks | explica=…y al 3. Cada tarea procesa una partición de los datos.
+flecha e3 <-> lake: lee / escribe | explica=Los executors leen y escriben directo en el lago (Parquet o Delta). Los datos no pasan por el driver: por eso collect() de una tabla grande lo puede tumbar.
 ```
 
 :::analogia Una obra en construcción
@@ -113,9 +113,9 @@ nodo job: Job | icono=codigo | col=0 | fila=0 | color=gris | sub=df.groupBy("pai
 nodo s1: Stage 1 | icono=archivos | col=1 | fila=0 | color=azul | sub=leer archivos y contar parcial por partición · 200 tasks
 nodo sh: Shuffle | icono=red | col=2 | fila=0 | color=rojo | sub=mover las filas del mismo país a la misma partición
 nodo s2: Stage 2 | icono=calculator | col=3 | fila=0 | color=verde | sub=sumar los conteos parciales por país · 200 tasks
-flecha job -> s1
-flecha s1 -> sh
-flecha sh -> s2
+flecha job -> s1 | explica=Una acción (show, count, write) dispara un job. Spark lo parte en stages.
+flecha s1 -> sh | explica=El stage 1 lee los archivos y cuenta por partición, sin mover datos: 200 tareas en paralelo.
+flecha sh -> s2 | explica=groupBy necesita juntar cada país en un solo lugar: eso es el shuffle, y marca el corte entre stages. El stage 2 suma los conteos parciales.
 ```
 
 Es exactamente el MapReduce de la lección anterior: el stage 1 es el *map*, la línea del medio es el *shuffle* y el stage 2 es el *reduce*.

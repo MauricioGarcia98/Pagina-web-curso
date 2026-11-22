@@ -50,12 +50,12 @@ nodo plan: Plan | icono=archivo | col=2 | fila=0 | color=amarillo | sub=+ crear 
 nodo prov: Proveedor | icono=engranaje | col=2 | fila=1 | color=gris | sub=aws, azurerm, google…
 nodo cloud: La nube | icono=nube | col=3 | fila=1 | color=naranja | sub=lo que EXISTE
 nodo state: terraform.tfstate | icono=base | col=1 | fila=1 | color=verde | sub=lo que Terraform creó
-flecha code -> tf
-flecha state -> tf: lee
-flecha tf -> plan
-flecha plan -> prov: apply
-flecha prov -> cloud: llama a la API
-flecha prov -> state: guarda | estilo=punteada
+flecha code -> tf | explica=Escribes en archivos .tf lo que quieres que exista: un bucket, un rol, un workspace.
+flecha state -> tf: lee | explica=Terraform lee el estado, donde anotó lo que creó la última vez.
+flecha tf -> plan | explica=Compara lo que quieres con lo que existe y calcula un plan: qué crear (+), qué cambiar (~) y qué borrar (-).
+flecha plan -> prov: apply | explica=Con terraform apply, el plan se ejecuta a través del proveedor de cada nube.
+flecha prov -> cloud: llama a la API | explica=El proveedor llama a la API de la nube para crear o cambiar cada recurso.
+flecha prov -> state: guarda | estilo=punteada | explica=Y anota en el estado lo que quedó creado, para comparar la próxima vez.
 ```
 
 | Pieza | Qué es |
@@ -105,11 +105,11 @@ nodo i: terraform init | icono=archivos | col=1 | fila=0 | color=gris | sub=desc
 nodo p: terraform plan | icono=lupa | col=2 | fila=0 | color=amarillo | sub=muestra qué haría
 nodo a: terraform apply | icono=check | col=3 | fila=0 | color=verde | sub=lo hace y guarda el estado
 nodo d: terraform destroy | icono=x | col=3 | fila=1 | color=rojo | sub=borra todo lo creado
-flecha w -> i: una vez
-flecha i -> p
-flecha p -> a
-flecha a -> w: siguiente cambio | estilo=punteada
-flecha a -> d: al terminar | estilo=punteada
+flecha w -> i: una vez | explica=Después de escribir los .tf, terraform init descarga los proveedores. Se hace una vez por carpeta (o cuando cambias de proveedor).
+flecha i -> p | explica=terraform plan muestra qué haría, sin tocar nada. Siempre se lee antes de aplicar.
+flecha p -> a | explica=terraform apply hace los cambios y guarda el estado.
+flecha a -> w: siguiente cambio | estilo=punteada | explica=Para el siguiente cambio, editas los .tf y vuelves a planificar.
+flecha a -> d: al terminar | estilo=punteada | explica=Al terminar un laboratorio, terraform destroy borra todo lo que creó, para no seguir pagando.
 ```
 
 | Comando | Qué hace | Cuándo |

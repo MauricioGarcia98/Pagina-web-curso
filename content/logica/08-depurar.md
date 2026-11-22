@@ -25,10 +25,10 @@ nodo a: Leer el error | icono=documento | col=0 | fila=0 | color=azul | sub=qué
 nodo b: Reproducir | icono=prueba | col=1 | fila=0 | color=violeta | sub=con el caso más chico posible
 nodo c: Una hipótesis | icono=cerebro | col=2 | fila=0 | color=amarillo | sub=cambiar una sola cosa
 nodo d: Verificar | icono=check | col=3 | fila=0 | color=verde | sub=y dejar un test para que no vuelva
-flecha a -> b
-flecha b -> c
-flecha c -> d
-flecha d -> c: no era eso | estilo=punteada | color=rojo
+flecha a -> b | explica=Se lee el error completo: qué pasó, dónde y por qué.
+flecha b -> c | explica=Se reproduce con el caso más chico posible, para entender el problema sin ruido.
+flecha c -> d | explica=Se prueba una sola hipótesis por vez, cambiando una sola cosa, y si funciona se deja un test para que no vuelva.
+flecha d -> c: no era eso | estilo=punteada | color=rojo | explica=Si no era eso, se descarta y se prueba otra hipótesis. Cambiar varias cosas a la vez confunde.
 ```
 
 ## Leer un traceback

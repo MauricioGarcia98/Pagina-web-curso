@@ -42,11 +42,11 @@ nodo r: Tu rama | icono=git | col=1 | fila=1 | color=violeta | sub=feature/limpi
 nodo c: Commits | icono=check | col=2 | fila=1 | color=gris | sub=cambios chicos con mensaje claro
 nodo pr: Pull request | icono=github | col=3 | fila=1 | color=amarillo | sub=revisión y CI
 nodo mg: Merge a main | icono=git | col=3 | fila=0 | color=verde
-flecha m -> r: crear rama
-flecha r -> c
-flecha c -> pr: push
-flecha pr -> mg: aprobado
-flecha mg -> m | estilo=punteada
+flecha m -> r: crear rama | explica=Nunca se trabaja directo en main: se crea una rama con un nombre que dice qué vas a hacer.
+flecha r -> c | explica=En la rama haces commits chicos, cada uno con un mensaje claro de qué cambia.
+flecha c -> pr: push | explica=Subes la rama (git push) y abres un pull request para que el equipo lo revise y corra la CI.
+flecha pr -> mg: aprobado | explica=Con la aprobación y la CI en verde, el pull request se une a main.
+flecha mg -> m | estilo=punteada | explica=main ya tiene tu cambio. Los demás lo traen con git pull y el ciclo vuelve a empezar.
 ```
 
 ```bash norun

@@ -60,11 +60,11 @@ nodo fh: Firehose | icono=firehose | col=2 | fila=0 | color=cian | sub=lotes de 
 nodo s3: S3 bronze | icono=s3 | col=3 | fila=0 | color=naranja | sub=transacciones/fecha=…/
 nodo lam: Lambda | icono=lambdaaws | col=2 | fila=1 | color=rojo | sub=regla de fraude en tiempo real
 nodo al: Alerta | icono=alerta | col=3 | fila=1 | color=rojo
-flecha app -> kds
-flecha kds -> fh
-flecha fh -> s3
-flecha kds -> lam
-flecha lam -> al
+flecha app -> kds | explica=La app manda cada transacción a un Kinesis Data Stream.
+flecha kds -> fh | explica=Un camino lleva los datos al lago: Firehose los junta en lotes de 60 segundos y los convierte a Parquet.
+flecha fh -> s3 | explica=Quedan en S3 bronze, en carpetas por fecha, listos para analizar.
+flecha kds -> lam | explica=El otro camino es inmediato: una Lambda lee cada transacción y aplica la regla de fraude.
+flecha lam -> al | explica=Si la regla se cumple, se dispara una alerta en el momento. El mismo stream sirve a los dos caminos.
 ```
 
 ```bash norun

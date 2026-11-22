@@ -21,11 +21,11 @@ nodo cob: Cobrable | icono=dinero | col=0 | fila=1 | color=verde | sub=suscripci
 nodo med: Medidor | icono=grafico | col=0 | fila=2 | color=violeta | sub=uso del producto
 nodo lake: Lakehouse | icono=capas | col=1 | fila=1 | color=naranja | sub=MRR, churn, cuentas en riesgo
 nodo rev: Reverse ETL | icono=transformar | col=2 | fila=0 | color=amarillo | sub=puntaje de riesgo de vuelta al CRM
-flecha crm -> lake
-flecha cob -> lake
-flecha med -> lake
-flecha lake -> rev
-flecha rev -> crm | estilo=punteada
+flecha crm -> lake | explica=Del CRM llegan las empresas, los contactos y las oportunidades.
+flecha cob -> lake | explica=De Cobrable, las suscripciones y las facturas: de ahí sale el MRR, que tiene que cuadrar con finanzas.
+flecha med -> lake | explica=Del Medidor, el uso del producto: si una cuenta usa cada vez menos, está en riesgo.
+flecha lake -> rev | explica=El lakehouse calcula un puntaje de riesgo por cuenta.
+flecha rev -> crm | estilo=punteada | explica=El reverse ETL lo escribe de vuelta en el CRM, para que el equipo comercial lo vea donde trabaja.
 ```
 
 ## Contacto CRM · `https://api.contactocrm.example`

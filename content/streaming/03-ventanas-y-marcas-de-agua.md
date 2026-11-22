@@ -37,10 +37,10 @@ nodo r: Retraso tolerado | icono=calendario | col=0 | fila=1 | color=gris | sub=
 nodo m: Marca de agua | icono=engranaje | col=1 | fila=0 | color=violeta | sub=10:07:30 − 2 min = 10:05:30
 nodo e1: Evento de las 10:06 | icono=check | col=2 | fila=0 | color=verde | sub=posterior a la marca: entra
 nodo e2: Evento de las 10:04 | icono=x | col=2 | fila=1 | color=rojo | sub=anterior a la marca: tardío, se descarta
-flecha mx -> m
-flecha r -> m
-flecha m -> e1
-flecha m -> e2
+flecha mx -> m | explica=La marca de agua parte del evento más tardío que se vio (10:07:30)…
+flecha r -> m | explica=…menos el retraso que se tolera (2 minutos): 10:05:30. Todo lo anterior se considera cerrado.
+flecha m -> e1 | explica=Un evento de las 10:06 es posterior a la marca: todavía entra en su ventana.
+flecha m -> e2 | explica=Uno de las 10:04 llegó demasiado tarde: su ventana ya se cerró y se descarta. Más tolerancia es más exactitud, pero más memoria y más espera.
 ```
 
 | Retraso tolerado | Ventaja | Costo |

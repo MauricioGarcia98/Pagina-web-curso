@@ -26,9 +26,9 @@ nodo u: streaming_usuarios | icono=usuario | col=0 | fila=0 | color=azul | sub=u
 nodo s: streaming_suscripciones | icono=dinero | col=1 | fila=0 | color=verde | sub=plan, precio_mensual, fecha_inicio, fecha_fin, motivo_baja
 nodo r: streaming_reproducciones | icono=musica | col=1 | fila=1 | color=naranja | sub=contenido_id, fecha_hora, segundos_escuchados, dispositivo
 nodo c: streaming_contenidos | icono=libro | col=2 | fila=1 | color=violeta | sub=titulo, tipo, genero, artista, duracion_seg
-flecha u -> s: 1 → N
-flecha u -> r: 1 → N
-flecha r -> c: N → 1
+flecha u -> s: 1 → N | explica=Un usuario puede tener varias suscripciones a lo largo del tiempo (cambia de plan, se da de baja y vuelve).
+flecha u -> r: 1 → N | explica=Cada usuario genera muchas reproducciones.
+flecha r -> c: N → 1 | explica=Muchas reproducciones son del mismo contenido. Con segundos_escuchados y la duración se sabe si lo terminó o lo saltó.
 ```
 
 ## Glosario de métricas

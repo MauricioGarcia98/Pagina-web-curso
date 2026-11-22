@@ -137,11 +137,11 @@ nodo es: Eventstream | icono=stream | col=2 | fila=0 | sub=filtrar, agregar | co
 nodo kql: Eventhouse | icono=base | col=3 | fila=0 | forma=cilindro | sub=base KQL | color=azul
 nodo lh: Lakehouse | icono=delta | col=3 | fila=1 | sub=histórico en Delta | color=verde
 nodo act: Activator | icono=alerta | col=2 | fila=1 | sub=si temp > 8 °C | color=rojo
-flecha s -> eh
-flecha eh -> es
-flecha es -> kql
-flecha es -> lh | estilo=punteada
-flecha es -> act
+flecha s -> eh | explica=Cada cámara manda un evento por segundo a Event Hubs.
+flecha eh -> es | explica=Un Eventstream los lee y puede filtrarlos o agregarlos sin código.
+flecha es -> kql | explica=Los guarda en un Eventhouse, donde se consultan con KQL casi al instante.
+flecha es -> lh | estilo=punteada | explica=Una copia va al lakehouse en Delta, para el histórico.
+flecha es -> act | explica=Activator vigila el stream y dispara una acción si una cámara pasa de 8 °C.
 ```
 
 - **Eventstream**: captura eventos de **fuentes** (Azure Event Hubs, IoT Hub, Kafka, CDC de bases como Azure SQL o PostgreSQL, eventos de Fabric y de Azure Storage, datos de ejemplo), aplica **transformaciones** sin código (filtrar, elegir campos, agregar por ventanas de tiempo, agrupar, unir) y los envía a **destinos**: eventhouse, lakehouse, Activator, otro stream derivado o un endpoint propio.

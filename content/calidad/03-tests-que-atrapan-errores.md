@@ -29,11 +29,11 @@ nodo ok: Versión correcta | icono=check | col=1 | fila=0 | color=verde | sub=lo
 nodo m1: Mutante: sin strip | icono=bug | col=1 | fila=1 | color=rojo | sub=los tests deben fallar
 nodo m2: Mutante: solo cambia la coma | icono=bug | col=1 | fila=2 | color=rojo | sub=los tests deben fallar
 nodo r: Mutantes que sobreviven | icono=alerta | col=2 | fila=1 | color=amarillo | sub== casos que te faltan
-flecha t -> ok
-flecha t -> m1
-flecha t -> m2
-flecha m1 -> r: si pasa
-flecha m2 -> r: si pasa
+flecha t -> ok | explica=Primero, los tests tienen que pasar con el código correcto.
+flecha t -> m1 | explica=Un mutante es el código con un error introducido a propósito, por ejemplo sin el strip(). Los tests deberían fallar.
+flecha t -> m2 | explica=Otro mutante cambia solo el separador. También deberían fallar.
+flecha m1 -> r: si pasa | explica=Si los tests pasan igual con el mutante, ese error se escaparía a producción: falta un caso de prueba.
+flecha m2 -> r: si pasa | explica=Cada mutante que sobrevive señala un caso que tus tests no cubren.
 ```
 
 Los dos tests pasan, pero `limpiar_monto("1.402,97")` explota (o, en SQLite, da `1.402` sin avisar). Los tests eligieron casos fáciles. Este es el problema real de la calidad de los tests: **no detectaron el error** que importaba.

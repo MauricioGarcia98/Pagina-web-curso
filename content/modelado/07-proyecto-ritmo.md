@@ -54,13 +54,13 @@ nodo df: dim_fecha | icono=reloj | col=2 | fila=2 | color=azul | sub=día y mes
 nodo dc: dim_contenido | icono=capas | col=0 | fila=0 | color=azul | sub=tipo, género, artista
 nodo dd: dispositivo | icono=movil | col=0 | fila=2 | forma=nota | sub=dimensión degenerada
 nodo dp: plan | icono=archivo | col=3 | fila=0 | forma=nota | sub=atributo del hecho
-flecha dc -- fr
-flecha du -- fr
-flecha df -- fr
-flecha dd -- fr | estilo=punteada
-flecha du -- fs
-flecha df -- fs
-flecha dp -- fs | estilo=punteada
+flecha dc -- fr | explica=Cada reproducción apunta al contenido (tipo, género, artista).
+flecha du -- fr | explica=Al usuario que la escuchó…
+flecha df -- fr | explica=…y al día. Los hechos son los segundos escuchados y si la saltó.
+flecha dd -- fr | estilo=punteada | explica=El dispositivo queda como dimensión degenerada, un atributo directo del hecho.
+flecha du -- fs | explica=La tabla de suscripciones usa la misma dim_usuario: es una dimensión conformada, compartida por los dos hechos.
+flecha df -- fs | explica=Y la misma dim_fecha, al grano de mes. Por eso se pueden cruzar reproducciones con suscripciones.
+flecha dp -- fs | estilo=punteada | explica=El plan va como atributo del hecho, junto con el precio que suma al MRR.
 ```
 
 Decisiones documentadas:

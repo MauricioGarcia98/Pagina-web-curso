@@ -59,10 +59,10 @@ nodo p1: GET /pedidos | icono=web | col=1 | fila=0 | color=azul | sub=datos 1..1
 nodo p2: GET /pedidos?cursor=100 | icono=web | col=1 | fila=1 | color=azul | sub=datos 101..200 · siguiente = 200
 nodo p3: GET /pedidos?cursor=200 | icono=web | col=1 | fila=2 | color=azul | sub=datos 201..230 · siguiente = null
 nodo fin: Fin: tiene todo, sin repetidos | icono=check | col=2 | fila=2 | color=verde
-flecha c -> p1
-flecha p1 -> p2
-flecha p2 -> p3
-flecha p3 -> fin
+flecha c -> p1 | explica=El cliente pide la primera página. La respuesta trae los datos 1 a 100 y un cursor: "siguiente = 100".
+flecha p1 -> p2 | explica=Pide lo que viene después del cursor 100.
+flecha p2 -> p3 | explica=Y después del 200. Si entretanto se agregan registros, no se saltean ni se repiten, como pasaría paginando por número de página.
+flecha p3 -> fin | explica=Cuando el cursor siguiente es null, no hay más: el cliente tiene todo.
 ```
 
 | Paginación | Cómo pide la página siguiente | Problema |

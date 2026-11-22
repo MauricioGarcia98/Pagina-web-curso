@@ -29,9 +29,9 @@ nodo p: Proyecto de Google Cloud | icono=gcp | col=0 | fila=0 | color=gris | sub
 nodo d: Dataset | icono=carpeta | col=1 | fila=0 | color=azul | sub=tienda, analitica… · región y permisos
 nodo t: Tablas | icono=tabla | col=2 | fila=0 | color=naranja
 nodo v: Vistas | icono=lupa | col=2 | fila=1 | color=verde
-flecha p -> d
-flecha d -> t
-flecha d -> v
+flecha p -> d | explica=El proyecto factura las consultas. Adentro se crean datasets, cada uno con su región y sus permisos.
+flecha d -> t | explica=Las tablas guardan datos.
+flecha d -> v | explica=Las vistas guardan una consulta, que se ejecuta cada vez que las usas.
 ```
 
 El nombre completo de una tabla es **`proyecto.dataset.tabla`**, por ejemplo `` `tienda-andina-dev.tienda.pedidos` `` (con backticks porque el proyecto tiene guiones). El SQL de BigQuery se llama **GoogleSQL**.

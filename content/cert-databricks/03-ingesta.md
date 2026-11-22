@@ -37,12 +37,12 @@ nodo al: Auto Loader | icono=engranaje | col=1 | fila=0 | color=verde
 nodo lc: Lakeflow Connect | icono=lakeflow | col=1 | fila=1 | sub=conector gestionado | color=violeta
 nodo cdc: Lakeflow Connect | icono=lakeflow | col=1 | fila=2 | sub=gateway + CDC | color=violeta
 nodo br: Bronze (Delta) | icono=delta | col=2 | fila=1 | forma=cilindro | color=naranja
-flecha json -> al
-flecha sf -> lc
-flecha sql -> cdc
-flecha al -> br
-flecha lc -> br
-flecha cdc -> br
+flecha json -> al | explica=Los archivos JSON que llegan cada minuto al bucket se leen con Auto Loader, que procesa solo los nuevos.
+flecha sf -> lc | explica=Salesforce se conecta con un conector gestionado de Lakeflow Connect, sin código.
+flecha sql -> cdc | explica=SQL Server usa Lakeflow Connect con un gateway que lee los cambios (CDC).
+flecha al -> br | explica=Todo termina en tablas Delta de bronze.
+flecha lc -> br | explica=Lo de Salesforce también.
+flecha cdc -> br | explica=Y los cambios de la facturación.
 ```
 
 ## Auto Loader a fondo

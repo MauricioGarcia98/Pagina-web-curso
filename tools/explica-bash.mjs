@@ -147,6 +147,8 @@ const D = {
   'xcode-select': { texto: 'instala las herramientas de desarrollo de macOS (incluye git)', opc: { '--install': 'abre el instalador' } },
   for: { texto: 'repite los comandos que siguen (entre <code>do</code> y <code>done</code>) una vez por cada elemento de la lista' },
   while: { texto: 'repite los comandos mientras la condición se cumpla' },
+  do: { texto: 'empieza el bloque de comandos que se repite (en un for o un while)' }, done: { texto: 'cierra el bloque del for o del while' },
+  then: { texto: 'empieza lo que se ejecuta si la condición del if se cumple' }, else: { texto: 'lo que se ejecuta si la condición no se cumple' }, fi: { texto: 'cierra el if' },
   if: { texto: 'ejecuta los comandos que siguen solo si la condición se cumple (termina con <code>fi</code>)' },
 };
 // alias

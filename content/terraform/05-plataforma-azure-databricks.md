@@ -32,12 +32,12 @@ nodo uc: Unity Catalog | icono=tabla | col=1 | fila=2 | color=violeta | sub=cred
 nodo comp: Cómputo | icono=servidor | col=2 | fila=2 | color=verde | sub=clúster ETL, job diario,\nSQL Warehouse: leen y\nescriben tablas
 grupo p1: Proyecto 1 · plataforma (azurerm) | nodos=rg,st,kv,adf,ac,dbw | color=azul
 grupo p2: Proyecto 2 · workspace (databricks) | nodos=uc,comp | color=violeta
-flecha rg -> st
-flecha st -> kv | estilo=punteada
-flecha ac -> st: Storage Blob Data Contributor
-flecha dbw -> comp
-flecha uc -> ac
-flecha comp -> uc
+flecha rg -> st | explica=El grupo de recursos contiene la cuenta de almacenamiento del lago, con los contenedores bronze, silver y gold.
+flecha st -> kv | estilo=punteada | explica=Al lado, el Key Vault guarda los secretos de las fuentes.
+flecha ac -> st: Storage Blob Data Contributor | explica=El access connector es una identidad administrada con el rol Storage Blob Data Contributor sobre el lago: puede leer y escribir sin claves.
+flecha dbw -> comp | explica=El workspace de Databricks crea el cómputo: el clúster de ETL, el job diario y el SQL warehouse.
+flecha uc -> ac | explica=Unity Catalog usa la identidad del connector como credencial para acceder al lago.
+flecha comp -> uc | explica=El cómputo lee y escribe tablas a través de Unity Catalog, que aplica los permisos (grants) del catálogo y los esquemas.
 ```
 
 | Recurso | Para qué | Decisión clave |

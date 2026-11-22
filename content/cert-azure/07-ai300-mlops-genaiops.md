@@ -81,12 +81,12 @@ nodo reg: Registro compartido | icono=capas | col=2 | fila=0 | sub=modelo versio
 nodo ep: Endpoint online | icono=api | col=3 | fila=0 | sub=azul 90 % · verde 10 % | color=verde
 nodo mon: Monitoreo | icono=monitor | col=3 | fila=1 | sub=deriva, calidad, latencia | color=naranja
 nodo re: Reentrenamiento | icono=reloj | col=1 | fila=1 | sub=pipeline programado o por alerta | color=azul
-flecha git -> ci
-flecha ci -> reg: si mejora
-flecha reg -> ep: desplegar
-flecha ep -> mon
-flecha mon -> re: alerta de deriva | estilo=punteada
-flecha re -> reg | estilo=punteada
+flecha git -> ci | explica=Cada cambio en el código o en los YAML dispara CI/CD: tests, entrenamiento y evaluación.
+flecha ci -> reg: si mejora | explica=Solo si el modelo nuevo mejora al actual se registra en el registro compartido.
+flecha reg -> ep: desplegar | explica=Se despliega en el endpoint online: azul recibe el 90 % y verde, la versión nueva, el 10 %.
+flecha ep -> mon | explica=El monitoreo mide deriva, calidad y latencia.
+flecha mon -> re: alerta de deriva | estilo=punteada | explica=Una alerta de deriva dispara el reentrenamiento…
+flecha re -> reg | estilo=punteada | explica=…que registra una versión nueva y el ciclo vuelve a empezar.
 ```
 
 ## GenAIOps: operar aplicaciones generativas

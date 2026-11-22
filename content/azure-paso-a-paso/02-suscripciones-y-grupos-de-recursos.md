@@ -24,9 +24,9 @@ nodo ten: Tenant (Microsoft Entra ID) | icono=entra | col=0 | fila=0 | color=azu
 nodo sub: Suscripción | icono=azure | col=1 | fila=0 | color=cian | sub=quién paga y límite de acceso: sub-datos-dev, sub-datos-prod
 nodo rg: Grupo de recursos | icono=carpeta | col=2 | fila=0 | color=verde | sub=carpeta lógica de un proyecto o entorno: rg-datos-dev
 nodo rec: Recursos | icono=cubo | col=3 | fila=0 | color=naranja | sub=cuenta de almacenamiento, Key Vault, workspace de Databricks
-flecha ten -> sub
-flecha sub -> rg
-flecha rg -> rec
+flecha ten -> sub | explica=El tenant de Entra ID es la organización. Las suscripciones dependen de él.
+flecha sub -> rg | explica=Cada suscripción tiene su facturación y sus permisos. Adentro se crean grupos de recursos.
+flecha rg -> rec | explica=Los recursos viven en un grupo de recursos. Si borras el grupo, se borra todo lo que contiene.
 ```
 
 | Nivel | Qué es | Ejemplo en Tienda Andina |

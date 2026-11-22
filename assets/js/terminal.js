@@ -338,7 +338,16 @@ models:
       }
       if (src[i] === '$' && /[A-Za-z_{?#\d@!$]/.test(src[i + 1] || '')) {
         let j = i + 1, name;
-        if (src[j] === '{') { const k = src.indexOf('}', j); out += lit(parametro(src.slice(j + 1, k), env)); i = k + 1; continue; }
+        if (src[j] === '{') {
+          // la llave que cierra es la que corresponde (el valor por defecto puede tener $(…) o ${…} adentro)
+          let k = j + 1, prof = 0;
+          for (; k < src.length; k++) { if (src[k] === '{' && src[k - 1] === '$') prof++; else if (src[k] === '(' && src[k - 1] === '$') prof++; else if ((src[k] === '}' || src[k] === ')') && prof) prof--; else if (src[k] === '}' && !prof) break; }
+          let e = src.slice(j + 1, k);
+          // como en bash, el valor por defecto de ${VAR:-…}, ${VAR:=…} y ${VAR:+…} también se expande ($HOME, $(date), ${OTRA})
+          const md = e.match(/^(\w+)(:?[-=+])([\s\S]*)$/);
+          if (md && /\$/.test(md[3])) e = md[1] + md[2] + (await expand(md[3], env, Object.assign({}, opts, { crudo: true })));
+          out += lit(parametro(e, env)); i = k + 1; continue;
+        }
         else if (src[j] === '$') { out += '812'; i = j + 1; continue; }   // $$: el PID de esta bash
         else if (src[j] === '?' || src[j] === '#' || src[j] === '!') { name = src[j]; j++; }   // $!: el PID del último trabajo con &
         else if (/\d/.test(src[j])) { name = src[j]; j++; }   // $1…$9: argumentos de un script
@@ -2269,6 +2278,14 @@ for _n, _fn in list(_ns.items()):
       case 'branch': {
         const name = a.slice(1).find((x) => !x.startsWith('-'));
         if (a.includes('-d') || a.includes('-D')) { delete g.branches[name]; Machine.save(); return ok(`Eliminada la rama ${name}.`); }
+        // git branch -m/-M <nueva> (o <vieja> <nueva>): renombra; en un repositorio sin commits solo cambia el nombre de la rama actual
+        if (a.includes('-m') || a.includes('-M')) {
+          const nombres = a.slice(1).filter((x) => !x.startsWith('-')); const vieja = nombres.length > 1 ? nombres[0] : g.branch, nueva = nombres[nombres.length - 1];
+          if (!nueva) return fail('fatal: falta el nombre nuevo de la rama', 128);
+          if (g.branches[vieja] !== undefined) { g.branches[nueva] = g.branches[vieja]; if (vieja !== nueva) delete g.branches[vieja]; }
+          if (g.branch === vieja) g.branch = nueva;
+          Machine.save(); return ok('');
+        }
         if (name) { if (!head) return fail(`fatal: no es un nombre de objeto válido: '${g.branch}'.`, 128); g.branches[name] = head; Machine.save(); return ok(''); }
         return ok(Object.keys(g.branches).map((b) => (b === g.branch ? '* ' + col.ok(b) : '  ' + b)).join('\n'));
       }

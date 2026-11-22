@@ -60,11 +60,11 @@ nodo sc: Escaneo | icono=escudo | col=2 | fila=0 | color=amarillo | forma=rombo 
 nodo reg: Registro | icono=docker | col=3 | fila=0 | color=verde | sub=pipeline:sha-3f9c2ab
 nodo job: Trabajo en la nube | icono=nube | col=4 | fila=0 | color=verde | sub=Container Apps Jobs, Cloud Run Jobs, ECS
 nodo stop: No se publica | icono=x | col=2 | fila=1 | color=rojo
-flecha push -> ci
-flecha ci -> sc
-flecha sc -> reg: no
-flecha sc -> stop: sí
-flecha reg -> job: el orquestador lo dispara
+flecha push -> ci | explica=Cada push a main dispara GitHub Actions, que construye la imagen usando el caché.
+flecha ci -> sc | explica=La imagen se escanea en busca de vulnerabilidades.
+flecha sc -> reg: no | explica=Si no hay vulnerabilidades críticas con arreglo disponible, se publica en el registro con la etiqueta del commit (sha-3f9c2ab).
+flecha sc -> stop: sí | explica=Si las hay, no se publica: primero hay que actualizar la dependencia.
+flecha reg -> job: el orquestador lo dispara | explica=El orquestador dispara el trabajo en la nube usando esa imagen exacta.
 ```
 
 La caché `type=gha` guarda las capas entre ejecuciones del CI, para que un runner nuevo no reconstruya todo desde cero ([documentación oficial](https://docs.docker.com/build/ci/github-actions/)). El token lo provee GitHub para cada ejecución: no hay que guardar una contraseña ([registro de contenedores de GitHub](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)).

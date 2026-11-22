@@ -38,12 +38,12 @@ nodo serv: 4. Servicio | icono=dashboard | col=3 | fila=0 | color=verde | sub=BI
 nodo orq: 5. Orquestación | icono=orquestador | col=1 | fila=1 | color=violeta | sub=qué corre y cuándo
 nodo gob: 6. Gobierno y seguridad | icono=candado | col=0 | fila=2 | color=amarillo | sub=permisos, catálogo, PII
 nodo obs: 7. Calidad y observabilidad | icono=alerta | col=2 | fila=2 | color=cian | sub=tests, alertas, linaje
-flecha src -> ing
-flecha ing -> alm
-flecha alm <-> proc
-flecha alm -> serv
-flecha orq -> ing: dispara | estilo=punteada | color=violeta
-flecha orq -> proc | estilo=punteada | color=violeta
+flecha src -> ing | explica=Los datos nacen en las fuentes: apps, el ERP, APIs de proveedores, archivos y eventos. La ingesta los trae a la plataforma.
+flecha ing -> alm | explica=Lo que llega se guarda en el lago o el warehouse, primero tal cual y después en capas más limpias.
+flecha alm <-> proc | explica=El procesamiento lee del almacenamiento, limpia, une y calcula, y vuelve a guardar el resultado. Es un ida y vuelta constante.
+flecha alm -> serv | explica=Desde el almacenamiento se sirven los datos: tableros, APIs, modelos de ML o de vuelta a las herramientas del negocio (reverse ETL).
+flecha orq -> ing: dispara | estilo=punteada | color=violeta | explica=La orquestación decide qué corre y cuándo: por ejemplo, la ingesta todos los días a las 3:00.
+flecha orq -> proc | estilo=punteada | color=violeta | explica=Y el procesamiento después de la ingesta. Gobierno (permisos, catálogo, datos personales) y observabilidad (tests, alertas, linaje) atraviesan todo.
 ```
 
 | # | Componente | Qué resuelve | Herramientas típicas |
@@ -98,12 +98,12 @@ nodo glue: Glue (Spark) | icono=spark | col=2 | fila=0 | color=rojo | sub=silver
 nodo rs: Redshift | icono=almacen | col=3 | fila=0 | color=azul | sub=gold con dbt
 nodo bi: Power BI | icono=dashboard | col=3 | fila=1 | color=verde | sub=comercial, finanzas
 nodo af: Airflow (MWAA) | icono=orquestador | col=2 | fila=1 | color=violeta | sub=diario 03:00
-flecha pg -> s3: export nocturno
-flecha ga -> s3: Firehose
-flecha s3 -> glue
-flecha glue -> rs: COPY
-flecha rs -> bi
-flecha af -> glue: dispara | estilo=punteada | color=violeta
+flecha pg -> s3: export nocturno | explica=Todas las noches se exportan los pedidos y clientes de la base de la app a S3, en Parquet, una carpeta por fecha.
+flecha ga -> s3: Firehose | explica=Los eventos de la web llegan cada hora por Kinesis Firehose, que los deja en S3 sin código propio.
+flecha s3 -> glue | explica=Glue, con Spark, limpia bronze y genera silver.
+flecha glue -> rs: COPY | explica=Silver se carga en Redshift con COPY, y dbt arma gold ahí adentro.
+flecha rs -> bi | explica=Power BI lee gold de Redshift para los tableros de comercial y finanzas.
+flecha af -> glue: dispara | estilo=punteada | color=violeta | explica=Airflow administrado (MWAA) dispara los jobs a las 03:00 y avisa si alguno falla.
 ```
 
 El recorrido: el pedido se guarda en PostgreSQL; a la noche, un export lo copia a S3 (bronze) en Parquet; Airflow dispara un job de Glue (Spark) que limpia y deja silver; un `COPY` lo carga en Redshift, donde dbt construye gold; Power BI lo muestra a la mañana. Los eventos web siguen otro camino de entrada (Firehose) pero se juntan en S3.

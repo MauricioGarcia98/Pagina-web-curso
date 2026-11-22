@@ -27,9 +27,9 @@ nodo ctx: Contexto del visual | icono=filter | col=0 | fila=0 | color=gris | sub
 nodo cal: CALCULATE | icono=engranaje | col=1 | fila=0 | color=amarillo | sub=agrega o reemplaza filtros: Canal = "web"
 nodo nuevo: Contexto nuevo | icono=filter | col=2 | fila=0 | color=azul | sub=Chile, 2024 y web
 nodo med: [Ventas] | icono=calculator | col=3 | fila=0 | color=verde | sub=se calcula con el contexto nuevo
-flecha ctx -> cal
-flecha cal -> nuevo
-flecha nuevo -> med
+flecha ctx -> cal | explica=Cada celda del visual tiene su contexto: por ejemplo, Chile y 2024.
+flecha cal -> nuevo | explica=CALCULATE agrega o reemplaza filtros antes de calcular: suma canal = web.
+flecha nuevo -> med | explica=La medida [Ventas] se calcula con ese contexto nuevo: Chile, 2024 y web.
 ```
 
 1. Toma el contexto de filtro de la celda (por ejemplo: país = Chile).

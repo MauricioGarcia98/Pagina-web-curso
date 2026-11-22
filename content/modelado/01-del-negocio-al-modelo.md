@@ -34,11 +34,11 @@ nodo fis: Físico | icono=base | col=2 | fila=0 | color=verde | sub=tipos, índi
 nodo p1: "Un huésped hace reservas" | icono=usuario | col=0 | fila=1 | forma=nota
 nodo p2: reserva(reserva_id PK, huesped_id FK, ...) | icono=codigo | col=1 | fila=1 | forma=nota
 nodo p3: CREATE TABLE ... PARTITION BY ... | icono=codigo | col=2 | fila=1 | forma=nota
-flecha con -> log
-flecha log -> fis
-flecha con -- p1 | estilo=punteada
-flecha log -- p2 | estilo=punteada
-flecha fis -- p3 | estilo=punteada
+flecha con -> log | explica=El modelo conceptual dice qué cosas existen y cómo se relacionan, en palabras del negocio. El lógico agrega los atributos, las claves y cuántos de cada lado (cardinalidad).
+flecha log -> fis | explica=El físico lo baja a un motor concreto: tipos de datos, índices, particiones.
+flecha con -- p1 | estilo=punteada | explica=Ejemplo conceptual: "un huésped hace reservas". Se entiende sin saber de bases de datos.
+flecha log -- p2 | estilo=punteada | explica=Ejemplo lógico: la tabla reserva, con su clave primaria y la clave foránea al huésped.
+flecha fis -- p3 | estilo=punteada | explica=Ejemplo físico: el CREATE TABLE real, con su partición, para un motor específico.
 ```
 
 | Nivel | Pregunta | Para quién | Contiene |
@@ -83,14 +83,14 @@ nodo rh: Reserva_habitación | icono=tabla | col=2 | fila=1 | color=amarillo | s
 nodo ag: Agencia | icono=equipo | col=0 | fila=2 | color=gris
 nodo con: Consumo | icono=comida | col=1 | fila=2 | color=violeta | sub=restaurante, spa…
 nodo fac: Factura | icono=dinero | col=2 | fila=2 | color=rojo | sub=se paga en partes
-flecha hot -> hab: 1 : N
-flecha th -> hab: 1 : N
-flecha hue -> res: 1 : N
-flecha res -> rh: 1 : N
-flecha hab -> rh: 1 : N
-flecha ag -> res: 1 : N (opcional)
-flecha res -> con: 1 : N
-flecha res -> fac: 1 : 1
+flecha hot -> hab: 1 : N | explica=Un hotel tiene muchas habitaciones; cada habitación es de un solo hotel.
+flecha th -> hab: 1 : N | explica=Cada habitación es de un tipo (simple, doble, suite), y un tipo agrupa muchas habitaciones.
+flecha hue -> res: 1 : N | explica=Un huésped puede hacer muchas reservas a lo largo del tiempo.
+flecha res -> rh: 1 : N | explica=Una reserva puede incluir varias habitaciones…
+flecha hab -> rh: 1 : N | explica=…y una habitación aparece en muchas reservas. Esa relación de muchos a muchos se resuelve con una tabla puente: reserva_habitación.
+flecha ag -> res: 1 : N (opcional) | explica=Una agencia trae muchas reservas, pero una reserva puede no tener agencia: la relación es opcional.
+flecha res -> con: 1 : N | explica=Durante la estadía se registran consumos (restaurante, spa) asociados a la reserva.
+flecha res -> fac: 1 : 1 | explica=Cada reserva tiene una factura, que se puede pagar en partes.
 ```
 
 :::tip La pregunta que lo resuelve

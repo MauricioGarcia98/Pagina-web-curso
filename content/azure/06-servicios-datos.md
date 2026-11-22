@@ -28,15 +28,15 @@ nodo go: gold | icono=adls | col=4 | fila=1 | color=amarillo | sub=ADLS Gen2
 nodo dbx: Azure Databricks + dbt | icono=databricks | col=3 | fila=0 | color=rojo | sub=Spark, Delta, Unity Catalog
 nodo con: Power BI · Databricks SQL · ML | icono=powerbi | col=5 | fila=1 | color=verde
 nodo orq: Airflow / Lakeflow Jobs | icono=airflow | col=3 | fila=2 | color=violeta | sub=orquestación
-flecha f -> adf
-flecha f -> eh
-flecha adf -> br
-flecha eh -> br
-flecha br -> sv
-flecha sv -> go
-flecha go -> con
-flecha dbx -> sv | estilo=punteada
-flecha orq -> sv | estilo=punteada | color=violeta
+flecha f -> adf | explica=Las fuentes batch (ERP, APIs, archivos) se copian con Data Factory.
+flecha f -> eh | explica=Los eventos entran en streaming por Event Hubs.
+flecha adf -> br | explica=Todo aterriza en bronze, en ADLS Gen2.
+flecha eh -> br | explica=También los eventos.
+flecha br -> sv | explica=Bronze se limpia en silver…
+flecha sv -> go | explica=…y silver se agrega en gold.
+flecha go -> con | explica=Power BI, Databricks SQL y los modelos de ML consumen gold.
+flecha dbx -> sv | estilo=punteada | explica=Databricks, con dbt, es quien hace esas transformaciones, en Delta y con Unity Catalog para los permisos.
+flecha orq -> sv | estilo=punteada | color=violeta | explica=Airflow o Lakeflow Jobs deciden cuándo corre cada paso.
 ```
 
 Transversal a todo: Entra ID con RBAC para los permisos, Key Vault para los secretos, Azure Monitor para registros y alertas, y Cost Management para el costo.
@@ -64,13 +64,13 @@ nodo adls: ADLS Gen2 | icono=bucket | col=2 | fila=0 | color=naranja | sub=bronz
 nodo dbx: Azure Databricks | icono=spark | col=2 | fila=1 | color=rojo | sub=Spark + Unity Catalog
 nodo pbi: Power BI | icono=dashboard | col=3 | fila=0 | color=amarillo
 nodo kv: Key Vault | icono=candado | col=3 | fila=1 | color=gris | sub=secretos
-flecha erp -> adf
-flecha ev -> eh
-flecha adf -> adls
-flecha eh -> dbx
-flecha adls <-> dbx: lee / escribe Delta
-flecha dbx -> pbi: SQL warehouse
-flecha kv -> dbx: credenciales | estilo=punteada
+flecha erp -> adf | explica=Data Factory copia por lotes el ERP y las bases.
+flecha ev -> eh | explica=Los eventos de la app entran a Event Hubs.
+flecha adf -> adls | explica=Lo copiado queda en ADLS Gen2, organizado en bronze, silver y gold.
+flecha eh -> dbx | explica=Databricks lee los eventos en streaming directo de Event Hubs.
+flecha adls <-> dbx: lee / escribe Delta | explica=Databricks lee y escribe tablas Delta en ADLS: los datos quedan en tu cuenta de almacenamiento.
+flecha dbx -> pbi: SQL warehouse | explica=Power BI consulta gold a través de un SQL warehouse de Databricks.
+flecha kv -> dbx: credenciales | estilo=punteada | explica=Las credenciales salen de Key Vault.
 ```
 
 ## Azure Databricks

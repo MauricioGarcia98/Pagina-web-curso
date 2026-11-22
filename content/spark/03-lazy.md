@@ -126,10 +126,10 @@ nodo pl: Plan lógico | icono=documento | col=1 | fila=0 | color=azul | sub=qué
 nodo po: Plan lógico optimizado | icono=reglas | col=2 | fila=0 | color=violeta | sub=reglas de Catalyst: filtros antes, columnas justas
 nodo pf: Planes físicos | icono=engranaje | col=3 | fila=0 | color=naranja | sub=cómo hacerlo: qué tipo de join…
 nodo ej: El más barato se ejecuta | icono=velocidad | col=4 | fila=0 | color=verde | sub=Tungsten genera código para la CPU
-flecha c -> pl
-flecha pl -> po
-flecha po -> pf
-flecha pf -> ej: elige por costo
+flecha c -> pl | explica=Tu código no se ejecuta línea por línea: Spark primero arma un plan lógico con lo que pediste.
+flecha pl -> po | explica=Catalyst lo optimiza con reglas: mueve los filtros lo más temprano posible y lee solo las columnas que usas.
+flecha po -> pf | explica=Después piensa varias formas físicas de hacerlo, por ejemplo qué tipo de join usar.
+flecha pf -> ej: elige por costo | explica=Elige la más barata según su modelo de costo, y Tungsten genera código eficiente para la CPU. Todo esto pasa recién cuando llamas a una acción.
 ```
 
 Las optimizaciones más importantes:
@@ -204,15 +204,15 @@ nodo g2: app | icono=etiqueta | col=4 | fila=1 | color=rojo
 nodo g3: tienda | icono=etiqueta | col=4 | fila=2 | color=rojo
 grupo gn: Narrow | nodos=n1,n2,n3,o1,o2,o3 | color=verde
 grupo gw: Wide (shuffle) | nodos=w1,w2,w3,sh,g1,g2,g3 | color=rojo
-flecha n1 -> o1
-flecha n2 -> o2
-flecha n3 -> o3
-flecha w1 -> sh
-flecha w2 -> sh
-flecha w3 -> sh
-flecha sh -> g1
-flecha sh -> g2
-flecha sh -> g3
+flecha n1 -> o1 | explica=Una transformación narrow (filter, select) trabaja cada partición por separado: la partición 1 da la 1 filtrada.
+flecha n2 -> o2 | explica=Sin mover datos entre máquinas…
+flecha n3 -> o3 | explica=…por eso es rápida y Spark las encadena en un mismo stage.
+flecha w1 -> sh | explica=Una transformación wide (groupBy, join) necesita datos de todas las particiones.
+flecha w2 -> sh | explica=Todas mandan sus filas al shuffle, que las reordena por la clave (el canal).
+flecha w3 -> sh | explica=El shuffle escribe en disco y viaja por la red: es lo que más cuesta optimizar.
+flecha sh -> g1 | explica=Al final, todas las filas de web quedan en una partición…
+flecha sh -> g2 | explica=…las de app en otra…
+flecha sh -> g3 | explica=…y las de tienda en otra. Recién ahí se puede agrupar.
 ```
 
 Un `filter` puede aplicarse a cada partición por separado: la máquina 1 filtra sus filas sin preguntarle nada a la máquina 2. Pero para contar todos los pedidos "web", hay que **juntar** las filas web de todas las máquinas.

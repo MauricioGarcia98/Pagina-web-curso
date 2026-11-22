@@ -48,8 +48,8 @@ nodo l1: Bucle sobre A | icono=flujo | col=0 | fila=0 | color=rojo | sub=por cad
 nodo l2: Bucle sobre B | icono=flujo | col=1 | fila=0 | color=rojo | sub=…recorrer todo B: n × n pasos
 nodo i1: Armar índice de B | icono=libro | col=0 | fila=1 | color=verde | sub=una pasada: {clave: fila}
 nodo i2: Recorrer A y buscar | icono=lupa | col=1 | fila=1 | color=verde | sub=cada búsqueda es directa: n + n pasos
-flecha l1 -> l2
-flecha i1 -> i2
+flecha l1 -> l2 | explica=Con dos bucles anidados, por cada elemento de A se recorre todo B: con 10.000 de cada lado son 100 millones de pasos.
+flecha i1 -> i2 | explica=Con un diccionario, se arma un índice de B en una pasada y cada búsqueda es directa: 20.000 pasos. La diferencia crece con los datos.
 ```
 
 La idea mejor: mientras recorres, guarda lo que ya viste. Para cada número `n`, el que necesitas es `10 - n`. Si ya lo viste, terminaste.

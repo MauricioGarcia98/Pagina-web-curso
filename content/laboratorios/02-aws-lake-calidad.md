@@ -21,11 +21,11 @@ nodo cr: Crawler de Glue | icono=glue | col=2 | fila=0 | sub=infiere el esquema 
 nodo cat: Data Catalog | icono=tabla | col=3 | fila=0 | sub=lake_bronze.clientes | color=violeta
 nodo dq: Glue Data Quality | icono=check | col=3 | fila=2 | sub=reglas DQDL | color=rojo
 nodo ath: Athena (workgroup) | icono=lupa | col=4 | fila=1 | sub=tope 1 GB por consulta | color=azul
-flecha csv -> s3
-flecha s3 -> cr
-flecha cr -> cat
-flecha cat -> ath
-flecha cat -> dq
+flecha csv -> s3 | explica=Subes clientes.csv a la carpeta bronze/ del bucket lake-tienda-lab.
+flecha s3 -> cr | explica=El crawler de Glue recorre la carpeta y deduce las columnas y sus tipos.
+flecha cr -> cat | explica=Con eso crea la tabla lake_bronze.clientes en el Data Catalog.
+flecha cat -> ath | explica=Athena consulta la tabla desde un workgroup con un tope de 1 GB por consulta, para no gastar de más.
+flecha cat -> dq | explica=Glue Data Quality evalúa reglas escritas en DQDL sobre la misma tabla: completitud, unicidad, valores válidos.
 ```
 
 ## Costo en una cuenta real

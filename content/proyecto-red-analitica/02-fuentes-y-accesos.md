@@ -27,12 +27,12 @@ nodo br: bronze | icono=capas | col=2 | fila=0 | color=naranja | sub=tal cual ll
 nodo seu: Seudonimización | icono=candado | col=3 | fila=0 | color=violeta | sub=el paciente se reemplaza por un código
 nodo sv: silver unificado | icono=tabla | col=4 | fila=0 | color=verde | sub=un formato para los cinco
 nodo olv: Derecho al olvido | icono=x | col=3 | fila=1 | color=rojo | sub=borrar a un paciente en todas las capas
-flecha lab -> sftp
-flecha sftp -> br
-flecha br -> seu
-flecha seu -> sv
-flecha olv -> sv | estilo=punteada | color=rojo
-flecha olv -> br | estilo=punteada | color=rojo
+flecha lab -> sftp | explica=Cada laboratorio deja un archivo por día en el SFTP, con su propio formato y horario.
+flecha sftp -> br | explica=Se copian a bronze tal como llegaron.
+flecha br -> seu | explica=Antes de seguir, el paciente se reemplaza por un código: los analistas nunca ven quién es.
+flecha seu -> sv | explica=Silver unifica los cinco formatos en uno.
+flecha olv -> sv | estilo=punteada | color=rojo | explica=Si un paciente pide que lo borren, hay que borrarlo en silver…
+flecha olv -> br | estilo=punteada | color=rojo | explica=…y también en bronze. Por eso hay que saber en qué archivos y tablas aparece cada paciente.
 ```
 
 La primera vez, el cliente no conoce al servidor. **Verifica la huella** contra la del correo antes de aceptarla:

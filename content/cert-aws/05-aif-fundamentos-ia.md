@@ -69,9 +69,9 @@ nodo pr: Ingeniería de prompts | icono=mensaje | col=0 | fila=0 | sub=sin entre
 nodo rag: RAG | icono=knowledgebases | col=1 | fila=0 | sub=datos propios y actuales | color=azul
 nodo ft: Fine-tuning | icono=sigla:FT:naranja | col=2 | fila=0 | sub=ejemplos etiquetados | color=naranja
 nodo cpt: Preentrenamiento continuo | icono=sigla:CPT:rojo | col=3 | fila=0 | sub=mucho texto sin etiquetar | color=rojo
-flecha pr -> rag: más costo y esfuerzo
-flecha rag -> ft
-flecha ft -> cpt
+flecha pr -> rag: más costo y esfuerzo | explica=Se empieza por lo más barato: mejorar el prompt. Si al modelo le faltan datos propios o recientes, se agrega RAG.
+flecha rag -> ft | explica=Si hay que cambiar el estilo o el comportamiento, se hace fine-tuning con ejemplos etiquetados.
+flecha ft -> cpt | explica=Si el modelo no conoce el vocabulario de un dominio, preentrenamiento continuo con mucho texto sin etiquetar. Es lo más caro.
 ```
 
 | Técnica | Cuándo |

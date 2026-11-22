@@ -31,10 +31,10 @@ nodo c3: COPY pyproject.toml uv.lock | icono=archivo | col=1 | fila=0 | color=gr
 nodo c4: RUN uv sync | icono=engranaje | col=2 | fila=0 | color=gris | sub=en caché (lo lento)
 nodo c5: COPY src/ | icono=codigo | col=3 | fila=0 | color=naranja | sub=se reconstruye: cambió tu código
 nodo c6: CMD | icono=terminal | col=4 | fila=0 | color=naranja | sub=se reconstruye (va después)
-flecha c1 -> c3
-flecha c3 -> c4
-flecha c4 -> c5
-flecha c5 -> c6
+flecha c1 -> c3 | explica=Cada instrucción del Dockerfile es una capa. La imagen base de Python no cambia, así que se reutiliza del caché.
+flecha c3 -> c4 | explica=Copiar solo los archivos de dependencias primero hace que esta capa cambie únicamente cuando cambian las dependencias.
+flecha c4 -> c5 | explica=La instalación (lo más lento) queda en caché. Recién después se copia tu código, que es lo que cambia todo el tiempo.
+flecha c5 -> c6 | explica=Como cambió src/, se reconstruye esa capa y todas las siguientes. Por eso el orden importa: lo que menos cambia va arriba.
 ```
 
 Al construir, Docker revisa cada instrucción en orden. La caché de una capa se invalida cuando:

@@ -79,10 +79,10 @@ nodo api: POST /pedidos | icono=fastapi | col=1 | fila=0 | color=azul
 nodo q: ¿Ya vi esta clave? | icono=lupa | col=2 | fila=0 | color=amarillo | forma=rombo
 nodo cr: Crear el pedido y guardar la respuesta | icono=check | col=3 | fila=0 | color=verde
 nodo re: Devolver la respuesta guardada | icono=archivo | col=3 | fila=1 | color=violeta | sub=sin crear nada
-flecha c -> api: 1.º intento y reintento
-flecha api -> q
-flecha q -> cr: no
-flecha q -> re: sí
+flecha c -> api: 1.º intento y reintento | explica=El cliente manda el pedido con una clave de idempotencia. Si no recibe respuesta (se cortó la red), reintenta con la misma clave.
+flecha api -> q | explica=La API primero se fija si ya vio esa clave.
+flecha q -> cr: no | explica=Si es nueva, crea el pedido y guarda la respuesta asociada a la clave.
+flecha q -> re: sí | explica=Si ya la vio, devuelve la respuesta guardada sin crear nada. Así un reintento nunca duplica el pedido.
 ```
 
 La solución estándar: el cliente genera una clave única por operación y la manda en el encabezado `Idempotency-Key`. El servidor guarda la respuesta de cada clave; si vuelve a llegar la misma clave, devuelve la respuesta guardada **sin crear nada**. Así lo documenta, por ejemplo, la [API de Stripe](https://docs.stripe.com/api/idempotent_requests).

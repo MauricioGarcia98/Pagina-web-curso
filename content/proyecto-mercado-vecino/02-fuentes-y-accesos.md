@@ -31,12 +31,12 @@ nodo api: API de PagoYa | icono=webhook | col=0 | fila=1 | color=naranja | sub=p
 nodo wh: Webhooks firmados | icono=correo | col=1 | fila=1 | color=naranja | sub=avisos en tiempo real
 nodo liq: Liquidación diaria | icono=archivo | col=1 | fila=2 | color=amarillo | sub=lo que PagoYa te paga
 nodo lake: Tu lakehouse | icono=capas | col=3 | fila=1 | color=verde | sub=bronze → silver → gold
-flecha pg -> dbz
-flecha dbz -> eh
-flecha eh -> lake
-flecha api -> lake: consultar
-flecha wh -> lake: recibir
-flecha liq -> lake: conciliar
+flecha pg -> dbz | explica=Debezium lee el log de cambios de PostgreSQL (CDC), sin consultar las tablas ni cargar la base.
+flecha dbz -> eh | explica=Publica cada cambio en Event Hubs, que habla el protocolo de Kafka: un tópico por tabla.
+flecha eh -> lake | explica=El lakehouse consume los tópicos y arma bronze.
+flecha api -> lake: consultar | explica=Los pagos y reembolsos se consultan a la API de PagoYa.
+flecha wh -> lake: recibir | explica=PagoYa también avisa cada cambio con webhooks firmados: se verifica la firma antes de aceptarlos.
+flecha liq -> lake: conciliar | explica=La liquidación diaria dice cuánto paga PagoYa; se concilia contra los pagos registrados.
 ```
 
 ```bash

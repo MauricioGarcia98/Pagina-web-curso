@@ -37,11 +37,11 @@ nodo m: Modelo | icono=bot | col=2 | fila=0 | sub=Ollama local · ai_query\n· F
 nodo v: Validación | icono=check | col=3 | fila=0 | sub=¿categoría válida?\nconfianza
 nodo e: Evaluación | icono=grafico | col=3 | fila=1 | sub=matriz de confusión,\ncosto, latencia
 nodo h: Revisión humana | icono=usuario | col=2 | fila=1 | sub=baja confianza
-flecha t -> p
-flecha p -> m
-flecha m -> v
-flecha v -> e
-flecha v -> h: dudosos | estilo=punteada
+flecha t -> p | explica=Cada ticket se mete en un prompt con la lista cerrada de categorías y se pide la respuesta en JSON.
+flecha p -> m | explica=El modelo puede ser Ollama en local, ai_query en Databricks o Foundry.
+flecha m -> v | explica=Se valida la salida: que sea JSON, que la categoría exista y cuánta confianza tiene.
+flecha v -> e | explica=Se evalúa contra tickets ya etiquetados: matriz de confusión, costo y latencia.
+flecha v -> h: dudosos | estilo=punteada | explica=Los de baja confianza van a revisión humana.
 ```
 
 ## El prompt

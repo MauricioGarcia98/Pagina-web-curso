@@ -62,14 +62,14 @@ nodo cli: clientes.csv | icono=csv | col=0 | fila=4 | color=naranja
 nodo y: 2024 | icono=carpeta | col=1 | fila=4 | color=verde
 nodo dic: diciembre | icono=carpeta | col=1 | fila=5 | color=verde
 nodo ven: ventas.csv | icono=csv | col=2 | fila=5 | color=naranja
-flecha raiz -> home
-flecha home -> ana
-flecha ana -> datos
-flecha ana -> inf
-flecha datos -> cli
-flecha datos -> y
-flecha y -> dic
-flecha dic -> ven
+flecha raiz -> home | explica=Todo empieza en la raíz (/), la carpeta que contiene todas las demás. Adentro está home, donde viven las carpetas personales.
+flecha home -> ana | explica=Cada persona que usa la computadora tiene su carpeta dentro de home. La de Ana es su carpeta personal: ahí guarda sus cosas.
+flecha ana -> datos | explica=Ana creó una carpeta datos para ordenar sus archivos de trabajo. Una carpeta puede tener otras carpetas adentro.
+flecha ana -> inf | explica=Una carpeta también guarda archivos sueltos, como informe.md, al lado de sus subcarpetas.
+flecha datos -> cli | explica=clientes.csv es un archivo dentro de datos. La extensión .csv dice que es una tabla en texto.
+flecha datos -> y | explica=Para no mezclar años, los datos de 2024 van en su propia carpeta.
+flecha y -> dic | explica=Dentro del año, una carpeta por mes. Así cada archivo tiene un lugar predecible.
+flecha dic -> ven | explica=ventas.csv de diciembre está cuatro niveles adentro. Su dirección completa es el camino desde la raíz: /home/ana/datos/2024/diciembre/ventas.csv.
 ```
 
 Las carpetas están en verde y azul, y los archivos en naranja.
@@ -101,12 +101,12 @@ nodo datos: datos | icono=carpeta | col=3 | fila=0 | color=verde
 nodo y: 2024 | icono=carpeta | col=3 | fila=1 | color=verde
 nodo dic: diciembre | icono=carpeta | col=2 | fila=1 | color=verde
 nodo csv: ventas.csv | icono=csv | col=1 | fila=1 | color=naranja | sub=el archivo
-flecha raiz -> home
-flecha home -> ana
-flecha ana -> datos
-flecha datos -> y
-flecha y -> dic
-flecha dic -> csv
+flecha raiz -> home | explica=La ruta empieza con / : la raíz.
+flecha home -> ana | explica=/home/ana: un paso hacia adentro por cada barra.
+flecha ana -> datos | explica=/home/ana/datos: tercera carpeta del camino.
+flecha datos -> y | explica=/home/ana/datos/2024: la carpeta del año.
+flecha y -> dic | explica=/home/ana/datos/2024/diciembre: la carpeta del mes.
+flecha dic -> csv | explica=Y al final el archivo: /home/ana/datos/2024/diciembre/ventas.csv. Leer una ruta es seguir estas flechas de izquierda a derecha.
 ```
 
 Cada `/` separa una carpeta de la siguiente. Se lee de izquierda a derecha: "desde la raíz, entra a `home`, después a `ana`, después a `datos`…".

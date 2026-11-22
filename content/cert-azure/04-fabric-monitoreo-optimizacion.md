@@ -36,10 +36,10 @@ nodo c: Copiar ventas | icono=sigla:Copy:verde | col=0 | fila=0 | color=verde
 nodo n: Notebook silver | icono=notebook | col=1 | fila=0 | color=azul
 nodo ok: Registrar éxito | icono=check | col=2 | fila=0
 nodo err: Avisar a Teams | icono=mensaje | col=1 | fila=1 | sub=On failure | color=rojo
-flecha c -> n: On success
-flecha n -> ok: On success
-flecha c -> err: On failure | estilo=punteada | color=rojo
-flecha n -> err: On failure | estilo=punteada | color=rojo
+flecha c -> n: On success | explica=Si la copia termina bien, corre el notebook que arma silver.
+flecha n -> ok: On success | explica=Si el notebook termina bien, se registra el éxito.
+flecha c -> err: On failure | estilo=punteada | color=rojo | explica=Si la copia falla, se avisa a Teams…
+flecha n -> err: On failure | estilo=punteada | color=rojo | explica=…y también si falla el notebook. Sin estas conexiones On failure, el pipeline fallaría en silencio.
 ```
 
 :::cuidado Las dependencias de un pipeline

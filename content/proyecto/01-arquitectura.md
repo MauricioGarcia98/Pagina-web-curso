@@ -33,15 +33,15 @@ nodo sv: silver | icono=databricks | col=3 | fila=1 | color=gris | sub=PySpark c
 nodo gd: gold (estrella) | icono=dbt | col=4 | fila=1 | color=amarillo | sub=dbt
 nodo pbi: Power BI | icono=powerbi | col=5 | fila=1 | color=verde | sub=vía SQL Warehouse
 grupo dbx: Databricks (Unity Catalog) | nodos=sv,gd | color=rojo
-flecha erp -> adf
-flecha api -> py
-flecha web -> eh
-flecha adf -> br
-flecha py -> br
-flecha eh -> br
-flecha br -> sv
-flecha sv -> gd
-flecha gd -> pbi
+flecha erp -> adf | explica=Data Factory copia todas las noches las tablas del ERP, que es una base SQL.
+flecha api -> py | explica=La API de pagos se consulta con un script de Python que pagina y guarda las respuestas.
+flecha web -> eh | explica=Los clics de la web llegan como eventos a Event Hubs, en tiempo real.
+flecha adf -> br | explica=Data Factory deja la copia cruda en la capa bronze de ADLS Gen2.
+flecha py -> br | explica=El script de pagos también escribe en bronze.
+flecha eh -> br | explica=Auto Loader lee los eventos y los agrega a una tabla Delta en bronze.
+flecha br -> sv | explica=PySpark limpia bronze y actualiza silver con MERGE, para no duplicar filas si una carga se repite.
+flecha sv -> gd | explica=dbt arma gold como un modelo estrella: hechos y dimensiones listos para analizar.
+flecha gd -> pbi | explica=Power BI consulta gold a través de un SQL Warehouse de Databricks.
 ```
 
 | Pieza transversal | Herramienta |

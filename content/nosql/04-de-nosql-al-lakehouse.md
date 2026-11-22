@@ -28,11 +28,11 @@ nodo cf: Change feed / change streams | icono=stream | col=2 | fila=0 | color=az
 nodo br: bronze | icono=capas | col=3 | fila=0 | color=naranja | sub=cada cambio tal cual
 nodo sv: silver | icono=tabla | col=3 | fila=1 | color=gris | sub=última versión por _id (MERGE), borrados aplicados
 nodo pl: Tablas planas | icono=tabla | col=2 | fila=1 | color=amarillo | sub=pedidos + lineas (explode)
-flecha app -> db
-flecha db -> cf
-flecha cf -> br
-flecha br -> sv
-flecha sv -> pl
+flecha app -> db | explica=La app escribe en la base de documentos.
+flecha db -> cf | explica=El change feed (o change streams) emite cada cambio: insert, update o delete, con su marca de tiempo.
+flecha cf -> br | explica=Bronze guarda cada cambio tal cual llegó.
+flecha br -> sv | explica=Silver se queda con la última versión de cada documento (MERGE por _id) y aplica los borrados.
+flecha sv -> pl | explica=Para analizar, el documento se aplana: los pedidos en una tabla y sus líneas en otra (explode).
 ```
 
 Los flujos de cambios entregan eventos del tipo `{"operacion": "update", "_id": 101, "documento": {...}, "ts": ...}`. Es la misma idea que el CDC de una base relacional que viste en el proyecto Mercado Vecino ([change streams de MongoDB](https://www.mongodb.com/docs/manual/changestreams/), [DynamoDB Streams](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html)).
