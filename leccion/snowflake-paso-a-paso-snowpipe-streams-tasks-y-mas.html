@@ -17,13 +17,13 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Snowpipe, streams, tasks y dynamic tables - automatizar dentro de Snowflake</h1><p class="resumen">Snowflake puede cargar, detectar cambios y transformar solo. Conoces Snowpipe (carga continua), streams (qué filas cambiaron), tasks (SQL programado), dynamic tables (tablas que se mantienen solas), Snowpark y el uso compartido de datos, con el SQL de cada uno y cuándo conviene frente a Airflow o dbt.</p>
 <a class="cta" href="../index.html#/l/snowflake-paso-a-paso-snowpipe-streams-tasks-y-mas">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar Snowpipe y cuándo usarlo</li><li>Detectar cambios con un stream</li><li>Programar SQL con una task</li><li>Mantener una tabla con dynamic tables</li><li>Ubicar Snowpark, Cortex y Secure Data Sharing</li></ul>
-<div class="callout callout-nota"><div class="callout-title">📝 En la práctica</div>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
 
-<p>Estas funciones no están simuladas: la práctica te muestra qué son. El SQL de esta lección es el de Snowflake real.</p>
+<p>Todo lo de esta lección corre en el <a href="#/snowflake">Snowflake de práctica</a>: streams, tasks (con su historial en <strong>Monitoring → Task History</strong>), Snowpipe (en <strong>Copy History</strong>) y dynamic tables. El SQL es el de Snowflake real; solo cambian los nombres de las bases.</p>
 </div>
 
 
-<figure class="captura"><img src="assets/img/guias/snowflake/s22-tareas.webp" alt="Task History - las ejecuciones de las tasks programadas (no simulado en la práctica)" loading="lazy"><figcaption>Task History - las ejecuciones de las tasks programadas (no simulado en la práctica)</figcaption></figure>
+<figure class="captura"><img src="assets/img/guias/snowflake/s22-tareas.webp" alt="Task History - el árbol de tareas (la raíz con su horario CRON y su hija con AFTER), su última corrida y la próxima" loading="lazy"><figcaption>Task History - el árbol de tareas (la raíz con su horario CRON y su hija con AFTER), su última corrida y la próxima</figcaption></figure>
 
 
 <div class="callout callout-analogia"><div class="callout-title">🧠 Una línea de producción automática</div>
@@ -52,7 +52,7 @@ COPY INTO raw.pedidos_staging FROM @ventas_s3 FILE_FORMAT = (TYPE = CSV SKIP_HEA
 <td>Cómputo serverless de Snowflake</td>
 </tr>
 </tbody></table></div>
-<figure class="captura"><img src="assets/img/guias/snowflake/s22-copy.webp" alt="Copy History - el historial de cargas archivo por archivo (no simulado en la práctica)" loading="lazy"><figcaption>Copy History - el historial de cargas archivo por archivo (no simulado en la práctica)</figcaption></figure>
+<figure class="captura"><img src="assets/img/guias/snowflake/s22-copy.webp" alt="Copy History - el historial de cargas archivo por archivo: filas, stage y el primer error si falló" loading="lazy"><figcaption>Copy History - el historial de cargas archivo por archivo: filas, stage y el primer error si falló</figcaption></figure>
 
 
 <h2>Paso 2 — Streams y tasks</h2>
@@ -72,6 +72,29 @@ AS
                         VALUES (s.pedido_id, s.cliente_id, s.fecha, s.canal, s.total);
 
 ALTER TASK analitica.aplicar_pedidos RESUME;   -- las tasks se crean suspendidas</code></pre>
+<p>Tres cosas del Snowflake real que la práctica también exige, y que confunden la primera vez:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Te aparece…</th>
+<th>Por qué</th>
+<th>Qué haces</th>
+</tr>
+</thead><tbody><tr>
+<td><code>Cannot execute task, EXECUTE TASK privilege must be granted to owner role</code></td>
+<td>Para que una task corra sola, el rol dueño necesita un privilegio de la cuenta</td>
+<td><code>USE ROLE ACCOUNTADMIN; GRANT EXECUTE TASK ON ACCOUNT TO ROLE SYSADMIN;</code></td>
+</tr>
+<tr>
+<td><code>Unable to update graph with root task … since that root task is not suspended</code></td>
+<td>No se puede cambiar un árbol de tareas mientras corre</td>
+<td><code>ALTER TASK raiz SUSPEND;</code>, el cambio, y <code>RESUME</code> de nuevo (primero las hijas, después la raíz)</td>
+</tr>
+<tr>
+<td>La task corre pero no hace nada (<code>SKIPPED</code>)</td>
+<td>Su <code>WHEN SYSTEM$STREAM_HAS_DATA(...)</code> dio falso: no había cambios nuevos</td>
+<td>Es lo esperado: no gasta warehouse cuando no hay nada que procesar</td>
+</tr>
+</tbody></table></div>
+<p>Una lectura del stream (<code>SELECT * FROM cambios_pedidos</code>) <strong>no</strong> lo vacía: solo lo consume un DML que lo use (el <code>MERGE</code> de la task). Cada fila trae <code>METADATA$ACTION</code> (INSERT o DELETE) y <code>METADATA$ISUPDATE</code>.</p>
 <h2>Paso 3 — Dynamic tables</h2>
 <pre data-norun tabindex="0"><code class="language-sql">CREATE DYNAMIC TABLE analitica.ventas_diarias
   TARGET_LAG = '1 hour'
@@ -80,7 +103,19 @@ AS
   SELECT fecha, canal, SUM(total) AS ventas
   FROM analitica.pedidos_actuales
   GROUP BY fecha, canal;</code></pre>
-<p>Declaras <strong>qué</strong> resultado quieres y <strong>cuán atrasado</strong> puede estar (<code>TARGET_LAG</code>); Snowflake se encarga de refrescarla, de forma incremental cuando puede. Reemplaza muchas combinaciones de stream + task.</p>
+<p>Declaras <strong>qué</strong> resultado quieres y <strong>cuán atrasado</strong> puede estar (<code>TARGET_LAG</code>); Snowflake se encarga de refrescarla, de forma incremental cuando puede. Reemplaza muchas combinaciones de stream + task. No admite <code>INSERT</code> ni <code>UPDATE</code> (la mantiene Snowflake) y su historial de refrescos está en <strong>Task History → Dynamic Tables</strong>.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: CDC de punta a punta: stream, task, Snowpipe y dynamic table</div>
+
+<ol>
+<li>Crea un stage y una tabla de llegada, y un pipe con <code>AUTO_INGEST = TRUE</code> que haga el <code>COPY INTO</code>. Sube un CSV al stage (Databases → el stage → <strong>+ Files</strong>) y ejecuta cualquier consulta: el pipe lo carga solo. Míralo en <strong>Copy History</strong>.</li>
+<li><code>CREATE STREAM cambios ON TABLE llegada;</code> y comprueba que <code>SELECT * FROM cambios</code> está vacío. Sube otro archivo: ahora el stream muestra las filas nuevas con <code>METADATA$ACTION = &#39;INSERT&#39;</code>.</li>
+<li>Crea una task con <code>WHEN SYSTEM$STREAM_HAS_DATA(&#39;cambios&#39;)</code> que haga <code>INSERT INTO historico SELECT … FROM cambios</code>. Dale <code>EXECUTE TASK</code> al rol dueño, haz <code>RESUME</code> y córrela con <code>EXECUTE TASK</code>.</li>
+<li>En <strong>Task History → Task Runs</strong> verás un <code>SUCCEEDED</code>; córrela otra vez sin cambios nuevos y verás <code>SKIPPED</code>.</li>
+<li>Crea una dynamic table con <code>TARGET_LAG = &#39;1 minute&#39;</code> sobre <code>historico</code> y prueba un <code>INSERT</code> en ella: el error te dice por qué no se puede.</li>
+</ol>
+</div>
+
+
 <h2>Paso 4 — Más de la plataforma</h2>
 <div class="table-wrap"><table><thead><tr>
 <th>Función</th>

@@ -152,6 +152,16 @@
       ['sf-rol', 'Crea un rol con permiso de lectura sobre un esquema', 'USE ROLE SECURITYADMIN; CREATE ROLE analista; GRANT USAGE ON WAREHOUSE/DATABASE/SCHEMA … ; GRANT SELECT ON ALL TABLES IN SCHEMA … TO ROLE analista;', () => (sfS().grants || []).some((g) => g.priv === 'SELECT' && (sfS().roles || {})[g.a])],
       ['sf-usar-rol', 'Ejecuta una consulta con tu rol nuevo (no ACCOUNTADMIN ni SYSADMIN)', 'GRANT ROLE analista TO USER alumno; USE ROLE analista; y luego un SELECT sobre una tabla a la que le diste permiso.', () => (sfS().historial || []).some((h) => h.estado === 'Succeeded' && /^\s*SELECT/i.test(h.sql) && (sfS().roles || {})[h.rol])],
     ]],
+    ['Automatizar dentro de Snowflake', [
+      ['sf-stream', 'Crea un stream y consúmelo con un INSERT', 'CREATE STREAM cambios ON TABLE t; cambia t; INSERT INTO historico SELECT … FROM cambios; (después el stream queda vacío).', () => Object.keys(sfS().streams || {}).length > 0 && (sfS().historial || []).some((h) => h.estado === 'Succeeded' && /^\s*INSERT[\s\S]*FROM\s+\S*cambios|^\s*(INSERT|MERGE)[\s\S]+/i.test(h.sql) && Object.values(sfS().streams || {}).some((x) => new RegExp(x.nombre, 'i').test(h.sql)))],
+      ['sf-task', 'Activa una task: EXECUTE TASK para su rol y RESUME', 'GRANT EXECUTE TASK ON ACCOUNT TO ROLE SYSADMIN; ALTER TASK mi_tarea RESUME;', () => Object.values(sfS().tasks || {}).some((t) => t.estado === 'started')],
+      ['sf-task-run', 'Mira una corrida de task en Task History', 'EXECUTE TASK mi_tarea; y abre Monitoring → Task History → Task Runs.', () => (sfS().taskHist || []).some((h) => h.estado === 'SUCCEEDED')],
+      ['sf-pipe', 'Carga un archivo con Snowpipe', 'CREATE PIPE p AUTO_INGEST = TRUE AS COPY INTO t FROM @stage …; sube un archivo al stage.', () => (sfS().copias || []).some((c) => c.pipe && c.estado === 'Loaded')],
+      ['sf-dt', 'Crea una dynamic table con TARGET_LAG', "CREATE DYNAMIC TABLE dt TARGET_LAG = '1 hour' WAREHOUSE = COMPUTE_WH AS SELECT …;", () => Object.keys(sfS().dinamicas || {}).length > 0],
+      ['sf-market', 'Obtén datos del Marketplace y crúzalos con los tuyos', 'Marketplace → un listado → Get; después un JOIN con TIENDA_ANDINA.', () => Object.keys(sfS().compartidas || {}).length > 0],
+      ['sf-nb', 'Corre un notebook con una celda SQL y una de Python', 'Notebooks → + Notebook → Run all.', () => (sfS().cuadernos || []).length > 0],
+      ['sf-st', 'Publica una app de Streamlit', 'Streamlit → + Streamlit App → cambia un filtro.', () => (sfS().apps || []).length > 0],
+    ]],
   ] };
 
   // Retos que cruzan herramientas: cada réplica deja una marca cuando otra la usa de verdad
