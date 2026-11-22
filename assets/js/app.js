@@ -65,7 +65,7 @@
     fabric: ['@databricks', '@iconos', 'fabric', 'fabric-editores'],
     airflow: ['airflow-iconos', 'airflow-motor', 'airflow', 'airflow-paginas', 'terminal-airflow'],
     snowflake: ['snowflake-motor', 'snowflake', 'snowflake-paginas'],
-    bigquery: ['@iconos', 'bigquery-motor', 'bigquery'],
+    bigquery: ['@iconos', 'bigquery-motor', 'bigquery', 'bigquery-paginas'],
     aws: ['aws-consola'],
     'azure-devops': ['azure-devops'],
     jira: ['jira'],

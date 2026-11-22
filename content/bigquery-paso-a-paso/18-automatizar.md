@@ -8,8 +8,8 @@ prerrequisitos: bigquery-paso-a-paso-information-schema
 autoevaluacion: ¿Sabes qué hace una scheduled query? | ¿Sabes para qué sirve @run_date? | ¿Sabes en qué se parece Dataform a dbt? | ¿Sabes cuándo conviene Airflow?
 ---
 
-:::nota En la práctica
-Scheduled queries y Dataform no están simulados: la práctica te muestra qué son. El SQL de esta lección es el de BigQuery real.
+:::tip Practícalo mientras lees
+En el [BigQuery de práctica](#/bigquery) funcionan las tres cosas de esta lección: **Scheduled queries** (con horario UTC, `@run_date`, destino y backfill), **Data transfers** (desde tus buckets de S3 o Cloud Storage) y **Dataform** (SQLX con `ref()`, incrementales y assertions).
 :::
 
 :::analogia Despertador, receta y jefe de cocina
@@ -20,7 +20,7 @@ Una scheduled query es un despertador: corre un SQL a la hora fijada. Dataform e
 
 ```captura
 archivo: bigquery/q18-programadas.webp
-texto: Scheduled queries - consultas que corren solas a horario (no simulado en la práctica)
+texto: Scheduled queries - el detalle de una consulta programada: horario en UTC, destino, cuenta de servicio y el historial de corridas
 ```
 
 En la consola, desde el editor: **Schedule** → nombre, frecuencia (por ejemplo, todos los días a las 06:00), dataset y tabla de destino y si **sobrescribe** o **agrega**. Usa los parámetros de la ejecución:
@@ -39,11 +39,17 @@ GROUP BY fecha, canal;
 | `@run_time` | El instante de la ejecución |
 | Destino `tabla$${run_date}` | Escribe en la partición de ese día |
 
+Tres detalles que en la práctica se ven igual que en la consola real:
+
+- El horario se escribe en inglés y está en **UTC**: `every day 09:00` es a las 6:00 de Buenos Aires. Las opciones válidas son del estilo `every 24 hours`, `every day 06:00`, `every monday 09:00` o `every mon,wed,fri 07:30`, con un mínimo de 15 minutos.
+- La consulta corre con una **cuenta de servicio**, no con tu usuario: esa cuenta necesita permisos sobre el dataset de destino.
+- **Schedule backfill** corre la consulta una vez por cada día de un rango, con `@run_date` igual a ese día. Es la forma de reprocesar días sin tocar el SQL.
+
 ## Paso 2 — Dataform
 
 ```captura
 archivo: bigquery/q18-dataform.webp
-texto: Dataform - transformaciones en SQLX con dependencias, pruebas y Git (no simulado en la práctica)
+texto: Dataform - los archivos SQLX, la consulta compilada y el grafo de dependencias
 ```
 
 ```sql norun
@@ -61,6 +67,22 @@ ${ when(incremental(), `WHERE p.fecha_pedido > (SELECT MAX(fecha) FROM ${self()}
 ```
 
 `${ref(...)}` arma el grafo de dependencias, las **assertions** son pruebas de calidad y todo vive en Git: la misma idea que [dbt](#/m/dbt), pero integrado en BigQuery.
+
+| Tipo (`config { type: … }`) | Qué crea | Cuándo |
+|---|---|---|
+| `declaration` | Nada: declara una tabla que ya existe para poder usar `ref()` | Las fuentes (lo que cargan otros) |
+| `view` | Una vista | Staging liviano |
+| `table` | Una tabla que se recrea completa en cada ejecución | Marts chicos o medianos |
+| `incremental` | Una tabla que la primera vez se crea y después solo agrega lo nuevo (`when(incremental(), …)`) | Hechos grandes que crecen todos los días |
+| `assertion` | Una consulta que tiene que devolver **cero** filas | Controles de calidad que frenan lo que depende de ellos |
+
+:::practica bigquery Dataform de punta a punta
+1. Abre **Dataform**: el repositorio de práctica ya trae dos fuentes declaradas, una vista de staging, una tabla, una incremental y una assertion.
+2. Mira el **grafo compilado** y la **consulta compilada** de `ventas_diarias`: `${ref("stg_pedidos")}` se convirtió en `` `dataform.stg_pedidos` ``.
+3. **Start execution**: se crean la vista, la tabla y la incremental, y corren las assertions (las de `nonNull` y `uniqueKey` salen del config).
+4. Vuelve a ejecutar y mira la consulta incremental: agrega solo las filas con fecha posterior al máximo, sin duplicar.
+5. Rompe algo a propósito: en `ventas_positivas.sqlx` cambia `ventas < 0` por `ventas > 0`. La assertion falla y lo que depende de ella se marca como SKIPPED.
+:::
 
 ## Paso 3 — ¿Qué uso?
 

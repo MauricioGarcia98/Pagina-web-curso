@@ -17,9 +17,9 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Automatizar - scheduled queries, Dataform y orquestadores</h1><p class="resumen">Una consulta que alguien corre a mano cada mañana es un riesgo. Conoces las scheduled queries (un SQL a horario que escribe en una tabla), Dataform (transformaciones versionadas con dependencias y pruebas, al estilo dbt) y cuándo conviene un orquestador como Airflow o Cloud Composer.</p>
 <a class="cta" href="../index.html#/l/bigquery-paso-a-paso-automatizar">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Programar una consulta con scheduled queries</li><li>Entender qué agrega Dataform</li><li>Elegir entre scheduled queries, Dataform y un orquestador</li><li>Usar parámetros de fecha en consultas programadas</li></ul>
-<div class="callout callout-nota"><div class="callout-title">📝 En la práctica</div>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
 
-<p>Scheduled queries y Dataform no están simulados: la práctica te muestra qué son. El SQL de esta lección es el de BigQuery real.</p>
+<p>En el <a href="#/bigquery">BigQuery de práctica</a> funcionan las tres cosas de esta lección: <strong>Scheduled queries</strong> (con horario UTC, <code>@run_date</code>, destino y backfill), <strong>Data transfers</strong> (desde tus buckets de S3 o Cloud Storage) y <strong>Dataform</strong> (SQLX con <code>ref()</code>, incrementales y assertions).</p>
 </div>
 
 
@@ -30,7 +30,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Paso 1 — Scheduled queries</h2>
-<figure class="captura"><img src="assets/img/guias/bigquery/q18-programadas.webp" alt="Scheduled queries - consultas que corren solas a horario (no simulado en la práctica)" loading="lazy"><figcaption>Scheduled queries - consultas que corren solas a horario (no simulado en la práctica)</figcaption></figure>
+<figure class="captura"><img src="assets/img/guias/bigquery/q18-programadas.webp" alt="Scheduled queries - el detalle de una consulta programada: horario en UTC, destino, cuenta de servicio y el historial de corridas" loading="lazy"><figcaption>Scheduled queries - el detalle de una consulta programada: horario en UTC, destino, cuenta de servicio y el historial de corridas</figcaption></figure>
 
 
 <p>En la consola, desde el editor: <strong>Schedule</strong> → nombre, frecuencia (por ejemplo, todos los días a las 06:00), dataset y tabla de destino y si <strong>sobrescribe</strong> o <strong>agrega</strong>. Usa los parámetros de la ejecución:</p>
@@ -56,8 +56,14 @@ GROUP BY fecha, canal;</code></pre>
 <td>Escribe en la partición de ese día</td>
 </tr>
 </tbody></table></div>
+<p>Tres detalles que en la práctica se ven igual que en la consola real:</p>
+<ul>
+<li>El horario se escribe en inglés y está en <strong>UTC</strong>: <code>every day 09:00</code> es a las 6:00 de Buenos Aires. Las opciones válidas son del estilo <code>every 24 hours</code>, <code>every day 06:00</code>, <code>every monday 09:00</code> o <code>every mon,wed,fri 07:30</code>, con un mínimo de 15 minutos.</li>
+<li>La consulta corre con una <strong>cuenta de servicio</strong>, no con tu usuario: esa cuenta necesita permisos sobre el dataset de destino.</li>
+<li><strong>Schedule backfill</strong> corre la consulta una vez por cada día de un rango, con <code>@run_date</code> igual a ese día. Es la forma de reprocesar días sin tocar el SQL.</li>
+</ul>
 <h2>Paso 2 — Dataform</h2>
-<figure class="captura"><img src="assets/img/guias/bigquery/q18-dataform.webp" alt="Dataform - transformaciones en SQLX con dependencias, pruebas y Git (no simulado en la práctica)" loading="lazy"><figcaption>Dataform - transformaciones en SQLX con dependencias, pruebas y Git (no simulado en la práctica)</figcaption></figure>
+<figure class="captura"><img src="assets/img/guias/bigquery/q18-dataform.webp" alt="Dataform - los archivos SQLX, la consulta compilada y el grafo de dependencias" loading="lazy"><figcaption>Dataform - los archivos SQLX, la consulta compilada y el grafo de dependencias</figcaption></figure>
 
 
 <pre data-norun tabindex="0"><code class="language-sql">-- definitions/hechos_ventas.sqlx
@@ -72,6 +78,49 @@ JOIN ${ref(&quot;clientes&quot;)} AS c USING (cliente_id)
 JOIN ${ref(&quot;detalle_pedidos&quot;)} AS d USING (pedido_id)
 ${ when(incremental(), `WHERE p.fecha_pedido &gt; (SELECT MAX(fecha) FROM ${self()})`) }</code></pre>
 <p><code>${ref(...)}</code> arma el grafo de dependencias, las <strong>assertions</strong> son pruebas de calidad y todo vive en Git: la misma idea que <a href="#/m/dbt">dbt</a>, pero integrado en BigQuery.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo (<code>config { type: … }</code>)</th>
+<th>Qué crea</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>declaration</code></td>
+<td>Nada: declara una tabla que ya existe para poder usar <code>ref()</code></td>
+<td>Las fuentes (lo que cargan otros)</td>
+</tr>
+<tr>
+<td><code>view</code></td>
+<td>Una vista</td>
+<td>Staging liviano</td>
+</tr>
+<tr>
+<td><code>table</code></td>
+<td>Una tabla que se recrea completa en cada ejecución</td>
+<td>Marts chicos o medianos</td>
+</tr>
+<tr>
+<td><code>incremental</code></td>
+<td>Una tabla que la primera vez se crea y después solo agrega lo nuevo (<code>when(incremental(), …)</code>)</td>
+<td>Hechos grandes que crecen todos los días</td>
+</tr>
+<tr>
+<td><code>assertion</code></td>
+<td>Una consulta que tiene que devolver <strong>cero</strong> filas</td>
+<td>Controles de calidad que frenan lo que depende de ellos</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Dataform de punta a punta</div>
+
+<ol>
+<li>Abre <strong>Dataform</strong>: el repositorio de práctica ya trae dos fuentes declaradas, una vista de staging, una tabla, una incremental y una assertion.</li>
+<li>Mira el <strong>grafo compilado</strong> y la <strong>consulta compilada</strong> de <code>ventas_diarias</code>: <code>${ref(&quot;stg_pedidos&quot;)}</code> se convirtió en <code>`dataform.stg_pedidos`</code>.</li>
+<li><strong>Start execution</strong>: se crean la vista, la tabla y la incremental, y corren las assertions (las de <code>nonNull</code> y <code>uniqueKey</code> salen del config).</li>
+<li>Vuelve a ejecutar y mira la consulta incremental: agrega solo las filas con fecha posterior al máximo, sin duplicar.</li>
+<li>Rompe algo a propósito: en <code>ventas_positivas.sqlx</code> cambia <code>ventas &lt; 0</code> por <code>ventas &gt; 0</code>. La assertion falla y lo que depende de ella se marca como SKIPPED.</li>
+</ol>
+</div>
+
+
 <h2>Paso 3 — ¿Qué uso?</h2>
 <div class="table-wrap"><table><thead><tr>
 <th>Si…</th>

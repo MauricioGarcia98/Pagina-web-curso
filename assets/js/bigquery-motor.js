@@ -35,6 +35,7 @@ ORDER BY pedidos DESC;
     d.consultas = d.consultas || [{ id: 'q1', nombre: 'Mi primera consulta', sql: EJEMPLO_INICIAL, creada: Date.now() }];
     d.jobs = d.jobs || []; d.replay = d.replay || []; d.meta = d.meta || {}; d.seq = d.seq || 1;
     d.abiertos = d.abiertos || { tienda: true };
+    d.vinculados = d.vinculados || {}; d.programadas = d.programadas || []; d.transferencias = d.transferencias || []; d.dataform = d.dataform || null; d.capacidad = d.capacidad || { reservas: [], compromisos: [] }; d.exchanges = d.exchanges || [];
     return d;
   }
   const guardar = () => { try { Store.saveSoon ? Store.saveSoon() : Store.save(); } catch (e) { /* sin almacenamiento */ } };
@@ -68,6 +69,7 @@ ORDER BY pedidos DESC;
         progreso(`Restaurando tus tablas (${s.replay.length} sentencias)…`);
         for (const r of s.replay) { try { await correr(r, { replay: true }); } catch (e) { /* ya no se puede recrear */ } }
       }
+      for (const [ds, v] of Object.entries(s.vinculados)) { try { await armarVinculado(ds, v.origen); } catch (e) { /* el origen ya no existe */ } }
       return con;
     })();
     cargando.catch(() => { cargando = null; });
@@ -457,6 +459,7 @@ ORDER BY pedidos DESC;
       const clave = limpio(sentencia).replace(/\s+/g, ' ').trim();
       const visible = sentencia.replace(/^(\s*(--|#)[^\n]*\n)+/, '').trim();
       try {
+        soloLectura(clave);
         est = await estimar(sentencia);
         const esSelect = /^(SELECT|WITH)\b/i.test(clave);
         const determinista = !/\b(CURRENT_DATE|CURRENT_TIMESTAMP|CURRENT_DATETIME|RAND|GENERATE_UUID|SESSION_USER)\b/i.test(clave);
@@ -474,6 +477,25 @@ ORDER BY pedidos DESC;
     }
     guardar(); avisar();
     return out;
+  }
+
+  // ------------------------------------------------------------------ Analytics Hub: datasets vinculados (solo lectura)
+  async function armarVinculado(ds, origen) {
+    await con.query(`CREATE SCHEMA IF NOT EXISTS ${q(ds)}`);
+    for (const t of await tablas(origen)) await con.query(`CREATE OR REPLACE VIEW ${q(ds)}.${q(t.nombre)} AS SELECT * FROM ${q(origen)}.${q(t.nombre)}`);
+    version++;
+  }
+  async function crearVinculado(ds, origen, listado) {
+    await init(); const s = st();
+    if (!/^\w+$/.test(ds)) throw err('Invalid dataset ID. Usa letras, números y guiones bajos.');
+    if ((await datasets()).includes(ds)) throw err(`Already Exists: Dataset ${PROYECTO}:${ds}`);
+    await armarVinculado(ds, origen); s.vinculados[ds] = { origen, listado, cuando: Date.now() }; guardar(); avisar();
+  }
+  function soloLectura(sql) {
+    const s = st(); if (!Object.keys(s.vinculados).length) return;
+    const m = /^(?:INSERT\s+(?:INTO\s+)?|UPDATE\s+|DELETE\s+(?:FROM\s+)?|MERGE\s+(?:INTO\s+)?|TRUNCATE\s+TABLE\s+|DROP\s+(?:TABLE|VIEW)\s+(?:IF\s+EXISTS\s+)?|CREATE\s+(?:OR\s+REPLACE\s+)?(?:TABLE|VIEW|MATERIALIZED\s+VIEW)\s+(?:IF\s+NOT\s+EXISTS\s+)?)(`[^`]+`|[\w.-]+)/i.exec(sql);
+    if (!m) return; const partes = m[1].replace(/`/g, '').split('.'); const ds = partes.length >= 2 ? partes[partes.length - 2] : null;
+    if (ds && s.vinculados[ds]) throw err(`Access Denied: Dataset ${PROYECTO}:${ds}: ${ds} es un dataset vinculado (linked dataset) de Analytics Hub y es de solo lectura. Copia lo que necesites a un dataset tuyo: CREATE TABLE mi_dataset.x AS SELECT … FROM ${ds}.…`);
   }
   // carga un archivo (CSV o JSON por líneas) a una tabla nueva: un job de tipo LOAD, que en BigQuery no se cobra
   async function cargarArchivo(ds, tabla, nombreArchivo, texto, op = {}) {
@@ -510,7 +532,7 @@ ORDER BY pedidos DESC;
   }
 
   window.BigQueryMotor = {
-    init: initConCargas, ejecutar, estimar: async (sql) => { await initConCargas(); return estimar(sql); }, partir, traducir, st, reiniciar, cargarArchivo, vistaPrevia,
+    init: initConCargas, ejecutar, crearVinculado, estimar: async (sql) => { await initConCargas(); return estimar(sql); }, partir, traducir, st, reiniciar, cargarArchivo, vistaPrevia,
     datasets: async () => { await initConCargas(); return datasets(); }, tablas, columnas, tamanos, fmtBytes, costo, oyentes,
     PROYECTO, USUARIO, USD_POR_TIB, MIN_FACTURADO,
     conectar: (store) => { Store = store; st(); },
