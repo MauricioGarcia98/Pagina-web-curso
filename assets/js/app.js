@@ -3063,9 +3063,9 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   const DIA = 86400000;
 
   // ---------------------------------------------------------------- tarjetas de repaso
-  // Repaso espaciado con 5 cajas (sistema Leitner): si la sabes, la tarjeta sube de caja y vuelve más tarde;
-  // si no, vuelve a la caja 1 y se repite en esta misma sesión.
-  const INTERVALO_CAJA = [0, 1, 2, 4, 8, 16]; // días hasta el próximo repaso, por caja (1..5)
+  // Repaso espaciado con FSRS (assets/js/fsrs.js): cada tarjeta guarda su estabilidad y su dificultad y vuelve justo
+  // cuando la probabilidad de recordarla baja al 90 %. Si no la sabías, se repite en esta misma sesión.
+  // Las tarjetas guardadas con el sistema anterior de 5 cajas se convierten solas la próxima vez que se repasan.
   const POR_SESION = 20, NUEVAS_POR_SESION = 10;
   const tarjetas = () => (Store.data.cards = Store.data.cards || {});
 
@@ -3086,7 +3086,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     let modo = Store.data.repasoModo || 'adivinar', area = '';
     main.innerHTML = `<div class="container">
       <h1 style="margin-bottom:4px">🃏 Tarjetas de repaso</h1>
-      <p class="muted" style="margin-top:0">Los ${G.length} términos del glosario en tarjetas. Usan <b>repaso espaciado</b>: lo que ya sabes vuelve cada vez más espaciado y lo que te cuesta vuelve pronto. Unos minutos por día alcanzan.</p>
+      <p class="muted" style="margin-top:0">Los ${G.length} términos del glosario en tarjetas. Usan <b>repaso espaciado</b> con el algoritmo FSRS (el mismo que trae Anki): cada tarjeta vuelve justo antes de que la olvides, así que lo que ya sabes vuelve cada vez más espaciado y lo que te cuesta vuelve pronto. Unos minutos por día alcanzan.</p>
       <div class="stats" id="rstats"></div>
       <div class="rep-opciones">
         <div class="seg" id="rmodo">
@@ -3179,6 +3179,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     let actual = null, volteada = false, hechas = 0;
     main.innerHTML = `<div class="container">
       <div class="crumbs"><a href="${cfg.volver.href}">${esc(cfg.volver.texto)}</a><span>/</span><span>Sesión</span></div>
+      <h1 class="sr-only">Sesión de repaso: ${esc(cfg.volver.texto)}</h1>
       <div class="bar" style="margin:6px 0 4px"><i id="rbar" style="width:0%;background:var(--brand)"></i></div>
       <p class="small muted" id="rcont"></p>
       <div id="rcarta"></div>
@@ -3194,21 +3195,20 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     const pintar = () => {
       const g = actual;
       const frente = cfg.frente(g, modo), dorso = cfg.dorso(g, modo);
+      const cuando = volteada ? window.FSRS.anticipo(tarjetas()[cfg.clave(g)]) : null;
       $('#rcarta').innerHTML = `<div class="card rep-carta ${volteada ? 'volteada' : ''}">
         <div class="rep-frente">${frente}</div>
         ${volteada ? `<div class="rep-dorso">${dorso}</div>
-          <div class="rep-botones"><button class="btn rep-mal" data-r="1">✗ No lo sabía</button><button class="btn rep-medio" data-r="2">~ Más o menos</button><button class="btn rep-bien" data-r="3">✓ Lo sabía</button></div>`
+          <div class="rep-botones">${[[1, 'rep-mal', '✗ No lo sabía'], [2, 'rep-medio', '~ Más o menos'], [3, 'rep-bien', '✓ Lo sabía']].map(([r, cl, txt]) => `<button class="btn ${cl}" data-r="${r}">${txt}<small class="rep-cuando">vuelve ${cuando[r]}</small></button>`).join('')}</div>`
         : '<div class="rep-botones"><button class="btn btn-primary" data-flip>Dar vuelta</button></div>'}
       </div>`;
       $$('#rcarta pre').forEach((pre) => { try { highlight(pre); } catch (e) { /* sin resaltado */ } });
     };
     const calificar = (r) => {
       const c = tarjetas(), t = cfg.clave(actual), ahora = Date.now();
-      const prev = c[t] || { b: 0 };
       Store.data.ultimoRepaso = ahora;
-      if (r === 1) { c[t] = { b: 1, due: ahora }; mazo.push(actual); }
-      else if (r === 2) { const b = Math.max(1, prev.b); c[t] = { b, due: ahora + DIA }; hechas++; }
-      else { const b = Math.min(5, prev.b + 1); c[t] = { b, due: ahora + INTERVALO_CAJA[b] * DIA }; hechas++; }
+      c[t] = window.FSRS.calificar(c[t], r, ahora);
+      if (r === 1) mazo.push(actual); else hechas++;
       res[r]++;
       Store.save();
       siguiente();
@@ -3220,7 +3220,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       $('.rep-ayuda').remove();
       $('#rcarta').innerHTML = `<div class="card rep-carta"><h2 style="margin-top:0">🎉 ¡Sesión terminada!</h2>
         <p>Repasaste <b>${total}</b> tarjetas: <b>${res[3]}</b> las sabías, <b>${res[2]}</b> más o menos y <b>${res[1]}</b> veces tuviste que repetir alguna.</p>
-        <p class="muted">Las que sabías vuelven en unos días; las que te costaron, mañana. Volver un poco cada día funciona mucho mejor que repasar todo de una vez.</p>
+        <p class="muted">Cada tarjeta vuelve justo antes de que se te olvide: las que sabías, cada vez más espaciadas (días, después semanas y meses); las que te costaron, pronto. Volver un poco cada día funciona mucho mejor que repasar todo de una vez.</p>
         <div class="row"><a class="btn btn-primary" href="${cfg.volver.href}">Volver a las tarjetas</a><a class="btn" href="${cfg.examen || '#/examenes'}">📝 Ir a ${cfg.examen ? 'la práctica' : 'los exámenes'}</a></div></div>`;
     };
     $('#rcarta').addEventListener('click', (e) => {

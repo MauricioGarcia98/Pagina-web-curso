@@ -114,6 +114,7 @@ Cada push a `main` y cada pull request corre `.github/workflows/pruebas.yml` en 
 | Sintaxis | `node --check` | que todo el JavaScript sea válido |
 | Generados al día | `node tools/build.mjs` | que el contenido generado coincida con el que está en el repositorio |
 | Validador | `node tools/validate.mjs` | que la solución de cada ejercicio (más de 4.000) pase su corrección |
+| Repaso espaciado | `node tools/fsrs.mjs` | que el algoritmo FSRS de las tarjetas dé intervalos con sentido y convierta las tarjetas del sistema anterior de cajas |
 | DuckDB | `node tools/duckdb.mjs` | que cada solución SQL corra en DuckDB, el motor del curso |
 | Humo | `node tools/humo.mjs` | que las páginas principales y las réplicas abran sin errores |
 | Ejercicios en el navegador | `node tools/ejercicios-navegador.mjs` | que cada solución de SQL, Python y PySpark pase también con los motores del navegador (DuckDB-WASM, SQLite y Pyodide) |
