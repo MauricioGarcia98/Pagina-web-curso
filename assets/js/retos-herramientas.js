@@ -212,6 +212,27 @@
     ]],
   ] };
 
+  // Azure DevOps: mira el estado de la réplica (Store.data.ado) y los remotos de la terminal
+  const adS = () => (Store && Store.data.ado) || { items: [], pipes: [], prs: [], ev: {} };
+  const adE = (k) => (adS().ev || {})[k] > 0;
+  RETOS['azure-devops'] = { titulo: 'Retos de Azure DevOps', niveles: [
+    ['Básico', [
+      ['ad-mover', 'Mueve una historia de New a Active en el tablero', 'Boards → arrastra la tarjeta (o cambia su estado en el menú de la tarjeta).', () => adE('board-mover')],
+      ['ad-item', 'Crea un work item hijo de una historia', 'Abre una User Story → Add child → Task.', () => (adS().items || []).some((x) => x.id >= 10 && x.padre)],
+      ['ad-puntos', 'Estima una historia en Story Points', 'Abre una User Story → Story Points → Save & Close.', () => adE('wi-puntos')],
+    ]],
+    ['Intermedio', [
+      ['ad-push', 'Sube un commit a Azure Repos desde la terminal', 'git clone https://dev.azure.com/academia/tienda-andina/_git/pipelines, un cambio, git commit y git push.', () => adE('push')],
+      ['ad-pipe', 'Crea un pipeline con azure-pipelines.yml', 'Pipelines → New pipeline → Azure Repos Git → pipelines → Python package → Save and run.', () => (adS().pipes || []).length > 0],
+      ['ad-verde', 'Deja el pipeline en verde (con requirements.txt y tests)', 'Si falla, lee el log: sube requirements.txt y tests/test_etl.py desde la terminal.', () => adE('run-ok') && (adS().pipes || []).some((p) => (p.runs || []).some((r) => r.estado === 'succeeded' && /pytest/.test(p.yaml)))],
+    ]],
+    ['Avanzado', [
+      ['ad-politica', 'Protege main con una política de rama', 'Repos → Branches → main → Add branch policies.', () => !!adS().politicaMain],
+      ['ad-pr', 'Completa un pull request enlazado a un work item', 'Sube una rama, New pull request, enlaza el ítem, pide revisión y Complete.', () => (adS().prs || []).some((p) => p.estado === 'completed' && (p.items || []).length)],
+      ['ad-cerrar', 'Cierra una historia del sprint', 'El PR completado cierra el ítem enlazado, o muévelo a Closed.', () => adE('board-cerrar')],
+    ]],
+  ] };
+
   // JupyterLab: mira el historial de celdas ejecutadas, los archivos y los eventos de la réplica
   const jpS = () => (Store && Store.data.jupyter) || { archivos: {}, hist: [], eventos: {} };
   const jpH = (f) => (jpS().hist || []).some((x) => f(x.code || '', x.tipos || []));

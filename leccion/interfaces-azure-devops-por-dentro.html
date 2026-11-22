@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Azure DevOps por dentro - Boards, Repos y Pipelines de un equipo de datos · Academia de Datos</title><meta name="description" content="Recorrido por Azure DevOps, la plataforma de Microsoft que muchas empresas usan en lugar de (o junto a) GitHub y Jira. El trabajo del equipo se organiza en Boards, con Epic, Feature, User Story, Task y Bug, sobre un tablero Kanban y en sprints. El código vive en Azure Repos, conectado a la terminal. Los cambios entran por pull request con política de rama. Un pipeline YAML corre los tests en cada push."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-azure-devops-por-dentro.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Azure DevOps por dentro - Boards, Repos y Pipelines de un equipo de datos · Academia de Datos"><meta property="og:description" content="Recorrido por Azure DevOps, la plataforma de Microsoft que muchas empresas usan en lugar de (o junto a) GitHub y Jira. El trabajo del equipo se organiza en Boards, con Epic, Feature, User Story, Task y Bug, sobre un tablero Kanban y en sprints. El código vive en Azure Repos, conectado a la terminal. Los cambios entran por pull request con política de rama. Un pipeline YAML corre los tests en cada push."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-azure-devops-por-dentro.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#interfaces">🧭 Las herramientas por dentro: qué es cada cosa</a> · Intermedio · 45 min</div>
+<h1>Azure DevOps por dentro - Boards, Repos y Pipelines de un equipo de datos</h1><p class="resumen">Recorrido por Azure DevOps, la plataforma de Microsoft que muchas empresas usan en lugar de (o junto a) GitHub y Jira. El trabajo del equipo se organiza en Boards, con Epic, Feature, User Story, Task y Bug, sobre un tablero Kanban y en sprints. El código vive en Azure Repos, conectado a la terminal. Los cambios entran por pull request con política de rama. Un pipeline YAML corre los tests en cada push.</p>
+<a class="cta" href="../index.html#/l/interfaces-azure-devops-por-dentro">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Organizar el trabajo con la jerarquía Epic › Feature › User Story › Task, y Bug</li><li>Mover historias por el tablero, estimarlas y planificar un sprint</li><li>Subir código a Azure Repos desde la terminal y abrir un pull request enlazado a un work item</li><li>Crear un pipeline con azure-pipelines.yml y leer por qué falla un paso</li><li>Proteger main con una política de rama</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
+
+<p>Abre <a href="#/azure-devops/tienda-andina">Azure DevOps de práctica</a>. Los repositorios son los mismos remotos de la <a href="#/lab/terminal">terminal</a>: <code>git push</code> a <code>https://dev.azure.com/academia/tienda-andina/_git/pipelines</code> aparece en Repos y dispara el pipeline. No necesitas cuenta de Microsoft.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Azure DevOps junta en un solo lugar tres cosas que un equipo necesita:</p>
+<ul>
+<li>la <strong>pizarra</strong> con las tareas (<em>Boards</em>);</li>
+<li>el <strong>archivo</strong> con el código y su historia (<em>Repos</em>);</li>
+<li>la <strong>línea de producción</strong> que revisa cada cambio antes de que llegue a producción (<em>Pipelines</em>).</li>
+</ul>
+<p>Es como si GitHub, Jira y un robot de control de calidad vivieran en la misma oficina.</p>
+</div>
+
+
+<h2>La organización y el proyecto</h2>
+<p>La dirección es <code>dev.azure.com/&lt;organización&gt;/&lt;proyecto&gt;</code>. La <strong>organización</strong> es la empresa. Cada <strong>proyecto</strong> agrupa el tablero, los repositorios y los pipelines de un producto o equipo. En la práctica: <code>academia/tienda-andina</code>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Sección del menú</th>
+<th>Para qué la usa un equipo de datos</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Overview</strong></td>
+<td>Resumen del proyecto, miembros y estadísticas</td>
+</tr>
+<tr>
+<td><strong>Boards</strong></td>
+<td>Tareas: tablero Kanban, backlog, sprints</td>
+</tr>
+<tr>
+<td><strong>Repos</strong></td>
+<td>Código: archivos, commits, ramas y pull requests</td>
+</tr>
+<tr>
+<td><strong>Pipelines</strong></td>
+<td>CI/CD: tests y despliegues automáticos</td>
+</tr>
+<tr>
+<td>Test Plans, Artifacts</td>
+<td>Pruebas manuales y paquetes internos (casi no se usan en datos)</td>
+</tr>
+</tbody></table></div>
+<h2>Boards: el trabajo del equipo</h2>
+<p>Con el proceso <strong>Agile</strong>, el trabajo se parte en una jerarquía:</p>
+<figure class="diagrama"><figcaption>De la iniciativa a la tarea de hoy</figcaption></figure>
+
+
+<ul>
+<li><strong>Tablero (Boards)</strong>: columnas <em>New → Active → Resolved → Closed</em>. Arrastras una tarjeta cuando cambia su estado. Cada tarjeta muestra quién la tiene, sus puntos y cuántas tasks están hechas.</li>
+<li><strong>Backlog</strong>: la lista priorizada de todo, con la jerarquía.</li>
+<li><strong>Sprints</strong>: lo que el equipo se comprometió a terminar en dos semanas, con su avance.</li>
+</ul>
+<figure class="captura"><img src="assets/img/guias/azure-devops/d01-tablero.webp" alt="El tablero: una columna por estado y una tarjeta por historia o bug" loading="lazy"><figcaption>El tablero: una columna por estado y una tarjeta por historia o bug</figcaption></figure>
+
+
+<h2>Repos: el código, conectado a la terminal</h2>
+<p>Azure Repos es Git, igual que GitHub. Desde la terminal del curso:</p>
+<pre tabindex="0"><code class="language-bash">git clone https://dev.azure.com/academia/tienda-andina/_git/pipelines
+cd pipelines
+git checkout -b feature/tests
+printf &quot;pytest\n&quot; &gt; requirements.txt
+git add . &amp;&amp; git commit -m &quot;Agrega requirements AB#9&quot;
+git push -u origin feature/tests</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(6)</span></summary><ol><li><code class="bx-linea">git clone https://dev.azure.com/academia/tienda-andina/_git/pipelines</code><span><code>git</code>: Git: guarda la historia de tu código. <code>clone</code> descarga una copia completa de un repositorio remoto, con toda su historia</span></li><li><code class="bx-linea">cd pipelines</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">git checkout -b feature/tests</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella). <code>-b</code> = crea la rama nueva</span></li><li><code class="bx-linea">printf &quot;pytest\n&quot; &gt; requirements.txt</code><span><code>printf</code>: escribe texto con formato (como echo, pero controlando saltos de línea y columnas). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li><li><code class="bx-linea">git add . &amp;&amp; git commit -m &quot;Agrega requirements AB#9&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>add</code> prepara cambios para el próximo commit (los pasa al área de preparación). <code>.</code> = todos los archivos de la carpeta actual <span class="bx-tubo">→ si sale bien, sigue el próximo</span><br><code>git</code>: Git: guarda la historia de tu código. <code>commit</code> guarda una foto de los cambios preparados, con un mensaje. <code>-m</code> = el mensaje del commit</span></li><li><code class="bx-linea">git push -u origin feature/tests</code><span><code>git</code>: Git: guarda la historia de tu código. <code>push</code> sube tus commits al repositorio remoto (GitHub). <code>-u</code> = recuerda la rama remota: después alcanza con <code>git push</code></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<p><code>AB#9</code> en el mensaje <strong>enlaza el commit con el work item 9</strong>. En el ítem, la sección <em>Development</em> muestra el commit y el pull request: cualquiera puede ver qué código resolvió qué pedido.</p>
+<p>Después: <strong>Repos → Pull requests → New pull request</strong>, de <code>feature/tests</code> a <code>main</code>, enlazado al ítem. Un compañero revisa y aprueba, y <strong>Complete</strong> une la rama.</p>
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Una empresa real</div>
+
+<p>La primera vez que haces <code>git clone</code>, Git abre el navegador para que entres con tu cuenta de Microsoft (Git Credential Manager). No se usan contraseñas en la URL. En los pipelines, el acceso a Azure se da con una <em>service connection</em>, sin secretos en el YAML.</p>
+</div>
+
+
+<h2>Pipelines: los tests en cada cambio</h2>
+<p><strong>Pipelines → New pipeline → Azure Repos Git → el repositorio → Python package</strong>. El asistente crea <code>azure-pipelines.yml</code> en el repositorio:</p>
+<pre data-norun tabindex="0"><code class="language-yaml">trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.12'
+
+- script: pip install -r requirements.txt
+  displayName: 'Install dependencies'
+
+- script: pytest -q
+  displayName: 'Run tests'</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Qué significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>trigger: - main</code></td>
+<td>Corre solo con cada push a <code>main</code></td>
+</tr>
+<tr>
+<td><code>pool: vmImage</code></td>
+<td>La máquina que presta Microsoft para correrlo (un <em>agente</em>)</td>
+</tr>
+<tr>
+<td><code>steps</code></td>
+<td>Los pasos, en orden. Si uno falla, los siguientes no corren</td>
+</tr>
+</tbody></table></div>
+<p>Si el repositorio no tiene <code>requirements.txt</code>, el paso <em>Install dependencies</em> falla. Si no tiene tests, <code>pytest</code> termina con código 5 (<em>no tests ran</em>). <strong>Lee el paso en rojo</strong>: el log dice exactamente qué faltó.</p>
+<figure class="captura"><img src="assets/img/guias/azure-devops/d02-run.webp" alt="Una ejecución fallida: los pasos a la izquierda y el log del que falló a la derecha" loading="lazy"><figcaption>Una ejecución fallida: los pasos a la izquierda y el log del que falló a la derecha</figcaption></figure>
+
+
+<h2>Políticas de rama</h2>
+<p><strong>Repos → Branches → main → Add branch policies</strong>: desde ese momento, a <code>main</code> solo se entra por pull request, con <strong>1 revisor</strong> y la <strong>build de validación en verde</strong>. El botón <em>Complete</em> queda deshabilitado hasta que se cumpla todo.</p>
+<h2>Azure DevOps, GitHub y Jira</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Necesidad</th>
+<th>Azure DevOps</th>
+<th>GitHub</th>
+<th>Atlassian</th>
+</tr>
+</thead><tbody><tr>
+<td>Tareas</td>
+<td>Boards</td>
+<td>Issues y Projects</td>
+<td>Jira</td>
+</tr>
+<tr>
+<td>Código</td>
+<td>Repos</td>
+<td>Repositorios</td>
+<td>Bitbucket</td>
+</tr>
+<tr>
+<td>CI/CD</td>
+<td>Pipelines (YAML)</td>
+<td>Actions (YAML)</td>
+<td>Bitbucket Pipelines</td>
+</tr>
+</tbody></table></div>
+<p>Los conceptos son los mismos: si sabes uno, aprendes los otros en una tarde. Muchas empresas que usan Azure y Microsoft 365 eligen Azure DevOps.</p>
+<h2>Qué tiene la réplica y qué no</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En la réplica</th>
+<th>Todavía no</th>
+</tr>
+</thead><tbody><tr>
+<td>Boards: tablero, backlog con jerarquía, sprints, work items con comentarios</td>
+<td>Consultas guardadas (WIQL), dashboards, capacidad por persona</td>
+</tr>
+<tr>
+<td>Repos conectados a la terminal: archivos, commits, ramas, pull requests con revisión</td>
+<td>Comentarios en líneas del diff, <em>squash merge</em>, forks</td>
+</tr>
+<tr>
+<td>Pipelines YAML con ejecución por pasos, logs y triggers por push</td>
+<td>Varias etapas y entornos con aprobación, variables y grupos de variables</td>
+</tr>
+<tr>
+<td>Política de rama en main</td>
+<td>Revisores obligatorios por carpeta, <em>status checks</em> externos</td>
+</tr>
+</tbody></table></div>
+<p>Los pasos del pipeline se simulan a partir de lo que hay en el repositorio: <code>pip install -r</code> busca el archivo, <code>pytest</code> cuenta las funciones <code>test_</code> de <code>tests/test_*.py</code>.</p>
+<div class="callout callout-practica"><div class="callout-title">🛠️ Practícalo en la herramienta: Del ítem al pipeline en verde</div>
+
+<ol>
+<li>En <strong>Boards</strong>, mueve la historia 9 a <em>Active</em> y estímala en puntos.</li>
+<li>Crea el pipeline con la plantilla <em>Python package</em>: va a fallar. Lee por qué.</li>
+<li>Desde la terminal, clona el repositorio y sube <code>requirements.txt</code> y <code>tests/test_etl.py</code> con un commit que diga <code>AB#9</code> (si el push se rechaza, primero <code>git pull</code>).</li>
+<li>Mira cómo el push dispara el pipeline y queda en verde.</li>
+<li>Agrega la política de rama a <code>main</code> y completa un pull request enlazado a la historia.</li>
+</ol>
+<p>Documentación oficial: <a href="https://learn.microsoft.com/azure/devops/boards/">Azure Boards</a> · <a href="https://learn.microsoft.com/azure/devops/pipelines/create-first-pipeline">crear tu primer pipeline</a> · <a href="https://learn.microsoft.com/azure/devops/repos/git/branch-policies">políticas de rama</a></p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Tareas sin historia</strong>: si las tasks no cuelgan de una historia, nadie sabe para qué sirve el trabajo.</li>
+<li><strong>Commits sin <code>AB#</code></strong>: en tres meses nadie sabe qué pedido resolvió ese cambio.</li>
+<li><strong>Cambiar el YAML en <code>main</code> sin probarlo</strong>: el pipeline falla para todo el equipo. Pruébalo en una rama con un PR.</li>
+<li><strong>Dejar <code>main</code> sin política</strong>: cualquiera sube código sin revisión y sin tests.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Azure DevOps reúne <strong>Boards</strong> (trabajo), <strong>Repos</strong> (código) y <strong>Pipelines</strong> (CI/CD) en <code>dev.azure.com/organización/proyecto</code>.</li>
+<li>Jerarquía Agile: Epic › Feature › User Story › Task, y Bug. Las historias se estiman y entran en sprints.</li>
+<li><code>AB#ID</code> en un commit enlaza el código con el pedido.</li>
+<li>Un pipeline YAML con <code>trigger: main</code> corre los tests en cada push. Si falla, el log del paso en rojo dice qué faltó.</li>
+<li>Una política de rama en <code>main</code> exige pull request, revisión y build en verde.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/interfaces-azure-devops-por-dentro">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="interfaces-consola-aws-por-dentro.html">← La consola de AWS por dentro - S3, Glue, Athena e IAM para un lago de datos</a><a href="excel-la-pantalla.html">Excel desde cero - la pantalla, las celdas y tu primer libro →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

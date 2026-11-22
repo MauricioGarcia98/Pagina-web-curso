@@ -17,6 +17,7 @@ const PAGINAS = [
   ['Snowflake', '#/snowflake', '.sfp'],
   ['BigQuery', '#/bigquery', '.bqp'],
   ['Consola de AWS', '#/aws', '.awp'],
+  ['Azure DevOps', '#/azure-devops/tienda-andina/boards', '.ado-kanban'],
   ['JupyterLab', '#/jupyter', '.jlp'],
   ['Excel', '#/excel', '.xlp'],
 ];
