@@ -1232,3 +1232,10 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .mv-resp .input { flex: 1 1 200px; min-width: 0; padding: 6px 8px; }
 .mv-res { margin-top: 6px; color: var(--danger, #b91c1c); }
 .mv-grilla > div { border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+
+/* sqlglot en el laboratorio SQL: formatear y traducir */
+.sqlg-barra { flex-wrap: wrap; gap: 8px; align-items: center; }
+.sqlg-dest { height: 30px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 0 6px; font: inherit; font-size: 13px; }
+.sqlg-panel { margin: 8px 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); }
+.sqlg-panel pre { margin: 8px 0 4px; max-height: 340px; overflow: auto; }
+.sqlg-error { border-color: var(--bad); }
