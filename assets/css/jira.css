@@ -215,3 +215,4 @@ body.jr-abierto { overflow: hidden; }
   .jr-tl { grid-template-columns: 1fr; gap: 4px; }
 }
 .jr-board-w .jr-board.jr-board-h .jr-col { min-height: 0; padding: 0 8px; background: none; border: 0; }
+.jr-proy-ic-sm { width: 22px; height: 22px; font-size: 10px; display: inline-grid; vertical-align: middle; margin-right: 4px; }

@@ -173,6 +173,42 @@ Riesgos: el formato de los archivos puede cambiar sin aviso; los viajes tardíos
 </div>
 
 
+<h2>Cómo se trabaja: el proyecto PD en Jira</h2>
+<p>En una empresa nadie trabaja &quot;desde un correo&quot;: cada pedido es un <strong>ticket</strong> con dueño, estado, fecha y criterios de aceptación. Trabajas en una consultora de datos y Pedalia es un cliente, así que tiene su propio proyecto de Jira con la clave <strong>PD</strong>: lo abres en <a href="#/jira/projects/PD/board">Jira → Projects → Pedalia</a>.</p>
+<figure class="diagrama"><figcaption>El recorrido de un ticket de Pedalia, de punta a punta</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo de ticket</th>
+<th>En Jira</th>
+<th>Cómo se cierra</th>
+</tr>
+</thead><tbody><tr>
+<td>📋 Requerimiento (&quot;necesito una tabla con…&quot;)</td>
+<td><strong>Story</strong> con story points y épica <em>Entrega</em></td>
+<td>Pásalo a <strong>In Review</strong>: el líder corre los criterios de aceptación y lo aprueba o lo devuelve con un comentario</td>
+</tr>
+<tr>
+<td>🔥 Incidente (&quot;el tablero está mal desde ayer&quot;)</td>
+<td><strong>Bug</strong> con prioridad <em>Highest</em> y vencimiento al día siguiente</td>
+<td>Igual que un requerimiento, pero primero: es lo urgente del sprint</td>
+</tr>
+<tr>
+<td>❓ Pregunta del negocio (&quot;¿cuánto fue…?&quot;)</td>
+<td><strong>Task</strong> con la etiqueta <em>consulta-negocio</em></td>
+<td>Responde con un <strong>comentario</strong> en la issue. Quien preguntó lo verifica: si coincide, agradece y lo cierra; si no, te dice qué no le cierra</td>
+</tr>
+</tbody></table></div>
+<p>Las búsquedas que más vas a usar en este proyecto:</p>
+<pre data-norun tabindex="0"><code class="language-sql">project = PD AND assignee = currentUser() AND statusCategory != Done ORDER BY priority DESC
+project = PD AND type = Bug AND resolution = Unresolved
+project = PD AND labels = consulta-negocio AND status != Done</code></pre>
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Un día normal en Pedalia</div>
+
+<p>Empieza en el <strong>Board</strong> de PD: ¿llegó algo nuevo? ¿hay un Bug <em>Highest</em>? En la reunión diaria cuentas qué cerraste, qué vas a hacer y qué te traba (si algo te traba, ponle un <strong>flag</strong> a la tarjeta). Trabaja de a un ticket: tómalo, nombra la clave en cada commit y, cuando esté listo, pásalo a In Review. Al final del sprint, el <strong>Sprint report</strong> muestra lo entregado y lo que llegó a mitad de camino (marcado con un asterisco): de eso se habla en la retrospectiva.</p>
+</div>
+
+
 <div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
 
 <p>En una empresa, este pedido llega por <strong>correo o por Slack/Teams</strong>, y el plan se responde por el mismo canal o en un documento compartido (Google Docs, Confluence, Notion). En tu computadora:</p>

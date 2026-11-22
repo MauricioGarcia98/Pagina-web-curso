@@ -261,6 +261,8 @@
       ['jr-link', 'Vincula dos issues (una bloquea a la otra)', 'Abre una issue → 🔗 Link → blocks → la otra issue.', () => jrE('link')],
       ['jr-smart', 'Haz un smart commit desde la terminal', 'git commit -m "TA-7 #comment Listo #time 1h #in-review" y git push a un repo remoto; mira Code.', () => (jrS().smart || []).some((r) => r.ok)],
       ['jr-cfd', 'Mira el cumulative flow diagram', 'Reports → Cumulative flow diagram.', () => jrE('cfd')],
+      ['jr-cliente', 'Entrega un ticket de un cliente y que el líder lo apruebe', 'Projects → un proyecto que empezaste → toma una Story → In Review: el líder la revisa contra los criterios.', () => jrE('ticket-aceptado')],
+      ['jr-pregunta', 'Responde una pregunta del negocio con un comentario', 'Una Task con la etiqueta consulta-negocio → escribe el número en un comentario.', () => jrE('ticket-respondido')],
     ]],
   ] };
 
