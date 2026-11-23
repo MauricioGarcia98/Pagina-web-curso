@@ -84,7 +84,7 @@
     if (malM.length) m.push(`${malM.length} con otro mrr_actual (o sin mrr_actual)`);
     return !m.length || m.join(' · ');
   }
-  const CHEQUEOS = [['Seguridad', 'Las tres credenciales en un Key Vault', chequeoKV], ['MRR', 'cc.gold.mrr_mensual: MRR y movimiento por cliente, últimos 6 meses cerrados', chequeoMrr], ['Cliente 360', 'cc.gold.cliente_360: CRM + facturación + uso, por cliente que paga', chequeo360]];
+  const CHEQUEOS = [['Seguridad', 'Las tres credenciales en un Key Vault', chequeoKV], ['MRR', 'cc.gold.mrr_mensual: MRR y movimiento por cliente, últimos 6 meses cerrados', chequeoMrr], ['Cliente 360', 'cc.gold.cliente_360: CRM + facturación + uso, por cliente que paga', chequeo360], ['Reverse ETL', 'health_score, mrr_actual y plan_actual escritos en la empresa del CRM de cada cliente que paga', chequeoReverse]];
 
   // ---------------------------------------------------------------- tablero
   const totalMrr = (mes) => Math.round([...CC.mrrMes(mes).values()].reduce((a, b) => a + b, 0) * 100) / 100;

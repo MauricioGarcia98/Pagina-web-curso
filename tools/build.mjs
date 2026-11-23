@@ -192,6 +192,9 @@ function md(text, file = '') {
   // :::practica <app>[:<motor>] <título> → bloque que abre la herramienta de práctica (practica.js le agrega el botón)
   text = text.replace(/^:::practica[ \t]+([a-z-]+)(?::([a-z/]+))?[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*$/gm, (_, app, motor, title, body) =>
     `<div class="callout callout-practica" data-app="${app}" data-motor="${motor || ''}" data-titulo="${escapeHtml(title)}"><div class="callout-title">🛠️ Practícalo en la herramienta${title ? ': ' + escapeHtml(title) : ''}</div>\n\n${body}\n</div>\n`);
+  // :::solucion <PROYECTO>:<grupo[+grupo]> <título> → solución de referencia que se desbloquea al aprobar ese paso (soluciones.js)
+  text = text.replace(/^:::solucion[ \t]+([A-Z]{2,4}:[^ \t\n]+(?:[ \t][^\n]*?)?)[ \t]*\|[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*$/gm, (_, clave, title, body) =>
+    `<div class="callout callout-solucion" data-solucion="${escapeHtml(clave.trim())}"><div class="callout-title">🔒 Solución de referencia${title ? ': ' + escapeHtml(title) : ''}</div>\n\n${body}\n</div>\n`);
   text = text.replace(/^:::(tip|nota|cuidado|analogia|experto|entrevista|escenario|trabajo|errores|examen|real|capturas)[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*$/gm, (_, kind, title, body) =>
     `<div class="callout callout-${kind}"><div class="callout-title">${escapeHtml(title ? CALLOUTS[kind].split(' ')[0] + ' ' + title : CALLOUTS[kind])}</div>\n\n${body}\n</div>\n`);
   return marked.parse(text);

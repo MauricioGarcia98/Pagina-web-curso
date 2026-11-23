@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Paso a paso - una solución completa, explicada · Academia de Datos</title><meta name="description" content="Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - el MRR reconstruido desde el log de eventos, la unión con el CRM por id y por dominio, el health score y el reverse ETL que respeta el límite de pedidos. Léela después de intentarlo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-cuentas-claras-paso-a-paso.html">
-<meta property="og:type" content="article"><meta property="og:title" content="Paso a paso - una solución completa, explicada · Academia de Datos"><meta property="og:description" content="Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - el MRR reconstruido desde el log de eventos, la unión con el CRM por id y por dominio, el health score y el reverse ETL que respeta el límite de pedidos. Léela después de intentarlo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-cuentas-claras-paso-a-paso.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<title>Construirlo paso a paso - una guía, no una solución · Academia de Datos</title><meta name="description" content="Construyes el proyecto de cero con los datos de Cuentas Claras a volumen de empresa (unos 3.000 clientes, 18 meses de facturación y cerca de medio millón de eventos de uso por mes). Cada paso dice qué tienes que lograr, qué trampas esconden los datos, cómo comprobarlo tú y pistas graduales. El código de referencia de cada paso se desbloquea recién cuando tu entrega pasa la revisión."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-cuentas-claras-paso-a-paso.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Construirlo paso a paso - una guía, no una solución · Academia de Datos"><meta property="og:description" content="Construyes el proyecto de cero con los datos de Cuentas Claras a volumen de empresa (unos 3.000 clientes, 18 meses de facturación y cerca de medio millón de eventos de uso por mes). Cada paso dice qué tienes que lograr, qué trampas esconden los datos, cómo comprobarlo tú y pistas graduales. El código de referencia de cada paso se desbloquea recién cuando tu entrega pasa la revisión."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-cuentas-claras-paso-a-paso.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
 *{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
 header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
@@ -13,67 +13,99 @@ code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:aut
 img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
 footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
 <header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
-<main><div class="migas"><a href="index.html#proyecto-cuentas-claras">📈 Proyecto 5: Cuentas Claras, MRR, cliente 360 y reverse ETL</a> · Avanzado · 60 min</div>
-<h1>Paso a paso - una solución completa, explicada</h1><p class="resumen">Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - el MRR reconstruido desde el log de eventos, la unión con el CRM por id y por dominio, el health score y el reverse ETL que respeta el límite de pedidos. Léela después de intentarlo.</p>
-<a class="cta" href="../index.html#/l/proyecto-cuentas-claras-paso-a-paso">▶ Abrir la lección interactiva (2 ejercicios)</a>
-<h2>Al terminar vas a poder</h2><ul class="lista"><li>Ver cómo se reconstruye el estado de cada mes desde un log de eventos</li><li>Unir entidades entre sistemas con un respaldo por dominio</li><li>Escribir de vuelta en una herramienta operativa sin pasarse del límite</li></ul>
-<div class="callout callout-cuidado"><div class="callout-title">⚠️ Inténtalo primero</div>
+<main><div class="migas"><a href="index.html#proyecto-cuentas-claras">📈 Proyecto 5: Cuentas Claras, MRR, cliente 360 y reverse ETL</a> · Avanzado · 240 min</div>
+<h1>Construirlo paso a paso - una guía, no una solución</h1><p class="resumen">Construyes el proyecto de cero con los datos de Cuentas Claras a volumen de empresa (unos 3.000 clientes, 18 meses de facturación y cerca de medio millón de eventos de uso por mes). Cada paso dice qué tienes que lograr, qué trampas esconden los datos, cómo comprobarlo tú y pistas graduales. El código de referencia de cada paso se desbloquea recién cuando tu entrega pasa la revisión.</p>
+<a class="cta" href="../index.html#/l/proyecto-cuentas-claras-paso-a-paso">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explorar tres APIs desconocidas y anotar sus reglas antes de programar</li><li>Reconstruir el estado de cada mes desde un log de eventos</li><li>Procesar exportaciones grandes por tramos sin cargar todo en memoria</li><li>Unir entidades entre sistemas con un respaldo por dominio</li><li>Escribir de vuelta en una herramienta operativa en lotes y respetando su límite</li></ul>
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Cómo se usa esta guía</div>
 
-<p>Esta es <strong>una</strong> solución. Si ya resolviste el proyecto, compara: ¿tu reverse ETL sigue funcionando después de que Ventas fusiona los duplicados?</p>
+<p>Nada de esto viene hecho: el repositorio, los scripts, las tablas y el job los creas tú. Cada paso tiene cuatro partes:</p>
+<ol>
+<li><strong>Qué tienes que lograr</strong>: el resultado concreto (un archivo, una tabla, un número).</li>
+<li><strong>Lo que esconden los datos</strong>: las trampas que un dato real trae y que tu código tiene que resolver.</li>
+<li><strong>Compruébalo tú</strong>: cómo saber, antes de pedir revisión, si vas bien.</li>
+<li><strong>Pistas</strong>: ábrelas de a una solo si te trabas. La primera es conceptual, la segunda nombra la herramienta y la última te da la estructura.</li>
+</ol>
+<p>Al final de cada paso hay una <strong>solución de referencia</strong> bloqueada 🔒. Se abre cuando tu entrega pasa la misma revisión que hace el líder técnico en Jira. Compárala con la tuya como en un code review: no hay una sola forma correcta.</p>
 </div>
 
 
-<h2>El plan</h2>
+<h2>Antes de empezar: el volumen</h2>
+<p>Cuentas Claras no es un ejercicio de 20 filas. En la práctica tiene:</p>
 <div class="table-wrap"><table><thead><tr>
-<th>Paso</th>
-<th>Qué</th>
-<th>Dónde</th>
+<th>Fuente</th>
+<th>Volumen aproximado</th>
+<th>Qué implica</th>
 </tr>
 </thead><tbody><tr>
-<td>1</td>
-<td>Explorar las tres APIs</td>
-<td>Terminal (<code>curl</code>)</td>
+<td>Contacto CRM</td>
+<td>~3.200 empresas (con duplicados y archivadas)</td>
+<td>~32 páginas de 100, con un límite de 100 pedidos cada 10 s</td>
 </tr>
 <tr>
-<td>2</td>
-<td>El CRM: empresas activas y archivadas</td>
-<td>Python</td>
+<td>Cobrable</td>
+<td>~3.000 clientes y ~9.000 eventos de suscripción en 18 meses</td>
+<td>~90 páginas de eventos; ordenarlos es tu trabajo</td>
 </tr>
 <tr>
-<td>3</td>
-<td>Cobrable: el MRR de cada mes desde el log de eventos</td>
-<td>Python</td>
-</tr>
-<tr>
-<td>4</td>
-<td>Medidor: uso de 30 días</td>
-<td>Python</td>
-</tr>
-<tr>
-<td>5</td>
-<td>La vista 360 y el health score</td>
-<td>Python</td>
-</tr>
-<tr>
-<td>6</td>
-<td>El reverse ETL</td>
-<td>Python</td>
-</tr>
-<tr>
-<td>7</td>
-<td>Las tablas en Databricks y el Key Vault</td>
-<td>Azure + Databricks</td>
+<td>Medidor</td>
+<td>~12.600 usuarios y ~16.000 eventos de uso <strong>por día</strong></td>
+<td>30 días ≈ medio millón de líneas: no se cargan de una vez</td>
 </tr>
 </tbody></table></div>
-<h2>Paso 1 · Explorar</h2>
-<pre tabindex="0"><code class="language-bash">cuentas accesos
-curl -s &quot;https://api.contactocrm.example/crm/v3/objects/companies?limit=2&quot; -H &quot;Authorization: Bearer pat-…&quot;
-curl -s &quot;https://api.cobrable.example/v1/events?limit=2&quot; -H &quot;Authorization: Bearer ck_live_…&quot;
-curl -s -u mx_…: &quot;https://api.medidor.example/api/2.0/users&quot; | head -c 300</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">cuentas accesos</code><span><code>cuentas</code>: el sistema interno de Cuentas Claras en la terminal del curso. <code>accesos</code> muestra los accesos que te dio IT</span></li><li><code class="bx-linea">curl -s &quot;https://api.contactocrm.example/crm/v3/objects/companies?limit=2&quot; -H &quot;Authorization: Bearer pat-…&quot;</code><span><code>curl</code>: hace un pedido HTTP a una URL (bajar un archivo o llamar a una API). <code>-s</code> = sin barra de progreso; <code>-H</code> = agrega un encabezado (por ejemplo, el token o el tipo de contenido)</span></li><li><code class="bx-linea">curl -s &quot;https://api.cobrable.example/v1/events?limit=2&quot; -H &quot;Authorization: Bearer ck_live_…&quot;</code><span><code>curl</code>: hace un pedido HTTP a una URL (bajar un archivo o llamar a una API). <code>-s</code> = sin barra de progreso; <code>-H</code> = agrega un encabezado (por ejemplo, el token o el tipo de contenido)</span></li><li><code class="bx-linea">curl -s -u mx_…: &quot;https://api.medidor.example/api/2.0/users&quot; | head -c 300</code><span><code>curl</code>: hace un pedido HTTP a una URL (bajar un archivo o llamar a una API). <code>-s</code> = sin barra de progreso <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-<p>Mira un evento de Cobrable completo: trae la suscripción <strong>como quedó</strong> después del cambio. Esa es la clave del MRR histórico.</p>
-<h2>Paso 2 · El CRM</h2>
-<p>Un <code>get</code> con reintento para el 429 (100 pedidos cada 10 segundos) y la paginación con <code>after</code>. Se piden también las <strong>archivadas</strong>: después de la fusión, los duplicados quedan archivados con <code>mergedInto</code>.</p>
+<p>Con este volumen, lo que funciona con 20 filas deja de funcionar: un <code>PATCH</code> por empresa tarda minutos por el límite de pedidos y guardar medio millón de diccionarios en memoria pone lento al intérprete. Pensar en volumen es parte del trabajo.</p>
+<p>Crea el repositorio <code>cuentas-claras</code> (en el <a href="#/github">GitHub de práctica</a>) con esta estructura, y trabaja con una rama por paso:</p>
+<pre tabindex="0"><code class="language-text">cuentas-claras/
+├── README.md            ← qué resuelve, cómo correrlo, decisiones
+├── cc/
+│   ├── fuentes.py       ← un cliente HTTP con reintentos para las tres APIs
+│   ├── crm.py           ← paso 2
+│   ├── mrr.py           ← paso 3
+│   ├── uso.py           ← paso 4
+│   ├── vista360.py      ← paso 5
+│   └── reverse_etl.py   ← paso 6
+└── sql/
+    └── gold.sql         ← paso 7</code></pre>
+<h2>Paso 1 · Explorar antes de programar</h2>
+<p><strong>Qué tienes que lograr.</strong> Una nota (en el README) con las reglas de cada API: cómo pagina, en qué orden devuelve, qué límite tiene, en qué unidades vienen los montos y las fechas, y qué campos unen un sistema con otro.</p>
+<p><strong>Lo que esconden los datos.</strong> Cada API pagina distinto (<code>after</code> en el CRM, <code>starting_after</code> en Cobrable, rangos de fecha en Medidor) y cada una se autentica distinto. Las credenciales están en <a href="#/l/proyecto-cuentas-claras-fuentes-y-accesos">Fuentes y accesos</a> y con <code>cuentas accesos</code> en la terminal.</p>
+<p><strong>Compruébalo tú.</strong> Puedes responder sin mirar código: ¿cuántas empresas trae una página del CRM y cómo sabes si hay otra? ¿En qué unidad viene <code>plan.amount</code>? ¿Qué distingue un evento de <code>pagina_vista</code> de un <code>login</code>?</p>
+<details><summary>Pista 1</summary>
+
+<p>Pide de a poco: <code>limit=2</code> y mira la respuesta completa. Lo importante no está en los primeros campos, sino en cómo te indica la API que hay más páginas.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p><code>curl -s … | head -c 600</code> para no inundar la terminal. Para el CRM agrega <code>-H &quot;Authorization: Bearer …&quot;</code>; para Medidor, HTTP Basic con <code>-u secreto:</code>. Prueba también <code>archived=true</code> en el CRM.</p>
+</details>
+
+<h2>Paso 2 · El CRM: qué empresa es la de verdad</h2>
+<p><strong>Qué tienes que lograr.</strong> En memoria (o en un archivo intermedio), todas las empresas del CRM, activas y archivadas, y una forma de encontrar la <strong>empresa principal</strong> de un cliente a partir de su dominio.</p>
+<p><strong>Lo que esconden los datos.</strong></p>
+<ul>
+<li>El límite de 100 pedidos cada 10 segundos devuelve <strong>429</strong> con <code>Retry-After</code>: tu cliente HTTP tiene que esperar y reintentar <strong>ese</strong> pedido, no saltearlo.</li>
+<li>Los vendedores escriben el dominio a mano: <code>www.</code>, mayúsculas.</li>
+<li>Hay empresas duplicadas: un <em>lead</em> creado después, con el nombre en mayúsculas. Cuando Ventas las fusiona, el duplicado queda <strong>archivado</strong> con <code>mergedInto</code>.</li>
+</ul>
+<p><strong>Compruébalo tú.</strong> La cantidad de empresas activas más las archivadas tiene que coincidir con lo que viste paginando a mano. Ningún dominio normalizado tendría que apuntar a dos empresas principales distintas.</p>
+<details><summary>Pista 1</summary>
+
+<p>Piénsalo en dos partes: un <code>get</code> que sabe reintentar, y un bucle de paginación que no sabe nada de reintentos. Separarlas te sirve para las tres APIs.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p>La principal de un dominio es la que tiene <code>lifecyclestage == &quot;customer&quot;</code> y no está archivada. Normaliza con <code>lower()</code> y quitando <code>www.</code>.</p>
+</details>
+
+<details><summary>Pista 3</summary>
+
+<p>Estructura: <code>get(url, headers, params)</code> con un <code>while True</code> que mira <code>status_code == 429</code>; <code>for archivado in (&quot;false&quot;, &quot;true&quot;)</code> con un <code>while</code> interno que sigue <code>paging.next.after</code>; al final, un diccionario <code>dominio → empresa principal</code> y otro <code>id → empresa</code>.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 2, el CRM</div>
+
 <pre data-norun tabindex="0"><code class="language-python">import requests, json, os, time, base64
 from datetime import date, datetime, timedelta, timezone
 CRM, COB, MED = os.environ[&quot;CRM&quot;], os.environ[&quot;COB&quot;], os.environ[&quot;MED&quot;]
@@ -104,8 +136,38 @@ for e in empresas:
     if e[&quot;archived&quot;] or e[&quot;properties&quot;][&quot;lifecyclestage&quot;] != &quot;customer&quot;: continue
     principal[norm(e[&quot;properties&quot;][&quot;domain&quot;])] = e
 porId = {e[&quot;id&quot;]: e for e in empresas}</code></pre>
-<h2>Paso 3 · El MRR desde el log de eventos</h2>
-<p><code>/v1/subscriptions</code> es solo el presente. Para el cierre de cada mes se recorre el log de eventos <strong>en orden</strong> y se guarda, por cliente, el último estado visto hasta esa fecha.</p>
+</div>
+
+
+<h2>Paso 3 · El MRR de cada mes, desde el log de eventos</h2>
+<p><strong>Qué tienes que lograr.</strong> <code>mrr_mensual.csv</code> con <code>cliente_id, mes, mrr, movimiento</code> para los <strong>últimos 6 meses cerrados</strong>. Movimientos: <code>nuevo</code>, <code>expansion</code>, <code>contraccion</code>, <code>churn</code>, <code>reactivacion</code>, <code>sin_cambio</code>.</p>
+<p><strong>Lo que esconden los datos.</strong></p>
+<ul>
+<li><code>/v1/subscriptions</code> es solo <strong>el presente</strong>: el MRR de un mes pasado sale de recorrer <code>/v1/events</code> en orden.</li>
+<li>Cobrable devuelve del <strong>más nuevo al más viejo</strong>.</li>
+<li>El monto viene en <strong>centavos</strong>; el plan anual cobra 10 meses y se reparte en 12; hay asientos y descuentos.</li>
+<li>Pruebas gratis y bajas no suman MRR. Morosos (<code>past_due</code>) sí.</li>
+<li>El cierre de mes es en <strong>hora local</strong> (UTC−3), no en UTC.</li>
+<li>Para separar <code>nuevo</code> de <code>reactivacion</code> tienes que mirar más atrás que 6 meses.</li>
+</ul>
+<p><strong>Compruébalo tú.</strong> El MRR que calculas para el mes en curso, hasta hoy, tiene que coincidir con la suma de <code>/v1/subscriptions</code> aplicando tu misma fórmula. Si no coincide, el error está en la fórmula, no en el recorrido.</p>
+<details><summary>Pista 1</summary>
+
+<p>Cada evento trae la suscripción <strong>completa como quedó</strong>. Si recorres los eventos en orden de fecha y guardas el último estado de cada cliente, en cualquier momento tienes &quot;la foto&quot; de todas las suscripciones.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p>Ordena por <code>created</code> (segundos). Para cada cierre de mes, avanza el puntero de eventos hasta ese instante y calcula el MRR de la foto. <code>datetime(año, mes+1, 1, tzinfo=TZ).timestamp()</code> es el primer instante del mes siguiente en hora local.</p>
+</details>
+
+<details><summary>Pista 3</summary>
+
+<p>Un único recorrido: <code>for mes in 24_meses: while i &lt; len(eventos) and eventos[i].created &lt;= cierre(mes): estado[cliente] = suscripción; i += 1</code> y guardas <code>hist[mes] = {cliente: mrr(sub)}</code>. Después comparas cada mes con el anterior; un diccionario <code>alguna_vez_pagó</code> decide entre nuevo y reactivación.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 3, el MRR</div>
+
 <pre data-norun tabindex="0"><code class="language-python">hb = {&quot;Authorization&quot;: &quot;Bearer &quot; + COB}
 def todo(ruta):   # Cobrable lista del más nuevo al más viejo, con starting_after
     out, sa = [], None
@@ -145,9 +207,9 @@ for mes in todos:
     c = cierre(mes)
     while i &lt; len(eventos) and eventos[i][&quot;created&quot;] &lt;= c:
         e = eventos[i]; estado[e[&quot;data&quot;][&quot;object&quot;][&quot;customer&quot;]] = e[&quot;data&quot;][&quot;object&quot;]; i += 1
-    hist[mes] = {k: mrr(v) for k, v in estado.items()}</code></pre>
-<p>Los movimientos comparan cada mes con el anterior. <code>tuvo</code> recuerda quién tuvo MRR alguna vez, para separar <code>nuevo</code> de <code>reactivacion</code>:</p>
-<pre data-norun tabindex="0"><code class="language-python">filas, tuvo = [], {}
+    hist[mes] = {k: mrr(v) for k, v in estado.items()}
+
+filas, tuvo = [], {}
 for k, mes in enumerate(todos):
     prev, act = (hist[todos[k - 1]] if k else {}), hist[mes]
     for c in set(prev) | set(act):
@@ -163,8 +225,36 @@ for k, mes in enumerate(todos):
 with open(&quot;mrr_mensual.csv&quot;, &quot;w&quot;) as f:
     f.write(&quot;cliente_id,mes,mrr,movimiento\n&quot;)
     for r in filas: f.write(f&quot;{r[0]},{r[1]},{r[2]:.2f},{r[3]}\n&quot;)</code></pre>
-<h2>Paso 4 · El uso de 30 días</h2>
-<p>El export de Medidor acepta <strong>7 días por pedido</strong>: se recorre la ventana en tramos. Los eventos de antes del login tienen un id anónimo que no está en <code>/users</code>: no cuentan. Y desde que la app renombró <code>factura_emitida</code> a <code>invoice_created</code>, hay que contar los dos.</p>
+</div>
+
+
+<h2>Paso 4 · El uso de los últimos 30 días, por tramos</h2>
+<p><strong>Qué tienes que lograr.</strong> Por cliente que paga: cuántos <strong>usuarios distintos</strong> hicieron login y cuántas <strong>facturas</strong> emitieron en los últimos 30 días completos.</p>
+<p><strong>Lo que esconden los datos.</strong></p>
+<ul>
+<li>El export acepta <strong>7 días por pedido</strong> y solo días completos (hasta ayer).</li>
+<li>Son cerca de <strong>medio millón de líneas</strong>: si las guardas todas antes de procesarlas, el intérprete se arrastra. Procesa cada tramo y quédate solo con los conteos.</li>
+<li>Antes del login, los eventos tienen un id <strong>anónimo</strong> que no está en <code>/users</code>.</li>
+<li>La app móvil renombró <code>factura_emitida</code> a <code>invoice_created</code> (mira el ticket CC-106 en Jira).</li>
+</ul>
+<p><strong>Compruébalo tú.</strong> Cuenta facturas por día y míralas en orden: si un día se desploman, ¿es que la gente dejó de facturar o que cambió el nombre del evento?</p>
+<details><summary>Pista 1</summary>
+
+<p>La memoria que necesitas no depende de cuántos eventos hay, sino de cuántos clientes: un conjunto de usuarios activos y un contador de facturas por cliente.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p>Recorre la ventana con un <code>while d &lt;= fin</code> que avanza de a 7 días; de cada respuesta lee línea por línea (<code>text.splitlines()</code> y <code>json.loads</code>) y descarta la línea apenas la contaste. <code>/users</code> te da <code>user_id → billing_customer_id</code>.</p>
+</details>
+
+<details><summary>Pista 3</summary>
+
+<p>Dos diccionarios: <code>activos[cliente] = set(usuarios con login)</code> y <code>facturas[cliente] += 1</code> para los dos nombres del evento. Las líneas cuyo <code>distinct_id</code> no está en el maestro de usuarios se ignoran.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 4, el uso por tramos</div>
+
 <pre data-norun tabindex="0"><code class="language-python">basic = {&quot;Authorization&quot;: &quot;Basic &quot; + base64.b64encode((MED + &quot;:&quot;).encode()).decode()}
 usuarios = get(&quot;https://api.medidor.example/api/2.0/users&quot;, basic).json()[&quot;results&quot;]
 cuentaDe = {u[&quot;user_id&quot;]: u[&quot;billing_customer_id&quot;] for u in usuarios}
@@ -176,14 +266,36 @@ fin = HOY - timedelta(days=1); ini = fin - timedelta(days=29); d = ini
 while d &lt;= fin:
     h = min(d + timedelta(days=6), fin)
     txt = get(&quot;https://api.medidor.example/api/2.0/export&quot;, basic, {&quot;from_date&quot;: d.isoformat(), &quot;to_date&quot;: h.isoformat()}).text
-    for linea in txt.splitlines():
+    for linea in txt.splitlines():           # cada tramo se procesa y se descarta: solo quedan los conteos
         e = json.loads(linea); c = cuentaDe.get(e[&quot;distinct_id&quot;])
         if not c: continue
         if e[&quot;event&quot;] == &quot;login&quot;: activos.setdefault(c, set()).add(e[&quot;distinct_id&quot;])
         if e[&quot;event&quot;] in (&quot;factura_emitida&quot;, &quot;invoice_created&quot;): facturas[c] = facturas.get(c, 0) + 1
+    del txt
     d = h + timedelta(days=1)</code></pre>
-<h2>Paso 5 · La vista 360</h2>
-<p>Para cada cliente que hoy paga: primero el id que cargó Ventas en <code>metadata</code> (si la empresa no está archivada); si no, el <strong>dominio</strong> del email normalizado contra la empresa principal.</p>
+</div>
+
+
+<h2>Paso 5 · La vista 360 y el health score</h2>
+<p><strong>Qué tienes que lograr.</strong> <code>cliente_360.csv</code> con <code>billing_customer_id, crm_company_id, plan, mrr_actual, usuarios_activos_30d, facturas_30d, health_score</code>, una fila por cliente que <strong>hoy paga</strong>. La fórmula del health score está en <a href="#/l/proyecto-cuentas-claras-fuentes-y-accesos">Fuentes y accesos</a>.</p>
+<p><strong>Lo que esconden los datos.</strong></p>
+<ul>
+<li><code>metadata.crm_company_id</code> lo cargó Ventas <strong>a veces</strong>, y a veces apunta al duplicado que después archivaron.</li>
+<li>Sin id, el respaldo es el <strong>dominio</strong> del email del cliente contra la empresa principal.</li>
+</ul>
+<p><strong>Compruébalo tú.</strong> Ningún <code>crm_company_id</code> de tu tabla tiene que ser una empresa archivada. La cantidad de filas tiene que ser la cantidad de clientes con MRR mayor que cero hoy.</p>
+<details><summary>Pista 1</summary>
+
+<p>El orden de preferencia importa: primero el id que cargó Ventas, solo si existe y no está archivado; si no, el dominio.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p>El estado actual de cada suscripción es el último evento de cada cliente (ya lo tienes del paso 3). Los usuarios totales por cliente salen de <code>/users</code>.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 5, la vista 360</div>
+
 <pre data-norun tabindex="0"><code class="language-python">actual = {e[&quot;data&quot;][&quot;object&quot;][&quot;customer&quot;]: e[&quot;data&quot;][&quot;object&quot;] for e in eventos}
 cli = {c[&quot;id&quot;]: c for c in clientes}
 filas360 = []
@@ -201,30 +313,65 @@ for c, o in actual.items():
 with open(&quot;cliente_360.csv&quot;, &quot;w&quot;) as f:
     f.write(&quot;billing_customer_id,crm_company_id,plan,mrr_actual,usuarios_activos_30d,facturas_30d,health_score\n&quot;)
     for r in filas360: f.write(&quot;,&quot;.join(str(x) for x in r) + &quot;\n&quot;)</code></pre>
-<h2>Paso 6 · El reverse ETL</h2>
-<p>Un <code>PATCH</code> por empresa con las tres propiedades. Si llega un 429, se espera lo que dice <code>Retry-After</code> y se reintenta <strong>ese</strong> pedido.</p>
-<pre data-norun tabindex="0"><code class="language-python">for c, crm, plan, m, a, fc, health in filas360:
-    if not crm: continue
-    while True:
-        r = requests.patch(f&quot;https://api.contactocrm.example/crm/v3/objects/companies/{crm}&quot;, headers=hc,
-                           json={&quot;properties&quot;: {&quot;health_score&quot;: str(health), &quot;mrr_actual&quot;: f&quot;{m:.2f}&quot;, &quot;plan_actual&quot;: plan}})
-        if r.status_code == 429: time.sleep(int(r.headers.get(&quot;retry-after&quot;, &quot;10&quot;))); continue
-        r.raise_for_status(); break</code></pre>
-<pre tabindex="0"><code class="language-bash">CRM=pat-… COB=ck_live_… MED=mx_… HOY=$(date +%F) python ~/cc.py</code></pre>
-<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Por qué el reverse ETL no se rompe con la fusión</div>
-
-<p>Cuando Ventas fusiona los duplicados, la empresa vieja queda archivada y la API rechaza escribirle. Esta solución nunca elige una archivada: si el id de <code>metadata</code> está archivado, cae al dominio, que apunta a la principal. Si tu versión guardaba los ids del CRM &quot;para siempre&quot;, ahí está el error.</p>
 </div>
 
 
-<h2>Paso 7 · Databricks y Key Vault</h2>
+<h2>Paso 6 · El reverse ETL, en lotes</h2>
+<p><strong>Qué tienes que lograr.</strong> <code>health_score</code>, <code>mrr_actual</code> y <code>plan_actual</code> escritos en la empresa del CRM de cada cliente que paga (ticket CC-108).</p>
+<p><strong>Lo que esconden los datos.</strong></p>
+<ul>
+<li>Son unas 1.200 empresas. Con un <code>PATCH</code> por empresa y 100 pedidos cada 10 segundos, son <strong>minutos</strong> esperando. El CRM tiene <code>POST /crm/v3/objects/companies/batch/update</code>: hasta <strong>100 empresas por pedido</strong>, y cuenta como un solo pedido para el límite.</li>
+<li>La respuesta puede ser <strong>207</strong>: algunas se escribieron y otras no (por ejemplo, una archivada). Un 207 no es un éxito completo: hay que leer <code>errors</code>.</li>
+<li>Cuando Ventas fusiona duplicados (CC-107), una empresa a la que escribías queda archivada. Si tu proceso guardaba ids &quot;para siempre&quot;, ahí se rompe.</li>
+</ul>
+<p><strong>Compruébalo tú.</strong> Después de correrlo, pide al CRM algunas empresas al azar y mira las tres propiedades. Corre el proceso dos veces: el resultado tiene que ser el mismo (idempotente).</p>
+<details><summary>Pista 1</summary>
+
+<p>Agrupa las filas de la vista 360 de a 100 y manda un lote por pedido. El 429 se maneja igual que en el paso 2.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p>El cuerpo es <code>{&quot;inputs&quot;: [{&quot;id&quot;: &quot;…&quot;, &quot;properties&quot;: {&quot;health_score&quot;: &quot;72&quot;, …}}]}</code>. Ante un 207, junta <code>errors[].context.ids</code> para revisarlos: no reintentes a ciegas lo que la API rechazó por un motivo de negocio.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 6, el reverse ETL en lotes</div>
+
+<pre data-norun tabindex="0"><code class="language-python">lote, rechazados = [], []
+def enviar(inputs):
+    while True:
+        r = requests.post(&quot;https://api.contactocrm.example/crm/v3/objects/companies/batch/update&quot;, headers=hc, json={&quot;inputs&quot;: inputs})
+        if r.status_code == 429: time.sleep(int(r.headers.get(&quot;retry-after&quot;, &quot;10&quot;))); continue
+        if r.status_code == 207: rechazados.extend(e[&quot;context&quot;][&quot;ids&quot;][0] for e in r.json()[&quot;errors&quot;])
+        elif r.status_code != 200: r.raise_for_status()
+        return
+
+for c, crm, plan, m, a, fc, health in filas360:
+    if not crm: continue
+    lote.append({&quot;id&quot;: crm, &quot;properties&quot;: {&quot;health_score&quot;: str(health), &quot;mrr_actual&quot;: f&quot;{m:.2f}&quot;, &quot;plan_actual&quot;: plan}})
+    if len(lote) == 100: enviar(lote); lote = []
+if lote: enviar(lote)
+print(f&quot;Rechazadas por el CRM: {len(rechazados)}&quot;, rechazados[:5])</code></pre>
+</div>
+
+
+<h2>Paso 7 · Las tablas gold, el job y el Key Vault</h2>
+<p><strong>Qué tienes que lograr.</strong> <code>cc.gold.mrr_mensual</code> y <code>cc.gold.cliente_360</code> en Databricks (Unity Catalog), las tres credenciales en un Key Vault (CC-103) y el proceso corriendo como job diario.</p>
+<p><strong>Lo que esconden los datos.</strong> <code>read_files</code> sobre CSV con <code>inferSchema =&gt; false</code> deja todo como texto: los tipos se ponen a mano. Las credenciales nunca van en el código ni en el repositorio.</p>
+<p><strong>Compruébalo tú.</strong> Responde con SQL las preguntas del tablero (el MRR del mes pasado, el % perdido por bajas) y compara con lo que contestaste en Jira.</p>
+<details><summary>Pista 1</summary>
+
+<p>El recorrido es el de los otros proyectos: cuenta con <code>--hns true</code>, contenedor <code>landing</code>, permiso para el conector de Unity Catalog, <code>CREATE CATALOG cc</code>.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 7, Databricks y Key Vault</div>
+
 <pre tabindex="0"><code class="language-bash">az storage blob upload --account-name stcc -c landing -n gold/mrr_mensual.csv -f ~/mrr_mensual.csv --overwrite
 az storage blob upload --account-name stcc -c landing -n gold/cliente_360.csv -f ~/cliente_360.csv --overwrite
 az keyvault secret set --vault-name kv-cc -n crm-token --value 'pat-…' -o none
 az keyvault secret set --vault-name kv-cc -n cobrable-key --value 'ck_live_…' -o none
 az keyvault secret set --vault-name kv-cc -n medidor-secreto --value 'mx_…' -o none</code></pre>
 <details class="bx"><summary>🔍 Qué hace cada comando <span>(5)</span></summary><ol><li><code class="bx-linea">az storage blob upload --account-name stcc -c landing -n gold/mrr_mensual.csv -f ~/mrr_mensual.csv --overwrite</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az storage blob upload --account-name stcc -c landing -n gold/cliente_360.csv -f ~/cliente_360.csv --overwrite</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-cc -n crm-token --value 'pat-…' -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-cc -n cobrable-key --value 'ck_live_…' -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-cc -n medidor-secreto --value 'mx_…' -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-<p>(El grupo de recursos, la cuenta de almacenamiento con <code>--hns true</code>, el contenedor <code>landing</code>, el permiso para el conector de Unity Catalog y el Key Vault se crean igual que en los otros proyectos.)</p>
 <pre data-norun tabindex="0"><code class="language-sql">CREATE CATALOG IF NOT EXISTS cc; CREATE SCHEMA IF NOT EXISTS cc.gold;
 
 CREATE OR REPLACE TABLE cc.gold.mrr_mensual AS
@@ -235,17 +382,18 @@ CREATE OR REPLACE TABLE cc.gold.cliente_360 AS
 SELECT billing_customer_id, crm_company_id, plan, CAST(mrr_actual AS DOUBLE) AS mrr_actual,
        CAST(usuarios_activos_30d AS INT) AS usuarios_activos_30d, CAST(facturas_30d AS INT) AS facturas_30d,
        CAST(health_score AS INT) AS health_score
-FROM read_files('abfss://landing@stcc.dfs.core.windows.net/gold/cliente_360.csv', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false);</code></pre>
-<p>Las preguntas del tablero salen de estas tablas. Por ejemplo, el MRR de un mes y el churn de MRR:</p>
-<pre data-norun tabindex="0"><code class="language-sql">SELECT round(sum(mrr), 2) FROM cc.gold.mrr_mensual WHERE mes = '2026-10' AND movimiento &lt;&gt; 'churn';
+FROM read_files('abfss://landing@stcc.dfs.core.windows.net/gold/cliente_360.csv', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false);
 
--- MRR perdido en octubre (el que tenían en septiembre los que hicieron churn) / MRR de septiembre
+-- MRR perdido por churn en el último mes / MRR del mes anterior
 SELECT round(100 * sum(a.mrr) / (SELECT sum(mrr) FROM cc.gold.mrr_mensual WHERE mes = '2026-09' AND movimiento &lt;&gt; 'churn'), 1)
 FROM cc.gold.mrr_mensual a JOIN cc.gold.mrr_mensual b ON a.cliente_id = b.cliente_id
 WHERE b.mes = '2026-10' AND b.movimiento = 'churn' AND a.mes = '2026-09';</code></pre>
+</div>
+
+
 <div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
 
-<p>En tu nube: el código Python que llama a las APIs corre como tarea de un <strong>job de Databricks</strong> (o en Airflow); los tokens se leen del <strong>Key Vault</strong> a través de un <em>secret scope</em>; el MRR y la vista 360 son tablas gold en Unity Catalog. Explora primero cada API desde la terminal y recién después escribe el código.</p>
+<p>En tu nube, el código Python que llama a las APIs corre como tarea de un <strong>job de Databricks</strong> (o en Airflow), los tokens se leen del <strong>Key Vault</strong> a través de un <em>secret scope</em> y el MRR y la vista 360 son tablas gold en Unity Catalog. Con millones de eventos de uso, el paso 4 se resuelve con una exportación diaria a archivos en el lago y Spark, no con un script que lee la API.</p>
 </div>
 
 
@@ -269,14 +417,19 @@ WHERE b.mes = '2026-10' AND b.movimiento = 'churn' AND a.mes = '2026-09';</code>
 <div class="exercise-slot"></div>
 
 
+
+<div class="exercise-slot"></div>
+
+
 <h2>Resumen</h2>
 <ul>
+<li>Primero se explora y se anotan las reglas de cada fuente; recién después se programa.</li>
 <li>El historial sale del log de eventos; el presente, de la API de estado.</li>
+<li>A volumen de empresa se procesa por tramos y se escribe en lotes, leyendo los errores parciales.</li>
 <li>Unir por id externo y, si falla, por dominio normalizado contra la entidad principal.</li>
-<li>El reverse ETL respeta el límite de pedidos y nunca escribe en un registro archivado.</li>
 </ul>
 
-<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-cuentas-claras-paso-a-paso">▶ Hacer los ejercicios</a>
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-cuentas-claras-paso-a-paso">▶ Hacer los ejercicios</a>
 <nav class="nav"><a href="proyecto-cuentas-claras-el-dia-a-dia.html">← El día a día - precios nuevos, un CRM que se limpia, eventos que cambian de nombre y preguntas del directorio</a><a href="proyecto-almacenes-sol-el-pedido.html">El pedido - una cadena de supermercados que no sabe cuánto gana →</a></nav></main>
 <footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
 </body></html>

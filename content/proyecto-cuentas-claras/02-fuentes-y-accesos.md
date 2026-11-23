@@ -37,6 +37,7 @@ flecha rev -> crm | estilo=punteada | explica=El reverse ETL lo escribe de vuelt
 | `GET /crm/v3/objects/companies?limit=100&after=<id>&properties=name,domain,hubspot_owner_id,lifecyclestage&archived=false` | Empresas, de a 100. La respuesta trae `paging.next.after` mientras haya más. `archived=true` lista las archivadas (con `mergedInto` si se fusionaron) |
 | `GET /crm/v3/objects/companies/{id}` | Una empresa |
 | `PATCH /crm/v3/objects/companies/{id}` | Cuerpo `{"properties": {"health_score": "72", "mrr_actual": "79.00", "plan_actual": "pro"}}`. Solo esas tres propiedades personalizadas. No se puede escribir en una empresa archivada |
+| `POST /crm/v3/objects/companies/batch/update` | Cuerpo `{"inputs": [{"id": "…", "properties": {…}}]}`, **hasta 100 empresas por pedido** (cuenta como un pedido para el límite). Responde 200 si todo se escribió o **207** con `errors` si una parte falló (por ejemplo, una empresa archivada) |
 | `GET /crm/v3/owners` | Vendedores |
 
 El `domain` lo escriben los vendedores a mano: a veces con `www.`, a veces en mayúsculas.
