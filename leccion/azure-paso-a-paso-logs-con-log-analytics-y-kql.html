@@ -15,7 +15,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
 <main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 5 · Avanzado · 60 min</div>
 <h1>Log Analytics - los logs de la plataforma, consultas KQL y alertas de logs</h1><p class="resumen">Las métricas dicen cuántos pipelines fallaron; los logs dicen cuál, en qué actividad y con qué mensaje. Creas el workspace log-tiendaandina-dev, configuras los Diagnostic settings de Data Factory, del lago, del Key Vault y del Activity log, generas actividad real, la consultas con KQL y conviertes la consulta de pipelines fallidos en una alerta de logs para la guardia.</p>
-<a class="cta" href="../index.html#/l/azure-paso-a-paso-logs-con-log-analytics-y-kql">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-logs-con-log-analytics-y-kql">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar la diferencia entre métricas, Activity log y resource logs</li><li>Crear un workspace de Log Analytics</li><li>Configurar Diagnostic settings con las categorías justas</li><li>Consultar ADFPipelineRun, ADFActivityRun, StorageBlobLogs y AzureDiagnostics con KQL</li><li>Crear una alerta de búsqueda de logs con ventana, frecuencia y grupo de acciones</li></ul>
 <div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
 
@@ -148,6 +148,35 @@ az keyvault secret show --vault-name kv-tiendaandina-dev -n no-existe</code></pr
 <pre tabindex="0"><code class="language-kql">AzureDiagnostics
 | where ResourceProvider == &quot;MICROSOFT.KEYVAULT&quot;
 | project TimeGenerated, OperationName, ResultSignature, requestUri_s, identity_claim_upn_s</code></pre>
+<h3>Juntar tablas: let, join y parse</h3>
+<p>Las preguntas de la guardia casi nunca se responden con una sola tabla. &quot;¿Qué pipelines fallaron y en qué actividad?&quot; junta <code>ADFPipelineRun</code> con <code>ADFActivityRun</code>:</p>
+<pre tabindex="0"><code class="language-kql">let fallidas = ADFPipelineRun
+| where Status == &quot;Failed&quot;
+| project RunId, PipelineName, Fin = TimeGenerated;
+fallidas
+| join kind=leftouter (
+    ADFActivityRun
+    | where Status == &quot;Failed&quot;
+    | project PipelineRunId, ActivityName, ErrorCode
+  ) on $left.RunId == $right.PipelineRunId
+| project Fin, PipelineName, ActivityName, ErrorCode
+| order by Fin desc</code></pre>
+<ul>
+<li><code>let</code> le pone nombre a una consulta (o a un valor: <code>let umbral = 5;</code>) para usarla después. Cada <code>let</code> termina en <code>;</code> y la consulta final va al final.</li>
+<li><code>on $left.RunId == $right.PipelineRunId</code> une columnas que se llaman distinto. Si se llaman igual alcanza con <code>on PipelineName</code>.</li>
+<li><code>kind=leftouter</code> conserva las corridas fallidas aunque no tengan una actividad fallida (por ejemplo, si falló al arrancar).</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ join sin kind no es un INNER JOIN</div>
+
+<p>En KQL, <code>join</code> sin <code>kind</code> es <strong><code>innerunique</code></strong>: de la tabla de la izquierda queda <strong>una sola fila por cada valor de la clave</strong> (cualquiera), y recién después se une. Con <code>ADFPipelineRun</code> a la izquierda, de las dos filas de cada corrida (<code>InProgress</code> y la final) sobrevive una al azar. Escribe siempre el <code>kind</code> que quieres: <code>inner</code>, <code>leftouter</code>, <code>leftanti</code> (lo que <strong>no</strong> tiene pareja), <code>leftsemi</code> (lo que <strong>sí</strong>, sin traer columnas de la derecha).</p>
+</div>
+
+
+<p>Y <code>parse</code> saca partes de un texto con un patrón: cada cosa entre comillas es texto fijo y cada nombre es una columna nueva (<code>Campo:int</code> la convierte a número; <code>*</code> salta lo que sea):</p>
+<pre tabindex="0"><code class="language-kql">StorageBlobLogs
+| parse Uri with &quot;https://&quot; Cuenta &quot;.blob.core.windows.net/&quot; Contenedor &quot;/&quot; Ruta
+| summarize operaciones = count() by Cuenta, Contenedor, AuthenticationType</code></pre>
+<p>Si el texto no tiene ese formato, las columnas quedan vacías; <code>parse-where</code> en cambio descarta esas filas.</p>
 <div class="table-wrap"><table><thead><tr>
 <th>Pregunta de la empresa</th>
 <th>Dónde se responde</th>
@@ -222,6 +251,10 @@ az keyvault secret show --vault-name kv-tiendaandina-dev -n no-existe</code></pr
 <div class="exercise-slot"></div>
 
 
+
+<div class="exercise-slot"></div>
+
+
 <h2>✅ Lo que lograste</h2>
 <ul>
 <li>Sabes qué se guarda solo (métricas y Activity log) y qué necesita un Diagnostic setting (resource logs).</li>
@@ -230,7 +263,7 @@ az keyvault secret show --vault-name kv-tiendaandina-dev -n no-existe</code></pr
 <li>Convertiste una consulta en una alerta de logs con una ventana pensada para la demora de ingesta.</li>
 </ul>
 
-<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-logs-con-log-analytics-y-kql">▶ Hacer los ejercicios</a>
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-logs-con-log-analytics-y-kql">▶ Hacer los ejercicios</a>
 <nav class="nav"><a href="azure-paso-a-paso-bloqueos-y-azure-monitor.html">← Bloqueos y Azure Monitor - que nada se borre por error y enterarte cuando algo falla</a><a href="azure-paso-a-paso-proyecto-endurecer-el-lago.html">Proyecto 5 (con mínima ayuda) - endurecer el lago antes de producción →</a></nav></main>
 <footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
 </body></html>

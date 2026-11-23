@@ -64,6 +64,46 @@ Se define en **ASL** (*Amazon States Language*), un JSON con estados. Cada estad
 - **Catch**: si se agotan los reintentos, va a otro estado (avisar) en lugar de morir en silencio.
 - Otros estados útiles: `Choice` (if), `Parallel` (ramas simultáneas), `Map` (un paso por cada elemento de una lista), `Wait`.
 
+### Map y Parallel: muchos archivos, varias cosas a la vez
+
+Un caso típico: llegaron varios archivos y cada uno se procesa igual, y al final corren dos controles independientes. `Map` repite su `ItemProcessor` por cada elemento de la lista que dice `ItemsPath`; `Parallel` corre sus `Branches` a la vez y espera a todas.
+
+```json
+"PorArchivo": {
+  "Type": "Map",
+  "ItemsPath": "$.archivos",
+  "ItemSelector": { "ruta.$": "$$.Map.Item.Value", "fecha.$": "$.fecha" },
+  "MaxConcurrency": 5,
+  "ItemProcessor": {
+    "ProcessorConfig": { "Mode": "INLINE" },
+    "StartAt": "CargarArchivo",
+    "States": {
+      "CargarArchivo": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::glue:startJobRun.sync",
+        "Parameters": { "JobName": "banco-silver", "Arguments": { "--ruta.$": "$.ruta", "--fecha.$": "$.fecha" } },
+        "End": true
+      }
+    }
+  },
+  "ResultPath": "$.cargas",
+  "Next": "Controles"
+},
+"Controles": {
+  "Type": "Parallel",
+  "Branches": [
+    { "StartAt": "ContarFilas", "States": { "ContarFilas": { "Type": "Task", "Resource": "arn:aws:states:::athena:startQueryExecution.sync", "Parameters": { "QueryString": "SELECT count(*) FROM silver.transacciones", "WorkGroup": "primary" }, "End": true } } },
+    { "StartAt": "Avisar", "States": { "Avisar": { "Type": "Task", "Resource": "arn:aws:states:::sns:publish", "Parameters": { "TopicArn": "arn:aws:sns:us-east-1:123456789012:alertas-datos", "Message": "Carga terminada" }, "End": true } } }
+  ],
+  "Next": "GoldFraude"
+}
+```
+
+- `$$.Map.Item.Value` es el elemento de la lista (y `$$.Map.Item.Index`, su posición); `$` sigue siendo la entrada del `Map`. Así cada iteración recibe su archivo **y** la fecha general.
+- La salida de un `Map` es la lista de salidas de cada iteración, en orden; la de un `Parallel`, la lista de salidas de cada rama.
+- Si una iteración falla, falla el `Map` entero (salvo que pongas `ToleratedFailurePercentage`), y ahí actúan su `Retry` y su `Catch`, igual que en un `Task`.
+- `States.ALL` atrapa casi todo, pero **no** `States.Runtime` (por ejemplo, un `ItemsPath` que no apunta a una lista): ese error es de la definición y hay que corregirla.
+
 ```bash norun
 aws stepfunctions create-state-machine --name pipeline-banco \
   --definition file://pipeline-banco.json \
