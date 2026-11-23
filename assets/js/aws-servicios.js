@@ -300,13 +300,14 @@ except Exception as _x:
   function sm(n) { const m = S().sfn[n]; if (!m) return null; m.definicion = m.definicion || DEF_PIPELINE(); m.rol = m.rol || `arn:aws:iam::${cuenta()}:role/StepFunctions-${n}-role`; m.ejecuciones = m.ejecuciones || []; m.tipo = m.tipo || 'STANDARD'; m.logs = m.logs || 'OFF'; m.creada = m.creada || ahora(); return m; }
   function ruta$(obj, p) { if (p === '$' || p == null) return obj; const partes = String(p).replace(/^\$\.?/, '').split(/\.|\[(\d+)\]/).filter((x) => x !== undefined && x !== ''); let o = obj; for (const k of partes) { if (o == null) return undefined; o = o[k]; } return o; }
   function fijar$(obj, p, v) { if (p === null) return obj; if (p === undefined || p === '$') return v; const partes = String(p).replace(/^\$\.?/, '').split('.'); const out = JSON.parse(JSON.stringify(obj || {})); let o = out; partes.slice(0, -1).forEach((k) => { o[k] = o[k] && typeof o[k] === 'object' ? o[k] : {}; o = o[k]; }); o[partes[partes.length - 1]] = v; return out; }
-  function intrinseca(expr, entrada) {
+  function intrinseca(expr, entrada, ctx) {
+    if (String(expr).startsWith('$$.')) return ruta$(ctx || {}, '$.' + String(expr).slice(3)); // el objeto de contexto: $$.Map.Item.Value, $$.Map.Item.Index, $$.Execution.Id
     const m = /^States\.Format\('((?:[^']|\\')*)'\s*((?:,\s*[^,)]+)*)\)$/.exec(expr.trim());
     if (m) { const args = m[2].split(',').map((x) => x.trim()).filter(Boolean).map((a) => (a.startsWith('$') ? ruta$(entrada, a) : a.replace(/^'|'$/g, ''))); let i = 0; return m[1].replace(/\{\}/g, () => String(args[i++] ?? '')); }
     if (/^States\.JsonToString\((.+)\)$/.test(expr)) return JSON.stringify(ruta$(entrada, RegExp.$1));
     return ruta$(entrada, expr);
   }
-  function parametros(P, entrada) { if (P == null) return entrada; if (Array.isArray(P)) return P.map((x) => parametros(x, entrada)); if (typeof P !== 'object') return P; const out = {}; for (const [k, v] of Object.entries(P)) { if (k.endsWith('.$')) out[k.slice(0, -2)] = intrinseca(String(v), entrada); else out[k] = parametros(v, entrada); } return out; }
+  function parametros(P, entrada, ctx) { if (P == null) return entrada; if (Array.isArray(P)) return P.map((x) => parametros(x, entrada, ctx)); if (typeof P !== 'object') return P; const out = {}; for (const [k, v] of Object.entries(P)) { if (k.endsWith('.$')) out[k.slice(0, -2)] = intrinseca(String(v), entrada, ctx); else out[k] = parametros(v, entrada, ctx); } return out; }
   function cumple(c, e) {
     if (c.And) return c.And.every((x) => cumple(x, e)); if (c.Or) return c.Or.some((x) => cumple(x, e)); if (c.Not) return !cumple(c.Not, e);
     const v = ruta$(e, c.Variable);
@@ -343,6 +344,79 @@ except Exception as _x:
     if (/:::sns:publish/.test(R)) { if (!notificarSns(P.TopicArn || '', P.Subject || 'AWS Notification', P.Message)) throw new ErrorEstado('SNS.NotFoundException', `Topic does not exist: ${P.TopicArn}`); return { MessageId: guid() }; }
     throw new ErrorEstado('States.Runtime', `En la práctica, Step Functions integra Glue (startJobRun[.sync]), Lambda (invoke), Athena (startQueryExecution.sync) y SNS (publish). Recurso no soportado: ${R}`);
   }
+  // corre una máquina de estados (la principal, el ItemProcessor de un Map o una rama de un Parallel) y devuelve su salida
+  async function maquina(D, entrada, X) {
+    const { ej, ev } = X; let actual = D.StartAt, dato = entrada;
+    const coincide = (lista, E) => (lista || []).find((x) => (x.ErrorEquals || []).some((k) => k === E.error || (k === 'States.ALL' && E.error !== 'States.Runtime') || (k === 'States.TaskFailed' && E.error !== 'States.Timeout' && !/^States\.(Runtime|NoChoiceMatched)$/.test(E.error))));
+    try {
+      for (;;) {
+        if (++X.cuenta.n > 400) throw new ErrorEstado('States.Runtime', 'Demasiadas transiciones (¿un bucle sin salida?)');
+        const st = D.States && D.States[actual]; if (!st) throw new ErrorEstado('States.Runtime', `State '${actual}' not found`);
+        ej.transiciones++; ej.estados[actual] = 'RUNNING'; ev(`${st.Type}StateEntered`, { estado: actual }); cambio();
+        const entradaEf = st.InputPath === null ? {} : ruta$(dato, st.InputPath || '$');
+        let siguiente = st.Next || null, salida = entradaEf;
+        if (st.Type === 'Pass') salida = fijar$(dato, st.ResultPath, st.Result !== undefined ? st.Result : parametros(st.Parameters, entradaEf, X.ctx));
+        else if (st.Type === 'Wait') { const seg = st.Seconds || (st.SecondsPath ? ruta$(dato, st.SecondsPath) : 1); ev('WaitStateStarted', { estado: actual, seconds: seg }); await espera(Math.min(1500, seg * 100)); }
+        else if (st.Type === 'Choice') { const c = (st.Choices || []).find((x) => cumple(x, entradaEf)); siguiente = c ? c.Next : st.Default; if (!siguiente) throw new ErrorEstado('States.NoChoiceMatched', `No Choice matched and no Default specified in state '${actual}'`); }
+        else if (st.Type === 'Succeed') siguiente = null;
+        else if (st.Type === 'Fail') throw new ErrorEstado(st.Error || 'States.Fail', st.Cause || '');
+        else if (st.Type === 'Task' || st.Type === 'Map' || st.Type === 'Parallel') {
+          let intento = 0; let r; let capturado = false;
+          for (;;) {
+            try {
+              if (st.Type === 'Task') { ev('TaskScheduled', { estado: actual, resource: st.Resource }); ev('TaskStarted', { estado: actual }); r = await tarea(st, entradaEf, ev); ev('TaskSucceeded', { estado: actual, output: JSON.stringify(r).slice(0, 2000) }); }
+              else if (st.Type === 'Map') r = await mapa(st, actual, entradaEf, X);
+              else r = await paralelo(st, actual, entradaEf, X);
+              break;
+            } catch (e) {
+              const E = e instanceof ErrorEstado ? e : new ErrorEstado('States.TaskFailed', e.message);
+              ev(st.Type === 'Task' ? 'TaskFailed' : `${st.Type}StateFailed`, { estado: actual, error: E.error, cause: String(E.cause).slice(0, 2000) });
+              const re = coincide(st.Retry, E);
+              if (re && intento < (re.MaxAttempts ?? 3)) { intento++; await espera(Math.min(1500, (re.IntervalSeconds || 1) * Math.pow(re.BackoffRate || 2, intento - 1) * 150)); continue; }
+              const ca = coincide(st.Catch, E);
+              if (ca) { ej.estados[actual] = 'CAUGHT'; ev(`${st.Type}StateExited`, { estado: actual }); dato = fijar$(dato, ca.ResultPath === undefined ? '$' : ca.ResultPath, { Error: E.error, Cause: E.cause }); actual = ca.Next; capturado = true; break; }
+              throw E;
+            }
+          }
+          if (capturado) continue;
+          const sel = st.ResultSelector ? parametros(st.ResultSelector, r, X.ctx) : r;
+          salida = fijar$(dato, st.ResultPath === undefined ? '$' : st.ResultPath, sel);
+        } else throw new ErrorEstado('States.Runtime', `El estado '${actual}' tiene un Type que no existe: ${st.Type} (Task, Pass, Choice, Wait, Succeed, Fail, Map o Parallel).`);
+        if (st.Type === 'Choice' || st.Type === 'Wait' || st.Type === 'Succeed') salida = entradaEf;
+        dato = st.OutputPath ? ruta$(salida, st.OutputPath) : salida;
+        ej.estados[actual] = 'SUCCEEDED'; ev(`${st.Type}StateExited`, { estado: actual, output: JSON.stringify(dato).slice(0, 2000) });
+        if (st.End || st.Type === 'Succeed') return dato;
+        if (!siguiente) throw new ErrorEstado('States.Runtime', `El estado '${actual}' no tiene Next ni End.`);
+        actual = siguiente;
+      }
+    } catch (e) { if (actual && ej.estados[actual] === 'RUNNING') ej.estados[actual] = 'FAILED'; throw e; }
+  }
+  // Map: corre el ItemProcessor (o el Iterator de las definiciones viejas) una vez por elemento de ItemsPath
+  async function mapa(st, nombre, entrada, X) {
+    const sub = st.ItemProcessor || st.Iterator; if (!sub || !sub.StartAt) throw new ErrorEstado('States.Runtime', `El Map '${nombre}' necesita ItemProcessor con StartAt y States.`);
+    const items = ruta$(entrada, st.ItemsPath || '$'); if (!Array.isArray(items)) throw new ErrorEstado('States.Runtime', `Map '${nombre}': ItemsPath (${st.ItemsPath || '$'}) no apunta a una lista.`);
+    const sel = st.ItemSelector || st.Parameters; const tolerado = Number(st.ToleratedFailurePercentage || 0);
+    X.ev('MapStateStarted', { estado: nombre, length: items.length }); const out = []; let fallas = 0;
+    for (let i = 0; i < items.length; i++) {
+      const ctx = { ...X.ctx, Map: { Item: { Value: items[i], Index: i } } };
+      const ent = sel ? parametros(sel, entrada, ctx) : items[i];
+      X.ev('MapIterationStarted', { estado: nombre, index: i });
+      try { out.push(await maquina(sub, ent, { ...X, ctx })); X.ev('MapIterationSucceeded', { estado: nombre, index: i }); }
+      catch (e) {
+        fallas++; X.ev('MapIterationFailed', { estado: nombre, index: i, error: e.error || 'States.TaskFailed' });
+        if (!tolerado || (fallas * 100) / items.length > tolerado) throw new ErrorEstado(e.error || 'States.TaskFailed', `Falló la iteración ${i} del Map '${nombre}': ${e.cause || e.message}`);
+        out.push(null);
+      }
+    }
+    X.ev('MapStateSucceeded', { estado: nombre }); return out;
+  }
+  // Parallel: cada rama de Branches recibe la misma entrada; la salida es la lista de salidas, en el orden de las ramas
+  async function paralelo(st, nombre, entrada, X) {
+    if (!Array.isArray(st.Branches) || !st.Branches.length) throw new ErrorEstado('States.Runtime', `El Parallel '${nombre}' necesita Branches: [{ StartAt, States }, …].`);
+    X.ev('ParallelStateStarted', { estado: nombre, branches: st.Branches.length });
+    const out = await Promise.all(st.Branches.map((b) => maquina(b, entrada, X)));
+    X.ev('ParallelStateSucceeded', { estado: nombre }); return out;
+  }
   async function ejecutarSfn(nombre, entrada = {}, { nombreEj = null } = {}) {
     const m = sm(nombre); if (!m) { const e = new Error(`StateMachineDoesNotExist: State Machine Does Not Exist: '${arn('states', 'stateMachine:' + nombre)}'`); e.code = 'StateMachineDoesNotExist'; throw e; }
     let D; try { D = JSON.parse(m.definicion); } catch (e) { throw new Error(`InvalidDefinition: ${e.message}`); }
@@ -350,47 +424,13 @@ except Exception as _x:
     m.ejecuciones.unshift(ej); m.ejecuciones = m.ejecuciones.slice(0, 40); guardar(); cambio();
     const ev = (tipo, detalle = {}) => { ej.eventos.push({ id: ej.eventos.length + 1, t: ahora(), tipo, ...detalle }); if (m.logs === 'ALL' || (m.logs === 'ERROR' && /Failed|Aborted/.test(tipo))) log(`/aws/vendedlogs/states/${nombre}-Logs`, `states/${nombre}/${ej.id.slice(0, 8)}`, JSON.stringify({ type: tipo, execution_arn: arn('states', `execution:${nombre}:${ej.id}`), ...detalle })); };
     ev('ExecutionStarted', { input: JSON.stringify(entrada) }); metrica('AWS/States', 'ExecutionsStarted', { StateMachineArn: nombre }, 1);
-    let actual = D.StartAt, dato = entrada; const t0 = Date.now();
+    const t0 = Date.now(); let dato;
+    const ctxEj = { Execution: { Id: arn('states', `execution:${nombre}:${ej.id}`), Name: ej.id, StartTime: ej.inicio, Input: entrada }, StateMachine: { Name: nombre } };
     try {
-      for (let pasos = 0; actual; pasos++) {
-        if (pasos > 60) throw new ErrorEstado('States.Runtime', 'Demasiadas transiciones (¿un bucle sin salida?)');
-        const st = D.States && D.States[actual]; if (!st) throw new ErrorEstado('States.Runtime', `State '${actual}' not found`);
-        ej.transiciones++; ej.estados[actual] = 'RUNNING'; ev(`${st.Type}StateEntered`, { estado: actual }); cambio();
-        const entradaEf = st.InputPath === null ? {} : ruta$(dato, st.InputPath || '$');
-        let siguiente = st.Next || null, salida = entradaEf;
-        if (st.Type === 'Pass') salida = fijar$(dato, st.ResultPath, st.Result !== undefined ? st.Result : parametros(st.Parameters, entradaEf));
-        else if (st.Type === 'Wait') { const seg = st.Seconds || (st.SecondsPath ? ruta$(dato, st.SecondsPath) : 1); ev('WaitStateStarted', { estado: actual, seconds: seg }); await espera(Math.min(1500, seg * 100)); }
-        else if (st.Type === 'Choice') { const c = (st.Choices || []).find((x) => cumple(x, entradaEf)); siguiente = c ? c.Next : st.Default; if (!siguiente) throw new ErrorEstado('States.NoChoiceMatched', `No Choice matched and no Default specified in state '${actual}'`); }
-        else if (st.Type === 'Succeed') siguiente = null;
-        else if (st.Type === 'Fail') throw new ErrorEstado(st.Error || 'States.Fail', st.Cause || '');
-        else if (st.Type === 'Task') {
-          let intento = 0; let r; let capturado = false;
-          for (;;) {
-            ev('TaskScheduled', { estado: actual, resource: st.Resource }); ev('TaskStarted', { estado: actual });
-            try { r = await tarea(st, entradaEf, ev); ev('TaskSucceeded', { estado: actual, output: JSON.stringify(r).slice(0, 2000) }); break; }
-            catch (e) {
-              const E = e instanceof ErrorEstado ? e : new ErrorEstado('States.TaskFailed', e.message); ev('TaskFailed', { estado: actual, error: E.error, cause: String(E.cause).slice(0, 2000) });
-              const re = (st.Retry || []).find((x) => (x.ErrorEquals || []).some((k) => k === E.error || k === 'States.ALL' || (k === 'States.TaskFailed' && E.error !== 'States.Timeout')));
-              if (re && intento < (re.MaxAttempts ?? 3)) { intento++; await espera(Math.min(1500, (re.IntervalSeconds || 1) * Math.pow(re.BackoffRate || 2, intento - 1) * 150)); continue; }
-              const ca = (st.Catch || []).find((x) => (x.ErrorEquals || []).some((k) => k === E.error || k === 'States.ALL' || (k === 'States.TaskFailed' && E.error !== 'States.Timeout')));
-              if (ca) { ej.estados[actual] = 'CAUGHT'; ev('TaskStateExited', { estado: actual }); dato = fijar$(dato, ca.ResultPath === undefined ? '$' : ca.ResultPath, { Error: E.error, Cause: E.cause }); actual = ca.Next; capturado = true; break; }
-              throw E;
-            }
-          }
-          if (capturado) continue;
-          const sel = st.ResultSelector ? parametros(st.ResultSelector, r) : r;
-          salida = fijar$(dato, st.ResultPath === undefined ? '$' : st.ResultPath, sel);
-        }
-        if (st.Type !== 'Pass' && st.Type !== 'Task') salida = st.Type === 'Choice' || st.Type === 'Wait' || st.Type === 'Succeed' ? entradaEf : salida;
-        dato = st.OutputPath ? ruta$(salida, st.OutputPath) : salida;
-        ej.estados[actual] = 'SUCCEEDED'; ev(`${st.Type}StateExited`, { estado: actual, output: JSON.stringify(dato).slice(0, 2000) });
-        if (st.End || st.Type === 'Succeed') break;
-        actual = siguiente;
-      }
+      dato = await maquina(D, entrada, { ej, ev, ctx: ctxEj, cuenta: { n: 0 } });
       ej.estado = 'SUCCEEDED'; ej.output = dato; ev('ExecutionSucceeded', { output: JSON.stringify(dato).slice(0, 2000) }); metrica('AWS/States', 'ExecutionsSucceeded', { StateMachineArn: nombre }, 1);
     } catch (e) {
       const E = e instanceof ErrorEstado ? e : new ErrorEstado('States.Runtime', e.message);
-      if (actual && ej.estados[actual] === 'RUNNING') ej.estados[actual] = 'FAILED';
       ej.estado = 'FAILED'; ej.error = E.error; ej.causa = E.cause; ev('ExecutionFailed', { error: E.error, cause: String(E.cause).slice(0, 2000) }); metrica('AWS/States', 'ExecutionsFailed', { StateMachineArn: nombre }, 1);
     }
     ej.fin = ahora(); metrica('AWS/States', 'ExecutionTime', { StateMachineArn: nombre }, Date.now() - t0);
@@ -643,7 +683,7 @@ except Exception as _x:
     const orden = []; const vistos = new Set(); const cola = [D.StartAt];
     while (cola.length) { const n = cola.shift(); if (!n || vistos.has(n) || !D.States[n]) continue; vistos.add(n); orden.push(n); const st = D.States[n]; [st.Next, st.Default, ...(st.Choices || []).map((c) => c.Next), ...(st.Catch || []).map((c) => c.Next)].forEach((x) => x && cola.push(x)); }
     Object.keys(D.States || {}).forEach((n) => { if (!vistos.has(n)) orden.push(n); });
-    return `<div class="aws2-grafo"><div class="aws2-gn aws2-ini">Start</div>${orden.map((n) => { const st = D.States[n]; const e = estados[n]; const sal = [st.Next && `→ ${st.Next}`, st.Default && `default → ${st.Default}`, ...(st.Choices || []).map((c) => `si ${c.Variable || 'condición'} → ${c.Next}`), ...(st.Catch || []).map((c) => `catch ${c.ErrorEquals.join(',')} → ${c.Next}`), st.End && '→ End'].filter(Boolean); return `<div class="aws2-gflecha">↓</div><div class="aws2-gn aws2-g-${(e || 'none').toLowerCase()}"><b>${esc(n)}</b><small>${esc(st.Type)}${st.Resource ? ` · ${esc(String(st.Resource).replace('arn:aws:states:::', ''))}` : ''}</small>${sal.length ? `<small class="aw-dim">${esc(sal.join(' · '))}</small>` : ''}</div>`; }).join('')}<div class="aws2-gflecha">↓</div><div class="aws2-gn aws2-ini">End</div></div>`;
+    return `<div class="aws2-grafo"><div class="aws2-gn aws2-ini">Start</div>${orden.map((n) => { const st = D.States[n]; const e = estados[n]; const sal = [st.Next && `→ ${st.Next}`, st.Default && `default → ${st.Default}`, ...(st.Choices || []).map((c) => `si ${c.Variable || 'condición'} → ${c.Next}`), ...(st.Catch || []).map((c) => `catch ${c.ErrorEquals.join(',')} → ${c.Next}`), st.End && '→ End'].filter(Boolean); return `<div class="aws2-gflecha">↓</div><div class="aws2-gn aws2-g-${(e || 'none').toLowerCase()}"><b>${esc(n)}</b><small>${esc(st.Type)}${st.Resource ? ` · ${esc(String(st.Resource).replace('arn:aws:states:::', ''))}` : ''}${st.Type === 'Map' && (st.ItemProcessor || st.Iterator) ? ` · por cada elemento de ${esc(st.ItemsPath || '$')}: ${esc(Object.keys((st.ItemProcessor || st.Iterator).States || {}).join(' → '))}` : ''}${st.Type === 'Parallel' && Array.isArray(st.Branches) ? ` · ${st.Branches.length} ramas a la vez: ${esc(st.Branches.map((b) => Object.keys(b.States || {}).join(' → ')).join(' | '))}` : ''}</small>${sal.length ? `<small class="aw-dim">${esc(sal.join(' · '))}</small>` : ''}</div>`; }).join('')}<div class="aws2-gflecha">↓</div><div class="aws2-gn aws2-ini">End</div></div>`;
   }
   function sfnVista() {
     const r = ruta(); const s = S();

@@ -147,6 +147,42 @@ AzureDiagnostics
 | project TimeGenerated, OperationName, ResultSignature, requestUri_s, identity_claim_upn_s
 ```
 
+### Juntar tablas: let, join y parse
+
+Las preguntas de la guardia casi nunca se responden con una sola tabla. "¿Qué pipelines fallaron y en qué actividad?" junta `ADFPipelineRun` con `ADFActivityRun`:
+
+```kql
+let fallidas = ADFPipelineRun
+| where Status == "Failed"
+| project RunId, PipelineName, Fin = TimeGenerated;
+fallidas
+| join kind=leftouter (
+    ADFActivityRun
+    | where Status == "Failed"
+    | project PipelineRunId, ActivityName, ErrorCode
+  ) on $left.RunId == $right.PipelineRunId
+| project Fin, PipelineName, ActivityName, ErrorCode
+| order by Fin desc
+```
+
+- `let` le pone nombre a una consulta (o a un valor: `let umbral = 5;`) para usarla después. Cada `let` termina en `;` y la consulta final va al final.
+- `on $left.RunId == $right.PipelineRunId` une columnas que se llaman distinto. Si se llaman igual alcanza con `on PipelineName`.
+- `kind=leftouter` conserva las corridas fallidas aunque no tengan una actividad fallida (por ejemplo, si falló al arrancar).
+
+:::cuidado join sin kind no es un INNER JOIN
+En KQL, `join` sin `kind` es **`innerunique`**: de la tabla de la izquierda queda **una sola fila por cada valor de la clave** (cualquiera), y recién después se une. Con `ADFPipelineRun` a la izquierda, de las dos filas de cada corrida (`InProgress` y la final) sobrevive una al azar. Escribe siempre el `kind` que quieres: `inner`, `leftouter`, `leftanti` (lo que **no** tiene pareja), `leftsemi` (lo que **sí**, sin traer columnas de la derecha).
+:::
+
+Y `parse` saca partes de un texto con un patrón: cada cosa entre comillas es texto fijo y cada nombre es una columna nueva (`Campo:int` la convierte a número; `*` salta lo que sea):
+
+```kql
+StorageBlobLogs
+| parse Uri with "https://" Cuenta ".blob.core.windows.net/" Contenedor "/" Ruta
+| summarize operaciones = count() by Cuenta, Contenedor, AuthenticationType
+```
+
+Si el texto no tiene ese formato, las columnas quedan vacías; `parse-where` en cambio descarta esas filas.
+
 | Pregunta de la empresa | Dónde se responde |
 |---|---|
 | ¿Qué pipelines fallaron anoche y por qué? | `ADFPipelineRun` + `ADFActivityRun` |
@@ -196,6 +232,14 @@ En el workspace, **Usage and estimated costs** muestra los datos ingeridos por t
 :::
 
 ## Ejercicios
+
+:::ejercicio quiz
+Escribes `ADFPipelineRun | join ADFActivityRun on $left.RunId == $right.PipelineRunId` (sin `kind`). Cada corrida tiene dos filas en `ADFPipelineRun` (InProgress y la final). ¿Qué pasa?
+- [ ] Salen las dos filas de cada corrida, unidas a cada actividad
+- [x] Sale una sola fila de cada corrida (cualquiera de las dos), porque join sin kind es innerunique
+- [ ] Da error porque las columnas se llaman distinto
+- [ ] Salen solo las corridas que no tienen actividades
+:::
 
 :::ejercicio quiz
 Creaste hoy a las 10:00 el Diagnostic setting del data factory. Un pipeline falló ayer a las 23:00. ¿Qué devuelve `ADFPipelineRun | where Status == "Failed"`?

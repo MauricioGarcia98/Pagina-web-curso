@@ -87,6 +87,42 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><strong>Catch</strong>: si se agotan los reintentos, va a otro estado (avisar) en lugar de morir en silencio.</li>
 <li>Otros estados útiles: <code>Choice</code> (if), <code>Parallel</code> (ramas simultáneas), <code>Map</code> (un paso por cada elemento de una lista), <code>Wait</code>.</li>
 </ul>
+<h3>Map y Parallel: muchos archivos, varias cosas a la vez</h3>
+<p>Un caso típico: llegaron varios archivos y cada uno se procesa igual, y al final corren dos controles independientes. <code>Map</code> repite su <code>ItemProcessor</code> por cada elemento de la lista que dice <code>ItemsPath</code>; <code>Parallel</code> corre sus <code>Branches</code> a la vez y espera a todas.</p>
+<pre tabindex="0"><code class="language-json">&quot;PorArchivo&quot;: {
+  &quot;Type&quot;: &quot;Map&quot;,
+  &quot;ItemsPath&quot;: &quot;$.archivos&quot;,
+  &quot;ItemSelector&quot;: { &quot;ruta.$&quot;: &quot;$$.Map.Item.Value&quot;, &quot;fecha.$&quot;: &quot;$.fecha&quot; },
+  &quot;MaxConcurrency&quot;: 5,
+  &quot;ItemProcessor&quot;: {
+    &quot;ProcessorConfig&quot;: { &quot;Mode&quot;: &quot;INLINE&quot; },
+    &quot;StartAt&quot;: &quot;CargarArchivo&quot;,
+    &quot;States&quot;: {
+      &quot;CargarArchivo&quot;: {
+        &quot;Type&quot;: &quot;Task&quot;,
+        &quot;Resource&quot;: &quot;arn:aws:states:::glue:startJobRun.sync&quot;,
+        &quot;Parameters&quot;: { &quot;JobName&quot;: &quot;banco-silver&quot;, &quot;Arguments&quot;: { &quot;--ruta.$&quot;: &quot;$.ruta&quot;, &quot;--fecha.$&quot;: &quot;$.fecha&quot; } },
+        &quot;End&quot;: true
+      }
+    }
+  },
+  &quot;ResultPath&quot;: &quot;$.cargas&quot;,
+  &quot;Next&quot;: &quot;Controles&quot;
+},
+&quot;Controles&quot;: {
+  &quot;Type&quot;: &quot;Parallel&quot;,
+  &quot;Branches&quot;: [
+    { &quot;StartAt&quot;: &quot;ContarFilas&quot;, &quot;States&quot;: { &quot;ContarFilas&quot;: { &quot;Type&quot;: &quot;Task&quot;, &quot;Resource&quot;: &quot;arn:aws:states:::athena:startQueryExecution.sync&quot;, &quot;Parameters&quot;: { &quot;QueryString&quot;: &quot;SELECT count(*) FROM silver.transacciones&quot;, &quot;WorkGroup&quot;: &quot;primary&quot; }, &quot;End&quot;: true } } },
+    { &quot;StartAt&quot;: &quot;Avisar&quot;, &quot;States&quot;: { &quot;Avisar&quot;: { &quot;Type&quot;: &quot;Task&quot;, &quot;Resource&quot;: &quot;arn:aws:states:::sns:publish&quot;, &quot;Parameters&quot;: { &quot;TopicArn&quot;: &quot;arn:aws:sns:us-east-1:123456789012:alertas-datos&quot;, &quot;Message&quot;: &quot;Carga terminada&quot; }, &quot;End&quot;: true } } }
+  ],
+  &quot;Next&quot;: &quot;GoldFraude&quot;
+}</code></pre>
+<ul>
+<li><code>$$.Map.Item.Value</code> es el elemento de la lista (y <code>$$.Map.Item.Index</code>, su posición); <code>$</code> sigue siendo la entrada del <code>Map</code>. Así cada iteración recibe su archivo <strong>y</strong> la fecha general.</li>
+<li>La salida de un <code>Map</code> es la lista de salidas de cada iteración, en orden; la de un <code>Parallel</code>, la lista de salidas de cada rama.</li>
+<li>Si una iteración falla, falla el <code>Map</code> entero (salvo que pongas <code>ToleratedFailurePercentage</code>), y ahí actúan su <code>Retry</code> y su <code>Catch</code>, igual que en un <code>Task</code>.</li>
+<li><code>States.ALL</code> atrapa casi todo, pero <strong>no</strong> <code>States.Runtime</code> (por ejemplo, un <code>ItemsPath</code> que no apunta a una lista): ese error es de la definición y hay que corregirla.</li>
+</ul>
 <pre data-norun tabindex="0"><code class="language-bash">aws stepfunctions create-state-machine --name pipeline-banco \
   --definition file://pipeline-banco.json \
   --role-arn arn:aws:iam::123456789012:role/StepFunctionsDatos
