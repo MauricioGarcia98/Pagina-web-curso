@@ -32,6 +32,8 @@ La red se formó hace un mes uniendo cinco laboratorios de la ciudad: Norte, Cen
 
 Las fuentes están **vivas**: los archivos llegan cada día con los resultados del día anterior, y los laboratorios cambian cosas sin avisar.
 
+**El volumen.** La red atiende a unas **24.000 personas**. Un día hábil, cada laboratorio procesa unas **400 muestras** (de 1 a 5 estudios cada una): son cerca de **1.000 resultados por laboratorio** y unos **5.000 por día** entre los cinco; los fines de semana, menos de la mitad. Con 7 días de archivos en el servidor tienes unos 30.000 resultados para empezar, y la tabla crece cada mañana. A ese tamaño ya no se revisa "a ojo": las trampas (un documento escrito distinto, una fila repetida, una unidad cambiada) se encuentran con consultas.
+
 ## Lo que hay que entregar
 
 | Tabla | Qué es |

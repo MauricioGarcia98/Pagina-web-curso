@@ -62,7 +62,8 @@
     const faltan = antes.filter((x) => !tuyo.has(clave(x.lab, x.muestra, x.estudio)));
     if (faltan.length) { const porLab = {}; for (const x of faltan) porLab[x.lab] = (porLab[x.lab] || 0) + 1; m.push(`faltan ${faltan.length} resultados de archivos ya entregados (${Object.entries(porLab).map(([l, n]) => `${l}: ${n}`).join(', ')})`); }
     const sobran = [...tuyo.keys()].filter((k) => !ahoraM.has(k));
-    if (sobran.length) m.push(`sobran ${sobran.length} resultados que no corresponden (${lista(sobran, 3)})${fuera && sobran.some((k) => RA.mundo().resultados.some((x) => x.p === fuera && clave(x.lab, x.muestra, x.estudio) === k)) ? ' — algunos son de la persona que pidió el borrado de sus datos' : ''}`);
+    const delOlvido = fuera ? new Set(RA.mundo().resultados.filter((x) => x.p === fuera).map((x) => clave(x.lab, x.muestra, x.estudio))) : new Set();
+    if (sobran.length) m.push(`sobran ${sobran.length} resultados que no corresponden (${lista(sobran, 3)})${sobran.some((k) => delOlvido.has(k)) ? ' — algunos son de la persona que pidió el borrado de sus datos' : ''}`);
     const malV = {}, malF = {}; let sur18 = 0, hbx10 = 0, serial = 0, utc = 0;
     for (const [k, f] of tuyo) {
       const x = ahoraM.get(k); if (!x) continue; const v = num(f[ix.v]); const viejo = v1.get(k);
@@ -77,9 +78,12 @@
   }
   async function chequeoSeudonimos() {
     const r = await revisarSilver(); if (r.msg) return r.msg; const { T, ix } = r; const W = RA.mundo();
-    const docs = new Set(W.pacientes.map((p) => String(p.doc))); const nombres = W.pacientes.map((p) => [norm(p.nombre), norm(p.apellido)]);
-    let pii = null;
-    for (const f of T.filas) for (const c of f) { if (c == null || typeof c === 'number' && !Number.isInteger(c)) continue; const s = String(c); const dig = s.replace(/\D/g, ''); if (dig.length >= 7 && docs.has(dig)) { pii = 'un número de documento'; break; } const n = norm(s); if (n.length > 6 && nombres.some(([a, b]) => n.includes(a) && n.includes(b))) { pii = 'un nombre'; break; } }
+    const docs = new Set(W.pacientes.map((p) => String(p.doc)));
+    // pares nombre + apellido que existen (los nombres salen de listas cortas: se agrupan para no recorrer 24.000 pacientes por celda)
+    const pares = new Map(); for (const p of W.pacientes) { const a = norm(p.nombre); (pares.get(a) || pares.set(a, new Set()).get(a)).add(norm(p.apellido)); }
+    const conNombre = (n) => { for (const [a, bs] of pares) if (n.includes(a)) for (const b of bs) if (n.includes(b)) return true; return false; };
+    let pii = null; const vistos = new Set();
+    for (const f of T.filas) { for (const c of f) { if (c == null || typeof c === 'number' && !Number.isInteger(c)) continue; const s = String(c); if (vistos.has(s)) continue; vistos.add(s); const dig = s.replace(/\D/g, ''); if (dig.length >= 7 && docs.has(dig)) { pii = 'un número de documento'; break; } const n = norm(s); if (n.length > 6 && !/^[0-9a-f]{16,}$/.test(n) && conNombre(n)) { pii = 'un nombre'; break; } } if (pii) break; }
     if (pii) return `La tabla tiene ${pii} de paciente. En silver no puede quedar nada que identifique a una persona: reemplázalo por paciente_id (un seudónimo).`;
     const real = new Map(W.resultados.map((x) => [clave(x.lab, x.muestra, x.estudio), x.p.doc]));
     const porDoc = new Map(), porId = new Map();
@@ -95,7 +99,8 @@
     const ok = vals.some((v) => v.some((x) => /BEGIN OPENSSH PRIVATE KEY/.test(x || '')) && v.length >= 2);
     return ok || 'Guarda en un Key Vault la clave privada SSH (el contenido del archivo) y la sal del seudónimo, como secretos del mismo vault.';
   }
-  async function chequeoGold() {
+  async function chequeoGold() { const r = await chequeoGoldTabla(); if (r !== true) return r; const c = (almacen() && almacen().data.cruces) || {}; return c.pbiDatabricks ? true : 'La tabla cuadra. Falta el informe en Power BI (Obtener datos → Azure Databricks → red.gold.resultados_diarios).'; }
+  async function chequeoGoldTabla() {
     const T = await tabla('red.gold.resultados_diarios'); if (T.error) return `No se pudo leer red.gold.resultados_diarios: ${T.error}`;
     const ix = { f: colDe(T, 'fecha_toma', 'fecha'), l: colDe(T, 'laboratorio'), e: colDe(T, 'estudio'), n: colDe(T, 'resultados'), x: colDe(T, 'fuera_de_rango') };
     if (Object.values(ix).some((i) => i < 0)) return 'La tabla necesita fecha_toma, laboratorio, estudio, resultados y fuera_de_rango.';
@@ -105,13 +110,21 @@
     for (const f of T.filas) { const k = `${String(f[ix.f]).slice(0, 10)}|${labDe(f[ix.l])}|${String(f[ix.e]).toUpperCase()}`; const a = ag.get(k); if (!a) continue; if (Number(f[ix.n]) !== a.n || Number(f[ix.x]) !== a.f) mal.push(`${k} (${f[ix.n]}/${f[ix.x]}, esperado ${a.n}/${a.f})`); }
     if (!T.filas.length) return 'La tabla está vacía.';
     if (mal.length) return `No cuadra: ${lista(mal, 3)}. fuera_de_rango usa los rangos canónicos de la documentación.`;
-    const c = (almacen() && almacen().data.cruces) || {}; return c.pbiDatabricks ? true : 'La tabla cuadra. Falta el informe en Power BI (Obtener datos → Azure Databricks → red.gold.resultados_diarios).';
+    return true;
   }
   const CHEQUEOS = [
     ['Seguridad', 'La clave SSH y la sal están en un Key Vault', chequeoKV],
+    ['Acceso', 'Tu clave SSH está autorizada y la huella del servidor está en known_hosts', async () => {
+      const D = Host.datos() || {}; const C = RA.claves(); const Sh = window.Shell;
+      if (!(D.claves || []).length) return 'IT no tiene ninguna clave tuya: genera un par con ssh-keygen y manda la pública con red alta-clave.';
+      if (!D.claves.some((k) => Date.now() - k.alta >= 5 * MIN)) return 'Tu clave todavía está pendiente: IT tarda unos minutos (red estado).';
+      const kh = Sh && Sh.readFile ? (Sh.readFile(Sh.HOME + '/.ssh/known_hosts') || '') : '';
+      return kh.includes(`[${C.host}]:${C.puerto}`) || 'La huella del servidor no está en ~/.ssh/known_hosts (ssh-keyscan -p 2222 …, o la primera conexión con StrictHostKeyChecking=accept-new).';
+    }],
     ['SFTP', 'Te conectaste al servidor y bajaste archivos', async () => { const D = Host.datos() || {}; return (D.descargas > 0) || 'Todavía no bajaste nada del servidor SFTP (red accesos, red alta-clave, sftp).'; }],
     ['Datos', 'red.silver.resultados unifica los 5 laboratorios (códigos, unidades, fechas, sin repetidos)', chequeoSilver],
     ['Privacidad', 'red.silver.resultados no identifica a nadie y paciente_id es consistente entre laboratorios', chequeoSeudonimos],
+    ['Gold', 'red.gold.resultados_diarios cuadra con silver (resultados y fuera de rango por día, laboratorio y estudio)', chequeoGoldTabla],
   ];
 
   // ---------------------------------------------------------------- tablero

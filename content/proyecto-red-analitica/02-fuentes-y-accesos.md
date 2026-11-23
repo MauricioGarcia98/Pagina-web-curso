@@ -58,6 +58,8 @@ scp -i ~/.ssh/red_analitica -P 2222 'equipo_datos@sftp.redanalitica.example:/ent
 
 ## 2. Lo que manda cada laboratorio
 
+Cada archivo trae **todo un día** de un laboratorio: unas 1.000 líneas un día hábil (de 100 a 180 KB) y unas 400 un fin de semana. Con siete días en el servidor son más de 30 archivos y 2 a 3 MB: bájalos en lote (`mget`), nunca uno por uno a mano.
+
 Esta documentación la escribió cada laboratorio. Está como la mandaron.
 
 ### Laboratorio Norte · `/entrantes/norte/resultados_AAAAMMDD.csv`
