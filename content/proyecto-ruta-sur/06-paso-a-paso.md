@@ -2,7 +2,7 @@
 titulo: Construirlo paso a paso - una guía, no una solución
 nivel: Avanzado
 duracion: 240
-resumen: Construyes el proyecto de cero con los datos de la flota de Ruta Sur (unos 430 pedidos y 4.300 eventos de telemetría por día, más de 10.000 mensajes en el tópico). Cada paso dice qué lograr, qué esconden los datos, cómo comprobarlo y pistas graduales; la solución de referencia de cada paso se desbloquea cuando tu entrega pasa la revisión.
+resumen: Construyes el proyecto de cero con la flota de Ruta Sur a volumen de empresa (250 camionetas, unos 5.500 pedidos y 52.000 eventos de telemetría por día, más de 100.000 mensajes en el tópico). Cada paso dice qué lograr, qué esconden los datos, cómo comprobarlo y pistas graduales; la solución de referencia de cada paso se desbloquea cuando tu entrega pasa la revisión.
 objetivos: Explorar un tópico de Kafka antes de procesarlo | Ingerir un stream con checkpoint sin perder datos | Normalizar eventos de dos versiones de firmware y deduplicarlos | Detectar un reloj adelantado comparando con la llegada | Unir el plan con los eventos para medir un SLA
 prerrequisitos: proyecto-ruta-sur-el-dia-a-dia
 autoevaluacion: ¿Sabes qué guarda el checkpoint de una streaming table? | ¿Sabes cómo distinguir un evento de firmware 2.0? | ¿Sabes por qué el plan va a la izquierda del LEFT JOIN? | ¿Sabes por qué el SLA de ayer puede cambiar hoy?
@@ -16,9 +16,9 @@ Nada viene hecho: el lago, el Key Vault, el script del plan, las tablas y el ref
 
 | Fuente | Volumen aproximado | Qué implica |
 |---|---|---|
-| Tópico `rutasur.telemetria` | ~4.300 eventos por día, 4 particiones, 3 días de retención: más de 10.000 mensajes | Leerlo entero en cada corrida no escala: el checkpoint es lo que permite traer solo lo nuevo |
-| API del TMS | ~430 pedidos por día en 20 rutas, con urgentes que se suman durante el día | 8 días de plan son ~3.500 pedidos |
-| Flota | 20 camionetas, dos firmwares, una con el reloj adelantado y una que pierde señal | Los errores no se ven mirando 10 filas: hay que buscarlos con consultas |
+| Tópico `rutasur.telemetria` | ~52.000 eventos por día, 8 particiones, 3 días de retención: más de 100.000 mensajes | Leerlo entero en cada corrida no escala: el checkpoint es lo que permite traer solo lo nuevo |
+| API del TMS | ~5.500 pedidos por día en 250 rutas, con urgentes que se suman durante el día | 8 días de plan son ~33.000 pedidos y un archivo de ~8 MB |
+| Flota | 250 camionetas, dos firmwares, una con el reloj adelantado y una que pierde señal | Los errores no se ven mirando 10 filas: hay que buscarlos con consultas |
 
 Crea el repositorio `ruta-sur` con `README.md`, `tms/plan.py` y `sql/` (bronze, silver y gold en archivos separados), y trabaja con una rama por paso.
 

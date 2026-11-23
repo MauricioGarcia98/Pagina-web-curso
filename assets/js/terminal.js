@@ -13,6 +13,33 @@
   const S = (cls, txt) => `\u0001${cls}\u0002${txt}\u0003`; // marca de color
   const col = { dir: (t) => S('t-dir', t), ok: (t) => S('t-ok', t), err: (t) => S('t-err', t), warn: (t) => S('t-warn', t), dim: (t) => S('t-dim', t), b: (t) => S('t-b', t), info: (t) => S('t-info', t) };
 
+  // ------------------------------------------------------------------ textos grandes en IndexedDB
+  // localStorage tiene ~5 MB para todo el sitio: los archivos y blobs de más de 100 KB se guardan en IndexedDB y en el
+  // disco guardado queda una marca {__pesado: clave}. Al cargar, las marcas se reemplazan por el contenido (en segundo
+  // plano); runLine espera a que termine antes de ejecutar un comando.
+  const Pesados = (() => {
+    const UMBRAL = 100000; const guardados = new Set();
+    let p = null;
+    const abrir = () => p || (p = new Promise((ok, mal) => { try { const r = indexedDB.open('academia-datos-pesados', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => ok(r.result); r.onerror = () => mal(r.error); } catch (e) { mal(e); } }));
+    const tx = async (modo, f) => { const d = await abrir(); return new Promise((ok, mal) => { const t = d.transaction('kv', modo); const req = f(t.objectStore('kv')); t.oncomplete = () => ok(req ? req.result : undefined); t.onerror = () => mal(t.error); t.onabort = () => mal(t.error); }); };
+    const hash = (t) => { let h1 = 2166136261, h2 = 5381; for (let i = 0; i < t.length; i += (t.length > 400000 ? 7 : 1)) { const c = t.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = (Math.imul(h2, 33) + c) | 0; } return `maq:${t.length}:${(h1 >>> 0).toString(36)}${(h2 >>> 0).toString(36)}`; };
+    const hay = typeof indexedDB !== 'undefined';
+    function reemplazo(k, v) {
+      if (!hay || typeof v !== 'string' || v.length < UMBRAL) return v;
+      const clave = hash(v);
+      if (!guardados.has(clave)) { guardados.add(clave); tx('readwrite', (st) => st.put(v, clave)).catch((e) => { guardados.delete(clave); console.warn('terminal: no se pudo guardar en IndexedDB', e); }); }
+      return { __pesado: clave };
+    }
+    function hidratar(raices) {
+      if (!hay) return null;
+      const pend = [];
+      const visitar = (o, prof) => { if (!o || typeof o !== 'object' || prof > 12) return; for (const k of Object.keys(o)) { const v = o[k]; if (v && typeof v === 'object') { if (typeof v.__pesado === 'string' && Object.keys(v).length === 1) { const clave = v.__pesado; guardados.add(clave); pend.push(tx('readonly', (st) => st.get(clave)).then((txt) => { o[k] = typeof txt === 'string' ? txt : ''; if (typeof txt !== 'string') console.warn('terminal: falta en IndexedDB', clave); }).catch(() => { o[k] = ''; })); } else visitar(v, prof + 1); } } };
+      for (const r of raices) visitar(r, 0);
+      return pend.length ? Promise.all(pend).then(() => true) : null;
+    }
+    return { reemplazo, hidratar };
+  })();
+
   // ------------------------------------------------------------------ máquina
   const envInicial = () => ({ HOME, USER: 'alumno', PATH: '/usr/local/bin:/usr/bin:/bin', SHELL: '/bin/bash', LANG: 'es_ES.UTF-8' });
   const Machine = {
@@ -20,15 +47,15 @@
     load() {
       try {
         const d = JSON.parse(localStorage.getItem(KEY));
-        if (d && d.v === 1 && !d.fs) { this.reset(); this.cloud = d.cloud || {}; this.ready = true; this.save(); return; } // terminal reiniciada desde Mis datos: disco de fábrica, nubes conservadas
-        if (d && d.v === 1) { Object.assign(this, d); this.alias = this.alias || {}; this.ready = true; return; }
+        if (d && d.v === 1 && !d.fs) { this.reset(); this.cloud = d.cloud || {}; this.ready = true; this.hidratando = Pesados.hidratar([this.cloud]); this.save(); return; } // terminal reiniciada desde Mis datos: disco de fábrica, nubes conservadas
+        if (d && d.v === 1) { Object.assign(this, d); this.alias = this.alias || {}; this.ready = true; this.hidratando = Pesados.hidratar([this.fs, this.cloud, this.git]); return; }
       } catch (e) { /* sin almacenamiento */ }
       this.reset();
     },
     save() {
       clearTimeout(this._t);
       this._t = setTimeout(() => {
-        try { localStorage.setItem(KEY, JSON.stringify({ v: 1, fs: this.fs, cwd: this.cwd, env: this.env, history: this.history.slice(-300), cloud: this.cloud, git: this.git, alias: this.alias, gen: this.gen })); } catch (e) { /* lleno */ }
+        try { localStorage.setItem(KEY, JSON.stringify({ v: 1, fs: this.fs, cwd: this.cwd, env: this.env, history: this.history.slice(-300), cloud: this.cloud, git: this.git, alias: this.alias, gen: this.gen }, Pesados.reemplazo)); } catch (e) { console.warn('terminal: no se pudo guardar el disco', e); }
       }, 300);
     },
     // como al abrir una terminal nueva en Linux: se empieza en ~, sin entorno virtual activo ni variables exportadas;
@@ -532,6 +559,7 @@ models:
     return line;
   }
   async function runLine(line, opts = {}) {
+    if (Machine.hidratando) { try { await Machine.hidratando; } catch (e) { /* sigue con lo que haya */ } Machine.hidratando = null; }
     if (/\n/.test(line.trim()) || esCompuesto(line)) return runScript(line, opts);
     return runLineSimple(sinComentario(line), opts);
   }

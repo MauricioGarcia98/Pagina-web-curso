@@ -123,7 +123,7 @@ REFRESH STREAMING TABLE ruta.bronze.telemetria;   -- solo agrega los mensajes nu
 
 <h2>Resumen</h2>
 <ul>
-<li>Un tópico, 4 particiones, clave = vehículo; orden por llegada dentro de cada partición.</li>
+<li>Un tópico, 8 particiones, clave = vehículo; orden por llegada dentro de cada partición.</li>
 <li>Tablas de streaming con <strong>checkpoint</strong>: cada REFRESH lee solo lo nuevo.</li>
 <li>El plan sale del <strong>TMS</strong> y puede cambiar durante el día.</li>
 </ul>

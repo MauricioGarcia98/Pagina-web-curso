@@ -1,5 +1,5 @@
 /* Ruta Sur en las herramientas: el correo de accesos (ruta accesos), el clúster Kafka de la telemetría (kcat y
- * read_kafka, 4 particiones) y la API del TMS en curl, Python y Data Factory. */
+ * read_kafka, 8 particiones) y la API del TMS en curl, Python y Data Factory. */
 (function () {
   'use strict';
   const RS = window.RutaSurMundo, Host = window.RutaSurHost, Sh = window.Shell;

@@ -33,7 +33,48 @@
   const GRUPOS_BASE = () => ({ users: [USUARIO], 'data-engineers': [USUARIO], analistas: [], admins: [], soporte: [] });
   const grupos = () => { const U = uc(); return (U.grupos = U.grupos || GRUPOS_BASE()); };
   const enGrupo = (g) => (grupos()[String(g)] || []).includes(USUARIO);
-  const guardar = () => { try { Store.saveSoon ? Store.saveSoon() : Store.save(); } catch (e) { /* sin almacenamiento */ } };
+  const guardar = () => { try { externalizar(); } catch (e) { /* sin IndexedDB: queda todo en el estado */ } try { Store.saveSoon ? Store.saveSoon() : Store.save(); } catch (e) { /* sin almacenamiento */ } };
+
+  // ------------------------------------------------------------------ datos pesados en IndexedDB
+  // localStorage tiene ~5 MB para todo el sitio. Las filas de las tablas grandes (y de sus versiones) se guardan en
+  // IndexedDB y en el estado queda solo la referencia (filasRef). La propiedad filas se vuelve no enumerable, así que
+  // JSON.stringify (lo que guarda el estado) no la incluye, pero el resto del motor la sigue usando igual.
+  const UMBRAL_FILAS = 1500, UMBRAL_VERSION = 500;
+  const idb = (() => {
+    let p = null;
+    const abrir = () => p || (p = new Promise((ok, mal) => { try { const r = indexedDB.open('academia-datos-pesados', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => ok(r.result); r.onerror = () => mal(r.error); } catch (e) { mal(e); } }));
+    const tx = async (modo, f) => { const d = await abrir(); return new Promise((ok, mal) => { const t = d.transaction('kv', modo); const req = f(t.objectStore('kv')); t.oncomplete = () => ok(req ? req.result : undefined); t.onerror = () => mal(t.error); t.onabort = () => mal(t.error); }); };
+    return { put: (k, v) => tx('readwrite', (st) => st.put(v, k)), get: (k) => tx('readonly', (st) => st.get(k)), del: (k) => tx('readwrite', (st) => st.delete(k)) };
+  })();
+  const yaGuardadas = new WeakSet();
+  const oculta = (o, prop, v) => Object.defineProperty(o, prop, { value: v, enumerable: false, writable: true, configurable: true });
+  const visible = (o, prop) => { const d = Object.getOwnPropertyDescriptor(o, prop); return !d || d.enumerable; };
+  function pesar(o, clave, umbral) {
+    const f = o.filas;
+    if (Array.isArray(f) && f.length > umbral) {
+      if (!yaGuardadas.has(f)) { yaGuardadas.add(f); idb.put(clave, f).catch((e) => { console.warn('dbsql: no se pudo guardar en IndexedDB', clave, e); }); }
+      if (visible(o, 'filas')) oculta(o, 'filas', f);
+      o.filasRef = clave; return;
+    }
+    if (o.filasRef && (!Array.isArray(f) || f.length <= umbral)) { idb.del(o.filasRef).catch(() => {}); delete o.filasRef; const v = f; delete o.filas; o.filas = v; }
+  }
+  function externalizar() {
+    if (typeof indexedDB === 'undefined' || !Store) return;
+    const U = uc();
+    for (const [cn, C] of Object.entries(U.catalogs)) for (const [sn, S] of Object.entries(C.schemas || {})) for (const [tn, T] of Object.entries(S.tables || {})) {
+      if (T.tipo === 'VIEW') continue;
+      const base = `dbx:${cn}.${sn}.${tn}`;
+      pesar(T, base, UMBRAL_FILAS);
+      for (const v of T.versiones || []) pesar(v, `${base}@v${v.version}`, UMBRAL_VERSION);
+    }
+  }
+  async function hidratar(U) {
+    if (typeof indexedDB === 'undefined') return;
+    const pend = [];
+    const traer = (o) => { if (o.filasRef && !Array.isArray(o.filas)) pend.push(idb.get(o.filasRef).then((v) => { const f = Array.isArray(v) ? v : []; if (!Array.isArray(v)) console.warn('dbsql: faltan en IndexedDB las filas de', o.filasRef); oculta(o, 'filas', f); yaGuardadas.add(f); }).catch(() => oculta(o, 'filas', []))); };
+    for (const C of Object.values(U.catalogs)) for (const S of Object.values(C.schemas || {})) for (const T of Object.values(S.tables || {})) { traer(T); for (const v of T.versiones || []) traer(v); }
+    await Promise.all(pend);
+  }
 
   // catálogo samples: las bases del curso, de solo lectura
   function samples() {
@@ -61,8 +102,9 @@
       await window.Engines.SQL.init();
       db = window.Engines.SQL.fresh();
       funciones(db);
-      // recrea las tablas del alumno (y sus versiones guardadas)
+      // recrea las tablas del alumno (y sus versiones guardadas); las filas grandes vuelven de IndexedDB
       const U = uc();
+      await hidratar(U);
       for (const [cn, C] of Object.entries(U.catalogs)) for (const [sn, S] of Object.entries(C.schemas || {})) for (const [tn, T] of Object.entries(S.tables || {})) {
         try { materializar(cn, sn, tn, T); } catch (e) { console.warn('dbsql: no se pudo recrear', cn, sn, tn, e); }
       }

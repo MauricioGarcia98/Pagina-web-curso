@@ -685,7 +685,7 @@
     "titulo": "Proyecto 4: Ruta Sur, telemetría en tiempo real y el SLA de cada entrega",
     "icono": "🚚",
     "color": "#7c3aed",
-    "descripcion": "Una flota de 20 camionetas manda GPS y eventos de entrega a Kafka (Event Hubs, 4 particiones) y el sistema de despachos da el plan de cada día por API. Construyes la telemetría limpia y el SLA de cada pedido, con eventos tardíos, desordenados y repetidos, tablas de streaming con checkpoint y lo que pasa en los días siguientes: un firmware nuevo que cambia el esquema, una camioneta con el reloj adelantado, un apagón cuyos eventos llegan al día siguiente, y preguntas de comercial, mantenimiento y plataforma.",
+    "descripcion": "Una flota de 250 camionetas manda GPS y eventos de entrega a Kafka (Event Hubs, 8 particiones) y el sistema de despachos da el plan de cada día por API. Construyes la telemetría limpia y el SLA de cada pedido, con eventos tardíos, desordenados y repetidos, tablas de streaming con checkpoint y lo que pasa en los días siguientes: un firmware nuevo que cambia el esquema, una camioneta con el reloj adelantado, un apagón cuyos eventos llegan al día siguiente, y preguntas de comercial, mantenimiento y plataforma.",
     "objetivos": [
       "Consumir Kafka con varias particiones, grupos y checkpoints",
       "Distinguir la hora del evento de la hora de llegada y decidir un watermark",

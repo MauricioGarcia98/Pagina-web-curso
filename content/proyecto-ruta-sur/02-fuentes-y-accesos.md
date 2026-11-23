@@ -19,7 +19,7 @@ ruta accesos
 ```diagrama
 titulo: Los sistemas de Ruta Sur: telemetría en tiempo real y el sistema de transporte
 nodo cam: Camionetas | icono=camion | col=0 | fila=0 | color=gris | sub=posición y estado cada pocos segundos
-nodo kfk: Tópico rutasur.telemetria | icono=kafka | col=1 | fila=0 | color=azul | sub=4 particiones · clave = vehículo · 3 días
+nodo kfk: Tópico rutasur.telemetria | icono=kafka | col=1 | fila=0 | color=azul | sub=8 particiones · clave = vehículo · 3 días
 nodo st: Stream con checkpoint | icono=spark | col=2 | fila=0 | color=rojo | sub=dedupe, tiempo del evento
 nodo tms: API del TMS | icono=web | col=1 | fila=1 | color=naranja | sub=entregas planificadas · 30 pedidos por minuto
 nodo gd: gold: entregas a tiempo | icono=dashboard | col=3 | fila=0 | color=verde | sub=SLA por ruta y conductor
@@ -127,6 +127,6 @@ Dos mensajes de V03 están en la partición 2 con offsets 900 y 901. ¿Qué pued
 
 ## Resumen
 
-- Un tópico, 4 particiones, clave = vehículo; orden por llegada dentro de cada partición.
+- Un tópico, 8 particiones, clave = vehículo; orden por llegada dentro de cada partición.
 - Tablas de streaming con **checkpoint**: cada REFRESH lee solo lo nuevo.
 - El plan sale del **TMS** y puede cambiar durante el día.

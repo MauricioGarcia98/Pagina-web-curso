@@ -394,10 +394,10 @@ def _shell(mode, code, argv_json, files_json, cwd, env_json="{}"):
         for name in fs:
             full = os.path.join(root, name)
             try:
-                if os.path.getsize(full) < 2000000:
+                if os.path.getsize(full) < 16000000:
                     out_files[full] = open(full, encoding="utf-8").read()
                 else:
-                    stdout += f"\\n[terminal del curso] {full} pesa {os.path.getsize(full) / 1e6:.1f} MB y no se guardó: los archivos de la terminal del navegador pueden pesar hasta 2 MB. Divídelo en varios (por ejemplo, uno por día).\\n"
+                    stdout += f"\\n[terminal del curso] {full} pesa {os.path.getsize(full) / 1e6:.1f} MB y no se guardó: los archivos de la terminal del navegador pueden pesar hasta 16 MB. Divídelo en varios (por ejemplo, uno por día).\\n"
                     os.remove(full)
             except (UnicodeDecodeError, OSError):
                 pass
