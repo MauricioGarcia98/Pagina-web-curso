@@ -197,6 +197,7 @@
   function evaluarReglas() {
     const M = monitor();
     for (const g of M.reglas) {
+      if (g.tipo === 'log') continue; // las alertas de logs las evalúa azure-logs.js
       const [k, n] = g.recurso.split('/'); const R = az()[k] && az()[k][n]; if (!R || !g.activa) { g.estado = R ? 'Disabled' : 'Resource not found'; continue; }
       const valor = agregado(serie(k, n, R, g.metrica).vals, g.agregacion); g.valor = valor;
       const dispara = OPS[g.op][1](valor, g.umbral); const antes = g.estado; g.estado = dispara ? 'Fired' : 'OK';
@@ -206,19 +207,22 @@
   }
   function vistaMonitor(cont, r) {
     const M = monitor(); const tab = r[0] || 'overview';
-    const tabs = [['overview', 'Overview'], ['metricas', 'Metrics'], ['alertas', 'Alerts'], ['grupos', 'Action groups']];
+    const tabs = [['overview', 'Overview'], ['metricas', 'Metrics'], ['logs', 'Logs'], ['alertas', 'Alerts'], ['grupos', 'Action groups'], ['diagnosticos', 'Diagnostic settings']];
     const cab = `<div class="az-pag">${migas([['Home', ''], ['Monitor', tab === 'overview' ? null : 'monitor'], ...(tab === 'overview' ? [] : [[tabs.find((t) => t[0] === tab)[1], null]])])}<div class="az-cab">${svg('monitor', 28)}<h1>Monitor</h1></div><div class="az-pest">${tabs.map(([k, t]) => `<a class="${k === tab ? 'on' : ''}" href="#/azure/monitor${k === 'overview' ? '' : '/' + k}">${t}</a>`).join('')}</div>`;
     const rs = recursos().filter((x) => METRICAS[x.k]); const again = () => vistaMonitor(cont, r);
+    const LG = P.ext.logs; if (LG && LG[tab]) return LG[tab](cont, cab);
+    if (P.ext.evaluarLogs && (tab === 'overview' || tab === 'alertas')) P.ext.evaluarLogs().then((cambio) => { if (cambio && location.hash.startsWith('#/azure/monitor')) again(); });
     if (tab === 'overview') {
       evaluarReglas();
       cont.innerHTML = `${cab}<p>Azure Monitor junta en un solo lugar lo que pasa con tus recursos. Tiene tres piezas que se usan juntas:</p>
         <table class="az-tabla"><thead><tr><th>Pieza</th><th>Qué es</th><th>Ejemplo</th></tr></thead><tbody>
         <tr><td><a href="#/azure/monitor/metricas"><b>Metrics</b></a></td><td>Números que se miden cada minuto</td><td>Cuántas ejecuciones de un pipeline fallaron en la última hora</td></tr>
-        <tr><td><a href="#/azure/monitor/alertas"><b>Alerts</b></a></td><td>Una regla: "si esta métrica pasa este umbral, avisa"</td><td>Si hay más de 0 pipelines fallidos, avisar</td></tr>
+        <tr><td><a href="#/azure/monitor/logs"><b>Logs</b></a></td><td>Eventos detallados guardados en un workspace de Log Analytics y consultados con KQL</td><td>Qué actividad falló, con qué mensaje y en qué corrida</td></tr>
+        <tr><td><a href="#/azure/monitor/alertas"><b>Alerts</b></a></td><td>Una regla sobre una métrica o una consulta de logs: "si pasa esto, avisa"</td><td>Si hay más de 0 pipelines fallidos, avisar</td></tr>
         <tr><td><a href="#/azure/monitor/grupos"><b>Action groups</b></a></td><td>A quién y cómo se avisa</td><td>Un correo al equipo de guardia</td></tr>
         <tr><td><a href="#/azure/actividad"><b>Activity log</b></a></td><td>Quién creó, cambió o borró cada recurso</td><td>"Ana borró la cuenta de almacenamiento a las 14:02"</td></tr></tbody></table>
         <div class="az-ess-nums"><div><b>${M.reglas.length}</b><span>Alert rules</span></div><div><b class="${M.reglas.some((g) => g.estado === 'Fired') ? 'az-mal' : ''}">${M.reglas.filter((g) => g.estado === 'Fired').length}</b><span>Fired now</span></div><div><b>${M.grupos.length}</b><span>Action groups</span></div></div>
-        <p class="az-dim">Los logs detallados (Log Analytics y consultas KQL) no están en esta práctica. Para investigar incidentes paso a paso, usa el módulo <a href="#/m/incidentes">Guardia: incidentes</a>.</p></div>`;
+        <p class="az-dim">Los logs no llegan solos: cada recurso necesita un <a href="#/azure/monitor/diagnosticos">Diagnostic setting</a> que los envíe a un workspace. Para practicar cómo se investiga un incidente de punta a punta, usa el módulo <a href="#/m/incidentes">Guardia: incidentes</a>.</p></div>`;
       return;
     }
     if (tab === 'metricas') {
@@ -243,10 +247,11 @@
     }
     evaluarReglas();
     const sev = (s) => `<span class="az-sev az-sev${s}">Sev ${s}</span>`;
-    cont.innerHTML = `${cab}<div class="az-cmd"><button id="rAdd">${ic('add')} Create alert rule</button><button id="rEval">${ic('refresh')} Refresh</button></div>
-      <h3>Alert rules</h3>${tabla(['Name', 'Condition', 'Severity', 'Target', 'Action group', 'Status', ''], M.reglas.map((g, i) => `<tr><td>${esc(g.nombre)}</td><td>${esc(g.agregacion)} ${esc(g.metrica)} ${esc(OPS[g.op][0].toLowerCase())} ${g.umbral}</td><td>${sev(g.sev)}</td><td>${esc(g.recurso.split('/')[1])}</td><td>${g.grupo ? esc(g.grupo) : '<span class="az-mal">ninguno</span>'}</td><td>${g.estado === 'Fired' ? `<span class="az-mal">${ic('warning')} Fired</span> <span class="az-dim">(${Number((g.valor || 0).toFixed(2))})</span>` : g.estado === 'OK' ? `<span class="az-ok">✓ OK</span> <span class="az-dim">(${Number((g.valor || 0).toFixed(2))})</span>` : `<span class="az-dim">${esc(g.estado || '')}</span>`}</td><td><button class="az-tb2" data-act="${i}" title="Enable / disable">${ic(g.activa ? 'circle-slash' : 'pass')}</button><button class="az-tb2" data-del="${i}" title="Delete">${ic('trash')}</button></td></tr>`), 'No alert rules. Crea una desde aquí o desde Metrics.')}
+    cont.innerHTML = `${cab}<div class="az-cmd"><button id="rAdd">${ic('add')} Create alert rule (metric)</button><button id="rLog">${ic('search')} Create alert rule (log search)</button><button id="rEval">${ic('refresh')} Refresh</button></div>
+      <h3>Alert rules</h3>${tabla(['Name', 'Condition', 'Severity', 'Target', 'Action group', 'Status', ''], M.reglas.map((g, i) => `<tr><td>${esc(g.nombre)}${g.tipo === 'log' ? ' <span class="az-chip">Log search</span>' : ''}</td><td>${g.tipo === 'log' ? `<code title="${esc(g.query)}">${esc(g.query.split('\n')[0])}…</code> rows ${esc(((OPS[g.op] || [g.op])[0] || g.op).toLowerCase())} ${g.umbral} <span class="az-dim">(${g.ventana} min, cada ${g.frecuencia} min)</span>` : `${esc(g.agregacion)} ${esc(g.metrica)} ${esc(OPS[g.op][0].toLowerCase())} ${g.umbral}`}</td><td>${sev(g.sev)}</td><td>${esc(g.tipo === 'log' ? g.law : g.recurso.split('/')[1])}</td><td>${g.grupo ? esc(g.grupo) : '<span class="az-mal">ninguno</span>'}</td><td>${g.estado === 'Fired' ? `<span class="az-mal">${ic('warning')} Fired</span> <span class="az-dim">(${Number((g.valor || 0).toFixed(2))})</span>` : g.estado === 'OK' ? `<span class="az-ok">✓ OK</span> <span class="az-dim">(${Number((g.valor || 0).toFixed(2))})</span>` : `<span class="az-dim">${esc(g.estado || '')}</span>`}</td><td><button class="az-tb2" data-act="${i}" title="Enable / disable">${ic(g.activa ? 'circle-slash' : 'pass')}</button><button class="az-tb2" data-del="${i}" title="Delete">${ic('trash')}</button></td></tr>`), 'No alert rules. Crea una desde aquí o desde Metrics.')}
       <h3>Fired alerts</h3>${tabla(['Fired time', 'Alert rule', 'Severity', 'Affected resource', 'Value', 'Notified'], M.disparadas.map((d) => `<tr><td>${hora(d.t)}</td><td>${esc(d.regla)}</td><td>${sev(d.sev)}</td><td>${esc(d.recurso)}</td><td>${Number(d.valor.toFixed(2))}</td><td>${d.grupo ? esc(d.grupo) : '<span class="az-dim">nadie</span>'}</td></tr>`), 'No alerts fired.')}</div>`;
     cont.querySelector('#rAdd').onclick = () => nuevaRegla(again);
+    cont.querySelector('#rLog').onclick = () => (P.ext.nuevaAlertaLog ? P.ext.nuevaAlertaLog(null, '', again) : toast('No disponible'));
     cont.querySelector('#rEval').onclick = again;
     cont.querySelectorAll('[data-act]').forEach((b) => (b.onclick = () => { const g = M.reglas[Number(b.dataset.act)]; g.activa = !g.activa; g.estado = ''; guardar(); again(); }));
     cont.querySelectorAll('[data-del]').forEach((b) => (b.onclick = () => { if (!confirm('¿Borrar la regla de alerta?')) return; M.reglas.splice(Number(b.dataset.del), 1); guardar(); again(); }));
