@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto - un pipeline serverless de punta a punta en la consola · Academia de Datos</title><meta name="description" content="Armas en la consola de AWS de práctica el pipeline que tendría un equipo de datos real. Un archivo llega a landing, una Lambda lo valida y lo pasa al lago, un job de Glue Studio lo limpia hacia silver y lo registra en el Data Catalog, Step Functions orquesta la corrida nocturna con aviso por SNS si falla, CloudWatch guarda los logs y la alarma, y Billing te dice cuánto costó."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/aws-proyecto-pipeline-serverless.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto - un pipeline serverless de punta a punta en la consola · Academia de Datos"><meta property="og:description" content="Armas en la consola de AWS de práctica el pipeline que tendría un equipo de datos real. Un archivo llega a landing, una Lambda lo valida y lo pasa al lago, un job de Glue Studio lo limpia hacia silver y lo registra en el Data Catalog, Step Functions orquesta la corrida nocturna con aviso por SNS si falla, CloudWatch guarda los logs y la alarma, y Billing te dice cuánto costó."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/aws-proyecto-pipeline-serverless.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#aws">🟧 AWS para Data Engineers</a> · Experto · 90 min</div>
+<h1>Proyecto - un pipeline serverless de punta a punta en la consola</h1><p class="resumen">Armas en la consola de AWS de práctica el pipeline que tendría un equipo de datos real. Un archivo llega a landing, una Lambda lo valida y lo pasa al lago, un job de Glue Studio lo limpia hacia silver y lo registra en el Data Catalog, Step Functions orquesta la corrida nocturna con aviso por SNS si falla, CloudWatch guarda los logs y la alarma, y Billing te dice cuánto costó.</p>
+<a class="cta" href="../index.html#/l/aws-proyecto-pipeline-serverless">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Construir un job visual de Glue con fuente, transformaciones, destino particionado y Data Catalog</li><li>Explicar qué hace un job bookmark y qué pasa sin él</li><li>Escribir y desplegar una Lambda disparada por S3 que valida archivos</li><li>Orquestar Glue, Athena y SNS con Step Functions, con Retry y Catch</li><li>Investigar una falla con CloudWatch Logs Insights y vigilar el pipeline con una alarma</li><li>Leer el costo del pipeline y crear un presupuesto</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Todo en la misma consola</div>
+
+<p>Este proyecto usa la <a href="#/aws">consola de AWS de práctica</a>: S3, Glue, Athena, <strong>Lambda</strong>, <strong>Step Functions</strong>, <strong>CloudWatch</strong> y <strong>Billing</strong> comparten el estado con el comando <code>aws</code> de la terminal. El job de Glue lee y escribe de verdad los archivos del bucket, la Lambda corre tu código Python y Step Functions llama a los servicios en orden. Nada toca una cuenta real.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<p><strong>El pedido.</strong> Tienda Andina recibe cada noche un CSV de pedidos de su sistema de ventas. Hoy alguien lo copia a mano al lago y corre un script: si el archivo llega mal, nadie se entera hasta que el tablero de la mañana muestra números raros. Te piden que el proceso sea automático, que un archivo roto no llegue al lago, que la guardia reciba un aviso si algo falla y saber cuánto cuesta.</p>
+</div>
+
+
+<h2>El diseño</h2>
+<figure class="diagrama"><figcaption>El pipeline de pedidos en AWS</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Decisión</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td>La Lambda escribe en <code>pedidos/</code>, no en <code>landing/</code></td>
+<td>Si escribiera en el prefijo que la dispara, cada archivo que copia la volvería a invocar (un bucle recursivo)</td>
+</tr>
+<tr>
+<td>Glue con <strong>job bookmark</strong></td>
+<td>Cada noche procesa solo los archivos nuevos; sin bookmark, relee todo y duplica silver</td>
+</tr>
+<tr>
+<td>Step Functions en lugar de encadenar Lambdas</td>
+<td>Reintentos, manejo de errores y un historial visual de cada corrida, sin código propio</td>
+</tr>
+<tr>
+<td>Alarma sobre <code>ExecutionsFailed</code></td>
+<td>Avisa por el pipeline completo, no por cada pieza</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 1 — El lago y los datos</h2>
+<p>Si todavía no lo tienes (de <a href="#/l/aws-glue">Glue</a> y <a href="#/l/aws-athena">Athena</a>), en <strong>S3 → Create bucket</strong> crea <code>tienda-andina-lago-dev</code> y sube los <strong>datos de ejemplo de pedidos</strong> (quedan en <code>pedidos/anio_mes=AAAA-MM/pedidos.csv</code>). En <strong>Glue → Databases</strong> crea <code>lago_silver</code>.</p>
+<h2>Paso 2 — El job de Glue Studio</h2>
+<p><strong>Glue → Visual ETL → Visual ETL</strong>, nombre <code>pedidos-silver</code>. Arma los nodos:</p>
+<ol>
+<li><strong>Source · Amazon S3</strong>: <code>s3://tienda-andina-lago-dev/pedidos/</code>. Presiona <strong>Preview</strong>: como el primer nodo de <em>Change Schema</em> está vacío, la consola lo completa con las columnas del archivo.</li>
+<li><strong>Change Schema (ApplyMapping)</strong>: deja <code>pedido_id</code> (int), <code>cliente_id</code> (int), <code>fecha_pedido</code> (date), <code>estado</code> (string), <code>canal</code> (string) y <code>anio_mes</code> (string, sale de la carpeta). Las columnas que borres se descartan.</li>
+<li><strong>Filter</strong>: <code>estado</code> <code>!=</code> <code>cancelado</code>.</li>
+<li><strong>Drop Duplicates</strong>: clave <code>pedido_id</code>.</li>
+<li><strong>Target</strong>: <code>s3://tienda-andina-lago-dev/silver/pedidos/</code>, <strong>partition keys</strong> <code>anio_mes</code>, y <em>Create a table in the Data Catalog…</em> en <code>lago_silver</code>, tabla <code>pedidos</code>.</li>
+<li>En <strong>Job details</strong>: 2 workers G.1X y <strong>Job bookmark: Enable</strong>. <strong>Save</strong> y <strong>Run</strong>.</li>
+</ol>
+<p>En <strong>Runs</strong> aparece la corrida con las filas leídas y escritas, los <strong>DPU hours</strong> y los enlaces a los logs. La pestaña <strong>Script</strong> muestra el PySpark que Glue generó (<code>create_dynamic_frame</code>, <code>ApplyMapping.apply</code>, <code>getSink</code> con <code>enableUpdateCatalog=True</code> y <code>job.commit()</code>, que es lo que guarda el bookmark).</p>
+<figure class="captura"><img src="assets/img/guias/aws/a04-glue-studio.webp" alt="El job visual - la fuente S3 (1), las transformaciones (2) y el destino particionado con el Data Catalog (3)" loading="lazy"><figcaption>El job visual - la fuente S3 (1), las transformaciones (2) y el destino particionado con el Data Catalog (3)</figcaption></figure>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El bookmark es la diferencia entre un pipeline y un generador de duplicados</div>
+
+<p>Corre el job otra vez: con el bookmark activo lee <strong>0 archivos nuevos</strong> y termina bien. Desactívalo en <em>Job details</em>, córrelo dos veces y mira <code>silver/pedidos/</code>: cada corrida escribió los mismos pedidos de nuevo. En un lago real eso duplica las ventas del tablero. (Con <strong>Reset job bookmark</strong> vuelves a empezar.)</p>
+</div>
+
+
+<h2>Paso 3 — La Lambda que valida</h2>
+<p><strong>Lambda → Create function</strong> → <code>validar-pedidos</code>, Python 3.12. En <strong>Code</strong> reemplaza el código, presiona <strong>Deploy</strong> (sin Deploy, las invocaciones siguen usando el código anterior):</p>
+<pre data-norun tabindex="0"><code class="language-python">import json
+import logging
+import urllib.parse
+import boto3
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+s3 = boto3.client(&quot;s3&quot;)
+COLUMNAS = {&quot;pedido_id&quot;, &quot;cliente_id&quot;, &quot;fecha_pedido&quot;, &quot;estado&quot;, &quot;canal&quot;}
+
+def lambda_handler(event, context):
+    r = event[&quot;Records&quot;][0][&quot;s3&quot;]
+    bucket = r[&quot;bucket&quot;][&quot;name&quot;]
+    clave = urllib.parse.unquote_plus(r[&quot;object&quot;][&quot;key&quot;])
+    texto = s3.get_object(Bucket=bucket, Key=clave)[&quot;Body&quot;].read().decode(&quot;utf-8&quot;)
+    lineas = [l for l in texto.splitlines() if l.strip()]
+    encabezado = set(lineas[0].split(&quot;,&quot;)) if lineas else set()
+    faltan = COLUMNAS - encabezado
+    if faltan or len(lineas) &lt; 2:
+        # fallar a propósito: el archivo queda en landing y el error queda en CloudWatch
+        raise ValueError(f&quot;{clave}: faltan columnas {sorted(faltan)} o no tiene filas&quot;)
+    mes = lineas[1].split(&quot;,&quot;)[3][:7]          # fecha_pedido de la primera fila
+    destino = f&quot;pedidos/anio_mes={mes}/{clave.split('/')[-1]}&quot;
+    s3.put_object(Bucket=bucket, Key=destino, Body=texto)
+    logger.info(&quot;Validado %s: %d filas -&gt; s3://%s/%s&quot;, clave, len(lineas) - 1, bucket, destino)
+    return {&quot;archivo&quot;: clave, &quot;filas&quot;: len(lineas) - 1, &quot;destino&quot;: destino}</code></pre>
+<p>En <strong>Configuration → Triggers → Add trigger</strong>: bucket <code>tienda-andina-lago-dev</code>, prefijo <code>landing/pedidos/</code>, sufijo <code>.csv</code>. Pruébalo desde la terminal con un archivo bueno y uno malo:</p>
+<pre tabindex="0"><code class="language-bash">printf 'pedido_id,cliente_id,empleado_id,fecha_pedido,estado,canal,metodo_pago\n90001,15,,2026-11-22,entregado,web,tarjeta_debito\n' &gt; pedidos_2026-11-22.csv
+aws s3 cp pedidos_2026-11-22.csv s3://tienda-andina-lago-dev/landing/pedidos/
+printf 'id;fecha;total\n1;2026-11-22;10\n' &gt; roto.csv
+aws s3 cp roto.csv s3://tienda-andina-lago-dev/landing/pedidos/
+aws logs tail /aws/lambda/validar-pedidos --since 1h</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(5)</span></summary><ol><li><code class="bx-linea">printf 'pedido_id,cliente_id,empleado_id,fecha_pedido,estado,canal,metodo_pago\n90001,15,,2026-11-22,entregado,web,tarjeta_debito\n' &gt; pe…</code><span><code>printf</code>: escribe texto con formato (como echo, pero controlando saltos de línea y columnas). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li><li><code class="bx-linea">aws s3 cp pedidos_2026-11-22.csv s3://tienda-andina-lago-dev/landing/pedidos/</code><span><code>aws</code>: la CLI de AWS: hace desde la terminal lo mismo que la consola de AWS. <code>s3</code> Amazon S3: buckets y archivos del lago (ls, cp, sync, mb, rm) (<code>cp</code>)</span></li><li><code class="bx-linea">printf 'id;fecha;total\n1;2026-11-22;10\n' &gt; roto.csv</code><span><code>printf</code>: escribe texto con formato (como echo, pero controlando saltos de línea y columnas). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li><li><code class="bx-linea">aws s3 cp roto.csv s3://tienda-andina-lago-dev/landing/pedidos/</code><span><code>aws</code>: la CLI de AWS: hace desde la terminal lo mismo que la consola de AWS. <code>s3</code> Amazon S3: buckets y archivos del lago (ls, cp, sync, mb, rm) (<code>cp</code>)</span></li><li><code class="bx-linea">aws logs tail /aws/lambda/validar-pedidos --since 1h</code><span><code>aws</code>: la CLI de AWS: hace desde la terminal lo mismo que la consola de AWS. <code>logs</code> CloudWatch Logs (<code>tail</code>)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<p>En <strong>Monitor</strong> verás dos invocaciones: una correcta y otra con <code>ValueError</code>. La primera de la sesión muestra <strong>Init Duration</strong>: es el <em>cold start</em>, el tiempo de preparar el entorno de Python.</p>
+<figure class="captura"><img src="assets/img/guias/aws/a05-lambda.webp" alt="La función con su disparador de S3 (1), el código (2) y el resultado de una prueba con los logs (3)" loading="lazy"><figcaption>La función con su disparador de S3 (1), el código (2) y el resultado de una prueba con los logs (3)</figcaption></figure>
+
+
+<h2>Paso 4 — La orquestación con Step Functions</h2>
+<p><strong>Step Functions → Create state machine</strong> → plantilla <em>Pipeline de datos</em>, job <code>pedidos-silver</code> (o el nombre de tu job), nombre <code>pipeline-pedidos</code>. En <strong>Definition</strong>, agrega un control con Athena entre el ETL y el aviso de éxito:</p>
+<pre tabindex="0"><code class="language-json">&quot;Ejecutar ETL&quot;: { &quot;...&quot;: &quot;...&quot;, &quot;Next&quot;: &quot;Contar filas&quot; },
+&quot;Contar filas&quot;: {
+  &quot;Type&quot;: &quot;Task&quot;,
+  &quot;Resource&quot;: &quot;arn:aws:states:::athena:startQueryExecution.sync&quot;,
+  &quot;Parameters&quot;: { &quot;QueryString&quot;: &quot;SELECT COUNT(*) AS filas FROM \&quot;lago_silver\&quot;.\&quot;pedidos\&quot;&quot;, &quot;WorkGroup&quot;: &quot;primary&quot; },
+  &quot;ResultPath&quot;: &quot;$.control&quot;,
+  &quot;Catch&quot;: [{ &quot;ErrorEquals&quot;: [&quot;States.ALL&quot;], &quot;ResultPath&quot;: &quot;$.error&quot;, &quot;Next&quot;: &quot;Avisar fallo&quot; }],
+  &quot;Next&quot;: &quot;Avisar exito&quot;
+}</code></pre>
+<p><strong>Save</strong>, mira el grafo y <strong>Start execution</strong> con <code>{&quot;fecha&quot;: &quot;2026-11-22&quot;}</code>. Cada estado se pinta de verde a medida que termina y la tabla <strong>Events</strong> muestra el detalle (<code>TaskScheduled</code>, <code>TaskSucceeded</code>…).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza del JSON</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>glue:startJobRun.sync</code></td>
+<td>Arranca el job <strong>y espera</strong> a que termine; sin <code>.sync</code>, Step Functions sigue apenas el job arranca</td>
+</tr>
+<tr>
+<td><code>&quot;--fecha.$&quot;: &quot;$.fecha&quot;</code></td>
+<td>Pasa al job un valor de la entrada (<code>.$</code> significa &quot;tómalo de esta ruta&quot;)</td>
+</tr>
+<tr>
+<td><code>ResultPath</code></td>
+<td>Dónde guarda el resultado del paso sin pisar la entrada</td>
+</tr>
+<tr>
+<td><code>Retry</code></td>
+<td>Reintenta errores pasajeros (por ejemplo, otra corrida del mismo job en curso)</td>
+</tr>
+<tr>
+<td><code>Catch</code></td>
+<td>Ante cualquier otro error, va a <em>Avisar fallo</em> con la causa en <code>$.error</code></td>
+</tr>
+</tbody></table></div>
+<p>Ahora rómpelo a propósito: en el job, cambia el destino a un bucket que no existe y vuelve a ejecutar la máquina. <em>Ejecutar ETL</em> falla, el <strong>Catch</strong> lleva a <em>Avisar fallo</em> (que publica en SNS) y la ejecución termina en <em>Fallo</em> con la causa.</p>
+<figure class="captura"><img src="assets/img/guias/aws/a06-step-functions.webp" alt="Una ejecución fallida - el grafo con el paso que falló y el camino del Catch (1) y la causa del error (2)" loading="lazy"><figcaption>Una ejecución fallida - el grafo con el paso que falló y el camino del Catch (1) y la causa del error (2)</figcaption></figure>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 Step Functions o Airflow</div>
+
+<p>Hacen lo mismo con distinto modelo: Step Functions es administrado y se cobra por transición (US$0,025 cada 1.000), ideal si todo está en AWS. <a href="#/m/airflow">Airflow</a> (o MWAA) conviene cuando el flujo cruza muchas herramientas o el equipo ya tiene sus DAGs.</p>
+</div>
+
+
+<h2>Paso 5 — Investigar y vigilar con CloudWatch</h2>
+<p>Cuando algo falla, el orden es: <strong>la ejecución</strong> (qué paso falló) → <strong>el log del servicio</strong> (por qué). En <strong>CloudWatch → Log groups</strong> abre <code>/aws-glue/jobs/error</code> y el stream de la corrida: ahí está el <code>NoSuchBucket</code> o el <code>cannot resolve &#39;columna&#39;</code>.</p>
+<p>Para mirar varias cosas a la vez, <strong>Logs Insights</strong>:</p>
+<pre tabindex="0"><code class="language-text">fields @timestamp, @logStream, @message
+| filter @message like /ERROR/
+| sort @timestamp desc
+| limit 20</code></pre>
+<pre tabindex="0"><code class="language-text">filter @message like /REPORT/
+| parse @message &quot;Duration: * ms&quot; as duracion
+| stats avg(duracion) as promedio_ms, max(duracion) as max_ms, count(*) as invocaciones</code></pre>
+<p>Y una alarma para no depender de que alguien mire: <strong>Metrics</strong> → <code>AWS/States · pipeline-pedidos · ExecutionsFailed</code>, <strong>Create alarm</strong>: <em>Sum</em>, período 1 hora, <em>Greater than 0</em>, datos faltantes como <em>good</em>, tópico <code>alertas-datos</code> con el correo de la guardia. La próxima ejecución fallida la pasa a <strong>ALARM</strong> y publica el aviso.</p>
+<figure class="captura"><img src="assets/img/guias/aws/a07-cloudwatch.webp" alt="La alarma en ALARM (1) y el mensaje que recibió el tópico de SNS (2)" loading="lazy"><figcaption>La alarma en ALARM (1) y el mensaje que recibió el tópico de SNS (2)</figcaption></figure>
+
+
+<h2>Paso 6 — Cuánto costó</h2>
+<p><strong>Billing and Cost Management</strong> junta lo que usaste: DPU-hora de Glue (el mínimo es 1 minuto por corrida, por eso una corrida de segundos cuesta igual que una de un minuto), datos escaneados por Athena (mínimo 10 MB por consulta), invocaciones y GB-segundo de Lambda, transiciones de Step Functions y almacenamiento de S3. Crea un <strong>budget</strong> de US$1 al mes con alertas al 80 % y al 100 %: es lo primero que se hace en una cuenta nueva.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Disparador en el mismo prefijo donde escribe la función.</strong> Bucle recursivo: AWS lo corta, pero ya gastaste invocaciones. Salida siempre en otro prefijo o bucket.</li>
+<li><strong>Glue sin bookmark en un proceso diario.</strong> Duplica silver en cada corrida.</li>
+<li><strong><code>startJobRun</code> sin <code>.sync</code> en Step Functions.</strong> La máquina termina &quot;bien&quot; aunque el job falle después.</li>
+<li><strong>Una Lambda para procesos largos o pesados.</strong> El límite es 15 minutos y 10 GB de memoria: eso es trabajo de Glue o EMR.</li>
+<li><strong>Editar el código de la Lambda y no presionar Deploy.</strong> Las invocaciones siguen corriendo la versión anterior.</li>
+<li><strong>Log groups con &quot;Never expire&quot;.</strong> En producción se define una retención: los logs también se cobran.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Un job visual de Glue que limpia, deduplica, particiona y registra la tabla en el catálogo, con bookmark.</li>
+<li>Una Lambda disparada por S3 que deja pasar solo los archivos válidos.</li>
+<li>Una máquina de estados con Glue, Athena y SNS, con Retry y Catch.</li>
+<li>Logs, Logs Insights, una alarma con aviso y el costo del pipeline con su presupuesto.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/aws-proyecto-pipeline-serverless">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="aws-orquestacion-gobierno.html">← Orquestación, gobierno y arquitectura de referencia</a><a href="gcp-gcp-para-datos.html">Google Cloud para data engineers en 25 minutos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

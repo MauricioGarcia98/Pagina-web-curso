@@ -8,7 +8,7 @@ autoevaluacion: ¿Qué hace un job bookmark? | ¿Cuándo elegirías EMR en vez d
 ---
 
 :::tip Hazlo también en la consola
-En la [consola de AWS de práctica](#/aws) (Glue → Crawlers) crea una database y un crawler sobre la carpeta de pedidos, ejecútalo y revisa el esquema que detectó. Comparte el estado con el comando `aws` de la terminal: lo que crees en un lado aparece en el otro. Recorrido completo en [La consola de AWS por dentro](#/l/interfaces-consola-aws-por-dentro).
+En la [consola de AWS de práctica](#/aws) (Glue → Crawlers) crea una database y un crawler sobre la carpeta de pedidos, ejecútalo y revisa el esquema que detectó. En **Glue → Visual ETL** arma un job que lee esos archivos, los transforma y los escribe en silver de verdad (lo usa el [proyecto serverless](#/l/aws-proyecto-pipeline-serverless)). Comparte el estado con el comando `aws` de la terminal: lo que crees en un lado aparece en el otro. Recorrido completo en [La consola de AWS por dentro](#/l/interfaces-consola-aws-por-dentro).
 :::
 
 ## El problema que resuelve Glue

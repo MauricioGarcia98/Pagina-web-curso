@@ -145,12 +145,28 @@ aws athena start-query-execution --query-string &quot;SELECT COUNT(*) FROM lago_
 <th>Todavía no</th>
 </tr>
 </thead><tbody><tr>
-<td>S3: buckets, carpetas, subida de archivos, versionado, Block Public Access, vista previa</td>
-<td>Clases de almacenamiento, ciclo de vida activo, replicación, notificaciones de eventos</td>
+<td>S3: buckets, carpetas, subida de archivos, versionado, Block Public Access, vista previa, eventos que disparan Lambda</td>
+<td>Clases de almacenamiento, ciclo de vida activo, replicación</td>
 </tr>
 <tr>
-<td>Glue: databases, tablas con esquema y particiones, crawlers, ejecución de jobs</td>
-<td>Editor visual de jobs (Glue Studio), Data Quality, conexiones JDBC</td>
+<td>Glue: databases, tablas con esquema y particiones, crawlers, <strong>Glue Studio</strong> (jobs visuales que leen y escriben el bucket, bookmarks, Data Catalog, script generado)</td>
+<td>Data Quality, conexiones JDBC, editar el script a mano</td>
+</tr>
+<tr>
+<td><strong>Lambda</strong>: código Python que corre de verdad, Deploy, eventos de prueba, disparador de S3, variables de entorno, cold start</td>
+<td>Capas (layers), versiones y alias, VPC</td>
+</tr>
+<tr>
+<td><strong>Step Functions</strong>: definición ASL con Glue <code>.sync</code>, Lambda, Athena y SNS; Choice, Wait, Retry, Catch; grafo e historial de eventos</td>
+<td>Map y Parallel, Express workflows</td>
+</tr>
+<tr>
+<td><strong>CloudWatch</strong>: log groups y streams, Logs Insights, métricas, alarmas con SNS</td>
+<td>Dashboards, métricas personalizadas, EventBridge</td>
+</tr>
+<tr>
+<td><strong>Billing</strong>: costo por servicio con precios públicos aproximados, Free Tier y presupuestos con alertas</td>
+<td>Factura real, Savings Plans</td>
 </tr>
 <tr>
 <td>Athena: editor, ubicación de resultados, datos escaneados y costo, historial</td>

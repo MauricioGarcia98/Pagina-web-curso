@@ -7,6 +7,10 @@ objetivos: Diferenciar batch y streaming en AWS | Usar Kinesis Data Streams y Fi
 autoevaluacion: ¿Qué hace Firehose que Kinesis Data Streams no hace solo? | ¿Qué recibe un handler de Lambda cuando llega un archivo a S3?
 ---
 
+:::tip Hazlo también en la consola
+En la [consola de AWS de práctica](#/aws), **Lambda** corre tu código Python de verdad: crea una función, agrégale un disparador de S3 y sube un archivo al bucket desde la terminal. Los logs quedan en **CloudWatch** (`aws logs tail /aws/lambda/<función>`). El recorrido completo está en el [proyecto serverless](#/l/aws-proyecto-pipeline-serverless).
+:::
+
 ## Batch vs. streaming
 
 Hasta ahora procesamos **lotes** (*batch*): "cada noche, todas las ventas del día". Pero hay preguntas que no pueden esperar: ¿esta compra con tarjeta es fraude?, ¿qué conductor está más cerca?, ¿se cayó el sitio?
@@ -152,6 +156,8 @@ aws lambda list-functions --query "Functions[].FunctionName"
 aws lambda invoke --function-name procesar-archivo --payload file://evento.json --cli-binary-format raw-in-base64-out respuesta.json
 aws logs tail /aws/lambda/procesar-archivo --follow
 ```
+
+En la práctica, `procesar-archivo` corre de verdad y lee el archivo con `s3.get_object`: si el bucket o el archivo del evento no existen, la respuesta trae `"FunctionError": "Unhandled"` y `respuesta.json` muestra el `NoSuchKey`, igual que en AWS. Crea antes el bucket y sube el archivo (`aws s3 mb`, `aws s3 cp`), o usa el evento de prueba **S3 Put** en la consola de Lambda.
 
 :::experto Idempotencia: el evento puede llegar dos veces
 S3, Kinesis y SQS garantizan entrega **al menos una vez** (*at-least-once*). Tu Lambda puede recibir el mismo evento dos veces, así que debe ser **idempotente**: procesar dos veces el mismo archivo no debe duplicar datos (por ejemplo, escribir con una clave determinística o hacer `MERGE` en lugar de `INSERT`). Es una pregunta segura en entrevistas.

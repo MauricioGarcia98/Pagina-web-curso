@@ -602,6 +602,8 @@
   const arn = (svc, res) => `arn:aws:${svc}:${aws().region}:${aws().account}:${res}`;
   function s3path(u) { const m = String(u || '').match(/^s3:\/\/([^/]+)\/?(.*)$/); return m ? { b: m[1], k: m[2] } : null; }
 
+  // motor de Glue, Lambda, Step Functions, CloudWatch y costos (aws-servicios.js): se carga con la consola de AWS
+  async function motorAws() { if (!window.AwsMotor && window.__cargarGrupo) { try { await window.__cargarGrupo('aws'); } catch (e) { /* sin red: respuestas de práctica */ } } return window.AwsMotor || null; }
   def('aws', 'AWS CLI simulada con estado (configure, s3, glue, athena, emr, kinesis, lambda, iam…)', async (a, ctx) => {
     const s = aws();
     const A = args(a);
@@ -654,7 +656,9 @@
         if (!src || !dst) return fail(`aws: error: the following arguments are required: paths`, 252);
         const S3 = s3path(src), D3 = s3path(dst);
         const lines = [];
-        const put = (bucket, key, content) => { const b = s.buckets[bucket]; if (!b) throw new Error(`upload failed: An error occurred (NoSuchBucket) when calling the PutObject operation: The specified bucket does not exist`); b.objects[key] = { c: content, m: now() }; };
+        const put = (bucket, key, content) => { const b = s.buckets[bucket]; if (!b) throw new Error(`upload failed: An error occurred (NoSuchBucket) when calling the PutObject operation: The specified bucket does not exist`); b.objects[key] = { c: content, m: now() }; subidos.push([bucket, key]); };
+        const subidos = []; // los objetos nuevos disparan las funciones Lambda suscriptas (después de responder)
+        setTimeout(() => { if (subidos.length && Object.values(s.lambdas || {}).some((f) => (f.triggers || []).length)) motorAws().then((M) => { if (M) subidos.forEach(([bk, k]) => M.dispararS3(bk, k)); }); }, 0);
         try {
           if (!S3 && D3) {
             const lp = Sh.norm(src);
@@ -751,6 +755,21 @@
       }
       if (p[1] === 'get-crawler') { const c = s.crawlers[A.get('--name')]; if (!c) return fail('EntityNotFoundException', 254); return out({ Crawler: { Name: A.get('--name'), State: c.state, DatabaseName: c.db, Targets: { S3Targets: [{ Path: c.path }] }, LastCrawl: c.last ? { Status: 'SUCCEEDED', StartTime: c.last } : undefined } }); }
       if (p[1] === 'get-tables') { const d = s.glueDbs[A.get('--database-name')]; if (!d) return fail(`An error occurred (EntityNotFoundException) when calling the GetTables operation: Database ${A.get('--database-name')} not found.`, 254); return out({ TableList: Object.entries(d.tables).map(([n, t]) => ({ Name: n, DatabaseName: A.get('--database-name'), StorageDescriptor: { Location: t.location, Columns: t.columns }, Parameters: { classification: t.format } })) }); }
+      if (p[1] === 'start-job-run' || p[1] === 'get-job-runs' || p[1] === 'get-job-run') {
+        const M = await motorAws(); const jn = A.get('--job-name'); const j = s.glueJobs[jn];
+        if (M && p[1] === 'start-job-run') {
+          if (!j) return fail(`An error occurred (EntityNotFoundException) when calling the StartJobRun operation: Failed to start job run due to missing metadata`, 254);
+          let args = {}; const ar = A.get('--arguments'); if (ar && ar !== true) { try { args = JSON.parse(ar); } catch (e) { return fail(`Error parsing parameter '--arguments': Invalid JSON: ${ar}`, 252); } }
+          const antes = (j.runs || []).length; const pr = M.correrGlue(jn, { args, origen: 'cli' });
+          if ((j.runs || []).length === antes) { try { await pr; } catch (e) { return fail(`An error occurred (${e.code || 'ConcurrentRunsExceededException'}) when calling the StartJobRun operation: ${e.message.replace(/^\w+: /, '')}`, 254); } }
+          pr.catch(() => {}); return out({ JobRunId: j.runs[j.runs.length - 1].id });
+        }
+        if (M && j) {
+          const fmt = (r) => ({ Id: r.id, Attempt: 0, JobName: jn, StartedOn: r.inicio || r.at, LastModifiedOn: r.fin || r.inicio || r.at, CompletedOn: r.fin, JobRunState: r.estado || 'SUCCEEDED', Arguments: r.args || {}, ErrorMessage: r.error, ExecutionTime: r.seg ?? 87, DPUSeconds: r.dpuHoras != null ? Math.round(r.dpuHoras * 3600) : undefined, GlueVersion: j.version || '4.0', WorkerType: j.tipoWorker || 'G.1X', NumberOfWorkers: j.workers || 10 });
+          if (p[1] === 'get-job-run') { const r = (j.runs || []).find((x) => x.id === A.get('--run-id')); if (!r) return fail(`An error occurred (EntityNotFoundException) when calling the GetJobRun operation: Job Run Id ${A.get('--run-id')} not found`, 254); return out({ JobRun: fmt(r) }); }
+          if (p[1] === 'get-job-runs') return out({ JobRuns: (j.runs || []).slice().reverse().map(fmt) });
+        }
+      }
       if (p[1] === 'start-job-run') { const j = s.glueJobs[A.get('--job-name')]; if (!j) return fail(`An error occurred (EntityNotFoundException) when calling the StartJobRun operation: Failed to start job run due to missing metadata`, 254); const id = 'jr_' + uid(40); j.runs.push({ id, at: now(), args: A.get('--arguments') }); save(); return out({ JobRunId: id }); }
       if (p[1] === 'get-job') { const j = s.glueJobs[A.get('--job-name')]; if (!j) return fail(`An error occurred (EntityNotFoundException) when calling the GetJob operation: Job with name: ${A.get('--job-name')} not found`, 254); return out({ Job: { Name: A.get('--job-name'), Role: j.role || 'arn:aws:iam::123456789012:role/glue', GlueVersion: j.glue || '4.0', WorkerType: j.worker || 'G.1X', NumberOfWorkers: j.workers || 2, Command: { Name: 'glueetl', ScriptLocation: j.script || '' } } }); }
       if (p[1] === 'get-jobs') return out({ Jobs: Object.keys(s.glueJobs).map((n) => ({ Name: n })) });
@@ -803,10 +822,65 @@
       if (p[1] === 'put-record') { const x = s.streams[A.get('--stream-name')]; if (!x) return fail(`An error occurred (ResourceNotFoundException) when calling the PutRecord operation: Stream ${A.get('--stream-name')} under account ${s.account} not found.`, 254); x.records.push({ data: A.get('--data'), pk: A.get('--partition-key') }); save(); return out({ ShardId: 'shardId-000000000000', SequenceNumber: String(Date.now()) + uid(10).replace(/\D/g, '') }); }
       if (p[1] === 'describe-stream-summary') { const x = s.streams[A.get('--stream-name')]; if (!x) return fail('ResourceNotFoundException', 254); return out({ StreamDescriptionSummary: { StreamName: A.get('--stream-name'), StreamStatus: 'ACTIVE', OpenShardCount: x.shards, RetentionPeriodHours: 24 } }); }
     }
+    if (p[0] === 'lambda' && ['invoke', 'create-function', 'update-function-code', 'get-function'].includes(p[1])) {
+      const M = await motorAws(); const n = A.get('--function-name');
+      if (M) {
+        const codigoDe = (z) => { const f = String(z || '').replace(/^fileb?:\/\//, ''); const c = Sh.readFile(Sh.norm(f)); return c; };
+        if (p[1] === 'create-function') {
+          if (!n || !A.get('--role') || !A.get('--runtime') || !A.get('--handler')) return fail('aws: error: the following arguments are required: --function-name, --role, --runtime, --handler (y el código con --zip-file)', 252);
+          if (s.lambdas[n]) return fail(`An error occurred (ResourceConflictException) when calling the CreateFunction operation: Function already exist: ${n}`, 254);
+          const z = A.get('--zip-file'); const c = z ? codigoDe(z) : null; if (z && c === null) return fail(`Error parsing parameter '--zip-file': Unable to load paramfile ${z}`, 252);
+          s.lambdas[n] = { runtime: A.get('--runtime'), handler: A.get('--handler'), codigo: c && !/^PK/.test(c) ? c : undefined, memoria: Number(A.get('--memory-size')) || 128, timeout: Number(A.get('--timeout')) || 3, modificada: now() }; save();
+          return out({ FunctionName: n, FunctionArn: arn('lambda', 'function:' + n), Runtime: A.get('--runtime'), Handler: A.get('--handler'), MemorySize: s.lambdas[n].memoria, Timeout: s.lambdas[n].timeout, State: 'Pending', LastUpdateStatus: 'InProgress' });
+        }
+        const f = s.lambdas[n]; if (!f) return fail(`An error occurred (ResourceNotFoundException) when calling the ${{ invoke: 'Invoke', 'update-function-code': 'UpdateFunctionCode', 'get-function': 'GetFunction' }[p[1]]} operation: Function not found: ${arn('lambda', 'function:' + n)}`, 254);
+        if (p[1] === 'update-function-code') { const c = codigoDe(A.get('--zip-file')); if (c === null) return fail(`Error parsing parameter '--zip-file': Unable to load paramfile ${A.get('--zip-file')}`, 252); f.codigo = c; f.borrador = null; f.modificada = now(); save(); return out({ FunctionName: n, LastModified: f.modificada, CodeSize: c.length, LastUpdateStatus: 'Successful' }); }
+        if (p[1] === 'get-function') { M.lam(n); return out({ Configuration: { FunctionName: n, Runtime: f.runtime, Handler: f.handler, MemorySize: f.memoria, Timeout: f.timeout, LastModified: f.modificada, Environment: { Variables: f.env } }, Code: { RepositoryType: 'S3', Location: '(práctica)' } }); }
+        let evento = {}; const pl = A.get('--payload');
+        if (pl && pl !== true) { const txt = /^fileb?:\/\//.test(pl) ? Sh.readFile(Sh.norm(pl.replace(/^fileb?:\/\//, ''))) : pl; if (txt === null) return fail(`Error parsing parameter '--payload': Unable to load paramfile ${pl}`, 252); try { evento = JSON.parse(txt); } catch (e) { return fail(`An error occurred (InvalidRequestContentException) when calling the Invoke operation: Could not parse request body into json: ${e.message}`, 254); } }
+        const salida = p.slice(2).find((x) => !String(x).startsWith('-') && x !== pl && x !== A.get('--cli-binary-format') && x !== A.get('--log-type') && x !== n && x !== A.get('--invocation-type'));
+        if (A.get('--invocation-type') === 'Event') { M.invocarLambda(n, evento, { origen: 'cli (async)' }).catch(() => {}); return out({ StatusCode: 202 }); }
+        const r = await M.invocarLambda(n, evento, { origen: 'cli' });
+        if (salida) Sh.writeFile(Sh.norm(salida), JSON.stringify(r.ok ? r.resultado : r.error));
+        const o = { StatusCode: 200, ExecutedVersion: '$LATEST' }; if (!r.ok) o.FunctionError = 'Unhandled';
+        if (A.get('--log-type') === 'Tail') { const lg = ((M.S().logs[r.grupo] || { streams: {} }).streams[r.stream] || []).map((x) => x.m).join('\n').slice(-4096); o.LogResult = btoa(unescape(encodeURIComponent(lg))); }
+        return out(o);
+      }
+    }
     if (p[0] === 'lambda') {
       if (p[1] === 'list-functions') return out({ Functions: Object.entries(s.lambdas).map(([n, f]) => ({ FunctionName: n, Runtime: f.runtime, Handler: f.handler, FunctionArn: arn('lambda', 'function:' + n) })) });
       if (p[1] === 'invoke') { const n = A.get('--function-name'); if (!s.lambdas[n]) return fail(`An error occurred (ResourceNotFoundException) when calling the Invoke operation: Function not found: ${arn('lambda', 'function:' + n)}`, 254); const f = p[2]; if (f) Sh.writeFile(Sh.norm(f), JSON.stringify({ statusCode: 200, body: 'archivo procesado' })); save(); return out({ StatusCode: 200, ExecutedVersion: '$LATEST' }); }
       if (p[1] === 'create-function') { const n = A.get('--function-name'); s.lambdas[n] = { runtime: A.get('--runtime') || 'python3.12', handler: A.get('--handler') || 'app.handler' }; save(); return out({ FunctionName: n, FunctionArn: arn('lambda', 'function:' + n), State: 'Pending' }); }
+    }
+    if (p[0] === 'stepfunctions' && ['start-execution', 'describe-execution', 'list-executions', 'get-execution-history', 'create-state-machine', 'update-state-machine', 'describe-state-machine'].includes(p[1])) {
+      const M = await motorAws();
+      if (M) {
+        const smDe = (a) => String(a || '').split(':stateMachine:').pop().split(':')[0];
+        const defDe = (d) => { if (!d || d === true) return null; return /^file:\/\//.test(d) ? Sh.readFile(Sh.norm(d.replace(/^file:\/\//, ''))) : d; };
+        if (p[1] === 'create-state-machine' || p[1] === 'update-state-machine') {
+          const n = p[1] === 'create-state-machine' ? A.get('--name') : smDe(A.get('--state-machine-arn')); const d = defDe(A.get('--definition'));
+          if (!n || (p[1] === 'create-state-machine' && (!d || !A.get('--role-arn')))) return fail('aws: error: the following arguments are required: --name, --definition, --role-arn', 252);
+          if (d !== null) { let D; try { D = JSON.parse(d); } catch (e) { return fail(`An error occurred (InvalidDefinition) when calling the ${p[1] === 'create-state-machine' ? 'CreateStateMachine' : 'UpdateStateMachine'} operation: Invalid State Machine Definition: 'SCHEMA_VALIDATION_FAILED: ${e.message}'`, 254); } if (!D.StartAt || !D.States || !D.States[D.StartAt]) return fail(`An error occurred (InvalidDefinition): Invalid State Machine Definition: 'MISSING_TRANSITION_TARGET: StartAt'`, 254); }
+          if (p[1] === 'create-state-machine' && s.sfn[n]) return fail(`An error occurred (StateMachineAlreadyExists) when calling the CreateStateMachine operation: State Machine Already Exists: '${arn('states', 'stateMachine:' + n)}'`, 254);
+          if (!s.sfn[n]) s.sfn[n] = { creada: now() }; if (d !== null) s.sfn[n].definicion = JSON.stringify(JSON.parse(d), null, 2); if (A.get('--role-arn')) s.sfn[n].rol = A.get('--role-arn'); save();
+          return out(p[1] === 'create-state-machine' ? { stateMachineArn: arn('states', 'stateMachine:' + n), creationDate: now() } : { updateDate: now() });
+        }
+        if (p[1] === 'describe-state-machine') { const n = smDe(A.get('--state-machine-arn')); const m = M.sm(n); if (!m) return fail(`An error occurred (StateMachineDoesNotExist) when calling the DescribeStateMachine operation: State Machine Does Not Exist: '${A.get('--state-machine-arn')}'`, 254); return out({ stateMachineArn: arn('states', 'stateMachine:' + n), name: n, status: 'ACTIVE', definition: m.definicion, roleArn: m.rol, type: m.tipo, creationDate: m.creada }); }
+        if (p[1] === 'start-execution') {
+          const n = smDe(A.get('--state-machine-arn')); if (!M.sm(n)) return fail(`An error occurred (StateMachineDoesNotExist) when calling the StartExecution operation: State Machine Does Not Exist: '${A.get('--state-machine-arn')}'`, 254);
+          let inp = {}; const ii = A.get('--input'); if (ii && ii !== true) { const t = /^file:\/\//.test(ii) ? Sh.readFile(Sh.norm(ii.replace(/^file:\/\//, ''))) : ii; try { inp = JSON.parse(t); } catch (e) { return fail(`An error occurred (InvalidExecutionInput) when calling the StartExecution operation: Invalid State Machine Execution Input: '${e.message}'`, 254); } }
+          const id = A.get('--name') && A.get('--name') !== true ? A.get('--name') : `${Date.now().toString(16)}-${uid(4)}-${uid(4)}`;
+          if (M.sm(n).ejecuciones.some((x) => x.id === id)) return fail(`An error occurred (ExecutionAlreadyExists) when calling the StartExecution operation: Execution Already Exists: '${id}'`, 254);
+          M.ejecutarSfn(n, inp, { nombreEj: id }).catch(() => {});
+          return out({ executionArn: arn('states', `execution:${n}:${id}`), startDate: now() });
+        }
+        const ea = String(A.get('--execution-arn') || ''); const [, en, eid] = ea.split(':execution:').pop().match(/^([^:]+):(.+)$/) || [];
+        if (p[1] === 'list-executions') { const n = smDe(A.get('--state-machine-arn')); const m = M.sm(n); if (!m) return fail('An error occurred (StateMachineDoesNotExist)', 254); return out({ executions: m.ejecuciones.filter((e) => !A.get('--status-filter') || e.estado === A.get('--status-filter')).map((e) => ({ executionArn: arn('states', `execution:${n}:${e.id}`), stateMachineArn: arn('states', 'stateMachine:' + n), name: e.id, status: e.estado, startDate: e.inicio, stopDate: e.fin || undefined })) }); }
+        const m = en && M.sm(en); const e = m && m.ejecuciones.find((x) => x.id === eid);
+        if (!e) return fail(`An error occurred (ExecutionDoesNotExist) when calling the ${p[1] === 'describe-execution' ? 'DescribeExecution' : 'GetExecutionHistory'} operation: Execution Does Not Exist: '${ea}'`, 254);
+        if (p[1] === 'describe-execution') return out({ executionArn: ea, stateMachineArn: arn('states', 'stateMachine:' + en), name: e.id, status: e.estado, startDate: e.inicio, stopDate: e.fin || undefined, input: JSON.stringify(e.input), output: e.output != null ? JSON.stringify(e.output) : undefined, error: e.error, cause: e.causa });
+        return out({ events: e.eventos.map((x) => ({ timestamp: x.t, type: x.tipo, id: x.id, ...(x.estado ? { stateEnteredEventDetails: { name: x.estado } } : {}), ...(x.error ? { taskFailedEventDetails: { error: x.error, cause: x.cause } } : {}) })) });
+      }
     }
     if (p[0] === 'stepfunctions') {
       if (p[1] === 'list-state-machines') return out({ stateMachines: Object.keys(s.sfn).map((n) => ({ name: n, stateMachineArn: arn('states', 'stateMachine:' + n), type: 'STANDARD' })) });
@@ -848,6 +922,24 @@
       if (p[1] === 'put-rule') { const n = A.get('--name'); if (!n) return fail('aws: error: the following arguments are required: --name', 252); if (!A.get('--schedule-expression') && !A.get('--event-pattern')) return fail('An error occurred (ValidationException) when calling the PutRule operation: Parameter(s) ScheduleExpression or EventPattern must be specified.', 254); s.rules[n] = { schedule: A.get('--schedule-expression'), pattern: A.get('--event-pattern'), targets: [] }; save(); return out({ RuleArn: arn('events', 'rule/' + n) }); }
       if (p[1] === 'put-targets') { const r = s.rules[A.get('--rule')]; if (!r) return fail(`An error occurred (ResourceNotFoundException) when calling the PutTargets operation: Rule ${A.get('--rule')} does not exist on EventBus default.`, 254); r.targets.push(A.get('--targets')); save(); return out({ FailedEntryCount: 0, FailedEntries: [] }); }
       if (p[1] === 'list-rules') return out({ Rules: Object.entries(s.rules).map(([n, r]) => ({ Name: n, State: 'ENABLED', ScheduleExpression: r.schedule })) });
+    }
+    if (p[0] === 'logs' && ['tail', 'describe-log-groups', 'filter-log-events', 'describe-log-streams', 'put-retention-policy'].includes(p[1])) {
+      const M = await motorAws();
+      if (M) {
+        const L = M.S().logs; const g = p[1] === 'tail' ? p[2] : A.get('--log-group-name');
+        if (p[1] === 'describe-log-groups') return out({ logGroups: Object.entries(L).filter(([n]) => !A.get('--log-group-name-prefix') || n.startsWith(A.get('--log-group-name-prefix'))).map(([n, x]) => ({ logGroupName: n, creationTime: new Date(x.creado).getTime(), retentionInDays: x.retencion || undefined, storedBytes: Object.values(x.streams).reduce((a, st) => a + st.reduce((y, e) => y + e.m.length, 0), 0), arn: arn('logs', `log-group:${n}:*`) })) });
+        if (!g || !L[g]) return fail(`An error occurred (ResourceNotFoundException) when calling the ${{ tail: 'FilterLogEvents', 'filter-log-events': 'FilterLogEvents', 'describe-log-streams': 'DescribeLogStreams', 'put-retention-policy': 'PutRetentionPolicy' }[p[1]]} operation: The specified log group does not exist.`, 254);
+        if (p[1] === 'put-retention-policy') { L[g].retencion = Number(A.get('--retention-in-days')) || null; save(); return ok(''); }
+        if (p[1] === 'describe-log-streams') return out({ logStreams: Object.entries(L[g].streams).map(([n, evs]) => ({ logStreamName: n, lastEventTimestamp: evs.length ? new Date(evs[evs.length - 1].t).getTime() : undefined })) });
+        const desde = (() => { const sn = A.get('--since'); const m2 = /^(\d+)([smhdw])$/.exec(sn || ''); return m2 ? Date.now() - Number(m2[1]) * { s: 1e3, m: 6e4, h: 36e5, d: 864e5, w: 6048e5 }[m2[2]] : Date.now() - 6e5 * (p[1] === 'tail' ? 1 : 1e4); })();
+        const patron = A.get('--filter-pattern'); const evs = Object.entries(L[g].streams).flatMap(([st, es]) => es.map((e) => ({ st, ...e }))).filter((e) => new Date(e.t).getTime() >= desde && (!patron || patron === true || String(patron).replace(/^"|"$/g, '').split(/\s+/).every((w) => e.m.includes(w)))).sort((a, b) => a.t.localeCompare(b.t));
+        if (p[1] === 'filter-log-events') return out({ events: evs.map((e) => ({ logStreamName: e.st, timestamp: new Date(e.t).getTime(), message: e.m })) });
+        return ok(evs.length ? evs.map((e) => `${e.t.replace(/\.\d+Z$/, '')} ${e.st} ${e.m}`).join('\n') + (A.flags['--follow'] ? '\n(--follow: en la práctica se muestra lo que hay hasta ahora; vuelve a ejecutar el comando para ver lo nuevo)' : '') : '(no hay eventos en ese rango; prueba con --since 1d)');
+      }
+    }
+    if (p[0] === 'ce' && p[1] === 'get-cost-and-usage') {
+      const M = await motorAws();
+      if (M) { const c = M.costos(); const hoy = now().slice(0, 10); const ini = hoy.slice(0, 8) + '01'; const porServ = /SERVICE/.test(A.get('--group-by') || ''); return out({ GroupDefinitions: porServ ? [{ Type: 'DIMENSION', Key: 'SERVICE' }] : [], ResultsByTime: [{ TimePeriod: { Start: ini, End: hoy }, Total: porServ ? {} : { UnblendedCost: { Amount: c.total.toFixed(10), Unit: 'USD' } }, Groups: porServ ? Object.entries(c.porServ).map(([k, x]) => ({ Keys: [k], Metrics: { UnblendedCost: { Amount: x.total.toFixed(10), Unit: 'USD' } } })) : [], Estimated: true }] }); }
     }
     if (p[0] === 'logs' && p[1] === 'tail') return ok(`${now().slice(0, 19)} [INFO] START RequestId: ${uid(8)}\n${now().slice(0, 19)} [INFO] Procesando s3://datos/landing/ventas.csv\n${now().slice(0, 19)} [INFO] 1250 filas válidas, 3 descartadas\n${now().slice(0, 19)} [INFO] END RequestId (Duration: 812 ms, Max Memory Used: 96 MB)`);
     if (p[0] === 'cloudformation' && p[1] === 'deploy') { if (!A.get('--template-file') || !A.get('--stack-name')) return fail('aws: error: the following arguments are required: --template-file, --stack-name', 252); return ok(`\nWaiting for changeset to be created..\nWaiting for stack create/update to complete\nSuccessfully created/updated stack - ${A.get('--stack-name')}`); }
