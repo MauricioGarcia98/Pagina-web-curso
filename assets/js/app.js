@@ -60,7 +60,7 @@
     powerbi: ['powerbi-iconos', 'powerbi-visuales', 'powerbi', 'powerbi-informe', 'powerbi-ia', 'powerbi-servicio'],
     databricks: ['databricks', 'databricks-datos', 'databricks-computo', 'databricks-analitica', 'databricks-ml'],
     iconos: ['iconos-oficiales'],
-    azure: ['@databricks', '@iconos', 'kql', 'azure-portal', 'azure-extra', 'azure-logs', 'adf-studio'],
+    azure: ['@databricks', '@iconos', '@proyectos', 'kql', 'azure-portal', 'azure-extra', 'azure-logs', 'adf-studio'],
     github: ['octicons', 'github-actions', 'github', 'github-colab'],
     fabric: ['@databricks', '@iconos', 'kql', 'fabric', 'fabric-editores', 'fabric-items'],
     airflow: ['airflow-iconos', 'airflow-motor', 'airflow', 'airflow-paginas', 'terminal-airflow'],
@@ -68,10 +68,16 @@
     bigquery: ['@iconos', 'bigquery-motor', 'bigquery', 'bigquery-paginas'],
     aws: ['aws-consola', 'aws-servicios'],
     'azure-devops': ['azure-devops'],
-    jira: ['jira'],
+    jira: ['@proyectos', 'jira'],
     jupyter: ['@iconos', 'jupyter-kernel', 'jupyter'],
     excel: ['@iconos', 'excel-motor', 'excel'],
-    'pedalia-dev': ['pedalia-portal'],
+    'pedalia-dev': ['@proyectos', 'pedalia-portal'],
+    // no son herramientas con ruta propia: se piden con la lección, la terminal, Python o la página que los usa
+    proyectos: ['api-pedalia', 'pedalia', 'tablero-tickets', 'kafka-practica', 'mercado-vecino', 'mercado-vecino-terminal', 'mercado-vecino-proyecto', 'red-analitica', 'red-analitica-terminal', 'red-analitica-proyecto', 'ruta-sur', 'ruta-sur-terminal', 'ruta-sur-proyecto', 'cuentas-claras', 'cuentas-claras-proyecto', 'almacenes-sol', 'almacenes-sol-proyecto', 'conecta', 'conecta-proyecto', 'portafolio-tablero', 'soluciones', 'proyecto-equipo'],
+    misiones: ['misiones-datos', 'misiones-ruta', 'misiones'],
+    'terminal-extra': ['terminal-iac', 'terminal-incidentes'], // terraform, awk, file y los incidentes de práctica: con el primer comando
+    modelado: ['modelado'],
+    trabajo: ['trabajo'],
   };
   const grupoCargas = {};
   // la hoja de estilos de cada herramienta se pide al abrirla (no frena la portada ni las lecciones)
@@ -4313,8 +4319,20 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       h2.classList.add('busq-destino'); setTimeout(() => h2.classList.remove('busq-destino'), 2600);
     }, 80);
   }
+  // grupos que una página necesita sin ser una herramienta: los proyectos en sus lecciones, las misiones en los laboratorios
+  const gruposDeRuta = (r) => [
+    ...(r.name === 'lesson' && /^(proyecto|portafolio)/.test(r.lesson.modulo.id) ? ['proyectos'] : []),
+    ...((r.name.startsWith('lab-') || r.name === 'progreso') ? ['misiones'] : []),
+  ].filter((g) => !(grupoCargas[g] && grupoCargas[g].listo));
   function route() {
     const r = parse();
+    const pendientes = gruposDeRuta(r);
+    if (pendientes.length) {
+      const donde = location.hash;
+      if (!main.querySelector('.cargando-contenido')) main.innerHTML = '<div class="cargando-contenido"><span class="spinner"></span> Cargando…</div>';
+      Promise.all(pendientes.map(cargarGrupo)).then(() => { if (location.hash === donde) route(); }, () => { if (location.hash === donde) { main.innerHTML = '<div class="card" style="margin:24px"><h2>No se pudo cargar esta página</h2><p>Revisa tu conexión a internet y vuelve a intentar.</p></div>'; } });
+      return;
+    }
     if (GRUPOS[r.name] && !(grupoCargas[r.name] && grupoCargas[r.name].listo)) {
       const donde = location.hash;
       if (!main.querySelector('.cargando-contenido')) main.innerHTML = '<div class="cargando-contenido"><span class="spinner"></span> Abriendo la herramienta…</div>';

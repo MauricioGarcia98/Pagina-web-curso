@@ -1933,6 +1933,7 @@
   // ------------------------------------------------------------------ API pública
   // ejecuta un script: devuelve una lista de resultados, uno por sentencia
   async function ejecutar(script, opts = {}) {
+    if (/\bread_kafka\b/i.test(script) && !window.KafkaPractica && window.__cargarGrupo) { try { await window.__cargarGrupo('proyectos'); } catch (e) { /* sin red */ } } // los clústeres Kafka de práctica son de los proyectos
     await init({ Store: opts.Store || Store });
     const res = [];
     const U = uc();

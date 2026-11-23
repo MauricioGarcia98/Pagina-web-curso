@@ -6,7 +6,7 @@ const GRUPOS = ['Seguridad', 'Webhook', 'CDC', 'Olvido', 'PagoYa', 'Conciliació
 
 correr(async ({ p }) => {
   await ir(p, '/', 2500);
-  await p.evaluate(() => { const D = window.MercadoVecinoHost.datos(); D.inicio = Date.now() - 3.6 * 86400000; window.MercadoVecinoHost.guardar(); window.MercadoVecinoHost.sincronizar(); });
+  await p.evaluate(async () => { await window.__cargarGrupo('proyectos'); const D = window.MercadoVecinoHost.datos(); D.inicio = Date.now() - 3.6 * 86400000; window.MercadoVecinoHost.guardar(); window.MercadoVecinoHost.sincronizar(); });
   await ir(p, '/l/proyecto-mercado-vecino-paso-a-paso', 4000);
   const md = leer('proyecto-mercado-vecino/06-paso-a-paso.md');
   const bash = bloques(md, 'bash').map(lineas), sql = bloques(md, 'sql norun'), py = bloques(md, 'python norun');

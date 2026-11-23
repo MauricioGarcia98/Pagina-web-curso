@@ -599,6 +599,7 @@ def _sqlglot(accion, sql, desde, hacia):
     },
     _send(msg, timeoutMs = 45000) {
       if (!window.PY_SOURCES) return this._fuentes().then(() => this._send(msg, timeoutMs), () => ({ ok: false, error: 'No se pudo descargar el intérprete de práctica. Revisa tu conexión a internet y vuelve a intentar.' }));
+      if (!this._proyListo && window.__cargarGrupo) return (this._proyP = this._proyP || window.__cargarGrupo('proyectos').catch(() => {})).then(() => { this._proyListo = true; return this._send(msg, timeoutMs); }); // las APIs de práctica de los proyectos
       if (!this.worker) this._spawn();
       const id = ++this.seq;
       const first = this.status !== 'ready';

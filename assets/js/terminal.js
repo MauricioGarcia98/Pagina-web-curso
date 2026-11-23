@@ -602,6 +602,7 @@ models:
   }
   async function runLine(line, opts = {}) {
     if (Machine.hidratando) { try { await Machine.hidratando; } catch (e) { /* sigue con lo que haya */ } Machine.hidratando = null; }
+    if (!Machine.proyectosListos && window.__cargarGrupo) { try { await Promise.all([window.__cargarGrupo('proyectos'), window.__cargarGrupo('terminal-extra')]); } catch (e) { /* sin red: siguen los comandos de siempre */ } Machine.proyectosListos = true; } // mercado, red, pedalia, terraform, awk… y las APIs de práctica
     if (/\n/.test(line.trim()) || esCompuesto(line)) return runScript(line, opts);
     return runLineSimple(sinComentario(line), opts);
   }
