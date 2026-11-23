@@ -2,7 +2,7 @@
 titulo: El pedido - saber en tiempo real si cumplimos lo que prometemos
 nivel: Avanzado
 duracion: 25
-resumen: Ruta Sur reparte paquetes con 20 camionetas que mandan su posición y cada entrega a un stream en tiempo real. Dirección comercial quiere saber, pedido por pedido, si se cumplió la ventana prometida, y operaciones lo quiere ver durante el día. El pedido tal como llega, sin paso a paso.
+resumen: Ruta Sur reparte paquetes con 250 camionetas que mandan su posición y cada entrega a un stream en tiempo real. Dirección comercial quiere saber, pedido por pedido, si se cumplió la ventana prometida, y operaciones lo quiere ver durante el día. El pedido tal como llega, sin paso a paso.
 objetivos: Entender un pedido sobre datos en movimiento | Distinguir la hora del evento de la hora de llegada | Planificar con eventos tardíos, desordenados y repetidos | Combinar un stream con un sistema transaccional (el plan del día)
 prerrequisitos: proyecto-mercado-vecino-el-pedido
 autoevaluacion: ¿Sabes por qué un evento puede llegar horas después de ocurrir? | ¿Sabes qué es "a tiempo" en este negocio? | ¿Sabes de dónde sale la lista de pedidos de un día?
@@ -26,7 +26,7 @@ Las camionetas salen a las 8:00. Cada una lleva un equipo GPS que manda su posic
 
 | Sistema | Qué es | Cómo llegas |
 |---|---|---|
-| **Telemetría** | Event Hubs (Kafka), tópico `rutasur.telemetria`, 4 particiones, retención 3 días | `kcat` o `read_kafka` en Databricks |
+| **Telemetría** | Event Hubs (Kafka), tópico `rutasur.telemetria`, 8 particiones, retención 3 días | `kcat` o `read_kafka` en Databricks |
 | **TMS** | API REST con el plan de rutas de cada día | `curl`, Python o Data Factory |
 | **Herramientas** | Portal de Azure, Databricks (con tablas de streaming), Airflow, Power BI | Las de práctica |
 
@@ -108,7 +108,7 @@ Una entrega se completó a las 11:50 (ventana 9:00–12:00), pero el evento lleg
 - [ ] Porque hay que contar los pings
 - [x] Porque el total son los pedidos del plan (del TMS): los fallidos y los que no tienen evento también cuentan, y no aparecen como completados
 - [ ] Porque los eventos están en UTC
-- [ ] Porque hay 4 particiones
+- [ ] Porque hay 8 particiones
 :::
 
 ## Resumen

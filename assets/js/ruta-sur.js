@@ -1,5 +1,5 @@
-/* Ruta Sur: el proyecto 4. Una empresa de reparto de última milla (inventada) con 20 camionetas que mandan GPS y
- * eventos de entrega en tiempo real a Event Hubs (protocolo Kafka, 4 particiones), y un sistema de despachos (TMS)
+/* Ruta Sur: el proyecto 4. Una empresa de reparto de última milla (inventada) con 250 camionetas que mandan GPS y
+ * eventos de entrega en tiempo real a Event Hubs (protocolo Kafka, 8 particiones), y un sistema de despachos (TMS)
  * con una API que da el plan de rutas del día (con pedidos urgentes que se agregan durante el día).
  *
  * Problemas reales del streaming: zonas sin señal (los eventos llegan juntos y tarde, desordenados), reenvíos
@@ -32,8 +32,8 @@
     const DEPOSITO = [-34.8706, -56.1741];
     const ZONAS = { 'Puerto Viejo': [-34.905, -56.205], 'La Loma': [-34.872, -56.135], 'Centro': [-34.901, -56.172], 'Los Álamos': [-34.856, -56.098], 'Villa Sol': [-34.889, -56.062], 'El Molino': [-34.838, -56.163] };
     const NZ = Object.keys(ZONAS);
-    const VEHICULOS = Array.from({ length: 20 }, (_, i) => 'V' + pad(i + 1));
-    const PARTICIONES = 4; const TEMA = 'rutasur.telemetria'; const RETENCION = 3 * DIA;
+    const VEHICULOS = Array.from({ length: 250 }, (_, i) => 'V' + pad(i + 1)); // volumen de empresa: 250 camionetas
+    const PARTICIONES = 8; const TEMA = 'rutasur.telemetria'; const RETENCION = 3 * DIA;
     const T0 = () => inicioDiaLocal(cfg.inicio) - 3 * DIA;
     function hitos() { const i = inicioDiaLocal(cfg.inicio); return { firmware: i + DIA + 6 * HORA, reloj: i + 2 * DIA, apagon: i + 3 * DIA }; }
     const FW2 = new Set(VEHICULOS.slice(0, 10));
@@ -52,10 +52,10 @@
       if (!domingo) for (const v of VEHICULOS) {
         const R = azar(h32(cfg.semilla, 'ruta', fecha, v)); const zonas = [NZ[h32(v, 'z1') % NZ.length], NZ[h32(v, 'z2') % NZ.length]];
         const n = R.int(18, 25); const paradas = [];
-        for (let i = 0; i < n; i++) { const z = R.chance(0.7) ? zonas[0] : zonas[1]; const c = ZONAS[z]; paradas.push({ pedido_id: `P${fecha.replace(/-/g, '').slice(2)}${v.slice(1)}${pad(++nPed, 3)}`, zona: z, lat: Number((c[0] + (R.r() - 0.5) * 0.02).toFixed(5)), lon: Number((c[1] + (R.r() - 0.5) * 0.02).toFixed(5)), urgente: false }); }
+        for (let i = 0; i < n; i++) { const z = R.chance(0.7) ? zonas[0] : zonas[1]; const c = ZONAS[z]; paradas.push({ pedido_id: `P${fecha.replace(/-/g, '').slice(2)}${v.slice(1)}${pad(++nPed, 4)}`, zona: z, lat: Number((c[0] + (R.r() - 0.5) * 0.02).toFixed(5)), lon: Number((c[1] + (R.r() - 0.5) * 0.02).toFixed(5)), urgente: false }); }
         // pedidos urgentes que se agregan a media mañana
         const urg = R.chance(0.35) ? R.int(1, 2) : 0; const tUrg = base + (10 * 60 + R.int(0, 50)) * MIN;
-        for (let i = 0; i < urg; i++) { const z = zonas[0]; const c = ZONAS[z]; paradas.splice(R.int(Math.floor(n / 2), n), 0, { pedido_id: `P${fecha.replace(/-/g, '').slice(2)}${v.slice(1)}${pad(++nPed, 3)}`, zona: z, lat: Number((c[0] + (R.r() - 0.5) * 0.02).toFixed(5)), lon: Number((c[1] + (R.r() - 0.5) * 0.02).toFixed(5)), urgente: true, agregado: tUrg }); }
+        for (let i = 0; i < urg; i++) { const z = zonas[0]; const c = ZONAS[z]; paradas.splice(R.int(Math.floor(n / 2), n), 0, { pedido_id: `P${fecha.replace(/-/g, '').slice(2)}${v.slice(1)}${pad(++nPed, 4)}`, zona: z, lat: Number((c[0] + (R.r() - 0.5) * 0.02).toFixed(5)), lon: Number((c[1] + (R.r() - 0.5) * 0.02).toFixed(5)), urgente: true, agregado: tUrg }); }
         // ventanas de 3 horas según el orden (con algo de desorden del planificador)
         paradas.forEach((p, i) => { const frac = i / paradas.length; let w = frac < 0.34 ? 9 : frac < 0.67 ? 12 : 15; if (R.chance(0.1)) w = Math.max(9, w - 3); p.ventana_inicio = base + w * HORA; p.ventana_fin = base + (w + 3) * HORA; p.vehiculo = v; p.orden = i + 1; p.fecha = fecha; });
         // la jornada
@@ -95,7 +95,7 @@
       const o = { fw: '1.4', event_id: x.id, vehiculo: x.vehiculo, evento: x.tipo, ts_dispositivo: new Date(tsDisp).toISOString(), lat: x.lat, lon: x.lon }; if (x.velocidad_kmh != null) o.velocidad_kmh = x.velocidad_kmh; if (x.pedido_id) o.pedido_id = x.pedido_id; if (x.motivo) o.motivo = x.motivo; return JSON.stringify(o);
     }
 
-    // ---------------------------------------------------------------- Kafka: 4 particiones por vehículo, retención 3 días
+    // ---------------------------------------------------------------- Kafka: 8 particiones por vehículo, retención 3 días
     // offsets estables: cada día (de llegada) es un tramo del log de cada partición; el offset es la cantidad de
     // mensajes que llegaron antes desde que existe el tópico
     const cacheB = new Map();
