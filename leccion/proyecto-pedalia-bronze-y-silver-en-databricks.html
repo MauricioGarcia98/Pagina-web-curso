@@ -31,18 +31,15 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>1. Conectar Databricks al lago</h2>
 <p>En Unity Catalog, para leer <code>abfss://…</code> hace falta una <strong>ubicación externa</strong> (external location): un permiso que dice &quot;esta carpeta del lago se puede usar desde Databricks, con esta credencial&quot;. La credencial del workspace es la identidad del <strong>Access Connector</strong>, a la que ya le diste el rol en la cuenta.</p>
-<p>Abre el <a href="#/databricks">Databricks de práctica</a> → <strong>SQL Editor</strong> y ejecuta:</p>
-<pre data-norun tabindex="0"><code class="language-sql">SHOW STORAGE CREDENTIALS;
+<p>Abre el <a href="#/databricks">Databricks de práctica</a> → <strong>SQL Editor</strong>: mira con qué credencial entra Databricks al lago y crea la ubicación externa sobre <code>bronze</code>.</p>
+<details><summary>Pista</summary>
 
-CREATE EXTERNAL LOCATION lago_bronze
-URL 'abfss://bronze@stpedaliadev.dfs.core.windows.net/'
-WITH (STORAGE CREDENTIAL credencial_lago)
-COMMENT 'Capa bronze de Pedalia';
+<p><code>SHOW STORAGE CREDENTIALS</code> para ver con qué identidad entra Databricks y <code>CREATE EXTERNAL LOCATION &lt;nombre&gt; URL &#39;abfss://bronze@&lt;cuenta&gt;.dfs.core.windows.net/&#39; WITH (STORAGE CREDENTIAL &lt;credencial&gt;)</code>.</p>
+</details>
 
-CREATE EXTERNAL LOCATION lago_gold
-URL 'abfss://gold@stpedaliadev.dfs.core.windows.net/'
-WITH (STORAGE CREDENTIAL credencial_lago)
-COMMENT 'Exportaciones gold para otros sistemas';</code></pre>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: la credencial y la ubicación externa</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <p>Prueba que puedes listar los archivos:</p>
 <pre data-norun tabindex="0"><code class="language-sql">LIST 'abfss://bronze@stpedaliadev.dfs.core.windows.net/pedalia/viajes';</code></pre>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Si te da 403</div>
@@ -52,55 +49,35 @@ COMMENT 'Exportaciones gold para otros sistemas';</code></pre>
 
 
 <h2>2. El catálogo del proyecto</h2>
-<pre data-norun tabindex="0"><code class="language-sql">CREATE CATALOG IF NOT EXISTS pedalia;
-CREATE SCHEMA IF NOT EXISTS pedalia.bronze;
-CREATE SCHEMA IF NOT EXISTS pedalia.silver;
-CREATE SCHEMA IF NOT EXISTS pedalia.gold;</code></pre>
+<details><summary>Pista</summary>
+
+<p>Un catálogo <code>pedalia</code> y un esquema por capa (<code>bronze</code>, <code>silver</code>, <code>gold</code>), con <code>IF NOT EXISTS</code> para poder correrlo dos veces.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: el catálogo y los esquemas</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <h2>3. Bronze: leer sin interpretar</h2>
 <p>En bronze <strong>todo es texto</strong>. Si dejas que Databricks adivine los tipos y un día llega <code>&quot;N/A&quot;</code> en una columna numérica, la lectura falla o, peor, convierte en silencio. Con <code>inferSchema =&gt; &#39;false&#39;</code> guardas exactamente lo que vino:</p>
-<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE pedalia.bronze.viajes AS
-SELECT *
-FROM read_files(
-  'abfss://bronze@stpedaliadev.dfs.core.windows.net/pedalia/viajes',
-  format =&gt; 'csv', header =&gt; true, inferSchema =&gt; 'false'
-);
+<details><summary>Pista</summary>
 
-SELECT COUNT(*) AS filas, COUNT(DISTINCT viaje_id) AS viajes FROM pedalia.bronze.viajes;</code></pre>
+<p><code>read_files(&#39;abfss://…&#39;, format =&gt; &#39;csv&#39;, header =&gt; true, inferSchema =&gt; false)</code>: todo como texto. Agrega de qué archivo vino cada fila (<code>_metadata.file_name</code>) y cuándo lo cargaste.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: bronze</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <p>Compara con lo que anotaste en la terminal: <code>filas</code> tiene que ser igual a las líneas del archivo menos el encabezado.</p>
 <h2>4. Silver: el contrato en SQL</h2>
 <p>Una consulta, tres pasos con nombre (CTE). Cada paso corresponde a una parte del contrato:</p>
-<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE pedalia.silver.viajes AS
-WITH tipado AS (
-  -- 1. tipos: el formato de fecha va explícito, tal como dice el contrato
-  SELECT
-    CAST(viaje_id AS BIGINT)           AS viaje_id,
-    bici_id,
-    CAST(estacion_origen AS INT)       AS estacion_origen,
-    CAST(estacion_destino AS INT)      AS estacion_destino,
-    to_timestamp(inicio, 'yyyy-MM-dd HH:mm:ss') AS inicio,
-    to_timestamp(fin, 'yyyy-MM-dd HH:mm:ss')    AS fin,
-    tipo_usuario,
-    CAST(monto AS DECIMAL(10,2))       AS monto
-  FROM pedalia.bronze.viajes
-),
-numerados AS (
-  -- 2. una fila por viaje: las repetidas tienen el mismo viaje_id
-  SELECT *, ROW_NUMBER() OVER (PARTITION BY viaje_id ORDER BY inicio) AS rn
-  FROM tipado
-)
--- 3. reglas de validez del contrato
-SELECT
-  viaje_id, bici_id, estacion_origen,
-  CASE WHEN estacion_destino = 99 THEN NULL ELSE estacion_destino END AS estacion_destino,
-  inicio, fin,
-  (unix_timestamp(fin) - unix_timestamp(inicio)) / 60.0 AS minutos,
-  tipo_usuario, monto,
-  estacion_destino = 99 AS fuera_de_estacion,
-  CAST(inicio AS DATE) AS fecha
-FROM numerados
-WHERE rn = 1
-  AND fin IS NOT NULL      -- en curso: todavía no
-  AND fin &gt;= inicio;       -- error de reloj: a cuarentena</code></pre>
+<details><summary>Pista</summary>
+
+<p>Una consulta con tres CTE, una por regla del contrato: (1) una fila por <code>viaje_id</code> (<code>ROW_NUMBER() OVER (PARTITION BY viaje_id …)</code>), (2) tipos con <code>try_to_timestamp</code> y <code>try_cast</code>, (3) los filtros: sin fin y fin &lt; inicio no entran; el destino 99 pasa a NULL con <code>fuera_de_estacion = true</code>.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: silver según el contrato</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <div class="callout callout-nota"><div class="callout-title">📝 Un formato explícito es una alarma</div>
 
 <p><code>to_timestamp(inicio, &#39;yyyy-MM-dd HH:mm:ss&#39;)</code> falla si llega una fecha con otro formato. Podrías usar <code>try_to_timestamp</code>, que devuelve NULL en vez de fallar, pero entonces los viajes con fecha rara desaparecerían en silencio (el filtro <code>fin IS NOT NULL</code> los saca). Por ahora preferimos que <strong>falle y avise</strong>. En la última lección vas a ver por qué esta decisión importa.</p>
@@ -109,17 +86,23 @@ WHERE rn = 1
 
 <h2>5. La cuarentena</h2>
 <p>Lo que no entra en silver no se borra: se guarda con el motivo, para contarlo y avisar.</p>
-<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE pedalia.silver.viajes_cuarentena AS
-SELECT b.*, 'error_reloj' AS motivo
-FROM pedalia.bronze.viajes b
-WHERE b.fin &lt;&gt; '' AND to_timestamp(b.fin, 'yyyy-MM-dd HH:mm:ss') &lt; to_timestamp(b.inicio, 'yyyy-MM-dd HH:mm:ss');</code></pre>
+<details><summary>Pista</summary>
+
+<p>Las mismas filas que descartaste, con una columna <code>motivo</code> (<code>en_curso</code>, <code>error_reloj</code>) calculada con un <code>CASE</code>.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: la cuarentena</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <h2>6. La cuenta de control</h2>
-<pre data-norun tabindex="0"><code class="language-sql">SELECT
-  (SELECT COUNT(*) FROM pedalia.bronze.viajes)                                   AS filas_archivo,
-  (SELECT COUNT(*) - COUNT(DISTINCT viaje_id) FROM pedalia.bronze.viajes)        AS repetidas,
-  (SELECT COUNT(DISTINCT viaje_id) FROM pedalia.bronze.viajes WHERE fin = '' OR fin IS NULL) AS en_curso,
-  (SELECT COUNT(DISTINCT viaje_id) FROM pedalia.silver.viajes_cuarentena)        AS error_reloj,
-  (SELECT COUNT(*) FROM pedalia.silver.viajes)                                   AS validos;</code></pre>
+<details><summary>Pista</summary>
+
+<p>Por día: filas de bronze, <code>viaje_id</code> distintos, en cuarentena por motivo y filas de silver. Tiene que cerrar: distintos − en curso − error de reloj = silver.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: la cuenta de control</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <p><code>filas_archivo − repetidas − en_curso − error_reloj</code> tiene que dar <code>validos</code>. Si da otra cosa, hay un caso que el contrato no previó: encuéntralo antes de seguir.</p>
 <p>Cuando cierre, guarda la consulta de silver en el repositorio, en <code>sql/databricks/silver_viajes.sql</code>, con su PR.</p>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>

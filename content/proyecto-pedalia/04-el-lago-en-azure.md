@@ -27,6 +27,12 @@ Puedes hacerlo desde el [portal de Azure de práctica](#/azure) o con la CLI. La
 
 **Desde la terminal:**
 
+<details><summary>Pista</summary>
+
+Tres comandos: `az group create`, `az storage account create` (con `--hns true`, si no, no es un lago) y `az storage container create`, uno por capa. Un `for capa in landing bronze silver gold; do … done` evita repetirlo cuatro veces.
+</details>
+
+:::solucion PD:Azure | grupo, cuenta y contenedores por la terminal
 ```bash
 az login
 az group create -n rg-pedalia-dev -l eastus2
@@ -35,6 +41,7 @@ for capa in landing bronze silver gold; do
   az storage container create --account-name stpedaliadev -n $capa
 done
 ```
+:::
 
 :::nota ¿Por qué el espacio de nombres jerárquico?
 Con él, las carpetas son carpetas de verdad (renombrar una carpeta es una operación, no copiar miles de archivos) y aparece la dirección `abfss://…dfs.core.windows.net`, que es la que usan Databricks y Spark. Sin él, Databricks no puede usar la cuenta como ubicación externa.
@@ -42,10 +49,17 @@ Con él, las carpetas son carpetas de verdad (renombrar una carpeta es una opera
 
 ## 2. El data factory
 
+<details><summary>Pista</summary>
+
+La CLI de Data Factory es una extensión: primero se instala (`az extension add --name …`) y después se crea la fábrica con `az datafactory create -g … -n … -l …`.
+</details>
+
+:::solucion PD:Azure | el data factory
 ```bash
 az extension add --name datafactory
 az datafactory create -g rg-pedalia-dev -n adf-pedalia-dev -l eastus2
 ```
+:::
 
 Cada data factory tiene una **identidad administrada** con su mismo nombre: es la "cuenta" con la que el servicio entra a otros recursos sin guardar contraseñas.
 
@@ -60,6 +74,12 @@ Dos identidades necesitan entrar al lago:
 
 El **alcance** es la cuenta de almacenamiento, no la suscripción ni el grupo de recursos. Primero obtén su identificador:
 
+<details><summary>Pista</summary>
+
+Primero el identificador de la cuenta (`az storage account show … --query id -o tsv`, guárdalo en una variable) y después un `az role assignment create --assignee <identidad> --role "Storage Blob Data Contributor" --scope <id>` por cada identidad. `az role assignment list --scope <id> -o table` te muestra si quedó.
+</details>
+
+:::solucion PD:Azure | los permisos
 ```bash
 ID=$(az storage account show -n stpedaliadev -g rg-pedalia-dev --query id -o tsv)
 echo $ID
@@ -67,6 +87,7 @@ az role assignment create --assignee adf-pedalia-dev --role "Storage Blob Data C
 az role assignment create --assignee unity-catalog-access-connector --role "Storage Blob Data Contributor" --scope $ID
 az role assignment list --scope $ID -o table
 ```
+:::
 
 O desde el portal: la cuenta → **Access control (IAM)** → **Add role assignment** → el rol → **Managed identity** → la identidad.
 
@@ -82,11 +103,18 @@ Lo ideal es un rol por contenedor (el data factory solo escribe en `bronze`, Dat
 
 Simula lo que haría el proceso automático de la app: dejar los archivos del día en `landing/pedalia/<fecha>/`.
 
+<details><summary>Pista</summary>
+
+`az storage blob upload-batch` sube una carpeta entera (`-d contenedor/ruta -s carpeta-local`); el maestro de estaciones es un archivo suelto, con `az storage blob upload -c … -n … -f …`.
+</details>
+
+:::solucion PD:Azure | subir la entrega
 ```bash
 az storage blob upload-batch --account-name stpedaliadev -d landing/pedalia/2026-11-09 -s ~/pedalia/entrega/2026-11-09
 az storage blob upload --account-name stpedaliadev -c landing -n pedalia/estaciones/estaciones.json -f ~/pedalia/entrega/estaciones.json
 az storage blob list --account-name stpedaliadev -c landing -o table
 ```
+:::
 
 Ábrelo también en el portal: **stpedaliadev → Containers → landing**. Vas a ver la carpeta `pedalia/2026-11-09` con los dos archivos y `pedalia/estaciones`.
 

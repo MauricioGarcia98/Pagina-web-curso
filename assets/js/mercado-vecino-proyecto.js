@@ -173,7 +173,7 @@
     el.innerHTML = `<div class="card mv-panel"><h3 style="margin-top:0;font-size:1.05em">🔎 Revisar mi entrega</h3><p class="small muted">Lee el estado real de tus herramientas (Key Vault, lago, Databricks) y lo compara con lo que pasó de verdad en la tienda. No modifica nada.</p><button class="btn btn-primary btn-sm" data-revisar>Revisar ahora</button><ol class="pedalia-chequeos"></ol></div>`;
     const ol = el.querySelector('ol');
     el.querySelector('[data-revisar]').addEventListener('click', async (ev) => {
-      const b = ev.currentTarget; b.disabled = true; b.textContent = 'Revisando…'; ol.innerHTML = ''; Host.sincronizar();
+      const b = ev.currentTarget; b.disabled = true; if (window.__discoListo) await window.__discoListo(); b.textContent = 'Revisando…'; ol.innerHTML = ''; Host.sincronizar();
       let bien = 0;
       for (const [grupo, texto, prueba] of CHEQUEOS) {
         const li = document.createElement('li'); li.innerHTML = `<span class="spinner"></span> <b>${esc(grupo)}</b> · ${esc(texto)}`; ol.append(li);

@@ -64,18 +64,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p><code>sol accesos</code> te da la cadena de conexión. <code>psql … -c &quot;\dt&quot;</code> lista las tablas y <code>\copy (SELECT …) TO &#39;…csv&#39; WITH CSV HEADER</code> guarda el resultado de una consulta en un archivo.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 1, el ERP y la foto diaria</div>
-
-<pre tabindex="0"><code class="language-bash">sol accesos
-mkdir -p ~/sol/erp ~/sol/pos ~/sol/metas
-psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot; -c &quot;\dt&quot;
-psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot; -c &quot;SELECT sku, nombre, categoria, precio, costo, ult_modif FROM productos ORDER BY sku LIMIT 5&quot;</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">sol accesos</code><span><code>sol</code>: el sistema interno de Almacenes del Sol en la terminal del curso. <code>accesos</code> muestra los accesos que te dio IT</span></li><li><code class="bx-linea">mkdir -p ~/sol/erp ~/sol/pos ~/sol/metas</code><span><code>mkdir</code>: crea una carpeta. <code>-p</code> = crea también las carpetas intermedias y no falla si ya existe</span></li><li><code class="bx-linea">psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot; -c &quot;\dt&quot;</code><span><code>psql</code>: el cliente de PostgreSQL en la terminal. <code>-c</code> = ejecuta esa consulta y sale</span></li><li><code class="bx-linea">psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot; -c &quot;SELECT sku, nombre, categoria, precio, costo, ult_modif FROM…</code><span><code>psql</code>: el cliente de PostgreSQL en la terminal. <code>-c</code> = ejecuta esa consulta y sale</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-<pre tabindex="0"><code class="language-bash">HOY=$(date +%F)
-psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot; \
-  -c &quot;\copy (SELECT sku, nombre, categoria, precio, costo FROM productos ORDER BY sku) TO '~/sol/erp/productos_$HOY.csv' WITH CSV HEADER&quot;</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quot;    -c &quot;\copy (SELECT sku, nombre, categoria, precio, costo FROM …</code><span><code>psql</code>: el cliente de PostgreSQL en la terminal. <code>-c</code> = ejecuta esa consulta y sale</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 1, el ERP y la foto diaria</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 2 · Los tickets de las cajas</h2>
@@ -97,34 +86,7 @@ psql &quot;postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp&quo
 <p><code>GET /v1/tickets?sucursal=S01&amp;fecha=…&amp;pagina=1</code> con <code>X-Api-Key</code>; la respuesta trae <code>paginas</code>. Escribe cada línea del ticket como una fila del CSV (con el ticket, la sucursal y la fecha repetidos en cada línea).</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 2, los tickets</div>
-
-<pre data-norun tabindex="0"><code class="language-python">import requests, os, csv
-from datetime import date, timedelta
-KEY = os.environ[&quot;POS&quot;]; DESDE = date.fromisoformat(os.environ[&quot;DESDE&quot;]); HOY = date.fromisoformat(os.environ[&quot;HOY&quot;])
-h = {&quot;X-Api-Key&quot;: KEY}
-sucs = [s[&quot;codigo&quot;] for s in requests.get(&quot;https://api.possol.example/v1/sucursales&quot;, headers=h).json()[&quot;sucursales&quot;]]
-faltan = []
-d = DESDE
-while d &lt; HOY:
-    with open(os.path.expanduser(f&quot;~/sol/pos/lineas_{d}.csv&quot;), &quot;w&quot;, newline=&quot;&quot;) as f:
-        w = csv.writer(f)
-        w.writerow([&quot;ticket_id&quot;, &quot;sucursal&quot;, &quot;fecha&quot;, &quot;fecha_hora&quot;, &quot;medio_pago&quot;, &quot;anulado&quot;, &quot;sku&quot;, &quot;cantidad&quot;, &quot;precio_unitario&quot;, &quot;descuento&quot;])
-        for s in sucs:
-            pag = 1
-            while True:
-                r = requests.get(&quot;https://api.possol.example/v1/tickets&quot;, headers=h, params={&quot;sucursal&quot;: s, &quot;fecha&quot;: d.isoformat(), &quot;pagina&quot;: pag})
-                if r.status_code == 404: faltan.append(f&quot;{s} {d}&quot;); break     # todavía no sincronizó
-                r.raise_for_status(); j = r.json()
-                for t in j[&quot;tickets&quot;]:
-                    for l in t[&quot;lineas&quot;]:
-                        w.writerow([t[&quot;ticket_id&quot;], s, d.isoformat(), t[&quot;fecha_hora&quot;], t[&quot;medio_pago&quot;], t[&quot;anulado&quot;], l[&quot;sku&quot;], l[&quot;cantidad&quot;], l[&quot;precio_unitario&quot;], l[&quot;descuento&quot;]])
-                if pag &gt;= j[&quot;paginas&quot;]: break
-                pag += 1
-    d += timedelta(days=1)
-print(&quot;sin cierre todavía:&quot;, faltan)</code></pre>
-<pre tabindex="0"><code class="language-bash">POS=pos_… DESDE=2026-11-09 HOY=$(date +%F) python ~/sol.py</code></pre>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 2, los tickets</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 3 · La planilla de metas</h2>
@@ -136,28 +98,13 @@ print(&quot;sin cierre todavía:&quot;, faltan)</code></pre>
 <p>Une siempre por <strong>código</strong>, nunca por nombre: los nombres los escriben personas y cambian.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 3, la planilla</div>
-
-<pre tabindex="0"><code class="language-bash">sol metas descargar -o ~/sol/metas/metas.csv
-head -5 ~/sol/metas/metas.csv</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">sol metas descargar -o ~/sol/metas/metas.csv</code><span><code>sol</code>: el sistema interno de Almacenes del Sol en la terminal del curso. <code>metas</code> baja la planilla de metas que mantiene el área comercial</span></li><li><code class="bx-linea">head -5 ~/sol/metas/metas.csv</code><span><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas). <code>-5</code> = las primeras 5 líneas</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 3, la planilla</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 4 · Al lago</h2>
 <p><strong>Qué tienes que lograr.</strong> Todo lo anterior en la cuenta de almacenamiento del proyecto, con la estructura <code>sol/erp</code>, <code>sol/pos</code> y <code>sol/metas</code>, y el conector de Unity Catalog con permiso.</p>
 <p><strong>Compruébalo tú.</strong> <code>az storage blob list</code> muestra un archivo de productos por cada foto y uno de líneas por cada día.</p>
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 4, al lago</div>
-
-<pre tabindex="0"><code class="language-bash">az login
-az group create -n rg-sol -l eastus2
-az storage account create -n stsol -g rg-sol -l eastus2 --sku Standard_LRS --hns true
-az storage container create --account-name stsol -n landing
-ID=$(az storage account show -n stsol -g rg-sol --query id -o tsv)
-az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID
-az storage blob upload-batch --account-name stsol -d landing/sol -s ~/sol</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(6)</span></summary><ol><li><code class="bx-linea">az login</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>login</code> inicia sesión en tu cuenta de Azure (abre el navegador)</span></li><li><code class="bx-linea">az group create -n rg-sol -l eastus2</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>group</code> crea, lista o borra grupos de recursos (<code>create</code>). <code>-n</code> = nombre del recurso; <code>-l</code> = región donde se crea el recurso</span></li><li><code class="bx-linea">az storage account create -n stsol -g rg-sol -l eastus2 --sku Standard_LRS --hns true</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>account create</code>). <code>-n</code> = nombre del recurso; <code>-g</code> = grupo de recursos donde está o se crea el recurso; <code>-l</code> = región donde se crea el recurso; <code>--sku</code> = el plan o tamaño del recurso (define precio y capacidad)</span></li><li><code class="bx-linea">az storage container create --account-name stsol -n landing</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>container create</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>role</code> permisos: quién puede hacer qué (RBAC) (<code>assignment create</code>)</span></li><li><code class="bx-linea">az storage blob upload-batch --account-name stsol -d landing/sol -s ~/sol</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload-batch</code>)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 4, al lago</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 5 · La dimensión SCD2, las ventas y las metas</h2>
@@ -184,88 +131,17 @@ az storage blob upload-batch --account-name stsol -d landing/sol -s ~/sol</code>
 <p><code>LAG(...) OVER (PARTITION BY sku ORDER BY fecha)</code> y <code>LEAD(...)</code>. La fecha de cada foto sale del nombre del archivo (<code>_metadata.file_name</code>). La unión con la dimensión es por rango: <code>fecha &gt;= valido_desde AND (valido_hasta IS NULL OR fecha &lt; valido_hasta)</code>.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 5a, la dimensión SCD2</div>
-
-<pre data-norun tabindex="0"><code class="language-sql">CREATE EXTERNAL LOCATION lago_sol URL 'abfss://landing@stsol.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
-CREATE CATALOG IF NOT EXISTS sol; CREATE SCHEMA IF NOT EXISTS sol.silver; CREATE SCHEMA IF NOT EXISTS sol.gold;
-
-CREATE OR REPLACE TEMP VIEW fotos AS
-SELECT sku, nombre, categoria, CAST(precio AS DOUBLE) AS precio, CAST(costo AS DOUBLE) AS costo,
-       substr(_metadata.file_name, 11, 10) AS fecha
-FROM read_files('abfss://landing@stsol.dfs.core.windows.net/sol/erp/', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false);</code></pre>
-<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TEMP VIEW versiones AS
-SELECT * FROM (
-  SELECT *, concat_ws('|', categoria, CAST(precio AS STRING), CAST(costo AS STRING)) AS v,
-         LAG(concat_ws('|', categoria, CAST(precio AS STRING), CAST(costo AS STRING))) OVER (PARTITION BY sku ORDER BY fecha) AS ant
-  FROM fotos) x
-WHERE ant IS NULL OR ant &lt;&gt; v;
-
-CREATE OR REPLACE TABLE sol.silver.dim_producto AS
-SELECT sku, nombre, categoria, precio, costo,
-       CAST(fecha AS DATE) AS valido_desde,
-       CAST(LEAD(fecha) OVER (PARTITION BY sku ORDER BY fecha) AS DATE) AS valido_hasta,
-       LEAD(fecha) OVER (PARTITION BY sku ORDER BY fecha) IS NULL AS vigente
-FROM versiones;</code></pre>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 5a, la dimensión SCD2</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 5b, las ventas y las metas</div>
-
-<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TEMP VIEW lineas AS
-SELECT DISTINCT * FROM read_files('abfss://landing@stsol.dfs.core.windows.net/sol/pos/', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false);
-
-CREATE OR REPLACE TEMP VIEW lineas_ok AS
-SELECT ticket_id, sucursal, fecha, medio_pago, sku,
-       CAST(cantidad AS INT) * CAST(precio_unitario AS DOUBLE) - CAST(descuento AS DOUBLE) AS neta,
-       CAST(cantidad AS INT) AS cantidad
-FROM lineas WHERE anulado = 'False';</code></pre>
-<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE sol.gold.ventas_diarias AS
-SELECT CAST(l.fecha AS DATE) AS fecha, l.sucursal,
-       count(DISTINCT l.ticket_id) AS tickets,
-       round(sum(l.neta), 2) AS ventas_netas,
-       round(sum(l.neta - l.cantidad * d.costo), 2) AS margen_bruto
-FROM lineas_ok l
-JOIN sol.silver.dim_producto d
-  ON d.sku = l.sku AND CAST(l.fecha AS DATE) &gt;= d.valido_desde
- AND (d.valido_hasta IS NULL OR CAST(l.fecha AS DATE) &lt; d.valido_hasta)
-WHERE l.fecha &gt;= '2026-11-16'   -- el día de tu primera foto
-GROUP BY l.fecha, l.sucursal;</code></pre>
-<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TEMP VIEW metas AS
-SELECT codigo_sucursal AS sucursal, semana_desde, CAST(meta_ventas AS DOUBLE) AS meta
-FROM read_files('abfss://landing@stsol.dfs.core.windows.net/sol/metas/metas.csv', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false);
-
-CREATE OR REPLACE TABLE sol.gold.cumplimiento_semanal AS
-SELECT m.semana_desde, m.sucursal, round(sum(l.neta), 2) AS ventas, m.meta,
-       round(sum(l.neta) / m.meta * 100, 1) AS cumplimiento_pct
-FROM lineas_ok l
-JOIN metas m ON m.sucursal = l.sucursal AND l.fecha &gt;= m.semana_desde
-            AND l.fecha &lt; CAST(date_add(CAST(m.semana_desde AS DATE), 7) AS STRING)
-GROUP BY m.semana_desde, m.sucursal, m.meta;</code></pre>
-<pre data-norun tabindex="0"><code class="language-sql">SELECT round(sum(l.neta - l.cantidad * d.costo) / sum(l.neta) * 100, 1)
-FROM lineas_ok l
-JOIN sol.silver.dim_producto d ON d.sku = l.sku AND CAST(l.fecha AS DATE) &gt;= d.valido_desde
- AND (d.valido_hasta IS NULL OR CAST(l.fecha AS DATE) &lt; d.valido_hasta)
-WHERE l.fecha = '2026-11-18' AND d.categoria = 'BEB';</code></pre>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 5b, las ventas y las metas</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 6 · Key Vault y el DAG diario</h2>
 <p><strong>Qué tienes que lograr.</strong> La clave del ERP y la de las cajas en un Key Vault, y un DAG que todos los días saque la foto, baje los tickets y recalcule gold.</p>
 <p><strong>Lo que esconden los datos.</strong> El horario importa: después del proceso de precios (03:00) y del cierre de cajas (02:00), y antes de que abran las sucursales (08:00).</p>
 <p><strong>Compruébalo tú.</strong> Deja correr el DAG dos días: tiene que haber una foto nueva por día y la dimensión tiene que crecer solo con los productos que cambiaron.</p>
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 6, Key Vault y el DAG</div>
-
-<pre tabindex="0"><code class="language-bash">az keyvault create -n kv-sol -g rg-sol -l eastus2
-az keyvault secret set --vault-name kv-sol -n erp-clave --value 'Sol…' -o none
-az keyvault secret set --vault-name kv-sol -n pos-key --value 'pos_…' -o none</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">az keyvault create -n kv-sol -g rg-sol -l eastus2</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>create</code>). <code>-n</code> = nombre del recurso; <code>-g</code> = grupo de recursos donde está o se crea el recurso; <code>-l</code> = región donde se crea el recurso</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-sol -n erp-clave --value 'Sol…' -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-sol -n pos-key --value 'pos_…' -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-<pre data-norun tabindex="0"><code class="language-python">from datetime import datetime
-from airflow.sdk import DAG
-from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
-
-with DAG(&quot;sol_diario&quot;, start_date=datetime(2026, 11, 1), schedule=&quot;30 5 * * *&quot;, catchup=False, tags=[&quot;sol&quot;]):
-    DatabricksRunNowOperator(task_id=&quot;foto_y_gold&quot;, job_name=&quot;sol_diario&quot;)</code></pre>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 6, Key Vault y el DAG</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>

@@ -85,9 +85,9 @@
       if (ini >= t0()) {
         const d = local(ini); const hora = d.getUTCHours(); const finde = d.getUTCDay() === 0 || d.getUTCDay() === 6;
         const dia = Math.floor((ini + ZONA_H * HORA) / DIA); const lluvia = azar(h32(cfg.semilla, 'lluvia', dia)).chance(0.2);
-        const lambda = LAMBDA[hora] * (finde ? 0.8 : 1) * (lluvia ? 0.6 : 1);
+        const lambda = 5 * LAMBDA[hora] * (finde ? 0.8 : 1) * (lluvia ? 0.6 : 1); // ~4.500 viajes en un día hábil
         const R = azar(h32(cfg.semilla, 'min', m));
-        let n = 0, p = Math.exp(-lambda), s = p; const u = R.r(); while (u > s && n < 9) { n++; p *= lambda / n; s += p; }
+        let n = 0, p = Math.exp(-lambda), s = p; const u = R.r(); while (u > s && n < 60) { n++; p *= lambda / n; s += p; }
         const H = hitos(); const hay25 = ini >= H.estacion25;
         for (let k = 0; k < n; k++) {
           const start = ini + R.int(0, 59) * 1000;
@@ -100,7 +100,7 @@
           const centavos = tipo === 'corporate' ? 0 : tipo === 'subscriber' ? (minutos <= 30 ? 0 : Math.ceil((minutos - 30) / 15) * 15000) : 45000 + (minutos > 45 ? Math.ceil((minutos - 45) / 15) * 15000 : 0);
           const fuera = R.chance(0.012);
           const reemb = R.chance(0.03) ? end + R.int(2, 30) * HORA + R.int(0, 59) * MIN : null;
-          L.push({ id: m * 10 + k, bike: `B-${pad(R.int(1, 180), 4)}`, origen, destino: fuera ? null : destino, fuera, start, end, tipo, centavos, pago: R.chance(0.7) ? 'card' : 'wallet', reemb });
+          L.push({ id: m * 100 + k, bike: `B-${pad(R.int(1, 1500), 4)}`, origen, destino: fuera ? null : destino, fuera, start, end, tipo, centavos, pago: R.chance(0.7) ? 'card' : 'wallet', reemb });
         }
       }
       if (st.cacheMin.size > 40000) st.cacheMin.clear();
@@ -317,7 +317,7 @@
       m = /^\/v2\/trips\/(\d+)$/.exec(ruta);
       if (m) {
         const e = scope('trips:read'); if (e) return registrar(e);
-        const id = Number(m[1]); const v = viajesDelMinuto(Math.floor(id / 10)).find((x) => x.id === id); const est = v && estado(v, t);
+        const id = Number(m[1]); const v = viajesDelMinuto(Math.floor(id / 100)).find((x) => x.id === id); const est = v && estado(v, t);
         return v && est ? ok(aV2(v, est, t)) : registrar(ERR(404, 'not_found', `No existe el viaje ${m[1]}.`, {}, lim.cab));
       }
       // v1 (deprecada)

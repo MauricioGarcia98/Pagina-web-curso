@@ -11,7 +11,9 @@
   const fail = (m, code = 1) => ({ out: col.err(m), code });
   const now = () => new Date().toISOString().replace(/\.\d+Z$/, 'Z');
   const uid = (n = 8) => Array.from({ length: n }, () => 'abcdef0123456789'[Math.floor(Math.random() * 16)]).join('');
-  const st = (k, init) => (Machine.cloud[k] = Machine.cloud[k] || init());
+  // las nubes viven en el disco de la terminal: si alguien las lee antes de abrir la terminal (un chequeo, el portal),
+  // primero se carga el disco guardado. Si no, se leería una nube vacía y el próximo guardado pisaría la de verdad.
+  const st = (k, init) => { if (!Machine.ready) Machine.load(); return (Machine.cloud[k] = Machine.cloud[k] || init()); };
   const save = () => Machine.save();
 
   // ---------------------------------------------------------------- argumentos

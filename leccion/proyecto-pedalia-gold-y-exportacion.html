@@ -31,49 +31,35 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>1. El maestro de estaciones</h2>
 <p>Para agrupar por barrio necesitas saber en qué barrio está cada estación. Ese dato viene en <code>estaciones.json</code>, que subiste a landing. Agrega una ubicación externa de solo lectura para landing y carga el maestro:</p>
-<pre data-norun tabindex="0"><code class="language-sql">CREATE EXTERNAL LOCATION lago_landing
-URL 'abfss://landing@stpedaliadev.dfs.core.windows.net/'
-WITH (STORAGE CREDENTIAL credencial_lago) READ ONLY;
+<details><summary>Pista</summary>
 
-CREATE OR REPLACE TABLE pedalia.silver.estaciones AS
-SELECT CAST(estacion_id AS INT) AS estacion_id, nombre, barrio, CAST(capacidad AS INT) AS capacidad
-FROM read_files('abfss://landing@stpedaliadev.dfs.core.windows.net/pedalia/estaciones', format =&gt; 'json');</code></pre>
+<p>Otra ubicación externa, ahora sobre <code>landing</code>, y una tabla <code>pedalia.silver.estaciones</code> leída del JSON con <code>read_files(…, format =&gt; &#39;json&#39;)</code>.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: el maestro de estaciones</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <h2>2. Las tres tablas gold</h2>
 <p>Cada una con el grano que se acordó en la primera lección:</p>
-<pre data-norun tabindex="0"><code class="language-sql">-- finanzas: un número por día y tipo de usuario
-CREATE OR REPLACE TABLE pedalia.gold.ingresos_diarios AS
-SELECT fecha, tipo_usuario, COUNT(*) AS viajes, SUM(monto) AS ingresos
-FROM pedalia.silver.viajes
-GROUP BY fecha, tipo_usuario;
+<details><summary>Pista</summary>
 
--- marketing: un número por día y barrio de salida
-CREATE OR REPLACE TABLE pedalia.gold.uso_por_barrio AS
-SELECT v.fecha, e.barrio,
-       COUNT(*) AS viajes,
-       SUM(CASE WHEN v.tipo_usuario = 'pase_dia' THEN 1 ELSE 0 END) AS viajes_pase_dia
-FROM pedalia.silver.viajes v
-JOIN pedalia.silver.estaciones e ON e.estacion_id = v.estacion_origen
-GROUP BY v.fecha, e.barrio;
+<p>Un <code>GROUP BY</code> por tabla con el grano acordado en la primera lección: finanzas por día y tipo de usuario, marketing por día y barrio (con un <code>JOIN</code> a estaciones), operaciones por día y estación.</p>
+</details>
 
--- operaciones: un número por día y estación de salida
-CREATE OR REPLACE TABLE pedalia.gold.viajes_por_estacion AS
-SELECT v.fecha, v.estacion_origen AS estacion_id, e.nombre, e.barrio,
-       COUNT(*) AS viajes_salida,
-       ROUND(AVG(v.minutos), 2) AS minutos_promedio,
-       SUM(CASE WHEN v.fuera_de_estacion THEN 1 ELSE 0 END) AS fuera_de_estacion
-FROM pedalia.silver.viajes v
-JOIN pedalia.silver.estaciones e ON e.estacion_id = v.estacion_origen
-GROUP BY v.fecha, v.estacion_origen, e.nombre, e.barrio;</code></pre>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: las tablas gold</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <p>Revisa los totales: la suma de <code>viajes</code> en las tres tablas tiene que ser la misma, e igual a las filas de silver. Si <code>uso_por_barrio</code> suma menos, hay viajes con una estación que no está en el maestro (el <code>JOIN</code> los dejó afuera).</p>
 <h2>3. Exportar gold para los otros sistemas</h2>
 <p>Snowflake y BigQuery no leen tablas de Databricks: leen <strong>archivos</strong>. El patrón más común es dejar cada tabla gold como archivos en una carpeta conocida del lago:</p>
-<pre data-norun tabindex="0"><code class="language-sql">INSERT OVERWRITE DIRECTORY 'abfss://gold@stpedaliadev.dfs.core.windows.net/ingresos_diarios'
-USING CSV OPTIONS ('header' = 'true')
-SELECT * FROM pedalia.gold.ingresos_diarios;
+<details><summary>Pista</summary>
 
-INSERT OVERWRITE DIRECTORY 'abfss://gold@stpedaliadev.dfs.core.windows.net/uso_por_barrio'
-USING CSV OPTIONS ('header' = 'true')
-SELECT * FROM pedalia.gold.uso_por_barrio;</code></pre>
+<p><code>INSERT OVERWRITE DIRECTORY &#39;abfss://gold@&lt;cuenta&gt;…/&lt;tabla&gt;&#39; USING CSV OPTIONS (&#39;header&#39; = &#39;true&#39;) SELECT …</code>, una por tabla.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: la exportación</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <p><code>OVERWRITE</code> reemplaza la carpeta completa: queda un archivo <code>part-00000-….csv</code> y un <code>_SUCCESS</code> vacío. Ese <code>_SUCCESS</code> es la señal, para quien lee, de que la escritura terminó entera. Míralo en el portal (contenedor <code>gold</code>) o con:</p>
 <pre tabindex="0"><code class="language-bash">az storage blob list --account-name stpedaliadev -c gold -o table</code></pre>
 <details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">az storage blob list --account-name stpedaliadev -c gold -o table</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob list</code>). <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>

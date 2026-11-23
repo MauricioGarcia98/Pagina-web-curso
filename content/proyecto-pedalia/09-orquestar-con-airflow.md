@@ -20,6 +20,12 @@ El director no toca ningún instrumento. Marca cuándo entra cada uno, escucha q
 
 Cada tarea habla con un servicio distinto. Las credenciales viven en **conexiones** de Airflow (en producción, en un gestor de secretos como Key Vault), nunca en el DAG. En la terminal:
 
+<details><summary>Pista</summary>
+
+Una conexión por servicio con `airflow connections add <id> --conn-type <tipo> …`: Data Factory, Databricks, Snowflake y Google Cloud. Los ids por defecto de cada proveedor te ahorran configurar cada operador.
+</details>
+
+:::solucion PD:Airflow | las conexiones
 ```bash
 airflow connections add azure_data_factory_default --conn-type azure_data_factory \
   --conn-extra '{"resource_group_name": "rg-pedalia-dev", "factory_name": "adf-pedalia-dev"}'
@@ -31,6 +37,7 @@ airflow connections add google_cloud_default --conn-type google_cloud_platform \
   --conn-extra '{"project": "tienda-andina-dev"}'
 airflow connections list
 ```
+:::
 
 También puedes crearlas en [Airflow](#/airflow) → **Admin → Connections**.
 
@@ -40,6 +47,12 @@ Cada conexión llevaría además su secreto: el *client secret* de una entidad d
 
 ## 2. El DAG
 
+<details><summary>Pista</summary>
+
+Cuatro tareas en orden: `AzureDataFactoryRunPipelineOperator` (con `parameters={"fecha": "{{ ds }}"}`), `DatabricksRunNowOperator`, `SQLExecuteQueryOperator` contra Snowflake y `BigQueryInsertJobOperator`; `catchup=False`, reintentos y `>>` para el orden.
+</details>
+
+:::solucion PD:Airflow | el DAG pedalia_diario
 ```bash
 cd ~/pedalia-datos
 git checkout main && git pull
@@ -101,6 +114,7 @@ with DAG(
     ingesta >> transformar >> [finanzas, marketing]
 EOF
 ```
+:::
 
 Fíjate en tres decisiones:
 

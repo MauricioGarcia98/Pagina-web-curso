@@ -2764,6 +2764,11 @@ for _n, _fn in list(_ns.items()):
   }
 
   TermCfg.aplicar();
+  // el disco guardado se carga al abrir la página (no recién al abrir la terminal): así los chequeos, el portal y las
+  // nubes ven lo que hiciste, y lo pesado que vive en IndexedDB ya está rehidratado cuando alguien lo necesita
+  const discoListo = async () => { if (!Machine.ready) Machine.load(); if (Machine.hidratando) { try { await Machine.hidratando; } catch (e) { /* lo que haya */ } } return true; };
+  window.__discoListo = discoListo;
+  setTimeout(() => { try { if (localStorage.getItem(KEY) && !Machine.ready) Machine.load(); } catch (e) { /* sin almacenamiento */ } }, 0);
   window.Shell = {
     TermCfg, TEMAS,
     Machine, createTerminal, runLine, Commands, Help, def, col, fmtTable, parseArgs, norm, readFile, writeFile, exists, isDir, children, mkdirp, display, HOME,

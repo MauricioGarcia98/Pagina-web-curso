@@ -189,7 +189,7 @@
     el.innerHTML = `<div class="card mv-panel"><h3 style="margin-top:0;font-size:1.05em">🔎 Revisar mi entrega</h3><p class="small muted">Lee tus herramientas (Key Vault, Databricks) y las compara con lo que mandaron de verdad los laboratorios.</p><button class="btn btn-primary btn-sm" data-revisar>Revisar ahora</button><ol class="pedalia-chequeos"></ol></div>`;
     const ol = el.querySelector('ol');
     el.querySelector('[data-revisar]').addEventListener('click', async (ev) => {
-      const b = ev.currentTarget; b.disabled = true; b.textContent = 'Revisando…'; ol.innerHTML = ''; Host.sincronizar(); let bien = 0;
+      const b = ev.currentTarget; b.disabled = true; if (window.__discoListo) await window.__discoListo(); b.textContent = 'Revisando…'; ol.innerHTML = ''; Host.sincronizar(); let bien = 0;
       for (const [g, txt, f] of CHEQUEOS) { const li = document.createElement('li'); li.innerHTML = `<span class="spinner"></span> <b>${esc(g)}</b> · ${esc(txt)}`; ol.append(li); let r; try { r = await f(); } catch (e) { r = String(e.message || e); } if (r === true) bien++; li.className = r === true ? 'ok' : 'falta'; li.innerHTML = `${r === true ? '✅' : '⬜'} <b>${esc(g)}</b> · ${esc(txt)}${r === true ? '' : `<div class="small muted">${esc(r)}</div>`}`; }
       b.disabled = false; b.textContent = `Revisar de nuevo (${bien} de ${CHEQUEOS.length})`;
     });

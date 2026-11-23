@@ -104,39 +104,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p>Estructura: <code>get(url, headers, params)</code> con un <code>while True</code> que mira <code>status_code == 429</code>; <code>for archivado in (&quot;false&quot;, &quot;true&quot;)</code> con un <code>while</code> interno que sigue <code>paging.next.after</code>; al final, un diccionario <code>dominio → empresa principal</code> y otro <code>id → empresa</code>.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 2, el CRM</div>
-
-<pre data-norun tabindex="0"><code class="language-python">import requests, json, os, time, base64
-from datetime import date, datetime, timedelta, timezone
-CRM, COB, MED = os.environ[&quot;CRM&quot;], os.environ[&quot;COB&quot;], os.environ[&quot;MED&quot;]
-HOY = date.fromisoformat(os.environ[&quot;HOY&quot;]); TZ = timezone(timedelta(hours=-3))
-
-def get(url, headers, params=None):
-    while True:
-        r = requests.get(url, headers=headers, params=params)
-        if r.status_code == 429:
-            time.sleep(int(r.headers.get(&quot;retry-after&quot;, &quot;10&quot;))); continue
-        r.raise_for_status(); return r
-
-hc = {&quot;Authorization&quot;: &quot;Bearer &quot; + CRM}
-empresas = []
-for arch in (&quot;false&quot;, &quot;true&quot;):
-    after = None
-    while True:
-        p = {&quot;limit&quot;: 100, &quot;archived&quot;: arch, &quot;properties&quot;: &quot;name,domain,hubspot_owner_id,lifecyclestage,createdate&quot;}
-        if after: p[&quot;after&quot;] = after
-        d = get(&quot;https://api.contactocrm.example/crm/v3/objects/companies&quot;, hc, p).json()
-        empresas += d[&quot;results&quot;]
-        if &quot;paging&quot; not in d: break
-        after = d[&quot;paging&quot;][&quot;next&quot;][&quot;after&quot;]
-
-norm = lambda dom: (dom or &quot;&quot;).lower().replace(&quot;www.&quot;, &quot;&quot;)
-principal = {}   # dominio → la empresa principal (la que es customer y no está archivada)
-for e in empresas:
-    if e[&quot;archived&quot;] or e[&quot;properties&quot;][&quot;lifecyclestage&quot;] != &quot;customer&quot;: continue
-    principal[norm(e[&quot;properties&quot;][&quot;domain&quot;])] = e
-porId = {e[&quot;id&quot;]: e for e in empresas}</code></pre>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 2, el CRM</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 3 · El MRR de cada mes, desde el log de eventos</h2>
@@ -166,66 +134,7 @@ porId = {e[&quot;id&quot;]: e for e in empresas}</code></pre>
 <p>Un único recorrido: <code>for mes in 24_meses: while i &lt; len(eventos) and eventos[i].created &lt;= cierre(mes): estado[cliente] = suscripción; i += 1</code> y guardas <code>hist[mes] = {cliente: mrr(sub)}</code>. Después comparas cada mes con el anterior; un diccionario <code>alguna_vez_pagó</code> decide entre nuevo y reactivación.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 3, el MRR</div>
-
-<pre data-norun tabindex="0"><code class="language-python">hb = {&quot;Authorization&quot;: &quot;Bearer &quot; + COB}
-def todo(ruta):   # Cobrable lista del más nuevo al más viejo, con starting_after
-    out, sa = [], None
-    while True:
-        p = {&quot;limit&quot;: 100}
-        if sa: p[&quot;starting_after&quot;] = sa
-        d = get(&quot;https://api.cobrable.example&quot; + ruta, hb, p).json()
-        out += d[&quot;data&quot;]
-        if not d[&quot;has_more&quot;]: return out
-        sa = d[&quot;data&quot;][-1][&quot;id&quot;]
-
-clientes = todo(&quot;/v1/customers&quot;)
-eventos = sorted(todo(&quot;/v1/events&quot;), key=lambda e: e[&quot;created&quot;])
-
-def mrr(o):
-    if o[&quot;status&quot;] not in (&quot;active&quot;, &quot;past_due&quot;): return 0.0      # pruebas y bajas no suman
-    precio = o[&quot;plan&quot;][&quot;amount&quot;] / 100                             # viene en centavos
-    mensual = precio / 12 if o[&quot;plan&quot;][&quot;interval&quot;] == &quot;year&quot; else precio
-    pct = (o.get(&quot;discount&quot;) or {}).get(&quot;coupon&quot;, {}).get(&quot;percent_off&quot;, 0) or 0
-    return round(mensual * o[&quot;quantity&quot;] * (1 - pct / 100), 2)
-
-def cierre(mes):   # el último instante del mes, en hora de Ciudad del Río
-    y, m = map(int, mes.split(&quot;-&quot;)); y2, m2 = (y + (m // 12), m % 12 + 1)
-    return datetime(y2, m2, 1, tzinfo=TZ).timestamp() - 0.001
-
-def meses_atras(n):
-    out = []
-    for k in range(n, 0, -1):
-        mm, yy = HOY.month - k, HOY.year
-        while mm &lt;= 0: mm += 12; yy -= 1
-        out.append(f&quot;{yy}-{mm:02d}&quot;)
-    return out
-
-todos = meses_atras(24)        # 24 meses para saber si una &quot;alta&quot; es nueva o reactivación
-estado, i, hist = {}, 0, {}
-for mes in todos:
-    c = cierre(mes)
-    while i &lt; len(eventos) and eventos[i][&quot;created&quot;] &lt;= c:
-        e = eventos[i]; estado[e[&quot;data&quot;][&quot;object&quot;][&quot;customer&quot;]] = e[&quot;data&quot;][&quot;object&quot;]; i += 1
-    hist[mes] = {k: mrr(v) for k, v in estado.items()}
-
-filas, tuvo = [], {}
-for k, mes in enumerate(todos):
-    prev, act = (hist[todos[k - 1]] if k else {}), hist[mes]
-    for c in set(prev) | set(act):
-        a, b = prev.get(c, 0), act.get(c, 0)
-        if a == 0 and b &gt; 0: mov = &quot;reactivacion&quot; if tuvo.get(c) else &quot;nuevo&quot;
-        elif a &gt; 0 and b == 0: mov = &quot;churn&quot;
-        elif b &gt; a: mov = &quot;expansion&quot;
-        elif b &lt; a: mov = &quot;contraccion&quot;
-        else: mov = &quot;sin_cambio&quot; if b &gt; 0 else None
-        if mov and k &gt;= len(todos) - 6: filas.append((c, mes, b, mov))   # solo los últimos 6 cerrados
-        if b &gt; 0: tuvo[c] = True
-
-with open(&quot;mrr_mensual.csv&quot;, &quot;w&quot;) as f:
-    f.write(&quot;cliente_id,mes,mrr,movimiento\n&quot;)
-    for r in filas: f.write(f&quot;{r[0]},{r[1]},{r[2]:.2f},{r[3]}\n&quot;)</code></pre>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 3, el MRR</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 4 · El uso de los últimos 30 días, por tramos</h2>
@@ -253,27 +162,7 @@ with open(&quot;mrr_mensual.csv&quot;, &quot;w&quot;) as f:
 <p>Dos diccionarios: <code>activos[cliente] = set(usuarios con login)</code> y <code>facturas[cliente] += 1</code> para los dos nombres del evento. Las líneas cuyo <code>distinct_id</code> no está en el maestro de usuarios se ignoran.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 4, el uso por tramos</div>
-
-<pre data-norun tabindex="0"><code class="language-python">basic = {&quot;Authorization&quot;: &quot;Basic &quot; + base64.b64encode((MED + &quot;:&quot;).encode()).decode()}
-usuarios = get(&quot;https://api.medidor.example/api/2.0/users&quot;, basic).json()[&quot;results&quot;]
-cuentaDe = {u[&quot;user_id&quot;]: u[&quot;billing_customer_id&quot;] for u in usuarios}
-totalU = {}
-for u in usuarios: totalU[u[&quot;billing_customer_id&quot;]] = totalU.get(u[&quot;billing_customer_id&quot;], 0) + 1
-
-activos, facturas = {}, {}
-fin = HOY - timedelta(days=1); ini = fin - timedelta(days=29); d = ini
-while d &lt;= fin:
-    h = min(d + timedelta(days=6), fin)
-    txt = get(&quot;https://api.medidor.example/api/2.0/export&quot;, basic, {&quot;from_date&quot;: d.isoformat(), &quot;to_date&quot;: h.isoformat()}).text
-    for linea in txt.splitlines():           # cada tramo se procesa y se descarta: solo quedan los conteos
-        e = json.loads(linea); c = cuentaDe.get(e[&quot;distinct_id&quot;])
-        if not c: continue
-        if e[&quot;event&quot;] == &quot;login&quot;: activos.setdefault(c, set()).add(e[&quot;distinct_id&quot;])
-        if e[&quot;event&quot;] in (&quot;factura_emitida&quot;, &quot;invoice_created&quot;): facturas[c] = facturas.get(c, 0) + 1
-    del txt
-    d = h + timedelta(days=1)</code></pre>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 4, el uso por tramos</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 5 · La vista 360 y el health score</h2>
@@ -294,26 +183,7 @@ while d &lt;= fin:
 <p>El estado actual de cada suscripción es el último evento de cada cliente (ya lo tienes del paso 3). Los usuarios totales por cliente salen de <code>/users</code>.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 5, la vista 360</div>
-
-<pre data-norun tabindex="0"><code class="language-python">actual = {e[&quot;data&quot;][&quot;object&quot;][&quot;customer&quot;]: e[&quot;data&quot;][&quot;object&quot;] for e in eventos}
-cli = {c[&quot;id&quot;]: c for c in clientes}
-filas360 = []
-for c, o in actual.items():
-    m = mrr(o)
-    if m &lt;= 0: continue
-    meta = cli[c].get(&quot;metadata&quot;, {}).get(&quot;crm_company_id&quot;)
-    crm = meta if meta and meta in porId and not porId[meta][&quot;archived&quot;] else None
-    if not crm:
-        e = principal.get(norm(cli[c][&quot;email&quot;].split(&quot;@&quot;)[1])); crm = e[&quot;id&quot;] if e else &quot;&quot;
-    a, fc, u = len(activos.get(c, set())), facturas.get(c, 0), totalU.get(c, 1)
-    health = round(50 * a / u + 50 * min(1, fc / 60))
-    filas360.append((c, crm, o[&quot;plan&quot;][&quot;id&quot;].split(&quot;_&quot;)[0], m, a, fc, health))
-
-with open(&quot;cliente_360.csv&quot;, &quot;w&quot;) as f:
-    f.write(&quot;billing_customer_id,crm_company_id,plan,mrr_actual,usuarios_activos_30d,facturas_30d,health_score\n&quot;)
-    for r in filas360: f.write(&quot;,&quot;.join(str(x) for x in r) + &quot;\n&quot;)</code></pre>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 5, la vista 360</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 6 · El reverse ETL, en lotes</h2>
@@ -335,24 +205,7 @@ with open(&quot;cliente_360.csv&quot;, &quot;w&quot;) as f:
 <p>El cuerpo es <code>{&quot;inputs&quot;: [{&quot;id&quot;: &quot;…&quot;, &quot;properties&quot;: {&quot;health_score&quot;: &quot;72&quot;, …}}]}</code>. Ante un 207, junta <code>errors[].context.ids</code> para revisarlos: no reintentes a ciegas lo que la API rechazó por un motivo de negocio.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 6, el reverse ETL en lotes</div>
-
-<pre data-norun tabindex="0"><code class="language-python">lote, rechazados = [], []
-def enviar(inputs):
-    while True:
-        r = requests.post(&quot;https://api.contactocrm.example/crm/v3/objects/companies/batch/update&quot;, headers=hc, json={&quot;inputs&quot;: inputs})
-        if r.status_code == 429: time.sleep(int(r.headers.get(&quot;retry-after&quot;, &quot;10&quot;))); continue
-        if r.status_code == 207: rechazados.extend(e[&quot;context&quot;][&quot;ids&quot;][0] for e in r.json()[&quot;errors&quot;])
-        elif r.status_code != 200: r.raise_for_status()
-        return
-
-for c, crm, plan, m, a, fc, health in filas360:
-    if not crm: continue
-    lote.append({&quot;id&quot;: crm, &quot;properties&quot;: {&quot;health_score&quot;: str(health), &quot;mrr_actual&quot;: f&quot;{m:.2f}&quot;, &quot;plan_actual&quot;: plan}})
-    if len(lote) == 100: enviar(lote); lote = []
-if lote: enviar(lote)
-print(f&quot;Rechazadas por el CRM: {len(rechazados)}&quot;, rechazados[:5])</code></pre>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 6, el reverse ETL en lotes</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 7 · Las tablas gold, el job y el Key Vault</h2>
@@ -364,31 +217,7 @@ print(f&quot;Rechazadas por el CRM: {len(rechazados)}&quot;, rechazados[:5])</co
 <p>El recorrido es el de los otros proyectos: cuenta con <code>--hns true</code>, contenedor <code>landing</code>, permiso para el conector de Unity Catalog, <code>CREATE CATALOG cc</code>.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 7, Databricks y Key Vault</div>
-
-<pre tabindex="0"><code class="language-bash">az storage blob upload --account-name stcc -c landing -n gold/mrr_mensual.csv -f ~/mrr_mensual.csv --overwrite
-az storage blob upload --account-name stcc -c landing -n gold/cliente_360.csv -f ~/cliente_360.csv --overwrite
-az keyvault secret set --vault-name kv-cc -n crm-token --value 'pat-…' -o none
-az keyvault secret set --vault-name kv-cc -n cobrable-key --value 'ck_live_…' -o none
-az keyvault secret set --vault-name kv-cc -n medidor-secreto --value 'mx_…' -o none</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(5)</span></summary><ol><li><code class="bx-linea">az storage blob upload --account-name stcc -c landing -n gold/mrr_mensual.csv -f ~/mrr_mensual.csv --overwrite</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az storage blob upload --account-name stcc -c landing -n gold/cliente_360.csv -f ~/cliente_360.csv --overwrite</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-cc -n crm-token --value 'pat-…' -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-cc -n cobrable-key --value 'ck_live_…' -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-cc -n medidor-secreto --value 'mx_…' -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-<pre data-norun tabindex="0"><code class="language-sql">CREATE CATALOG IF NOT EXISTS cc; CREATE SCHEMA IF NOT EXISTS cc.gold;
-
-CREATE OR REPLACE TABLE cc.gold.mrr_mensual AS
-SELECT cliente_id, mes, CAST(mrr AS DOUBLE) AS mrr, movimiento
-FROM read_files('abfss://landing@stcc.dfs.core.windows.net/gold/mrr_mensual.csv', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false);
-
-CREATE OR REPLACE TABLE cc.gold.cliente_360 AS
-SELECT billing_customer_id, crm_company_id, plan, CAST(mrr_actual AS DOUBLE) AS mrr_actual,
-       CAST(usuarios_activos_30d AS INT) AS usuarios_activos_30d, CAST(facturas_30d AS INT) AS facturas_30d,
-       CAST(health_score AS INT) AS health_score
-FROM read_files('abfss://landing@stcc.dfs.core.windows.net/gold/cliente_360.csv', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false);
-
--- MRR perdido por churn en el último mes / MRR del mes anterior
-SELECT round(100 * sum(a.mrr) / (SELECT sum(mrr) FROM cc.gold.mrr_mensual WHERE mes = '2026-09' AND movimiento &lt;&gt; 'churn'), 1)
-FROM cc.gold.mrr_mensual a JOIN cc.gold.mrr_mensual b ON a.cliente_id = b.cliente_id
-WHERE b.mes = '2026-10' AND b.movimiento = 'churn' AND a.mes = '2026-09';</code></pre>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 7, Databricks y Key Vault</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>

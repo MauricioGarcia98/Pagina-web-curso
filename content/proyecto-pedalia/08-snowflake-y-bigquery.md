@@ -22,10 +22,17 @@ El lago es un edificio de casillas. Para que Snowflake retire las cartas de fina
 
 Un token SAS es un permiso firmado con alcance, permisos y vencimiento. Para leer una carpeta, Snowflake necesita **listar** (`l`) y **leer** (`r`), nada más:
 
+<details><summary>Pista</summary>
+
+`az storage container generate-sas` con `--permissions rl` (leer y listar, nada más), una fecha de vencimiento corta (`--expiry`) y `-o tsv` para quedarte solo con el token.
+</details>
+
+:::solucion PD:Snowflake | el token SAS
 ```bash
 az storage container generate-sas --account-name stpedaliadev -n gold \
   --permissions rl --expiry 2027-01-31T00:00Z -o tsv
 ```
+:::
 
 Copia el resultado (empieza con `se=`). También puedes generarlo en el portal: cuenta → **Shared access signature**, con servicio Blob, tipos Container y Object, y permisos Read y List.
 
@@ -35,8 +42,14 @@ Eso es bueno (si se filtra, deja de servir) y es una fuente clásica de incident
 
 ### Tabla y stage
 
-Abre el [Snowflake de práctica](#/snowflake) y ejecuta (reemplaza `<TOKEN>` por el que generaste):
+Abre el [Snowflake de práctica](#/snowflake) y crea la base, el esquema, la tabla de finanzas y un stage que apunte al contenedor gold con tu token (en la referencia, `<TOKEN>` es el que generaste):
 
+<details><summary>Pista</summary>
+
+Una base y un esquema, un `FILE FORMAT` de CSV con encabezado, un `STAGE` sobre `azure://<cuenta>.blob.core.windows.net/gold/…` con `CREDENTIALS = (AZURE_SAS_TOKEN = '…')`, la tabla y `COPY INTO … FROM @stage`.
+</details>
+
+:::solucion PD:Snowflake | base, stage y tabla en Snowflake
 ```sql norun
 USE ROLE SYSADMIN;
 USE WAREHOUSE COMPUTE_WH;
@@ -54,11 +67,18 @@ CREATE OR REPLACE STAGE LAGO_GOLD
 
 LIST @LAGO_GOLD;
 ```
+:::
 
 `LIST` tiene que mostrar el `part-00000-….csv` de `ingresos_diarios/` y de `uso_por_barrio/` (el `_SUCCESS` no aparece: Snowflake no lo considera un dato).
 
 ### La carga idempotente
 
+<details><summary>Pista</summary>
+
+`COPY INTO` no vuelve a cargar un archivo que ya cargó: si el archivo cambió con el mismo nombre, hace falta vaciar la tabla y `FORCE = TRUE`. Piensa qué pasa si el DAG corre dos veces el mismo día.
+</details>
+
+:::solucion PD:Snowflake | la carga idempotente
 ```sql norun
 TRUNCATE TABLE INGRESOS_DIARIOS;
 COPY INTO INGRESOS_DIARIOS
@@ -68,6 +88,7 @@ COPY INTO INGRESOS_DIARIOS
 
 SELECT FECHA, TIPO_USUARIO, VIAJES, INGRESOS FROM INGRESOS_DIARIOS ORDER BY FECHA, TIPO_USUARIO;
 ```
+:::
 
 ¿Por qué `TRUNCATE` y `FORCE = TRUE`? Porque la exportación de gold **reemplaza todo** en cada corrida. La tabla de Snowflake tiene que ser una copia exacta de ese archivo:
 
@@ -88,6 +109,12 @@ BigQuery puede cargar archivos de Azure Blob Storage con `LOAD DATA … FROM FIL
 
 En el [BigQuery de práctica](#/bigquery):
 
+<details><summary>Pista</summary>
+
+Un dataset (`CREATE SCHEMA`), la tabla con sus tipos y `LOAD DATA INTO … FROM FILES (format = 'CSV', skip_leading_rows = 1, uris = ['…'])`.
+</details>
+
+:::solucion PD:BigQuery | la carga en BigQuery
 ```sql norun
 CREATE SCHEMA IF NOT EXISTS pedalia_mkt;
 
@@ -104,6 +131,7 @@ FROM pedalia_mkt.uso_por_barrio
 GROUP BY barrio
 ORDER BY pase_dia DESC;
 ```
+:::
 
 `OVERWRITE` reemplaza la tabla completa: correrlo dos veces da lo mismo. Con `LOAD DATA INTO` agregarías filas en cada corrida.
 

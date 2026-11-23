@@ -45,15 +45,23 @@ No pongas nombre de archivo: el archivo lo elige el pipeline cada día.
 
 1. En **Parameters** (abajo, con el lienzo vacío seleccionado): agrega `fecha`, tipo String, valor por defecto `2026-11-09`.
 2. Arrastra una actividad **Copy data**, nombre `Copiar viajes`:
-   - **Source**: `ds_landing_pedalia`, y en **Wildcard file name** el contenido dinámico:
-     ```text
-     @concat(pipeline().parameters.fecha, '/viajes_*.csv')
-     ```
+   - **Source**: `ds_landing_pedalia`, y en **Wildcard file name** un contenido dinámico (*Add dynamic content*) que arme la ruta del día a partir del parámetro `fecha`: la carpeta de la fecha y cualquier `viajes_*.csv` adentro (la pista está abajo del paso 3).
    - **Sink**: `ds_bronze_viajes`.
 3. **Validate**, después **Debug** con `fecha = 2026-11-09`. En la salida de la actividad mira `filesRead`, `rowsCopied` y `dataWritten`.
 
-El JSON que queda (lo vas a guardar en el repositorio):
+<details><summary>Pista · el contenido dinámico</summary>
 
+Las expresiones de Data Factory empiezan con `@`. Para juntar textos está `@concat(…)` y el parámetro se lee con `pipeline().parameters.fecha`. El resultado tiene que quedar como `2026-11-09/viajes_*.csv`.
+</details>
+
+El JSON que queda lo vas a guardar en el repositorio (pestaña **{ }** del pipeline). Cuando tu pipeline corra bien, compáralo con el de referencia:
+
+<details><summary>Pista</summary>
+
+En el Studio, el botón **{ }** (Code) del pipeline muestra su JSON. Tiene que tener el parámetro `fecha`, la actividad Copy con su origen y su destino, y las expresiones con la fecha.
+</details>
+
+:::solucion PD:Data Factory | el pipeline en JSON
 ```json
 {
   "name": "pl_ingesta_pedalia",
@@ -73,6 +81,7 @@ El JSON que queda (lo vas a guardar en el repositorio):
   }
 }
 ```
+:::
 
 :::tip Un pipeline de ingesta no transforma
 Fíjate que la copia no filtra duplicados ni corrige nada: lleva el archivo tal cual. Si mañana descubres un error en la limpieza, puedes volver a calcular todo desde bronze sin pedirle los archivos de nuevo a la app. Esa es la razón de ser de bronze.
@@ -84,11 +93,18 @@ Fíjate que la copia no filtra duplicados ni corrige nada: lleva el archivo tal 
 
 Ejecútalo desde la terminal, como lo haría un script o un orquestador (es la API "Create Run" del servicio):
 
+<details><summary>Pista</summary>
+
+`az datafactory pipeline create-run` con el grupo, la fábrica, el nombre del pipeline y `--parameters` con un JSON (`'{"fecha": "2026-11-09"}'`). Después, `az datafactory pipeline-run show --run-id …` para ver cómo terminó.
+</details>
+
+:::solucion PD:Data Factory | correrlo desde la terminal
 ```bash
 az datafactory pipeline create-run -g rg-pedalia-dev --factory-name adf-pedalia-dev \
   -n pl_ingesta_pedalia --parameters '{"fecha": "2026-11-09"}'
 az storage blob list --account-name stpedaliadev -c bronze -o table
 ```
+:::
 
 En el Studio, **Monitor → Pipeline runs**: vas a ver la corrida con su `runId`, quién la disparó y cuánto tardó. Entra a la actividad para ver la entrada y la salida.
 

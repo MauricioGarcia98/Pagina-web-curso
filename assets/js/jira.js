@@ -286,7 +286,7 @@
     }
     if (!k.check) { e.hecho = Date.now(); cfg.guardar(); fin(); return; }
     aviso(`Revisando ${clave(x)} contra sus criterios de aceptación…`);
-    let r; try { r = await k.check(); } catch (err) { r = String(err.message || err); }
+    let r; try { if (window.__discoListo) await window.__discoListo(); r = await k.check(); } catch (err) { r = String(err.message || err); }
     e.intentos = (e.intentos || 0) + 1;
     if (r === true) { e.hecho = Date.now(); e.nota = ''; cfg.guardar(); if (x.estado !== 'Done') cambiarCampo(x, 'status', 'Done', REVISOR); x.com.push({ u: REVISOR, t: '✅ Revisé la entrega contra los criterios de aceptación y cumple. La paso a Done.', f: ahora() }); evento('ticket-aceptado'); aviso(`${clave(x)} aprobado por ${persona(REVISOR)}`); }
     else { e.nota = r; cfg.guardar(); cambiarCampo(x, 'status', 'In Progress', REVISOR); x.com.push({ u: REVISOR, t: `🔁 La devuelvo a In Progress. ${r}`, f: ahora() }); aviso(`${clave(x)} volvió a In Progress: mira el comentario de ${persona(REVISOR)}`); }

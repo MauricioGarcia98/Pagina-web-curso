@@ -20,8 +20,14 @@ Silver es un colador, pero uno que no tira nada sin anotarlo. Lo repetido se apa
 
 En Unity Catalog, para leer `abfss://…` hace falta una **ubicación externa** (external location): un permiso que dice "esta carpeta del lago se puede usar desde Databricks, con esta credencial". La credencial del workspace es la identidad del **Access Connector**, a la que ya le diste el rol en la cuenta.
 
-Abre el [Databricks de práctica](#/databricks) → **SQL Editor** y ejecuta:
+Abre el [Databricks de práctica](#/databricks) → **SQL Editor**: mira con qué credencial entra Databricks al lago y crea la ubicación externa sobre `bronze`.
 
+<details><summary>Pista</summary>
+
+`SHOW STORAGE CREDENTIALS` para ver con qué identidad entra Databricks y `CREATE EXTERNAL LOCATION <nombre> URL 'abfss://bronze@<cuenta>.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL <credencial>)`.
+</details>
+
+:::solucion PD:Lago en Databricks | la credencial y la ubicación externa
 ```sql norun
 SHOW STORAGE CREDENTIALS;
 
@@ -35,6 +41,7 @@ URL 'abfss://gold@stpedaliadev.dfs.core.windows.net/'
 WITH (STORAGE CREDENTIAL credencial_lago)
 COMMENT 'Exportaciones gold para otros sistemas';
 ```
+:::
 
 Prueba que puedes listar los archivos:
 
@@ -48,17 +55,30 @@ LIST 'abfss://bronze@stpedaliadev.dfs.core.windows.net/pedalia/viajes';
 
 ## 2. El catálogo del proyecto
 
+<details><summary>Pista</summary>
+
+Un catálogo `pedalia` y un esquema por capa (`bronze`, `silver`, `gold`), con `IF NOT EXISTS` para poder correrlo dos veces.
+</details>
+
+:::solucion PD:Silver | el catálogo y los esquemas
 ```sql norun
 CREATE CATALOG IF NOT EXISTS pedalia;
 CREATE SCHEMA IF NOT EXISTS pedalia.bronze;
 CREATE SCHEMA IF NOT EXISTS pedalia.silver;
 CREATE SCHEMA IF NOT EXISTS pedalia.gold;
 ```
+:::
 
 ## 3. Bronze: leer sin interpretar
 
 En bronze **todo es texto**. Si dejas que Databricks adivine los tipos y un día llega `"N/A"` en una columna numérica, la lectura falla o, peor, convierte en silencio. Con `inferSchema => 'false'` guardas exactamente lo que vino:
 
+<details><summary>Pista</summary>
+
+`read_files('abfss://…', format => 'csv', header => true, inferSchema => false)`: todo como texto. Agrega de qué archivo vino cada fila (`_metadata.file_name`) y cuándo lo cargaste.
+</details>
+
+:::solucion PD:Silver | bronze
 ```sql norun
 CREATE OR REPLACE TABLE pedalia.bronze.viajes AS
 SELECT *
@@ -69,6 +89,7 @@ FROM read_files(
 
 SELECT COUNT(*) AS filas, COUNT(DISTINCT viaje_id) AS viajes FROM pedalia.bronze.viajes;
 ```
+:::
 
 Compara con lo que anotaste en la terminal: `filas` tiene que ser igual a las líneas del archivo menos el encabezado.
 
@@ -76,6 +97,12 @@ Compara con lo que anotaste en la terminal: `filas` tiene que ser igual a las l�
 
 Una consulta, tres pasos con nombre (CTE). Cada paso corresponde a una parte del contrato:
 
+<details><summary>Pista</summary>
+
+Una consulta con tres CTE, una por regla del contrato: (1) una fila por `viaje_id` (`ROW_NUMBER() OVER (PARTITION BY viaje_id …)`), (2) tipos con `try_to_timestamp` y `try_cast`, (3) los filtros: sin fin y fin < inicio no entran; el destino 99 pasa a NULL con `fuera_de_estacion = true`.
+</details>
+
+:::solucion PD:Silver | silver según el contrato
 ```sql norun
 CREATE OR REPLACE TABLE pedalia.silver.viajes AS
 WITH tipado AS (
@@ -110,6 +137,7 @@ WHERE rn = 1
   AND fin IS NOT NULL      -- en curso: todavía no
   AND fin >= inicio;       -- error de reloj: a cuarentena
 ```
+:::
 
 :::nota Un formato explícito es una alarma
 `to_timestamp(inicio, 'yyyy-MM-dd HH:mm:ss')` falla si llega una fecha con otro formato. Podrías usar `try_to_timestamp`, que devuelve NULL en vez de fallar, pero entonces los viajes con fecha rara desaparecerían en silencio (el filtro `fin IS NOT NULL` los saca). Por ahora preferimos que **falle y avise**. En la última lección vas a ver por qué esta decisión importa.
@@ -119,15 +147,28 @@ WHERE rn = 1
 
 Lo que no entra en silver no se borra: se guarda con el motivo, para contarlo y avisar.
 
+<details><summary>Pista</summary>
+
+Las mismas filas que descartaste, con una columna `motivo` (`en_curso`, `error_reloj`) calculada con un `CASE`.
+</details>
+
+:::solucion PD:Silver | la cuarentena
 ```sql norun
 CREATE OR REPLACE TABLE pedalia.silver.viajes_cuarentena AS
 SELECT b.*, 'error_reloj' AS motivo
 FROM pedalia.bronze.viajes b
 WHERE b.fin <> '' AND to_timestamp(b.fin, 'yyyy-MM-dd HH:mm:ss') < to_timestamp(b.inicio, 'yyyy-MM-dd HH:mm:ss');
 ```
+:::
 
 ## 6. La cuenta de control
 
+<details><summary>Pista</summary>
+
+Por día: filas de bronze, `viaje_id` distintos, en cuarentena por motivo y filas de silver. Tiene que cerrar: distintos − en curso − error de reloj = silver.
+</details>
+
+:::solucion PD:Silver | la cuenta de control
 ```sql norun
 SELECT
   (SELECT COUNT(*) FROM pedalia.bronze.viajes)                                   AS filas_archivo,
@@ -136,6 +177,7 @@ SELECT
   (SELECT COUNT(DISTINCT viaje_id) FROM pedalia.silver.viajes_cuarentena)        AS error_reloj,
   (SELECT COUNT(*) FROM pedalia.silver.viajes)                                   AS validos;
 ```
+:::
 
 `filas_archivo − repetidas − en_curso − error_reloj` tiene que dar `validos`. Si da otra cosa, hay un caso que el contrato no previó: encuéntralo antes de seguir.
 

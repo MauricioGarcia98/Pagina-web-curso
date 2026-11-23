@@ -38,13 +38,14 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>En la pestaña <strong>Advanced</strong>, marca <strong>Enable hierarchical namespace</strong>. Sin esto, la cuenta es Blob Storage común y no ADLS Gen2.</li>
 </ul>
 <p><strong>Desde la terminal:</strong></p>
-<pre tabindex="0"><code class="language-bash">az login
-az group create -n rg-pedalia-dev -l eastus2
-az storage account create -n stpedaliadev -g rg-pedalia-dev -l eastus2 --sku Standard_LRS --hns true
-for capa in landing bronze silver gold; do
-  az storage container create --account-name stpedaliadev -n $capa
-done</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(6)</span></summary><ol><li><code class="bx-linea">az login</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>login</code> inicia sesión en tu cuenta de Azure (abre el navegador)</span></li><li><code class="bx-linea">az group create -n rg-pedalia-dev -l eastus2</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>group</code> crea, lista o borra grupos de recursos (<code>create</code>). <code>-n</code> = nombre del recurso; <code>-l</code> = región donde se crea el recurso</span></li><li><code class="bx-linea">az storage account create -n stpedaliadev -g rg-pedalia-dev -l eastus2 --sku Standard_LRS --hns true</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>account create</code>). <code>-n</code> = nombre del recurso; <code>-g</code> = grupo de recursos donde está o se crea el recurso; <code>-l</code> = región donde se crea el recurso; <code>--sku</code> = el plan o tamaño del recurso (define precio y capacidad)</span></li><li><code class="bx-linea">for capa in landing bronze silver gold; do</code><span><code>for</code>: repite los comandos que siguen (entre <code>do</code> y <code>done</code>) una vez por cada elemento de la lista<br><code>do</code>: empieza el bloque de comandos que se repite (en un for o un while)</span></li><li><code class="bx-linea">az storage container create --account-name stpedaliadev -n $capa</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>container create</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">done</code><span><code>done</code>: cierra el bloque del for o del while</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<details><summary>Pista</summary>
+
+<p>Tres comandos: <code>az group create</code>, <code>az storage account create</code> (con <code>--hns true</code>, si no, no es un lago) y <code>az storage container create</code>, uno por capa. Un <code>for capa in landing bronze silver gold; do … done</code> evita repetirlo cuatro veces.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: grupo, cuenta y contenedores por la terminal</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <div class="callout callout-nota"><div class="callout-title">📝 ¿Por qué el espacio de nombres jerárquico?</div>
 
 <p>Con él, las carpetas son carpetas de verdad (renombrar una carpeta es una operación, no copiar miles de archivos) y aparece la dirección <code>abfss://…dfs.core.windows.net</code>, que es la que usan Databricks y Spark. Sin él, Databricks no puede usar la cuenta como ubicación externa.</p>
@@ -52,9 +53,14 @@ done</code></pre>
 
 
 <h2>2. El data factory</h2>
-<pre tabindex="0"><code class="language-bash">az extension add --name datafactory
-az datafactory create -g rg-pedalia-dev -n adf-pedalia-dev -l eastus2</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">az extension add --name datafactory</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>extension</code> instala extensiones de la CLI (<code>add</code>). <code>--name</code> = nombre del recurso</span></li><li><code class="bx-linea">az datafactory create -g rg-pedalia-dev -n adf-pedalia-dev -l eastus2</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>datafactory</code> Azure Data Factory: fábricas, pipelines y ejecuciones (<code>create</code>). <code>-g</code> = grupo de recursos donde está o se crea el recurso; <code>-n</code> = nombre del recurso; <code>-l</code> = región donde se crea el recurso</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<details><summary>Pista</summary>
+
+<p>La CLI de Data Factory es una extensión: primero se instala (<code>az extension add --name …</code>) y después se crea la fábrica con <code>az datafactory create -g … -n … -l …</code>.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: el data factory</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <p>Cada data factory tiene una <strong>identidad administrada</strong> con su mismo nombre: es la &quot;cuenta&quot; con la que el servicio entra a otros recursos sin guardar contraseñas.</p>
 <h2>3. Permisos con mínimo privilegio</h2>
 <p>Dos identidades necesitan entrar al lago:</p>
@@ -75,12 +81,14 @@ az datafactory create -g rg-pedalia-dev -n adf-pedalia-dev -l eastus2</code></pr
 </tr>
 </tbody></table></div>
 <p>El <strong>alcance</strong> es la cuenta de almacenamiento, no la suscripción ni el grupo de recursos. Primero obtén su identificador:</p>
-<pre tabindex="0"><code class="language-bash">ID=$(az storage account show -n stpedaliadev -g rg-pedalia-dev --query id -o tsv)
-echo $ID
-az role assignment create --assignee adf-pedalia-dev --role &quot;Storage Blob Data Contributor&quot; --scope $ID
-az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID
-az role assignment list --scope $ID -o table</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">echo $ID</code><span><code>echo</code>: escribe un texto en pantalla (o en un archivo, con <code>&gt;</code> o <code>&gt;&gt;</code>)</span></li><li><code class="bx-linea">az role assignment create --assignee adf-pedalia-dev --role &quot;Storage Blob Data Contributor&quot; --scope $ID</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>role</code> permisos: quién puede hacer qué (RBAC) (<code>assignment create</code>)</span></li><li><code class="bx-linea">az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>role</code> permisos: quién puede hacer qué (RBAC) (<code>assignment create</code>)</span></li><li><code class="bx-linea">az role assignment list --scope $ID -o table</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>role</code> permisos: quién puede hacer qué (RBAC) (<code>assignment list</code>). <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<details><summary>Pista</summary>
+
+<p>Primero el identificador de la cuenta (<code>az storage account show … --query id -o tsv</code>, guárdalo en una variable) y después un <code>az role assignment create --assignee &lt;identidad&gt; --role &quot;Storage Blob Data Contributor&quot; --scope &lt;id&gt;</code> por cada identidad. <code>az role assignment list --scope &lt;id&gt; -o table</code> te muestra si quedó.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: los permisos</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <p>O desde el portal: la cuenta → <strong>Access control (IAM)</strong> → <strong>Add role assignment</strong> → el rol → <strong>Managed identity</strong> → la identidad.</p>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ Owner no es lo mismo que leer datos</div>
 
@@ -96,10 +104,14 @@ az role assignment list --scope $ID -o table</code></pre>
 
 <h2>4. Subir la entrega a landing</h2>
 <p>Simula lo que haría el proceso automático de la app: dejar los archivos del día en <code>landing/pedalia/&lt;fecha&gt;/</code>.</p>
-<pre tabindex="0"><code class="language-bash">az storage blob upload-batch --account-name stpedaliadev -d landing/pedalia/2026-11-09 -s ~/pedalia/entrega/2026-11-09
-az storage blob upload --account-name stpedaliadev -c landing -n pedalia/estaciones/estaciones.json -f ~/pedalia/entrega/estaciones.json
-az storage blob list --account-name stpedaliadev -c landing -o table</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">az storage blob upload-batch --account-name stpedaliadev -d landing/pedalia/2026-11-09 -s ~/pedalia/entrega/2026-11-09</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload-batch</code>)</span></li><li><code class="bx-linea">az storage blob upload --account-name stpedaliadev -c landing -n pedalia/estaciones/estaciones.json -f ~/pedalia/entrega/estaciones.json</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az storage blob list --account-name stpedaliadev -c landing -o table</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob list</code>). <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<details><summary>Pista</summary>
+
+<p><code>az storage blob upload-batch</code> sube una carpeta entera (<code>-d contenedor/ruta -s carpeta-local</code>); el maestro de estaciones es un archivo suelto, con <code>az storage blob upload -c … -n … -f …</code>.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: subir la entrega</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <p>Ábrelo también en el portal: <strong>stpedaliadev → Containers → landing</strong>. Vas a ver la carpeta <code>pedalia/2026-11-09</code> con los dos archivos y <code>pedalia/estaciones</code>.</p>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
 

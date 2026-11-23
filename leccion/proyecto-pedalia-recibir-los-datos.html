@@ -39,23 +39,33 @@ cat ~/pedalia/entrega/LEEME.md</code></pre>
 </div>
 
 
+<p>Antes de escribir una sola línea de limpieza, contesta estas cinco preguntas sobre el archivo del día 1 <strong>con la terminal</strong>. A este volumen (unos 4.800 viajes por día) no se puede mirar fila por fila: cada respuesta es un comando.</p>
+<ol>
+<li>¿Qué columnas tiene, en qué formato vienen las fechas y cuántas filas hay?</li>
+<li>El LEEME avisa que el sistema reintenta: ¿cuántos <code>viaje_id</code> aparecen más de una vez?</li>
+<li>¿Cuántos viajes no tienen fin (la bici no se devolvió antes de exportar)?</li>
+<li>¿Cuántos viajes terminaron fuera de una estación (destino <code>99</code>)?</li>
+<li>Lo que nadie avisó con precisión: &quot;la estación 13 tuvo problemas de reloj&quot;. ¿Qué significa eso <strong>en los datos</strong>? ¿De qué estaciones salen los viajes raros?</li>
+</ol>
+<details><summary>Pista 1 · las herramientas</summary>
+
+<p><code>head</code> para ver las primeras líneas, <code>wc -l</code> para contar (ojo: cuenta también el encabezado), <code>cut -d, -f1</code> para quedarte con una columna, <code>sort | uniq -d</code> para ver los valores repetidos y <code>awk -F,</code> para filtrar filas por una condición sobre una columna (<code>$4</code> es la cuarta).</p>
+</details>
+
+<details><summary>Pista 2 · repetidos, sin fin y fuera de estación</summary>
+
 <pre tabindex="0"><code class="language-bash">cd ~/pedalia/entrega/2026-11-09
-head -5 viajes_2026-11-09.csv            # columnas y formato
-wc -l viajes_2026-11-09.csv              # filas (incluye el encabezado)</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">cd ~/pedalia/entrega/2026-11-09</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">head -5 viajes_2026-11-09.csv</code><span><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas). <code>-5</code> = las primeras 5 líneas<br><i class="bx-com">Nota del ejemplo: columnas y formato</i></span></li><li><code class="bx-linea">wc -l viajes_2026-11-09.csv</code><span><code>wc</code>: cuenta líneas, palabras y caracteres. <code>-l</code> = solo cuenta líneas (en un CSV, filas + el encabezado)<br><i class="bx-com">Nota del ejemplo: filas (incluye el encabezado)</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-<p><strong>¿Hay viajes repetidos?</strong> El LEEME avisa que el sistema reintenta y puede repetir filas:</p>
-<pre tabindex="0"><code class="language-bash">cut -d, -f1 viajes_2026-11-09.csv | sort | uniq -d | wc -l      # cuántos viaje_id aparecen más de una vez</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">cut -d, -f1 viajes_2026-11-09.csv | sort | uniq -d | wc -l</code><span><code>cut</code>: corta columnas de un texto <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>sort</code>: ordena líneas <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>uniq</code>: junta líneas iguales que están seguidas (por eso casi siempre va después de <code>sort</code>). <code>-d</code> = muestra solo las repetidas <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>wc</code>: cuenta líneas, palabras y caracteres. <code>-l</code> = solo cuenta líneas (en un CSV, filas + el encabezado)<br><i class="bx-com">Nota del ejemplo: cuántos viaje_id aparecen más de una vez</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-<p><strong>¿Viajes sin cerrar?</strong> Fin vacío (columna 6):</p>
-<pre tabindex="0"><code class="language-bash">awk -F, 'NR &gt; 1 &amp;&amp; $6 == &quot;&quot;' viajes_2026-11-09.csv | wc -l</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">awk -F, 'NR &gt; 1 &amp;&amp; $6 == &quot;&quot;' viajes_2026-11-09.csv | wc -l</code><span><code>awk</code>: recorre un archivo línea por línea y filtra o calcula por columnas (<code>$1</code> es la primera, <code>NR</code> el número de fila). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe) <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>wc</code>: cuenta líneas, palabras y caracteres. <code>-l</code> = solo cuenta líneas (en un CSV, filas + el encabezado)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-<p><strong>¿Bicis fuera de estación?</strong> Destino 99:</p>
-<pre tabindex="0"><code class="language-bash">awk -F, 'NR &gt; 1 &amp;&amp; $4 == 99' viajes_2026-11-09.csv | wc -l</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">awk -F, 'NR &gt; 1 &amp;&amp; $4 == 99' viajes_2026-11-09.csv | wc -l</code><span><code>awk</code>: recorre un archivo línea por línea y filtra o calcula por columnas (<code>$1</code> es la primera, <code>NR</code> el número de fila). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe) <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>wc</code>: cuenta líneas, palabras y caracteres. <code>-l</code> = solo cuenta líneas (en un CSV, filas + el encabezado)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-<p><strong>Lo que nadie avisó con precisión:</strong> &quot;la estación 13 tuvo problemas de reloj&quot;. ¿Qué significa en los datos? Busca viajes que terminan antes de empezar. Como las fechas tienen formato <code>AAAA-MM-DD HH:MM:SS</code>, se pueden comparar como texto:</p>
-<pre tabindex="0"><code class="language-bash">awk -F, 'NR &gt; 1 &amp;&amp; $6 != &quot;&quot; &amp;&amp; $6 &lt; $5 {print $3}' viajes_2026-11-09.csv | sort | uniq -c</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">awk -F, 'NR &gt; 1 &amp;&amp; $6 != &quot;&quot; &amp;&amp; $6 &lt; $5 {print $3}' viajes_2026-11-09.csv | sort | uniq -c</code><span><code>awk</code>: recorre un archivo línea por línea y filtra o calcula por columnas (<code>$1</code> es la primera, <code>NR</code> el número de fila). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe) <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>sort</code>: ordena líneas <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>uniq</code>: junta líneas iguales que están seguidas (por eso casi siempre va después de <code>sort</code>). <code>-c</code> = antepone cuántas veces aparece cada una</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-<p>Todos salen de la estación 13. Ahora ya sabes <strong>qué</strong> problema causa el reloj: viajes con duración negativa.</p>
+cut -d, -f1 viajes_2026-11-09.csv | sort | uniq -d | wc -l      # viaje_id que aparecen más de una vez
+awk -F, 'NR &gt; 1 &amp;&amp; $6 == &quot;&quot;' viajes_2026-11-09.csv | wc -l      # sin fin (columna 6 vacía)
+awk -F, 'NR &gt; 1 &amp;&amp; $4 == 99' viajes_2026-11-09.csv | wc -l      # destino 99</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">cd ~/pedalia/entrega/2026-11-09</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">cut -d, -f1 viajes_2026-11-09.csv | sort | uniq -d | wc -l</code><span><code>cut</code>: corta columnas de un texto <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>sort</code>: ordena líneas <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>uniq</code>: junta líneas iguales que están seguidas (por eso casi siempre va después de <code>sort</code>). <code>-d</code> = muestra solo las repetidas <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>wc</code>: cuenta líneas, palabras y caracteres. <code>-l</code> = solo cuenta líneas (en un CSV, filas + el encabezado)<br><i class="bx-com">Nota del ejemplo: viaje_id que aparecen más de una vez</i></span></li><li><code class="bx-linea">awk -F, 'NR &gt; 1 &amp;&amp; $6 == &quot;&quot;' viajes_2026-11-09.csv | wc -l</code><span><code>awk</code>: recorre un archivo línea por línea y filtra o calcula por columnas (<code>$1</code> es la primera, <code>NR</code> el número de fila). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe) <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>wc</code>: cuenta líneas, palabras y caracteres. <code>-l</code> = solo cuenta líneas (en un CSV, filas + el encabezado)<br><i class="bx-com">Nota del ejemplo: sin fin (columna 6 vacía)</i></span></li><li><code class="bx-linea">awk -F, 'NR &gt; 1 &amp;&amp; $4 == 99' viajes_2026-11-09.csv | wc -l</code><span><code>awk</code>: recorre un archivo línea por línea y filtra o calcula por columnas (<code>$1</code> es la primera, <code>NR</code> el número de fila). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe) <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>wc</code>: cuenta líneas, palabras y caracteres. <code>-l</code> = solo cuenta líneas (en un CSV, filas + el encabezado)<br><i class="bx-com">Nota del ejemplo: destino 99</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+</details>
+
+<details><summary>Pista 3 · el reloj de la estación 13</summary>
+
+<p>Un reloj que atrasa produce viajes que <strong>terminan antes de empezar</strong>. Como las fechas vienen como <code>AAAA-MM-DD HH:MM:SS</code>, se pueden comparar como texto: busca filas con fin no vacío y fin menor que inicio, y cuenta de qué estación de origen salen (<code>{print $3}</code> y después <code>sort | uniq -c</code>).</p>
+</details>
+
 <div class="callout callout-tip"><div class="callout-title">💡 Anota los números</div>
 
 <p>Guarda lo que encontraste: filas totales, repetidas, sin fin, con fin antes del inicio y fuera de estación. Al final de la limpieza, <strong>la cuenta tiene que cerrar</strong>: filas del archivo − repetidas − sin fin − error de reloj = viajes válidos. Si no cierra, algo se perdió en el camino.</p>
@@ -64,40 +74,21 @@ wc -l viajes_2026-11-09.csv              # filas (incluye el encabezado)</code><
 
 <h2>3. El contrato de datos</h2>
 <p>El contrato es el documento que dice <strong>qué se espera de la fuente y qué se hace con cada problema</strong>. Lo firman (en sentido figurado) quien produce los datos y quien los usa. Va al repositorio, con historial, porque las reglas cambian y hay que saber desde cuándo.</p>
-<pre tabindex="0"><code class="language-bash">cd ~/pedalia-datos
-git checkout -b docs/contrato
-cat &gt; docs/contrato.md &lt;&lt; 'EOF'
-# Contrato de datos · viajes de Pedalia (v1)
+<p>Escríbelo tú en <code>docs/contrato.md</code>, en una rama <code>docs/contrato</code>, y súbelo con un pull request. Tiene que decir, como mínimo:</p>
+<ul>
+<li><strong>De dónde viene</strong> y cuándo llega la fuente.</li>
+<li><strong>Las columnas</strong>, con su tipo y su regla (qué valores son posibles, qué significa un vacío, qué es el <code>99</code>).</li>
+<li><strong>Qué es un viaje válido</strong> para silver: qué pasa con las filas repetidas, con los viajes sin fin, con los que terminan antes de empezar y con los que quedaron fuera de estación; y de qué día es un viaje que empieza a las 23:50 y termina a las 00:20.</li>
+<li><strong>El control</strong>: la cuenta que tiene que cerrar al final de la limpieza, y qué hace el pipeline si un archivo no llega o cambia de columnas.</li>
+</ul>
+<details><summary>Pista</summary>
 
-Fuente: exportación diaria de la app (viajes_AAAA-MM-DD.csv), equipo-app@pedalia.example
-Llega: todos los días antes de las 03:00 en landing/pedalia/&lt;fecha&gt;/
+<p>Piensa cada regla como una decisión que alguien de finanzas tiene que poder leer y discutir: &quot;los viajes sin fin no entran hoy&quot; es una decisión de negocio, no técnica. Una tabla Markdown (<code>| columna | tipo | regla |</code>) para las columnas y una lista numerada para las reglas de silver se leen bien en GitHub.</p>
+</details>
 
-## Columnas
-| columna | tipo | regla |
-|---|---|---|
-| viaje_id | entero | identifica el viaje; puede venir repetido (reintentos) |
-| bici_id | texto | B-0001 … B-0180 |
-| estacion_origen | entero | 1 … 24 |
-| estacion_destino | entero | 1 … 24, o 99 = fuera de estación; vacío si el viaje no terminó |
-| inicio, fin | fecha y hora | formato AAAA-MM-DD HH:MM:SS, hora local |
-| tipo_usuario | texto | abono o pase_dia |
-| monto | decimal | pesos; vacío si el viaje no terminó |
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: un contrato de datos posible</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
-## Qué es un viaje válido (silver)
-1. Una fila por viaje_id (se descartan las repetidas).
-2. Sin fin → en curso: no entra hoy.
-3. fin &lt; inicio → error de reloj: no entra (se cuenta aparte).
-4. destino 99 → entra, con estacion_destino NULL y fuera_de_estacion = true.
-5. fecha del viaje = día de inicio.
 
-## Control
-filas del archivo − repetidas − en curso − error de reloj = viajes válidos.
-Si un archivo no llega a las 03:00 o cambia de columnas, el pipeline falla y avisa (no se publica nada a medias).
-EOF
-git add docs/contrato.md
-git commit -m &quot;Contrato de datos de viajes v1&quot;
-git push -u origin docs/contrato</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(6)</span></summary><ol><li><code class="bx-linea">cd ~/pedalia-datos</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">git checkout -b docs/contrato</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella). <code>-b</code> = crea la rama nueva</span></li><li><code class="bx-linea">cat &gt; docs/contrato.md &lt;&lt; 'EOF'</code><span><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe). Lo que sigue hasta <code>EOF</code> es el contenido del archivo</span></li><li><code class="bx-linea">git add docs/contrato.md</code><span><code>git</code>: Git: guarda la historia de tu código. <code>add</code> prepara cambios para el próximo commit (los pasa al área de preparación)</span></li><li><code class="bx-linea">git commit -m &quot;Contrato de datos de viajes v1&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>commit</code> guarda una foto de los cambios preparados, con un mensaje. <code>-m</code> = el mensaje del commit</span></li><li><code class="bx-linea">git push -u origin docs/contrato</code><span><code>git</code>: Git: guarda la historia de tu código. <code>push</code> sube tus commits al repositorio remoto (GitHub). <code>-u</code> = recuerda la rama remota: después alcanza con <code>git push</code></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Abre el pull request y, en la descripción, pega los números que encontraste. En un equipo real, este PR lo revisan quien produce los datos (equipo de la app) y quien los usa (finanzas): es el momento de discutir las reglas, <strong>antes</strong> de que haya números publicados.</p>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ El contrato no es eterno</div>
 

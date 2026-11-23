@@ -69,31 +69,26 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <ol>
 <li>En <strong>Parameters</strong> (abajo, con el lienzo vacío seleccionado): agrega <code>fecha</code>, tipo String, valor por defecto <code>2026-11-09</code>.</li>
 <li>Arrastra una actividad <strong>Copy data</strong>, nombre <code>Copiar viajes</code>:<ul>
-<li><strong>Source</strong>: <code>ds_landing_pedalia</code>, y en <strong>Wildcard file name</strong> el contenido dinámico:<pre tabindex="0"><code class="language-text">@concat(pipeline().parameters.fecha, '/viajes_*.csv')</code></pre>
-</li>
+<li><strong>Source</strong>: <code>ds_landing_pedalia</code>, y en <strong>Wildcard file name</strong> un contenido dinámico (<em>Add dynamic content</em>) que arme la ruta del día a partir del parámetro <code>fecha</code>: la carpeta de la fecha y cualquier <code>viajes_*.csv</code> adentro (la pista está abajo del paso 3).</li>
 <li><strong>Sink</strong>: <code>ds_bronze_viajes</code>.</li>
 </ul>
 </li>
 <li><strong>Validate</strong>, después <strong>Debug</strong> con <code>fecha = 2026-11-09</code>. En la salida de la actividad mira <code>filesRead</code>, <code>rowsCopied</code> y <code>dataWritten</code>.</li>
 </ol>
-<p>El JSON que queda (lo vas a guardar en el repositorio):</p>
-<pre tabindex="0"><code class="language-json">{
-  &quot;name&quot;: &quot;pl_ingesta_pedalia&quot;,
-  &quot;properties&quot;: {
-    &quot;parameters&quot;: { &quot;fecha&quot;: { &quot;type&quot;: &quot;String&quot;, &quot;defaultValue&quot;: &quot;2026-11-09&quot; } },
-    &quot;activities&quot;: [{
-      &quot;name&quot;: &quot;Copiar viajes&quot;,
-      &quot;type&quot;: &quot;Copy&quot;,
-      &quot;inputs&quot;: [{ &quot;referenceName&quot;: &quot;ds_landing_pedalia&quot;, &quot;type&quot;: &quot;DatasetReference&quot; }],
-      &quot;outputs&quot;: [{ &quot;referenceName&quot;: &quot;ds_bronze_viajes&quot;, &quot;type&quot;: &quot;DatasetReference&quot; }],
-      &quot;typeProperties&quot;: {
-        &quot;source&quot;: { &quot;type&quot;: &quot;DelimitedTextSource&quot;, &quot;storeSettings&quot;: { &quot;type&quot;: &quot;AzureBlobFSReadSettings&quot;, &quot;recursive&quot;: true,
-          &quot;wildcardFileName&quot;: { &quot;value&quot;: &quot;@concat(pipeline().parameters.fecha, '/viajes_*.csv')&quot;, &quot;type&quot;: &quot;Expression&quot; } } },
-        &quot;sink&quot;: { &quot;type&quot;: &quot;DelimitedTextSink&quot; }
-      }
-    }]
-  }
-}</code></pre>
+<details><summary>Pista · el contenido dinámico</summary>
+
+<p>Las expresiones de Data Factory empiezan con <code>@</code>. Para juntar textos está <code>@concat(…)</code> y el parámetro se lee con <code>pipeline().parameters.fecha</code>. El resultado tiene que quedar como <code>2026-11-09/viajes_*.csv</code>.</p>
+</details>
+
+<p>El JSON que queda lo vas a guardar en el repositorio (pestaña <strong>{ }</strong> del pipeline). Cuando tu pipeline corra bien, compáralo con el de referencia:</p>
+<details><summary>Pista</summary>
+
+<p>En el Studio, el botón <strong>{ }</strong> (Code) del pipeline muestra su JSON. Tiene que tener el parámetro <code>fecha</code>, la actividad Copy con su origen y su destino, y las expresiones con la fecha.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: el pipeline en JSON</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <div class="callout callout-tip"><div class="callout-title">💡 Un pipeline de ingesta no transforma</div>
 
 <p>Fíjate que la copia no filtra duplicados ni corrige nada: lleva el archivo tal cual. Si mañana descubres un error en la limpieza, puedes volver a calcular todo desde bronze sin pedirle los archivos de nuevo a la app. Esa es la razón de ser de bronze.</p>
@@ -103,10 +98,14 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>5. Publicar y ejecutar como lo haría otro sistema</h2>
 <p><strong>Publish all</strong>. Desde ahora existe la versión publicada, que es la que ejecutan los triggers, la API y Airflow. Lo que edites después no corre hasta que vuelvas a publicar.</p>
 <p>Ejecútalo desde la terminal, como lo haría un script o un orquestador (es la API &quot;Create Run&quot; del servicio):</p>
-<pre tabindex="0"><code class="language-bash">az datafactory pipeline create-run -g rg-pedalia-dev --factory-name adf-pedalia-dev \
-  -n pl_ingesta_pedalia --parameters '{&quot;fecha&quot;: &quot;2026-11-09&quot;}'
-az storage blob list --account-name stpedaliadev -c bronze -o table</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">az datafactory pipeline create-run -g rg-pedalia-dev --factory-name adf-pedalia-dev    -n pl_ingesta_pedalia --parameters '{&quot;fecha&quot;: &quot;202…</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>datafactory</code> Azure Data Factory: fábricas, pipelines y ejecuciones (<code>pipeline create-run</code>). <code>-g</code> = grupo de recursos donde está o se crea el recurso; <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az storage blob list --account-name stpedaliadev -c bronze -o table</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob list</code>). <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<details><summary>Pista</summary>
+
+<p><code>az datafactory pipeline create-run</code> con el grupo, la fábrica, el nombre del pipeline y <code>--parameters</code> con un JSON (<code>&#39;{&quot;fecha&quot;: &quot;2026-11-09&quot;}&#39;</code>). Después, <code>az datafactory pipeline-run show --run-id …</code> para ver cómo terminó.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: correrlo desde la terminal</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <p>En el Studio, <strong>Monitor → Pipeline runs</strong>: vas a ver la corrida con su <code>runId</code>, quién la disparó y cuánto tardó. Entra a la actividad para ver la entrada y la salida.</p>
 <h2>6. Al repositorio</h2>
 <p>En Data Factory real se conecta el Studio a un repositorio Git (Manage → Git configuration) y cada pipeline queda como un JSON en <code>pipeline/</code>. Acá guarda el JSON a mano:</p>
