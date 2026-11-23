@@ -20,6 +20,17 @@
   const quitar = (k) => { try { localStorage.removeItem(k); } catch (e) { /* sin almacenamiento */ } };
   const claves = () => { const out = []; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (ES_DEL_SITIO(k)) out.push(k); } } catch (e) { /* sin almacenamiento */ } return out; };
   const tam = (x) => (x == null ? 0 : (typeof x === 'string' ? x : JSON.stringify(x) || '').length);
+  // lo pesado (tablas grandes de Databricks, archivos y blobs de la terminal) vive en IndexedDB, no en localStorage
+  const IDB = 'academia-datos-pesados';
+  const idb = (modo, f) => new Promise((ok, mal) => { try { const r = indexedDB.open(IDB, 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onerror = () => mal(r.error); r.onsuccess = () => { const d = r.result; const t = d.transaction('kv', modo); const out = f(t.objectStore('kv')); t.oncomplete = () => { d.close(); ok(out && 'result' in out ? out.result : out); }; t.onerror = () => mal(t.error); }; } catch (e) { mal(e); } });
+  const hayIdb = typeof indexedDB !== 'undefined';
+  async function pesados() { // { clave: valor } de todo lo guardado en IndexedDB
+    if (!hayIdb) return {}; const out = {};
+    try { await idb('readonly', (st) => { const c = st.openCursor(); c.onsuccess = () => { const x = c.result; if (x) { out[x.key] = x.value; x.continue(); } }; return null; }); } catch (e) { /* sin IndexedDB */ }
+    return out;
+  }
+  async function pesoPesados() { const P = await pesados(); const r = { dbx: 0, maq: 0, total: 0 }; for (const [k, v] of Object.entries(P)) { const n = tam(v); r.total += n; if (k.startsWith('dbx:')) r.dbx += n; else r.maq += n; } return r; }
+  const borrarPesados = (filtro) => (hayIdb ? idb('readwrite', (st) => { const c = st.openCursor(); c.onsuccess = () => { const x = c.result; if (x) { if (!filtro || filtro(String(x.key))) x.delete(); x.continue(); } }; return null; }).catch(() => {}) : Promise.resolve());
   const legible = (n) => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(2)} MB`);
 
   // Cada categoría dice qué partes toca: claves dentro del progreso (store), nubes de la terminal (nube),
@@ -63,6 +74,8 @@
       }
     }
     limpiarFin(c);
+    if (id === 'databricks') return borrarPesados((k) => k.startsWith('dbx:')); // las filas de las tablas grandes
+    return Promise.resolve();
   }
   function limpiarFin(c) {
     for (const k of c.ls || []) quitar(k);
@@ -75,18 +88,21 @@
     for (const id of marcadas) limpiar(id);
   })();
 
-  function exportar() {
-    const datos = { app: 'academia-de-datos', v: 1, fecha: new Date().toISOString(), claves: {} };
+  async function exportar() {
+    const datos = { app: 'academia-de-datos', v: 2, fecha: new Date().toISOString(), claves: {}, pesados: await pesados() };
     for (const k of claves()) datos.claves[k] = leer(k);
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(datos)], { type: 'application/json' }));
     a.download = `academia-de-datos-copia-${new Date().toISOString().slice(0, 10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   }
   // acepta la copia completa y también el archivo viejo de "Exportar progreso" (solo el progreso)
-  function importar(texto) {
+  async function importar(texto) {
     let d; try { d = JSON.parse(texto); } catch (e) { return 'El archivo no es una copia válida (no se pudo leer).'; }
     if (d && d.app === 'academia-de-datos' && d.claves && typeof d.claves === 'object') {
       const entradas = Object.entries(d.claves).filter(([k, v]) => ES_DEL_SITIO(k) && typeof v === 'string');
       if (!entradas.length) return 'La copia está vacía.';
+      // primero lo pesado: si localStorage apuntara a algo que todavía no está en IndexedDB, se perdería
+      const P = d.pesados && typeof d.pesados === 'object' ? Object.entries(d.pesados) : [];
+      if (hayIdb) { try { await borrarPesados(); if (P.length) await idb('readwrite', (st) => { for (const [k, v] of P) st.put(v, k); return null; }); } catch (e) { return 'No se pudieron restaurar las tablas y archivos grandes (IndexedDB): ' + (e.message || e); } }
       for (const k of claves()) quitar(k);
       for (const [k, v] of entradas) if (!escribir(k, v)) return 'No hay espacio suficiente en el navegador para restaurar la copia.';
       return null;
@@ -104,7 +120,7 @@
       <div class="crumbs"><a href="#/">Inicio</a><span>/</span><span>Mis datos</span></div>
       <h1>🗂️ Mis datos</h1>
       <p class="lead">Todo lo que haces en el sitio se guarda <b>solo en este navegador</b>: nadie más lo ve y no viaja a ningún servidor. Por eso, si cambias de computadora o borras los datos del navegador, se pierde. Aquí ves qué hay guardado, puedes reiniciar una parte sin tocar el resto y llevarte una copia.</p>
-      <div class="card md-espacio"><div class="row"><b>Espacio usado</b><span class="spacer"></span><span>${legible(total)} de unos 5 MB</span></div><div class="md-barra"><i style="width:${pct}%" class="${pct > 85 ? 'lleno' : pct > 60 ? 'medio' : ''}"></i></div>${pct > 85 ? '<p class="small" style="color:var(--bad);margin:8px 0 0">Casi no queda lugar: si se llena, el sitio deja de guardar. Reinicia lo que no uses (Power BI y la terminal suelen ser lo más pesado) o haz una copia y borra.</p>' : '<p class="small muted" style="margin:8px 0 0">Los navegadores dan unos 5 MB por sitio. Si se llena, el sitio deja de guardar cambios.</p>'}</div>
+      <div class="card md-espacio"><div class="row"><b>Espacio usado</b><span class="spacer"></span><span>${legible(total)} de unos 5 MB</span></div><p class="small muted" id="mdPesados" style="margin:4px 0">Además, las tablas y archivos grandes se guardan aparte (IndexedDB, sin el límite de 5 MB): calculando…</p><div class="md-barra"><i style="width:${pct}%" class="${pct > 85 ? 'lleno' : pct > 60 ? 'medio' : ''}"></i></div>${pct > 85 ? '<p class="small" style="color:var(--bad);margin:8px 0 0">Casi no queda lugar: si se llena, el sitio deja de guardar. Reinicia lo que no uses (Power BI y la terminal suelen ser lo más pesado) o haz una copia y borra.</p>' : '<p class="small muted" style="margin:8px 0 0">Los navegadores dan unos 5 MB por sitio. Si se llena, el sitio deja de guardar cambios.</p>'}</div>
       <h2 class="section-title">Qué hay guardado</h2>
       <div class="md-tabla-caja"><table class="md-tabla"><tbody>${filas}</tbody></table></div>
       <div class="callout"><b>¿Cuándo conviene "Empezar limpio siempre"?</b> Cuando usas una herramienta solo para practicar y prefieres encontrarla vacía cada vez (por ejemplo, para repetir un laboratorio desde cero). Tu progreso del curso nunca se borra solo.</div>
@@ -113,7 +129,7 @@
         <div class="row"><button class="btn btn-primary" id="mdOffG">⬇ Guardar todo el curso en este dispositivo</button><span class="small muted" id="mdOffE"></span><span class="spacer"></span><button class="btn" id="mdOffB">Borrar lo guardado</button></div>
         <p class="small muted" style="margin-bottom:0">Python, Spark y las bases de datos grandes (DuckDB, PostgreSQL) se guardan la primera vez que los usas con internet. Lo guardado ocupa espacio del navegador, aparte de los 5 MB de arriba, y no incluye tu progreso: ese ya está en este navegador.</p></div>
       <h2 class="section-title">Copia de seguridad</h2>
-      <p class="muted">La copia incluye <b>todo</b>: progreso, código, herramientas, terminal y notas. Sirve para pasar a otra computadora o para guardar un punto al que volver.</p>
+      <p class="muted">La copia incluye <b>todo</b>: progreso, código, herramientas, terminal y notas, también las tablas y archivos grandes. Sirve para pasar a otra computadora o para guardar un punto al que volver.</p>
       <div class="row"><button class="btn" id="mdExp">⬇ Descargar una copia completa</button><label class="btn">⬆ Restaurar una copia<input type="file" id="mdImp" accept="application/json,.json" hidden></label><span class="spacer"></span><button class="btn btn-ghost" id="mdTodo" style="color:var(--bad)">Borrar absolutamente todo</button></div>
       <p class="small muted" style="margin-top:14px">Próximamente: iniciar sesión para que tu progreso se sincronice solo entre dispositivos.</p>
     </div>`;
@@ -124,7 +140,7 @@
       const c = CATEGORIAS.find((x) => x.id === b.dataset.limpiar);
       if (!confirm(`¿Reiniciar "${c.nombre}"?\n\n${c.aviso || 'Esa parte vuelve a estar como el primer día.'}\nEl resto de tus datos no se toca. No se puede deshacer.`)) return;
       Store.save(); congelar();
-      limpiar(c.id); recargar(`"${c.nombre}" quedó como nuevo`);
+      Promise.resolve(limpiar(c.id)).then(() => recargar(`"${c.nombre}" quedó como nuevo`));
     }));
     main.querySelectorAll('[data-auto]').forEach((x) => x.addEventListener('change', () => { auto[x.dataset.auto] = x.checked; if (!x.checked) delete auto[x.dataset.auto]; Store.save(); toast(x.checked ? 'Desde la próxima vez que abras el sitio, empieza limpio.' : 'Vuelve a conservarse entre visitas.'); }));
     const off = window.SinConexion, offE = main.querySelector('#mdOffE'), offG = main.querySelector('#mdOffG'), offB = main.querySelector('#mdOffB');
@@ -144,19 +160,20 @@
       if (!confirm('¿Borrar los archivos del curso guardados en este dispositivo?\n\nTu progreso no se toca. Sin internet, solo funcionará lo que vuelvas a abrir.')) return;
       try { await off.borrar(); offE.textContent = 'Borrado. Las páginas se vuelven a guardar a medida que las abres.'; } catch (e) { offE.textContent = e.message; }
     });
-    main.querySelector('#mdExp').addEventListener('click', () => { Store.save(); exportar(); toast('Copia descargada'); });
+    pesoPesados().then((r) => { const el = main.querySelector('#mdPesados'); if (el) el.textContent = r.total ? `Además, las tablas y archivos grandes se guardan aparte (IndexedDB, sin el límite de 5 MB): ${legible(r.total)} (tablas de Databricks ${legible(r.dbx)} · archivos de la terminal y blobs ${legible(r.maq)}). La copia de seguridad los incluye.` : 'Además, las tablas y archivos grandes se guardan aparte (IndexedDB): por ahora no hay ninguno.'; }).catch(() => {});
+    main.querySelector('#mdExp').addEventListener('click', async () => { Store.save(); const M = window.Shell && window.Shell.Machine; if (M && M.ready) M.save(); await new Promise((ok) => setTimeout(ok, 800)); await exportar(); toast('Copia descargada'); });
     main.querySelector('#mdImp').addEventListener('change', async (e) => {
       const f = e.target.files[0]; if (!f) return;
       if (!confirm('Restaurar la copia reemplaza lo que hay ahora en este navegador. ¿Continuar?')) { e.target.value = ''; return; }
       congelar();
-      const err = importar(await f.text()); if (err) { toast(err); setTimeout(() => location.reload(), 1500); return; }
+      const err = await importar(await f.text()); if (err) { toast(err); setTimeout(() => location.reload(), 1500); return; }
       recargar('Copia restaurada');
     });
     main.querySelector('#mdTodo').addEventListener('click', () => {
       if (!confirm('¿Borrar absolutamente todo?\n\nProgreso, código, herramientas, terminal y notas. El sitio queda como la primera vez que entraste. No se puede deshacer.')) return;
       if (!confirm('Última confirmación: ¿borrar todo?')) return;
       congelar();
-      for (const k of claves()) quitar(k); recargar('Todo borrado');
+      for (const k of claves()) quitar(k); borrarPesados().then(() => recargar('Todo borrado'));
     });
   }
 
