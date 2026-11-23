@@ -32,9 +32,14 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h2>Parte 1 · Snowflake (finanzas)</h2>
 <h3>El token SAS</h3>
 <p>Un token SAS es un permiso firmado con alcance, permisos y vencimiento. Para leer una carpeta, Snowflake necesita <strong>listar</strong> (<code>l</code>) y <strong>leer</strong> (<code>r</code>), nada más:</p>
-<pre tabindex="0"><code class="language-bash">az storage container generate-sas --account-name stpedaliadev -n gold \
-  --permissions rl --expiry 2027-01-31T00:00Z -o tsv</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">az storage container generate-sas --account-name stpedaliadev -n gold    --permissions rl --expiry 2027-01-31T00:00Z -o tsv</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>container generate-sas</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<details><summary>Pista</summary>
+
+<p><code>az storage container generate-sas</code> con <code>--permissions rl</code> (leer y listar, nada más), una fecha de vencimiento corta (<code>--expiry</code>) y <code>-o tsv</code> para quedarte solo con el token.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: el token SAS</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <p>Copia el resultado (empieza con <code>se=</code>). También puedes generarlo en el portal: cuenta → <strong>Shared access signature</strong>, con servicio Blob, tipos Container y Object, y permisos Read y List.</p>
 <div class="callout callout-cuidado"><div class="callout-title">⚠️ El token vence</div>
 
@@ -43,31 +48,25 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h3>Tabla y stage</h3>
-<p>Abre el <a href="#/snowflake">Snowflake de práctica</a> y ejecuta (reemplaza <code>&lt;TOKEN&gt;</code> por el que generaste):</p>
-<pre data-norun tabindex="0"><code class="language-sql">USE ROLE SYSADMIN;
-USE WAREHOUSE COMPUTE_WH;
-CREATE DATABASE IF NOT EXISTS PEDALIA;
-CREATE SCHEMA IF NOT EXISTS PEDALIA.FINANZAS;
-USE SCHEMA PEDALIA.FINANZAS;
+<p>Abre el <a href="#/snowflake">Snowflake de práctica</a> y crea la base, el esquema, la tabla de finanzas y un stage que apunte al contenedor gold con tu token (en la referencia, <code>&lt;TOKEN&gt;</code> es el que generaste):</p>
+<details><summary>Pista</summary>
 
-CREATE OR REPLACE TABLE INGRESOS_DIARIOS (
-  FECHA DATE, TIPO_USUARIO STRING, VIAJES NUMBER, INGRESOS NUMBER(12, 2)
-);
+<p>Una base y un esquema, un <code>FILE FORMAT</code> de CSV con encabezado, un <code>STAGE</code> sobre <code>azure://&lt;cuenta&gt;.blob.core.windows.net/gold/…</code> con <code>CREDENTIALS = (AZURE_SAS_TOKEN = &#39;…&#39;)</code>, la tabla y <code>COPY INTO … FROM @stage</code>.</p>
+</details>
 
-CREATE OR REPLACE STAGE LAGO_GOLD
-  URL = 'azure://stpedaliadev.blob.core.windows.net/gold/'
-  CREDENTIALS = (AZURE_SAS_TOKEN = '?&lt;TOKEN&gt;');
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: base, stage y tabla en Snowflake</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
-LIST @LAGO_GOLD;</code></pre>
+
 <p><code>LIST</code> tiene que mostrar el <code>part-00000-….csv</code> de <code>ingresos_diarios/</code> y de <code>uso_por_barrio/</code> (el <code>_SUCCESS</code> no aparece: Snowflake no lo considera un dato).</p>
 <h3>La carga idempotente</h3>
-<pre data-norun tabindex="0"><code class="language-sql">TRUNCATE TABLE INGRESOS_DIARIOS;
-COPY INTO INGRESOS_DIARIOS
-  FROM @LAGO_GOLD/ingresos_diarios/
-  FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1)
-  FORCE = TRUE;
+<details><summary>Pista</summary>
 
-SELECT FECHA, TIPO_USUARIO, VIAJES, INGRESOS FROM INGRESOS_DIARIOS ORDER BY FECHA, TIPO_USUARIO;</code></pre>
+<p><code>COPY INTO</code> no vuelve a cargar un archivo que ya cargó: si el archivo cambió con el mismo nombre, hace falta vaciar la tabla y <code>FORCE = TRUE</code>. Piensa qué pasa si el DAG corre dos veces el mismo día.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: la carga idempotente</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <p>¿Por qué <code>TRUNCATE</code> y <code>FORCE = TRUE</code>? Porque la exportación de gold <strong>reemplaza todo</strong> en cada corrida. La tabla de Snowflake tiene que ser una copia exacta de ese archivo:</p>
 <ul>
 <li>Sin <code>TRUNCATE</code>, cada corrida agregaría las filas otra vez (duplicados).</li>
@@ -84,20 +83,14 @@ SELECT FECHA, TIPO_USUARIO, VIAJES, INGRESOS FROM INGRESOS_DIARIOS ORDER BY FECH
 <h2>Parte 2 · BigQuery (marketing)</h2>
 <p>BigQuery puede cargar archivos de Azure Blob Storage con <code>LOAD DATA … FROM FILES</code> y una <strong>conexión</strong> a Azure (en la consola: Add data → Connections to external data sources). La conexión guarda cómo autenticarse; la consulta solo la nombra.</p>
 <p>En el <a href="#/bigquery">BigQuery de práctica</a>:</p>
-<pre data-norun tabindex="0"><code class="language-sql">CREATE SCHEMA IF NOT EXISTS pedalia_mkt;
+<details><summary>Pista</summary>
 
-LOAD DATA OVERWRITE pedalia_mkt.uso_por_barrio
-FROM FILES (
-  format = 'CSV',
-  skip_leading_rows = 1,
-  uris = ['azure://stpedaliadev.blob.core.windows.net/gold/uso_por_barrio/*.csv']
-)
-WITH CONNECTION `azure-eastus2.lago_pedalia`;
+<p>Un dataset (<code>CREATE SCHEMA</code>), la tabla con sus tipos y <code>LOAD DATA INTO … FROM FILES (format = &#39;CSV&#39;, skip_leading_rows = 1, uris = [&#39;…&#39;])</code>.</p>
+</details>
 
-SELECT barrio, SUM(viajes) AS viajes, SUM(viajes_pase_dia) AS pase_dia
-FROM pedalia_mkt.uso_por_barrio
-GROUP BY barrio
-ORDER BY pase_dia DESC;</code></pre>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: la carga en BigQuery</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <p><code>OVERWRITE</code> reemplaza la tabla completa: correrlo dos veces da lo mismo. Con <code>LOAD DATA INTO</code> agregarías filas en cada corrida.</p>
 <p>Fíjate en el detalle del job: una carga <strong>no cobra bytes procesados</strong>. La consulta de abajo sí (mira la estimación arriba a la derecha antes de ejecutar).</p>
 <p>Guarda el SQL en <code>sql/bigquery/marketing.sql</code>.</p>

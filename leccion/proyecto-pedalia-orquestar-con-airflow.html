@@ -31,16 +31,14 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>1. Las conexiones</h2>
 <p>Cada tarea habla con un servicio distinto. Las credenciales viven en <strong>conexiones</strong> de Airflow (en producción, en un gestor de secretos como Key Vault), nunca en el DAG. En la terminal:</p>
-<pre tabindex="0"><code class="language-bash">airflow connections add azure_data_factory_default --conn-type azure_data_factory \
-  --conn-extra '{&quot;resource_group_name&quot;: &quot;rg-pedalia-dev&quot;, &quot;factory_name&quot;: &quot;adf-pedalia-dev&quot;}'
-airflow connections add databricks_default --conn-type databricks \
-  --conn-host https://adb-1234567890123456.7.azuredatabricks.net
-airflow connections add snowflake_default --conn-type snowflake \
-  --conn-extra '{&quot;account&quot;: &quot;practica01&quot;, &quot;warehouse&quot;: &quot;COMPUTE_WH&quot;, &quot;database&quot;: &quot;PEDALIA&quot;, &quot;schema&quot;: &quot;FINANZAS&quot;, &quot;role&quot;: &quot;SYSADMIN&quot;}'
-airflow connections add google_cloud_default --conn-type google_cloud_platform \
-  --conn-extra '{&quot;project&quot;: &quot;tienda-andina-dev&quot;}'
-airflow connections list</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(5)</span></summary><ol><li><code class="bx-linea">airflow connections add azure_data_factory_default --conn-type azure_data_factory    --conn-extra '{&quot;resource_group_name&quot;: &quot;rg-pedalia-de…</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>connections</code> administra conexiones a sistemas externos</span></li><li><code class="bx-linea">airflow connections add databricks_default --conn-type databricks    --conn-host https://adb-1234567890123456.7.azuredatabricks.net</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>connections</code> administra conexiones a sistemas externos</span></li><li><code class="bx-linea">airflow connections add snowflake_default --conn-type snowflake    --conn-extra '{&quot;account&quot;: &quot;practica01&quot;, &quot;warehouse&quot;: &quot;COMPUTE_WH&quot;, &quot;da…</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>connections</code> administra conexiones a sistemas externos</span></li><li><code class="bx-linea">airflow connections add google_cloud_default --conn-type google_cloud_platform    --conn-extra '{&quot;project&quot;: &quot;tienda-andina-dev&quot;}'</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>connections</code> administra conexiones a sistemas externos</span></li><li><code class="bx-linea">airflow connections list</code><span><code>airflow</code>: la CLI de Apache Airflow. <code>connections</code> administra conexiones a sistemas externos</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<details><summary>Pista</summary>
+
+<p>Una conexión por servicio con <code>airflow connections add &lt;id&gt; --conn-type &lt;tipo&gt; …</code>: Data Factory, Databricks, Snowflake y Google Cloud. Los ids por defecto de cada proveedor te ahorran configurar cada operador.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: las conexiones</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <p>También puedes crearlas en <a href="#/airflow">Airflow</a> → <strong>Admin → Connections</strong>.</p>
 <div class="callout callout-nota"><div class="callout-title">📝 En una cuenta real</div>
 
@@ -49,66 +47,14 @@ airflow connections list</code></pre>
 
 
 <h2>2. El DAG</h2>
-<pre tabindex="0"><code class="language-bash">cd ~/pedalia-datos
-git checkout main &amp;&amp; git pull
-git checkout -b dag/pedalia-diario
-cat &gt; dags/pedalia_diario.py &lt;&lt; 'EOF'
-from datetime import datetime, timedelta
+<details><summary>Pista</summary>
 
-from airflow.sdk import DAG
-from airflow.providers.microsoft.azure.operators.data_factory import AzureDataFactoryRunPipelineOperator
-from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
-from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
-from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
+<p>Cuatro tareas en orden: <code>AzureDataFactoryRunPipelineOperator</code> (con <code>parameters={&quot;fecha&quot;: &quot;{{ ds }}&quot;}</code>), <code>DatabricksRunNowOperator</code>, <code>SQLExecuteQueryOperator</code> contra Snowflake y <code>BigQueryInsertJobOperator</code>; <code>catchup=False</code>, reintentos y <code>&gt;&gt;</code> para el orden.</p>
+</details>
 
-default_args = {&quot;retries&quot;: 1, &quot;retry_delay&quot;: timedelta(minutes=5)}
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: el DAG pedalia_diario</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
-with DAG(
-    &quot;pedalia_diario&quot;,
-    start_date=datetime(2026, 11, 9),
-    schedule=&quot;0 7 * * *&quot;,
-    catchup=False,
-    default_args=default_args,
-    tags=[&quot;pedalia&quot;],
-    doc_md=&quot;Ingesta de la app de Pedalia → Databricks → Snowflake (finanzas) y BigQuery (marketing).&quot;,
-):
-    ingesta = AzureDataFactoryRunPipelineOperator(
-        task_id=&quot;ingesta_adf&quot;,
-        pipeline_name=&quot;pl_ingesta_pedalia&quot;,
-        parameters={&quot;fecha&quot;: &quot;{{ ds }}&quot;},
-    )
 
-    transformar = DatabricksRunNowOperator(
-        task_id=&quot;transformar_databricks&quot;,
-        job_name=&quot;pedalia_transformar&quot;,
-    )
-
-    finanzas = SQLExecuteQueryOperator(
-        task_id=&quot;cargar_snowflake&quot;,
-        conn_id=&quot;snowflake_default&quot;,
-        sql=[
-            &quot;TRUNCATE TABLE INGRESOS_DIARIOS&quot;,
-            &quot;COPY INTO INGRESOS_DIARIOS FROM @LAGO_GOLD/ingresos_diarios/ &quot;
-            &quot;FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1) FORCE = TRUE&quot;,
-        ],
-    )
-
-    marketing = BigQueryInsertJobOperator(
-        task_id=&quot;cargar_bigquery&quot;,
-        configuration={
-            &quot;query&quot;: {
-                &quot;query&quot;: &quot;LOAD DATA OVERWRITE pedalia_mkt.uso_por_barrio FROM FILES (&quot;
-                         &quot;format = 'CSV', skip_leading_rows = 1, &quot;
-                         &quot;uris = ['azure://stpedaliadev.blob.core.windows.net/gold/uso_por_barrio/*.csv']) &quot;
-                         &quot;WITH CONNECTION `azure-eastus2.lago_pedalia`&quot;,
-                &quot;useLegacySql&quot;: False,
-            }
-        },
-    )
-
-    ingesta &gt;&gt; transformar &gt;&gt; [finanzas, marketing]
-EOF</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">cd ~/pedalia-datos</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">git checkout main &amp;&amp; git pull</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella) <span class="bx-tubo">→ si sale bien, sigue el próximo</span><br><code>git</code>: Git: guarda la historia de tu código. <code>pull</code> trae los commits nuevos del remoto y los une a tu rama</span></li><li><code class="bx-linea">git checkout -b dag/pedalia-diario</code><span><code>git</code>: Git: guarda la historia de tu código. <code>checkout</code> cambia de rama (con <code>-b</code>, crea una rama nueva y se pasa a ella). <code>-b</code> = crea la rama nueva</span></li><li><code class="bx-linea">cat &gt; dags/pedalia_diario.py &lt;&lt; 'EOF'</code><span><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe). Lo que sigue hasta <code>EOF</code> es el contenido del archivo</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Fíjate en tres decisiones:</p>
 <ul>
 <li><strong><code>{{ ds }}</code></strong> es la <strong>fecha lógica</strong> de la corrida, no la fecha de hoy. Con <code>schedule=&quot;0 7 * * *&quot;</code>, la corrida que arranca el 10/11 a las 7:00 tiene <code>ds = 2026-11-09</code>: procesa el día que <strong>terminó</strong>. Si mañana re-ejecutas la corrida del 9, vuelve a procesar el 9, no &quot;hoy&quot;.</li>

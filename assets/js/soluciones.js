@@ -14,6 +14,7 @@
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   function chequeosDe(clave) { const g = (window.__tableros || []).find((x) => x.clave === clave); if (!g) return null; try { return g.chequeos() || []; } catch (e) { return []; } }
   async function revisar(clave, grupos) {
+    if (window.__discoListo) await window.__discoListo(); // la terminal y las nubes guardadas, ya rehidratadas
     const C = chequeosDe(clave); if (!C) return { ok: false, notas: ['El proyecto todavía no cargó: recarga la página.'] };
     const notas = []; let ok = true;
     for (const grupo of grupos) {
@@ -35,7 +36,7 @@
       candado.querySelector('button').onclick = async (ev) => {
         const b = ev.currentTarget; b.disabled = true; b.textContent = 'Revisando…'; const ol = candado.querySelector('ol'); ol.innerHTML = '';
         const r = await revisar(clave, grupos);
-        if (r.ok) { hechos()[k] = Date.now(); guardar(); abrir(el, k); return; }
+        if (r.ok) { hechos()[k] = Date.now(); guardar(); document.querySelectorAll('[data-solucion]').forEach((x) => { if (x.dataset.solucion === k) abrir(x, k); }); return; } // todos los bloques del mismo chequeo
         ol.innerHTML = r.notas.map((n) => `<li>${esc(n)}</li>`).join(''); b.disabled = false; b.textContent = 'Revisar otra vez';
       };
     });

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>El repositorio - el proyecto vive en GitHub desde el primer minuto · Academia de Datos</title><meta name="description" content="Antes de mover un solo dato, creas el repositorio pedalia-datos en el GitHub de práctica, con una estructura pensada para que otra persona lo entienda, una rama principal protegida, un workflow de Actions que valida cada cambio y una variable para desplegar el DAG. Así trabajan los equipos de datos de verdad."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-el-repositorio.html">
-<meta property="og:type" content="article"><meta property="og:title" content="El repositorio - el proyecto vive en GitHub desde el primer minuto · Academia de Datos"><meta property="og:description" content="Antes de mover un solo dato, creas el repositorio pedalia-datos en el GitHub de práctica, con una estructura pensada para que otra persona lo entienda, una rama principal protegida, un workflow de Actions que valida cada cambio y una variable para desplegar el DAG. Así trabajan los equipos de datos de verdad."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-el-repositorio.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<title>El repositorio - el proyecto vive en GitHub desde el primer minuto · Academia de Datos</title><meta name="description" content="Antes de mover un solo dato, creas tú el repositorio pedalia-datos en el GitHub de práctica, con una estructura pensada para que otra persona lo entienda, una rama principal protegida, un workflow de Actions que valida cada cambio y una variable para desplegar el DAG. Así trabajan los equipos de datos de verdad."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-el-repositorio.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El repositorio - el proyecto vive en GitHub desde el primer minuto · Academia de Datos"><meta property="og:description" content="Antes de mover un solo dato, creas tú el repositorio pedalia-datos en el GitHub de práctica, con una estructura pensada para que otra persona lo entienda, una rama principal protegida, un workflow de Actions que valida cada cambio y una variable para desplegar el DAG. Así trabajan los equipos de datos de verdad."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-pedalia-el-repositorio.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
 *{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
 header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
@@ -14,7 +14,7 @@ img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:
 footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
 <header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
 <main><div class="migas"><a href="index.html#proyecto-pedalia">🚲 Proyecto integrador: Pedalia, de cero a producción</a> · Intermedio · 40 min</div>
-<h1>El repositorio - el proyecto vive en GitHub desde el primer minuto</h1><p class="resumen">Antes de mover un solo dato, creas el repositorio pedalia-datos en el GitHub de práctica, con una estructura pensada para que otra persona lo entienda, una rama principal protegida, un workflow de Actions que valida cada cambio y una variable para desplegar el DAG. Así trabajan los equipos de datos de verdad.</p>
+<h1>El repositorio - el proyecto vive en GitHub desde el primer minuto</h1><p class="resumen">Antes de mover un solo dato, creas tú el repositorio pedalia-datos en el GitHub de práctica, con una estructura pensada para que otra persona lo entienda, una rama principal protegida, un workflow de Actions que valida cada cambio y una variable para desplegar el DAG. Así trabajan los equipos de datos de verdad.</p>
 <a class="cta" href="../index.html#/l/proyecto-pedalia-el-repositorio">▶ Abrir la lección interactiva (3 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un repositorio y subirlo desde la terminal</li><li>Organizar carpetas para DAGs, SQL, pipelines y documentación</li><li>Escribir un workflow de GitHub Actions que valide y despliegue</li><li>Proteger la rama principal para que todo cambio pase por un pull request</li></ul>
 <div class="callout callout-escenario"><div class="callout-title">🏢 Lunes, 11:00</div>
@@ -55,61 +55,56 @@ git config user.name &quot;Tu Nombre&quot;
 git config user.email &quot;tu@correo.com&quot;</code></pre>
 <details class="bx"><summary>🔍 Qué hace cada comando <span>(5)</span></summary><ol><li><code class="bx-linea">mkdir -p ~/pedalia-datos/dags ~/pedalia-datos/sql/databricks ~/pedalia-datos/docs ~/pedalia-datos/.github/workflows</code><span><code>mkdir</code>: crea una carpeta. <code>-p</code> = crea también las carpetas intermedias y no falla si ya existe</span></li><li><code class="bx-linea">cd ~/pedalia-datos</code><span><code>cd</code>: entra a una carpeta (cambia el directorio de trabajo). <code>cd ..</code> sube un nivel y <code>cd ~</code> vuelve a tu carpeta personal</span></li><li><code class="bx-linea">git init -b main</code><span><code>git</code>: Git: guarda la historia de tu código. <code>init</code> convierte la carpeta en un repositorio (crea la carpeta oculta .git). <code>-b</code> = crea la rama nueva</span></li><li><code class="bx-linea">git config user.name &quot;Tu Nombre&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>config</code> configura Git (tu nombre, tu correo, la rama por defecto)</span></li><li><code class="bx-linea">git config user.email &quot;tu@correo.com&quot;</code><span><code>git</code>: Git: guarda la historia de tu código. <code>config</code> configura Git (tu nombre, tu correo, la rama por defecto)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <ol start="3">
-<li>Crea un README mínimo y el primer DAG de prueba (el definitivo llega en la lección de Airflow):</li>
+<li><strong>Crea tú los primeros archivos.</strong> Nada de esto viene hecho; lo que sigue es lo que tiene que haber:</li>
 </ol>
-<pre tabindex="0"><code class="language-bash">cat &gt; README.md &lt;&lt; 'EOF'
-# pedalia-datos
-Pipelines de datos de Pedalia: ingesta de la app, limpieza en Databricks y cargas a Snowflake y BigQuery.
-Contacto: equipo de datos.
-EOF
+<div class="table-wrap"><table><thead><tr>
+<th>Archivo</th>
+<th>Qué tiene que tener</th>
+</tr>
+</thead><tbody><tr>
+<td><code>README.md</code></td>
+<td>Qué es el repositorio (los pipelines de datos de Pedalia), cómo se corre y a quién preguntar</td>
+</tr>
+<tr>
+<td><code>dags/pedalia_diario.py</code></td>
+<td>Un DAG mínimo llamado <code>pedalia_diario</code>, diario, sin <code>catchup</code>, con una sola tarea vacía (el definitivo llega en la lección de Airflow)</td>
+</tr>
+<tr>
+<td><code>sql/databricks/silver_viajes.sql</code> y <code>sql/databricks/gold.sql</code></td>
+<td>Por ahora un comentario que diga qué van a tener</td>
+</tr>
+</tbody></table></div>
+<details><summary>Pista 1</summary>
 
-cat &gt; dags/pedalia_diario.py &lt;&lt; 'EOF'
-from datetime import datetime
-from airflow.sdk import DAG
-from airflow.providers.standard.operators.empty import EmptyOperator
+<p>Un archivo de texto se crea desde la terminal con <code>cat &gt; archivo &lt;&lt; &#39;EOF&#39;</code> … <code>EOF</code> (las comillas en <code>&#39;EOF&#39;</code> evitan que el shell reemplace variables adentro), o con el editor del laboratorio.</p>
+</details>
 
-with DAG(&quot;pedalia_diario&quot;, start_date=datetime(2026, 11, 9), schedule=&quot;@daily&quot;, catchup=False):
-    EmptyOperator(task_id=&quot;inicio&quot;)
-EOF
+<details><summary>Pista 2</summary>
 
-echo &quot;-- silver de viajes (lección 6)&quot; &gt; sql/databricks/silver_viajes.sql
-echo &quot;-- gold (lección 7)&quot; &gt; sql/databricks/gold.sql</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(4)</span></summary><ol><li><code class="bx-linea">cat &gt; README.md &lt;&lt; 'EOF'</code><span><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe). Lo que sigue hasta <code>EOF</code> es el contenido del archivo</span></li><li><code class="bx-linea">cat &gt; dags/pedalia_diario.py &lt;&lt; 'EOF'</code><span><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe). Lo que sigue hasta <code>EOF</code> es el contenido del archivo</span></li><li><code class="bx-linea">echo &quot;-- silver de viajes (lección 6)&quot; &gt; sql/databricks/silver_viajes.sql</code><span><code>echo</code>: escribe un texto en pantalla (o en un archivo, con <code>&gt;</code> o <code>&gt;&gt;</code>). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li><li><code class="bx-linea">echo &quot;-- gold (lección 7)&quot; &gt; sql/databricks/gold.sql</code><span><code>echo</code>: escribe un texto en pantalla (o en un archivo, con <code>&gt;</code> o <code>&gt;&gt;</code>). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<p>Un DAG mínimo de Airflow 3: <code>from airflow.sdk import DAG</code>, <code>EmptyOperator</code> de <code>airflow.providers.standard.operators.empty</code>, y <code>with DAG(&quot;pedalia_diario&quot;, start_date=…, schedule=&quot;@daily&quot;, catchup=False):</code>. Mira <a href="#/l/airflow-primer-dag">El primer DAG</a> si no lo recuerdas.</p>
+</details>
+
 <h2>3. El workflow de Actions</h2>
-<p>Este archivo corre <strong>en cada push y en cada pull request</strong>. El job <code>validar</code> revisa que el DAG compile y que el SQL esté en su lugar; el job <code>desplegar</code> copia el DAG a Airflow, pero <strong>solo</strong> cuando el cambio llega a <code>main</code>.</p>
-<pre tabindex="0"><code class="language-bash">cat &gt; .github/workflows/ci.yml &lt;&lt; 'EOF'
-name: ci
-on:
-  push:
-    branches: [main]
-  pull_request:
+<p>Escribe <code>.github/workflows/ci.yml</code> con dos jobs. Esta es la especificación:</p>
+<ul>
+<li>Corre <strong>en cada push a <code>main</code> y en cada pull request</strong>.</li>
+<li>Job <strong><code>validar</code></strong>: baja el código, instala Python 3.12, comprueba que <code>dags/pedalia_diario.py</code> <strong>compila</strong> (sin ejecutarlo) y que existen los dos archivos SQL.</li>
+<li>Job <strong><code>desplegar</code></strong>: empieza <strong>solo si <code>validar</code> terminó bien</strong> y <strong>solo si el cambio está en <code>main</code></strong>; copia los DAGs a la carpeta que dice la variable del repositorio <code>AIRFLOW_DAGS_DIR</code>.</li>
+</ul>
+<p>Así, un pull request se valida pero no se despliega, y nada llega a Airflow sin pasar la validación.</p>
+<details><summary>Pista 1</summary>
 
-jobs:
-  validar:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: &quot;3.12&quot;
-      - name: El DAG compila
-        run: python -c &quot;import ast; ast.parse(open('dags/pedalia_diario.py').read()); print('DAG OK')&quot;
-      - name: Está el SQL de cada capa
-        run: ls sql/databricks/silver_viajes.sql sql/databricks/gold.sql
+<p>&quot;Compila sin ejecutarlo&quot; se puede probar con el módulo <code>ast</code> de Python: <code>ast.parse(open(…).read())</code> falla si hay un error de sintaxis. &quot;Existe el archivo&quot; se prueba con un <code>ls</code> que falla si no está.</p>
+</details>
 
-  desplegar:
-    needs: validar
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Copiar el DAG al Airflow del equipo
-        run: |
-          mkdir -p &quot;${{ vars.AIRFLOW_DAGS_DIR }}&quot;
-          cp dags/*.py &quot;${{ vars.AIRFLOW_DAGS_DIR }}/&quot;
-          ls &quot;${{ vars.AIRFLOW_DAGS_DIR }}&quot;
-EOF</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">cat &gt; .github/workflows/ci.yml &lt;&lt; 'EOF'</code><span><code>cat</code>: muestra el contenido de un archivo (o, con <code>&gt;</code> y <code>&lt;&lt; EOF</code>, escribe uno nuevo). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe). Lo que sigue hasta <code>EOF</code> es el contenido del archivo</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<details><summary>Pista 2</summary>
+
+<p><code>on: push: branches: [main]</code> y <code>pull_request:</code>; <code>needs: validar</code> para el orden; <code>if: github.ref == &#39;refs/heads/main&#39;</code> para la condición; la variable se lee como <code>${{ vars.AIRFLOW_DAGS_DIR }}</code>. Acciones: <code>actions/checkout@v4</code> y <code>actions/setup-python@v5</code>.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: los primeros archivos y el workflow</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <div class="callout callout-nota"><div class="callout-title">📝 ¿Por qué la ruta de despliegue es una variable?</div>
 
 <p>En la vida real, &quot;desplegar un DAG&quot; es copiarlo al lugar que lee Airflow: el bucket de Cloud Composer, el de MWAA en AWS o la carpeta del servidor. Esa ruta cambia entre desarrollo y producción, así que <strong>no se escribe en el workflow</strong>: va en una variable del repositorio. En esta práctica, el Airflow de práctica lee la carpeta <code>/home/alumno/airflow/dags</code>.</p>

@@ -20,6 +20,12 @@ Silver son los ingredientes lavados y cortados. Gold son los platos servidos: ca
 
 Para agrupar por barrio necesitas saber en qué barrio está cada estación. Ese dato viene en `estaciones.json`, que subiste a landing. Agrega una ubicación externa de solo lectura para landing y carga el maestro:
 
+<details><summary>Pista</summary>
+
+Otra ubicación externa, ahora sobre `landing`, y una tabla `pedalia.silver.estaciones` leída del JSON con `read_files(…, format => 'json')`.
+</details>
+
+:::solucion PD:Gold | el maestro de estaciones
 ```sql norun
 CREATE EXTERNAL LOCATION lago_landing
 URL 'abfss://landing@stpedaliadev.dfs.core.windows.net/'
@@ -29,11 +35,18 @@ CREATE OR REPLACE TABLE pedalia.silver.estaciones AS
 SELECT CAST(estacion_id AS INT) AS estacion_id, nombre, barrio, CAST(capacidad AS INT) AS capacidad
 FROM read_files('abfss://landing@stpedaliadev.dfs.core.windows.net/pedalia/estaciones', format => 'json');
 ```
+:::
 
 ## 2. Las tres tablas gold
 
 Cada una con el grano que se acordó en la primera lección:
 
+<details><summary>Pista</summary>
+
+Un `GROUP BY` por tabla con el grano acordado en la primera lección: finanzas por día y tipo de usuario, marketing por día y barrio (con un `JOIN` a estaciones), operaciones por día y estación.
+</details>
+
+:::solucion PD:Gold | las tablas gold
 ```sql norun
 -- finanzas: un número por día y tipo de usuario
 CREATE OR REPLACE TABLE pedalia.gold.ingresos_diarios AS
@@ -60,6 +73,7 @@ FROM pedalia.silver.viajes v
 JOIN pedalia.silver.estaciones e ON e.estacion_id = v.estacion_origen
 GROUP BY v.fecha, v.estacion_origen, e.nombre, e.barrio;
 ```
+:::
 
 Revisa los totales: la suma de `viajes` en las tres tablas tiene que ser la misma, e igual a las filas de silver. Si `uso_por_barrio` suma menos, hay viajes con una estación que no está en el maestro (el `JOIN` los dejó afuera).
 
@@ -67,6 +81,12 @@ Revisa los totales: la suma de `viajes` en las tres tablas tiene que ser la mism
 
 Snowflake y BigQuery no leen tablas de Databricks: leen **archivos**. El patrón más común es dejar cada tabla gold como archivos en una carpeta conocida del lago:
 
+<details><summary>Pista</summary>
+
+`INSERT OVERWRITE DIRECTORY 'abfss://gold@<cuenta>…/<tabla>' USING CSV OPTIONS ('header' = 'true') SELECT …`, una por tabla.
+</details>
+
+:::solucion PD:Gold | la exportación
 ```sql norun
 INSERT OVERWRITE DIRECTORY 'abfss://gold@stpedaliadev.dfs.core.windows.net/ingresos_diarios'
 USING CSV OPTIONS ('header' = 'true')
@@ -76,6 +96,7 @@ INSERT OVERWRITE DIRECTORY 'abfss://gold@stpedaliadev.dfs.core.windows.net/uso_p
 USING CSV OPTIONS ('header' = 'true')
 SELECT * FROM pedalia.gold.uso_por_barrio;
 ```
+:::
 
 `OVERWRITE` reemplaza la carpeta completa: queda un archivo `part-00000-….csv` y un `_SUCCESS` vacío. Ese `_SUCCESS` es la señal, para quien lee, de que la escritura terminó entera. Míralo en el portal (contenedor `gold`) o con:
 

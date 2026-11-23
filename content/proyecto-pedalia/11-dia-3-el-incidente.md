@@ -73,13 +73,26 @@ Y otro al equipo de la app: "Desde hoy las fechas llegan como DD/MM/AAAA HH:MM, 
 
 El contrato cambia: aceptar los dos formatos. El SQL de silver también:
 
+<details><summary>Pista</summary>
+
+`try_to_timestamp` devuelve NULL en vez de fallar si el texto no tiene ese formato; `coalesce` se queda con el primero que funciona.
+</details>
+
+:::solucion PD:Silver | los dos formatos de fecha
 ```sql norun
 coalesce(try_to_timestamp(inicio, 'yyyy-MM-dd HH:mm:ss'), try_to_timestamp(inicio, 'dd/MM/yyyy HH:mm')) AS inicio,
 coalesce(try_to_timestamp(fin,    'yyyy-MM-dd HH:mm:ss'), try_to_timestamp(fin,    'dd/MM/yyyy HH:mm')) AS fin,
 ```
+:::
 
 ¿Y si mañana llega un tercer formato? Con `coalesce` de dos `try_to_timestamp`, una fecha con otro formato quedaría NULL y el viaje se perdería en silencio, justo lo que acabamos de evitar. Agrega una **alarma**: si alguna fecha no se pudo leer, el job falla.
 
+<details><summary>Pista</summary>
+
+Si queda alguna fila con `inicio` no vacío pero sin poder convertir, el job tiene que **fallar** (y avisar), no publicar a medias. En Databricks SQL, `raise_error('…')` dentro de un `SELECT` corta la ejecución.
+</details>
+
+:::solucion PD:Silver | la alarma ante un formato desconocido
 ```sql norun
 -- al final de la tarea bronze_y_silver
 SELECT CASE WHEN COUNT(*) > 0 THEN raise_error(CONCAT(COUNT(*), ' viajes con una fecha que no tiene formato conocido'))
@@ -88,6 +101,7 @@ FROM pedalia.bronze.viajes
 WHERE inicio IS NOT NULL
   AND coalesce(try_to_timestamp(inicio, 'yyyy-MM-dd HH:mm:ss'), try_to_timestamp(inicio, 'dd/MM/yyyy HH:mm')) IS NULL;
 ```
+:::
 
 En el repositorio:
 
@@ -131,6 +145,12 @@ Si algo no cuadra, el panel dice qué y dónde. Las causas más comunes: un día
 
 Un incidente no termina cuando vuelve el verde: termina cuando se escribió qué aprendió el equipo. Sin culpas: el objetivo es que no se repita, no encontrar a quién señalar.
 
+<details><summary>Pista</summary>
+
+Sin culpas y con hechos: qué pasó (con horas), el impacto, la causa, cómo se detectó, qué se arregló y qué acciones quedan, cada una con responsable.
+</details>
+
+:::solucion PD:Silver | un postmortem posible
 ```markdown
 # Postmortem · pedalia_diario 11/11/2026
 
@@ -156,6 +176,7 @@ Los datos del 11/11 se publicaron a las 8:40, con 1 h 28 min de demora. No se pu
 2. Control de formato al inicio de la ingesta, antes de Databricks (responsable: equipo de datos). Fecha: 18/11.
 3. Alerta automática al canal cuando falla pedalia_diario (responsable: equipo de datos). Fecha: 13/11.
 ```
+:::
 
 Súbelo a `docs/postmortems/2026-11-11-formato-fecha.md` con un PR.
 

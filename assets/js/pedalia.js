@@ -16,7 +16,7 @@
   const NOMBRES = ['Plaza Mayor', 'Mercado Central', 'Terminal Norte', 'Rambla Este', 'Parque Lineal', 'Hospital Viejo', 'Universidad', 'Dique Seco',
     'Estación Sur', 'Biblioteca', 'Cerro Bajo', 'Puente Azul', 'Faro', 'Plaza de los Pinos', 'Club Náutico', 'Avenida del Río', 'Molino Rojo', 'Feria Franca',
     'Escuela 12', 'Cancha Grande', 'Polo Tecnológico', 'Costanera', 'Jardín Botánico', 'Barrio Obrero'];
-  const N_BICIS = 180;
+  const N_BICIS = 1500; // flota de una red mediana: ~1.500 bicis y ~4.800 viajes en un día hábil
 
   // ---------------------------------------------------------------- semilla del estudiante
   const almacen = () => (window.__almacen && window.__almacen()) || null;
@@ -50,7 +50,7 @@
     const R = azar(s * 31 + nDia * 977);
     const base = Date.UTC(+fecha.slice(0, 4), +fecha.slice(5, 7) - 1, +fecha.slice(8, 10));
     const lluvia = nDia === 2; // el martes llovió: menos viajes
-    const n = Math.round((480 + R.int(-40, 60)) * (lluvia ? 0.72 : 1));
+    const n = Math.round((4800 + R.int(-300, 500)) * (lluvia ? 0.72 : 1));
     const horas = Array.from({ length: 18 }, (_, i) => i + 6), pesos = horas.map((h) => (h === 8 || h === 18 ? 10 : h === 7 || h === 9 || h === 17 || h === 19 ? 7 : h >= 12 && h <= 14 ? 5 : h >= 22 ? 1.5 : 3));
     const reales = [];
     for (let i = 0; i < n; i++) {
@@ -63,7 +63,7 @@
       const tipo = R.chance(0.68) ? 'abono' : 'pase_dia';
       const minutos = (fin - inicio) / 60e3;
       const monto = tipo === 'abono' ? (minutos <= 30 ? 0 : Math.ceil((minutos - 30) / 15) * 150) : 450 + (minutos > 45 ? Math.ceil((minutos - 45) / 15) * 150 : 0);
-      const v = { viaje_id: 100000 + nDia * 10000 + i, bici_id: `B-${pad(R.int(1, N_BICIS), 4)}`, estacion_origen: origen, estacion_destino: destino, inicio, fin, tipo_usuario: tipo, monto };
+      const v = { viaje_id: 1000000 + nDia * 100000 + i, bici_id: `B-${pad(R.int(1, N_BICIS), 4)}`, estacion_origen: origen, estacion_destino: destino, inicio, fin, tipo_usuario: tipo, monto };
       // problemas reales de la fuente
       if (R.chance(0.015)) v.problema = 'en_curso'; // la bici no se devolvió antes de exportar
       else if (origen === 13 && R.chance(0.35)) v.problema = 'reloj'; // el reloj de la estación 13 atrasa
@@ -90,7 +90,7 @@
     const csv = 'viaje_id,bici_id,estacion_origen,estacion_destino,inicio,fin,tipo_usuario,monto\n' + filas.map((f) => f.join(',')).join('\n') + '\n';
     const RM = azar(s * 53 + nDia * 131);
     const tipos = ['pinchazo', 'frenos', 'cadena', 'luces', 'asiento'], costos = { pinchazo: 900, frenos: 2400, cadena: 1800, luces: 700, asiento: 1100 };
-    const mant = Array.from({ length: RM.int(9, 16) }, (_, i) => { const t = RM.pick(tipos); return [`OT-${nDia}${pad(i + 1, 3)}`, `B-${pad(RM.int(1, N_BICIS), 4)}`, fecha, t, (costos[t] + RM.int(-100, 300)).toFixed(2)]; });
+    const mant = Array.from({ length: RM.int(110, 170) }, (_, i) => { const t = RM.pick(tipos); return [`OT-${nDia}${pad(i + 1, 4)}`, `B-${pad(RM.int(1, N_BICIS), 4)}`, fecha, t, (costos[t] + RM.int(-100, 300)).toFixed(2)]; });
     return {
       fecha,
       archivos: {
@@ -141,7 +141,7 @@ Archivos que exporta el sistema de la app todos los días a las 02:00.
 | Columna | Descripción |
 |---|---|
 | viaje_id | Identificador del viaje |
-| bici_id | Bicicleta (B-0001 … B-0180) |
+| bici_id | Bicicleta (B-0001 … B-1500) |
 | estacion_origen / estacion_destino | Id de estación (ver estaciones.json) |
 | inicio / fin | Fecha y hora, hora local |
 | tipo_usuario | abono (mensual) o pase_dia |
@@ -251,6 +251,15 @@ Siguiente paso: subirlos al contenedor landing del lago, por ejemplo:
 
   const CHEQUEOS = [
     ['Los datos', 'Exportaste al menos el día 1 con pedalia exportar', async () => exportados().length ? true : 'En la terminal: pedalia exportar --dia 1'],
+    ['Contrato', 'docs/contrato.md en pedalia-datos dice qué hacer con repetidos, viajes sin fin, error de reloj y destino 99', async () => {
+      const G = window.Shell && window.Shell.github; const rem = G && G.remotos ? G.remotos() : {};
+      const [, r] = Object.entries(rem).find(([u]) => /\/pedalia-datos(\.git)?$/i.test(u)) || []; if (!r) return 'Primero sube el repositorio pedalia-datos al GitHub de práctica.';
+      // en cualquier rama: el contrato se discute en un pull request antes de llegar a main
+      const txt = Object.values(r.branches || {}).map((h) => (((r.commits || {})[h] || {}).snap || {})['docs/contrato.md']).find((x) => typeof x === 'string');
+      if (!txt) return 'No encuentro docs/contrato.md en ninguna rama de pedalia-datos (súbelo con git push).';
+      const falta = [[/repet|duplic/i, 'qué pasa con las filas repetidas'], [/sin fin|en curso|no termin/i, 'los viajes sin fin (en curso)'], [/reloj|fin\s*<\s*inicio|antes de (empezar|inicio)/i, 'los viajes que terminan antes de empezar (reloj)'], [/\b99\b/, 'el destino 99 (fuera de estación)'], [/control|cierra|cuadra/i, 'la cuenta de control']].filter(([re]) => !re.test(txt)).map((x) => x[1]);
+      return !falta.length || `Al contrato le falta: ${falta.join(', ')}.`;
+    }],
     ['GitHub', 'El repositorio pedalia-datos existe en el GitHub de práctica', async () => {
       const G = window.Shell && window.Shell.github; const rem = G && G.remotos ? G.remotos() : {};
       return Object.keys(rem).some((u) => /\/pedalia-datos(\.git)?$/i.test(u)) || 'Créalo en el GitHub de práctica (New repository → pedalia-datos), agrégalo como remoto y haz git push.';
@@ -289,11 +298,11 @@ Siguiente paso: subirlos al contenedor landing del lago, por ejemplo:
       const enBronze = blobs(c[1], 'bronze').some((b) => /viajes/.test(b));
       return (ok && enBronze) || `${ok ? '' : 'Publica el pipeline (Publish all) y córrelo (Trigger now o desde Airflow). '}${enBronze ? '' : 'Todavía no hay archivos de viajes en bronze.'}`;
     }],
-    ['Databricks', 'Una ubicación externa (external location) sobre el lago', async () => {
+    ['Lago en Databricks', 'Una ubicación externa (external location) sobre el lago', async () => {
       if (!(await cargar('databricks', () => window.DBSQL))) return 'No se pudo cargar Databricks.';
       await window.DBSQL.init({ Store: almacen() }); const U = window.DBSQL.uc(); return Object.keys(U.extLocs || {}).length ? true : "CREATE EXTERNAL LOCATION lago_pedalia URL 'abfss://bronze@<cuenta>.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago)";
     }],
-    ['Databricks', 'pedalia.silver.viajes tiene los viajes válidos de cada día (según el contrato)', async () => {
+    ['Silver', 'pedalia.silver.viajes tiene los viajes válidos de cada día (según el contrato)', async () => {
       let f; try { f = await filasDbx('SELECT CAST(fecha AS STRING) AS fecha, COUNT(*) AS n, COUNT(DISTINCT viaje_id) AS u FROM pedalia.silver.viajes GROUP BY fecha ORDER BY fecha'); } catch (e) { return `No se pudo leer pedalia.silver.viajes: ${e.message.split('\n')[0]}`; }
       if (!f.length) return 'La tabla está vacía.';
       const mal = [];
@@ -302,14 +311,14 @@ Siguiente paso: subirlos al contenedor landing del lago, por ejemplo:
       if (faltan.length) mal.push(`faltan días exportados: ${faltan.join(', ')}`);
       return !mal.length || mal.join(' · ');
     }],
-    ['Databricks', 'pedalia.gold.ingresos_diarios cuadra con los viajes válidos', async () => {
+    ['Gold', 'pedalia.gold.ingresos_diarios cuadra con los viajes válidos', async () => {
       let f; try { f = await filasDbx('SELECT CAST(fecha AS STRING), tipo_usuario, viajes, ingresos FROM pedalia.gold.ingresos_diarios'); } catch (e) { return `No se pudo leer pedalia.gold.ingresos_diarios: ${e.message.split('\n')[0]}`; }
       if (!f.length) return 'La tabla está vacía.';
       const mal = [];
       for (const [fecha, tipo, viajes, ing] of f) { const d = fechaDe(String(fecha).slice(0, 10)); if (!d) continue; const v = verdad(d).ingresos[tipo]; if (!v) { mal.push(`${fecha}: tipo_usuario '${tipo}' no existe`); continue; } if (Number(viajes) !== v.viajes || !casi(ing, v.ingresos)) mal.push(`${fecha} ${tipo}: ${viajes} viajes / ${ing} y el contrato da ${v.viajes} / ${v.ingresos}`); }
       return !mal.length || mal.join(' · ');
     }],
-    ['Databricks', 'Las tablas gold se exportaron como archivos al contenedor gold', async () => { const c = cuentaLago(); if (!c) return 'Falta la cuenta del lago.'; const b = blobs(c[1], 'gold'); return (b.some((x) => /ingresos/.test(x)) && b.some((x) => /barrio/.test(x))) || "Con INSERT OVERWRITE DIRECTORY 'abfss://gold@<cuenta>.dfs.core.windows.net/ingresos_diarios' USING CSV OPTIONS ('header' = 'true') SELECT … (y lo mismo para uso_por_barrio)."; }],
+    ['Gold', 'Las tablas gold se exportaron como archivos al contenedor gold', async () => { const c = cuentaLago(); if (!c) return 'Falta la cuenta del lago.'; const b = blobs(c[1], 'gold'); return (b.some((x) => /ingresos/.test(x)) && b.some((x) => /barrio/.test(x))) || "Con INSERT OVERWRITE DIRECTORY 'abfss://gold@<cuenta>.dfs.core.windows.net/ingresos_diarios' USING CSV OPTIONS ('header' = 'true') SELECT … (y lo mismo para uso_por_barrio)."; }],
     ['Airflow', 'El DAG pedalia_diario disparó Data Factory, Databricks, Snowflake y BigQuery', async () => {
       if (!(await cargar('airflow', () => window.AirflowMotor))) return 'No se pudo cargar Airflow.';
       const c = window.AirflowMotor.st().cruces || {};
@@ -343,7 +352,7 @@ Siguiente paso: subirlos al contenedor landing del lago, por ejemplo:
     el.innerHTML = `<div class="card pedalia-panel"><h3 style="margin-top:0;font-size:1.05em">🔎 Revisar mi proyecto</h3><p class="small muted">Lee el estado real de cada herramienta de práctica y lo compara con lo que tiene que dar tu entrega (tus números). No modifica nada.</p><button class="btn btn-primary btn-sm" data-revisar>Revisar ahora</button><ol class="pedalia-chequeos"></ol></div>`;
     const lista = el.querySelector('.pedalia-chequeos');
     el.querySelector('[data-revisar]').addEventListener('click', async (ev) => {
-      const b = ev.currentTarget; b.disabled = true; b.textContent = 'Revisando…'; lista.innerHTML = '';
+      const b = ev.currentTarget; b.disabled = true; if (window.__discoListo) await window.__discoListo(); b.textContent = 'Revisando…'; lista.innerHTML = '';
       let bien = 0;
       for (const [grupo, texto, prueba] of CHEQUEOS) {
         const li = document.createElement('li'); li.innerHTML = `<span class="spinner"></span> <b>${esc(grupo)}</b> · ${esc(texto)}`; lista.append(li);

@@ -9,7 +9,7 @@ autoevaluacion: ¿Sabes qué preguntar cuando alguien pide "ver cómo vamos"? | 
 ---
 
 :::escenario Lunes, 9:15
-Empiezas en **Pedalia**, una red de bicicletas compartidas con 24 estaciones y 180 bicis en Ciudad del Río. Hasta hoy, los números salían de una planilla que alguien armaba a mano cada lunes. Tu jefa te reenvía tres mensajes y escribe: "Hay que armar esto bien. Tienes dos semanas. Primero mándame un plan".
+Empiezas en **Pedalia**, una red de bicicletas compartidas con 24 estaciones grandes y 1.500 bicis en Ciudad del Río: unos **4.800 viajes en un día hábil** (menos cuando llueve) y más de 100 órdenes de taller por día. Hasta hoy, los números salían de una planilla que alguien armaba a mano cada lunes, y ya no da abasto. Tu jefa te reenvía tres mensajes y escribe: "Hay que armar esto bien. Tienes dos semanas. Primero mándame un plan".
 :::
 
 ## Los tres pedidos, tal cual llegaron

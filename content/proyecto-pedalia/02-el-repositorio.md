@@ -2,7 +2,7 @@
 titulo: El repositorio - el proyecto vive en GitHub desde el primer minuto
 nivel: Intermedio
 duracion: 40
-resumen: Antes de mover un solo dato, creas el repositorio pedalia-datos en el GitHub de práctica, con una estructura pensada para que otra persona lo entienda, una rama principal protegida, un workflow de Actions que valida cada cambio y una variable para desplegar el DAG. Así trabajan los equipos de datos de verdad.
+resumen: Antes de mover un solo dato, creas tú el repositorio pedalia-datos en el GitHub de práctica, con una estructura pensada para que otra persona lo entienda, una rama principal protegida, un workflow de Actions que valida cada cambio y una variable para desplegar el DAG. Así trabajan los equipos de datos de verdad.
 objetivos: Crear un repositorio y subirlo desde la terminal | Organizar carpetas para DAGs, SQL, pipelines y documentación | Escribir un workflow de GitHub Actions que valide y despliegue | Proteger la rama principal para que todo cambio pase por un pull request
 prerrequisitos: proyecto-pedalia-el-encargo | github-que-es-github
 autoevaluacion: ¿Sabes qué va en cada carpeta del repositorio? | ¿Sabes qué hace cada paso de tu ci.yml? | ¿Sabes por qué la ruta de despliegue es una variable y no está escrita en el workflow? | ¿Sabes qué pasa si alguien intenta empujar directo a main?
@@ -48,8 +48,45 @@ git config user.name "Tu Nombre"
 git config user.email "tu@correo.com"
 ```
 
-3. Crea un README mínimo y el primer DAG de prueba (el definitivo llega en la lección de Airflow):
+3. **Crea tú los primeros archivos.** Nada de esto viene hecho; lo que sigue es lo que tiene que haber:
 
+| Archivo | Qué tiene que tener |
+|---|---|
+| `README.md` | Qué es el repositorio (los pipelines de datos de Pedalia), cómo se corre y a quién preguntar |
+| `dags/pedalia_diario.py` | Un DAG mínimo llamado `pedalia_diario`, diario, sin `catchup`, con una sola tarea vacía (el definitivo llega en la lección de Airflow) |
+| `sql/databricks/silver_viajes.sql` y `sql/databricks/gold.sql` | Por ahora un comentario que diga qué van a tener |
+
+<details><summary>Pista 1</summary>
+
+Un archivo de texto se crea desde la terminal con `cat > archivo << 'EOF'` … `EOF` (las comillas en `'EOF'` evitan que el shell reemplace variables adentro), o con el editor del laboratorio.
+</details>
+
+<details><summary>Pista 2</summary>
+
+Un DAG mínimo de Airflow 3: `from airflow.sdk import DAG`, `EmptyOperator` de `airflow.providers.standard.operators.empty`, y `with DAG("pedalia_diario", start_date=…, schedule="@daily", catchup=False):`. Mira [El primer DAG](#/l/airflow-primer-dag) si no lo recuerdas.
+</details>
+
+## 3. El workflow de Actions
+
+Escribe `.github/workflows/ci.yml` con dos jobs. Esta es la especificación:
+
+- Corre **en cada push a `main` y en cada pull request**.
+- Job **`validar`**: baja el código, instala Python 3.12, comprueba que `dags/pedalia_diario.py` **compila** (sin ejecutarlo) y que existen los dos archivos SQL.
+- Job **`desplegar`**: empieza **solo si `validar` terminó bien** y **solo si el cambio está en `main`**; copia los DAGs a la carpeta que dice la variable del repositorio `AIRFLOW_DAGS_DIR`.
+
+Así, un pull request se valida pero no se despliega, y nada llega a Airflow sin pasar la validación.
+
+<details><summary>Pista 1</summary>
+
+"Compila sin ejecutarlo" se puede probar con el módulo `ast` de Python: `ast.parse(open(…).read())` falla si hay un error de sintaxis. "Existe el archivo" se prueba con un `ls` que falla si no está.
+</details>
+
+<details><summary>Pista 2</summary>
+
+`on: push: branches: [main]` y `pull_request:`; `needs: validar` para el orden; `if: github.ref == 'refs/heads/main'` para la condición; la variable se lee como `${{ vars.AIRFLOW_DAGS_DIR }}`. Acciones: `actions/checkout@v4` y `actions/setup-python@v5`.
+</details>
+
+:::solucion PD:GitHub | los primeros archivos y el workflow
 ```bash
 cat > README.md << 'EOF'
 # pedalia-datos
@@ -70,9 +107,7 @@ echo "-- silver de viajes (lección 6)" > sql/databricks/silver_viajes.sql
 echo "-- gold (lección 7)" > sql/databricks/gold.sql
 ```
 
-## 3. El workflow de Actions
-
-Este archivo corre **en cada push y en cada pull request**. El job `validar` revisa que el DAG compile y que el SQL esté en su lugar; el job `desplegar` copia el DAG a Airflow, pero **solo** cuando el cambio llega a `main`.
+El workflow: el job `validar` revisa que el DAG compile y que el SQL esté en su lugar; el job `desplegar` copia el DAG a Airflow, pero **solo** cuando el cambio llega a `main`.
 
 ```bash
 cat > .github/workflows/ci.yml << 'EOF'
@@ -108,6 +143,7 @@ jobs:
           ls "${{ vars.AIRFLOW_DAGS_DIR }}"
 EOF
 ```
+:::
 
 :::nota ¿Por qué la ruta de despliegue es una variable?
 En la vida real, "desplegar un DAG" es copiarlo al lugar que lee Airflow: el bucket de Cloud Composer, el de MWAA en AWS o la carpeta del servidor. Esa ruta cambia entre desarrollo y producción, así que **no se escribe en el workflow**: va en una variable del repositorio. En esta práctica, el Airflow de práctica lee la carpeta `/home/alumno/airflow/dags`.

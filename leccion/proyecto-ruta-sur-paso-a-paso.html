@@ -60,26 +60,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p><code>kcat … -L</code> lista particiones; <code>kcat … -C -t rutasur.telemetria -p 1 -o -2 -e</code> lee los últimos mensajes de una partición. Para la infraestructura, el recorrido es el de los otros proyectos (<code>--hns true</code>, rol <em>Storage Blob Data Contributor</em> para el conector).</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 1, infraestructura y exploración</div>
-
-<pre tabindex="0"><code class="language-bash">ruta accesos
-az login
-az group create -n rg-ruta -l eastus2
-az storage account create -n strutasur -g rg-ruta -l eastus2 --sku Standard_LRS --hns true
-az storage container create --account-name strutasur -n landing
-ID=$(az storage account show -n strutasur -g rg-ruta --query id -o tsv)
-az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID
-az keyvault create -n kv-ruta -g rg-ruta -l eastus2
-az keyvault secret set --vault-name kv-ruta -n eh --value 'Endpoint=sb://…' -o none
-az keyvault secret set --vault-name kv-ruta -n tms --value '…' -o none</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(9)</span></summary><ol><li><code class="bx-linea">ruta accesos</code><span><code>ruta</code>: el sistema interno de Ruta Sur en la terminal del curso. <code>accesos</code> muestra los accesos que te dio IT (la API del TMS y su token)</span></li><li><code class="bx-linea">az login</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>login</code> inicia sesión en tu cuenta de Azure (abre el navegador)</span></li><li><code class="bx-linea">az group create -n rg-ruta -l eastus2</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>group</code> crea, lista o borra grupos de recursos (<code>create</code>). <code>-n</code> = nombre del recurso; <code>-l</code> = región donde se crea el recurso</span></li><li><code class="bx-linea">az storage account create -n strutasur -g rg-ruta -l eastus2 --sku Standard_LRS --hns true</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>account create</code>). <code>-n</code> = nombre del recurso; <code>-g</code> = grupo de recursos donde está o se crea el recurso; <code>-l</code> = región donde se crea el recurso; <code>--sku</code> = el plan o tamaño del recurso (define precio y capacidad)</span></li><li><code class="bx-linea">az storage container create --account-name strutasur -n landing</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>container create</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>role</code> permisos: quién puede hacer qué (RBAC) (<code>assignment create</code>)</span></li><li><code class="bx-linea">az keyvault create -n kv-ruta -g rg-ruta -l eastus2</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>create</code>). <code>-n</code> = nombre del recurso; <code>-g</code> = grupo de recursos donde está o se crea el recurso; <code>-l</code> = región donde se crea el recurso</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-ruta -n eh --value 'Endpoint=sb://…' -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-ruta -n tms --value '…' -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-<pre tabindex="0"><code class="language-bash">kcat -b rutasur-telemetria.servicebus.windows.net:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=PLAIN \
-  -X 'sasl.username=$ConnectionString' -X 'sasl.password=Endpoint=sb://…' -L
-kcat -b rutasur-telemetria.servicebus.windows.net:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=PLAIN \
-  -X 'sasl.username=$ConnectionString' -X 'sasl.password=Endpoint=sb://…' \
-  -C -t rutasur.telemetria -p 1 -o -2 -e -f '%p %o %T %k %s\n'</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(2)</span></summary><ol><li><code class="bx-linea">kcat -b rutasur-telemetria.servicebus.windows.net:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=PLAIN    -X 'sasl.username=$Conne…</code><span><code>kcat</code>: cliente de Kafka en la terminal: lee o escribe mensajes de un tópico. <code>-b</code> = el servidor de Kafka (broker)</span></li><li><code class="bx-linea">kcat -b rutasur-telemetria.servicebus.windows.net:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=PLAIN    -X 'sasl.username=$Conne…</code><span><code>kcat</code>: cliente de Kafka en la terminal: lee o escribe mensajes de un tópico. <code>-b</code> = el servidor de Kafka (broker); <code>-C</code> = modo consumidor: lee mensajes; <code>-t</code> = el tópico; <code>-o</code> = desde qué posición (offset) leer; <code>-e</code> = sale al llegar al final</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 1, infraestructura y exploración</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 2 · El plan del TMS</h2>
@@ -96,27 +77,7 @@ kcat -b rutasur-telemetria.servicebus.windows.net:9093 -X security.protocol=SASL
 <p><code>GET /v1/rutas?fecha=AAAA-MM-DD</code> con el header <code>X-Api-Key</code>. La respuesta trae <code>rutas[]</code> y cada ruta, sus <code>pedidos[]</code>: aplánalos agregando la fecha y el vehículo.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 2, el plan del TMS</div>
-
-<pre data-norun tabindex="0"><code class="language-python">import requests, json, os
-from datetime import date, timedelta
-H = {&quot;X-Api-Key&quot;: os.environ[&quot;RS_KEY&quot;]}
-hoy = date.fromisoformat(os.environ[&quot;HOY&quot;])
-n = 0
-with open(&quot;plan.jsonl&quot;, &quot;w&quot;) as out:
-    for k in range(1, 9):
-        f = (hoy - timedelta(days=k)).isoformat()
-        r = requests.get(&quot;https://api.rutasur.example/v1/rutas&quot;, params={&quot;fecha&quot;: f}, headers=H)
-        if r.status_code != 200:
-            print(f, r.status_code); continue
-        for ruta in r.json()[&quot;rutas&quot;]:
-            for p in ruta[&quot;pedidos&quot;]:
-                out.write(json.dumps({&quot;fecha&quot;: f, &quot;vehiculo&quot;: ruta[&quot;vehiculo&quot;], **p}) + &quot;\n&quot;); n += 1
-print(n, &quot;pedidos&quot;)</code></pre>
-<pre tabindex="0"><code class="language-bash">RS_KEY=… HOY=$(date +%F) python ~/plan.py
-az storage blob upload --account-name strutasur -c landing -n tms/plan.jsonl -f ~/plan.jsonl --overwrite</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">az storage blob upload --account-name strutasur -c landing -n tms/plan.jsonl -f ~/plan.jsonl --overwrite</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload</code>). <code>-n</code> = nombre del recurso</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 2, el plan del TMS</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 3 · Bronze: la streaming table</h2>
@@ -133,25 +94,7 @@ az storage blob upload --account-name strutasur -c landing -n tms/plan.jsonl -f 
 <p><code>CREATE OR REFRESH STREAMING TABLE … AS SELECT … FROM STREAM read_kafka(…)</code> con <code>startingOffsets =&gt; &#39;earliest&#39;</code> la primera vez, y <code>REFRESH STREAMING TABLE</code> después.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 3, bronze desde Kafka</div>
-
-<pre data-norun tabindex="0"><code class="language-sql">CREATE EXTERNAL LOCATION lago_ruta URL 'abfss://landing@strutasur.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
-CREATE CATALOG IF NOT EXISTS ruta;
-CREATE SCHEMA IF NOT EXISTS ruta.bronze; CREATE SCHEMA IF NOT EXISTS ruta.silver; CREATE SCHEMA IF NOT EXISTS ruta.gold;
-
-CREATE OR REFRESH STREAMING TABLE ruta.bronze.telemetria AS
-SELECT CAST(value AS STRING) AS valor, partition, offset, timestamp AS ts_ingesta
-FROM STREAM read_kafka(
-  bootstrapServers =&gt; 'rutasur-telemetria.servicebus.windows.net:9093',
-  subscribe =&gt; 'rutasur.telemetria',
-  startingOffsets =&gt; 'earliest',
-  `kafka.security.protocol` =&gt; 'SASL_SSL',
-  `kafka.sasl.mechanism` =&gt; 'PLAIN',
-  `kafka.sasl.jaas.config` =&gt; 'kafkashaded.org.apache.kafka.common.security.plain.PlainLoginModule required username=&quot;$ConnectionString&quot; password=&quot;Endpoint=sb://…&quot;;');
-
--- cada día (o cada hora):
-REFRESH STREAMING TABLE ruta.bronze.telemetria;</code></pre>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 3, bronze desde Kafka</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 4 · Silver: un formato, un evento por fila</h2>
@@ -172,24 +115,7 @@ REFRESH STREAMING TABLE ruta.bronze.telemetria;</code></pre>
 <p>Para quedarte con la primera copia de cada evento: <code>ROW_NUMBER() OVER (PARTITION BY event_id ORDER BY ts_ingesta)</code> y filtrar <code>rn = 1</code>. 1 m/s son 3,6 km/h.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 4, silver normalizada</div>
-
-<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE ruta.silver.telemetria AS
-SELECT event_id, vehiculo, tipo, ts_evento, ts_ingesta, lat, lon, velocidad_kmh, pedido_id FROM (
-  SELECT valor:event_id AS event_id,
-         coalesce(valor:vehiculo, valor:vehicle) AS vehiculo,
-         coalesce(valor:evento, valor:type) AS tipo,
-         CASE WHEN valor:fw = '2.0' THEN timestamp_millis(CAST(valor:ts AS BIGINT))
-              ELSE CAST(valor:ts_dispositivo AS TIMESTAMP) END AS ts_evento,
-         ts_ingesta,
-         CAST(valor:lat AS DOUBLE) AS lat, CAST(valor:lon AS DOUBLE) AS lon,
-         CASE WHEN valor:fw = '2.0' THEN round(CAST(valor:speed_mps AS DOUBLE) * 3.6, 0)
-              ELSE CAST(valor:velocidad_kmh AS DOUBLE) END AS velocidad_kmh,
-         coalesce(valor:pedido_id, valor:order_id) AS pedido_id,
-         ROW_NUMBER() OVER (PARTITION BY valor:event_id ORDER BY ts_ingesta) AS rn
-  FROM ruta.bronze.telemetria) x
-WHERE rn = 1;</code></pre>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 4, silver normalizada</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 5 · Gold: cada pedido del plan con su entrega</h2>
@@ -211,40 +137,7 @@ WHERE rn = 1;</code></pre>
 <p>Si <code>ts_evento</code> supera a <code>ts_ingesta</code> por más de unos minutos, ese reloj está mal: corrige restando el adelanto solo en ese caso. <code>read_files(…, format =&gt; &#39;json&#39;)</code> lee el plan del lago.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: Paso 5, gold y el SLA</div>
-
-<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TEMP VIEW plan AS
-SELECT * FROM read_files('abfss://landing@strutasur.dfs.core.windows.net/tms/plan.jsonl', format =&gt; 'json');
-
-CREATE OR REPLACE TEMP VIEW ent AS
-SELECT pedido_id, tipo,
-       CASE WHEN vehiculo = 'V13' AND unix_timestamp(ts_evento) &gt; unix_timestamp(ts_ingesta) + 600
-            THEN unix_timestamp(ts_evento) - 7200 ELSE unix_timestamp(ts_evento) END AS t
-FROM ruta.silver.telemetria
-WHERE tipo IN ('entrega_completada', 'entrega_fallida');</code></pre>
-<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE ruta.gold.entregas AS
-SELECT p.pedido_id, p.vehiculo, p.fecha, p.zona, p.ventana_inicio, p.ventana_fin,
-       CASE WHEN e.tipo = 'entrega_completada' THEN 'completada'
-            WHEN e.tipo = 'entrega_fallida' THEN 'fallida' ELSE 'sin_evento' END AS estado,
-       from_unixtime(e.t) AS ts_entrega,
-       CASE WHEN e.tipo = 'entrega_completada'
-             AND e.t BETWEEN unix_timestamp(p.ventana_inicio) AND unix_timestamp(p.ventana_fin) THEN true ELSE false END AS a_tiempo
-FROM plan p LEFT JOIN ent e ON e.pedido_id = p.pedido_id;
-
-CREATE OR REPLACE TABLE ruta.gold.sla_diario AS
-SELECT fecha, zona, count(*) AS pedidos,
-       sum(CASE WHEN a_tiempo THEN 1 ELSE 0 END) AS a_tiempo,
-       sum(CASE WHEN estado = 'fallida' THEN 1 ELSE 0 END) AS fallidas
-FROM ruta.gold.entregas GROUP BY fecha, zona;</code></pre>
-<pre data-norun tabindex="0"><code class="language-sql">-- % a tiempo de un día
-SELECT round(100.0 * sum(CASE WHEN a_tiempo THEN 1 ELSE 0 END) / count(*), 1)
-FROM ruta.gold.entregas WHERE fecha = '2026-11-18';
-
--- cuántos eventos de un día llegaron con más de 15 minutos de demora
-SELECT count(*) FROM ruta.silver.telemetria
-WHERE substr(CAST(from_unixtime(unix_timestamp(ts_evento) - 10800) AS STRING), 1, 10) = '2026-11-18'
-  AND unix_timestamp(ts_ingesta) - unix_timestamp(ts_evento) &gt; 900;</code></pre>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: Paso 5, gold y el SLA</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 6 · Todos los días</h2>

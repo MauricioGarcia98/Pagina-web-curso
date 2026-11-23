@@ -469,7 +469,20 @@ ${icono}<style>${css}</style></head><body>
 </body></html>
 `;
   // el HTML de la lección trae piezas interactivas que necesitan la app: se quitan para la versión de lectura
-  const limpiar = (h) => h.replace(/<script[\s\S]*?<\/script>/gi, '').replace(/ data-[\w-]+="[^"]*"/g, '');
+  // las soluciones de referencia de los proyectos se abren en la app cuando la entrega pasa la revisión: en la versión
+  // de lectura no se publican (si no, quien llega desde un buscador ve el código antes de intentarlo)
+  const quitarSoluciones = (h) => {
+    const marca = '<div class="callout callout-solucion"'; let i;
+    while ((i = h.indexOf(marca)) >= 0) {
+      const re = /<\/?div\b/g; re.lastIndex = i; let prof = 0, m, fin = -1;
+      while ((m = re.exec(h))) { if (m[0] === '<div') prof++; else if (--prof === 0) { fin = h.indexOf('>', m.index) + 1; break; } }
+      if (fin < 0) break;
+      const t = /<div class="callout-title">([\s\S]*?)<\/div>/.exec(h.slice(i, fin));
+      h = h.slice(0, i) + `<div class="callout"><div class="callout-title">${t ? t[1] : '🔒 Solución de referencia'}</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>` + h.slice(fin);
+    }
+    return h;
+  };
+  const limpiar = (h) => quitarSoluciones(h).replace(/<script[\s\S]*?<\/script>/gi, '').replace(/ data-[\w-]+="[^"]*"/g, '');
   const todas = modules.flatMap((m) => m.lecciones.map((l) => ({ m, l })));
   todas.forEach(({ m, l }, i) => {
     const ant = todas[i - 1], sig = todas[i + 1];

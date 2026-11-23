@@ -80,16 +80,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <p><code>ssh-keygen -t ed25519 -f …</code>, <code>red alta-clave &lt;la .pub&gt;</code>, y <code>ssh-keyscan -p 2222 &lt;host&gt;</code> para guardar la huella. Compárala con la del correo antes de confiar.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: el acceso</div>
-
-<pre tabindex="0"><code class="language-bash">red accesos
-ssh-keygen -t ed25519 -f ~/.ssh/red_analitica -C equipo
-red alta-clave ~/.ssh/red_analitica.pub     # la pública, nunca la privada
-red estado
-ssh-keyscan -p 2222 sftp.redanalitica.example &gt;&gt; ~/.ssh/known_hosts</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(5)</span></summary><ol><li><code class="bx-linea">red accesos</code><span><code>red</code>: el sistema interno de Red Analítica en la terminal del curso. <code>accesos</code> muestra el correo de IT con host, puerto, usuario y la huella del servidor SFTP</span></li><li><code class="bx-linea">ssh-keygen -t ed25519 -f ~/.ssh/red_analitica -C equipo</code><span><code>ssh-keygen</code>: crea un par de claves SSH: la privada (queda en tu computadora) y la pública (.pub, la que se comparte). <code>-t</code> = el tipo de clave (ed25519 es la recomendada); <code>-f</code> = dónde guardarla; <code>-C</code> = un comentario para reconocerla (tu correo)</span></li><li><code class="bx-linea">red alta-clave ~/.ssh/red_analitica.pub</code><span><code>red</code>: el sistema interno de Red Analítica en la terminal del curso. <code>alta-clave</code> le pide a IT que autorice tu clave SSH pública (nunca la privada)<br><i class="bx-com">Nota del ejemplo: la pública, nunca la privada</i></span></li><li><code class="bx-linea">red estado</code><span><code>red</code>: el sistema interno de Red Analítica en la terminal del curso. <code>estado</code> muestra si tu clave ya está autorizada</span></li><li><code class="bx-linea">ssh-keyscan -p 2222 sftp.redanalitica.example &gt;&gt; ~/.ssh/known_hosts</code><span><code>ssh-keyscan</code>: obtiene la huella del servidor para compararla con la que te dio IT antes de confiar en él. <code>&gt;&gt;</code> agrega al final del archivo</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-<p><code>ssh-keyscan</code> guarda la huella del servidor en <code>known_hosts</code>. Sin eso, el modo por lotes (<code>-b</code>) falla: no hay nadie para contestar &quot;¿confías en este servidor?&quot;. En un trabajo real, la huella se verifica con el proveedor antes de aceptarla.</p>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: el acceso</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 2 · Bajar los archivos y mirarlos de verdad</h2>
@@ -111,50 +102,7 @@ ssh-keyscan -p 2222 sftp.redanalitica.example &gt;&gt; ~/.ssh/known_hosts</code>
 <p>Una forma de encontrar filas repetidas en un archivo sin mirar: <code>sort archivo | uniq -d | wc -l</code>. Y para ver qué laboratorio entregó qué día, <code>ls -l</code> dentro de <code>sftp</code> (la hora es la de llegada al servidor).</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: bajar y mirar</div>
-
-<pre tabindex="0"><code class="language-bash">printf 'cd /entrantes\nls -l norte\nls -l cerro\n' &gt; ~/ver.txt
-sftp -b ~/ver.txt -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example
-
-mkdir -p ~/red/norte ~/red/centro ~/red/sur ~/red/costa ~/red/cerro
-printf 'lcd ~/red/norte\nmget /entrantes/norte/*\nlcd ~/red/centro\nmget /entrantes/centro/*\nlcd ~/red/sur\nmget /entrantes/sur/*\nlcd ~/red/costa\nmget /entrantes/costa/*\nlcd ~/red/cerro\nmget /entrantes/cerro/*\n' &gt; ~/bajar.txt
-sftp -b ~/bajar.txt -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example
-
-file ~/red/centro/* | head -3      # ISO-8859 text: no es UTF-8
-head -5 ~/red/costa/&quot;$(ls ~/red/costa | head -1)&quot;    # comillas: el nombre tiene espacios</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(7)</span></summary><ol><li><code class="bx-linea">printf 'cd /entrantes\nls -l norte\nls -l cerro\n' &gt; ~/ver.txt</code><span><code>printf</code>: escribe texto con formato (como echo, pero controlando saltos de línea y columnas). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li><li><code class="bx-linea">sftp -b ~/ver.txt -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example</code><span><code>sftp</code>: se conecta a un servidor SFTP para subir o bajar archivos de forma segura. <code>-b</code> = ejecuta los comandos de un archivo; <code>-i</code> = la clave privada que usas para entrar; <code>-P</code> = el puerto</span></li><li><code class="bx-linea">mkdir -p ~/red/norte ~/red/centro ~/red/sur ~/red/costa ~/red/cerro</code><span><code>mkdir</code>: crea una carpeta. <code>-p</code> = crea también las carpetas intermedias y no falla si ya existe</span></li><li><code class="bx-linea">printf 'lcd ~/red/norte\nmget /entrantes/norte/*\nlcd ~/red/centro\nmget /entrantes/centro/*\nlcd ~/red/sur\nmget /entrantes/sur/*\nlcd ~…</code><span><code>printf</code>: escribe texto con formato (como echo, pero controlando saltos de línea y columnas). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li><li><code class="bx-linea">sftp -b ~/bajar.txt -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example</code><span><code>sftp</code>: se conecta a un servidor SFTP para subir o bajar archivos de forma segura. <code>-b</code> = ejecuta los comandos de un archivo; <code>-i</code> = la clave privada que usas para entrar; <code>-P</code> = el puerto</span></li><li><code class="bx-linea">file ~/red/centro/* | head -3</code><span><code>file</code>: dice qué tipo de archivo es y su codificación (UTF-8, Latin-1…) <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas). <code>-3</code> = las primeras 3 líneas<br><i class="bx-com">Nota del ejemplo: ISO-8859 text: no es UTF-8</i></span></li><li><code class="bx-linea">head -5 ~/red/costa/&quot;$(ls ~/red/costa | head -1)&quot;</code><span><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas). <code>-5</code> = las primeras 5 líneas<br><i class="bx-com">Nota del ejemplo: comillas: el nombre tiene espacios</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-<div class="table-wrap"><table><thead><tr>
-<th>Laboratorio</th>
-<th>Formato</th>
-<th>Trampas</th>
-</tr>
-</thead><tbody><tr>
-<td>Norte</td>
-<td>CSV con coma</td>
-<td>El documento con puntos</td>
-</tr>
-<tr>
-<td>Centro</td>
-<td>CSV con <code>;</code> en Latin-1</td>
-<td>Códigos de prestación numéricos, coma decimal; cambia el formato de fecha al migrar de sistema</td>
-</tr>
-<tr>
-<td>Sur</td>
-<td>JSON por líneas, en inglés</td>
-<td>Unidades internacionales (mmol/L, g/L, µmol/L); reenvía archivos corregidos con <code>_v2</code></td>
-</tr>
-<tr>
-<td>Costa</td>
-<td>Exportación de Excel</td>
-<td>Tres filas de título, fila de &quot;Total&quot;, fechas como número de serie de Excel</td>
-</tr>
-<tr>
-<td>Cerro</td>
-<td>TSV</td>
-<td>Fechas en UTC, filas duplicadas, a veces falta un día</td>
-</tr>
-</tbody></table></div>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: bajar y mirar</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 3 · Al lago, y los secretos al Key Vault</h2>
@@ -171,20 +119,7 @@ head -5 ~/red/costa/&quot;$(ls ~/red/costa | head -1)&quot;    # comillas: el no
 <p><code>az storage account create … --hns true</code>, <code>az role assignment create --assignee unity-catalog-access-connector</code>, <code>az storage blob upload-batch</code>, <code>az keyvault create</code> y <code>az keyvault secret set --value &quot;$(cat …)&quot;</code>.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: el lago y el Key Vault</div>
-
-<pre tabindex="0"><code class="language-bash">az login
-az group create -n rg-red -l eastus2
-az storage account create -n stred -g rg-red -l eastus2 --sku Standard_LRS --hns true
-az storage container create --account-name stred -n landing
-ID=$(az storage account show -n stred -g rg-red --query id -o tsv)
-az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID
-az storage blob upload-batch --account-name stred -d landing/red -s ~/red
-az keyvault create -n kv-red -g rg-red -l eastus2
-az keyvault secret set --vault-name kv-red -n sftp-clave --value &quot;$(cat ~/.ssh/red_analitica)&quot; -o none
-az keyvault secret set --vault-name kv-red -n seudonimo-sal --value &quot;s4l-r3d-2026&quot; -o none</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(9)</span></summary><ol><li><code class="bx-linea">az login</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>login</code> inicia sesión en tu cuenta de Azure (abre el navegador)</span></li><li><code class="bx-linea">az group create -n rg-red -l eastus2</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>group</code> crea, lista o borra grupos de recursos (<code>create</code>). <code>-n</code> = nombre del recurso; <code>-l</code> = región donde se crea el recurso</span></li><li><code class="bx-linea">az storage account create -n stred -g rg-red -l eastus2 --sku Standard_LRS --hns true</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>account create</code>). <code>-n</code> = nombre del recurso; <code>-g</code> = grupo de recursos donde está o se crea el recurso; <code>-l</code> = región donde se crea el recurso; <code>--sku</code> = el plan o tamaño del recurso (define precio y capacidad)</span></li><li><code class="bx-linea">az storage container create --account-name stred -n landing</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>container create</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>role</code> permisos: quién puede hacer qué (RBAC) (<code>assignment create</code>)</span></li><li><code class="bx-linea">az storage blob upload-batch --account-name stred -d landing/red -s ~/red</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload-batch</code>)</span></li><li><code class="bx-linea">az keyvault create -n kv-red -g rg-red -l eastus2</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>create</code>). <code>-n</code> = nombre del recurso; <code>-g</code> = grupo de recursos donde está o se crea el recurso; <code>-l</code> = región donde se crea el recurso</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-red -n sftp-clave --value &quot;$(cat ~/.ssh/red_analitica)&quot; -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-red -n seudonimo-sal --value &quot;s4l-r3d-2026&quot; -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: el lago y el Key Vault</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 4 · Una vista por laboratorio</h2>
@@ -212,59 +147,7 @@ az keyvault secret set --vault-name kv-red -n seudonimo-sal --value &quot;s4l-r3
 <p>El reenvío del Sur: numera las filas por muestra y estudio ordenando por nombre de archivo (<code>ROW_NUMBER() OVER (PARTITION BY … ORDER BY archivo DESC)</code>) y quédate con la primera. Las filas repetidas de Cerro son idénticas: alcanza con quitarlas.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: las vistas por laboratorio</div>
-
-<p>Cada vista traduce <strong>su</strong> formato al mismo esquema. Si un laboratorio cambia, se toca una sola vista.</p>
-<pre data-norun tabindex="0"><code class="language-sql">CREATE EXTERNAL LOCATION lago_red URL 'abfss://landing@stred.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
-CREATE CATALOG IF NOT EXISTS red; CREATE SCHEMA IF NOT EXISTS red.silver; CREATE SCHEMA IF NOT EXISTS red.gold;
-
-CREATE OR REPLACE TEMP VIEW v_norte AS
-SELECT 'norte' AS laboratorio, muestra_id AS id_muestra, codigo AS estudio, CAST(resultado AS DOUBLE) AS resultado,
-       substr(fecha_toma, 1, 10) AS fecha_toma, regexp_replace(CAST(documento AS STRING), '[^0-9]', '') AS doc
-FROM read_files('abfss://landing@stred.dfs.core.windows.net/red/norte/', format =&gt; 'csv', header =&gt; true, inferSchema =&gt; false);
-
--- Centro: ; y Latin-1; antes de migrar la fecha venía como DD/MM/AAAA
-CREATE OR REPLACE TEMP VIEW v_centro AS
-SELECT 'centro' AS laboratorio, `Nro Muestra` AS id_muestra,
-       CASE `Cod. Prestacion` WHEN '1001' THEN 'GLU' WHEN '1002' THEN 'HB' WHEN '1003' THEN 'COL' WHEN '1004' THEN 'CRE' WHEN '1005' THEN 'TSH' END AS estudio,
-       CAST(replace(Resultado, ',', '.') AS DOUBLE) AS resultado,
-       CASE WHEN Fecha LIKE '__/__/____%' THEN concat(substr(Fecha, 7, 4), '-', substr(Fecha, 4, 2), '-', substr(Fecha, 1, 2)) ELSE substr(Fecha, 1, 10) END AS fecha_toma,
-       regexp_replace(CAST(Documento AS STRING), '[^0-9]', '') AS doc
-FROM read_files('abfss://landing@stred.dfs.core.windows.net/red/centro/', format =&gt; 'csv', sep =&gt; ';', header =&gt; true, inferSchema =&gt; false, encoding =&gt; 'ISO-8859-1');</code></pre>
-<p>Sur reenvía archivos corregidos: se guarda el nombre del archivo y, por muestra y estudio, gana el último (<code>_v2</code> ordena después que el original). Y se convierten las unidades:</p>
-<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TEMP VIEW v_sur_todo AS
-SELECT sample, test, CAST(value AS DOUBLE) AS v, taken_at, CAST(patient:doc AS STRING) AS doc, _metadata.file_name AS archivo
-FROM read_files('abfss://landing@stred.dfs.core.windows.net/red/sur/', format =&gt; 'json');
-
-CREATE OR REPLACE TEMP VIEW v_sur AS
-SELECT 'sur' AS laboratorio, sample AS id_muestra,
-       CASE test WHEN 'glucose' THEN 'GLU' WHEN 'hemoglobin' THEN 'HB' WHEN 'cholesterol' THEN 'COL' WHEN 'creatinine' THEN 'CRE' WHEN 'tsh' THEN 'TSH' END AS estudio,
-       CASE test WHEN 'glucose' THEN v * 18.016        -- mmol/L → mg/dL
-                 WHEN 'hemoglobin' THEN v / 10          -- g/L → g/dL
-                 WHEN 'cholesterol' THEN v * 38.67      -- mmol/L → mg/dL
-                 WHEN 'creatinine' THEN v / 88.4        -- µmol/L → mg/dL
-                 ELSE v END AS resultado,
-       substr(taken_at, 1, 10) AS fecha_toma, doc
-FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY sample, test ORDER BY archivo DESC) AS rn FROM v_sur_todo) x
-WHERE rn = 1;</code></pre>
-<p>Costa (Excel): se saltean las 3 filas de título, se descarta la fila de total y la fecha es un número de días desde el 30/12/1899. Cerro: TSV, UTC (se restan 3 horas antes de tomar el día) y <code>DISTINCT</code> para las filas repetidas.</p>
-<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TEMP VIEW v_costa AS
-SELECT 'costa' AS laboratorio, Muestra AS id_muestra,
-       CASE Estudio WHEN 'Glucosa en ayunas' THEN 'GLU' WHEN 'Hemoglobina' THEN 'HB' WHEN 'Colesterol total' THEN 'COL' WHEN 'Creatinina' THEN 'CRE' WHEN 'TSH' THEN 'TSH' END AS estudio,
-       CAST(Valor AS DOUBLE) AS resultado,
-       CAST(date_add('1899-12-30', CAST(floor(CAST(`Fecha toma` AS DOUBLE)) AS INT)) AS STRING) AS fecha_toma,
-       regexp_replace(CI, '[^0-9]', '') AS doc
-FROM read_files('abfss://landing@stred.dfs.core.windows.net/red/costa/', format =&gt; 'csv', header =&gt; true, skipRows =&gt; 3, inferSchema =&gt; false)
-WHERE Muestra NOT LIKE 'Total%';
-
-CREATE OR REPLACE TEMP VIEW v_cerro AS
-SELECT DISTINCT 'cerro' AS laboratorio, ID AS id_muestra,
-       CASE COD WHEN 'GLUC' THEN 'GLU' WHEN 'HGB' THEN 'HB' WHEN 'CHOL' THEN 'COL' WHEN 'CREA' THEN 'CRE' WHEN 'TSH' THEN 'TSH' END AS estudio,
-       CAST(VALOR AS DOUBLE) AS resultado,
-       substr(CAST(from_unixtime(unix_timestamp(FECHA_UTC) - 10800) AS STRING), 1, 10) AS fecha_toma,
-       CAST(DOC AS STRING) AS doc
-FROM read_files('abfss://landing@stred.dfs.core.windows.net/red/cerro/', format =&gt; 'csv', sep =&gt; '\t', header =&gt; true, inferSchema =&gt; false);</code></pre>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: las vistas por laboratorio</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 5 · Silver unificada y seudonimizada</h2>
@@ -291,20 +174,7 @@ FROM read_files('abfss://landing@stred.dfs.core.windows.net/red/cerro/', format 
 <p>Piensa ya en el paso 7: si silver se reconstruye desde los archivos cada mañana, ¿cómo evitas que vuelva alguien que pidió ser borrado? Deja preparada una tabla para eso y fíltrala al construir silver.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: silver seudonimizada</div>
-
-<p>El seudónimo es <code>sha2(sal + documento normalizado)</code>: el mismo documento da el mismo <code>paciente_id</code> en los cinco laboratorios, y sin la sal no se puede revertir probando documentos. El documento <strong>no</strong> llega a la tabla.</p>
-<pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE IF NOT EXISTS red.silver.olvidos (paciente_id STRING, pedido DATE);
-
-CREATE OR REPLACE TABLE red.silver.resultados AS
-SELECT laboratorio, id_muestra, estudio, round(resultado, 2) AS resultado,
-       CASE estudio WHEN 'HB' THEN 'g/dL' WHEN 'TSH' THEN 'mUI/L' ELSE 'mg/dL' END AS unidad,
-       fecha_toma, sha2(concat('s4l-r3d-2026', doc), 256) AS paciente_id
-FROM (SELECT * FROM v_norte UNION ALL SELECT * FROM v_centro UNION ALL SELECT * FROM v_sur
-      UNION ALL SELECT * FROM v_costa UNION ALL SELECT * FROM v_cerro) t
-WHERE sha2(concat('s4l-r3d-2026', doc), 256) NOT IN (SELECT paciente_id FROM red.silver.olvidos);</code></pre>
-<p>La sal aparece escrita para que se entienda. En el notebook de verdad se lee del Key Vault (<code>secret(&#39;kv-red&#39;, &#39;seudonimo-sal&#39;)</code> o un parámetro del job), igual que la clave SSH.</p>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: silver seudonimizada</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 6 · Gold y las preguntas del negocio</h2>
@@ -321,22 +191,7 @@ WHERE sha2(concat('s4l-r3d-2026', doc), 256) NOT IN (SELECT paciente_id FROM red
 <p>Un <code>CASE</code> con los cinco rangos dentro de un <code>sum(…)</code>. Para pacientes, <code>count(DISTINCT paciente_id)</code>. Para las llegadas, <code>ls -l</code> dentro de <code>sftp</code>.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: gold y las preguntas</div>
-
-<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE red.gold.resultados_diarios AS
-SELECT fecha_toma, laboratorio, estudio, count(*) AS resultados,
-       sum(CASE WHEN (estudio = 'GLU' AND (resultado &lt; 70 OR resultado &gt; 100))
-                  OR (estudio = 'HB' AND (resultado &lt; 12 OR resultado &gt; 17.5))
-                  OR (estudio = 'COL' AND resultado &gt; 200)
-                  OR (estudio = 'CRE' AND (resultado &lt; 0.6 OR resultado &gt; 1.3))
-                  OR (estudio = 'TSH' AND (resultado &lt; 0.4 OR resultado &gt; 4.0)) THEN 1 ELSE 0 END) AS fuera_de_rango
-FROM red.silver.resultados GROUP BY fecha_toma, laboratorio, estudio;
-
--- pacientes distintos con glucosa ≥ 126 en tres días
-SELECT count(DISTINCT paciente_id) FROM red.silver.resultados
-WHERE estudio = 'GLU' AND resultado &gt;= 126 AND fecha_toma BETWEEN '2026-11-16' AND '2026-11-18';</code></pre>
-<p>La pregunta de quién entrega más tarde no sale de las tablas: sale del <code>ls -l</code> del SFTP (la hora de cada archivo). Y el archivo que falta de Cerro se descubre comparando los días que hay contra los que debería haber.</p>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: gold y las preguntas</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 7 · El derecho al olvido</h2>
@@ -353,14 +208,7 @@ WHERE estudio = 'GLU' AND resultado &gt;= 126 AND fecha_toma BETWEEN '2026-11-16
 <p>Una tabla de olvidos con el seudónimo (no el documento) y la fecha del pedido; un <code>DELETE</code> en silver; recalcular gold. Anota en tu postmortem qué copias tuyas limpiaste.</p>
 </details>
 
-<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: el derecho al olvido</div>
-
-<p>Se guarda el seudónimo del paciente en la tabla de olvidos y se borra de silver; gold se recalcula. Como silver se reconstruye filtrando contra <code>olvidos</code>, la próxima carga no lo trae de vuelta.</p>
-<pre data-norun tabindex="0"><code class="language-sql">INSERT INTO red.silver.olvidos VALUES (sha2(concat('s4l-r3d-2026', '30111222'), 256), current_date());
-DELETE FROM red.silver.resultados WHERE paciente_id IN (SELECT paciente_id FROM red.silver.olvidos);
--- y volver a crear red.gold.resultados_diarios</code></pre>
-<p>(El documento exacto lo dice el ticket del delegado de protección de datos.)</p>
-</div>
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: el derecho al olvido</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
 
 <h2>Paso 8 · Que corra solo (Airflow)</h2>

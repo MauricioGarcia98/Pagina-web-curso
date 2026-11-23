@@ -37,7 +37,7 @@
           <div class="small mv-res" data-res="${esc(k.id)}">${e.nota ? esc(e.nota) : ''}</div></details>`; }).join('')}
       </div>`;
       const marcar = (id, r, valor) => { const e = (D.tickets[id] = D.tickets[id] || {}); e.intentos = (e.intentos || 0) + 1; if (valor !== undefined) e.respuesta = valor; if (r === true) { e.hecho = Date.now(); e.nota = ''; } else e.nota = r; cfg.guardar(); pintar(); };
-      el.querySelectorAll('[data-cerrar]').forEach((b) => b.addEventListener('click', async () => { const k = cfg.tickets.find((x) => x.id === b.dataset.cerrar); b.disabled = true; b.textContent = 'Revisando…'; let r; try { r = await k.check(); } catch (e) { r = String(e.message || e); } marcar(k.id, r); }));
+      el.querySelectorAll('[data-cerrar]').forEach((b) => b.addEventListener('click', async () => { const k = cfg.tickets.find((x) => x.id === b.dataset.cerrar); b.disabled = true; b.textContent = 'Revisando…'; let r; try { if (window.__discoListo) await window.__discoListo(); r = await k.check(); } catch (e) { r = String(e.message || e); } marcar(k.id, r); }));
       el.querySelectorAll('[data-responder]').forEach((b) => b.addEventListener('click', async () => {
         const k = cfg.tickets.find((x) => x.id === b.dataset.responder); const v = el.querySelector(`[data-r="${k.id}"]`).value.trim(); if (!v) return;
         const val = k.respuesta.tipo === 'numero' ? numero(v) : v; const { I, H } = cfg.contexto(); const T = k.cuando(I, H);

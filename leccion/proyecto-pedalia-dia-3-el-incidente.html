@@ -67,15 +67,23 @@ Estimo tenerlo resuelto antes de las 9:00. Aviso cuando esté.</code></pre>
 <p>Y otro al equipo de la app: &quot;Desde hoy las fechas llegan como DD/MM/AAAA HH:MM, sin segundos. ¿Fue intencional? ¿Van a quedar así?&quot;. El arreglo no puede esperar la respuesta, pero la pregunta va igual: puede haber más cambios.</p>
 <h2>4. El arreglo, con un pull request</h2>
 <p>El contrato cambia: aceptar los dos formatos. El SQL de silver también:</p>
-<pre data-norun tabindex="0"><code class="language-sql">coalesce(try_to_timestamp(inicio, 'yyyy-MM-dd HH:mm:ss'), try_to_timestamp(inicio, 'dd/MM/yyyy HH:mm')) AS inicio,
-coalesce(try_to_timestamp(fin,    'yyyy-MM-dd HH:mm:ss'), try_to_timestamp(fin,    'dd/MM/yyyy HH:mm')) AS fin,</code></pre>
+<details><summary>Pista</summary>
+
+<p><code>try_to_timestamp</code> devuelve NULL en vez de fallar si el texto no tiene ese formato; <code>coalesce</code> se queda con el primero que funciona.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: los dos formatos de fecha</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <p>¿Y si mañana llega un tercer formato? Con <code>coalesce</code> de dos <code>try_to_timestamp</code>, una fecha con otro formato quedaría NULL y el viaje se perdería en silencio, justo lo que acabamos de evitar. Agrega una <strong>alarma</strong>: si alguna fecha no se pudo leer, el job falla.</p>
-<pre data-norun tabindex="0"><code class="language-sql">-- al final de la tarea bronze_y_silver
-SELECT CASE WHEN COUNT(*) &gt; 0 THEN raise_error(CONCAT(COUNT(*), ' viajes con una fecha que no tiene formato conocido'))
-            ELSE 'fechas OK' END AS control
-FROM pedalia.bronze.viajes
-WHERE inicio IS NOT NULL
-  AND coalesce(try_to_timestamp(inicio, 'yyyy-MM-dd HH:mm:ss'), try_to_timestamp(inicio, 'dd/MM/yyyy HH:mm')) IS NULL;</code></pre>
+<details><summary>Pista</summary>
+
+<p>Si queda alguna fila con <code>inicio</code> no vacío pero sin poder convertir, el job tiene que <strong>fallar</strong> (y avisar), no publicar a medias. En Databricks SQL, <code>raise_error(&#39;…&#39;)</code> dentro de un <code>SELECT</code> corta la ejecución.</p>
+</details>
+
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: la alarma ante un formato desconocido</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
+
+
 <p>En el repositorio:</p>
 <pre tabindex="0"><code class="language-bash">cd ~/pedalia-datos
 git checkout main &amp;&amp; git pull
@@ -105,29 +113,14 @@ git push -u origin fix/formato-fecha-app</code></pre>
 <p>Si algo no cuadra, el panel dice qué y dónde. Las causas más comunes: un día que no se subió a landing, el pipeline sin publicar, una carga duplicada en Snowflake o la tabla de BigQuery cargada con <code>INTO</code> en vez de <code>OVERWRITE</code>.</p>
 <h2>7. El postmortem</h2>
 <p>Un incidente no termina cuando vuelve el verde: termina cuando se escribió qué aprendió el equipo. Sin culpas: el objetivo es que no se repita, no encontrar a quién señalar.</p>
-<pre tabindex="0"><code class="language-markdown"># Postmortem · pedalia_diario 11/11/2026
+<details><summary>Pista</summary>
 
-## Resumen
-La transformación falló porque la app cambió el formato de fecha de los viajes sin aviso.
-Los datos del 11/11 se publicaron a las 8:40, con 1 h 28 min de demora. No se publicaron datos incorrectos.
+<p>Sin culpas y con hechos: qué pasó (con horas), el impacto, la causa, cómo se detectó, qué se arregló y qué acciones quedan, cada una con responsable.</p>
+</details>
 
-## Cronología
-- 07:12 Falla transformar_databricks (CANNOT_PARSE_TIMESTAMP). Alerta a la guardia.
-- 07:20 Diagnóstico: formato DD/MM/AAAA en el archivo del día. Aviso al canal y al equipo de la app.
-- 08:05 PR con el arreglo y la alarma de formatos desconocidos; CI en verde, aprobado.
-- 08:40 Re-ejecución con Clear. Cargas y tablero actualizados.
+<div class="callout"><div class="callout-title">🔒 Solución de referencia: un postmortem posible</div><p>Primero constrúyelo tú: esta solución se desbloquea en la lección interactiva cuando tu entrega pasa la revisión.</p></div>
 
-## Qué salió bien
-- El formato explícito hizo fallar el pipeline en vez de perder los viajes en silencio.
-- Las cargas no corrieron: no se publicaron números a medias.
 
-## Qué salió mal
-- El cambio en la fuente no estaba en ningún acuerdo: el contrato no decía que los cambios de formato se avisan.
-
-## Acciones
-1. Contrato v2: la app avisa los cambios de formato con 48 h de anticipación (responsable: equipo de datos, con el equipo de la app). Fecha: 15/11.
-2. Control de formato al inicio de la ingesta, antes de Databricks (responsable: equipo de datos). Fecha: 18/11.
-3. Alerta automática al canal cuando falla pedalia_diario (responsable: equipo de datos). Fecha: 13/11.</code></pre>
 <p>Súbelo a <code>docs/postmortems/2026-11-11-formato-fecha.md</code> con un PR.</p>
 <h2>8. Contarlo</h2>
 <p>Este proyecto es una historia de entrevista completa. Así se cuenta en dos minutos:</p>
