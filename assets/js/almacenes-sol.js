@@ -1,4 +1,4 @@
-/* Almacenes del Sol: el proyecto 6. Una cadena de 8 supermercados (inventada) con:
+/* Almacenes del Sol: el proyecto 6. Una cadena regional de 30 supermercados (inventada) con:
  * - El ERP viejo (PostgreSQL 9.6 en el servidor de la oficina): sucursales y productos. El proceso nocturno de las
  *   03:00 pisa precios, costos y categorías sin guardar historia: si quieres la historia (SCD tipo 2), tienes que
  *   sacar una foto todos los días. psql contra erp-sol.almacenes.example.
@@ -32,6 +32,10 @@
     function hitos() { const i = I(); return { categorias: i + DIA + 3 * HORA, caida: i + 2 * DIA, planilla: i + 2 * DIA + 10 * HORA }; }
     const claves = () => ({ erp: { host: 'erp-sol.almacenes.example', puerto: 5432, base: 'erp', usuario: 'consulta_bi', clave: 'Sol' + hex('erp', 10) }, pos: 'pos_' + hex('pos', 26) });
     const SUCURSALES = [['S01', 'Centro', 'Ciudad del Río'], ['S02', 'Puerto Viejo', 'Ciudad del Río'], ['S03', 'La Loma', 'Ciudad del Río'], ['S04', 'Los Álamos', 'Ciudad del Río'], ['S05', 'Villa Sol', 'Costa Azul'], ['S06', 'El Molino', 'Costa Azul'], ['S07', 'Ruta 9', 'San Telmo'], ['S08', 'Mercado Norte', 'San Telmo']];
+    // volumen de empresa: la cadena regional completa (30 sucursales). Las 8 originales conservan su código y nombre.
+    for (const [k, nom] of ['Las Acacias', 'Bella Vista', 'El Prado', 'Los Pinos', 'Monte Verde', 'Arroyo Seco', 'Las Palmas', 'Barrio Norte', 'Villa Esperanza', 'Los Robles', 'Altos del Río', 'Puerta del Sol', 'Las Flores', 'Nuevo Horizonte', 'El Mirador', 'Campo Alegre', 'Los Sauces', 'Villa del Mar', 'San Lorenzo', 'La Ribera', 'Tres Cruces', 'El Bosque'].entries()) SUCURSALES.push([`S${pad(k + 9)}`, nom, ['Ciudad del Río', 'Costa Azul', 'San Telmo', 'Valle Verde', 'Puerto Claro'][k % 5]]);
+    const GRANDES = new Set(['S01', 'S08', 'S02', 'S12', 'S19', 'S26']);
+    const MARCAS = ['Del Sol', 'Campo Lindo', 'Primera', 'La Huerta', 'Don Pedro', 'Marca Propia', 'Clásico', 'Premium', 'El Granero', 'Sierra Azul', 'Tres Hermanos', 'Buen Día', 'La Colonia', 'Del Valle', 'Económico', 'Familiar'];
     const CATS = { ALM: 'Almacén', BEB: 'Bebidas', LIM: 'Limpieza', PER: 'Perfumería', LAC: 'Lácteos', CAR: 'Carnes', VER: 'Frutas y verduras', PAN: 'Panadería' };
     const PRODS = { ALM: ['Arroz 1 kg', 'Fideos 500 g', 'Aceite 1,5 l', 'Yerba 1 kg', 'Harina 1 kg', 'Azúcar 1 kg', 'Café 250 g', 'Lentejas 500 g', 'Tomate triturado', 'Galletitas', 'Atún en lata', 'Mermelada'], BEB: ['Agua 2 l', 'Gaseosa cola 2,25 l', 'Jugo naranja 1 l', 'Cerveza 1 l', 'Vino tinto', 'Agua con gas 1,5 l'], LIM: ['Detergente 750 ml', 'Lavandina 2 l', 'Jabón en polvo 3 kg', 'Esponjas x3', 'Papel higiénico x4'], PER: ['Shampoo', 'Jabón de tocador x3', 'Pasta dental', 'Desodorante'], LAC: ['Leche 1 l', 'Yogur 1 kg', 'Queso cremoso 1 kg', 'Manteca 200 g', 'Dulce de leche'], CAR: ['Carne picada 1 kg', 'Pollo entero', 'Milanesas 1 kg', 'Chorizos 1 kg'], VER: ['Papa 2 kg', 'Tomate 1 kg', 'Banana 1 kg', 'Manzana 1 kg', 'Lechuga'], PAN: ['Pan flauta', 'Medialunas x6', 'Pan de molde'] };
     // los productos del almacén que pasan a "Frescos" en la reorganización
@@ -43,13 +47,13 @@
       const clave = cfg.semilla + ':' + I(); if (cache && cache.clave === clave) return cache;
       const s = cfg.semilla; const R = azar(h32(s, 'sol')); const H = hitos(); const T0 = I() - 21 * DIA, FIN = I() + 30 * DIA;
       const productos = []; let n = 0;
-      for (const [cat, lista] of Object.entries(PRODS)) for (const nombre of lista) { n++; const precio = Math.round((60 + R.r() * 900) / 5) * 5; productos.push({ id: n, sku: `7790${pad(n, 5)}${(h32(s, 'dv', n) % 10)}`, nombre, versiones: [{ desde: T0 - 400 * DIA, categoria: cat, precio, costo: Math.round(precio * (0.55 + R.r() * 0.2)) }] }); }
+      for (const [cat, lista] of Object.entries(PRODS)) for (const base of lista) for (const marca of MARCAS) { n++; const nombre = `${base} ${marca}`; const precio = Math.round((60 + R.r() * 900) / 5) * 5; productos.push({ id: n, sku: `7790${pad(n, 5)}${(h32(s, 'dv', n) % 10)}`, nombre, base, versiones: [{ desde: T0 - 400 * DIA, categoria: cat, precio, costo: Math.round(precio * (0.55 + R.r() * 0.2)) }] }); }
       // cambios nocturnos de precio y costo (a las 03:00), y la reorganización de categorías
       for (let d = T0; d < FIN; d += DIA) {
         const t = inicioDiaLocal(d) + 3 * HORA;
         for (const p of productos) {
           const v = p.versiones[p.versiones.length - 1];
-          if (t === inicioDiaLocal(H.categorias) + 3 * HORA && v.categoria === 'ALM') { p.versiones.push({ ...v, desde: t, categoria: A_FRESCOS.has(p.nombre) ? 'FRE' : 'ALS' }); continue; }
+          if (t === inicioDiaLocal(H.categorias) + 3 * HORA && v.categoria === 'ALM') { p.versiones.push({ ...v, desde: t, categoria: A_FRESCOS.has(p.base || p.nombre) ? 'FRE' : 'ALS' }); continue; }
           const Rd = azar(h32(s, 'precio', p.id, d)); if (Rd.chance(0.04)) { const sube = 1 + Rd.r() * 0.12; p.versiones.push({ ...v, desde: t, precio: Math.round(v.precio * sube / 5) * 5, costo: Rd.chance(0.7) ? Math.round(v.costo * (1 + Rd.r() * 0.1)) : v.costo }); }
         }
       }
@@ -63,7 +67,7 @@
     function tickets(suc, fecha) {
       const k = cfg.semilla + ':' + suc + ':' + fecha; if (cacheT.has(k)) return cacheT.get(k);
       const base = msDeDia(fecha); const R = azar(h32(cfg.semilla, 'pos', suc, fecha)); const W = mundo(); const dom = new Date(base + 12 * HORA).getUTCDay() === 0;
-      const grande = ['S01', 'S08', 'S02'].includes(suc); const n = Math.round((grande ? 140 : 85) * (dom ? 0.7 : 1) * (0.85 + R.r() * 0.3)); const out = [];
+      const grande = GRANDES.has(suc); const n = Math.round((grande ? 450 : 220) * (dom ? 0.7 : 1) * (0.85 + R.r() * 0.3)); const out = [];
       for (let i = 0; i < n; i++) {
         const ts = base + R.int(8 * 60, 21 * 60 + 30) * MIN + R.int(0, 59) * SEG; const nl = R.int(1, 5); const lineas = []; const usados = new Set();
         for (let j = 0; j < nl; j++) { const p = R.pick(W.productos); if (usados.has(p.id)) continue; usados.add(p.id); const v = versionEn(p, ts); const cant = R.chance(0.8) ? 1 : R.int(2, 4); const desc = R.chance(0.08) ? Math.round(v.precio * cant * 0.1) : 0; lineas.push({ sku: p.sku, cantidad: cant, precio_unitario: v.precio, descuento: desc }); }
@@ -82,7 +86,7 @@
     }
 
     // ---------------------------------------------------------------- metas semanales (la planilla de Planeamiento)
-    function metaSemana(suc, lunes) { const R = azar(h32(cfg.semilla, 'meta', suc, lunes)); const grande = ['S01', 'S08', 'S02'].includes(suc); return Math.round((grande ? 2150000 : 1350000) * (0.95 + R.r() * 0.15) / 1000) * 1000; }
+    function metaSemana(suc, lunes) { const R = azar(h32(cfg.semilla, 'meta', suc, lunes)); const grande = GRANDES.has(suc); return Math.round((grande ? 6900000 : 3500000) * (0.95 + R.r() * 0.15) / 1000) * 1000; }
     function planilla(t = ahora()) {
       const H = hitos(); const nueva = t >= H.planilla; const lunesHoy = lunesDe(diaLocal(t)); const semanas = [-3, -2, -1, 0, 1].map((k) => sumarDias(lunesHoy, 7 * k));
       const nombre = (s) => (nueva && s[0] === 'S01' ? 'Centro (local nuevo)' : `Sucursal ${s[1]}`);
