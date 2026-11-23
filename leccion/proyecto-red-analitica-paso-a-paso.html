@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Paso a paso - una solución completa, explicada · Academia de Datos</title><meta name="description" content="Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - el acceso por SFTP con clave, una vista por laboratorio que traduce su formato al canónico, el seudónimo con sal y el derecho al olvido. Léela después de intentarlo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-red-analitica-paso-a-paso.html">
-<meta property="og:type" content="article"><meta property="og:title" content="Paso a paso - una solución completa, explicada · Academia de Datos"><meta property="og:description" content="Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - el acceso por SFTP con clave, una vista por laboratorio que traduce su formato al canónico, el seudónimo con sal y el derecho al olvido. Léela después de intentarlo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-red-analitica-paso-a-paso.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<title>Construirlo paso a paso - una guía, no una solución · Academia de Datos</title><meta name="description" content="Construyes el proyecto de cero con los archivos reales de la red, a volumen de empresa (unas 24.000 personas y cerca de 5.000 resultados por día entre los cinco laboratorios). Cada paso dice qué tienes que lograr, qué trampas esconden los archivos, cómo comprobarlo tú y pistas graduales. La solución de referencia de cada paso se desbloquea recién cuando tu entrega pasa la revisión."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-red-analitica-paso-a-paso.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Construirlo paso a paso - una guía, no una solución · Academia de Datos"><meta property="og:description" content="Construyes el proyecto de cero con los archivos reales de la red, a volumen de empresa (unas 24.000 personas y cerca de 5.000 resultados por día entre los cinco laboratorios). Cada paso dice qué tienes que lograr, qué trampas esconden los archivos, cómo comprobarlo tú y pistas graduales. La solución de referencia de cada paso se desbloquea recién cuando tu entrega pasa la revisión."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-red-analitica-paso-a-paso.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
 *{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
 header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
@@ -13,73 +13,106 @@ code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:aut
 img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
 footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
 <header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
-<main><div class="migas"><a href="index.html#proyecto-red-analitica">🧪 Proyecto 3: Red Analítica, cinco laboratorios por SFTP y datos de salud</a> · Avanzado · 60 min</div>
-<h1>Paso a paso - una solución completa, explicada</h1><p class="resumen">Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - el acceso por SFTP con clave, una vista por laboratorio que traduce su formato al canónico, el seudónimo con sal y el derecho al olvido. Léela después de intentarlo.</p>
-<a class="cta" href="../index.html#/l/proyecto-red-analitica-paso-a-paso">▶ Abrir la lección interactiva (2 ejercicios)</a>
-<h2>Al terminar vas a poder</h2><ul class="lista"><li>Ver cómo se traduce cada formato a un esquema canónico</li><li>Seudonimizar de forma consistente entre fuentes</li><li>Aplicar el derecho al olvido sin que vuelva en la próxima carga</li></ul>
-<div class="callout callout-cuidado"><div class="callout-title">⚠️ Inténtalo primero</div>
+<main><div class="migas"><a href="index.html#proyecto-red-analitica">🧪 Proyecto 3: Red Analítica, cinco laboratorios por SFTP y datos de salud</a> · Avanzado · 240 min</div>
+<h1>Construirlo paso a paso - una guía, no una solución</h1><p class="resumen">Construyes el proyecto de cero con los archivos reales de la red, a volumen de empresa (unas 24.000 personas y cerca de 5.000 resultados por día entre los cinco laboratorios). Cada paso dice qué tienes que lograr, qué trampas esconden los archivos, cómo comprobarlo tú y pistas graduales. La solución de referencia de cada paso se desbloquea recién cuando tu entrega pasa la revisión.</p>
+<a class="cta" href="../index.html#/l/proyecto-red-analitica-paso-a-paso">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Conectarte a un SFTP con clave pública y bajar archivos en lote</li><li>Traducir cinco formatos a un esquema canónico, una vista por fuente</li><li>Seudonimizar de forma consistente entre fuentes con una sal guardada aparte</li><li>Encontrar con consultas las trampas que a este volumen no se ven a ojo</li><li>Aplicar el derecho al olvido sin que el paciente vuelva en la próxima carga</li></ul>
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Cómo se usa esta guía</div>
 
-<p>Esta es <strong>una</strong> solución. Si ya resolviste el proyecto, compara: si mañana Costa cambia la cantidad de filas de título de su planilla, ¿qué hace tu versión?</p>
+<p>Nada de esto viene hecho: la clave SSH, las descargas, el lago, las vistas, las tablas y el job los creas tú. Solo te damos los archivos que mandan los laboratorios (en el SFTP) y su documentación. Cada paso tiene cuatro partes:</p>
+<ol>
+<li><strong>Qué tienes que lograr</strong>: el resultado concreto (un archivo, una tabla, un número).</li>
+<li><strong>Lo que esconden los datos</strong>: las trampas que traen los archivos y que tu código tiene que resolver.</li>
+<li><strong>Compruébalo tú</strong>: cómo saber, antes de pedir revisión, si vas bien.</li>
+<li><strong>Pistas</strong>: ábrelas de a una solo si te trabas. La primera es conceptual, la segunda nombra la herramienta y la última te da la estructura.</li>
+</ol>
+<p>Al final de cada paso hay una <strong>solución de referencia</strong> bloqueada 🔒. Se abre cuando tu entrega pasa la misma revisión que hace el líder técnico en Jira (el panel <strong>Revisar mi entrega</strong> de <a href="#/l/proyecto-red-analitica-el-dia-a-dia">El día a día</a>). Compárala con la tuya como en un code review: no hay una sola forma correcta.</p>
 </div>
 
 
-<h2>El plan</h2>
+<h2>Antes de empezar: el volumen</h2>
 <div class="table-wrap"><table><thead><tr>
-<th>Paso</th>
-<th>Qué</th>
-<th>Dónde</th>
+<th>Fuente</th>
+<th>Volumen aproximado</th>
+<th>Qué implica</th>
 </tr>
 </thead><tbody><tr>
-<td>1</td>
-<td>La clave SSH y el acceso al SFTP</td>
-<td>Terminal</td>
+<td>Pacientes</td>
+<td>~24.000 personas, muchas atendidas en más de un laboratorio</td>
+<td>El mismo documento llega escrito de tres o cuatro formas: unirlos es tu trabajo</td>
 </tr>
 <tr>
-<td>2</td>
-<td>Bajar los archivos y mirarlos</td>
-<td>Terminal (<code>sftp</code>, <code>file</code>)</td>
+<td>Un laboratorio, un día hábil</td>
+<td>~400 muestras, ~1.000 resultados, un archivo de 100 a 180 KB</td>
+<td>Los fines de semana, menos de la mitad</td>
 </tr>
 <tr>
-<td>3</td>
-<td>Al lago y al Key Vault</td>
-<td>Azure</td>
-</tr>
-<tr>
-<td>4</td>
-<td>Una vista por laboratorio</td>
-<td>Databricks</td>
-</tr>
-<tr>
-<td>5</td>
-<td>Silver unificada y seudonimizada</td>
-<td>Databricks</td>
-</tr>
-<tr>
-<td>6</td>
-<td>Gold y las preguntas</td>
-<td>Databricks</td>
-</tr>
-<tr>
-<td>7</td>
-<td>El derecho al olvido</td>
-<td>Databricks</td>
+<td>La red completa</td>
+<td>~5.000 resultados por día; ~30.000 con los 7 días que guarda el SFTP</td>
+<td>No se revisa a ojo: cada trampa se busca con una consulta</td>
 </tr>
 </tbody></table></div>
-<h2>Paso 1 · El acceso</h2>
-<p>El SFTP no acepta contraseñas: hay que generar una clave, darla de alta y esperar la aprobación (unos minutos).</p>
+<p>Crea el repositorio <code>red-analitica</code> (en el <a href="#/github">GitHub de práctica</a>) con esta estructura y trabaja con una rama por paso:</p>
+<pre tabindex="0"><code class="language-text">red-analitica/
+├── README.md               ← qué resuelve, cómo correrlo, decisiones
+├── docs/
+│   ├── privacidad.md       ← qué no puede salir del lago y cómo se seudonimiza
+│   └── laboratorios.md     ← paso 2: lo que descubriste de cada formato
+├── ingesta/
+│   ├── bajar.sftp          ← paso 2: el lote de sftp
+│   └── subir.sh            ← paso 3: al lago
+└── sql/
+    ├── 01_vistas.sql       ← paso 4
+    ├── 02_silver.sql       ← paso 5
+    ├── 03_gold.sql         ← paso 6
+    └── 04_olvido.sql       ← paso 7</code></pre>
+<h2>Paso 1 · El acceso al SFTP</h2>
+<p><strong>Qué tienes que lograr.</strong> Conectarte a <code>sftp.redanalitica.example</code> con <strong>tu</strong> clave SSH, sin contraseña, y con la huella del servidor verificada en <code>~/.ssh/known_hosts</code>.</p>
+<p><strong>Lo que esconde.</strong> El servidor no acepta contraseñas: IT tiene que dar de alta tu clave <strong>pública</strong> y tarda unos minutos. La primera conexión pregunta si confías en el servidor; en modo lote nadie contesta y falla. El correo de IT (<code>red accesos</code>) trae la huella con la que tienes que comparar.</p>
+<p><strong>Compruébalo tú.</strong> <code>red estado</code> dice <em>autorizada</em> y un <code>ls /entrantes</code> por <code>sftp</code> lista las cinco carpetas sin pedirte nada.</p>
+<details><summary>Pista 1</summary>
+
+<p>Una clave SSH son dos archivos: la privada se queda contigo (y después en el Key Vault), la pública es la que se manda. Mientras IT la autoriza, aprovecha para leer la documentación de cada laboratorio.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p><code>ssh-keygen -t ed25519 -f …</code>, <code>red alta-clave &lt;la .pub&gt;</code>, y <code>ssh-keyscan -p 2222 &lt;host&gt;</code> para guardar la huella. Compárala con la del correo antes de confiar.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: el acceso</div>
+
 <pre tabindex="0"><code class="language-bash">red accesos
 ssh-keygen -t ed25519 -f ~/.ssh/red_analitica -C equipo
 red alta-clave ~/.ssh/red_analitica.pub     # la pública, nunca la privada
 red estado
 ssh-keyscan -p 2222 sftp.redanalitica.example &gt;&gt; ~/.ssh/known_hosts</code></pre>
 <details class="bx"><summary>🔍 Qué hace cada comando <span>(5)</span></summary><ol><li><code class="bx-linea">red accesos</code><span><code>red</code>: el sistema interno de Red Analítica en la terminal del curso. <code>accesos</code> muestra el correo de IT con host, puerto, usuario y la huella del servidor SFTP</span></li><li><code class="bx-linea">ssh-keygen -t ed25519 -f ~/.ssh/red_analitica -C equipo</code><span><code>ssh-keygen</code>: crea un par de claves SSH: la privada (queda en tu computadora) y la pública (.pub, la que se comparte). <code>-t</code> = el tipo de clave (ed25519 es la recomendada); <code>-f</code> = dónde guardarla; <code>-C</code> = un comentario para reconocerla (tu correo)</span></li><li><code class="bx-linea">red alta-clave ~/.ssh/red_analitica.pub</code><span><code>red</code>: el sistema interno de Red Analítica en la terminal del curso. <code>alta-clave</code> le pide a IT que autorice tu clave SSH pública (nunca la privada)<br><i class="bx-com">Nota del ejemplo: la pública, nunca la privada</i></span></li><li><code class="bx-linea">red estado</code><span><code>red</code>: el sistema interno de Red Analítica en la terminal del curso. <code>estado</code> muestra si tu clave ya está autorizada</span></li><li><code class="bx-linea">ssh-keyscan -p 2222 sftp.redanalitica.example &gt;&gt; ~/.ssh/known_hosts</code><span><code>ssh-keyscan</code>: obtiene la huella del servidor para compararla con la que te dio IT antes de confiar en él. <code>&gt;&gt;</code> agrega al final del archivo</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 La primera conexión</div>
-
-<p><code>ssh-keyscan</code> guarda la huella del servidor en <code>known_hosts</code>. Sin eso, el modo por lotes (<code>-b</code>) falla: no hay nadie para contestar &quot;¿confiás en este servidor?&quot;. En un trabajo real, la huella se verifica con el proveedor antes de aceptarla.</p>
+<p><code>ssh-keyscan</code> guarda la huella del servidor en <code>known_hosts</code>. Sin eso, el modo por lotes (<code>-b</code>) falla: no hay nadie para contestar &quot;¿confías en este servidor?&quot;. En un trabajo real, la huella se verifica con el proveedor antes de aceptarla.</p>
 </div>
 
 
-<h2>Paso 2 · Bajar y mirar</h2>
+<h2>Paso 2 · Bajar los archivos y mirarlos de verdad</h2>
+<p><strong>Qué tienes que lograr.</strong> Todos los archivos del servidor en tu máquina, una carpeta por laboratorio, bajados con un <strong>lote</strong> de <code>sftp</code> que puedas volver a correr mañana. Y <code>docs/laboratorios.md</code> con lo que descubriste de cada formato.</p>
+<p><strong>Lo que esconden los datos.</strong> La documentación de <a href="#/l/proyecto-red-analitica-fuentes-y-accesos">Fuentes y accesos</a> dice cómo <em>deberían</em> ser los archivos; los archivos dicen cómo <em>son</em>. Hay un laboratorio con otra codificación, uno con filas de título y un total al final, uno con fechas que no son fechas, uno en otra zona horaria que repite filas, y uno que reenvía archivos corregidos con otro nombre.</p>
+<p><strong>Compruébalo tú.</strong> Para cada laboratorio puedes contestar: separador, codificación, cómo viene la fecha, cómo viene el documento, qué código usa para cada estudio y en qué unidad. Y sabes cuántos archivos debería haber (5 por día) contra cuántos hay.</p>
+<details><summary>Pista 1</summary>
+
+<p>No abras un archivo de 1.000 líneas entero: mira la cabeza, la cola y una muestra. La cola importa (¿hay algo que no es un resultado al final?).</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p><code>sftp -b &lt;lote&gt;</code> con <code>lcd</code> y <code>mget</code> por carpeta. Después: <code>file</code> (codificación), <code>head</code>, <code>tail</code>, <code>wc -l</code>, <code>cut -f</code> y <code>sort | uniq -c | sort -rn | head</code> para ver qué valores toma una columna.</p>
+</details>
+
+<details><summary>Pista 3</summary>
+
+<p>Una forma de encontrar filas repetidas en un archivo sin mirar: <code>sort archivo | uniq -d | wc -l</code>. Y para ver qué laboratorio entregó qué día, <code>ls -l</code> dentro de <code>sftp</code> (la hora es la de llegada al servidor).</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: bajar y mirar</div>
+
 <pre tabindex="0"><code class="language-bash">printf 'cd /entrantes\nls -l norte\nls -l cerro\n' &gt; ~/ver.txt
 sftp -b ~/ver.txt -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example
 
@@ -88,9 +121,8 @@ printf 'lcd ~/red/norte\nmget /entrantes/norte/*\nlcd ~/red/centro\nmget /entran
 sftp -b ~/bajar.txt -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example
 
 file ~/red/centro/* | head -3      # ISO-8859 text: no es UTF-8
-head -5 ~/red/costa/$(ls ~/red/costa | head -1)</code></pre>
-<details class="bx"><summary>🔍 Qué hace cada comando <span>(7)</span></summary><ol><li><code class="bx-linea">printf 'cd /entrantes\nls -l norte\nls -l cerro\n' &gt; ~/ver.txt</code><span><code>printf</code>: escribe texto con formato (como echo, pero controlando saltos de línea y columnas). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li><li><code class="bx-linea">sftp -b ~/ver.txt -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example</code><span><code>sftp</code>: se conecta a un servidor SFTP para subir o bajar archivos de forma segura. <code>-b</code> = ejecuta los comandos de un archivo; <code>-i</code> = la clave privada que usas para entrar; <code>-P</code> = el puerto</span></li><li><code class="bx-linea">mkdir -p ~/red/norte ~/red/centro ~/red/sur ~/red/costa ~/red/cerro</code><span><code>mkdir</code>: crea una carpeta. <code>-p</code> = crea también las carpetas intermedias y no falla si ya existe</span></li><li><code class="bx-linea">printf 'lcd ~/red/norte\nmget /entrantes/norte/*\nlcd ~/red/centro\nmget /entrantes/centro/*\nlcd ~/red/sur\nmget /entrantes/sur/*\nlcd ~…</code><span><code>printf</code>: escribe texto con formato (como echo, pero controlando saltos de línea y columnas). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li><li><code class="bx-linea">sftp -b ~/bajar.txt -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example</code><span><code>sftp</code>: se conecta a un servidor SFTP para subir o bajar archivos de forma segura. <code>-b</code> = ejecuta los comandos de un archivo; <code>-i</code> = la clave privada que usas para entrar; <code>-P</code> = el puerto</span></li><li><code class="bx-linea">file ~/red/centro/* | head -3</code><span><code>file</code>: dice qué tipo de archivo es y su codificación (UTF-8, Latin-1…) <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas). <code>-3</code> = las primeras 3 líneas<br><i class="bx-com">Nota del ejemplo: ISO-8859 text: no es UTF-8</i></span></li><li><code class="bx-linea">head -5 ~/red/costa/$(ls ~/red/costa | head -1)</code><span><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas). <code>-5</code> = las primeras 5 líneas <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-<p>Lo que tienes que anotar de cada laboratorio:</p>
+head -5 ~/red/costa/&quot;$(ls ~/red/costa | head -1)&quot;    # comillas: el nombre tiene espacios</code></pre>
+<details class="bx"><summary>🔍 Qué hace cada comando <span>(7)</span></summary><ol><li><code class="bx-linea">printf 'cd /entrantes\nls -l norte\nls -l cerro\n' &gt; ~/ver.txt</code><span><code>printf</code>: escribe texto con formato (como echo, pero controlando saltos de línea y columnas). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li><li><code class="bx-linea">sftp -b ~/ver.txt -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example</code><span><code>sftp</code>: se conecta a un servidor SFTP para subir o bajar archivos de forma segura. <code>-b</code> = ejecuta los comandos de un archivo; <code>-i</code> = la clave privada que usas para entrar; <code>-P</code> = el puerto</span></li><li><code class="bx-linea">mkdir -p ~/red/norte ~/red/centro ~/red/sur ~/red/costa ~/red/cerro</code><span><code>mkdir</code>: crea una carpeta. <code>-p</code> = crea también las carpetas intermedias y no falla si ya existe</span></li><li><code class="bx-linea">printf 'lcd ~/red/norte\nmget /entrantes/norte/*\nlcd ~/red/centro\nmget /entrantes/centro/*\nlcd ~/red/sur\nmget /entrantes/sur/*\nlcd ~…</code><span><code>printf</code>: escribe texto con formato (como echo, pero controlando saltos de línea y columnas). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li><li><code class="bx-linea">sftp -b ~/bajar.txt -i ~/.ssh/red_analitica -P 2222 equipo_datos@sftp.redanalitica.example</code><span><code>sftp</code>: se conecta a un servidor SFTP para subir o bajar archivos de forma segura. <code>-b</code> = ejecuta los comandos de un archivo; <code>-i</code> = la clave privada que usas para entrar; <code>-P</code> = el puerto</span></li><li><code class="bx-linea">file ~/red/centro/* | head -3</code><span><code>file</code>: dice qué tipo de archivo es y su codificación (UTF-8, Latin-1…) <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas). <code>-3</code> = las primeras 3 líneas<br><i class="bx-com">Nota del ejemplo: ISO-8859 text: no es UTF-8</i></span></li><li><code class="bx-linea">head -5 ~/red/costa/&quot;$(ls ~/red/costa | head -1)&quot;</code><span><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas). <code>-5</code> = las primeras 5 líneas<br><i class="bx-com">Nota del ejemplo: comillas: el nombre tiene espacios</i></span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <div class="table-wrap"><table><thead><tr>
 <th>Laboratorio</th>
 <th>Formato</th>
@@ -122,7 +154,25 @@ head -5 ~/red/costa/$(ls ~/red/costa | head -1)</code></pre>
 <td>Fechas en UTC, filas duplicadas, a veces falta un día</td>
 </tr>
 </tbody></table></div>
-<h2>Paso 3 · Al lago y al Key Vault</h2>
+</div>
+
+
+<h2>Paso 3 · Al lago, y los secretos al Key Vault</h2>
+<p><strong>Qué tienes que lograr.</strong> Los archivos en un contenedor del lago (<code>landing/red/&lt;laboratorio&gt;/</code>) al que Databricks pueda leer, y la <strong>clave privada SSH</strong> y la <strong>sal</strong> del seudónimo como secretos del mismo Key Vault.</p>
+<p><strong>Lo que esconde.</strong> Databricks lee el lago con la identidad administrada de Unity Catalog: si no le das el rol de lectura sobre la cuenta, tus vistas fallan con un error de permisos que parece de otra cosa. Y la sal no se inventa en el notebook: si se pierde, todos los seudónimos cambian y se pierde la historia de cada paciente.</p>
+<p><strong>Compruébalo tú.</strong> <code>az storage blob list</code> muestra los archivos de los cinco laboratorios y <code>az keyvault secret list</code> muestra los dos secretos (sin mostrar su valor).</p>
+<details><summary>Pista 1</summary>
+
+<p>Una cuenta de almacenamiento con espacio de nombres jerárquico (es un lago, no un blob suelto), un contenedor y una carga <strong>por lote</strong>, no archivo por archivo.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p><code>az storage account create … --hns true</code>, <code>az role assignment create --assignee unity-catalog-access-connector</code>, <code>az storage blob upload-batch</code>, <code>az keyvault create</code> y <code>az keyvault secret set --value &quot;$(cat …)&quot;</code>.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: el lago y el Key Vault</div>
+
 <pre tabindex="0"><code class="language-bash">az login
 az group create -n rg-red -l eastus2
 az storage account create -n stred -g rg-red -l eastus2 --sku Standard_LRS --hns true
@@ -134,8 +184,37 @@ az keyvault create -n kv-red -g rg-red -l eastus2
 az keyvault secret set --vault-name kv-red -n sftp-clave --value &quot;$(cat ~/.ssh/red_analitica)&quot; -o none
 az keyvault secret set --vault-name kv-red -n seudonimo-sal --value &quot;s4l-r3d-2026&quot; -o none</code></pre>
 <details class="bx"><summary>🔍 Qué hace cada comando <span>(9)</span></summary><ol><li><code class="bx-linea">az login</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>login</code> inicia sesión en tu cuenta de Azure (abre el navegador)</span></li><li><code class="bx-linea">az group create -n rg-red -l eastus2</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>group</code> crea, lista o borra grupos de recursos (<code>create</code>). <code>-n</code> = nombre del recurso; <code>-l</code> = región donde se crea el recurso</span></li><li><code class="bx-linea">az storage account create -n stred -g rg-red -l eastus2 --sku Standard_LRS --hns true</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>account create</code>). <code>-n</code> = nombre del recurso; <code>-g</code> = grupo de recursos donde está o se crea el recurso; <code>-l</code> = región donde se crea el recurso; <code>--sku</code> = el plan o tamaño del recurso (define precio y capacidad)</span></li><li><code class="bx-linea">az storage container create --account-name stred -n landing</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>container create</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>role</code> permisos: quién puede hacer qué (RBAC) (<code>assignment create</code>)</span></li><li><code class="bx-linea">az storage blob upload-batch --account-name stred -d landing/red -s ~/red</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload-batch</code>)</span></li><li><code class="bx-linea">az keyvault create -n kv-red -g rg-red -l eastus2</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>create</code>). <code>-n</code> = nombre del recurso; <code>-g</code> = grupo de recursos donde está o se crea el recurso; <code>-l</code> = región donde se crea el recurso</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-red -n sftp-clave --value &quot;$(cat ~/.ssh/red_analitica)&quot; -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-red -n seudonimo-sal --value &quot;s4l-r3d-2026&quot; -o none</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso; <code>-o</code> = formato de la respuesta (table, json, tsv)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+</div>
+
+
 <h2>Paso 4 · Una vista por laboratorio</h2>
-<p>Cada vista traduce <strong>su</strong> formato al mismo esquema: <code>laboratorio, id_muestra, estudio, resultado, fecha_toma, doc</code>. Si un laboratorio cambia, se toca una sola vista.</p>
+<p><strong>Qué tienes que lograr.</strong> Cinco vistas (una por laboratorio) que devuelvan <strong>el mismo esquema</strong>: <code>laboratorio, id_muestra, estudio, resultado, fecha_toma, doc</code>, con el estudio en código canónico (GLU, HB, COL, CRE, TSH), el resultado en la unidad canónica y la fecha de toma en hora de Ciudad del Río.</p>
+<p><strong>Lo que esconden los datos.</strong> Todo lo que anotaste en el paso 2, más dos cosas que solo aparecen con el tiempo: Centro <strong>migra de sistema</strong> a mitad del proyecto (cambia la codificación, el formato de fecha y aparece una columna en el medio) y Sur <strong>reenvía</strong> un archivo corregido que tiene que reemplazar al original.</p>
+<p><strong>Compruébalo tú.</strong> Para cada vista, a este volumen, con consultas:</p>
+<ul>
+<li><code>count(*)</code> por <code>fecha_toma</code>: ¿cuadra con las líneas de los archivos de ese día (menos títulos, totales y repetidos)?</li>
+<li><code>min</code>, <code>max</code> y <code>avg(resultado)</code> por estudio: la glucosa media ronda 95 mg/dL en <strong>todos</strong> los laboratorios. Si uno da 5, no convertiste unidades.</li>
+<li>Ningún <code>estudio</code> ni <code>fecha_toma</code> en <code>NULL</code>, y ninguna fecha en 1899 o en el día equivocado.</li>
+<li><code>count(*)</code> contra <code>count(DISTINCT id_muestra, estudio)</code>: si difieren, hay repetidos.</li>
+</ul>
+<details><summary>Pista 1</summary>
+
+<p>Si mañana Costa cambia la cantidad de filas de título, quieres tocar <strong>una</strong> vista, no todo el pipeline. Por eso cada laboratorio traduce lo suyo y recién después se unen.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p><code>read_files</code> con las opciones de cada formato: <code>sep</code>, <code>header</code>, <code>encoding</code>, <code>skipRows</code>, <code>format =&gt; &#39;json&#39;</code>. Para la fecha de Excel, <code>date_add(&#39;1899-12-30&#39;, …)</code>; para UTC, restar 3 horas antes de quedarte con el día. <code>_metadata.file_name</code> te dice de qué archivo vino cada fila.</p>
+</details>
+
+<details><summary>Pista 3</summary>
+
+<p>El reenvío del Sur: numera las filas por muestra y estudio ordenando por nombre de archivo (<code>ROW_NUMBER() OVER (PARTITION BY … ORDER BY archivo DESC)</code>) y quédate con la primera. Las filas repetidas de Cerro son idénticas: alcanza con quitarlas.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: las vistas por laboratorio</div>
+
+<p>Cada vista traduce <strong>su</strong> formato al mismo esquema. Si un laboratorio cambia, se toca una sola vista.</p>
 <pre data-norun tabindex="0"><code class="language-sql">CREATE EXTERNAL LOCATION lago_red URL 'abfss://landing@stred.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
 CREATE CATALOG IF NOT EXISTS red; CREATE SCHEMA IF NOT EXISTS red.silver; CREATE SCHEMA IF NOT EXISTS red.gold;
 
@@ -185,7 +264,35 @@ SELECT DISTINCT 'cerro' AS laboratorio, ID AS id_muestra,
        substr(CAST(from_unixtime(unix_timestamp(FECHA_UTC) - 10800) AS STRING), 1, 10) AS fecha_toma,
        CAST(DOC AS STRING) AS doc
 FROM read_files('abfss://landing@stred.dfs.core.windows.net/red/cerro/', format =&gt; 'csv', sep =&gt; '\t', header =&gt; true, inferSchema =&gt; false);</code></pre>
-<h2>Paso 5 · Silver, seudonimizada</h2>
+</div>
+
+
+<h2>Paso 5 · Silver unificada y seudonimizada</h2>
+<p><strong>Qué tienes que lograr.</strong> <code>red.silver.resultados</code>: las cinco vistas unidas, con <code>laboratorio, id_muestra, estudio, resultado, unidad, fecha_toma, paciente_id</code>. <strong>Sin</strong> nombres, documentos ni fechas de nacimiento. El mismo paciente tiene el mismo <code>paciente_id</code> en los cinco laboratorios.</p>
+<p><strong>Lo que esconden los datos.</strong> Norte escribe <code>41.234.567</code>, Costa <code>CI 41234567</code>, Cerro <code>41234567</code>: si calculas el seudónimo sobre el texto tal cual, una persona queda partida en tres. Y un hash sin sal se revierte: los documentos son pocos y predecibles, cualquiera puede calcular el hash de todos.</p>
+<p><strong>Compruébalo tú.</strong></p>
+<ul>
+<li>Ninguna columna contiene algo con forma de documento o de nombre.</li>
+<li>Elige un paciente que aparezca en dos laboratorios (en los archivos crudos) y busca su <code>paciente_id</code>: tiene que ser uno solo.</li>
+<li><code>count(DISTINCT paciente_id)</code> ronda la cantidad de personas atendidas en esos días, no el triple.</li>
+</ul>
+<details><summary>Pista 1</summary>
+
+<p>Primero normalizar, después calcular el seudónimo. Normalizar un documento es quedarse solo con los dígitos.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p><code>sha2(concat(&lt;sal&gt;, &lt;documento normalizado&gt;), 256)</code>. La sal sale del Key Vault (<code>secret(&#39;kv-red&#39;, &#39;seudonimo-sal&#39;)</code> o un parámetro del job), no del código.</p>
+</details>
+
+<details><summary>Pista 3</summary>
+
+<p>Piensa ya en el paso 7: si silver se reconstruye desde los archivos cada mañana, ¿cómo evitas que vuelva alguien que pidió ser borrado? Deja preparada una tabla para eso y fíltrala al construir silver.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: silver seudonimizada</div>
+
 <p>El seudónimo es <code>sha2(sal + documento normalizado)</code>: el mismo documento da el mismo <code>paciente_id</code> en los cinco laboratorios, y sin la sal no se puede revertir probando documentos. El documento <strong>no</strong> llega a la tabla.</p>
 <pre data-norun tabindex="0"><code class="language-sql">CREATE TABLE IF NOT EXISTS red.silver.olvidos (paciente_id STRING, pedido DATE);
 
@@ -196,13 +303,26 @@ SELECT laboratorio, id_muestra, estudio, round(resultado, 2) AS resultado,
 FROM (SELECT * FROM v_norte UNION ALL SELECT * FROM v_centro UNION ALL SELECT * FROM v_sur
       UNION ALL SELECT * FROM v_costa UNION ALL SELECT * FROM v_cerro) t
 WHERE sha2(concat('s4l-r3d-2026', doc), 256) NOT IN (SELECT paciente_id FROM red.silver.olvidos);</code></pre>
-<div class="callout callout-cuidado"><div class="callout-title">⚠️ La sal no va en el código</div>
-
-<p>Acá aparece escrita para que se entienda. En el notebook de verdad se lee del Key Vault (<code>secret(&#39;kv-red&#39;, &#39;seudonimo-sal&#39;)</code> o un parámetro del job), igual que la clave SSH.</p>
+<p>La sal aparece escrita para que se entienda. En el notebook de verdad se lee del Key Vault (<code>secret(&#39;kv-red&#39;, &#39;seudonimo-sal&#39;)</code> o un parámetro del job), igual que la clave SSH.</p>
 </div>
 
 
-<h2>Paso 6 · Gold y las preguntas</h2>
+<h2>Paso 6 · Gold y las preguntas del negocio</h2>
+<p><strong>Qué tienes que lograr.</strong> <code>red.gold.resultados_diarios</code> con <code>fecha_toma, laboratorio, estudio, resultados, fuera_de_rango</code>, usando los <strong>rangos canónicos</strong> de la documentación (no los de cada laboratorio). Con eso, contesta las preguntas de los tickets RA-104, RA-109 y RA-112 en Jira.</p>
+<p><strong>Lo que esconden los datos.</strong> &quot;¿Cuántos pacientes?&quot; no es &quot;¿cuántos análisis?&quot;: una persona que se hizo dos glucosas, o fue a dos laboratorios, cuenta una vez. Y la pregunta de quién entrega más tarde <strong>no</strong> sale de las tablas: sale de la hora en que cada archivo apareció en el servidor.</p>
+<p><strong>Compruébalo tú.</strong> La suma de <code>resultados</code> de gold es igual a <code>count(*)</code> de silver. Para un día y laboratorio, el porcentaje fuera de rango es razonable (no 0 % ni 90 %: si da eso, el rango está al revés o en otra unidad).</p>
+<details><summary>Pista 1</summary>
+
+<p>Gold es un <code>GROUP BY</code> sobre silver. Lo difícil es escribir &quot;fuera de rango&quot; una sola vez y bien, para los cinco estudios.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p>Un <code>CASE</code> con los cinco rangos dentro de un <code>sum(…)</code>. Para pacientes, <code>count(DISTINCT paciente_id)</code>. Para las llegadas, <code>ls -l</code> dentro de <code>sftp</code>.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: gold y las preguntas</div>
+
 <pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE red.gold.resultados_diarios AS
 SELECT fecha_toma, laboratorio, estudio, count(*) AS resultados,
        sum(CASE WHEN (estudio = 'GLU' AND (resultado &lt; 70 OR resultado &gt; 100))
@@ -216,12 +336,46 @@ FROM red.silver.resultados GROUP BY fecha_toma, laboratorio, estudio;
 SELECT count(DISTINCT paciente_id) FROM red.silver.resultados
 WHERE estudio = 'GLU' AND resultado &gt;= 126 AND fecha_toma BETWEEN '2026-11-16' AND '2026-11-18';</code></pre>
 <p>La pregunta de quién entrega más tarde no sale de las tablas: sale del <code>ls -l</code> del SFTP (la hora de cada archivo). Y el archivo que falta de Cerro se descubre comparando los días que hay contra los que debería haber.</p>
+</div>
+
+
 <h2>Paso 7 · El derecho al olvido</h2>
+<p><strong>Qué tienes que lograr.</strong> Cuando llegue el ticket RA-108, la persona que pidió el borrado no aparece en silver ni en gold, y <strong>no vuelve</strong> cuando silver se reconstruye mañana desde los archivos.</p>
+<p><strong>Lo que esconde.</strong> Esa persona se atendió en más de un laboratorio y cada uno escribe su documento a su manera. Los archivos del SFTP no los controlas (son del laboratorio), pero tus copias sí: las descargas en tu máquina y lo que subiste al lago.</p>
+<p><strong>Compruébalo tú.</strong> Calcula el seudónimo de ese documento y busca en silver y gold: cero filas. Reconstruye silver como lo hace el job diario y vuelve a buscar: siguen siendo cero.</p>
+<details><summary>Pista 1</summary>
+
+<p>Borrar no alcanza: hay que <strong>registrar</strong> el pedido, y que la carga diaria lo respete.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p>Una tabla de olvidos con el seudónimo (no el documento) y la fecha del pedido; un <code>DELETE</code> en silver; recalcular gold. Anota en tu postmortem qué copias tuyas limpiaste.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: el derecho al olvido</div>
+
 <p>Se guarda el seudónimo del paciente en la tabla de olvidos y se borra de silver; gold se recalcula. Como silver se reconstruye filtrando contra <code>olvidos</code>, la próxima carga no lo trae de vuelta.</p>
 <pre data-norun tabindex="0"><code class="language-sql">INSERT INTO red.silver.olvidos VALUES (sha2(concat('s4l-r3d-2026', '30111222'), 256), current_date());
 DELETE FROM red.silver.resultados WHERE paciente_id IN (SELECT paciente_id FROM red.silver.olvidos);
 -- y volver a crear red.gold.resultados_diarios</code></pre>
 <p>(El documento exacto lo dice el ticket del delegado de protección de datos.)</p>
+</div>
+
+
+<h2>Paso 8 · Que corra solo (Airflow)</h2>
+<p><strong>Qué tienes que lograr.</strong> Un DAG con <code>red</code> en el <code>dag_id</code>, programado una vez por día después de la hora en que llegan los archivos, que dispare el job de Databricks (ticket RA-110).</p>
+<p><strong>Compruébalo tú.</strong> <code>airflow dags test &lt;dag_id&gt;</code> en verde, y el ticket RA-110 pasa la revisión.</p>
+<details><summary>Pista 1</summary>
+
+<p>El último laboratorio entrega a media mañana (y a veces más tarde): si el DAG corre a las 2 de la mañana, procesa archivos que todavía no llegaron. ¿Qué haces con un archivo que llega tarde?</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p><code>DatabricksRunNowOperator</code> con el <code>job_id</code> de tu job y un <code>schedule</code> diario. La lección <a href="#/l/airflow-airflow-databricks-dbt">Airflow con Databricks y dbt</a> tiene la estructura del archivo; lo escribes en <code>~/airflow/dags/</code> y lo ves en la <a href="#/airflow">interfaz de Airflow</a>.</p>
+</details>
+
 <div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
 
 <p>Para repetirlo en tu nube: <strong>Azure Portal</strong> para la cuenta de almacenamiento y el <strong>Key Vault</strong> (la clave SSH privada se guarda como secreto, nunca en el repositorio); <strong>Databricks</strong> para las vistas por laboratorio, silver seudonimizada y gold; un <strong>job</strong> que baja los archivos del SFTP cada día. El borrado por derecho al olvido se prueba con una consulta antes y después, y se guarda como evidencia.</p>
@@ -232,7 +386,7 @@ DELETE FROM red.silver.resultados WHERE paciente_id IN (SELECT paciente_id FROM 
 
 <p>Guárdalas en <code>docs/capturas/</code> del repositorio del proyecto y úsalas en el README.</p>
 <ul>
-<li><code>06-vistas.png</code>: las vistas por laboratorio unidas en silver.</li>
+<li><code>06-vistas.png</code>: las vistas por laboratorio unidas en silver, con el conteo por laboratorio y día.</li>
 <li><code>06-seudonimo.png</code>: silver sin datos personales (solo el seudónimo).</li>
 <li><code>06-olvido.png</code>: la consulta antes y después del borrado.</li>
 </ul>
@@ -248,14 +402,19 @@ DELETE FROM red.silver.resultados WHERE paciente_id IN (SELECT paciente_id FROM 
 <div class="exercise-slot"></div>
 
 
+
+<div class="exercise-slot"></div>
+
+
 <h2>Resumen</h2>
 <ul>
 <li>Una vista por fuente que traduce a un esquema canónico: los cambios de una fuente quedan aislados.</li>
+<li>A este volumen, cada trampa se encuentra con una consulta (conteos, promedios por estudio, distintos contra totales), no mirando filas.</li>
 <li>El seudónimo se calcula sobre el documento normalizado, con una sal guardada aparte.</li>
 <li>El olvido se registra, no solo se borra: si no, vuelve en la próxima carga.</li>
 </ul>
 
-<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-red-analitica-paso-a-paso">▶ Hacer los ejercicios</a>
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-red-analitica-paso-a-paso">▶ Hacer los ejercicios</a>
 <nav class="nav"><a href="proyecto-red-analitica-el-dia-a-dia.html">← El día a día - migraciones, correcciones, archivos que no llegan y preguntas médicas</a><a href="proyecto-ruta-sur-el-pedido.html">El pedido - saber en tiempo real si cumplimos lo que prometemos →</a></nav></main>
 <footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
 </body></html>

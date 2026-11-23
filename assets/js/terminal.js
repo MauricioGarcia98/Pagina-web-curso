@@ -18,7 +18,7 @@
   // disco guardado queda una marca {__pesado: clave}. Al cargar, las marcas se reemplazan por el contenido (en segundo
   // plano); runLine espera a que termine antes de ejecutar un comando.
   const Pesados = (() => {
-    const UMBRAL = 100000; const guardados = new Set();
+    const UMBRAL = 20000; const guardados = new Set();
     let p = null;
     const abrir = () => p || (p = new Promise((ok, mal) => { try { const r = indexedDB.open('academia-datos-pesados', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => ok(r.result); r.onerror = () => mal(r.error); } catch (e) { mal(e); } }));
     const tx = async (modo, f) => { const d = await abrir(); return new Promise((ok, mal) => { const t = d.transaction('kv', modo); const req = f(t.objectStore('kv')); t.oncomplete = () => ok(req ? req.result : undefined); t.onerror = () => mal(t.error); t.onabort = () => mal(t.error); }); };
@@ -481,7 +481,9 @@ models:
       res = { out: col.err(`bash: ${name}: comando no encontrado`) + pista, code: 127 };
     }
     else {
-      try { res = await fn(args.slice(1), { stdin, opts, raw: text }); }
+      // como isatty(1): la salida va a otra cosa que la pantalla si sigue una tubería, se redirige a un archivo o es $( … )
+      const tty = !(opts._aTuberia || opts.capture || redirs.some((r) => r.op !== 'dup' && r.file && (r.fd === '1' || r.fd === '&')));
+      try { res = await fn(args.slice(1), { stdin, opts, raw: text, tty }); }
       catch (e) { res = fail(`${name}: ${e.message}`); }
     }
     res = res || ok('');
@@ -538,10 +540,12 @@ models:
     const stages = splitTop(text, ['|']).map((p) => p.text);
     let stdin = opts._stdin != null ? opts._stdin : null, res = ok('');
     if (opts._stdin != null) opts._stdin = null;
-    for (const st of stages) {
+    for (let k = 0; k < stages.length; k++) {
+      const st = stages[k];
       if (!st.trim()) return fail('bash: error de sintaxis cerca de `|`', 2);
       if (Shopt.x) (opts._err = opts._err || []).push(col.dim('+ ' + st.trim()));
-      res = await runSimple(st.trim(), stdin, opts);
+      const antesPipe = opts._aTuberia; opts._aTuberia = k < stages.length - 1;
+      try { res = await runSimple(st.trim(), stdin, opts); } finally { opts._aTuberia = antesPipe; }
       stdin = res.out.replace(/\u0001[^\u0002]*\u0002|\u0003/g, '');
       if (stdin && !stdin.endsWith('\n') && !res.sinSalto) stdin += '\n';
     }
@@ -1164,7 +1168,7 @@ models:
     if (!isDir(p)) return fail(`bash: cd: ${a[0]}: No es un directorio`);
     Machine.env.OLDPWD = Machine.cwd; Machine.cwd = p; Machine.save(); return ok('');
   });
-  def('ls', 'lista archivos (-l detalle, -a ocultos, -h tamaños legibles, -t por fecha, -r invertido)', (a) => {
+  def('ls', 'lista archivos (-l detalle, -a ocultos, -h tamaños legibles, -t por fecha, -r invertido)', (a, ctx = {}) => {
     // opciones combinables como en Linux: -la, -lh, -ltr…
     const letras = new Set(), pos = [];
     const LARGAS = { '--all': 'a', '--almost-all': 'a', '--human-readable': 'h', '--reverse': 'r', '--recursive': 'R', '--size': 's', '--directory': 'd', '--classify': 'F' };
@@ -1181,7 +1185,9 @@ models:
       return `${perm} 1 alumno alumno ${tam(size).padStart(7)} ${fecha} ${vis}`;
     };
     const ordenar = (rutas) => { let r = [...rutas]; if (porFecha) r.sort((x, y) => (Machine.fs[y[0]].m || 0) - (Machine.fs[x[0]].m || 0)); if (inv) r.reverse(); return r; };
-    const bloque = (pares) => long ? pares.map(([r, n]) => fila(r, n)).join('\n') : pares.map(([r, n]) => (isDir(r) ? col.dir(n + '/') : Machine.fs[r].x ? col.ok(n) : n)).join('  ');
+    // a una tubería o a un archivo, GNU ls escribe un nombre por línea y sin colores (como -1)
+    const unoPorLinea = letras.has('1') || ctx.tty === false;
+    const bloque = (pares) => long ? pares.map(([r, n]) => fila(r, n)).join('\n') : unoPorLinea ? pares.map(([, n]) => n).join('\n') : pares.map(([r, n]) => (isDir(r) ? col.dir(n + '/') : Machine.fs[r].x ? col.ok(n) : n)).join('  ');
     const targets = pos.length ? pos : ['.'];
     const outs = [], errores = [], archivos = [], carpetas = [];
     for (const t of targets) {
@@ -1383,7 +1389,9 @@ models:
     };
     if (!pos.length) return ok(one(ctx.stdin || ''));
     const out = [];
-    for (const f of pos) { const c = readFile(norm(f)); if (c === null) return fail(`wc: ${f}: No existe el archivo o el directorio`); out.push(one(c, f)); }
+    let todo = '';
+    for (const f of pos) { const c = readFile(norm(f)); if (c === null) return fail(`wc: ${f}: No existe el archivo o el directorio`); out.push(one(c, f)); todo += c; }
+    if (pos.length > 1) out.push(one(todo, 'total'));   // con varios archivos, wc suma al final
     return ok(out.join('\n'));
   });
   def('grep', 'busca texto (-i, -v, -c, -n, -E, -o, -A/-B/-C N líneas de contexto)', (a, ctx) => {

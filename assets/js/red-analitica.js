@@ -55,6 +55,9 @@
   const NOMBRES_M = ['Bruno', 'Diego', 'Facundo', 'Hernán', 'Joaquín', 'Martín', 'Óscar', 'Ramiro', 'Tomás', 'Federico', 'Santiago', 'Rodrigo', 'Matías', 'Andrés', 'Iván', 'Germán'];
   const APELLIDOS = ['Acosta', 'Benítez', 'Cabrera', 'Domínguez', 'Escobar', 'Fernández', 'Giménez', 'Herrera', 'Ibáñez', 'Juárez', 'López', 'Medina', 'Núñez', 'Olivera', 'Peña', 'Quiroga', 'Ríos', 'Silva', 'Torres', 'Urquiza', 'Vega', 'Zárate', 'Muñoz', 'Castro', 'Rosales', 'Sosa'];
 
+  // volumen de una red real: ~24.000 pacientes, ~400 muestras por laboratorio en un día hábil (~1.000 resultados por
+  // laboratorio, ~5.000 por día entre los cinco) y menos los fines de semana
+  const PACIENTES = 24000, MUESTRAS_DIA = 400, MUESTRAS_FINDE = 160;
   const T0 = () => inicioDiaLocal(cfg.inicio) - 3 * DIA;
   const HORIZONTE = () => inicioDiaLocal(cfg.inicio) + 30 * DIA;
   function hitos() {
@@ -68,10 +71,10 @@
   function mundo() {
     const clave = cfg.semilla + ':' + T0(); if (cache && cache.clave === clave) return cache;
     const s = cfg.semilla; const Rp = azar(h32(s, 'pacientes'));
-    const pacientes = [];
-    for (let i = 0; i < 1600; i++) {
+    const pacientes = []; const usados = new Set();
+    for (let i = 0; i < PACIENTES; i++) {
       const sexo = Rp.chance(0.53) ? 'F' : 'M'; const nom = Rp.pick(sexo === 'F' ? NOMBRES_F : NOMBRES_M); const ape = Rp.pick(APELLIDOS);
-      const doc = 10000000 + Math.floor(Rp.r() * 45000000);
+      let doc = 10000000 + Math.floor(Rp.r() * 45000000); while (usados.has(doc)) doc++; usados.add(doc);
       const nac = `${Rp.int(1940, 2008)}-${pad(Rp.int(1, 12))}-${pad(Rp.int(1, 28))}`;
       pacientes.push({ i, doc, nombre: nom, apellido: ape, sexo, nac, diabetes: Rp.chance(0.12), hipo: Rp.chance(0.06), labs: Rp.chance(0.18) ? [Rp.pick(Object.keys(LABS)), Rp.pick(Object.keys(LABS))] : [Rp.pick(Object.keys(LABS))] });
     }
@@ -81,7 +84,7 @@
     for (const f of dias) {
       const finde = [0, 6].includes(new Date(msDeDia(f) + 12 * HORA).getUTCDay());
       for (const [L, info] of Object.entries(LABS)) {
-        const R = azar(h32(s, 'dia', f, L)); const n = Math.round((finde ? 18 : 42) * (0.8 + R.r() * 0.4));
+        const R = azar(h32(s, 'dia', f, L)); const n = Math.round((finde ? MUESTRAS_FINDE : MUESTRAS_DIA) * (0.8 + R.r() * 0.4));
         const filas = [];
         for (let k = 0; k < n; k++) {
           const p = R.pick(porLab[L]); const urg = L === 'cerro' && R.chance(0.15);
@@ -112,14 +115,15 @@
         // la corrección del Sur: reenvía el archivo completo del día anterior con algunos valores corregidos
         if (L === 'sur' && f === diaLocal(H.correccionSur - DIA)) {
           const R2 = azar(h32(s, 'corr', f)); const corr = filas.map((x) => ({ ...x }));
-          const idx = new Set(); while (idx.size < Math.min(5, corr.length)) idx.add(R2.int(0, corr.length - 1));
+          const idx = new Set(); while (idx.size < Math.min(40, corr.length)) idx.add(R2.int(0, corr.length - 1));
           for (const k of idx) { const E = ESTUDIOS[corr[k].estudio]; corr[k].valor = Number((corr[k].valor * (R2.chance(0.5) ? 1.12 : 0.88)).toFixed(E.dec)); corr[k].corregido = true; }
           entregas.push({ lab: L, fecha: f, llega: H.correccionSur, filas: corr, version: 2, nombre: nombreArchivo(L, f, 2) });
         }
       }
     }
     // la persona del derecho al olvido: atendida en dos laboratorios antes del aviso
-    const candidatos = pacientes.filter((p) => new Set(resultados.filter((r) => r.p === p && r.toma < H.olvido - DIA).map((r) => r.lab)).size >= 2);
+    const labsDe = new Map(); for (const r of resultados) if (r.toma < H.olvido - DIA) (labsDe.get(r.p) || labsDe.set(r.p, new Set()).get(r.p)).add(r.lab);
+    const candidatos = pacientes.filter((p) => labsDe.has(p) && labsDe.get(p).size >= 2);
     const olvidado = candidatos.length ? candidatos[h32(s, 'olvido') % candidatos.length] : pacientes[0];
     cache = { clave, pacientes, entregas, resultados, olvidado };
     return cache;
