@@ -48,6 +48,13 @@
         ['az-cola', 'Envía un mensaje a una cola de Storage', 'Cuenta de almacenamiento → Queues → + Queue → Add message.', () => val(az().storage).some((s) => val(s.queues).some((q) => (q.mensajes || []).length))],
         ['az-key', 'Crea una clave en Key Vault y rótala', 'Key Vault → Keys → Generate/Import (necesitas el rol Key Vault Crypto Officer) y después Rotate Now.', () => val(az().kv).some((k) => val(k.keys).some((x) => (x.versiones || []).length > 1))],
       ]],
+      ['Logs con Log Analytics', [
+        ['az-law', 'Crea un Log Analytics workspace', 'Create a resource → Log Analytics workspace (o az monitor log-analytics workspace create).', () => Object.keys(az().law || {}).length > 0],
+        ['az-diag', 'Envía los logs de un data factory a tu workspace', 'En el data factory: Monitoring → Diagnostic settings → Add, con Pipeline runs log hacia el workspace.', () => (az().diag || []).some((d) => d.recurso.startsWith('adf/') && d.law && d.categorias.includes('PipelineRuns'))],
+        ['az-kql', 'Encuentra en Logs la actividad que falló y su mensaje', 'Haz fallar un pipeline (actividad Fail) con Trigger now y consulta ADFActivityRun | where Status == "Failed".', () => Object.values(az().law || {}).some((w) => /ADFActivityRun[\s\S]*Failed/i.test(w.consulta || '') || (w.guardadas || []).some((g) => /ADFActivityRun[\s\S]*Failed/i.test(g.q)))],
+        ['az-logalerta', 'Crea una alerta de logs que se dispare', 'Desde Logs, con la consulta de pipelines fallidos: New alert rule, con un grupo de acciones.', () => (((az().monitor || {}).disparadas) || []).some((d) => ((az().monitor || {}).reglas || []).some((g) => g.tipo === 'log' && g.nombre === d.regla))],
+        ['az-audit', 'Averigua quién usó la clave de la cuenta de almacenamiento', 'Diagnostic setting de la cuenta con StorageWrite, sube un blob sin --auth-mode login y consulta StorageBlobLogs por AuthenticationType.', () => Object.values(az().law || {}).some((w) => /StorageBlobLogs[\s\S]*AuthenticationType/i.test(w.consulta || '')) && (az().auditoria || []).some((e) => e.auth === 'AccountKey')],
+      ]],
     ] },
     adf: { titulo: 'Retos de Data Factory', niveles: [
       ['Básico', [

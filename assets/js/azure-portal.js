@@ -49,6 +49,7 @@
     todos: '<svg viewBox="0 0 18 18"><rect x="1" y="1" width="7" height="7" fill="#5ea0ef"/><rect x="10" y="1" width="7" height="7" fill="#0078d4"/><rect x="1" y="10" width="7" height="7" fill="#0078d4"/><rect x="10" y="10" width="7" height="7" fill="#5ea0ef"/></svg>',
     monitor: '<svg viewBox="0 0 18 18"><path d="M1 12 L5 8 L8 11 L12 5 L17 9" stroke="#0078d4" stroke-width="2" fill="none"/></svg>',
     entra: '<svg viewBox="0 0 18 18"><path d="M9 1 L16 5 V13 L9 17 L2 13 V5 Z" fill="#0078d4"/><circle cx="9" cy="8" r="2.5" fill="#fff"/><path d="M5 14 C6 11 12 11 13 14" fill="#fff"/></svg>',
+    law: '<svg viewBox="0 0 18 18"><rect x="1" y="2" width="16" height="14" rx="2" fill="#0078d4"/><circle cx="8" cy="8" r="3.2" fill="none" stroke="#fff" stroke-width="1.6"/><path d="M10.4 10.4 L14 14" stroke="#fff" stroke-width="1.8"/></svg>',
     actividad: '<svg viewBox="0 0 18 18"><rect x="2" y="2" width="14" height="14" rx="2" fill="#0078d4"/><path d="M5 6 H13 M5 9 H13 M5 12 H10" stroke="#fff" stroke-width="1.4"/></svg>',
   };
   const svg = (k, t = 18) => `<span class="az-ico" style="width:${t}px;height:${t}px">${SVG[k] || SVG.todos}</span>`;
@@ -60,6 +61,7 @@
     dbw: { tipo: 'Microsoft.Databricks/workspaces', nombre: 'Azure Databricks Service', plural: 'Azure Databricks', costoDia: 0, crear: 'dbw' },
     adf: { tipo: 'Microsoft.DataFactory/factories', nombre: 'Data factory (V2)', plural: 'Data factories', costoDia: 0.03, crear: 'adf' },
     eh: { tipo: 'Microsoft.EventHub/namespaces', nombre: 'Event Hubs Namespace', plural: 'Event Hubs', costoDia: 0.74, crear: null },
+    law: { tipo: 'Microsoft.OperationalInsights/workspaces', nombre: 'Log Analytics workspace', plural: 'Log Analytics workspaces', costoDia: 0.08, crear: 'law' },
   };
   const recursos = () => { const s = az(); const out = []; for (const k of Object.keys(TIPOS)) for (const [n, r] of Object.entries(s[k] || {})) out.push({ k, n, r, d: TIPOS[k] }); return out; };
   const idRecurso = (k, n, r) => `${rgId(r.rg)}/providers/${TIPOS[k].tipo}/${n}`;
@@ -163,7 +165,7 @@
   }
 
   // ------------------------------------------------------------------ búsqueda
-  const SERVICIOS = [['Resource groups', 'grupos', 'grupo'], ['All resources', 'recursos', 'todos'], ['Storage accounts', 'servicio/storage', 'storage'], ['Azure Databricks', 'servicio/dbw', 'dbw'], ['Key vaults', 'servicio/kv', 'kv'], ['Data factories', 'servicio/adf', 'adf'], ['Event Hubs', 'servicio/eh', 'eh'], ['Cost Management', 'costos', 'costo'], ['Subscriptions', 'suscripciones', 'sub'], ['Activity log', 'actividad', 'actividad'], ['Microsoft Entra ID', 'entra', 'entra'], ['Monitor', 'monitor', 'monitor'], ['Create a resource', 'crear', 'crear']];
+  const SERVICIOS = [['Resource groups', 'grupos', 'grupo'], ['All resources', 'recursos', 'todos'], ['Storage accounts', 'servicio/storage', 'storage'], ['Azure Databricks', 'servicio/dbw', 'dbw'], ['Key vaults', 'servicio/kv', 'kv'], ['Data factories', 'servicio/adf', 'adf'], ['Event Hubs', 'servicio/eh', 'eh'], ['Log Analytics workspaces', 'servicio/law', 'law'], ['Cost Management', 'costos', 'costo'], ['Subscriptions', 'suscripciones', 'sub'], ['Activity log', 'actividad', 'actividad'], ['Microsoft Entra ID', 'entra', 'entra'], ['Monitor', 'monitor', 'monitor'], ['Create a resource', 'crear', 'crear']];
   function buscar() {
     const inp = main.querySelector('#azQ'), res = main.querySelector('#azQR');
     const pintar = () => {
@@ -287,6 +289,7 @@
       cont.innerHTML = `<div class="az-pag">${migas([['Home', ''], ['Create a resource', null]])}<h1>Create a resource</h1><div class="az-market">${[['grupo', 'Resource group', 'Microsoft', 'Contenedor lógico de recursos'], ['storage', 'Storage account', 'Microsoft', 'Blob, ADLS Gen2, archivos, colas y tablas'], ['dbw', 'Azure Databricks', 'Microsoft', 'Plataforma de datos y IA con Apache Spark'], ['kv', 'Key Vault', 'Microsoft', 'Secretos, claves y certificados'], ['adf', 'Data Factory', 'Microsoft', 'Integración de datos y orquestación (ETL)'], ['plantilla', 'Template deployment (deploy using custom templates)', 'Microsoft', 'Implementa una plantilla ARM propia o exportada']].map(([k, t, p, d]) => `<div class="az-mk">${svg(k === 'grupo' ? 'grupo' : k === 'plantilla' ? 'actividad' : k, 40)}<div><b>${esc(t)}</b><small>${esc(p)}</small><p>${esc(d)}</p><a class="az-btn chico" href="#/azure/crear/${k}">Create</a></div></div>`).join('')}</div></div>`;
       return;
     }
+    if (r[0] === 'law' && (window.AzurePortal.ext || {}).crearLaw) return window.AzurePortal.ext.crearLaw(cont);
     const tipo = r[0]; const A = ASISTENTES[tipo]; if (!A) return noEncontrado(cont);
     const G = Object.keys(az().groups || {});
     const v = { ...A.valores, sub: sub().id, rg: G.find((g) => !az().groups[g].administradoPor) || '', tags: [] };
@@ -352,7 +355,7 @@
           else if (el.type !== 'radio' && el.type !== 'checkbox' && el.tagName !== 'SELECT' && k === 'name') { const msg = VALIDA[tipo](v.name, v); el.classList.toggle('mal', !!msg); const box = el.parentElement; let d = box.querySelector('.az-campo-err'); if (msg && !d) { d = document.createElement('div'); d.className = 'az-campo-err'; box.appendChild(d); } if (d) { if (msg) d.innerHTML = `${ic('error')} ${esc(msg)}`; else d.remove(); } }
         });
       });
-      cont.querySelectorAll('[data-tag]').forEach((el) => el.addEventListener('change', () => { const i = Number(el.dataset.tag); if (!v.tags[i]) v.tags[i] = ['', '']; v.tags[i][Number(el.dataset.p)] = el.value.trim(); v.tags = v.tags.filter((t) => t[0] || t[1]); pintar(); }));
+      cont.querySelectorAll('[data-tag]').forEach((el) => el.addEventListener('change', () => { const i = Number(el.dataset.tag); if (!v.tags[i]) v.tags[i] = ['', '']; v.tags[i][Number(el.dataset.p)] = el.value.trim(); v.tags = v.tags.filter((t) => t[0] || t[1]); setTimeout(pintar, 0); /* el change llega durante el blur: pintar después */ }));
       cont.querySelectorAll('[data-qtag]').forEach((b) => b.onclick = () => { v.tags.splice(Number(b.dataset.qtag), 1); pintar(); });
       const rgN = $('#wRgNuevo'); if (rgN) rgN.onclick = (e) => { e.preventDefault(); panel({ titulo: 'Create new resource group', ok: 'OK', cuerpo: '<p class="az-dim">A resource group is a container that holds related resources for an Azure solution.</p><label class="az-campo"><span>Name *</span><input id="rgN" value="rg-datos-dev"></label>', alOk: (p) => { const n = p.querySelector('#rgN').value.trim(); const er = VALIDA.grupo(n); if (er) throw new Error(er); v.rgNuevo = n; v.rg = n; delete errores.rg; pintar(); } }); };
       cont.querySelector('.az-wtabs').onclick = (e) => { const b = e.target.closest('[data-t]'); if (!b) return; tab = b.dataset.t; if (tab === 'review') revisar(); else pintar(); };
@@ -675,12 +678,14 @@
 
   // ---- recursos
   const MENU_BASE = [['overview', 'Overview', 'home'], ['actividad', 'Activity log', 'list-unordered'], ['tags', 'Tags', 'tag'], ['iam', 'Access control (IAM)', 'person']];
+  const MON = ['Monitoring', ['diagnosticos', 'Diagnostic settings', 'pulse'], ['logs', 'Logs', 'search']];
   const MENUS = {
-    storage: [...MENU_BASE, ['navegador', 'Storage browser', 'folder'], 'Data storage', ['contenedores', 'Containers', 'package'], ['archivos', 'File shares', 'file-submodule'], ['colas', 'Queues', 'list-ordered'], ['tablas', 'Tables', 'table'], 'Security + networking', ['red', 'Networking', 'globe'], ['claves', 'Access keys', 'key'], ['sas', 'Shared access signature', 'link'], ['cifrado', 'Encryption', 'shield'], 'Data management', ['proteccion', 'Data protection', 'history'], ['ciclo', 'Lifecycle management', 'sync'], 'Settings', ['config', 'Configuration', 'gear'], ['locks', 'Locks', 'lock']],
-    kv: [...MENU_BASE, 'Objects', ['claves', 'Keys', 'key'], ['secretos', 'Secrets', 'symbol-key'], ['certificados', 'Certificates', 'workspace-trusted'], 'Settings', ['acceso', 'Access configuration', 'shield'], ['red', 'Networking', 'globe'], ['propiedades', 'Properties', 'list-flat'], ['locks', 'Locks', 'lock']],
+    storage: [...MENU_BASE, ['navegador', 'Storage browser', 'folder'], 'Data storage', ['contenedores', 'Containers', 'package'], ['archivos', 'File shares', 'file-submodule'], ['colas', 'Queues', 'list-ordered'], ['tablas', 'Tables', 'table'], 'Security + networking', ['red', 'Networking', 'globe'], ['claves', 'Access keys', 'key'], ['sas', 'Shared access signature', 'link'], ['cifrado', 'Encryption', 'shield'], 'Data management', ['proteccion', 'Data protection', 'history'], ['ciclo', 'Lifecycle management', 'sync'], 'Settings', ['config', 'Configuration', 'gear'], ['locks', 'Locks', 'lock'], ...MON],
+    kv: [...MENU_BASE, 'Objects', ['claves', 'Keys', 'key'], ['secretos', 'Secrets', 'symbol-key'], ['certificados', 'Certificates', 'workspace-trusted'], 'Settings', ['acceso', 'Access configuration', 'shield'], ['red', 'Networking', 'globe'], ['propiedades', 'Properties', 'list-flat'], ['locks', 'Locks', 'lock'], ...MON],
     dbw: [...MENU_BASE, 'Settings', ['red', 'Networking', 'globe'], ['cifrado', 'Encryption', 'shield'], ['propiedades', 'Properties', 'list-flat'], ['locks', 'Locks', 'lock']],
-    adf: [...MENU_BASE, 'Settings', ['git', 'Git configuration', 'git-branch'], ['identidad', 'Identity', 'person'], ['red', 'Networking', 'globe'], ['propiedades', 'Properties', 'list-flat'], ['locks', 'Locks', 'lock']],
+    adf: [...MENU_BASE, 'Settings', ['git', 'Git configuration', 'git-branch'], ['identidad', 'Identity', 'person'], ['red', 'Networking', 'globe'], ['propiedades', 'Properties', 'list-flat'], ['locks', 'Locks', 'lock'], ...MON],
     eh: [...MENU_BASE, ['propiedades', 'Properties', 'list-flat'], ['locks', 'Locks', 'lock']],
+    law: [...MENU_BASE, 'General', ['logs', 'Logs', 'search'], ['tablas', 'Tables', 'table'], ['uso', 'Usage and estimated costs', 'graph'], 'Settings', ['retencion', 'Data retention', 'history'], ['propiedades', 'Properties', 'list-flat'], ['locks', 'Locks', 'lock']],
   };
   function hojaRecurso(cont, r) {
     const [k, n, blade = 'overview', ...resto] = r; const R = az()[k] && az()[k][n]; const d = TIPOS[k];
@@ -698,6 +703,8 @@
       const comun = [['Resource group (move)', `<a href="#/azure/grupo/${encodeURIComponent(R.rg)}">${esc(R.rg)}</a>`], ['Location', esc(regionNombre(R.location))], ['Subscription (move)', `<a href="#/azure/suscripciones">${esc(sub().name)}</a>`], ['Subscription ID', sub().id], ['Tags (edit)', tagsHtml(R.tags)]];
       const cmdBorrar = `<button data-c="borrar">${ic('trash')} Delete</button><button data-c="ref">${ic('refresh')} Refresh</button>`;
       const enlazarCmd = (extra = {}) => { const c = box.querySelector('.az-cmd'); if (c) c.onclick = (e) => { const b = e.target.closest('[data-c]'); if (!b) return; if (b.dataset.c === 'borrar') { panel({ titulo: `Delete ${d.nombre.toLowerCase()}`, ok: 'Delete', peligro: true, cuerpo: `<p>¿Borrar <b>${esc(n)}</b>?${k === 'dbw' ? ' También se borra el grupo de recursos administrado y todo lo que contiene.' : k === 'kv' ? ` Con soft delete, el vault se puede recuperar durante ${R.props ? R.props.retencion : 90} días.` : ''}</p>`, alOk: () => { if (borrarRecurso(k, n)) ir('servicio/' + k); } }); } else if (b.dataset.c === 'ref') again(); else if (extra[b.dataset.c]) extra[b.dataset.c](); }; const t = box.querySelector('[data-tags]'); if (t) t.onclick = () => ir(`recurso/${k}/${encodeURIComponent(n)}/tags`); };
+      const fMon = (window.AzurePortal.ext || {}).monitoreo; // azure-logs.js: Diagnostic settings, Logs y el workspace de Log Analytics
+      if (fMon && fMon(box, { k, R, n, id, blade, comun, cmdBorrar, enlazarCmd, again })) return;
       if (k === 'storage') return blStorage(box, { R, n, id, blade, resto, comun, cmdBorrar, enlazarCmd, again });
       if (k === 'kv') return blKv(box, { R, n, id, blade, comun, cmdBorrar, enlazarCmd, again });
       if (k === 'dbw') {
@@ -898,6 +905,7 @@
     if (!main.querySelector('#azp')) main.innerHTML = '';
     render(subr);
     revisarPresupuestos();
+    if (window.AzurePortal.ext && window.AzurePortal.ext.evaluarLogs) window.AzurePortal.ext.evaluarLogs(); // alertas de logs vencidas
   }
   window.addEventListener('hashchange', () => { if (!/^#\/azure/.test(location.hash)) document.body.classList.remove('az-abierto'); });
   document.addEventListener('keydown', (e) => { if (!document.getElementById('azp')) return; if (e.key === '/' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.closest('.term')) { e.preventDefault(); main.querySelector('#azQ').focus(); } });

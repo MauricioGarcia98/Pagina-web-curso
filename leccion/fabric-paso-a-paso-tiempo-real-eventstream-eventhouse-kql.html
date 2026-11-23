@@ -67,7 +67,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <h2>Paso 3 — KQL: preguntas en segundos</h2>
 <p>Abre <code>Deposito</code>. Una consulta <strong>KQL</strong> empieza con el nombre de la tabla y cada <code>|</code> pasa el resultado al operador siguiente: se lee de arriba abajo, como una receta.</p>
-<pre data-norun tabindex="0"><code class="language-sql">Lecturas
+<pre tabindex="0"><code class="language-kql">Lecturas
 | where ts &gt; ago(1h)                                   // la última hora
 | summarize lecturas = count(), maxima = max(temperatura) by camara
 | order by maxima desc</code></pre>
@@ -113,7 +113,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p>La consulta típica de una serie de tiempo:</p>
-<pre data-norun tabindex="0"><code class="language-sql">Lecturas
+<pre tabindex="0"><code class="language-kql">Lecturas
 | summarize promedio = avg(temperatura) by camara, bin(ts, 5m)
 | render timechart</code></pre>
 <figure class="captura"><img src="assets/img/guias/fabric/b23-kql.webp" alt="El KQL queryset del Eventhouse - la consulta, el gráfico y la tabla de resultados" loading="lazy"><figcaption>El KQL queryset del Eventhouse - la consulta, el gráfico y la tabla de resultados</figcaption></figure>

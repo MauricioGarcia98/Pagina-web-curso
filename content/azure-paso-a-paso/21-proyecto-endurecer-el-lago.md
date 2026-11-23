@@ -4,7 +4,7 @@ nivel: 5 · Avanzado
 duracion: 55
 resumen: Seguridad revisó tu informe del proyecto 4 y te devuelve una lista de controles obligatorios para cualquier lago que vaya a producción. Los aplicas en el lago dev sin instrucciones paso a paso - protección de datos, ciclo de vida, bloqueo, alertas y acceso temporal para terceros - y entregas la evidencia que pide Seguridad. Solo hay pistas mínimas.
 objetivos: Aplicar un conjunto de controles de seguridad y operación sin guía | Elegir valores razonables y justificarlos | Reunir evidencia verificable de cada control | Distinguir lo que se puede hacer en el portal de práctica de lo que requiere Azure real
-prerrequisitos: azure-paso-a-paso-bloqueos-y-azure-monitor
+prerrequisitos: azure-paso-a-paso-logs-con-log-analytics-y-kql
 autoevaluacion: ¿Puedes mostrar evidencia de cada control? | ¿Justificaste los días de retención elegidos? | ¿Tu alerta tiene a quién avisar? | ¿Sabes qué controles quedaron pendientes y por qué?
 ---
 
@@ -60,9 +60,9 @@ texto: El registro de actividad con cada cambio de esta etapa
 | 4 | Aviso si falla la ingesta | Monitor: `adf-pipeline-fallido` (Sum de Failed pipeline runs > 0) con `ag-guardia-datos` | La regla en Alerts con su grupo de acciones |
 | 5 | Terceros temporales | SAS con Blob, Read + List, 8 horas, HTTPS only | El token con `sp=rl`, `spr=https` y su vencimiento |
 | 6 | TLS y sin anónimo | Se configuró al crear la cuenta | Configuration: *Minimum TLS version 1.2*, *Allow Blob anonymous access: Disabled* |
-| 7 | Trazabilidad | Activity log (90 días) | Las operaciones de esta etapa con quién y cuándo |
+| 7 | Trazabilidad | Activity log y resource logs (lago, vault, factory) enviados a `log-tiendaandina-dev` (lección 20) | Una consulta en Logs: `AzureActivity` con quién cambió qué, y `StorageBlobLogs` sin operaciones con `AccountKey` |
 
-**Pendientes para Azure real**, que conviene declarar en la entrega: enviar el Activity log a un **Log Analytics workspace** para guardarlo más de 90 días; **desactivar el acceso con clave** cuando todo use Entra; reemplazar la SAS de cuenta por una **user delegation SAS**; y cerrar la red con **private endpoint**. Declarar lo pendiente es parte de un buen informe: Seguridad confía más en quien dice qué falta que en quien dice que está todo.
+**Pendientes para Azure real**, que conviene declarar en la entrega: subir la **retención** del workspace a lo que pida auditoría (por ejemplo, un año); **desactivar el acceso con clave** cuando todo use Entra; reemplazar la SAS de cuenta por una **user delegation SAS**; y cerrar la red con **private endpoint**. Declarar lo pendiente es parte de un buen informe: Seguridad confía más en quien dice qué falta que en quien dice que está todo.
 </details>
 
 :::errores

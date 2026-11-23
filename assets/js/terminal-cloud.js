@@ -148,13 +148,49 @@
   }
   function azLoc(A, s, rg) { const l = A.get('--location', '-l') || s.defaults.location || (rg && s.groups[rg] && s.groups[rg].location); return l; }
 
-  def('az', 'Azure CLI simulada con estado (login, group, storage, keyvault, databricks, datafactory…)', (a, ctx) => {
+  // registro de auditoría: las operaciones de datos (blobs y secretos) quedan como "resource logs" que Log Analytics
+  // puede consultar si el recurso tiene un Diagnostic setting (StorageBlobLogs y AzureDiagnostics en el portal)
+  function auditarAz(a, r) {
+    if (!r || typeof r.code !== 'number') return;
+    const A = args(a); const p = A.pos; const s = az(); const txt = String(r.out || r.err || '');
+    const estado = (ok, op) => (ok ? (/^Put|Set/.test(op) ? 201 : 200) : /NotFound|does not exist|was not found/i.test(txt) ? 404 : /AlreadyExists|already exists/i.test(txt) ? 409 : /Forbidden|AuthorizationFailure|not authorized/i.test(txt) ? 403 : 400);
+    const ahora = new Date().toISOString().slice(0, 19);
+    let rec = null;
+    if (p[0] === 'storage' && p[1] === 'blob') {
+      const op = { upload: 'PutBlob', 'upload-batch': 'PutBlob', download: 'GetBlob', 'download-batch': 'GetBlob', list: 'ListBlobs', delete: 'DeleteBlob', show: 'GetBlobProperties', exists: 'GetBlobProperties' }[p[2]]; if (!op) return;
+      const cuenta = A.get('--account-name'); if (!cuenta || cuenta === true || !s.storage[cuenta]) return;
+      const cont = A.get('--container-name', '-c', '--destination', '-d', '--source', '-s') || ''; const blob = A.get('--name', '-n') || (A.get('--file', '-f') || '').split('/').pop() || '';
+      const auth = A.get('--auth-mode') === 'login' ? 'OAuth' : A.get('--sas-token') ? 'SAS' : 'AccountKey';
+      rec = { cat: 'StorageBlobLogs', recurso: cuenta, tipo: 'storage', op, auth, status: estado(r.code === 0, op), uri: `https://${cuenta}.blob.core.windows.net/${cont}${blob && op !== 'ListBlobs' ? '/' + blob : ''}` };
+    } else if (p[0] === 'keyvault' && p[1] === 'secret') {
+      const op = { show: 'SecretGet', set: 'SecretSet', delete: 'SecretDelete', list: 'SecretList' }[p[2]]; if (!op) return;
+      const vault = A.get('--vault-name'); if (!vault || vault === true || !s.kv[vault]) return;
+      const sec = A.get('--name', '-n') || '';
+      rec = { cat: 'AuditEvent', recurso: vault, tipo: 'kv', op, status: estado(r.code === 0, op), uri: `https://${vault}.vault.azure.net/secrets/${sec === true ? '' : sec}` };
+    }
+    // plano de control: lo que crea o borra la CLI también queda en el Activity log (como en Azure)
+    if (r.code === 0) {
+      const TIPO = { group: 'Resource Group', 'storage account': 'Storage Account', keyvault: 'Key Vault', datafactory: 'Data Factory', 'databricks workspace': 'Azure Databricks Workspace', 'role assignment': 'Role Assignment', 'monitor diagnostic-settings': 'Diagnostic Setting', 'monitor log-analytics workspace': 'Workspace' };
+      const clave = Object.keys(TIPO).find((k) => p.slice(0, k.split(' ').length).join(' ') === k);
+      const verbo = clave && p[clave.split(' ').length];
+      if (clave && (verbo === 'create' || verbo === 'delete')) {
+        const nombre = A.get('--name', '-n', '--factory-name', '--workspace-name', '--role') || '';
+        s.actividad = s.actividad || []; s.actividad.unshift({ t: new Date().toISOString(), op: `${verbo === 'create' ? 'Create or Update' : 'Delete'} ${TIPO[clave]}`, recurso: nombre === true ? '' : String(nombre), estado: 'Succeeded', quien: 'alumno@academia.dev', rg: A.get('--resource-group', '-g') || undefined, origen: 'cli' });
+        s.actividad = s.actividad.slice(0, 300); save();
+      }
+    }
+    if (!rec) return;
+    s.auditoria = s.auditoria || []; s.auditoria.unshift({ t: ahora, quien: 'alumno@academia.dev', ip: '203.0.113.24', ...rec });
+    s.auditoria.length = Math.min(s.auditoria.length, 500); save();
+  }
+  const defAz = (n, d, fn) => def(n, d, (a, ctx) => { const r = fn(a, ctx); try { auditarAz(a, r); } catch (e) { /* la auditoría nunca rompe un comando */ } return r; });
+  defAz('az', 'Azure CLI simulada con estado (login, group, storage, keyvault, databricks, datafactory…)', (a, ctx) => {
     const s = az();
     const A = args(a);
     const p = A.pos;
     const cmd = p.slice(0, 3).join(' ');
     const want = (...xs) => xs.some((x) => cmd.startsWith(x));
-    if (!p.length || A.flags['--help'] || A.flags['-h']) return ok(`${col.b('Group')}\n    az\n\n${col.b('Subgroups:')}\n    account, group, storage, keyvault, role, ad, databricks, datafactory, eventhubs,\n    deployment, resource, extension, config\n\n${col.b('Commands:')}\n    login, logout, version, configure, find, upgrade\n\nEjemplo: az group create --name rg-datos-dev --location eastus2`);
+    if (!p.length || A.flags['--help'] || A.flags['-h']) return ok(`${col.b('Group')}\n    az\n\n${col.b('Subgroups:')}\n    account, group, storage, keyvault, role, ad, databricks, datafactory, eventhubs,\n    monitor, deployment, resource, extension, config\n\n${col.b('Commands:')}\n    login, logout, version, configure, find, upgrade\n\nEjemplo: az group create --name rg-datos-dev --location eastus2`);
     if (p[0] === 'version' || A.flags['--version']) return ok(JSON.stringify({ 'azure-cli': '2.67.0', 'azure-cli-core': '2.67.0', extensions: Object.fromEntries(s.ext.map((e) => [e, '1.0.0'])) }, null, 2));
     if (p[0] === 'login') {
       s.logged = true; save();
@@ -355,6 +391,55 @@
         if (p[2] === 'delete') { delete v.secrets[n]; save(); return ok(''); }
       }
     }
+    // ---- monitor: workspaces de Log Analytics y diagnostic settings (los mismos que muestra el portal)
+    if (p[0] === 'monitor' && p[1] === 'log-analytics' && p[2] === 'workspace') {
+      s.law = s.law || {};
+      const n = A.get('--workspace-name', '--name', '-n'); const rg = A.get('--resource-group', '-g');
+      const json = (w, nom) => ({ customerId: w.customerId, id: `${azRgId(w.rg)}/providers/Microsoft.OperationalInsights/workspaces/${nom}`, location: w.location, name: nom, provisioningState: 'Succeeded', resourceGroup: w.rg, retentionInDays: w.retencion, sku: { name: 'PerGB2018' } });
+      if (p[3] === 'create') {
+        const e = need(A, [['--resource-group', '-g'], ['--workspace-name', '--name', '-n']]); if (e) return fail(e, 2);
+        if (!s.groups[rg]) return fail(`(ResourceGroupNotFound) Resource group '${rg}' could not be found.`, 3);
+        if (!/^[A-Za-z0-9][A-Za-z0-9-]{2,61}[A-Za-z0-9]$/.test(n)) return fail(`(InvalidWorkspaceName) The workspace name '${n}' is invalid: 4-63 characters, letters, numbers and hyphens.`, 1);
+        s.law[n] = s.law[n] || { rg, location: azLoc(A, s, rg) || 'eastus', retencion: Number(A.get('--retention-time')) || 30, sku: 'PerGB2018', customerId: `${uid(8)}-${uid(4)}-4${uid(3)}-a${uid(3)}-${uid(12)}`, creado: now(), tags: {}, guardadas: [] };
+        save(); return output(json(s.law[n], n), A);
+      }
+      if (p[3] === 'list') return output(Object.entries(s.law).filter(([, w]) => !rg || rg === true || w.rg === rg).map(([nom, w]) => json(w, nom)), A);
+      if (p[3] === 'show') { if (!s.law[n]) return fail(`(ResourceNotFound) The Resource 'Microsoft.OperationalInsights/workspaces/${n}' under resource group '${rg}' was not found.`, 3); return output(json(s.law[n], n), A); }
+      if (p[3] === 'delete') { delete s.law[n]; s.diag = (s.diag || []).map((d) => (d.law === n ? { ...d, law: null } : d)); save(); return ok(''); }
+    }
+    if (p[0] === 'monitor' && p[1] === 'diagnostic-settings') {
+      s.diag = s.diag || [];
+      const CAT = { adf: ['PipelineRuns', 'ActivityRuns', 'TriggerRuns'], storage: ['StorageRead', 'StorageWrite', 'StorageDelete'], kv: ['AuditEvent'] };
+      const res = A.get('--resource'); const quien = () => {
+        if (!res || res === true) return { e: 'the following arguments are required: --resource' };
+        const m = /providers\/(Microsoft\.\w+\/\w+)\/([^/]+)/i.exec(res); if (!m) return { e: `(InvalidResourceId) '${res}' no es un resource ID. Obtenlo con: az resource show … --query id -o tsv (o az datafactory show --query id).` };
+        const k = { 'microsoft.datafactory/factories': 'adf', 'microsoft.storage/storageaccounts': 'storage', 'microsoft.keyvault/vaults': 'kv' }[m[1].toLowerCase()];
+        if (!k) return { e: `(ResourceTypeNotSupported) En la práctica, los diagnostic settings se pueden crear para Data Factory, Storage y Key Vault.` };
+        if (!(s[k] || {})[m[2]]) return { e: `(ResourceNotFound) The Resource '${m[1]}/${m[2]}' was not found.` };
+        return { k, n: m[2] };
+      };
+      if (p[2] === 'categories' && p[3] === 'list') { const q = quien(); if (q.e) return fail(q.e, 3); return output({ value: CAT[q.k].map((c) => ({ name: c, categoryType: 'Logs' })).concat([{ name: 'AllMetrics', categoryType: 'Metrics' }]) }, A); }
+      if (p[2] === 'create') {
+        const e = need(A, [['--name', '-n'], ['--resource']]); if (e) return fail(e, 2);
+        const q = quien(); if (q.e) return fail(q.e, 3); const nom = A.get('--name', '-n');
+        if (s.diag.some((d) => d.recurso === `${q.k}/${q.n}` && d.nombre === nom)) return fail(`(Conflict) A diagnostic setting named '${nom}' already exists for this resource.`, 1);
+        let logs = []; const L = A.get('--logs'); if (L && L !== true) { try { logs = JSON.parse(L); } catch (er) { return fail(`--logs: JSON inválido. Ejemplo: --logs '[{"category":"PipelineRuns","enabled":true}]'`, 2); } }
+        let categorias = []; for (const x of logs) { if (x.enabled === false) continue; if (x.categoryGroup === 'allLogs' || x.categoryGroup === 'audit') categorias.push(...(x.categoryGroup === 'audit' && q.k !== 'kv' ? [] : CAT[q.k])); else if (x.category) { if (!CAT[q.k].includes(x.category)) return fail(`(BadRequest) Category '${x.category}' is not supported. Supported: ${CAT[q.k].join(', ')}.`, 1); categorias.push(x.category); } }
+        categorias = [...new Set(categorias)];
+        const W = A.get('--workspace'); const wn = W && W !== true ? String(W).split('/').pop() : null;
+        if (wn && !(s.law || {})[wn]) return fail(`(LinkedResourceNotFound) The workspace '${wn}' was not found. Créalo con: az monitor log-analytics workspace create -g <grupo> -n ${wn}`, 3);
+        const st = A.get('--storage-account'); const eh = A.get('--event-hub-rule');
+        if (!wn && !st && !eh) return fail('(BadRequest) At least one destination is required: --workspace, --storage-account or --event-hub-rule.', 1);
+        const metricas = /AllMetrics/.test(A.get('--metrics') || '');
+        if (!categorias.length && !metricas) return fail('(BadRequest) At least one log category or metric must be enabled (--logs / --metrics).', 1);
+        const d = { nombre: nom, recurso: `${q.k}/${q.n}`, categorias, metricas, law: wn, storage: st && st !== true ? String(st).split('/').pop() : null, eventhub: !!eh, tablaDestino: String(A.get('--export-to-resource-specific')) === 'true' || q.k !== 'adf' ? 'Dedicated' : 'AzureDiagnostics', creado: now() };
+        s.diag.push(d); save();
+        return output({ id: `${res}/providers/microsoft.insights/diagnosticSettings/${nom}`, name: nom, logAnalyticsDestinationType: d.tablaDestino === 'Dedicated' ? 'Dedicated' : null, logs: categorias.map((c) => ({ category: c, enabled: true })), metrics: metricas ? [{ category: 'AllMetrics', enabled: true }] : [], workspaceId: wn ? `${azRgId(s.law[wn].rg)}/providers/Microsoft.OperationalInsights/workspaces/${wn}` : null }, A);
+      }
+      if (p[2] === 'list') { const q = quien(); if (q.e) return fail(q.e, 3); return output(s.diag.filter((d) => d.recurso === `${q.k}/${q.n}`).map((d) => ({ name: d.nombre, logs: d.categorias.map((c) => ({ category: c, enabled: true })), workspaceId: d.law })), A); }
+      if (p[2] === 'delete') { const q = quien(); if (q.e) return fail(q.e, 3); const nom = A.get('--name', '-n'); s.diag = s.diag.filter((d) => !(d.recurso === `${q.k}/${q.n}` && d.nombre === nom)); save(); return ok(''); }
+    }
+    if (p[0] === 'monitor' && p[1] === 'log-analytics' && p[2] === 'query') return fail('En la práctica, las consultas KQL se corren en el portal: Monitor → Logs (o Logs en el workspace). Este comando existe en la CLI real: az monitor log-analytics query -w <workspace-customer-id> --analytics-query "…"', 1);
     // ---- role / ad
     if (p[0] === 'role' && p[1] === 'assignment') {
       if (p[2] === 'create') { const e = need(A, [['--assignee', '--assignee-object-id'], ['--role'], ['--scope']]); if (e) return fail(e, 2); const r = { principalName: A.get('--assignee', '--assignee-object-id'), roleDefinitionName: A.get('--role'), scope: A.get('--scope'), id: uid(32) }; s.roles.push(r); save(); return output(r, A); }

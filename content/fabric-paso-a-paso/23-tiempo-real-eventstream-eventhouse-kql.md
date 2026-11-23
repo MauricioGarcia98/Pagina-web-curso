@@ -55,7 +55,7 @@ texto: Un Eventstream activo - el origen de ejemplo, el stream y su destino en e
 
 Abre `Deposito`. Una consulta **KQL** empieza con el nombre de la tabla y cada `|` pasa el resultado al operador siguiente: se lee de arriba abajo, como una receta.
 
-```sql norun
+```kql
 Lecturas
 | where ts > ago(1h)                                   // la última hora
 | summarize lecturas = count(), maxima = max(temperatura) by camara
@@ -74,7 +74,7 @@ Lecturas
 
 La consulta típica de una serie de tiempo:
 
-```sql norun
+```kql
 Lecturas
 | summarize promedio = avg(temperatura) by camara, bin(ts, 5m)
 | render timechart

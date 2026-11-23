@@ -427,16 +427,32 @@ export default async function (c) {
   await c.foto('b19-alertas', { marcas: [['.az-pag .az-tabla', '1'], ['.az-pag h3 + .az-tabla ~ h3 + .az-tabla, .az-pag .az-tabla:last-of-type', '2']] });
   if (HASTA <= 19) return;
 
-  // ================================================================ lección 20 (proyecto): endurecer el lago antes de producción
+  // ================================================================ lección 20: Log Analytics (logs, KQL y alertas de logs)
+  await ir('crear/law', 700);
+  await p.fill('#lwN', 'log-tiendaandina-dev'); await p.click('#lwOk'); await w(900);
+  const diag = async (k, n, cats) => { await ir(`recurso/${k}/${n}/diagnosticos`, 700); await p.click('#dAdd'); await w(400); for (const x of await p.$$('[data-cat]')) { const c2 = await x.getAttribute('data-cat'); if (cats.includes(c2) !== (await x.isChecked())) await x.click(); } await panelOk(600); };
+  await diag('adf', ADF, ['PipelineRuns', 'ActivityRuns']); await diag('storage', ST, ['StorageWrite', 'StorageDelete']); await diag('kv', KV, ['AuditEvent']);
+  await p.evaluate((f) => { window.ADFStudio.importarObjeto(f, 'pipelines', 'pl_prueba_logs', { activities: [{ name: 'Esperar', type: 'Wait', typeProperties: { waitTimeInSeconds: 1 } }, { name: 'Validar_archivo', type: 'Fail', dependsOn: [{ activity: 'Esperar', dependencyConditions: ['Succeeded'] }], typeProperties: { message: 'El archivo de pedidos llegó vacío', errorCode: '4001' } }] }); window.ADFStudio.importarObjeto(f, 'pipelines', 'pl_ingesta_pedidos', { activities: [{ name: 'Esperar', type: 'Wait', typeProperties: { waitTimeInSeconds: 1 } }] }); window.CloudSim.save(); }, ADF);
+  await p.evaluate(async ([rg, f, st, kv]) => { if (!window.Shell.Machine.ready) window.Shell.Machine.load(); for (const l of [`az datafactory pipeline create-run -g ${rg} --factory-name ${f} -n pl_ingesta_pedidos`, `az datafactory pipeline create-run -g ${rg} --factory-name ${f} -n pl_prueba_logs`, 'echo "pedido_id,monto" > prueba.csv', `az storage blob upload --account-name ${st} -c bronze -n pruebas/a.csv -f prueba.csv --auth-mode login`, `az storage blob upload --account-name ${st} -c bronze -n pruebas/b.csv -f prueba.csv`, `az keyvault secret show --vault-name ${kv} -n no-existe`]) await window.Shell.runLine(l, { autoLogin: true }); }, [RG, ADF, ST, KV]);
+  await w(3500);
+  await ir('recurso/law/log-tiendaandina-dev/logs', 1200);
+  await p.fill('#lgQ', 'ADFPipelineRun\n| where Status in ("Succeeded", "Failed", "Cancelled")\n| summarize arg_max(TimeGenerated, *) by PipelineName\n| project PipelineName, Status, TimeGenerated, RunId'); await p.click('#lgRun'); await w(1200);
+  await c.foto('b19b-logs', { marcas: [['.az-logs-esq', '1'], ['#lgQ', '2'], ['#lgOut .az-logs-res', '3']] });
+  await p.fill('#lgQ', 'ADFPipelineRun\n| where Status == "Failed"'); await p.click('#lgAlerta'); await w(500);
+  await p.fill('#aN', 'adf-pipeline-fallido-logs'); await p.selectOption('#aG', 'ag-guardia-datos'); await panelOk(2500);
+  await c.foto('b19b-alerta', { marcas: [['.az-pag .az-tabla', '1'], ['.az-pag .az-tabla:last-of-type', '2']] });
+  if (HASTA <= 20) return;
+
+  // ================================================================ lección 21 (proyecto): endurecer el lago antes de producción
   await ir(`recurso/storage/${ST}`, 800);
   await c.foto('b20-storage-props', { marcas: [['.az-props', null]] });
   await ir(`recurso/storage/${ST}/locks`, 700);
   await c.foto('b20-locks-heredados', { marcas: [['#azRC .az-tabla', null]] });
   await ir('actividad', 700);
   await c.foto('b20-actividad', { marcas: [['.az-pag .az-tabla', null]] });
-  if (HASTA <= 20) return;
+  if (HASTA <= 21) return;
 
-  // ================================================================ Nivel 6 · lección 21: plantillas ARM (infraestructura como código)
+  // ================================================================ Nivel 6 · lección 22: plantillas ARM (infraestructura como código)
   const TPL = {
     $schema: 'https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#',
     contentVersion: '1.0.0.0',
@@ -487,9 +503,9 @@ export default async function (c) {
   await p.click('.az-cmd [data-c="borrarRg"]'); await w(500); await p.fill('#dC', 'rg-tiendaandina-qa');
   await c.foto('b21-borrar-grupo', { marcas: [['#azCapa .az-banner', '1'], ['#dC', '2']] });
   await panelOk(2600);
-  if (HASTA <= 21) return;
+  if (HASTA <= 22) return;
 
-  // ================================================================ lección 22: costos, presupuestos y optimización
+  // ================================================================ lección 23: costos, presupuestos y optimización
   await ir('costos', 800);
   await c.foto('b22-costos', { marcas: [['.az-barras', '1'], ['.az-pag h3 + .az-barras + h3 + .az-tabla, .az-pag .az-tabla', '2']] });
   await p.click('#bAdd'); await w(400); await p.fill('#pN', 'alerta-temprana'); await p.fill('#pM', '0.1'); await p.fill('#pU', '50, 100'); await panelOk(600);
@@ -502,9 +518,9 @@ export default async function (c) {
   await ir(`recurso/storage/${ST}/ciclo`, 600);
   await ir('recursos', 700);
   await c.foto('b22-todos-recursos', { marcas: [['.az-pag .az-tabla', null]] });
-  if (HASTA <= 22) return;
+  if (HASTA <= 23) return;
 
-  // ================================================================ lección 23: de la práctica al Azure real
+  // ================================================================ lección 24: de la práctica al Azure real
   await ir('crear/storage', 900);
   await wSel('rg', RG); await wTxt('name', 'sttiendaandinaprueba'); await wSel('location', 'eastus2');
   await wRevisar();
@@ -518,9 +534,9 @@ export default async function (c) {
   await ir('', 700);
   await c.foto('b23-tema-oscuro');
   await p.click('#azCfgB'); await w(300); await p.click('[data-tema="azure"]'); await w(300); await cerrarFly();
-  if (HASTA <= 23) return;
+  if (HASTA <= 24) return;
 
-  // ================================================================ lección 24 (proyecto final): producción con plantilla, permisos, bloqueo y alertas
+  // ================================================================ lección 25 (proyecto final): producción con plantilla, permisos, bloqueo y alertas
   await ir('crear/plantilla', 900);
   await p.click('#tPropia'); await w(500); await p.fill('#tTxt', tplTexto); await p.click('#tSave'); await w(600);
   await p.fill('#tRgN', 'rg-tiendaandina-prod'); await p.selectOption('[data-tpar="entorno"]', 'prod'); await w(200);

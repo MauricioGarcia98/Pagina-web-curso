@@ -137,11 +137,11 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <tr>
 <td>7</td>
 <td>Trazabilidad</td>
-<td>Activity log (90 días)</td>
-<td>Las operaciones de esta etapa con quién y cuándo</td>
+<td>Activity log y resource logs (lago, vault, factory) enviados a <code>log-tiendaandina-dev</code> (lección 20)</td>
+<td>Una consulta en Logs: <code>AzureActivity</code> con quién cambió qué, y <code>StorageBlobLogs</code> sin operaciones con <code>AccountKey</code></td>
 </tr>
 </tbody></table></div>
-<p><strong>Pendientes para Azure real</strong>, que conviene declarar en la entrega: enviar el Activity log a un <strong>Log Analytics workspace</strong> para guardarlo más de 90 días; <strong>desactivar el acceso con clave</strong> cuando todo use Entra; reemplazar la SAS de cuenta por una <strong>user delegation SAS</strong>; y cerrar la red con <strong>private endpoint</strong>. Declarar lo pendiente es parte de un buen informe: Seguridad confía más en quien dice qué falta que en quien dice que está todo.</p>
+<p><strong>Pendientes para Azure real</strong>, que conviene declarar en la entrega: subir la <strong>retención</strong> del workspace a lo que pida auditoría (por ejemplo, un año); <strong>desactivar el acceso con clave</strong> cuando todo use Entra; reemplazar la SAS de cuenta por una <strong>user delegation SAS</strong>; y cerrar la red con <strong>private endpoint</strong>. Declarar lo pendiente es parte de un buen informe: Seguridad confía más en quien dice qué falta que en quien dice que está todo.</p>
 </details>
 
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
@@ -185,6 +185,6 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-proyecto-endurecer-el-lago">▶ Hacer los ejercicios</a>
-<nav class="nav"><a href="azure-paso-a-paso-bloqueos-y-azure-monitor.html">← Bloqueos y Azure Monitor - que nada se borre por error y enterarte cuando algo falla</a><a href="azure-paso-a-paso-plantillas-arm.html">Plantillas ARM - la infraestructura como código →</a></nav></main>
+<nav class="nav"><a href="azure-paso-a-paso-logs-con-log-analytics-y-kql.html">← Log Analytics - los logs de la plataforma, consultas KQL y alertas de logs</a><a href="azure-paso-a-paso-plantillas-arm.html">Plantillas ARM - la infraestructura como código →</a></nav></main>
 <footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
 </body></html>
