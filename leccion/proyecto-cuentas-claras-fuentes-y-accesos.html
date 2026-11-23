@@ -42,6 +42,10 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>Cuerpo <code>{&quot;properties&quot;: {&quot;health_score&quot;: &quot;72&quot;, &quot;mrr_actual&quot;: &quot;79.00&quot;, &quot;plan_actual&quot;: &quot;pro&quot;}}</code>. Solo esas tres propiedades personalizadas. No se puede escribir en una empresa archivada</td>
 </tr>
 <tr>
+<td><code>POST /crm/v3/objects/companies/batch/update</code></td>
+<td>Cuerpo <code>{&quot;inputs&quot;: [{&quot;id&quot;: &quot;…&quot;, &quot;properties&quot;: {…}}]}</code>, <strong>hasta 100 empresas por pedido</strong> (cuenta como un pedido para el límite). Responde 200 si todo se escribió o <strong>207</strong> con <code>errors</code> si una parte falló (por ejemplo, una empresa archivada)</td>
+</tr>
+<tr>
 <td><code>GET /crm/v3/owners</code></td>
 <td>Vendedores</td>
 </tr>

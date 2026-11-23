@@ -2617,6 +2617,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (window.CuentasClarasProyecto) window.CuentasClarasProyecto.montar(body);
     if (window.AlmacenesSolProyecto) window.AlmacenesSolProyecto.montar(body);
     if (window.ConectaProyecto) window.ConectaProyecto.montar(body);
+    if (window.Soluciones) window.Soluciones.montar(body); // soluciones de referencia bloqueadas hasta aprobar el paso
     if (window.ProyectoEquipo) window.ProyectoEquipo.montar(body);
     if (window.Practica) window.Practica.montarLeccion(body, Store, l, { toast });
     // cada lección con ejercicios de terminal empieza como una terminal recién abierta: en ~ y sin entorno

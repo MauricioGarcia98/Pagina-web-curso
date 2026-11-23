@@ -9,7 +9,7 @@ autoevaluacion: ¿Sabes qué es el MRR y por qué un plan anual no suma 12 veces
 ---
 
 :::escenario Martes, 9:00 · Cuentas Claras
-Cuentas Claras tiene 400 clientes que pagan una suscripción mensual o anual. Tres sistemas: **Contacto CRM** (lo usa Ventas), **Cobrable** (la plataforma de cobros por suscripción) y **Medidor** (la analítica del producto). Cada uno tiene su id del cliente y ninguno conoce los otros.
+Cuentas Claras tiene unos 3.000 clientes (unos 1.200 pagando hoy) con una suscripción mensual o anual, 18 meses de historia de facturación y unos 12.600 usuarios que generan cerca de medio millón de eventos de uso por mes. Tres sistemas: **Contacto CRM** (lo usa Ventas), **Cobrable** (la plataforma de cobros por suscripción) y **Medidor** (la analítica del producto). Cada uno tiene su id del cliente y ninguno conoce los otros.
 :::
 
 ## Los pedidos

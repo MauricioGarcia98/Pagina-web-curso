@@ -47,11 +47,11 @@
       const s = cfg.semilla; const R = azar(h32(s, 'cc')); const H = hitos();
       const T0 = I() - 540 * DIA; const FIN = I() + 30 * DIA;
       const cuentas = []; const eventos = []; let nEv = 0; const evento = (ts, tipo, sub, datos, previo) => { eventos.push({ id: 'evt_' + h32(s, 'e', ++nEv).toString(36) + nEv.toString(36), ts, tipo, sub: sub.id, cliente: sub.cliente, datos: { ...datos }, previo: previo || null }); };
-      const N = 420;
+      const N = 3000; // volumen de empresa: unos 3.000 clientes, 18 meses de facturación
       for (let i = 0; i < N; i++) {
         const alta = T0 + Math.floor(Math.pow(R.r(), 0.8) * (FIN - T0 - 20 * DIA));
         const nombre = `${R.pick(TIPOS)} ${R.pick(NOMBRES)}`; const dom = `${nombre.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]+/g, '')}${i}.com.example`;
-        const c = { i, nombre, dominio: dom, rubro: R.pick(RUBROS), alta, vendedor: R.pick(VENDEDORES).id, cliente: 'cus_' + h32(s, 'cus', i).toString(36).padStart(7, '0'), crm: String(1000000 + h32(s, 'crm', i) % 8000000), cuentaProducto: 'acc_' + h32(s, 'acc', i).toString(36), usuarios: R.int(1, 12), dupCrm: R.chance(0.06), conCrmId: R.chance(0.8) };
+        const c = { i, nombre, dominio: dom, rubro: R.pick(RUBROS), alta, vendedor: R.pick(VENDEDORES).id, cliente: 'cus_' + h32(s, 'cus', i).toString(36).padStart(7, '0'), crm: String(1000000 + i * 1009 + (h32(s, 'crm', i) % 1000)), cuentaProducto: 'acc_' + h32(s, 'acc', i).toString(36), usuarios: R.pick([1, 1, 2, 2, 3, 3, 4, 5, 6, 8, 12]), dupCrm: R.chance(0.06), conCrmId: R.chance(0.8) };
         cuentas.push(c);
         // la suscripción y su historia
         const sub = { id: 'sub_' + h32(s, 'sub', i).toString(36).padStart(8, '0'), cliente: c.cliente };
@@ -77,7 +77,7 @@
       }
       eventos.sort((a, b) => a.ts - b.ts || 0);
       // la fusión de duplicados del CRM: el registro duplicado queda archivado y "fusionado en" el principal
-      for (const c of cuentas) if (c.dupCrm) c.crmDup = String(9000000 + h32(s, 'dup', c.i) % 900000);
+      for (const c of cuentas) if (c.dupCrm) c.crmDup = String(9000000 + c.i * 211 + (h32(s, 'dup', c.i) % 200));
       cache = { clave, cuentas, eventos, T0 };
       return cache;
     }
@@ -85,9 +85,11 @@
     function estadoSubsEn(t) { const m = new Map(); for (const e of mundo().eventos) { if (e.ts > t) break; m.set(e.cliente, e.datos); } return m; }
     /** MRR por cliente al cierre de un mes (hora local). */
     function mrrMes(mes) { const E = estadoSubsEn(finDeMes(mes)); const out = new Map(); for (const [c, st] of E) out.set(c, mrrDe(st)); return out; }
+    let cachePrimer = null;
+    function primerPago() { const W = mundo(); if (cachePrimer && cachePrimer.w === W) return cachePrimer.m; const m = new Map(); for (const e of W.eventos) if (!m.has(e.cliente) && mrrDe(e.datos) > 0) m.set(e.cliente, e.ts); cachePrimer = { w: W, m }; return m; }
     function movimientos(mes) {
       const prev = mrrMes(mesesAntes(mes, 1)), act = mrrMes(mes); const out = [];
-      const tuvo = (c) => { for (const e of mundo().eventos) { if (e.ts > finDeMes(mesesAntes(mes, 1))) break; if (e.cliente === c && mrrDe(e.datos) > 0) return true; } return false; };
+      const tuvo = (c) => { const f = primerPago().get(c); return f != null && f <= finDeMes(mesesAntes(mes, 1)); }; // ¿alguna vez pagó antes de este mes?
       for (const c of new Set([...prev.keys(), ...act.keys()])) {
         const a = prev.get(c) || 0, b = act.get(c) || 0; let mov = null;
         if (a === 0 && b > 0) mov = tuvo(c) ? 'reactivacion' : 'nuevo'; else if (a > 0 && b === 0) mov = 'churn'; else if (b > a) mov = 'expansion'; else if (b < a) mov = 'contraccion';
@@ -151,6 +153,24 @@
           const i = q.after ? L.findIndex((x) => Number(x.id) > Number(q.after)) : 0; const pag = i < 0 ? [] : L.slice(i, i + lim);
           const pedidas = q.properties ? q.properties.split(',') : ['name', 'domain', 'createdate', 'hs_lastmodifieddate'];
           return res(200, { results: pag.map((x) => ({ id: x.id, properties: Object.fromEntries(pedidas.map((k) => [k, x.properties[k] ?? null])), createdAt: x.properties.createdate, updatedAt: x.properties.hs_lastmodifieddate, archived: x.archived, ...(x.mergedInto ? { mergedInto: x.mergedInto } : {}) })), ...(i >= 0 && i + lim < L.length ? { paging: { next: { after: pag[pag.length - 1].id, link: `https://api.contactocrm.example/crm/v3/objects/companies?after=${pag[pag.length - 1].id}&limit=${lim}` } } } : {}) });
+        }
+        // escritura en lote: hasta 100 empresas por pedido (cuenta como un solo pedido para el límite)
+        if (ruta === '/crm/v3/objects/companies/batch/update' && method === 'POST') {
+          let b; try { b = JSON.parse(body || '{}'); } catch (e) { return ERR(400, 'Invalid JSON.'); }
+          const inputs = Array.isArray(b.inputs) ? b.inputs : null; if (!inputs) return ERR(400, 'El cuerpo tiene que ser {"inputs": [{"id": "...", "properties": {...}}]}.');
+          if (inputs.length > 100) return ERR(400, `Batch input is too large: ${inputs.length} inputs; the maximum is 100.`);
+          const validas = ['health_score', 'mrr_actual', 'plan_actual']; const L = crmEmpresas(t); const porId = new Map(L.map((x) => [x.id, x]));
+          const results = [], errors = [];
+          for (const inp of inputs) {
+            const id = String(inp && inp.id); const x = porId.get(id); const p = (inp && inp.properties) || {};
+            const malas = Object.keys(p).filter((k) => !validas.includes(k));
+            if (malas.length) { errors.push({ status: 'error', category: 'VALIDATION_ERROR', message: `Property values were not valid: ${malas.map((k) => `"${k}" does not exist`).join(', ')}`, context: { ids: [id] } }); continue; }
+            if (!x) { errors.push({ status: 'error', category: 'OBJECT_NOT_FOUND', message: `Object not found. objectId are usually numeric. (${id})`, context: { ids: [id] } }); continue; }
+            if (x.archived) { errors.push({ status: 'error', category: 'OBJECT_ARCHIVED', message: `Cannot update archived object ${id}${x.mergedInto ? ` (merged into ${x.mergedInto})` : ''}.`, context: { ids: [id] } }); continue; }
+            cfg.crm[id] = { ...(cfg.crm[id] || {}), ...Object.fromEntries(Object.entries(p).map(([k, v]) => [k, String(v)])) }; st.cambios.push({ id, props: p, t });
+            results.push({ id, properties: { ...x.properties, ...cfg.crm[id] }, updatedAt: new Date(t).toISOString() });
+          }
+          return res(errors.length ? 207 : 200, { status: 'COMPLETE', results, ...(errors.length ? { numErrors: errors.length, errors } : {}), startedAt: new Date(t).toISOString(), completedAt: new Date(t).toISOString() });
         }
         if ((m = /^\/crm\/v3\/objects\/companies\/(\d+)$/.exec(ruta))) {
           const L = crmEmpresas(t); const x = L.find((y) => y.id === m[1]);
