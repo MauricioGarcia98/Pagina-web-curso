@@ -201,6 +201,40 @@ con 0,4 % de falsas alarmas sobre 38.000 transacciones sintéticas.
 ## Calidad de datos: qué problemas encontré y cómo los traté
 ## Qué haría con más tiempo</code></pre>
 <p>Lo que más pesa: el <strong>resultado con un número</strong> al principio, las <strong>decisiones</strong> (por qué streaming y no batch, por qué esta clave de partición) y la sección de <strong>calidad de datos</strong>: muestra que trabajaste con datos reales, no con un CSV perfecto.</p>
+<h2>Cómo se trabaja: el portafolio en Jira</h2>
+<p>En un equipo nadie arranca a programar sin un ticket. Para que tu portafolio se parezca a eso, cada proyecto del módulo es una historia del proyecto <strong>PF · Portafolio</strong> en el <a href="#/jira/projects/PF/board">Jira de práctica</a>: aparece cuando abres la lección del proyecto, con sus criterios de aceptación y el pedido de un &quot;cliente interno&quot; (Ventas, Riesgo, Operaciones…).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Paso</th>
+<th>En Jira</th>
+<th>En GitHub de práctica</th>
+</tr>
+</thead><tbody><tr>
+<td>1. Tomar el trabajo</td>
+<td>Asígnate la historia y pásala a <strong>In Progress</strong></td>
+<td>Crea el repo <code>github.com/alumno/&lt;nombre-del-proyecto&gt;</code></td>
+</tr>
+<tr>
+<td>2. Trabajar</td>
+<td>Comenta decisiones y bloqueos en el ticket</td>
+<td>Una rama por tarea, commits chicos, <code>PF-102</code> en el mensaje (smart commits)</td>
+</tr>
+<tr>
+<td>3. Pedir revisión</td>
+<td>Mueve la historia a <strong>In Review</strong></td>
+<td>Pull request fusionado en <code>main</code></td>
+</tr>
+<tr>
+<td>4. Revisión</td>
+<td>Martín revisa el repo contra los criterios: si falta algo, la devuelve a In Progress con el detalle</td>
+<td>—</td>
+</tr>
+<tr>
+<td>5. Cerrar</td>
+<td>Aprobada, pasa a <strong>Done</strong></td>
+<td>El README cuenta el resultado</td>
+</tr>
+</tbody></table></div>
+<p>La revisión mira lo que mira un revisor de verdad: que el README tenga el problema, el resultado, la arquitectura, cómo correrlo y las decisiones; que haya más de un commit y un pull request; que no haya credenciales (<code>.env</code>) en el repo; y lo propio de cada proyecto (modelos y tests de dbt, Terraform y CI, un set de evaluación…). Tu perfil (el repo <code>alumno/alumno</code> con su README) es la historia <strong>PF-101</strong>.</p>
 <h2>Errores comunes y cómo contarlo</h2>
 <div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
 
