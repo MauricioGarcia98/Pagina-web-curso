@@ -94,8 +94,8 @@ Llega: todos los días antes de las 03:00 en landing/pedalia/<fecha>/
 |---|---|---|
 | viaje_id | entero | identifica el viaje; puede venir repetido (reintentos) |
 | bici_id | texto | B-0001 … B-1500 |
-| estacion_origen | entero | 1 … 24 |
-| estacion_destino | entero | 1 … 24, o 99 = fuera de estación; vacío si el viaje no terminó |
+| estacion_origen | entero | 1 … 72 |
+| estacion_destino | entero | 1 … 72, o 99 = fuera de estación; vacío si el viaje no terminó |
 | inicio, fin | fecha y hora | formato AAAA-MM-DD HH:MM:SS, hora local |
 | tipo_usuario | texto | abono o pase_dia |
 | monto | decimal | pesos; vacío si el viaje no terminó |

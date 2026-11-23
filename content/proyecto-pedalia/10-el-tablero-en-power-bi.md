@@ -30,11 +30,18 @@ En la vista previa de cada tabla, confirma que las fechas vienen como fecha y lo
 
 ## 2. La tabla de fechas
 
-Las tres tablas tienen una columna de fecha, pero ninguna tiene todos los días. Crea una tabla de fechas en **Modelado → Nueva tabla**:
+Las tres tablas tienen una columna de fecha, pero ninguna tiene todos los días. Crea en **Modelado → Nueva tabla** una tabla `Calendario` con **una fila por cada día de noviembre de 2026**, escrita en DAX (no importada).
 
+<details><summary>Pista</summary>
+
+DAX tiene una función que devuelve una tabla con todos los días entre dos fechas; las fechas se arman con `DATE(año, mes, día)`. Busca `CALENDAR` en [Medidas DAX paso a paso](#/l/powerbi-paso-a-paso-medidas-dax) o en la ayuda de la barra de fórmulas.
+</details>
+
+:::solucion PD:Modelo de Power BI | la tabla de fechas
 ```text
 Calendario = CALENDAR(DATE(2026, 11, 1), DATE(2026, 11, 30))
 ```
+:::
 
 Márcala como tabla de fechas (**Herramientas de tabla → Marcar como tabla de fechas**) y relaciona, en la vista **Modelo**:
 
@@ -46,8 +53,29 @@ Las tres relaciones son de uno a muchos, con filtro en una sola dirección (del 
 
 ## 3. Las medidas
 
-Arrastrar una columna numérica al gráfico funciona, pero cada visual decide cómo sumarla. Una **medida** se define una vez y vale igual en todos lados:
+Arrastrar una columna numérica al gráfico funciona, pero cada visual decide cómo sumarla. Una **medida** se define una vez y vale igual en todos lados. Escribe estas cinco con **Modelado → Nueva medida**:
 
+| Medida | Qué tiene que dar |
+|---|---|
+| `Ingresos` | Lo cobrado, de la tabla de Snowflake |
+| `Viajes` | Los viajes que salieron, de la tabla de Databricks |
+| `Viajes pase día` | Los viajes con pase diario, de la tabla de BigQuery |
+| `% pase día` | Viajes pase día sobre todos los viajes de BigQuery, **sin error** en un día sin viajes |
+| `Fuera de estación` | Los viajes que terminaron fuera de una estación |
+
+<details><summary>Pista 1</summary>
+
+Una medida que suma una columna es `SUM(Tabla[Columna])`. Una medida puede usar otra entre corchetes: `[Viajes pase día]`.
+</details>
+
+<details><summary>Pista 2</summary>
+
+Para el porcentaje, una división con `/` falla cuando el denominador es cero. DAX tiene una función de división segura: `DIVIDE(numerador, denominador)`.
+</details>
+
+Cuando tengas el modelo armado (las tres tablas, el calendario marcado, las relaciones y las medidas), el botón de cualquiera de los candados de esta lección lo revisa; al aprobarlo se abren las dos soluciones de referencia.
+
+:::solucion PD:Modelo de Power BI | las medidas
 ```text
 Ingresos = SUM(INGRESOS_DIARIOS[INGRESOS])
 Viajes = SUM(viajes_por_estacion[viajes_salida])
@@ -57,6 +85,7 @@ Fuera de estación = SUM(viajes_por_estacion[fuera_de_estacion])
 ```
 
 `DIVIDE` en vez de `/` evita el error de división por cero en un día sin viajes.
+:::
 
 ## 4. El informe
 

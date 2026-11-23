@@ -18,7 +18,7 @@
   function eventosDe(f, t = ahora()) { const m = new Map(); for (const x of RS.dia(f).eventos) { if (x.ing > t) continue; const y = m.get(x.id); if (!y || x.ing < y.ing) m.set(x.id, x); } return [...m.values()]; }
   function entregas(f, t = ahora()) {
     const evs = eventosDe(f, t).filter((x) => x.tipo === 'entrega_completada' || x.tipo === 'entrega_fallida'); const porP = new Map(evs.map((x) => [x.pedido_id, x]));
-    return RS.dia(f).pedidos.map((p) => { const e = porP.get(p.pedido_id); const estado = e ? (e.tipo === 'entrega_completada' ? 'completada' : 'fallida') : 'sin_evento'; return { ...p, estado, ts: e ? e.ts : null, a_tiempo: estado === 'completada' && e.ts >= p.ventana_inicio && e.ts <= p.ventana_fin }; });
+    return RS.dia(f).pedidos.map((p) => { const e = porP.get(p.pedido_id); const estado = e ? (e.tipo === 'entrega_completada' ? 'completada' : 'fallida') : 'sin_evento'; const seg = e ? Math.floor(e.ts / 1000) * 1000 : null; return { ...p, estado, ts: e ? e.ts : null, a_tiempo: estado === 'completada' && seg >= p.ventana_inicio && seg <= p.ventana_fin }; }); // a segundos, como unix_timestamp y como trabaja el TMS
   }
   const pct = (xs) => Math.round((xs.filter((x) => x.a_tiempo).length / (xs.length || 1)) * 1000) / 10;
   const kmDe = (v, f) => { const L = eventosDe(f).filter((x) => x.vehiculo === v).sort((a, b) => a.ts - b.ts); let s = 0; for (let i = 1; i < L.length; i++) s += RS.km([L[i - 1].lat, L[i - 1].lon], [L[i].lat, L[i].lon]); return s; };
@@ -49,8 +49,9 @@
     const ids = T.filas.map((f) => String(f[ix.id])); const unicos = new Set(ids); if (unicos.size !== ids.length) return `Hay eventos repetidos: ${ids.length} filas y ${unicos.size} event_id distintos. Event Hubs entrega "al menos una vez": deduplica por event_id.`;
     const t0 = RS.inicioDiaLocal(ahora()); const m = []; const tuyo = new Map(T.filas.map((f) => [String(f[ix.id]), f]));
     let faltan = 0, velMal = 0, velMalFw2 = 0, tsMal = 0, nulos = 0; const H = RS.hitos();
+    const D0 = Host.datos() || {}; const desdeKafka = Math.max(RS.cfg.inicio, D0.primeraLecturaSql || 0) - 3 * DIA;
     for (const f of diasCerrados().slice(-3)) for (const x of eventosDe(f, t0)) {
-      if (x.ing < t0 - 3 * DIA) continue; // ya no estaban en Kafka cuando empezaste: no se exigen
+      if (x.ing < desdeKafka) continue; // ya no estaban en Kafka cuando empezaste a consumir (retención de 3 días): no se exigen
       const r = tuyo.get(x.id); if (!r) { faltan++; continue; }
       if (x.velocidad_kmh != null) { const v = r[ix.vel]; if (v == null) nulos++; else if (Math.abs(Number(v) - x.velocidad_kmh) > 0.6) { velMal++; if (x.fw2) velMalFw2++; } }
       const ms = msDe(r[ix.ts]); if (!(Math.abs(ms - x.ts) < 2000 || (x.desvio && Math.abs(ms - x.ts - x.desvio) < 2000))) tsMal++;

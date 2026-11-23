@@ -63,10 +63,10 @@ Rocío pregunta por las salidas de "ayer". Un viaje empezó a las 23:40 del 18 e
 :::
 
 :::ejercicio quiz
-Desde que abrió la estación 25, el total de viajes de silver es un poco menor que el de la API. ¿Causa más probable?
+Desde que abrió la estación 73, el total de viajes de silver es un poco menor que el de la API. ¿Causa más probable?
 - [ ] La API duplica viajes
-- [x] silver hace un INNER JOIN con un maestro de estaciones que no tiene la 25: esos viajes se pierden sin error
-- [ ] Los viajes de la 25 son gratis
+- [x] silver hace un INNER JOIN con un maestro de estaciones que no tiene la 73: esos viajes se pierden sin error
+- [ ] Los viajes de la 73 son gratis
 - [ ] El cursor saltea páginas
 :::
 
