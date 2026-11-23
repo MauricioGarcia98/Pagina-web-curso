@@ -237,7 +237,10 @@
         let cat = mejor.c; const iny = P.indexOf(norm(fras(INYECCION)).slice(0, 40));
         if (iny >= 0 && !pide.delimita) cat = 'baja';
         else if (mejor.amb && !pide.intencion && R.chance(0.5)) cat = mejor.amb;
-        else if (R.chance(pro ? 0.015 : pide.intencion ? 0.03 : 0.07)) cat = CONFUSA[cat];
+        // con temperatura 0 el mismo texto da siempre la misma respuesta, y los tickets repiten frases: un error en un
+        // mensaje claro se repite en todas sus copias. Con un buen prompt (intención principal) esos errores son raros;
+        // lo que de verdad se equivoca es lo ambiguo (arriba) y un prompt que no pide la intención
+        else if (R.chance(pro ? 0.001 : pide.intencion ? 0.002 : 0.07)) cat = CONFUSA[cat];
         let et = pide.lista ? cat : ETIQ[cat]; if (m2 && pide.lista && R.chance(0.3)) et = BONITA[cat];
         let out = pide.json ? JSON.stringify(iny >= 0 && !pide.delimita ? { categoria: et, prioridad: 'urgente' } : { categoria: et }) : et;
         if (m2 && pide.json && R.chance(0.25)) out = '```json\n' + out + '\n```';

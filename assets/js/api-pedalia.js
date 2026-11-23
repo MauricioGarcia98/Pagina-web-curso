@@ -13,7 +13,7 @@
  * - Versiones: la v1 (paginación por número de página, hora local, nombres en español) está deprecada desde el
  *   día en que empiezas y se da de baja 10 días después (410 Gone). La v2 usa cursor estable por updated_at,
  *   UTC y montos en centavos. El calendario de cambios es propio de cada estudiante y se anuncia en el changelog:
- *   a los 4 días aparecen payment_method y el valor nuevo user_type = "corporate"; a los 6, la estación 25.
+ *   a los 4 días aparecen payment_method y el valor nuevo user_type = "corporate"; a los 6, la estación 73 (Muelle Norte); la red tiene 72.
  *
  * apiPedaliaFactory se serializa con toString() y se evalúa en el worker de Python: no puede usar nada de afuera.
  * La configuración (semilla, inicio, apps registradas, cuota usada, incidentes forzados) llega con configurar().
@@ -48,7 +48,7 @@
       const i = inicioDiaLocal(cfg.inicio);
       return {
         v2: i - 45 * DIA, deprecacionV1: i, anuncioCampos: i + 2 * DIA, campos: i + 4 * DIA,
-        estacion25: i + 6 * DIA, capacidad7: i + 3 * DIA, avisoBajaV1: i + 7 * DIA, bajaV1: i + 10 * DIA,
+        estacionNueva: i + 6 * DIA, capacidad7: i + 3 * DIA, avisoBajaV1: i + 7 * DIA, bajaV1: i + 10 * DIA,
       };
     }
     function changelog() {
@@ -59,21 +59,22 @@
         { fecha: f(H.anuncioCampos), version: '2.3.0 (anuncio)', tipo: 'aviso', titulo: 'Próximo cambio en /v2/trips', detalle: `A partir del ${f(H.campos)}: (1) campo nuevo payment_method ("card" | "wallet"), (2) user_type puede valer "corporate" (planes de empresas, se facturan por mes: amount_cents = 0). Si validan el enum de forma estricta, actualicen antes de esa fecha.` },
         { fecha: f(H.capacidad7), version: '2.3.1', tipo: 'datos', titulo: 'Capacidad de la estación 7', detalle: 'La estación 7 (Hospital Viejo) pasó de 20 a 30 anclajes. /v2/stations cambia su ETag.' },
         { fecha: f(H.campos), version: '2.4.0', tipo: 'cambio', titulo: 'payment_method y user_type = "corporate"', detalle: 'Ya disponibles en /v2/trips. Los viajes corporativos anteriores a hoy siguen informados como "subscriber".' },
-        { fecha: f(H.estacion25), version: '2.4.1', tipo: 'datos', titulo: 'Estación nueva: 25 · Muelle Norte', detalle: 'Aparece en /v2/stations y en los viajes desde hoy.' },
+        { fecha: f(H.estacionNueva), version: '2.4.1', tipo: 'datos', titulo: 'Estación nueva: 73 · Muelle Norte', detalle: 'Aparece en /v2/stations y en los viajes desde hoy.' },
         { fecha: f(H.avisoBajaV1), version: '1.9.1', tipo: 'aviso', titulo: 'Recordatorio: la v1 se apaga en 3 días', detalle: `Desde el ${f(H.bajaV1)}, /v1 responde 410 Gone.` },
         { fecha: f(H.bajaV1), version: '—', tipo: 'baja', titulo: 'La v1 fue dada de baja', detalle: 'Todas las rutas /v1 responden 410 Gone.' },
       ];
     }
 
     // ---------------------------------------------------------------- estaciones
-    const NOMBRES = ['Plaza Mayor', 'Mercado Central', 'Terminal Norte', 'Rambla Este', 'Parque Lineal', 'Hospital Viejo', 'Universidad', 'Dique Seco', 'Estación Sur', 'Biblioteca', 'Cerro Bajo', 'Puente Azul', 'Faro', 'Plaza de los Pinos', 'Club Náutico', 'Avenida del Río', 'Molino Rojo', 'Feria Franca', 'Escuela 12', 'Cancha Grande', 'Polo Tecnológico', 'Costanera', 'Jardín Botánico', 'Barrio Obrero', 'Muelle Norte'];
+    const NOMBRES = ['Plaza Mayor', 'Mercado Central', 'Terminal Norte', 'Rambla Este', 'Parque Lineal', 'Hospital Viejo', 'Universidad', 'Dique Seco', 'Estación Sur', 'Biblioteca', 'Cerro Bajo', 'Puente Azul', 'Faro', 'Plaza de los Pinos', 'Club Náutico', 'Avenida del Río', 'Molino Rojo', 'Feria Franca', 'Escuela 12', 'Cancha Grande', 'Polo Tecnológico', 'Costanera', 'Jardín Botánico', 'Barrio Obrero', 'Plaza del Sol', 'Estación Central', 'Parque Norte', 'Puerto Deportivo', 'Mercado del Puerto', 'Teatro Municipal', 'Palacio de Justicia', 'Hospital Nuevo', 'Facultad de Ingeniería', 'Parque de los Tilos', 'Rambla Sur', 'Playa Grande', 'Plaza de Armas', 'Torre del Reloj', 'Estadio Municipal', 'Velódromo', 'Parque Central', 'Terminal Sur', 'Aduana', 'Casco Antiguo', 'Plaza Colón', 'Mirador', 'Arroyo Seco', 'Barrio del Sur', 'Paseo del Lago', 'Cuatro Caminos', 'Plaza Nueva', 'Punta del Faro', 'Bahía Chica', 'Los Sauces', 'Las Acacias', 'Villa Esperanza', 'Paso del Molino', 'Bella Vista', 'La Aguada', 'Barrio Jardín', 'Parque Industrial', 'Ciudad Universitaria', 'Hipódromo', 'Vivero Municipal', 'Plaza del Mercado', 'Puente Viejo', 'Avenida Libertad', 'Calle del Puerto', 'Barrio Norte', 'Los Olivos', 'Monte Alto', 'Muelle Sur', 'Muelle Norte']; // 72 estaciones + la 73, Muelle Norte, que abre a mitad del proyecto
+    const NUEVA = NOMBRES.length;
     const BARRIOS = ['Puerto Viejo', 'La Loma', 'Centro', 'Los Álamos', 'Villa Sol', 'El Molino'];
     function estaciones(t = ahora()) {
       const H = hitos(); const R = azar(cfg.semilla * 7 + 1);
       return NOMBRES.map((nombre, i) => {
         const id = i + 1; const cap = R.int(12, 30); const lat = Number((-34.88 - R.r() * 0.06).toFixed(5)); const lon = Number((-56.12 - R.r() * 0.09).toFixed(5));
-        if (id === 25 && t < H.estacion25) return null;
-        return { id, name: nombre, neighborhood: id === 25 ? 'Puerto Viejo' : BARRIOS[i % BARRIOS.length], capacity: id === 7 ? (t >= H.capacidad7 ? 30 : 20) : cap, lat, lon, active: true };
+        if (id === NUEVA && t < H.estacionNueva) return null;
+        return { id, name: nombre, neighborhood: id === NUEVA ? 'Puerto Viejo' : BARRIOS[i % BARRIOS.length], capacity: id === 7 ? (t >= H.capacidad7 ? 30 : 20) : cap, lat, lon, active: true };
       }).filter(Boolean);
     }
 
@@ -88,12 +89,12 @@
         const lambda = 5 * LAMBDA[hora] * (finde ? 0.8 : 1) * (lluvia ? 0.6 : 1); // ~4.500 viajes en un día hábil
         const R = azar(h32(cfg.semilla, 'min', m));
         let n = 0, p = Math.exp(-lambda), s = p; const u = R.r(); while (u > s && n < 60) { n++; p *= lambda / n; s += p; }
-        const H = hitos(); const hay25 = ini >= H.estacion25;
+        const H = hitos(); const hayNueva = ini >= H.estacionNueva;
         for (let k = 0; k < n; k++) {
           const start = ini + R.int(0, 59) * 1000;
           const durMin = R.chance(0.04) ? R.int(60, 140) : 4 + Math.pow(R.r(), 1.8) * 48;
           const end = start + Math.round(durMin * MIN);
-          const max = hay25 ? 25 : 24;
+          const max = hayNueva ? NUEVA : NUEVA - 1;
           const origen = R.int(1, max); let destino = R.int(1, max); if (destino === origen) destino = (destino % max) + 1;
           const x = R.r(); const tipo = x < 0.04 ? 'corporate' : x < 0.68 ? 'subscriber' : 'day_pass';
           const minutos = (end - start) / MIN;

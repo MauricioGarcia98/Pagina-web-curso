@@ -134,6 +134,7 @@ porId = {e["id"]: e for e in empresas}
 - `/v1/subscriptions` es solo **el presente**: el MRR de un mes pasado sale de recorrer `/v1/events` en orden.
 - Cobrable devuelve del **más nuevo al más viejo**.
 - El monto viene en **centavos**; el plan anual cobra 10 meses y se reparte en 12; hay asientos y descuentos.
+- `created` está en **segundos** y a veces dos eventos del mismo cliente caen en el mismo segundo (un cambio de plan y el fin de un cupón, por ejemplo). El único desempate es el orden en que los devuelve la API.
 - Pruebas gratis y bajas no suman MRR. Morosos (`past_due`) sí.
 - El cierre de mes es en **hora local** (UTC−3), no en UTC.
 - Para separar `nuevo` de `reactivacion` tienes que mirar más atrás que 6 meses.
@@ -169,7 +170,9 @@ def todo(ruta):   # Cobrable lista del más nuevo al más viejo, con starting_af
         sa = d["data"][-1]["id"]
 
 clientes = todo("/v1/customers")
-eventos = sorted(todo("/v1/events"), key=lambda e: e["created"])
+# la API lista del más nuevo al más viejo y "created" está en segundos: al revés queda en orden, también cuando
+# dos eventos del mismo cliente caen en el mismo segundo (sorted() es estable y respeta ese orden)
+eventos = sorted(todo("/v1/events")[::-1], key=lambda e: e["created"])
 
 def mrr(o):
     if o["status"] not in ("active", "past_due"): return 0.0      # pruebas y bajas no suman

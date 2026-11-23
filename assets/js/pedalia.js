@@ -15,7 +15,9 @@
   const BARRIOS = ['Puerto Viejo', 'La Loma', 'Centro', 'Los Álamos', 'Villa Sol', 'El Molino'];
   const NOMBRES = ['Plaza Mayor', 'Mercado Central', 'Terminal Norte', 'Rambla Este', 'Parque Lineal', 'Hospital Viejo', 'Universidad', 'Dique Seco',
     'Estación Sur', 'Biblioteca', 'Cerro Bajo', 'Puente Azul', 'Faro', 'Plaza de los Pinos', 'Club Náutico', 'Avenida del Río', 'Molino Rojo', 'Feria Franca',
-    'Escuela 12', 'Cancha Grande', 'Polo Tecnológico', 'Costanera', 'Jardín Botánico', 'Barrio Obrero'];
+    'Escuela 12', 'Cancha Grande', 'Polo Tecnológico', 'Costanera', 'Jardín Botánico', 'Barrio Obrero',
+    // la red creció a 72 estaciones: unas 67 salidas por estación en un día hábil
+    'Plaza del Sol', 'Estación Central', 'Parque Norte', 'Puerto Deportivo', 'Mercado del Puerto', 'Teatro Municipal', 'Palacio de Justicia', 'Hospital Nuevo', 'Facultad de Ingeniería', 'Parque de los Tilos', 'Rambla Sur', 'Playa Grande', 'Plaza de Armas', 'Torre del Reloj', 'Estadio Municipal', 'Velódromo', 'Parque Central', 'Terminal Sur', 'Aduana', 'Casco Antiguo', 'Plaza Colón', 'Mirador', 'Arroyo Seco', 'Barrio del Sur', 'Paseo del Lago', 'Cuatro Caminos', 'Plaza Nueva', 'Punta del Faro', 'Bahía Chica', 'Los Sauces', 'Las Acacias', 'Villa Esperanza', 'Paso del Molino', 'Bella Vista', 'La Aguada', 'Barrio Jardín', 'Parque Industrial', 'Ciudad Universitaria', 'Hipódromo', 'Vivero Municipal', 'Plaza del Mercado', 'Puente Viejo', 'Avenida Libertad', 'Calle del Puerto', 'Barrio Norte', 'Los Olivos', 'Monte Alto', 'Muelle Sur'];
   const N_BICIS = 1500; // flota de una red mediana: ~1.500 bicis y ~4.800 viajes en un día hábil
 
   // ---------------------------------------------------------------- semilla del estudiante
@@ -58,8 +60,8 @@
       const inicio = new Date(base + h * 3600e3 + R.int(0, 59) * 60e3 + R.int(0, 59) * 1e3);
       const largo = R.chance(0.04) ? R.int(60, 140) : Math.round(4 + Math.pow(R.r(), 1.8) * 48);
       const fin = new Date(inicio.getTime() + largo * 60e3 + R.int(0, 59) * 1e3);
-      const origen = R.pickW([...Array(24)].map((_, k) => k + 1), [...Array(24)].map((_, k) => (k % 6 === 2 ? 3 : k % 6 === 0 ? 2 : 1)));
-      let destino = R.int(1, 24); if (destino === origen) destino = (destino % 24) + 1;
+      const NE = NOMBRES.length; const origen = R.pickW([...Array(NE)].map((_, k) => k + 1), [...Array(NE)].map((_, k) => (k % 6 === 2 ? 3 : k % 6 === 0 ? 2 : 1)));
+      let destino = R.int(1, NE); if (destino === origen) destino = (destino % NE) + 1;
       const tipo = R.chance(0.68) ? 'abono' : 'pase_dia';
       const minutos = (fin - inicio) / 60e3;
       const monto = tipo === 'abono' ? (minutos <= 30 ? 0 : Math.ceil((minutos - 30) / 15) * 150) : 450 + (minutos > 45 ? Math.ceil((minutos - 45) / 15) * 150 : 0);
@@ -342,6 +344,29 @@ Siguiente paso: subirlos al contenedor landing del lago, por ejemplo:
       const mal = u.r.values.filter(([f, v]) => { const d = fechaDe(String(f).slice(0, 10)); return d && Number(v) !== verdad(d).viajes_validos; }).map(([f, v]) => `${f}: ${v} viajes (esperado ${verdad(fechaDe(String(f).slice(0, 10))).viajes_validos})`);
       return !mal.length || 'No cuadra: ' + mal.join(' · ') + '. Si cargaste el mismo día dos veces con LOAD DATA INTO, usa LOAD DATA OVERWRITE o borra ese día antes.';
     }],
+    ['Modelo de Power BI', 'Un calendario marcado como tabla de fechas, relacionado con las tres fuentes, y las medidas del tablero', async () => {
+      const S = almacen() && almacen().data.powerbi; if (!S || !S.tablas) return 'Todavía no hay informe de Power BI: abre Power BI e importa las tres tablas (lección 10).';
+      const nom = Object.keys(S.tablas); const buscar = (re) => nom.find((n) => re.test(n));
+      const fi = buscar(/ingresos_diarios/i), fb = buscar(/uso_por_barrio/i), fv = buscar(/viajes_por_estacion/i);
+      const faltan = [[fi, 'INGRESOS_DIARIOS (Snowflake)'], [fb, 'uso_por_barrio (BigQuery)'], [fv, 'viajes_por_estacion (Databricks)']].filter(([x]) => !x).map((x) => x[1]);
+      if (faltan.length) return `Faltan tablas importadas: ${faltan.join(', ')}.`;
+      const cal = Object.entries(S.tablas).find(([, t]) => t.fuente && t.fuente.tipo === 'dax' && /CALENDAR(AUTO)?\s*\(/i.test(t.fuente.expr || ''));
+      if (!cal) return 'Falta la tabla de fechas: Modelado → Nueva tabla, con CALENDAR(…) o CALENDARAUTO().';
+      const C = cal[0];
+      if (!S.tablaFechas || S.tablaFechas.t !== C) return `Marca ${C} como tabla de fechas (Herramientas de tabla → Marcar como tabla de fechas).`;
+      const rels = (S.rels || []).filter((r) => r.activa !== false); const fuentes = [fi, fb, fv];
+      const sinRel = fuentes.filter((t) => !rels.some((r) => r.de === t && r.a === C));
+      if (sinRel.length) return `Relaciona ${C} (el lado "uno") con: ${sinRel.join(', ')}.`;
+      const directa = rels.find((r) => fuentes.includes(r.de) && fuentes.includes(r.a));
+      if (directa) return `Hay una relación directa entre ${directa.de} y ${directa.a}: las fuentes se relacionan solo con el calendario (si no, quedan de muchos a muchos y los totales se duplican).`;
+      if (rels.some((r) => r.a === C && r.direccion === 'ambas')) return 'Las relaciones con el calendario filtran en una sola dirección: del calendario a cada tabla.';
+      const M = S.medidas || []; const usa = (re) => M.some((m) => re.test(m.expr || ''));
+      const faltaM = [];
+      if (!usa(/SUM\s*\(\s*'?INGRESOS_DIARIOS'?\s*\[\s*INGRESOS\s*\]/i)) faltaM.push('los ingresos (una suma de INGRESOS_DIARIOS[INGRESOS])');
+      if (!usa(/'?viajes_por_estacion'?\s*\[\s*viajes_salida\s*\]/i)) faltaM.push('los viajes (de viajes_por_estacion[viajes_salida])');
+      if (!usa(/DIVIDE\s*\(/i)) faltaM.push('el % de pase día con DIVIDE (con "/" un día sin viajes da error)');
+      return !faltaM.length || `Faltan medidas: ${faltaM.join('; ')}.`;
+    }],
     ['Power BI', 'El informe importa de Snowflake, BigQuery y Databricks', async () => {
       const c = (almacen() && almacen().data.cruces) || {};
       const falta = [['pbiSnowflake', 'Snowflake'], ['pbiBigQuery', 'BigQuery'], ['pbiDatabricks', 'Databricks']].filter(([k]) => !c[k]).map((x) => x[1]);
@@ -396,10 +421,10 @@ Siguiente paso: subirlos al contenedor landing del lago, por ejemplo:
       texto: (T, H) => `Tenemos que facturar a las empresas. ¿Cuántos viajes corporativos hubo el ${diaLoc(H.campos + HORA)}?`,
       comentarios: ['Lucía: los corporativos se facturan por mes a la empresa, por eso vienen con amount_cents = 0.', 'Plataforma: user_type = "corporate" existe desde la v2.4.0 (está en el changelog).'],
       respuesta: { tipo: 'numero', unidad: 'viajes', verificar: (v, T, H) => { const n = viajes(diaLoc(H.campos + HORA)).filter((x) => x.user_type === 'corporate').length; return v === n || (v === 0 ? '¿Tu validación de user_type los descartó? Desde la v2.4.0 puede valer "corporate".' : 'No coincide. Cuenta user_type = "corporate" en los viajes que empezaron ese día (hora local).'); } } },
-    { id: 'PD-206', tipo: 'incidente', de: 'Rocío · Operaciones', cuando: (I, H) => H.estacion25 + DIA_MS + 8 * HORA, titulo: 'Faltan viajes en el tablero de ayer',
+    { id: 'PD-206', tipo: 'incidente', de: 'Rocío · Operaciones', cuando: (I, H) => H.estacionNueva + DIA_MS + 8 * HORA, titulo: 'Faltan viajes en el tablero de ayer',
       texto: 'El total de viajes de ayer en el tablero es menor que el que muestra la app. No es mucho, pero no cuadra.',
-      comentarios: ['Martín (app): ayer abrimos la estación 25, Muelle Norte. ¿La tienen en el maestro?', 'Tú: si silver hace INNER JOIN con estaciones y el maestro no tiene la 25, esos viajes se caen sin error.'],
-      respuesta: { tipo: 'numero', unidad: 'viajes', ayuda: '¿Cuántos viajes salieron de la estación 25 ese día?', verificar: (v, T, H) => { const n = viajes(diaLoc(H.estacion25 + HORA)).filter((x) => x.origin_station_id === 25).length; return v === n || 'No coincide. Viajes con origin_station_id = 25 que empezaron el día de la apertura (hora local).'; } } },
+      comentarios: ['Martín (app): ayer abrimos la estación 73, Muelle Norte. ¿La tienen en el maestro?', 'Tú: si silver hace INNER JOIN con estaciones y el maestro no tiene la 73, esos viajes se caen sin error.'],
+      respuesta: { tipo: 'numero', unidad: 'viajes', ayuda: '¿Cuántos viajes salieron de la estación 73 ese día?', verificar: (v, T, H) => { const n = viajes(diaLoc(H.estacionNueva + HORA)).filter((x) => x.origin_station_id === 73).length; return v === n || 'No coincide. Viajes con origin_station_id = 73 que empezaron el día de la apertura (hora local).'; } } },
     { id: 'PD-207', tipo: 'pregunta', de: 'Tomás · Marketing', cuando: (I) => I + 2 * DIA_MS + 9 * HORA, titulo: '¿Qué barrio usa más el pase diario?',
       texto: (T) => `Vamos a hacer una campaña. ¿Qué barrio tuvo más viajes con pase diario entre el ${diaLoc(T - 3 * DIA_MS)} y el ${diaLoc(T - DIA_MS)}?`,
       comentarios: ['Tomás: el barrio de la estación de salida. Cantidad de viajes con day_pass, no porcentaje.'],

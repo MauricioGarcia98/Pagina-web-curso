@@ -5,7 +5,7 @@
   'use strict';
   const CC = window.CuentasClarasMundo, Host = window.CuentasClarasHost;
   if (!CC || !Host) return;
-  const HORA = 3600000, DIA = 86400000;
+  const MIN = 60000, HORA = 3600000, DIA = 86400000;
   const almacen = () => (window.__almacen && window.__almacen()) || null;
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const norm = (x) => String(x ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
@@ -74,14 +74,19 @@
     if (mal.h.length) m.push(`${mal.h.length} con otro health_score (la fórmula está en Fuentes y accesos)`);
     return !m.length || m.join(' · ');
   }
+  // también vale el MRR al cierre de ayer (un proceso diario escribe con los días cerrados) y el de las últimas 6 horas
+  // (entre que el proceso escribe y la revisión corre, una suscripción puede cambiar). Solo se calcula para los
+  // clientes que no coinciden con el MRR de ahora.
+  const estados = new Map();
+  const mrrReciente = (cliente, v) => [CC.inicioDiaLocal(ahora()) - 1, ...[0.05, 0.25, 1, 2, 3, 4, 5, 6].map((h) => ahora() - h * HORA)].some((t0) => { const t = Math.floor(t0 / MIN) * MIN; if (!estados.has(t)) { if (estados.size > 12) estados.clear(); estados.set(t, CC.estadoSubsEn(t)); } return casi(v, CC.mrrDe(estados.get(t).get(cliente))); });
   async function chequeoReverse() {
     Host.sincronizar(); const props = CC.cfg.crm || {}; const [f1, f2] = finVentanas(); const V1 = clientes360(f1); const V2 = new Map(clientes360(f2).map((x) => [x.cliente, x]));
     const sin = [], malH = [], malM = []; let enDup = 0;
-    for (const x of V1) { const p = props[x.crm] || {}; if (x.c.crmDup && props[x.c.crmDup] && props[x.c.crmDup].health_score != null) enDup++; if (p.health_score == null) { sin.push(x.crm); continue; } const y = V2.get(x.cliente) || x; if (Math.abs(Number(p.health_score) - x.health) > 1 && Math.abs(Number(p.health_score) - y.health) > 1) malH.push(x.crm); if (!casi(p.mrr_actual, x.mrr)) malM.push(x.crm); }
+    for (const x of V1) { const p = props[x.crm] || {}; if (x.c.crmDup && props[x.c.crmDup] && props[x.c.crmDup].health_score != null) enDup++; if (p.health_score == null) { sin.push(x.crm); continue; } const y = V2.get(x.cliente) || x; if (Math.abs(Number(p.health_score) - x.health) > 1 && Math.abs(Number(p.health_score) - y.health) > 1) malH.push(x.crm); if (!casi(p.mrr_actual, x.mrr) && !mrrReciente(x.cliente, p.mrr_actual)) malM.push(x.crm); }
     const m = [];
     if (sin.length) m.push(`${sin.length} empresas del CRM (de clientes que pagan) sin health_score (${lista(sin, 3)})${enDup ? ` — ${enDup} los escribiste en el registro duplicado` : ''}`);
     if (malH.length) m.push(`${malH.length} con otro health_score que el de cliente_360`);
-    if (malM.length) m.push(`${malM.length} con otro mrr_actual (o sin mrr_actual)`);
+    if (malM.length) m.push(`${malM.length} con otro mrr_actual (o sin mrr_actual)${malM.length <= 5 ? ` (${lista(malM, 3)}) — ¿dos eventos del mismo cliente en el mismo segundo? created está en segundos: el orden de la API los desempata` : ''}`);
     return !m.length || m.join(' · ');
   }
   const CHEQUEOS = [['Seguridad', 'Las tres credenciales en un Key Vault', chequeoKV], ['MRR', 'cc.gold.mrr_mensual: MRR y movimiento por cliente, últimos 6 meses cerrados', chequeoMrr], ['Cliente 360', 'cc.gold.cliente_360: CRM + facturación + uso, por cliente que paga', chequeo360], ['Reverse ETL', 'health_score, mrr_actual y plan_actual escritos en la empresa del CRM de cada cliente que paga', chequeoReverse]];

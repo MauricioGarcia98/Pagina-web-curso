@@ -138,6 +138,7 @@ Uso: kcat <opciones> [tópico1 tópico2 ..]
         if (ctx.leidos) ctx.leidos[kp] = Math.max(ctx.leidos[kp] || 0, hasta);
       }
     }
+    if (C.alLeerSql) { try { C.alLeerSql(); } catch (e) { /* nada */ } } // el proyecto anota cuándo empezaste a consumir
     return { cols, filas };
   }
 

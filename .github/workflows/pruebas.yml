@@ -17,7 +17,7 @@ jobs:
   pruebas:
     # ubuntu-latest pasó a 26.04 y Playwright 1.56 todavía no instala Chromium ahí: se fija la versión probada
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -37,7 +37,7 @@ jobs:
 
       - name: Sintaxis de JavaScript
         run: |
-          for f in assets/js/*.js tools/*.mjs sw.js; do node --check "$f" || exit 1; done
+          for f in assets/js/*.js tools/*.mjs tools/e2e/*.cjs sw.js; do node --check "$f" || exit 1; done
 
       - name: Los archivos generados están al día
         # se vuelve a generar todo y se compara con lo que está en el repositorio, ignorando las fechas
@@ -87,3 +87,10 @@ jobs:
         run: |
           curl -s -o /dev/null http://localhost:8000/ || { python3 -m http.server 8000 >/dev/null 2>&1 & sleep 2; }
           node tools/accesibilidad.mjs http://localhost:8000/
+
+      - name: Proyectos de punta a punta (las siete guías, la persistencia y la copia de seguridad)
+        # cada prueba hace lo que haría un estudiante con el código de las soluciones, corre los chequeos del revisor
+        # de Jira, abre los candados y recarga la página: si un cambio rompe un proyecto, el PR no pasa
+        run: |
+          curl -s -o /dev/null http://localhost:8000/ || { python3 -m http.server 8000 >/dev/null 2>&1 & sleep 2; }
+          node tools/proyectos.mjs http://localhost:8000/

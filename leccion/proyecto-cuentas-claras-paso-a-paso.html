@@ -114,6 +114,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li><code>/v1/subscriptions</code> es solo <strong>el presente</strong>: el MRR de un mes pasado sale de recorrer <code>/v1/events</code> en orden.</li>
 <li>Cobrable devuelve del <strong>más nuevo al más viejo</strong>.</li>
 <li>El monto viene en <strong>centavos</strong>; el plan anual cobra 10 meses y se reparte en 12; hay asientos y descuentos.</li>
+<li><code>created</code> está en <strong>segundos</strong> y a veces dos eventos del mismo cliente caen en el mismo segundo (un cambio de plan y el fin de un cupón, por ejemplo). El único desempate es el orden en que los devuelve la API.</li>
 <li>Pruebas gratis y bajas no suman MRR. Morosos (<code>past_due</code>) sí.</li>
 <li>El cierre de mes es en <strong>hora local</strong> (UTC−3), no en UTC.</li>
 <li>Para separar <code>nuevo</code> de <code>reactivacion</code> tienes que mirar más atrás que 6 meses.</li>

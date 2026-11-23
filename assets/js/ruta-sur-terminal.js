@@ -13,7 +13,7 @@
   }
   const registrar = () => {
     if (!window.KafkaPractica) return false;
-    window.KafkaPractica.registrar({ broker: 'rutasur-telemetria.servicebus.windows.net:9093', autenticar, temas: () => { Host.sincronizar(); return RS.temas(); }, leer: (tm, p, d, h) => { Host.sincronizar(); return RS.leer(tm, p, d, h); }, offsetPorTiempo: (tm, p, ms) => RS.offsetPorTiempo(tm, p, ms), grupos: () => (Host.datos() || {}).grupos || {}, alPerder: (n) => { const D = Host.datos(); D.perdidos = (D.perdidos || 0) + n; }, guardar: () => Host.guardar() });
+    window.KafkaPractica.registrar({ broker: 'rutasur-telemetria.servicebus.windows.net:9093', autenticar, temas: () => { Host.sincronizar(); return RS.temas(); }, leer: (tm, p, d, h) => { Host.sincronizar(); return RS.leer(tm, p, d, h); }, alLeerSql: () => { const D = Host.datos(); if (D && !D.primeraLecturaSql) { D.primeraLecturaSql = Date.now(); Host.guardar(); } }, offsetPorTiempo: (tm, p, ms) => RS.offsetPorTiempo(tm, p, ms), grupos: () => (Host.datos() || {}).grupos || {}, alPerder: (n) => { const D = Host.datos(); D.perdidos = (D.perdidos || 0) + n; }, guardar: () => Host.guardar() });
     return true;
   };
   if (!registrar()) { const iv = setInterval(() => { if (registrar()) clearInterval(iv); }, 200); }
