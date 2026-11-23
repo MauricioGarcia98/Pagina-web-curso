@@ -92,6 +92,24 @@
       ['Dulces Abuela Nely', 'dulces', [['Alfajores x6', 420], ['Mermelada casera', 330], ['Pastafrola', 760], ['Bombones x12', 690], ['Budín de limón', 450]]],
       ['Bazar La Esquina', 'bazar', [['Juego de vasos x6', 870], ['Sartén 24 cm', 1690], ['Termo 1 l', 1990], ['Repasadores x3', 380], ['Tabla de picar', 450]]],
       ['Café Molienda', 'cafe', [['Café en grano 1 kg', 1890], ['Cafetera italiana', 1590], ['Taza de cerámica', 390], ['Filtros x100', 220], ['Té en hebras 200 g', 410]]],
+      ['Almacén La Colmena', 'almacen', [['Harina 000 1 kg', 110], ['Azúcar 1 kg', 150], ['Lentejas 500 g', 190], ['Atún en lata', 260], ['Galletitas de agua', 120]]],
+      ['Frutas del Sur', 'verduleria', [['Naranjas 2 kg', 240], ['Bananas 1 kg', 230], ['Papas 2 kg', 260], ['Cebollas 1 kg', 140], ['Lechuga mantecosa', 120]]],
+      ['Panificadora San Roque', 'panaderia', [['Pan francés 1 kg', 240], ['Facturas x12', 520], ['Pan de molde integral', 280], ['Grisines 250 g', 170], ['Budín marmolado', 390]]],
+      ['Pollería Las Gallinas', 'carniceria', [['Pechugas 1 kg', 820], ['Muslos 1 kg', 560], ['Huevos x30', 690], ['Hamburguesas x4', 480], ['Alitas 1 kg', 450]]],
+      ['Granja Los Robles', 'lacteos', [['Leche entera 1 l', 120], ['Queso rallado 150 g', 310], ['Crema de leche 350 g', 290], ['Queso cremoso 1 kg', 980], ['Postre de vainilla x4', 340]]],
+      ['Pinturería Arcoíris', 'ferreteria', [['Látex interior 4 l', 2650], ['Rodillo 22 cm', 480], ['Pincel n.º 20', 230], ['Cinta de papel', 160], ['Lija x5', 140]]],
+      ['Librería El Atril', 'libreria', [['Novela de bolsillo', 890], ['Marcadores x12', 460], ['Carpeta con anillos', 380], ['Calculadora científica', 1790], ['Block de dibujo', 290]]],
+      ['Veterinaria Patitas', 'mascotas', [['Pipeta antipulgas', 640], ['Cucha mediana', 2890], ['Comedero doble', 520], ['Snacks para perro', 260], ['Rascador para gato', 1490]]],
+      ['Huerta Urbana', 'vivero', [['Kit de huerta en balcón', 1290], ['Compost 10 kg', 450], ['Plantines de lechuga x6', 210], ['Guantes de jardín', 240], ['Pulverizador 1 l', 330]]],
+      ['Chocolatería Cacao', 'dulces', [['Tableta 70 % cacao', 390], ['Huevo de chocolate', 820], ['Trufas x9', 560], ['Chocolate en rama', 470], ['Cacao amargo 200 g', 360]]],
+      ['Bazar Hogar Feliz', 'bazar', [['Juego de cubiertos x24', 2190], ['Fuente para horno', 990], ['Mantel antimanchas', 850], ['Organizador de cajones', 420], ['Set de frascos x4', 680]]],
+      ['Tostadero Barrio Alto', 'cafe', [['Café de especialidad 500 g', 1690], ['Molinillo manual', 2390], ['Prensa francesa', 1890], ['Yerba orgánica 500 g', 450], ['Jarra para leche', 640]]],
+      ['Farmacia del Pueblo', 'perfumeria', [['Protector solar 200 ml', 1190], ['Shampoo 400 ml', 390], ['Pañales x30', 1590], ['Alcohol en gel 500 ml', 280], ['Cepillo de dientes x2', 230]]],
+      ['Limpieza Brillante', 'limpieza', [['Detergente 750 ml', 210], ['Lavandina 2 l', 160], ['Suavizante 3 l', 420], ['Esponjas x3', 120], ['Bolsas de residuos x30', 190]]],
+      ['Bodega Los Andes', 'bebidas', [['Vino tinto reserva', 890], ['Agua mineral 6 x 2 l', 520], ['Jugo de naranja 1 l', 210], ['Cerveza artesanal 500 ml', 290], ['Gaseosa 2,25 l', 260]]],
+      ['Pastas Nonna Carmela', 'pastas', [['Ravioles x2 planchas', 560], ['Ñoquis 1 kg', 420], ['Tallarines frescos 1 kg', 380], ['Sorrentinos x12', 640], ['Salsa fileto 500 g', 290]]],
+      ['Electro Barrio', 'electronica', [['Cargador USB-C', 690], ['Auriculares inalámbricos', 2490], ['Pilas AA x4', 280], ['Zapatilla eléctrica', 590], ['Cable HDMI 2 m', 340]]],
+      ['Juguetería Ronda', 'jugueteria', [['Rompecabezas 500 piezas', 790], ['Pelota de fútbol', 990], ['Juego de mesa', 1690], ['Plastilina x10', 230], ['Muñeco articulado', 1290]]],
     ];
     const NOMBRES = ['Ana', 'Bruno', 'Carla', 'Diego', 'Elena', 'Facundo', 'Gabriela', 'Hernán', 'Inés', 'Joaquín', 'Lucía', 'Martín', 'Natalia', 'Óscar', 'Paula', 'Ramiro', 'Sofía', 'Tomás', 'Valeria', 'Ximena', 'Agustina', 'Federico', 'Micaela', 'Santiago', 'Camila', 'Rodrigo', 'Florencia', 'Matías'];
     const APELLIDOS = ['Acosta', 'Benítez', 'Cabrera', 'Domínguez', 'Escobar', 'Fernández', 'Giménez', 'Herrera', 'Ibarra', 'Juárez', 'López', 'Medina', 'Núñez', 'Olivera', 'Pereyra', 'Quiroga', 'Ríos', 'Silva', 'Torres', 'Urquiza', 'Vega', 'Zárate', 'Molina', 'Castro', 'Rosales', 'Sosa'];
@@ -124,7 +142,8 @@
         const n = R.pick(NOMBRES), a = R.pick(APELLIDOS);
         return { id, nombre: `${n} ${a}`, email: `${sinTilde(n)}.${sinTilde(a)}${id}@correo.example`, telefono: `09${R.int(1, 9)} ${R.int(100, 999)} ${R.int(100, 999)}`, barrio: R.pick(BARRIOS), creado_en: creado, actualizado_en: creado };
       };
-      const N_CLI0 = 700, N_PED0 = 1200;
+      // volumen de un marketplace de verdad: ~6.000 clientes y ~12.000 pedidos de historia antes de PagoYa, ~850 pedidos por día
+      const N_CLI0 = 6000, N_PED0 = 12000;
       for (let i = 1; i <= N_CLI0; i++) ini.clientes.push(nuevoCliente(i, azar(h32(s, 'cli0', i)), t0 - (400 - Math.floor(i * 390 / N_CLI0)) * DIA - i * 997));
       let itemId = 0;
       const armarItems = (R, pedidoId) => {
@@ -172,7 +191,7 @@
         if (hl === 9) for (let p = 1; p <= NP; p++) if (R.chance(0.06)) { precios[p] = Math.max(500, Math.round(precios[p] * (0.92 + R.r() * 0.22) / 500) * 500); intento(th + p * 3 * SEG, 'productos', 'u', p, { precio: precios[p], actualizado_en: th + p * 3 * SEG }); }
         // derecho al olvido: algún cliente pide que se borren sus datos
         if (R.chance(0.07)) { const ts = th + R.int(60, 3500) * SEG; let id = R.int(1, maxCli), k = 0; while (anonimos.has(id) && k < 60) { id = R.int(1, maxCli); k++; } if (!anonimos.has(id)) { anonimos.add(id); intento(ts, 'clientes', 'u', id, { ...ANONIMO, actualizado_en: ts }); } }
-        const n = Math.round(PESOS_HORA[hl] * (0.7 + R.r() * 0.6) * 0.62);
+        const n = Math.round(PESOS_HORA[hl] * (0.7 + R.r() * 0.6) * 5);
         const tiempos = Array.from({ length: n }, () => th + R.int(5, 3595) * SEG + R.int(0, 999)).sort((a, b) => a - b);
         for (const c of tiempos) {
           const id = ++pedidoId; const tx = ++txN;

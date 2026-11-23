@@ -43,6 +43,8 @@ El equipo de plataforma ya te dio acceso a tres sistemas. Los tres son **fuentes
 | **CDC** (Debezium → Event Hubs) | Cada INSERT, UPDATE y DELETE de la base, en orden, como mensajes Kafka | `kcat` en la terminal, o `read_kafka` en Databricks |
 | **PagoYa** | La pasarela: pagos, reembolsos, disputas y liquidaciones | API REST, webhooks firmados que llegan al lago, y un reporte de liquidación por día |
 
+**El volumen.** Mercado Vecino ya no es una feria de barrio: tiene **30 comercios** con **150 productos**, unos **6.000 clientes** de antes de PagoYa (y unos 170 nuevos por día) y vende cerca de **850 pedidos por día**, con picos de más de 60 por hora a la noche. Eso son unos **3.000 cambios por día** en el CDC de `pedidos`, unos **1.500 eventos por día** en PagoYa (y otros tantos webhooks, un archivo por entrega) y una liquidación diaria de cientos de líneas. A ese tamaño hay que pensar en cargas **incrementales**: volver a pedir todo cada vez choca con el límite de 100 pedidos por minuto de PagoYa y con la retención de 24 horas del CDC.
+
 Además tienes el portal de Azure, el Databricks y la terminal de práctica, como en el proyecto de Pedalia. La documentación de cada fuente y tus credenciales están en la página siguiente: [Fuentes y accesos](#/l/proyecto-mercado-vecino-fuentes-y-accesos).
 
 ## Lo que hay que entregar
