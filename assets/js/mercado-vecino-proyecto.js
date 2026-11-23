@@ -76,7 +76,7 @@
       const mejor = Object.entries(kv).map(([n, V]) => [n, valores.filter((v) => Object.values(V.secrets || {}).some((s) => (typeof s === 'string' ? s : s && s.value) === v)).length]).sort((a, b) => b[1] - a[1])[0];
       return (mejor && mejor[1] >= 3) || `Crea un Key Vault en el portal de Azure y guarda como secretos al menos tres de las cuatro credenciales (clave de la base, cadena de conexión del Event Hubs, clave de PagoYa, secreto de firma).${mejor ? ` En ${mejor[0]} hay ${mejor[1]}.` : ''}`;
     }],
-    ['PagoYa', 'El endpoint de webhooks del equipo de datos escribe en el lago', async () => {
+    ['Webhook', 'El endpoint de webhooks del equipo de datos escribe en el lago', async () => {
       const D = Host.datos(); const W = D && D.webhook; if (!W) return 'En la terminal: pagoya webhooks configurar --cuenta <tu cuenta del lago>';
       if (window.MercadoVecinoTerminal) window.MercadoVecinoTerminal.sincronizarWebhooks();
       if (W.error) return W.error;
@@ -84,13 +84,13 @@
       const n = C ? Object.keys(C.blobs || {}).filter((b) => b.startsWith(W.prefijo + '/')).length : 0;
       return n > 0 || 'Todavía no llegó ninguna entrega. Los webhooks llegan cuando pasa algo en la tienda: espera unos minutos y vuelve a revisar.';
     }],
-    ['Base + CDC', 'mercado.silver.pedidos refleja la base en el último cambio que aplicaste', async () => {
+    ['CDC', 'mercado.silver.pedidos refleja la base en el último cambio que aplicaste', async () => {
       const T = await tabla('mercado.silver.pedidos'); if (T.error) return `No se pudo leer mercado.silver.pedidos: ${T.error}`;
       const iId = colDe(T, 'pedido_id', 'id'), iEst = colDe(T, 'estado'), iTot = colDe(T, 'total'), iL = colDe(T, '_lsn');
       if (iId < 0 || iEst < 0 || iTot < 0) return `Faltan columnas: la tabla necesita pedido_id, estado, total y _lsn (tiene ${T.cols.join(', ')}).`;
       if (iL < 0) return 'Falta la columna _lsn: guarda en cada fila el source.lsn del último cambio aplicado (0 si vino del snapshot). Así se sabe hasta dónde llegaste.';
       if (!T.filas.length) return 'La tabla está vacía.';
-      const L = Math.max(...T.filas.map((f) => num(f[iL]) || 0));
+      const L = T.filas.reduce((m, f) => Math.max(m, num(f[iL]) || 0), 0);
       if (!L) return 'Ninguna fila tiene _lsn: cargaste el snapshot pero todavía no aplicaste el CDC.';
       const ids = T.filas.map((f) => num(f[iId])); if (new Set(ids).size !== ids.length) return `Hay pedidos repetidos (${ids.length} filas, ${new Set(ids).size} pedidos). Un MERGE por pedido_id deja uno por pedido; si aplicas varios cambios del mismo pedido juntos, quédate con el de mayor lsn.`;
       const { est } = MV.estadoEnLsn(L); const V = est.pedidos;
@@ -109,11 +109,11 @@
       if (D && D.perdioCdc) msgs.push(`ojo: en algún momento tu grupo de consumo se quedó atrás y la retención de 24 h borró ${D.perdioCdc} mensajes. Con un hueco así hay que volver a hacer el snapshot y retomar desde ahí`);
       return msgs.join(' · ');
     }],
-    ['Base + CDC', 'mercado.silver.clientes aplica el derecho al olvido', async () => {
+    ['Olvido', 'mercado.silver.clientes aplica el derecho al olvido', async () => {
       const T = await tabla('mercado.silver.clientes'); if (T.error) return `No se pudo leer mercado.silver.clientes: ${T.error}`;
       const iId = colDe(T, 'cliente_id', 'id'), iMail = colDe(T, 'email'), iL = colDe(T, '_lsn');
       if (iId < 0 || iMail < 0 || iL < 0) return `La tabla necesita cliente_id, email y _lsn (tiene ${T.cols.join(', ')}).`;
-      const L = Math.max(0, ...T.filas.map((f) => num(f[iL]) || 0)); if (!L) return 'Ninguna fila tiene _lsn: aplica el CDC de mv_prod.public.clientes.';
+      const L = T.filas.reduce((m, f) => Math.max(m, num(f[iL]) || 0), 0); if (!L) return 'Ninguna fila tiene _lsn: aplica el CDC de mv_prod.public.clientes.';
       const V = MV.estadoEnLsn(L).est.clientes; const tuyo = new Map(T.filas.map((f) => [num(f[iId]), f]));
       const conMail = [...V.values()].filter((c) => c.email == null && tuyo.has(c.id) && tuyo.get(c.id)[iMail] != null).map((c) => c.id);
       const faltan = [...V.keys()].filter((id) => !tuyo.has(id));
@@ -273,7 +273,7 @@
       check: async () => {
         const T = await tabla('mercado.silver.pedidos'); if (T.error) return T.error; const iId = colDe(T, 'pedido_id', 'id'), iD = colDe(T, 'descuento'), iC = colDe(T, 'cupon'), iL = colDe(T, '_lsn');
         if (iD < 0 || iC < 0) return 'La tabla todavía no tiene las columnas descuento y cupon (ALTER TABLE … ADD COLUMNS, y el MERGE tiene que llenarlas).';
-        const L = Math.max(...T.filas.map((f) => num(f[iL]) || 0)); const V = MV.estadoEnLsn(L).est.pedidos; const mal = [];
+        const L = T.filas.reduce((m, f) => Math.max(m, num(f[iL]) || 0), 0); const V = MV.estadoEnLsn(L).est.pedidos; const mal = [];
         for (const f of T.filas) { const v = V.get(num(f[iId])); if (!v || !v.cupon) continue; if (String(f[iC] ?? '') !== v.cupon || !casi(num(f[iD]), v.descuento / 100)) mal.push(f[iId]); }
         const conCupon = [...V.values()].filter((v) => v.cupon).length;
         if (!conCupon) return 'Todavía no aplicaste cambios posteriores al lanzamiento de los cupones: consume el CDC.';

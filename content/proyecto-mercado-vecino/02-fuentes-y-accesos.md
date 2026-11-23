@@ -194,6 +194,7 @@ Un evento:
 - `metadatos.pedido_id` es **texto**.
 - Tipos: `pago.creado`, `pago.aprobado`, `pago.rechazado`, `reembolso.creado` (objeto reembolso, con `pago`), `disputa.abierta` y `disputa.cerrada` (objeto disputa, con `pago`; al cerrar, `estado` = `ganada` o `perdida`).
 - Límite: **100 pedidos por minuto** (429 + `Retry-After`). Cerca del 1 % de los pedidos responde **503**: reintenta con espera.
+- **Haz la cuenta antes de programar.** La tienda genera unos 1.500 eventos por día: los 30 días de la API son más de 400 páginas de 100, y con el límite eso es más de 4 minutos de esperas. Filtra por `tipo` lo que vas a usar y, después de la primera carga, pide solo lo nuevo con `creado_desde` (guarda dónde quedaste).
 
 ## 4. PagoYa: los webhooks
 

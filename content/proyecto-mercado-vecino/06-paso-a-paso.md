@@ -1,30 +1,68 @@
 ---
-titulo: Paso a paso - una solución completa, explicada
+titulo: Construirlo paso a paso - una guía, no una solución
 nivel: Avanzado
-duracion: 75
-resumen: Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - snapshot más CDC con MERGE ordenado por LSN, los eventos de PagoYa por API y por webhook con la firma verificada, y la conciliación. Léela después de intentarlo.
-objetivos: Ver cómo se combinan un snapshot y un flujo de CDC sin perder ni duplicar cambios | Verificar firmas HMAC de webhooks y descartar repeticiones | Conciliar pagos, pedidos y liquidaciones
+duracion: 300
+resumen: Construyes el proyecto de cero con las fuentes vivas de Mercado Vecino a volumen de empresa (30 comercios, unos 6.000 clientes, cerca de 850 pedidos por día, miles de cambios de CDC y de eventos de PagoYa por día). Cada paso dice qué tienes que lograr, qué esconden las fuentes, cómo comprobarlo y pistas graduales. La solución de referencia de cada paso se desbloquea recién cuando tu entrega pasa la revisión.
+objetivos: Combinar un snapshot y un flujo de CDC sin perder ni duplicar cambios | Aplicar bajas físicas y el derecho al olvido que solo viajan por el CDC | Traer eventos de una API con límite de pedidos de forma incremental | Verificar firmas HMAC de webhooks, también durante una rotación de secreto | Conciliar pagos, pedidos y liquidaciones con categorías de prioridad
 prerrequisitos: proyecto-mercado-vecino-el-dia-a-dia
-autoevaluacion: ¿Sabes para qué sirve _lsn en el MERGE? | ¿Sabes por qué se aceptan dos secretos de webhook durante la rotación? | ¿Sabes por qué la conciliación excluye el día de hoy?
+autoevaluacion: ¿Sabes para qué sirve _lsn en el MERGE? | ¿Sabes por qué una carga por actualizado_en pierde cancelaciones? | ¿Sabes por qué se aceptan dos secretos de webhook durante la rotación? | ¿Sabes por qué la conciliación excluye el día de hoy?
 ---
 
-:::cuidado Inténtalo primero
-Esta es **una** solución. Si ya resolviste el proyecto, compara: ¿qué hace tu versión si el mismo cambio de CDC llega dos veces, o llega uno viejo después de uno nuevo?
+:::trabajo Cómo se usa esta guía
+Nada de esto viene hecho: el lago, el Key Vault, el endpoint de webhooks, el script de PagoYa, las tablas y el DAG los creas tú. Solo te damos las fuentes (la réplica de la base, el CDC y PagoYa) y su documentación. Cada paso tiene cuatro partes:
+
+1. **Qué tienes que lograr**: el resultado concreto (un archivo, una tabla, un número).
+2. **Lo que esconden las fuentes**: las trampas que traen los datos y que tu código tiene que resolver.
+3. **Compruébalo tú**: cómo saber, antes de pedir revisión, si vas bien.
+4. **Pistas**: ábrelas de a una solo si te trabas. La primera es conceptual, la segunda nombra la herramienta y la última te da la estructura.
+
+Al final de cada paso hay una **solución de referencia** bloqueada 🔒. Se abre cuando tu entrega pasa la misma revisión que hace el líder técnico en Jira (el panel **Revisar mi entrega** de [El día a día](#/l/proyecto-mercado-vecino-el-dia-a-dia)). Compárala con la tuya como en un code review: no hay una sola forma correcta.
 :::
 
-## El plan
+## Antes de empezar: el volumen
 
-| Paso | Qué | Dónde |
+| Fuente | Volumen aproximado | Qué implica |
 |---|---|---|
-| 1 | Lago, Key Vault y webhook | Terminal (`az`, `pagoya`) |
-| 2 | Snapshot de la base y mirar el CDC | Terminal (`psql`, `kcat`) |
-| 3 | Silver: snapshot + MERGE del CDC | Databricks |
-| 4 | PagoYa: API + webhooks verificados + liquidaciones | Terminal (`python`) |
-| 5 | La conciliación | Databricks |
-| 6 | Automatizar | Data Factory / Airflow |
+| Base (réplica) | 30 comercios, 150 productos, ~6.000 clientes y ~12.000 pedidos de antes de PagoYa, ~850 pedidos nuevos por día | El snapshot inicial es de decenas de miles de filas: se exporta con `\copy`, no con un `SELECT` en pantalla |
+| CDC | ~3.000 cambios por día solo en `pedidos` (más clientes, ítems y productos) | La retención es de **24 horas**: si tu proceso no corre un día, pierdes cambios y hay que volver a hacer el snapshot |
+| PagoYa | ~1.500 eventos y otros tantos webhooks por día; una liquidación diaria de cientos de líneas | Con el límite de 100 pedidos por minuto, traer los 30 días de la API cada vez no escala: la carga tiene que ser incremental |
+
+Crea el repositorio `mercado-datos` (en el [GitHub de práctica](#/github)) con esta estructura y trabaja con una rama por paso:
+
+```text
+mercado-datos/
+├── README.md               ← qué resuelve, cómo correrlo, decisiones
+├── docs/fuentes.md         ← paso 2: lo que descubriste de cada fuente
+├── ingesta/
+│   ├── snapshot.sh         ← paso 2: el export inicial de la réplica
+│   └── pagoya.py           ← paso 4: API + webhooks + liquidaciones
+├── sql/
+│   ├── 01_silver_pedidos.sql
+│   ├── 02_silver_clientes.sql
+│   ├── 03_pagoya.sql
+│   └── 04_conciliacion.sql
+└── dags/mercado_horario.py ← paso 6
+```
 
 ## Paso 1 · El lago, el Key Vault y el webhook
 
+**Qué tienes que lograr.** Una cuenta de almacenamiento con un contenedor `landing`, un Key Vault con las credenciales (al menos tres de las cuatro: la clave de la base, la cadena de conexión del Event Hub, la clave de PagoYa y el secreto de firma) y el **endpoint de webhooks** del equipo de datos escribiendo en tu lago.
+
+**Lo que esconden las fuentes.** PagoYa solo manda por webhook lo que pasa **desde que registras el endpoint**: cada hora que tardas en registrarlo es una hora que después tienes que recuperar por la API. Y las credenciales del correo de accesos no van en el código ni en el historial de la terminal de un script.
+
+**Compruébalo tú.** `az keyvault secret list` muestra los secretos (no sus valores) y, unos minutos después de configurar el webhook, `az storage blob list … --prefix pagoya/webhooks/` empieza a mostrar archivos.
+
+<details><summary>Pista 1</summary>
+
+Primero lo que no se puede recuperar después: el webhook. El resto (snapshot, API) se puede hacer mañana; los webhooks de hoy, no.
+</details>
+
+<details><summary>Pista 2</summary>
+
+`mercado accesos` tiene las credenciales; `az storage account create … --hns true`, `az keyvault create`, `az keyvault secret set` y `pagoya webhooks configurar --cuenta <tu cuenta>`.
+</details>
+
+:::solucion MV:Seguridad+Webhook | el lago, el Key Vault y el webhook
 ```bash
 mercado accesos
 az login
@@ -41,9 +79,32 @@ pagoya webhooks configurar --cuenta stmercado
 ```
 
 El webhook se configura **el primer día**: PagoYa solo manda lo que pasa desde ese momento. Lo de antes se recupera por la API (paso 4).
+:::
 
-## Paso 2 · El snapshot y el CDC
+## Paso 2 · El snapshot de la base y mirar el CDC
 
+**Qué tienes que lograr.** Un export completo de `pedidos` y `clientes` de la réplica en el lago (`landing/snap/`), y entender qué trae un mensaje del CDC. Anota en `docs/fuentes.md` qué es cada campo de un mensaje de Debezium.
+
+**Lo que esconden las fuentes.** La réplica es un PostgreSQL de verdad, de **solo lectura**: no puedes crear tablas ni escribir. El CDC trae cuatro tipos de operación y, en una baja, los datos no están donde los buscas. Los timestamps del CDC no vienen como texto. Y en algún momento la base cambia de esquema: aparecen columnas nuevas en `pedidos`.
+
+**Compruébalo tú.** El `count(*)` de pedidos en la réplica es igual a las líneas de tu CSV menos el encabezado. Puedes contestar: ¿qué número ordena los cambios? ¿dónde está el id en una baja? ¿en qué unidad viene `creado_en` en un mensaje?
+
+<details><summary>Pista 1</summary>
+
+Un snapshot de decenas de miles de filas no se mira en pantalla: se exporta a un archivo. Y para el CDC, mira un solo mensaje entero antes de escribir nada.
+</details>
+
+<details><summary>Pista 2</summary>
+
+`psql … -c "\copy (SELECT …) TO 'archivo.csv' WITH (FORMAT csv, HEADER)"` y `az storage blob upload-batch`. Para Kafka, `kcat` con un archivo de configuración (`~/.config/kcat.conf`) y `-C -t <tópico> -o beginning -e -c 1`.
+</details>
+
+<details><summary>Pista 3</summary>
+
+Un mensaje de Debezium tiene `op` (`c`, `u`, `d`, `r`), `before`, `after` y `source.lsn`. Los timestamps son microsegundos desde 1970.
+</details>
+
+:::solucion MV:CDC | el snapshot y el CDC
 La réplica de lectura es un PostgreSQL de verdad, con un usuario que no puede escribir:
 
 ```bash
@@ -66,9 +127,42 @@ kcat -C -t mv_prod.public.pedidos -o beginning -e -c 1
 ```
 
 Cada mensaje trae `op` (`c` alta, `u` cambio, `d` baja, `r` lectura inicial), `before`, `after` y `source.lsn`: la posición del cambio en el log de la base. Ese número es el que ordena todo.
+:::
 
-## Paso 3 · Silver: snapshot + MERGE
+## Paso 3 · Silver: snapshot + CDC con MERGE
 
+**Qué tienes que lograr.** `mercado.silver.pedidos` y `mercado.silver.clientes` con las columnas de [La entrega](#/l/proyecto-mercado-vecino-la-entrega), cada fila con su `_lsn` (el del último cambio aplicado, 0 si viene del snapshot). Que puedas correr el proceso dos veces sin duplicar nada.
+
+**Lo que esconden las fuentes.**
+
+- El **backoffice cancela pedidos sin tocar `actualizado_en`**: una carga incremental por esa columna no ve la cancelación; el CDC sí.
+- El equipo de fraude **borra** pedidos (`DELETE`): un borrado físico no aparece en ningún snapshot posterior, solo en el CDC.
+- Un cliente puede sacar un producto **antes de pagar**: el mismo pedido cambia de total varias veces en minutos, y el orden importa.
+- Los clientes que piden el **borrado de sus datos** quedan con `email` en NULL en la base: ese UPDATE tiene que llegar a silver.
+
+**Compruébalo tú.**
+
+- `count(*)` contra `count(DISTINCT pedido_id)`: tienen que ser iguales.
+- Elige un pedido que se canceló hoy en el CDC y míralo en silver.
+- Corre el MERGE dos veces seguidas: la segunda no cambia nada.
+- `SELECT count(*) FROM mercado.silver.clientes WHERE nombre = '(eliminado)' AND email IS NOT NULL` da 0.
+
+<details><summary>Pista 1</summary>
+
+El snapshot es una foto en un momento; el CDC son los cambios. Si guardas en cada fila **hasta qué cambio** está aplicada, puedes reprocesar el tópico entero sin miedo: un cambio que ya tienes (o uno más viejo) no pisa nada.
+</details>
+
+<details><summary>Pista 2</summary>
+
+`read_kafka` en Databricks para llevar el tópico a una tabla bronze tal cual, y `MERGE INTO … USING (…)`. Para leer el JSON del mensaje, la sintaxis `v:after.estado` sobre una columna de texto.
+</details>
+
+<details><summary>Pista 3</summary>
+
+Por pedido, quédate con el último cambio (`ROW_NUMBER() OVER (PARTITION BY id ORDER BY lsn DESC)`). En el MERGE: si es una baja, `DELETE`; si es más nuevo que lo que hay (`s.lsn > t._lsn`), `UPDATE`; si no existe, `INSERT`. En una baja el id está en `before`.
+</details>
+
+:::solucion MV:CDC | silver.pedidos
 Primero el snapshot, con `_lsn = 0`:
 
 ```sql norun
@@ -120,14 +214,71 @@ WHEN NOT MATCHED AND s.op <> 'd' THEN INSERT (pedido_id, cliente_id, estado, tot
   VALUES (s.id, s.cliente_id, s.estado, s.total, s.descuento, s.cupon, s.creado_en, s.actualizado_en, s.lsn);
 ```
 
-:::tip coalesce(after.id, before.id)
 En una baja, `after` es nulo: el id está en `before`. Y `descuento` y `cupon` aparecen recién después del cambio de esquema de la base; `coalesce(…, '0')` cubre los mensajes viejos que no los traen.
 :::
 
-`mercado.silver.clientes` se arma igual (snapshot + MERGE sobre `cdc_clientes`). Cuando un cliente pide el borrado, la base pone su email en NULL y ese cambio viaja por el CDC.
+:::solucion MV:Olvido | silver.clientes
+El mismo patrón sobre `clientes`. El derecho al olvido no necesita nada especial: la base pone `nombre = '(eliminado)'` y `email = NULL`, ese UPDATE viaja por el CDC y el MERGE lo aplica.
 
-## Paso 4 · PagoYa en Python
+```sql norun
+CREATE OR REPLACE TABLE mercado.silver.clientes AS
+SELECT CAST(id AS BIGINT) AS cliente_id, nombre, email, telefono, barrio,
+       CAST(creado_en AS TIMESTAMP) AS creado_en, CAST(actualizado_en AS TIMESTAMP) AS actualizado_en, CAST(0 AS BIGINT) AS _lsn
+FROM read_files('abfss://landing@stmercado.dfs.core.windows.net/snap/clientes.csv', format => 'csv', header => true);
 
+CREATE OR REPLACE TABLE mercado.bronze.cdc_clientes AS
+SELECT CAST(value AS STRING) AS v, offset
+FROM read_kafka(bootstrapServers => 'mv-eventos.servicebus.windows.net:9093', subscribe => 'mv_prod.public.clientes',
+  startingOffsets => 'earliest', `kafka.security.protocol` => 'SASL_SSL', `kafka.sasl.mechanism` => 'PLAIN',
+  `kafka.sasl.jaas.config` => 'kafkashaded.org.apache.kafka.common.security.plain.PlainLoginModule required username="$ConnectionString" password="Endpoint=sb://…";');
+
+MERGE INTO mercado.silver.clientes t USING (
+  SELECT * FROM (
+    SELECT CAST(coalesce(v:after.id, v:before.id) AS BIGINT) AS id, v:op AS op, CAST(v:source.lsn AS BIGINT) AS lsn,
+           v:after.nombre AS nombre, v:after.email AS email, v:after.telefono AS telefono, v:after.barrio AS barrio,
+           timestamp_micros(v:after.creado_en) AS creado_en, timestamp_micros(v:after.actualizado_en) AS actualizado_en,
+           ROW_NUMBER() OVER (PARTITION BY coalesce(v:after.id, v:before.id) ORDER BY CAST(v:source.lsn AS BIGINT) DESC) AS rn
+    FROM mercado.bronze.cdc_clientes) x
+  WHERE rn = 1
+) s ON t.cliente_id = s.id
+WHEN MATCHED AND s.op = 'd' THEN DELETE
+WHEN MATCHED AND s.lsn > t._lsn THEN UPDATE SET
+  nombre = s.nombre, email = s.email, telefono = s.telefono, barrio = s.barrio, actualizado_en = s.actualizado_en, _lsn = s.lsn
+WHEN NOT MATCHED AND s.op <> 'd' THEN INSERT (cliente_id, nombre, email, telefono, barrio, creado_en, actualizado_en, _lsn)
+  VALUES (s.id, s.nombre, s.email, s.telefono, s.barrio, s.creado_en, s.actualizado_en, s.lsn);
+```
+:::
+
+## Paso 4 · PagoYa: la API, los webhooks y las liquidaciones
+
+**Qué tienes que lograr.** Un script (`ingesta/pagoya.py`) que deje en el lago **un registro por evento** de los tipos `pago.aprobado`, `reembolso.creado`, `disputa.abierta` y `disputa.cerrada` (de la API y de los webhooks, sin repetidos ni falsos) y las líneas de todas las liquidaciones publicadas. Y `mercado.silver.pagoya_eventos` cargada desde ahí.
+
+**Lo que esconden las fuentes.**
+
+- Los webhooks llegan **al menos una vez**: repetidos, desordenados y tarde.
+- Al endpoint también llegan entregas **falsas** (firma que no valida) y **repeticiones viejas** de entregas reales.
+- A mitad del proyecto se **rota el secreto** de firma: durante un día llegan dos firmas `v1` y tienes que aceptar las dos.
+- La API pagina **del más nuevo al más viejo**, con límite de 100 pedidos por minuto y algún 503 suelto.
+- Los montos vienen en **centavos** y `pedido_id` es **texto**.
+
+**Compruébalo tú.** En tu archivo de eventos, `evento_id` es único. Todos los `pago.aprobado` de ayer de la API están. Ningún evento que solo vino por webhook deja de estar en la API cuando lo buscas por id (si no está, era falso). La suma de `bruto` de una liquidación coincide con lo que dice su encabezado.
+
+<details><summary>Pista 1</summary>
+
+La API es la fuente completa; los webhooks son la fuente rápida. El `id` del evento es lo que permite juntarlas sin duplicar.
+</details>
+
+<details><summary>Pista 2</summary>
+
+`requests` con reintentos ante 429 y 503 (respetando `Retry-After`), paginación con `despues_de` y filtro por `tipo`. Para la firma: `hmac.new(secreto, f"{t}.{cuerpo}", sha256)` y `hmac.compare_digest`.
+</details>
+
+<details><summary>Pista 3</summary>
+
+Una entrega es válida si **alguna** firma `v1` coincide con **alguno** de los secretos vigentes y si su `t` está a menos de 5 minutos de cuando llegó. Guarda los eventos en un diccionario por `id`: lo que viene de la API y lo que viene de los webhooks se pisan, no se suman.
+</details>
+
+:::solucion MV:PagoYa | API, webhooks y liquidaciones
 La API recupera **todo** lo que pasó (también antes del webhook). Los webhooks se verifican: la firma es un HMAC-SHA256 de `t.cuerpo` con el secreto. Durante la rotación del secreto llegan dos firmas `v1`, así que se aceptan los dos secretos. Y una entrega cuya marca `t` está a más de 5 minutos de cuando llegó es una repetición vieja (o un ataque): se descarta.
 
 ```bash
@@ -188,18 +339,36 @@ az storage blob upload --account-name stmercado -c landing -n pagoya/eventos/eve
 az storage blob upload --account-name stmercado -c landing -n pagoya/liquidaciones/liquidaciones.csv -f ~/mv/liquidaciones.csv --overwrite
 ```
 
-:::trabajo hmac.compare_digest, no ==
-Comparar firmas con `==` corta en el primer carácter distinto, y el tiempo que tarda le da pistas a un atacante. `compare_digest` tarda siempre lo mismo. Es una línea y es la forma correcta.
-:::
-
-## Paso 5 · La conciliación
-
 ```sql norun
 CREATE OR REPLACE TABLE mercado.silver.pagoya_eventos AS
 SELECT evento_id, tipo, CAST(creado AS BIGINT) AS creado, pago_id, CAST(pedido_id AS BIGINT) AS pedido_id,
        CAST(monto AS DECIMAL(12,2)) AS monto, estado
 FROM read_files('abfss://landing@stmercado.dfs.core.windows.net/pagoya/eventos/eventos.jsonl', format => 'json');
+```
 
+Comparar firmas con `==` corta en el primer carácter distinto, y el tiempo que tarda le da pistas a un atacante. `compare_digest` tarda siempre lo mismo. Y a este volumen, después de la primera carga conviene pedir a la API solo lo nuevo (`creado_desde` con la marca del último evento que guardaste): la versión de arriba recorre todo cada vez y, con 30 días de eventos, choca con el límite de pedidos.
+:::
+
+## Paso 5 · La conciliación
+
+**Qué tienes que lograr.** `mercado.gold.conciliacion`: un registro por pago **aprobado** de los días cerrados, con su `categoria` y `liquidado_el`, como dice [La entrega](#/l/proyecto-mercado-vecino-la-entrega). Y una vista diaria de la liquidación para Finanzas.
+
+**Lo que esconden las fuentes.** Un pago puede estar en varias situaciones a la vez (reembolsado **y** en disputa): la categoría sigue un orden de prioridad. Hay pagos que llegan **después** de que el pedido venció, y contracargos que solo existen en la pasarela. Los pagos de las 23:00 se liquidan dos días después: la liquidación no coincide día a día con las ventas.
+
+**Compruébalo tú.** La cantidad de filas es igual a los `pago.aprobado` de los días cerrados. Ninguna fila es de hoy. La suma por categoría tiene sentido (casi todo `ok`, unos pocos por ciento en el resto).
+
+<details><summary>Pista 1</summary>
+
+Arma primero un conjunto por situación (reembolsados, en disputa, disputas cerradas, liquidados) y después decide la categoría con un `CASE` en el orden de prioridad.
+</details>
+
+<details><summary>Pista 2</summary>
+
+`LEFT JOIN` de los aprobados contra cada conjunto y contra `mercado.silver.pedidos`. El día es el de la tienda: `to_date(from_unixtime(creado - 10800))`.
+</details>
+
+:::solucion MV:Conciliación | gold.conciliacion
+```sql norun
 CREATE OR REPLACE TABLE mercado.silver.liquidaciones AS
 SELECT * FROM read_files('abfss://landing@stmercado.dfs.core.windows.net/pagoya/liquidaciones/liquidaciones.csv', format => 'csv', header => true);
 ```
@@ -246,11 +415,27 @@ INSERT OVERWRITE DIRECTORY 'abfss://landing@stmercado.dfs.core.windows.net/gold/
 USING CSV OPTIONS ('header' = 'true')
 SELECT * FROM mercado.gold.conciliacion_diaria;
 ```
+:::
 
 ## Paso 6 · Automatizar
 
-Un job de Databricks con el MERGE y la conciliación, disparado cada hora por un DAG:
+**Qué tienes que lograr.** Un DAG con `mercado` en el `dag_id`, programado cada hora, que dispare el job de Databricks con el MERGE y la conciliación (ticket de Jira MV), y las líneas de cada liquidación traídas por Data Factory.
 
+**Lo que esconde.** El CDC tiene 24 horas de retención: si el DAG falla un fin de semana, al volver ya perdiste cambios. Tu proceso tiene que **darse cuenta** (comparar el offset más bajo disponible con el último que leíste) y, si hay hueco, rehacer el snapshot.
+
+**Compruébalo tú.** `airflow dags test <dag_id>` en verde y el ticket de Jira pasa la revisión.
+
+<details><summary>Pista 1</summary>
+
+Lo que corre cada hora tiene que ser idempotente: si corre dos veces, el resultado es el mismo. Eso ya lo resolviste con `_lsn` y con el diccionario de eventos.
+</details>
+
+<details><summary>Pista 2</summary>
+
+`DatabricksRunNowOperator` con `job_name` y `schedule="@hourly"`. En Data Factory, un servicio vinculado REST con la cabecera `Authorization` sacada del Key Vault y una actividad Copy con la fecha como parámetro.
+</details>
+
+:::solucion MV:Conciliación | el DAG
 ```python norun
 from datetime import datetime
 from airflow.sdk import DAG
@@ -261,6 +446,7 @@ with DAG("mercado_horario", start_date=datetime(2026, 11, 1), schedule="@hourly"
 ```
 
 Las líneas de cada liquidación también se pueden traer con Data Factory: un servicio vinculado REST con la cabecera `Authorization` sacada del Key Vault (`pagoya-auth`) y un Copy con la fecha como parámetro.
+:::
 
 :::real En tu computadora y en la web real
 Para repetir esta solución en tu propia nube:

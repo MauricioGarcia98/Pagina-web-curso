@@ -24,20 +24,56 @@
     const tx = async (modo, f) => { const d = await abrir(); return new Promise((ok, mal) => { const t = d.transaction('kv', modo); const req = f(t.objectStore('kv')); t.oncomplete = () => ok(req ? req.result : undefined); t.onerror = () => mal(t.error); t.onabort = () => mal(t.error); }); };
     const hash = (t) => { let h1 = 2166136261, h2 = 5381; for (let i = 0; i < t.length; i += (t.length > 400000 ? 7 : 1)) { const c = t.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = (Math.imul(h2, 33) + c) | 0; } return `maq:${t.length}:${(h1 >>> 0).toString(36)}${(h2 >>> 0).toString(36)}`; };
     const hay = typeof indexedDB !== 'undefined';
+    // cada guardado junta las claves que usa y espera sus escrituras: localStorage recién apunta a una clave cuando ya
+    // está en IndexedDB (si recargas en medio, queda la versión anterior, completa), y después se borra lo que nadie usa
+    let ronda = null; const enVuelo = new Map();
+    const guardar = (v) => {
+      const clave = hash(v); if (ronda) ronda.usadas.add(clave);
+      if (!guardados.has(clave)) {
+        guardados.add(clave);
+        const pr = tx('readwrite', (st) => st.put(v, clave)).catch((e) => { guardados.delete(clave); console.warn('terminal: no se pudo guardar en IndexedDB', e); throw e; }).finally(() => enVuelo.delete(clave));
+        enVuelo.set(clave, pr);
+      }
+      if (ronda && enVuelo.has(clave)) ronda.pend.push(enVuelo.get(clave));
+      return clave;
+    };
+    function serializar(obj) {
+      ronda = { usadas: new Set(), pend: [] }; let txt;
+      try { txt = JSON.stringify(obj, reemplazo); } finally { var r = ronda; ronda = null; } // eslint-disable-line no-var
+      return { txt, usadas: r.usadas, listo: Promise.all(r.pend) };
+    }
+    let ultimaLimpieza = 0;
+    function limpiar(usadas) {
+      if (!hay || Date.now() - ultimaLimpieza < 20000) return; ultimaLimpieza = Date.now();
+      tx('readonly', (st) => st.getAllKeys()).then((ks) => { const viejas = (ks || []).filter((k) => typeof k === 'string' && k.startsWith('maq:') && !usadas.has(k) && !enVuelo.has(k)); if (viejas.length) return tx('readwrite', (st) => { viejas.forEach((k) => { st.delete(k); guardados.delete(k); }); return null; }); return null; }).catch(() => { /* nada */ });
+    }
+    // los mapas de muchos archivos chicos (el disco de la terminal, los blobs de un contenedor: miles de webhooks de
+    // 1 KB) no tienen ningún texto grande pero juntos no entran en localStorage: se guardan enteros en IndexedDB
+    const MAPAS = new Set(['fs', 'blobs']); const UMBRAL_MAPA = 300000; const MIN_ENTRADAS = 150;
     function reemplazo(k, v) {
-      if (!hay || typeof v !== 'string' || v.length < UMBRAL) return v;
-      const clave = hash(v);
-      if (!guardados.has(clave)) { guardados.add(clave); tx('readwrite', (st) => st.put(v, clave)).catch((e) => { guardados.delete(clave); console.warn('terminal: no se pudo guardar en IndexedDB', e); }); }
-      return { __pesado: clave };
+      if (!hay) return v;
+      if (v && typeof v === 'object' && ronda && (typeof v.__pesado === 'string' || typeof v.__pesadoMapa === 'string')) { ronda.usadas.add(v.__pesado || v.__pesadoMapa); return v; } // todavía sin rehidratar: sigue en uso
+      if (v && typeof v === 'object' && MAPAS.has(k) && !Array.isArray(v)) {
+        let n = 0; for (const _ in v) if (++n >= MIN_ENTRADAS) break; // eslint-disable-line no-unused-vars
+        if (n < MIN_ENTRADAS) return v;
+        const txt = JSON.stringify(v); if (txt.length < UMBRAL_MAPA) return v;
+        return { __pesadoMapa: guardar(txt) };
+      }
+      if (typeof v !== 'string' || v.length < UMBRAL) return v;
+      return { __pesado: guardar(v) };
     }
     function hidratar(raices) {
       if (!hay) return null;
       const pend = [];
-      const visitar = (o, prof) => { if (!o || typeof o !== 'object' || prof > 12) return; for (const k of Object.keys(o)) { const v = o[k]; if (v && typeof v === 'object') { if (typeof v.__pesado === 'string' && Object.keys(v).length === 1) { const clave = v.__pesado; guardados.add(clave); pend.push(tx('readonly', (st) => st.get(clave)).then((txt) => { o[k] = typeof txt === 'string' ? txt : ''; if (typeof txt !== 'string') console.warn('terminal: falta en IndexedDB', clave); }).catch(() => { o[k] = ''; })); } else visitar(v, prof + 1); } } };
+      const visitar = (o, prof) => { if (!o || typeof o !== 'object' || prof > 12) return; for (const k of Object.keys(o)) { const v = o[k]; if (v && typeof v === 'object') { if (typeof v.__pesado === 'string' && Object.keys(v).length === 1) { const clave = v.__pesado; guardados.add(clave); pend.push(tx('readonly', (st) => st.get(clave)).then((txt) => { o[k] = typeof txt === 'string' ? txt : ''; if (typeof txt !== 'string') console.warn('terminal: falta en IndexedDB', clave); }).catch(() => { o[k] = ''; })); }
+          else if (typeof v.__pesadoMapa === 'string' && Object.keys(v).length === 1) { const clave = v.__pesadoMapa; guardados.add(clave); pend.push(tx('readonly', (st) => st.get(clave)).then((txt) => { let m = {}; try { m = JSON.parse(txt); } catch (e) { console.warn('terminal: falta en IndexedDB', clave); } o[k] = m; visitar(m, 0); }).catch(() => { o[k] = {}; })); } else visitar(v, prof + 1); } } };
       for (const r of raices) visitar(r, 0);
-      return pend.length ? Promise.all(pend).then(() => true) : null;
+      // los mapas que se rehidratan pueden traer más referencias adentro: se espera hasta que no quede ninguna pendiente
+      if (!pend.length) return null;
+      const esperar = () => { const n = pend.length; return Promise.all(pend.slice()).then(() => (pend.length > n ? esperar() : { raiz: raices[0] })); };
+      return esperar();
     }
-    return { reemplazo, hidratar };
+    return { reemplazo, hidratar, serializar, limpiar };
   })();
 
   // ------------------------------------------------------------------ máquina
@@ -48,14 +84,16 @@
       try {
         const d = JSON.parse(localStorage.getItem(KEY));
         if (d && d.v === 1 && !d.fs) { this.reset(); this.cloud = d.cloud || {}; this.ready = true; this.hidratando = Pesados.hidratar([this.cloud]); this.save(); return; } // terminal reiniciada desde Mis datos: disco de fábrica, nubes conservadas
-        if (d && d.v === 1) { Object.assign(this, d); this.alias = this.alias || {}; this.ready = true; this.hidratando = Pesados.hidratar([this.fs, this.cloud, this.git]); return; }
+        if (d && d.v === 1) { Object.assign(this, d); this.alias = this.alias || {}; this.ready = true; this.hidratando = Promise.resolve(Pesados.hidratar([{ fs: this.fs, cloud: this.cloud, git: this.git }])).then((r) => { const R = r && r.raiz; if (R) { this.fs = R.fs; this.cloud = R.cloud; this.git = R.git; } return true; }); return; }
       } catch (e) { /* sin almacenamiento */ }
       this.reset();
     },
     save() {
       clearTimeout(this._t);
       this._t = setTimeout(() => {
-        try { localStorage.setItem(KEY, JSON.stringify({ v: 1, fs: this.fs, cwd: this.cwd, env: this.env, history: this.history.slice(-300), cloud: this.cloud, git: this.git, alias: this.alias, gen: this.gen }, Pesados.reemplazo)); } catch (e) { console.warn('terminal: no se pudo guardar el disco', e); }
+        let R; try { R = Pesados.serializar({ v: 1, fs: this.fs, cwd: this.cwd, env: this.env, history: this.history.slice(-300), cloud: this.cloud, git: this.git, alias: this.alias, gen: this.gen }); } catch (e) { console.warn('terminal: no se pudo guardar el disco', e); return; }
+        const n = this._nGuardado = (this._nGuardado || 0) + 1;
+        R.listo.then(() => { if (n !== this._nGuardado) return; try { localStorage.setItem(KEY, R.txt); Pesados.limpiar(R.usadas); } catch (e) { console.warn('terminal: no se pudo guardar el disco', e); } }, (e) => console.warn('terminal: no se pudo guardar en IndexedDB; queda la versión anterior', e));
       }, 300);
     },
     // como al abrir una terminal nueva en Linux: se empieza en ~, sin entorno virtual activo ni variables exportadas;
@@ -1231,9 +1269,10 @@ models:
   def('less', 'ver un archivo largo', (a, ctx) => Commands.cat(a, ctx));
   def('more', '', (a, ctx) => Commands.cat(a, ctx));
   const nLines = (flags, def_) => { const v = flags['-n'] ?? flags['--lines']; return v === undefined || v === true ? def_ : parseInt(v, 10); };
-  def('head', 'primeras líneas (-n N)', (a, ctx) => {
+  def('head', 'primeras líneas (-n N) o primeros caracteres (-c N)', (a, ctx) => {
     a = a.map((x) => (/^-\d+$/.test(x) ? ['-n', x.slice(1)] : [x])).flat();
-    const { flags, pos } = parseArgs(a, { attach: 'n' }); const r = readArgOrStdin(pos, ctx, 'head'); if (r.err) return fail(r.err);
+    const { flags, pos } = parseArgs(a, { attach: 'nc' }); const r = readArgOrStdin(pos, ctx, 'head'); if (r.err) return fail(r.err);
+    if (flags['-c'] != null) { const n = parseInt(flags['-c'], 10); if (!Number.isFinite(n)) return fail(`head: número de bytes inválido: '${flags['-c']}'`); return { out: n < 0 ? r.text.slice(0, n) : r.text.slice(0, n), code: 0, sinSalto: true }; } // -c N: los primeros N caracteres, sin agregar salto
     return ok(r.text.replace(/\n$/, '').split('\n').slice(0, nLines(flags, 10)).join('\n'));
   });
   def('tail', 'últimas líneas (-n N)', (a, ctx) => {

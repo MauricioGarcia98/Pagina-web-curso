@@ -81,7 +81,7 @@
   }
   async function chequeoPII() {
     const D = Host.datos() || {}; const U = (D.uso || []).filter((e) => e.op === 'chat'); if (!U.length) return 'Todavía no usaste Lumen IA.';
-    const max = Math.max(...U.map((e) => e.t)); const W = U.filter((e) => e.t > max - DIA); const con = W.filter((e) => e.pii).length;
+    const max = U.reduce((m, e) => Math.max(m, e.t), -Infinity); const W = U.filter((e) => e.t > max - DIA); const con = W.filter((e) => e.pii).length;
     if (con) return `${con} de tus ${W.length} pedidos de las últimas 24 horas de uso llevaron un DNI o un número de tarjeta al proveedor. Enmascáralos antes de llamar al modelo.`;
     return W.length >= 30 || `Clasifica con datos enmascarados (en las últimas 24 horas de uso hay ${W.length} pedidos; se revisan al menos 30).`;
   }

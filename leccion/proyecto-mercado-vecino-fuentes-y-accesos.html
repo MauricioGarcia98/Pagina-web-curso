@@ -249,6 +249,7 @@ FROM read_kafka(
 <li><code>metadatos.pedido_id</code> es <strong>texto</strong>.</li>
 <li>Tipos: <code>pago.creado</code>, <code>pago.aprobado</code>, <code>pago.rechazado</code>, <code>reembolso.creado</code> (objeto reembolso, con <code>pago</code>), <code>disputa.abierta</code> y <code>disputa.cerrada</code> (objeto disputa, con <code>pago</code>; al cerrar, <code>estado</code> = <code>ganada</code> o <code>perdida</code>).</li>
 <li>Límite: <strong>100 pedidos por minuto</strong> (429 + <code>Retry-After</code>). Cerca del 1 % de los pedidos responde <strong>503</strong>: reintenta con espera.</li>
+<li><strong>Haz la cuenta antes de programar.</strong> La tienda genera unos 1.500 eventos por día: los 30 días de la API son más de 400 páginas de 100, y con el límite eso es más de 4 minutos de esperas. Filtra por <code>tipo</code> lo que vas a usar y, después de la primera carga, pide solo lo nuevo con <code>creado_desde</code> (guarda dónde quedaste).</li>
 </ul>
 <h2>4. PagoYa: los webhooks</h2>
 <p>PagoYa avisa cada evento con un <code>POST</code> a los endpoints registrados. El del equipo de datos lo das de alta tú:</p>

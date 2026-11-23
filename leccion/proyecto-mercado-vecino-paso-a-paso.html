@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Paso a paso - una solución completa, explicada · Academia de Datos</title><meta name="description" content="Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - snapshot más CDC con MERGE ordenado por LSN, los eventos de PagoYa por API y por webhook con la firma verificada, y la conciliación. Léela después de intentarlo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-mercado-vecino-paso-a-paso.html">
-<meta property="og:type" content="article"><meta property="og:title" content="Paso a paso - una solución completa, explicada · Academia de Datos"><meta property="og:description" content="Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - snapshot más CDC con MERGE ordenado por LSN, los eventos de PagoYa por API y por webhook con la firma verificada, y la conciliación. Léela después de intentarlo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-mercado-vecino-paso-a-paso.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<title>Construirlo paso a paso - una guía, no una solución · Academia de Datos</title><meta name="description" content="Construyes el proyecto de cero con las fuentes vivas de Mercado Vecino a volumen de empresa (30 comercios, unos 6.000 clientes, cerca de 850 pedidos por día, miles de cambios de CDC y de eventos de PagoYa por día). Cada paso dice qué tienes que lograr, qué esconden las fuentes, cómo comprobarlo y pistas graduales. La solución de referencia de cada paso se desbloquea recién cuando tu entrega pasa la revisión."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-mercado-vecino-paso-a-paso.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Construirlo paso a paso - una guía, no una solución · Academia de Datos"><meta property="og:description" content="Construyes el proyecto de cero con las fuentes vivas de Mercado Vecino a volumen de empresa (30 comercios, unos 6.000 clientes, cerca de 850 pedidos por día, miles de cambios de CDC y de eventos de PagoYa por día). Cada paso dice qué tienes que lograr, qué esconden las fuentes, cómo comprobarlo y pistas graduales. La solución de referencia de cada paso se desbloquea recién cuando tu entrega pasa la revisión."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-mercado-vecino-paso-a-paso.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
 *{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
 header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
@@ -13,54 +13,74 @@ code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:aut
 img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
 footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
 <header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
-<main><div class="migas"><a href="index.html#proyecto-mercado-vecino">🛒 Proyecto 2: Mercado Vecino, conciliar la app con la pasarela de pagos</a> · Avanzado · 75 min</div>
-<h1>Paso a paso - una solución completa, explicada</h1><p class="resumen">Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión - snapshot más CDC con MERGE ordenado por LSN, los eventos de PagoYa por API y por webhook con la firma verificada, y la conciliación. Léela después de intentarlo.</p>
+<main><div class="migas"><a href="index.html#proyecto-mercado-vecino">🛒 Proyecto 2: Mercado Vecino, conciliar la app con la pasarela de pagos</a> · Avanzado · 300 min</div>
+<h1>Construirlo paso a paso - una guía, no una solución</h1><p class="resumen">Construyes el proyecto de cero con las fuentes vivas de Mercado Vecino a volumen de empresa (30 comercios, unos 6.000 clientes, cerca de 850 pedidos por día, miles de cambios de CDC y de eventos de PagoYa por día). Cada paso dice qué tienes que lograr, qué esconden las fuentes, cómo comprobarlo y pistas graduales. La solución de referencia de cada paso se desbloquea recién cuando tu entrega pasa la revisión.</p>
 <a class="cta" href="../index.html#/l/proyecto-mercado-vecino-paso-a-paso">▶ Abrir la lección interactiva (2 ejercicios)</a>
-<h2>Al terminar vas a poder</h2><ul class="lista"><li>Ver cómo se combinan un snapshot y un flujo de CDC sin perder ni duplicar cambios</li><li>Verificar firmas HMAC de webhooks y descartar repeticiones</li><li>Conciliar pagos, pedidos y liquidaciones</li></ul>
-<div class="callout callout-cuidado"><div class="callout-title">⚠️ Inténtalo primero</div>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Combinar un snapshot y un flujo de CDC sin perder ni duplicar cambios</li><li>Aplicar bajas físicas y el derecho al olvido que solo viajan por el CDC</li><li>Traer eventos de una API con límite de pedidos de forma incremental</li><li>Verificar firmas HMAC de webhooks, también durante una rotación de secreto</li><li>Conciliar pagos, pedidos y liquidaciones con categorías de prioridad</li></ul>
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Cómo se usa esta guía</div>
 
-<p>Esta es <strong>una</strong> solución. Si ya resolviste el proyecto, compara: ¿qué hace tu versión si el mismo cambio de CDC llega dos veces, o llega uno viejo después de uno nuevo?</p>
+<p>Nada de esto viene hecho: el lago, el Key Vault, el endpoint de webhooks, el script de PagoYa, las tablas y el DAG los creas tú. Solo te damos las fuentes (la réplica de la base, el CDC y PagoYa) y su documentación. Cada paso tiene cuatro partes:</p>
+<ol>
+<li><strong>Qué tienes que lograr</strong>: el resultado concreto (un archivo, una tabla, un número).</li>
+<li><strong>Lo que esconden las fuentes</strong>: las trampas que traen los datos y que tu código tiene que resolver.</li>
+<li><strong>Compruébalo tú</strong>: cómo saber, antes de pedir revisión, si vas bien.</li>
+<li><strong>Pistas</strong>: ábrelas de a una solo si te trabas. La primera es conceptual, la segunda nombra la herramienta y la última te da la estructura.</li>
+</ol>
+<p>Al final de cada paso hay una <strong>solución de referencia</strong> bloqueada 🔒. Se abre cuando tu entrega pasa la misma revisión que hace el líder técnico en Jira (el panel <strong>Revisar mi entrega</strong> de <a href="#/l/proyecto-mercado-vecino-el-dia-a-dia">El día a día</a>). Compárala con la tuya como en un code review: no hay una sola forma correcta.</p>
 </div>
 
 
-<h2>El plan</h2>
+<h2>Antes de empezar: el volumen</h2>
 <div class="table-wrap"><table><thead><tr>
-<th>Paso</th>
-<th>Qué</th>
-<th>Dónde</th>
+<th>Fuente</th>
+<th>Volumen aproximado</th>
+<th>Qué implica</th>
 </tr>
 </thead><tbody><tr>
-<td>1</td>
-<td>Lago, Key Vault y webhook</td>
-<td>Terminal (<code>az</code>, <code>pagoya</code>)</td>
+<td>Base (réplica)</td>
+<td>30 comercios, 150 productos, ~6.000 clientes y ~12.000 pedidos de antes de PagoYa, ~850 pedidos nuevos por día</td>
+<td>El snapshot inicial es de decenas de miles de filas: se exporta con <code>\copy</code>, no con un <code>SELECT</code> en pantalla</td>
 </tr>
 <tr>
-<td>2</td>
-<td>Snapshot de la base y mirar el CDC</td>
-<td>Terminal (<code>psql</code>, <code>kcat</code>)</td>
+<td>CDC</td>
+<td>~3.000 cambios por día solo en <code>pedidos</code> (más clientes, ítems y productos)</td>
+<td>La retención es de <strong>24 horas</strong>: si tu proceso no corre un día, pierdes cambios y hay que volver a hacer el snapshot</td>
 </tr>
 <tr>
-<td>3</td>
-<td>Silver: snapshot + MERGE del CDC</td>
-<td>Databricks</td>
-</tr>
-<tr>
-<td>4</td>
-<td>PagoYa: API + webhooks verificados + liquidaciones</td>
-<td>Terminal (<code>python</code>)</td>
-</tr>
-<tr>
-<td>5</td>
-<td>La conciliación</td>
-<td>Databricks</td>
-</tr>
-<tr>
-<td>6</td>
-<td>Automatizar</td>
-<td>Data Factory / Airflow</td>
+<td>PagoYa</td>
+<td>~1.500 eventos y otros tantos webhooks por día; una liquidación diaria de cientos de líneas</td>
+<td>Con el límite de 100 pedidos por minuto, traer los 30 días de la API cada vez no escala: la carga tiene que ser incremental</td>
 </tr>
 </tbody></table></div>
+<p>Crea el repositorio <code>mercado-datos</code> (en el <a href="#/github">GitHub de práctica</a>) con esta estructura y trabaja con una rama por paso:</p>
+<pre tabindex="0"><code class="language-text">mercado-datos/
+├── README.md               ← qué resuelve, cómo correrlo, decisiones
+├── docs/fuentes.md         ← paso 2: lo que descubriste de cada fuente
+├── ingesta/
+│   ├── snapshot.sh         ← paso 2: el export inicial de la réplica
+│   └── pagoya.py           ← paso 4: API + webhooks + liquidaciones
+├── sql/
+│   ├── 01_silver_pedidos.sql
+│   ├── 02_silver_clientes.sql
+│   ├── 03_pagoya.sql
+│   └── 04_conciliacion.sql
+└── dags/mercado_horario.py ← paso 6</code></pre>
 <h2>Paso 1 · El lago, el Key Vault y el webhook</h2>
+<p><strong>Qué tienes que lograr.</strong> Una cuenta de almacenamiento con un contenedor <code>landing</code>, un Key Vault con las credenciales (al menos tres de las cuatro: la clave de la base, la cadena de conexión del Event Hub, la clave de PagoYa y el secreto de firma) y el <strong>endpoint de webhooks</strong> del equipo de datos escribiendo en tu lago.</p>
+<p><strong>Lo que esconden las fuentes.</strong> PagoYa solo manda por webhook lo que pasa <strong>desde que registras el endpoint</strong>: cada hora que tardas en registrarlo es una hora que después tienes que recuperar por la API. Y las credenciales del correo de accesos no van en el código ni en el historial de la terminal de un script.</p>
+<p><strong>Compruébalo tú.</strong> <code>az keyvault secret list</code> muestra los secretos (no sus valores) y, unos minutos después de configurar el webhook, <code>az storage blob list … --prefix pagoya/webhooks/</code> empieza a mostrar archivos.</p>
+<details><summary>Pista 1</summary>
+
+<p>Primero lo que no se puede recuperar después: el webhook. El resto (snapshot, API) se puede hacer mañana; los webhooks de hoy, no.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p><code>mercado accesos</code> tiene las credenciales; <code>az storage account create … --hns true</code>, <code>az keyvault create</code>, <code>az keyvault secret set</code> y <code>pagoya webhooks configurar --cuenta &lt;tu cuenta&gt;</code>.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: el lago, el Key Vault y el webhook</div>
+
 <pre tabindex="0"><code class="language-bash">mercado accesos
 az login
 az group create -n rg-mercado -l eastus2
@@ -75,7 +95,30 @@ az keyvault secret set --vault-name kv-mercado -n pagoya-webhook --value 'whsec_
 pagoya webhooks configurar --cuenta stmercado</code></pre>
 <details class="bx"><summary>🔍 Qué hace cada comando <span>(11)</span></summary><ol><li><code class="bx-linea">mercado accesos</code><span><code>mercado</code>: el sistema interno de Mercado Vecino en la terminal del curso. <code>accesos</code> muestra los accesos que te dio IT</span></li><li><code class="bx-linea">az login</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>login</code> inicia sesión en tu cuenta de Azure (abre el navegador)</span></li><li><code class="bx-linea">az group create -n rg-mercado -l eastus2</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>group</code> crea, lista o borra grupos de recursos (<code>create</code>). <code>-n</code> = nombre del recurso; <code>-l</code> = región donde se crea el recurso</span></li><li><code class="bx-linea">az storage account create -n stmercado -g rg-mercado -l eastus2 --sku Standard_LRS --hns true</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>account create</code>). <code>-n</code> = nombre del recurso; <code>-g</code> = grupo de recursos donde está o se crea el recurso; <code>-l</code> = región donde se crea el recurso; <code>--sku</code> = el plan o tamaño del recurso (define precio y capacidad)</span></li><li><code class="bx-linea">az storage container create --account-name stmercado -n landing</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>container create</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az role assignment create --assignee unity-catalog-access-connector --role &quot;Storage Blob Data Contributor&quot; --scope $ID</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>role</code> permisos: quién puede hacer qué (RBAC) (<code>assignment create</code>)</span></li><li><code class="bx-linea">az keyvault create -n kv-mercado -g rg-mercado -l eastus2</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>create</code>). <code>-n</code> = nombre del recurso; <code>-g</code> = grupo de recursos donde está o se crea el recurso; <code>-l</code> = región donde se crea el recurso</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-mercado -n pg-clave --value '…'</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-mercado -n pagoya-clave --value 'sk_…'</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az keyvault secret set --vault-name kv-mercado -n pagoya-webhook --value 'whsec_…'</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>keyvault</code> Key Vault: guarda secretos, claves y certificados (<code>secret set</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">pagoya webhooks configurar --cuenta stmercado</code><span><code>pagoya</code>: el panel de PagoYa (la pasarela de pagos) en la terminal del curso; en la vida real se configura en su portal web. <code>webhooks</code> configura o mira los avisos automáticos (webhooks) que PagoYa manda a tu lago con cada pago</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>El webhook se configura <strong>el primer día</strong>: PagoYa solo manda lo que pasa desde ese momento. Lo de antes se recupera por la API (paso 4).</p>
-<h2>Paso 2 · El snapshot y el CDC</h2>
+</div>
+
+
+<h2>Paso 2 · El snapshot de la base y mirar el CDC</h2>
+<p><strong>Qué tienes que lograr.</strong> Un export completo de <code>pedidos</code> y <code>clientes</code> de la réplica en el lago (<code>landing/snap/</code>), y entender qué trae un mensaje del CDC. Anota en <code>docs/fuentes.md</code> qué es cada campo de un mensaje de Debezium.</p>
+<p><strong>Lo que esconden las fuentes.</strong> La réplica es un PostgreSQL de verdad, de <strong>solo lectura</strong>: no puedes crear tablas ni escribir. El CDC trae cuatro tipos de operación y, en una baja, los datos no están donde los buscas. Los timestamps del CDC no vienen como texto. Y en algún momento la base cambia de esquema: aparecen columnas nuevas en <code>pedidos</code>.</p>
+<p><strong>Compruébalo tú.</strong> El <code>count(*)</code> de pedidos en la réplica es igual a las líneas de tu CSV menos el encabezado. Puedes contestar: ¿qué número ordena los cambios? ¿dónde está el id en una baja? ¿en qué unidad viene <code>creado_en</code> en un mensaje?</p>
+<details><summary>Pista 1</summary>
+
+<p>Un snapshot de decenas de miles de filas no se mira en pantalla: se exporta a un archivo. Y para el CDC, mira un solo mensaje entero antes de escribir nada.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p><code>psql … -c &quot;\copy (SELECT …) TO &#39;archivo.csv&#39; WITH (FORMAT csv, HEADER)&quot;</code> y <code>az storage blob upload-batch</code>. Para Kafka, <code>kcat</code> con un archivo de configuración (<code>~/.config/kcat.conf</code>) y <code>-C -t &lt;tópico&gt; -o beginning -e -c 1</code>.</p>
+</details>
+
+<details><summary>Pista 3</summary>
+
+<p>Un mensaje de Debezium tiene <code>op</code> (<code>c</code>, <code>u</code>, <code>d</code>, <code>r</code>), <code>before</code>, <code>after</code> y <code>source.lsn</code>. Los timestamps son microsegundos desde 1970.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: el snapshot y el CDC</div>
+
 <p>La réplica de lectura es un PostgreSQL de verdad, con un usuario que no puede escribir:</p>
 <pre tabindex="0"><code class="language-bash">export PGPASSWORD='…'
 psql &quot;postgresql://lector_datos@mv-prod-replica.postgres.database.azure.com:5432/mercado?sslmode=require&quot; -c &quot;SELECT estado, count(*) FROM pedidos GROUP BY 1 ORDER BY 1&quot;
@@ -92,7 +135,42 @@ kcat -L | head -5
 kcat -C -t mv_prod.public.pedidos -o beginning -e -c 1</code></pre>
 <details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">mkdir -p ~/.config &amp;&amp; printf 'bootstrap.servers=mv-eventos.servicebus.windows.net:9093\nsecurity.protocol=SASL_SSL\nsasl.mechanisms=PLAIN…</code><span><code>mkdir</code>: crea una carpeta. <code>-p</code> = crea también las carpetas intermedias y no falla si ya existe <span class="bx-tubo">→ si sale bien, sigue el próximo</span><br><code>printf</code>: escribe texto con formato (como echo, pero controlando saltos de línea y columnas). <code>&gt;</code> guarda la salida en un archivo (lo reemplaza si existe)</span></li><li><code class="bx-linea">kcat -L | head -5</code><span><code>kcat</code>: cliente de Kafka en la terminal: lee o escribe mensajes de un tópico <span class="bx-tubo">→ su salida pasa al siguiente comando</span><br><code>head</code>: muestra las primeras líneas de un archivo (10 si no dices cuántas). <code>-5</code> = las primeras 5 líneas</span></li><li><code class="bx-linea">kcat -C -t mv_prod.public.pedidos -o beginning -e -c 1</code><span><code>kcat</code>: cliente de Kafka en la terminal: lee o escribe mensajes de un tópico. <code>-C</code> = modo consumidor: lee mensajes; <code>-t</code> = el tópico; <code>-o</code> = desde qué posición (offset) leer; <code>-e</code> = sale al llegar al final</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
 <p>Cada mensaje trae <code>op</code> (<code>c</code> alta, <code>u</code> cambio, <code>d</code> baja, <code>r</code> lectura inicial), <code>before</code>, <code>after</code> y <code>source.lsn</code>: la posición del cambio en el log de la base. Ese número es el que ordena todo.</p>
-<h2>Paso 3 · Silver: snapshot + MERGE</h2>
+</div>
+
+
+<h2>Paso 3 · Silver: snapshot + CDC con MERGE</h2>
+<p><strong>Qué tienes que lograr.</strong> <code>mercado.silver.pedidos</code> y <code>mercado.silver.clientes</code> con las columnas de <a href="#/l/proyecto-mercado-vecino-la-entrega">La entrega</a>, cada fila con su <code>_lsn</code> (el del último cambio aplicado, 0 si viene del snapshot). Que puedas correr el proceso dos veces sin duplicar nada.</p>
+<p><strong>Lo que esconden las fuentes.</strong></p>
+<ul>
+<li>El <strong>backoffice cancela pedidos sin tocar <code>actualizado_en</code></strong>: una carga incremental por esa columna no ve la cancelación; el CDC sí.</li>
+<li>El equipo de fraude <strong>borra</strong> pedidos (<code>DELETE</code>): un borrado físico no aparece en ningún snapshot posterior, solo en el CDC.</li>
+<li>Un cliente puede sacar un producto <strong>antes de pagar</strong>: el mismo pedido cambia de total varias veces en minutos, y el orden importa.</li>
+<li>Los clientes que piden el <strong>borrado de sus datos</strong> quedan con <code>email</code> en NULL en la base: ese UPDATE tiene que llegar a silver.</li>
+</ul>
+<p><strong>Compruébalo tú.</strong></p>
+<ul>
+<li><code>count(*)</code> contra <code>count(DISTINCT pedido_id)</code>: tienen que ser iguales.</li>
+<li>Elige un pedido que se canceló hoy en el CDC y míralo en silver.</li>
+<li>Corre el MERGE dos veces seguidas: la segunda no cambia nada.</li>
+<li><code>SELECT count(*) FROM mercado.silver.clientes WHERE nombre = &#39;(eliminado)&#39; AND email IS NOT NULL</code> da 0.</li>
+</ul>
+<details><summary>Pista 1</summary>
+
+<p>El snapshot es una foto en un momento; el CDC son los cambios. Si guardas en cada fila <strong>hasta qué cambio</strong> está aplicada, puedes reprocesar el tópico entero sin miedo: un cambio que ya tienes (o uno más viejo) no pisa nada.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p><code>read_kafka</code> en Databricks para llevar el tópico a una tabla bronze tal cual, y <code>MERGE INTO … USING (…)</code>. Para leer el JSON del mensaje, la sintaxis <code>v:after.estado</code> sobre una columna de texto.</p>
+</details>
+
+<details><summary>Pista 3</summary>
+
+<p>Por pedido, quédate con el último cambio (<code>ROW_NUMBER() OVER (PARTITION BY id ORDER BY lsn DESC)</code>). En el MERGE: si es una baja, <code>DELETE</code>; si es más nuevo que lo que hay (<code>s.lsn &gt; t._lsn</code>), <code>UPDATE</code>; si no existe, <code>INSERT</code>. En una baja el id está en <code>before</code>.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: silver.pedidos</div>
+
 <p>Primero el snapshot, con <code>_lsn = 0</code>:</p>
 <pre data-norun tabindex="0"><code class="language-sql">CREATE EXTERNAL LOCATION lago_mercado URL 'abfss://landing@stmercado.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
 CREATE CATALOG IF NOT EXISTS mercado;
@@ -133,14 +211,69 @@ WHEN MATCHED AND s.lsn &gt; t._lsn THEN UPDATE SET
   creado_en = s.creado_en, actualizado_en = s.actualizado_en, _lsn = s.lsn
 WHEN NOT MATCHED AND s.op &lt;&gt; 'd' THEN INSERT (pedido_id, cliente_id, estado, total, descuento, cupon, creado_en, actualizado_en, _lsn)
   VALUES (s.id, s.cliente_id, s.estado, s.total, s.descuento, s.cupon, s.creado_en, s.actualizado_en, s.lsn);</code></pre>
-<div class="callout callout-tip"><div class="callout-title">💡 coalesce(after.id, before.id)</div>
-
 <p>En una baja, <code>after</code> es nulo: el id está en <code>before</code>. Y <code>descuento</code> y <code>cupon</code> aparecen recién después del cambio de esquema de la base; <code>coalesce(…, &#39;0&#39;)</code> cubre los mensajes viejos que no los traen.</p>
 </div>
 
 
-<p><code>mercado.silver.clientes</code> se arma igual (snapshot + MERGE sobre <code>cdc_clientes</code>). Cuando un cliente pide el borrado, la base pone su email en NULL y ese cambio viaja por el CDC.</p>
-<h2>Paso 4 · PagoYa en Python</h2>
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: silver.clientes</div>
+
+<p>El mismo patrón sobre <code>clientes</code>. El derecho al olvido no necesita nada especial: la base pone <code>nombre = &#39;(eliminado)&#39;</code> y <code>email = NULL</code>, ese UPDATE viaja por el CDC y el MERGE lo aplica.</p>
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE mercado.silver.clientes AS
+SELECT CAST(id AS BIGINT) AS cliente_id, nombre, email, telefono, barrio,
+       CAST(creado_en AS TIMESTAMP) AS creado_en, CAST(actualizado_en AS TIMESTAMP) AS actualizado_en, CAST(0 AS BIGINT) AS _lsn
+FROM read_files('abfss://landing@stmercado.dfs.core.windows.net/snap/clientes.csv', format =&gt; 'csv', header =&gt; true);
+
+CREATE OR REPLACE TABLE mercado.bronze.cdc_clientes AS
+SELECT CAST(value AS STRING) AS v, offset
+FROM read_kafka(bootstrapServers =&gt; 'mv-eventos.servicebus.windows.net:9093', subscribe =&gt; 'mv_prod.public.clientes',
+  startingOffsets =&gt; 'earliest', `kafka.security.protocol` =&gt; 'SASL_SSL', `kafka.sasl.mechanism` =&gt; 'PLAIN',
+  `kafka.sasl.jaas.config` =&gt; 'kafkashaded.org.apache.kafka.common.security.plain.PlainLoginModule required username=&quot;$ConnectionString&quot; password=&quot;Endpoint=sb://…&quot;;');
+
+MERGE INTO mercado.silver.clientes t USING (
+  SELECT * FROM (
+    SELECT CAST(coalesce(v:after.id, v:before.id) AS BIGINT) AS id, v:op AS op, CAST(v:source.lsn AS BIGINT) AS lsn,
+           v:after.nombre AS nombre, v:after.email AS email, v:after.telefono AS telefono, v:after.barrio AS barrio,
+           timestamp_micros(v:after.creado_en) AS creado_en, timestamp_micros(v:after.actualizado_en) AS actualizado_en,
+           ROW_NUMBER() OVER (PARTITION BY coalesce(v:after.id, v:before.id) ORDER BY CAST(v:source.lsn AS BIGINT) DESC) AS rn
+    FROM mercado.bronze.cdc_clientes) x
+  WHERE rn = 1
+) s ON t.cliente_id = s.id
+WHEN MATCHED AND s.op = 'd' THEN DELETE
+WHEN MATCHED AND s.lsn &gt; t._lsn THEN UPDATE SET
+  nombre = s.nombre, email = s.email, telefono = s.telefono, barrio = s.barrio, actualizado_en = s.actualizado_en, _lsn = s.lsn
+WHEN NOT MATCHED AND s.op &lt;&gt; 'd' THEN INSERT (cliente_id, nombre, email, telefono, barrio, creado_en, actualizado_en, _lsn)
+  VALUES (s.id, s.nombre, s.email, s.telefono, s.barrio, s.creado_en, s.actualizado_en, s.lsn);</code></pre>
+</div>
+
+
+<h2>Paso 4 · PagoYa: la API, los webhooks y las liquidaciones</h2>
+<p><strong>Qué tienes que lograr.</strong> Un script (<code>ingesta/pagoya.py</code>) que deje en el lago <strong>un registro por evento</strong> de los tipos <code>pago.aprobado</code>, <code>reembolso.creado</code>, <code>disputa.abierta</code> y <code>disputa.cerrada</code> (de la API y de los webhooks, sin repetidos ni falsos) y las líneas de todas las liquidaciones publicadas. Y <code>mercado.silver.pagoya_eventos</code> cargada desde ahí.</p>
+<p><strong>Lo que esconden las fuentes.</strong></p>
+<ul>
+<li>Los webhooks llegan <strong>al menos una vez</strong>: repetidos, desordenados y tarde.</li>
+<li>Al endpoint también llegan entregas <strong>falsas</strong> (firma que no valida) y <strong>repeticiones viejas</strong> de entregas reales.</li>
+<li>A mitad del proyecto se <strong>rota el secreto</strong> de firma: durante un día llegan dos firmas <code>v1</code> y tienes que aceptar las dos.</li>
+<li>La API pagina <strong>del más nuevo al más viejo</strong>, con límite de 100 pedidos por minuto y algún 503 suelto.</li>
+<li>Los montos vienen en <strong>centavos</strong> y <code>pedido_id</code> es <strong>texto</strong>.</li>
+</ul>
+<p><strong>Compruébalo tú.</strong> En tu archivo de eventos, <code>evento_id</code> es único. Todos los <code>pago.aprobado</code> de ayer de la API están. Ningún evento que solo vino por webhook deja de estar en la API cuando lo buscas por id (si no está, era falso). La suma de <code>bruto</code> de una liquidación coincide con lo que dice su encabezado.</p>
+<details><summary>Pista 1</summary>
+
+<p>La API es la fuente completa; los webhooks son la fuente rápida. El <code>id</code> del evento es lo que permite juntarlas sin duplicar.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p><code>requests</code> con reintentos ante 429 y 503 (respetando <code>Retry-After</code>), paginación con <code>despues_de</code> y filtro por <code>tipo</code>. Para la firma: <code>hmac.new(secreto, f&quot;{t}.{cuerpo}&quot;, sha256)</code> y <code>hmac.compare_digest</code>.</p>
+</details>
+
+<details><summary>Pista 3</summary>
+
+<p>Una entrega es válida si <strong>alguna</strong> firma <code>v1</code> coincide con <strong>alguno</strong> de los secretos vigentes y si su <code>t</code> está a menos de 5 minutos de cuando llegó. Guarda los eventos en un diccionario por <code>id</code>: lo que viene de la API y lo que viene de los webhooks se pisan, no se suman.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: API, webhooks y liquidaciones</div>
+
 <p>La API recupera <strong>todo</strong> lo que pasó (también antes del webhook). Los webhooks se verifican: la firma es un HMAC-SHA256 de <code>t.cuerpo</code> con el secreto. Durante la rotación del secreto llegan dos firmas <code>v1</code>, así que se aceptan los dos secretos. Y una entrega cuya marca <code>t</code> está a más de 5 minutos de cuando llegó es una repetición vieja (o un ataque): se descarta.</p>
 <pre tabindex="0"><code class="language-bash">az storage blob download-batch --account-name stmercado -d ~/mv/webhooks -s landing --pattern &quot;pagoya/webhooks/*&quot;</code></pre>
 <details class="bx"><summary>🔍 Qué hace cada comando <span>(1)</span></summary><ol><li><code class="bx-linea">az storage blob download-batch --account-name stmercado -d ~/mv/webhooks -s landing --pattern &quot;pagoya/webhooks/*&quot;</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob download-batch</code>)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
@@ -192,19 +325,31 @@ open(&quot;mv/liquidaciones.csv&quot;, &quot;w&quot;).write(&quot;fecha_liquidac
 az storage blob upload --account-name stmercado -c landing -n pagoya/eventos/eventos.jsonl -f ~/mv/eventos.jsonl --overwrite
 az storage blob upload --account-name stmercado -c landing -n pagoya/liquidaciones/liquidaciones.csv -f ~/mv/liquidaciones.csv --overwrite</code></pre>
 <details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">PAGOYA_SK=sk_… PAGOYA_WH=whsec_nuevo,whsec_viejo python ~/mv/pagoya.py</code><span><code>python</code>: ejecuta Python: un archivo .py, un módulo (<code>-m</code>) o la consola interactiva</span></li><li><code class="bx-linea">az storage blob upload --account-name stmercado -c landing -n pagoya/eventos/eventos.jsonl -f ~/mv/eventos.jsonl --overwrite</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload</code>). <code>-n</code> = nombre del recurso</span></li><li><code class="bx-linea">az storage blob upload --account-name stmercado -c landing -n pagoya/liquidaciones/liquidaciones.csv -f ~/mv/liquidaciones.csv --overwrite</code><span><code>az</code>: la CLI de Azure: hace desde la terminal lo mismo que el portal de Azure. <code>storage</code> cuentas de almacenamiento: contenedores y archivos (blobs) del lago (<code>blob upload</code>). <code>-n</code> = nombre del recurso</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
-<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 hmac.compare_digest, no ==</div>
-
-<p>Comparar firmas con <code>==</code> corta en el primer carácter distinto, y el tiempo que tarda le da pistas a un atacante. <code>compare_digest</code> tarda siempre lo mismo. Es una línea y es la forma correcta.</p>
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE mercado.silver.pagoya_eventos AS
+SELECT evento_id, tipo, CAST(creado AS BIGINT) AS creado, pago_id, CAST(pedido_id AS BIGINT) AS pedido_id,
+       CAST(monto AS DECIMAL(12,2)) AS monto, estado
+FROM read_files('abfss://landing@stmercado.dfs.core.windows.net/pagoya/eventos/eventos.jsonl', format =&gt; 'json');</code></pre>
+<p>Comparar firmas con <code>==</code> corta en el primer carácter distinto, y el tiempo que tarda le da pistas a un atacante. <code>compare_digest</code> tarda siempre lo mismo. Y a este volumen, después de la primera carga conviene pedir a la API solo lo nuevo (<code>creado_desde</code> con la marca del último evento que guardaste): la versión de arriba recorre todo cada vez y, con 30 días de eventos, choca con el límite de pedidos.</p>
 </div>
 
 
 <h2>Paso 5 · La conciliación</h2>
-<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE mercado.silver.pagoya_eventos AS
-SELECT evento_id, tipo, CAST(creado AS BIGINT) AS creado, pago_id, CAST(pedido_id AS BIGINT) AS pedido_id,
-       CAST(monto AS DECIMAL(12,2)) AS monto, estado
-FROM read_files('abfss://landing@stmercado.dfs.core.windows.net/pagoya/eventos/eventos.jsonl', format =&gt; 'json');
+<p><strong>Qué tienes que lograr.</strong> <code>mercado.gold.conciliacion</code>: un registro por pago <strong>aprobado</strong> de los días cerrados, con su <code>categoria</code> y <code>liquidado_el</code>, como dice <a href="#/l/proyecto-mercado-vecino-la-entrega">La entrega</a>. Y una vista diaria de la liquidación para Finanzas.</p>
+<p><strong>Lo que esconden las fuentes.</strong> Un pago puede estar en varias situaciones a la vez (reembolsado <strong>y</strong> en disputa): la categoría sigue un orden de prioridad. Hay pagos que llegan <strong>después</strong> de que el pedido venció, y contracargos que solo existen en la pasarela. Los pagos de las 23:00 se liquidan dos días después: la liquidación no coincide día a día con las ventas.</p>
+<p><strong>Compruébalo tú.</strong> La cantidad de filas es igual a los <code>pago.aprobado</code> de los días cerrados. Ninguna fila es de hoy. La suma por categoría tiene sentido (casi todo <code>ok</code>, unos pocos por ciento en el resto).</p>
+<details><summary>Pista 1</summary>
 
-CREATE OR REPLACE TABLE mercado.silver.liquidaciones AS
+<p>Arma primero un conjunto por situación (reembolsados, en disputa, disputas cerradas, liquidados) y después decide la categoría con un <code>CASE</code> en el orden de prioridad.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p><code>LEFT JOIN</code> de los aprobados contra cada conjunto y contra <code>mercado.silver.pedidos</code>. El día es el de la tienda: <code>to_date(from_unixtime(creado - 10800))</code>.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: gold.conciliacion</div>
+
+<pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE mercado.silver.liquidaciones AS
 SELECT * FROM read_files('abfss://landing@stmercado.dfs.core.windows.net/pagoya/liquidaciones/liquidaciones.csv', format =&gt; 'csv', header =&gt; true);</code></pre>
 <p>Un pago aprobado por fila, con una categoría que sigue un orden de prioridad (un contracargo pesa más que un reembolso, y así). Solo días cerrados (hora de la tienda): el día de hoy todavía puede cambiar.</p>
 <pre data-norun tabindex="0"><code class="language-sql">CREATE OR REPLACE TABLE mercado.gold.conciliacion AS
@@ -241,8 +386,25 @@ FROM mercado.silver.liquidaciones GROUP BY fecha_liquidacion;</code></pre>
 <pre data-norun tabindex="0"><code class="language-sql">INSERT OVERWRITE DIRECTORY 'abfss://landing@stmercado.dfs.core.windows.net/gold/conciliacion_diaria'
 USING CSV OPTIONS ('header' = 'true')
 SELECT * FROM mercado.gold.conciliacion_diaria;</code></pre>
+</div>
+
+
 <h2>Paso 6 · Automatizar</h2>
-<p>Un job de Databricks con el MERGE y la conciliación, disparado cada hora por un DAG:</p>
+<p><strong>Qué tienes que lograr.</strong> Un DAG con <code>mercado</code> en el <code>dag_id</code>, programado cada hora, que dispare el job de Databricks con el MERGE y la conciliación (ticket de Jira MV), y las líneas de cada liquidación traídas por Data Factory.</p>
+<p><strong>Lo que esconde.</strong> El CDC tiene 24 horas de retención: si el DAG falla un fin de semana, al volver ya perdiste cambios. Tu proceso tiene que <strong>darse cuenta</strong> (comparar el offset más bajo disponible con el último que leíste) y, si hay hueco, rehacer el snapshot.</p>
+<p><strong>Compruébalo tú.</strong> <code>airflow dags test &lt;dag_id&gt;</code> en verde y el ticket de Jira pasa la revisión.</p>
+<details><summary>Pista 1</summary>
+
+<p>Lo que corre cada hora tiene que ser idempotente: si corre dos veces, el resultado es el mismo. Eso ya lo resolviste con <code>_lsn</code> y con el diccionario de eventos.</p>
+</details>
+
+<details><summary>Pista 2</summary>
+
+<p><code>DatabricksRunNowOperator</code> con <code>job_name</code> y <code>schedule=&quot;@hourly&quot;</code>. En Data Factory, un servicio vinculado REST con la cabecera <code>Authorization</code> sacada del Key Vault y una actividad Copy con la fecha como parámetro.</p>
+</details>
+
+<div class="callout callout-solucion"><div class="callout-title">🔒 Solución de referencia: el DAG</div>
+
 <pre data-norun tabindex="0"><code class="language-python">from datetime import datetime
 from airflow.sdk import DAG
 from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
@@ -250,6 +412,9 @@ from airflow.providers.databricks.operators.databricks import DatabricksRunNowOp
 with DAG(&quot;mercado_horario&quot;, start_date=datetime(2026, 11, 1), schedule=&quot;@hourly&quot;, catchup=False, tags=[&quot;mercado&quot;]):
     DatabricksRunNowOperator(task_id=&quot;cdc_y_gold&quot;, job_name=&quot;mercado_cdc&quot;)</code></pre>
 <p>Las líneas de cada liquidación también se pueden traer con Data Factory: un servicio vinculado REST con la cabecera <code>Authorization</code> sacada del Key Vault (<code>pagoya-auth</code>) y un Copy con la fecha como parámetro.</p>
+</div>
+
+
 <div class="callout callout-real"><div class="callout-title">🖥️ En tu computadora y en la web real</div>
 
 <p>Para repetir esta solución en tu propia nube:</p>

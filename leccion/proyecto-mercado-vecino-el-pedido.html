@@ -63,6 +63,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <td>API REST, webhooks firmados que llegan al lago, y un reporte de liquidación por día</td>
 </tr>
 </tbody></table></div>
+<p><strong>El volumen.</strong> Mercado Vecino ya no es una feria de barrio: tiene <strong>30 comercios</strong> con <strong>150 productos</strong>, unos <strong>6.000 clientes</strong> de antes de PagoYa (y unos 170 nuevos por día) y vende cerca de <strong>850 pedidos por día</strong>, con picos de más de 60 por hora a la noche. Eso son unos <strong>3.000 cambios por día</strong> en el CDC de <code>pedidos</code>, unos <strong>1.500 eventos por día</strong> en PagoYa (y otros tantos webhooks, un archivo por entrega) y una liquidación diaria de cientos de líneas. A ese tamaño hay que pensar en cargas <strong>incrementales</strong>: volver a pedir todo cada vez choca con el límite de 100 pedidos por minuto de PagoYa y con la retención de 24 horas del CDC.</p>
 <p>Además tienes el portal de Azure, el Databricks y la terminal de práctica, como en el proyecto de Pedalia. La documentación de cada fuente y tus credenciales están en la página siguiente: <a href="#/l/proyecto-mercado-vecino-fuentes-y-accesos">Fuentes y accesos</a>.</p>
 <h2>Lo que hay que entregar</h2>
 <p>Cuatro tablas en el catálogo <code>mercado</code> del Databricks de práctica. El detalle de columnas está en <a href="#/l/proyecto-mercado-vecino-la-entrega">La entrega</a>.</p>
