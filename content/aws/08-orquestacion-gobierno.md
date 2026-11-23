@@ -7,6 +7,10 @@ objetivos: Orquestar con Step Functions, MWAA y EventBridge | Dar permisos finos
 autoevaluacion: ¿Cuándo usarías Step Functions en vez de Airflow? | ¿Qué agrega Lake Formation sobre IAM?
 ---
 
+:::tip Hazlo también en la consola
+En la [consola de AWS de práctica](#/aws), **Step Functions** ejecuta de verdad la definición en ASL: el estado de Glue con `.sync` corre el job, el `Catch` lleva al aviso de SNS y cada ejecución deja su grafo y su historial de eventos. `aws stepfunctions start-execution` en la terminal hace lo mismo. Lo armas de punta a punta en el [proyecto serverless](#/l/aws-proyecto-pipeline-serverless).
+:::
+
 ## Orquestar: quién decide qué corre y cuándo
 
 Un pipeline real tiene varios pasos que dependen unos de otros: esperar el archivo → catalogarlo → transformarlo → validarlo → publicar la tabla gold → avisar. En AWS hay tres herramientas para coordinarlos:

@@ -246,7 +246,7 @@
       const pintar = () => { m.querySelector('#awUpList').innerHTML = lista.length ? `<ul class="aw-lista">${lista.map(([k, c]) => `<li><code>${esc(pre + k)}</code> · ${tam(c.length)}</li>`).join('')}</ul>` : ''; m.querySelector('#awUpOk').disabled = !lista.length; };
       m.querySelector('#awFile').onchange = async (e) => { for (const f of e.target.files) { if (f.size > 2 * 1048576) { toast(`${f.name}: más de 2 MB`); continue; } lista.push([f.name, await f.text()]); } pintar(); };
       m.querySelectorAll('[data-ej]').forEach((x) => { x.onclick = () => { for (const it of ejemplo(x.dataset.ej)) if (!lista.some((l) => l[0] === it[0])) lista.push(it); pintar(); }; });
-      m.querySelector('#awUpOk').onclick = () => { for (const [k, c] of lista) b.objects[pre + k] = { c, m: ahora() }; guardar(); evento('s3-subir'); cerrar(); dibujar(); flash('ok', `Upload succeeded: ${lista.length} file(s), ${tam(lista.reduce((x, l) => x + l[1].length, 0))}.`); };
+      m.querySelector('#awUpOk').onclick = () => { for (const [k, c] of lista) b.objects[pre + k] = { c, m: ahora() }; guardar(); if (window.AwsMotor) for (const [k] of lista) window.AwsMotor.dispararS3(ruta[2], pre + k); /* disparadores de Lambda */ evento('s3-subir'); cerrar(); dibujar(); flash('ok', `Upload succeeded: ${lista.length} file(s), ${tam(lista.reduce((x, l) => x + l[1].length, 0))}.`); };
     });
   }
   function verObjeto(n, k) {
@@ -265,7 +265,7 @@
     if (r === 'tables') return glueTablas();
     if (r === 'crawlers' && ruta[2] === 'crear') return glueCrawlerCrear();
     if (r === 'crawlers') return glueCrawlers();
-    if (r === 'jobs') return glueJobs();
+    if (r === 'jobs') return window.AwsServicios && window.AwsServicios.glueJobs ? window.AwsServicios.glueJobs() : glueJobs();
     const cuerpo = `<h1 class="aw-h1">AWS Glue</h1>${cont('Prepare your data lake', `<ol class="aw-pasos"><li><b>Store</b> los archivos en S3 (una carpeta por tabla, particiones como <code>anio_mes=…</code>).</li><li><b>Catalog</b>: un <a href="${href('glue', 'crawlers')}">crawler</a> lee la carpeta y crea la tabla en una <a href="${href('glue', 'databases')}">database</a> del Data Catalog.</li><li><b>Query</b> la tabla con <a href="${href('athena')}">Athena</a>, o transfórmala con un <a href="${href('glue', 'jobs')}">ETL job</a>.</li></ol>`, btn('Add database', `onclick="location.hash='${href('glue', 'databases')}'"`) + btn('Create crawler', `onclick="location.hash='${href('glue', 'crawlers', 'crear')}'"`, 'primario'))}`;
     main.innerHTML = marco('AWS Glue', NAV_GLUE('inicio'), [['AWS Glue', '']], cuerpo); montarMarco();
   }
@@ -482,6 +482,7 @@
     if (r === 'glue') return glue();
     if (r === 'athena') return athena();
     if (r === 'iam') return iam();
+    const X = window.AwsServicios; if (X && X.rutas && X.rutas[r]) { visitar(r); return X.rutas[r](); } // aws-servicios.js: Lambda, Step Functions, CloudWatch, Billing
     if (NO_SIM[r]) return noSimulado(r);
     return inicio();
   }
@@ -497,5 +498,7 @@
     dibujar();
   }
   window.addEventListener('hashchange', () => { if (!/^#\/aws/.test(location.hash)) document.body.classList.remove('aw-abierto'); });
-  window.AwsConsola = { vista, estado: () => ({ aws: S(), consola: Store ? con() : null }) };
+  window.AwsConsola = { vista, estado: () => ({ aws: S(), consola: Store ? con() : null }),
+    // piezas para aws-servicios.js
+    _i: { esc, S, guardar, ahora, fecha, tam, limpiar, href, ic, marco, navLinks, cont, btn, vacio, modal, flash, montarMarco, confirmar, evento, dibujar, REGIONES, ruta: () => ruta, query: () => query, main: () => main, toast: (m) => toast(m) } };
 })();

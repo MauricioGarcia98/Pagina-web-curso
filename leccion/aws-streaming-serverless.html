@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Streaming y eventos, Kinesis, Firehose y Lambda</h1><p class="resumen">Datos en tiempo real con Kinesis Data Streams y Firehose, funciones Lambda disparadas por eventos de S3 y de Kinesis, y cómo programar la lógica de negocio de un handler en Python.</p>
 <a class="cta" href="../index.html#/l/aws-streaming-serverless">▶ Abrir la lección interactiva (9 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Diferenciar batch y streaming en AWS</li><li>Usar Kinesis Data Streams y Firehose</li><li>Escribir la lógica de un handler de Lambda disparado por eventos</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Hazlo también en la consola</div>
+
+<p>En la <a href="#/aws">consola de AWS de práctica</a>, <strong>Lambda</strong> corre tu código Python de verdad: crea una función, agrégale un disparador de S3 y sube un archivo al bucket desde la terminal. Los logs quedan en <strong>CloudWatch</strong> (<code>aws logs tail /aws/lambda/&lt;función&gt;</code>). El recorrido completo está en el <a href="#/l/aws-proyecto-pipeline-serverless">proyecto serverless</a>.</p>
+</div>
+
+
 <h2>Batch vs. streaming</h2>
 <p>Hasta ahora procesamos <strong>lotes</strong> (<em>batch</em>): &quot;cada noche, todas las ventas del día&quot;. Pero hay preguntas que no pueden esperar: ¿esta compra con tarjeta es fraude?, ¿qué conductor está más cerca?, ¿se cayó el sitio?</p>
 <div class="table-wrap"><table><thead><tr>
@@ -120,6 +126,7 @@ def handler(event, context):
 aws lambda invoke --function-name procesar-archivo --payload file://evento.json --cli-binary-format raw-in-base64-out respuesta.json
 aws logs tail /aws/lambda/procesar-archivo --follow</code></pre>
 <details class="bx"><summary>🔍 Qué hace cada comando <span>(3)</span></summary><ol><li><code class="bx-linea">aws lambda list-functions --query &quot;Functions[].FunctionName&quot;</code><span><code>aws</code>: la CLI de AWS: hace desde la terminal lo mismo que la consola de AWS. <code>lambda</code> funciones Lambda (<code>list-functions</code>). <code>--query</code> = filtra la respuesta (JMESPath) y muestra solo los campos que te interesan</span></li><li><code class="bx-linea">aws lambda invoke --function-name procesar-archivo --payload file://evento.json --cli-binary-format raw-in-base64-out respuesta.json</code><span><code>aws</code>: la CLI de AWS: hace desde la terminal lo mismo que la consola de AWS. <code>lambda</code> funciones Lambda (<code>invoke</code>)</span></li><li><code class="bx-linea">aws logs tail /aws/lambda/procesar-archivo --follow</code><span><code>aws</code>: la CLI de AWS: hace desde la terminal lo mismo que la consola de AWS. <code>logs</code> CloudWatch Logs (<code>tail</code>)</span></li></ol><p class="bx-donde">Se escribe en la <b>terminal</b>: la del curso (botón ⌨ Terminal) o la de tu computadora — <b>Terminal</b> en macOS, <b>Ubuntu (WSL)</b> o <b>Git Bash</b> en Windows. Escribe una línea y presiona Enter.</p></details>
+<p>En la práctica, <code>procesar-archivo</code> corre de verdad y lee el archivo con <code>s3.get_object</code>: si el bucket o el archivo del evento no existen, la respuesta trae <code>&quot;FunctionError&quot;: &quot;Unhandled&quot;</code> y <code>respuesta.json</code> muestra el <code>NoSuchKey</code>, igual que en AWS. Crea antes el bucket y sube el archivo (<code>aws s3 mb</code>, <code>aws s3 cp</code>), o usa el evento de prueba <strong>S3 Put</strong> en la consola de Lambda.</p>
 <div class="callout callout-experto"><div class="callout-title">🚀 Idempotencia: el evento puede llegar dos veces</div>
 
 <p>S3, Kinesis y SQS garantizan entrega <strong>al menos una vez</strong> (<em>at-least-once</em>). Tu Lambda puede recibir el mismo evento dos veces, así que debe ser <strong>idempotente</strong>: procesar dos veces el mismo archivo no debe duplicar datos (por ejemplo, escribir con una clave determinística o hacer <code>MERGE</code> en lugar de <code>INSERT</code>). Es una pregunta segura en entrevistas.</p>

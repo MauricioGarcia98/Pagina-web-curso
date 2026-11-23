@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Orquestación, gobierno y arquitectura de referencia</h1><p class="resumen">Step Functions, MWAA (Airflow administrado) y EventBridge; Lake Formation para permisos finos; infraestructura como código; y una arquitectura completa de punta a punta para el caso del banco.</p>
 <a class="cta" href="../index.html#/l/aws-orquestacion-gobierno">▶ Abrir la lección interactiva (8 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Orquestar con Step Functions, MWAA y EventBridge</li><li>Dar permisos finos con Lake Formation</li><li>Leer una arquitectura de referencia completa en AWS</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Hazlo también en la consola</div>
+
+<p>En la <a href="#/aws">consola de AWS de práctica</a>, <strong>Step Functions</strong> ejecuta de verdad la definición en ASL: el estado de Glue con <code>.sync</code> corre el job, el <code>Catch</code> lleva al aviso de SNS y cada ejecución deja su grafo y su historial de eventos. <code>aws stepfunctions start-execution</code> en la terminal hace lo mismo. Lo armas de punta a punta en el <a href="#/l/aws-proyecto-pipeline-serverless">proyecto serverless</a>.</p>
+</div>
+
+
 <h2>Orquestar: quién decide qué corre y cuándo</h2>
 <p>Un pipeline real tiene varios pasos que dependen unos de otros: esperar el archivo → catalogarlo → transformarlo → validarlo → publicar la tabla gold → avisar. En AWS hay tres herramientas para coordinarlos:</p>
 <div class="table-wrap"><table><thead><tr>
@@ -279,6 +285,6 @@ aws events list-rules --query &quot;Rules[].{Nombre:Name, Horario:ScheduleExpres
 
 
 <h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/aws-orquestacion-gobierno">▶ Hacer los ejercicios</a>
-<nav class="nav"><a href="aws-streaming-serverless.html">← Streaming y eventos, Kinesis, Firehose y Lambda</a><a href="gcp-gcp-para-datos.html">Google Cloud para data engineers en 25 minutos →</a></nav></main>
+<nav class="nav"><a href="aws-streaming-serverless.html">← Streaming y eventos, Kinesis, Firehose y Lambda</a><a href="aws-proyecto-pipeline-serverless.html">Proyecto - un pipeline serverless de punta a punta en la consola →</a></nav></main>
 <footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
 </body></html>

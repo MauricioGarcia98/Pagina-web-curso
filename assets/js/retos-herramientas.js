@@ -235,6 +235,15 @@
       ['aw-poda', 'Escanea menos datos filtrando por la partición', "WHERE anio_mes = '2024-01': mira Data scanned antes y después.", () => awE('athena-particion')],
       ['aw-cli', 'Crea un bucket desde la terminal y encuéntralo en la consola', 'En la terminal del curso: aws s3 mb s3://<nombre-unico>. Después refresca la lista de buckets de S3.', () => Object.values(awS().buckets || {}).some((b) => !('versioning' in b))],
     ]],
+    ['Pipeline serverless', [
+      ['aw-glue-visual', 'Corre un job de Glue Studio que escriba en silver', 'Glue → Visual ETL: fuente S3, Change Schema, destino S3 → Run. Mira Runs: tiene que tener Records written.', () => Object.values(awS().glueJobs || {}).some((j) => j.def && (j.runs || []).some((r) => r.estado === 'SUCCEEDED' && r.escritas > 0))],
+      ['aw-bookmark', 'Comprueba el job bookmark: una segunda corrida sin archivos nuevos lee 0', 'Con Job bookmark: Enable, corre el job dos veces seguidas.', () => Object.values(awS().glueJobs || {}).some((j) => j.def && j.def.bookmark && (j.runs || []).some((r) => r.estado === 'SUCCEEDED' && r.leidas === 0))],
+      ['aw-lambda-s3', 'Haz que un archivo nuevo en S3 dispare tu Lambda', 'Lambda → Configuration → Triggers → S3 con prefijo y sufijo; después aws s3 cp de un archivo que coincida.', () => Object.values(awS().lambdas || {}).some((f) => (f.invocaciones || []).some((x) => x.ok && /^s3:\/\//.test(x.origen || '')))],
+      ['aw-sfn-ok', 'Ejecuta una máquina de estados que corra Glue con .sync hasta el final', 'Step Functions → Create state machine (plantilla Pipeline de datos) → Start execution.', () => Object.values(awS().sfn || {}).some((m) => (m.ejecuciones || []).some((e) => e.estado === 'SUCCEEDED' && /glue:startJobRun\.sync/.test(m.definicion || '')))],
+      ['aw-sfn-catch', 'Haz que un Catch capture una falla y avise por SNS', 'Rompe el job (por ejemplo, un destino que no existe) y ejecuta la máquina: tiene que pasar por Avisar fallo.', () => Object.values(awS().sfn || {}).some((m) => (m.ejecuciones || []).some((e) => Object.values(e.estados || {}).includes('CAUGHT')))],
+      ['aw-alarma', 'Lleva una alarma de CloudWatch a estado ALARM con aviso SNS', 'Metrics → ExecutionsFailed (o Errors de Lambda) → Create alarm con un tópico de SNS.', () => (awS().alarmas || []).some((a) => (a.historial || []).some((h) => h.a === 'ALARM') && a.sns)],
+      ['aw-budget', 'Crea un presupuesto en Billing con alertas', 'Billing and Cost Management → Create budget, con umbrales en %.', () => (awS().presupuestos || []).length > 0],
+    ]],
   ] };
 
   // Azure DevOps: mira el estado de la réplica (Store.data.ado) y los remotos de la terminal

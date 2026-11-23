@@ -128,8 +128,12 @@ Refresca la consola: el bucket nuevo aparece en S3. En una empresa, lo repetitiv
 
 | En la réplica | Todavía no |
 |---|---|
-| S3: buckets, carpetas, subida de archivos, versionado, Block Public Access, vista previa | Clases de almacenamiento, ciclo de vida activo, replicación, notificaciones de eventos |
-| Glue: databases, tablas con esquema y particiones, crawlers, ejecución de jobs | Editor visual de jobs (Glue Studio), Data Quality, conexiones JDBC |
+| S3: buckets, carpetas, subida de archivos, versionado, Block Public Access, vista previa, eventos que disparan Lambda | Clases de almacenamiento, ciclo de vida activo, replicación |
+| Glue: databases, tablas con esquema y particiones, crawlers, **Glue Studio** (jobs visuales que leen y escriben el bucket, bookmarks, Data Catalog, script generado) | Data Quality, conexiones JDBC, editar el script a mano |
+| **Lambda**: código Python que corre de verdad, Deploy, eventos de prueba, disparador de S3, variables de entorno, cold start | Capas (layers), versiones y alias, VPC |
+| **Step Functions**: definición ASL con Glue `.sync`, Lambda, Athena y SNS; Choice, Wait, Retry, Catch; grafo e historial de eventos | Map y Parallel, Express workflows |
+| **CloudWatch**: log groups y streams, Logs Insights, métricas, alarmas con SNS | Dashboards, métricas personalizadas, EventBridge |
+| **Billing**: costo por servicio con precios públicos aproximados, Free Tier y presupuestos con alertas | Factura real, Savings Plans |
 | Athena: editor, ubicación de resultados, datos escaneados y costo, historial | Workgroups con límites, consultas federadas, CTAS e Iceberg |
 | IAM: usuarios, roles con políticas y relación de confianza | Políticas personalizadas, IAM Identity Center, Access Analyzer |
 

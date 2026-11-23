@@ -121,6 +121,20 @@ con 0,4 % de falsas alarmas sobre 38.000 transacciones sintéticas.
 
 Lo que más pesa: el **resultado con un número** al principio, las **decisiones** (por qué streaming y no batch, por qué esta clave de partición) y la sección de **calidad de datos**: muestra que trabajaste con datos reales, no con un CSV perfecto.
 
+## Cómo se trabaja: el portafolio en Jira
+
+En un equipo nadie arranca a programar sin un ticket. Para que tu portafolio se parezca a eso, cada proyecto del módulo es una historia del proyecto **PF · Portafolio** en el [Jira de práctica](#/jira/projects/PF/board): aparece cuando abres la lección del proyecto, con sus criterios de aceptación y el pedido de un "cliente interno" (Ventas, Riesgo, Operaciones…).
+
+| Paso | En Jira | En GitHub de práctica |
+|---|---|---|
+| 1. Tomar el trabajo | Asígnate la historia y pásala a **In Progress** | Crea el repo `github.com/alumno/<nombre-del-proyecto>` |
+| 2. Trabajar | Comenta decisiones y bloqueos en el ticket | Una rama por tarea, commits chicos, `PF-102` en el mensaje (smart commits) |
+| 3. Pedir revisión | Mueve la historia a **In Review** | Pull request fusionado en `main` |
+| 4. Revisión | Martín revisa el repo contra los criterios: si falta algo, la devuelve a In Progress con el detalle | — |
+| 5. Cerrar | Aprobada, pasa a **Done** | El README cuenta el resultado |
+
+La revisión mira lo que mira un revisor de verdad: que el README tenga el problema, el resultado, la arquitectura, cómo correrlo y las decisiones; que haya más de un commit y un pull request; que no haya credenciales (`.env`) en el repo; y lo propio de cada proyecto (modelos y tests de dbt, Terraform y CI, un set de evaluación…). Tu perfil (el repo `alumno/alumno` con su README) es la historia **PF-101**.
+
 ## Errores comunes y cómo contarlo
 
 :::errores
