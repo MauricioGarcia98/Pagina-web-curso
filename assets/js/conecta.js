@@ -1,4 +1,4 @@
-/* Conecta: el proyecto 7 (IA aplicada). Un proveedor de internet y TV (inventado) con:
+/* Conecta: el proyecto 7 (IA aplicada). Un proveedor de internet y TV (inventado, ~8.000 clientes y ~600 tickets por día) con:
  * - La mesa de ayuda (api.mesa.conecta.example): tickets de la web y la app, clientes y la base de conocimiento.
  * - Los buzones de correo (conecta correo descargar): archivos .eml de verdad, con quoted-printable, Latin-1,
  *   respuestas que citan el mensaje anterior, firmas y el mismo correo en dos buzones.
@@ -44,7 +44,8 @@
     function clientes() {
       if (cacheC && cacheC.s === cfg.semilla) return cacheC.l;
       const R = azar(h32(cfg.semilla, 'clientes')); const l = [];
-      for (let i = 0; i < 520; i++) { const n = R.pick(NOMBRES), a = R.pick(APELLIDOS); l.push({ id: 'C' + (10001 + i), nombre: `${n} ${a}`, email: `${sinAcento(n).toLowerCase()}.${sinAcento(a).toLowerCase()}${R.int(1, 99)}@${R.pick(['correo.example', 'mail.example', 'webmail.example'])}`, tipo: 'persona', plan: R.pick(['100 megas', '300 megas', '600 megas', '300 megas + TV']), contrato: null }); }
+      const usados = new Set(); // volumen de empresa: 8.000 clientes residenciales, cada uno con su correo único
+      for (let i = 0; i < 8000; i++) { const n = R.pick(NOMBRES), a = R.pick(APELLIDOS); let email = `${sinAcento(n).toLowerCase()}.${sinAcento(a).toLowerCase()}${R.int(1, 99)}@${R.pick(['correo.example', 'mail.example', 'webmail.example'])}`; if (usados.has(email)) email = email.replace('@', `.${i}@`); usados.add(email); l.push({ id: 'C' + (10001 + i), nombre: `${n} ${a}`, email, tipo: 'persona', plan: R.pick(['100 megas', '300 megas', '600 megas', '300 megas + TV']), contrato: null }); }
       EMPRESAS.forEach((e, k) => { const dom = sinAcento(e).toLowerCase().replace(/[^a-z]+/g, '') + '.example'; const plazo = [4, 8, 8, 12, 24][h32(cfg.semilla, 'plazo', k) % 5]; const adenda = h32(cfg.semilla, 'adenda', k) % 10 < 4; l.push({ id: 'C' + (20001 + k), nombre: e, email: `administracion@${dom}`, tipo: 'empresa', plan: 'Empresas ' + R.pick(['300', '600', '1000']) + ' megas', contrato: { id: 'CTR-' + (4100 + k * 7), plazo, adenda: adenda ? Math.max(2, plazo / 2) : null, firmado: `2025-${pad(1 + (k % 12))}-${pad(3 + k)}`, fechaAdenda: adenda ? `2026-${pad(3 + (k % 7))}-01` : null } }); });
       cacheC = { s: cfg.semilla, l }; return l;
     }
@@ -106,11 +107,11 @@
       const k = cfg.semilla + ':' + f; if (cacheD.has(k)) return cacheD.get(k);
       const base = msDeDia(f); const R = azar(h32(cfg.semilla, 'dia', f)); const dow = new Date(base + 12 * HORA).getUTCDay(); const finde = dow === 0 || dow === 6;
       const C = clientes(); const pers = C.filter((c) => c.tipo === 'persona'), emp = C.filter((c) => c.tipo === 'empresa'); const H = hitos();
-      const tickets = []; const nt = Math.round((finde ? 45 : 70) * (0.9 + R.r() * 0.2)); const corto = f.slice(2).replace(/-/g, '');
+      const tickets = []; const nt = Math.round((finde ? 380 : 600) * (0.9 + R.r() * 0.2)); const corto = f.slice(2).replace(/-/g, '');
       for (let i = 0; i < nt; i++) {
         const cl = R.chance(0.16) ? R.pick(emp) : R.pick(pers); const ts = base + R.int(7 * 60, 23 * 60) * MIN + R.int(0, 59) * SEG; const m = mensaje(R);
         const pl = cl.contrato ? (cl.contrato.adenda || cl.contrato.plazo) : 24; const resp = ts + Math.round((cl.contrato ? (R.chance(0.72) ? R.r() * pl : pl + R.r() * Math.max(2, 20 - pl)) : 0.2 + R.r() * 30) * HORA);
-        tickets.push({ id: `T-${corto}${pad(i + 1, 3)}`, cliente_id: cl.id, canal: R.pick(['web', 'app', 'app']), asunto: m.txt.split(/[.,:]/)[0].slice(0, 60), descripcion: m.txt, creado: ts, primera_respuesta: resp, cat: m.cat, catAmb: m.catAmb, pii: m.pii });
+        tickets.push({ id: `T-${corto}${pad(i + 1, 4)}`, cliente_id: cl.id, canal: R.pick(['web', 'app', 'app']), asunto: m.txt.split(/[.,:]/)[0].slice(0, 60), descripcion: m.txt, creado: ts, primera_respuesta: resp, cat: m.cat, catAmb: m.catAmb, pii: m.pii });
       }
       const correos = []; const ne = Math.round((finde ? 15 : 30) * (0.85 + R.r() * 0.3));
       for (let i = 0; i < ne; i++) {
@@ -254,7 +255,7 @@
       const t = ahora(); if ((H.authorization || '') !== 'Bearer ' + claves().llm) return ERR(401, 'no_autorizado', 'API key inválida o ausente (Authorization: Bearer lum_…).');
       if (method === 'GET' && ruta === '/v1/modelos') return res(200, { modelos: Object.entries(MODELOS).map(([id, m]) => ({ id, precio_usd_por_millon: { entrada: m.in, salida: m.out }, contexto_tokens: m.ctx, estado: id === 'lumen-mini-1' ? (t >= hitos().modelo ? 'retirado' : `obsoleto: se retira el ${diaLocal(hitos().modelo)} a las 10:00`) : 'disponible' })) });
       if (method === 'GET' && ruta === '/v1/uso') { const dias = Object.entries(cfg.gasto).filter(([d]) => (!q.desde || d >= q.desde) && (!q.hasta || d <= q.hasta)).sort(); const pedidos = {}; for (const e of cfg.uso) { const d = diaLocal(e.t); if (dias.some(([x]) => x === d)) pedidos[d] = (pedidos[d] || 0) + 1; } return res(200, { dias: dias.map(([d, c]) => ({ fecha: d, costo_usd: Math.round(c * 1e6) / 1e6, pedidos: pedidos[d] || null })), total_usd: Math.round(dias.reduce((a, [, c]) => a + c, 0) * 1e6) / 1e6 }); }
-      if (method !== 'POST' || !['/v1/chat', '/v1/embeddings'].includes(ruta)) return ERR(404, 'no_encontrado', `No existe ${method} ${ruta}.`);
+      if (method !== 'POST' || !['/v1/chat', '/v1/embeddings', '/v1/lotes'].includes(ruta)) return ERR(404, 'no_encontrado', `No existe ${method} ${ruta}.`);
       let b; try { b = typeof cuerpo === 'string' ? JSON.parse(cuerpo || '{}') : (cuerpo || {}); } catch (e) { return ERR(400, 'json_invalido', 'El cuerpo no es un JSON válido.'); }
       const H2 = hitos(); if (t >= H2.caida && t < H2.finCaida) return ERR(529, 'sobrecargado', 'Lumen IA está sobrecargado. Reintentá en unos minutos.', { 'retry-after': '300' });
       const min = cfg.uso.filter((e) => e.t > t - MIN).length; if (min >= 300) return ERR(429, 'limite_de_pedidos', 'Superaste 300 pedidos por minuto.', { 'retry-after': '20' });
@@ -269,6 +270,23 @@
         return res(200, { modelo, dimensiones: DIM, data: inp.map((x, i) => ({ indice: i, vector: embed(x) })), uso: { tokens_entrada: ti, costo_usd: Math.round(c * 1e8) / 1e8 } });
       }
       if (modelo === 'lumen-embed') return ERR(400, 'modelo_incorrecto', 'lumen-embed solo sirve para /v1/embeddings.');
+      // lote: hasta 100 conversaciones en un pedido, a mitad de precio (cuenta como un pedido para el límite)
+      if (ruta === '/v1/lotes') {
+        const ped = Array.isArray(b.pedidos) ? b.pedidos : null; if (!ped || !ped.length) return ERR(400, 'sin_pedidos', 'Falta "pedidos": [{"id": "…", "messages": [...]}].');
+        if (ped.length > 100) return ERR(400, 'demasiados', `Máximo 100 pedidos por lote (mandaste ${ped.length}).`);
+        const resultados = []; let tti = 0, tto = 0, tc = 0, pii = 0;
+        for (const x of ped) {
+          const ms = Array.isArray(x.messages || x.mensajes) ? (x.messages || x.mensajes) : null;
+          if (!ms || !ms.length) { resultados.push({ id: x.id, error: { tipo: 'sin_mensajes', mensaje: 'Falta "messages".' } }); continue; }
+          const pr = ms.map((y) => String(y.content || y.contenido || '')).join('\n\n'); const ti = tokens(pr) + 4 * ms.length;
+          if (ti > M.ctx) { resultados.push({ id: x.id, error: { tipo: 'contexto_excedido', mensaje: `${ti} tokens; ${modelo} acepta ${M.ctx}.` } }); continue; }
+          const out = responder(modelo, pr, x.temperature != null ? Number(x.temperature) : (b.temperature != null ? Number(b.temperature) : 1), t); const to = tokens(out); const c = ((ti * M.in + to * M.out) / 1e6) * 0.5;
+          tti += ti; tto += to; tc += c; if (tienePII(pr)) pii = 1;
+          resultados.push({ id: x.id, salida: { rol: 'assistant', contenido: out }, uso: { tokens_entrada: ti, tokens_salida: to, costo_usd: Math.round(c * 1e8) / 1e8 } });
+        }
+        registrar({ t, m: modelo, ti: tti, to: tto, c: tc, pii, op: 'lote', n: ped.length });
+        return res(200, { id: 'lote_' + h32(cfg.semilla, 'l', st.n).toString(36), modelo, estado: 'completado', resultados, uso: { pedidos: ped.length, tokens_entrada: tti, tokens_salida: tto, costo_usd: Math.round(tc * 1e8) / 1e8, descuento: '50 % por ser un lote' } }, extra);
+      }
       const msgs = Array.isArray(b.messages || b.mensajes) ? (b.messages || b.mensajes) : null; if (!msgs || !msgs.length) return ERR(400, 'sin_mensajes', 'Falta "messages": [{"role": "user", "content": "…"}].');
       const prompt = msgs.map((x) => String(x.content || x.contenido || '')).join('\n\n'); const ti = tokens(prompt) + 4 * msgs.length;
       if (ti > M.ctx) return ERR(413, 'contexto_excedido', `El pedido tiene ${ti} tokens y ${modelo} acepta ${M.ctx}.`);

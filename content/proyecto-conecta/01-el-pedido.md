@@ -9,7 +9,7 @@ autoevaluacion: ¿Sabes por qué hay que evaluar un clasificador con IA antes de
 ---
 
 :::escenario Lunes, 9:00 · Conecta
-Conecta da internet y TV a medio millón de casas y a algunas empresas. Los clientes escriben por la **web**, por la **app** (las dos terminan en la mesa de ayuda) y por **correo** a dos buzones. Cada semana entran más de mil mensajes y nadie sabe bien de qué se tratan. La empresa contrató a **Lumen IA**, un proveedor de modelos de lenguaje, y te toca ponerlo a trabajar.
+Conecta da internet y TV a medio millón de casas y a algunas empresas. Los clientes escriben por la **web**, por la **app** (las dos terminan en la mesa de ayuda) y por **correo** a dos buzones. Cada día entran unos 600 tickets y 30 correos (más de 4.000 mensajes por semana, de unos 8.000 clientes que escriben) y nadie sabe bien de qué se tratan. La empresa contrató a **Lumen IA**, un proveedor de modelos de lenguaje, y te toca ponerlo a trabajar.
 :::
 
 ## Los pedidos
