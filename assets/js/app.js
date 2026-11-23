@@ -62,7 +62,7 @@
     iconos: ['iconos-oficiales'],
     azure: ['@databricks', '@iconos', 'azure-portal', 'azure-extra', 'adf-studio'],
     github: ['octicons', 'github-actions', 'github', 'github-colab'],
-    fabric: ['@databricks', '@iconos', 'fabric', 'fabric-editores'],
+    fabric: ['@databricks', '@iconos', 'fabric', 'fabric-editores', 'fabric-items'],
     airflow: ['airflow-iconos', 'airflow-motor', 'airflow', 'airflow-paginas', 'terminal-airflow'],
     snowflake: ['snowflake-motor', 'snowflake', 'snowflake-paginas'],
     bigquery: ['@iconos', 'bigquery-motor', 'bigquery', 'bigquery-paginas'],

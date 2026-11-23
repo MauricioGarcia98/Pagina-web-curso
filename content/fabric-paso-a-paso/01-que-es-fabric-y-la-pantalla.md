@@ -65,7 +65,7 @@ texto: El panel de workspaces - My workspace y el botón New workspace
 Todo ítem vive dentro de un **workspace**: la carpeta del equipo con sus permisos y su capacidad. **My workspace** es tu espacio personal; para trabajo de equipo se crea uno nuevo (lección siguiente).
 
 :::nota Qué es real y qué es simulado en la práctica
-Las pantallas, los nombres de botones, el lakehouse con Files y Tables, Load to Tables, los accesos directos, el endpoint SQL de solo lectura, el warehouse con T-SQL, los notebooks con PySpark y Spark SQL, los pipelines, el modelo semántico y la integración con Git siguen a Fabric. Lo simulado: todo corre en tu navegador con datos chicos; no hay capacidad real ni facturación, y algunos ítems (Dataflow Gen2, Eventstream, informes) solo muestran un aviso.
+Las pantallas, los nombres de botones, el lakehouse con Files y Tables, Load to Tables, los accesos directos, el endpoint SQL de solo lectura, el warehouse con T-SQL, los notebooks con PySpark y Spark SQL, los pipelines, el modelo semántico y la integración con Git siguen a Fabric. Lo simulado: todo corre en tu navegador con datos chicos; no hay capacidad real ni facturación. Los ítems de tiempo real (Eventstream, Eventhouse con KQL, Activator), Dataflow Gen2, Copy job, SQL database, Spark Job Definition y Experiment funcionan con datos de ejemplo que se generan solos; el KQL entiende los operadores más usados (where, project, extend, summarize, bin, top, render), no el lenguaje completo.
 :::
 
 :::errores

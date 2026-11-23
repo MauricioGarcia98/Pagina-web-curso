@@ -253,12 +253,26 @@ export default async function (c) {
   await cerrar();
   if (HASTA <= 22) return;
 
-  // ================================================================ lección 23: de la práctica a Fabric real
+  // ================================================================ lección 23: tiempo real (Eventstream, Eventhouse, KQL)
+  const EH = await nuevoItem(WS, 'eventhouse', 'Deposito');
+  const ES = await nuevoItem(WS, 'eventstream', 'StreamFrio');
+  await p.click('#esSrc'); await w(400); await p.check('[name=esF][value=frio]'); await modalOk('#esOk', 600);
+  await p.click('#esDst'); await w(400); await p.selectOption('#esD', EH); await p.fill('#esT', 'Lecturas'); await modalOk('#esOk', 600);
+  await p.click('#esPub'); await w(800); // al publicar, el stream trae los eventos de los últimos minutos
+  await ir(`#/fabric/ws/${WS}/${ES}`, 1500);
+  await c.foto('b23-eventstream', { marcas: [['.fb-es-canvas', '1'], ['.fb-kpis', '2'], ['.fb-pag .fb-tabla', '3']] });
+  await ir(`#/fabric/ws/${WS}/${EH}`, 1200);
+  await p.fill('#ehQ', 'Lecturas\n| summarize promedio = avg(temperatura) by camara, bin(ts, 5m)\n| render timechart');
+  await p.click('#ehRun'); await w(1500);
+  await c.foto('b23-kql', { marcas: [['#ehQ', '1'], ['.fb-graf', '2'], ['#ehR .fb-tabla', '3']] });
+  log('eh', EH, 'es', ES);
+
+  // ================================================================ lección 25: de la práctica a Fabric real
   await ir('#/fabric/create', 800);
   await c.foto('b23-create', { marcas: [['.fb-pag', null]] });
-  if (HASTA <= 23) return;
+  if (HASTA <= 25) return;
 
-  // ================================================================ lección 24 (proyecto final)
+  // ================================================================ lección 26 (proyecto final)
   await ir(`#/fabric/ws/${WS}`, 900);
   await c.foto('b24-ws', { marcas: [['.fb-pag .fb-tabla', null]] });
   await ir(`#/fabric/ws/${WS}?vista=lineage`, 900);

@@ -4,7 +4,7 @@ nivel: 6 · Avanzado completo
 duracion: 35
 resumen: Antes de entrar a un tenant real, repasas qué hace igual la práctica y qué es distinto - cuentas, capacidad, conexiones, Spark real y los ítems que la práctica no simula. Recorres la pantalla Create con todos los tipos de ítem y armas una lista de seguridad para tu primera semana.
 objetivos: Ubicar todos los tipos de ítem en Create | Saber qué simula la práctica y qué no | Preparar el acceso a una prueba real sin riesgos | Armar la lista de la primera semana
-prerrequisitos: fabric-paso-a-paso-capacidad-y-costos
+prerrequisitos: fabric-paso-a-paso-dataflow-gen2-y-copy-job
 autoevaluacion: ¿Sabes qué ítems no cubrió el curso? | ¿Sabes cómo empezar una prueba real? | ¿Sabes qué datos no compartir en capturas? | ¿Sabes qué hacer el primer día?
 ---
 
@@ -22,11 +22,12 @@ texto: Create - Store data (Lakehouse, Warehouse, Eventhouse, SQL database), Pre
 | Ítem | Para qué | Lo viste |
 |---|---|---|
 | Lakehouse, Notebook, Pipeline, Warehouse, Semantic model | El núcleo de la ingeniería de datos | ✅ en este curso |
-| **Dataflow Gen2** | Transformar con Power Query, sin código | El editor es el de [Power BI](#/m/powerbi-paso-a-paso) |
-| **Copy job** | Copiar datos (incluso incrementales) sin armar un pipeline | Similar a Copy data |
-| **Eventstream / Eventhouse** | Datos en tiempo real y consultas KQL | No |
-| **SQL database** | Base transaccional (OLTP) que se replica sola a OneLake | No |
-| **Spark Job Definition / Environment** | Trabajos Spark desde archivos y bibliotecas compartidas | No |
+| **Dataflow Gen2** | Transformar con Power Query, sin código | ✅ [lección 24](#/l/fabric-paso-a-paso-dataflow-gen2-y-copy-job) |
+| **Copy job** | Copiar datos (incluso incrementales) sin armar un pipeline | ✅ [lección 24](#/l/fabric-paso-a-paso-dataflow-gen2-y-copy-job) |
+| **Eventstream / Eventhouse / Activator** | Datos en tiempo real, consultas KQL y alertas | ✅ [lección 23](#/l/fabric-paso-a-paso-tiempo-real-eventstream-eventhouse-kql) |
+| **SQL database** | Base transaccional (OLTP) que se replica sola a OneLake | ✅ en la práctica: el editor es el del warehouse |
+| **Spark Job Definition / Environment** | Trabajos Spark desde archivos y bibliotecas compartidas | ✅ en la práctica (el Spark es el simulado del curso) |
+| **Experiment / Report** | Entrenar y comparar modelos (MLflow) y armar informes de Power BI | ✅ en la práctica |
 
 ## Paso 2 — Qué cambia en Fabric real
 
