@@ -6,7 +6,7 @@ const GRUPOS = ['Seguridad', 'Acceso', 'SFTP', 'Datos', 'Privacidad', 'Gold'];
 
 correr(async ({ p }) => {
   await ir(p, '/', 2500);
-  await p.evaluate(() => { const D = window.RedAnaliticaHost.datos(); D.inicio = Date.now() - 3.6 * 86400000; window.RedAnaliticaHost.guardar(); window.RedAnaliticaHost.sincronizar(); });
+  await p.evaluate(async () => { await window.__cargarGrupo('proyectos'); const D = window.RedAnaliticaHost.datos(); D.inicio = Date.now() - 3.6 * 86400000; window.RedAnaliticaHost.guardar(); window.RedAnaliticaHost.sincronizar(); });
   await ir(p, '/l/proyecto-red-analitica-paso-a-paso', 4000);
   const md = leer('proyecto-red-analitica/06-paso-a-paso.md');
   const bash = bloques(md, 'bash').map(lineas), sql = bloques(md, 'sql norun');
