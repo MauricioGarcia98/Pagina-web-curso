@@ -49,7 +49,7 @@ Cabecera `X-Api-Key`.
 
 | Ruta | Qué devuelve |
 |---|---|
-| `GET /v1/sucursales` | Las 8 sucursales |
+| `GET /v1/sucursales` | Las 30 sucursales |
 | `GET /v1/tickets?sucursal=S01&fecha=AAAA-MM-DD&pagina=1` | Los tickets de una sucursal y un día, de a **200** por página. La respuesta trae `paginas` |
 
 - Cada sucursal sincroniza el cierre de caja a las **02:00 del día siguiente**. Antes, la API responde **404**.

@@ -1,30 +1,48 @@
 ---
-titulo: Paso a paso - una solución completa, explicada
+titulo: Construirlo paso a paso - una guía, no una solución
 nivel: Avanzado
-duracion: 60
-resumen: Una forma de resolver el proyecto de punta a punta, con el código probado y el porqué de cada decisión: la foto diaria del ERP, la SCD tipo 2 con LAG, las ventas con el costo del día y las metas con la planilla nueva. Léela después de intentarlo.
-objetivos: Ver una SCD tipo 2 construida desde fotos diarias | Unir ventas con la versión del producto vigente ese día | Automatizar la foto con un DAG
+duracion: 240
+resumen: Construyes el proyecto de cero con los datos de Almacenes del Sol a volumen de empresa (30 sucursales, unos 700 productos y cerca de 8.000 tickets y 24.000 líneas por día). Cada paso dice qué lograr, qué esconden los datos, cómo comprobarlo y pistas graduales; la solución de referencia de cada paso se desbloquea cuando tu entrega pasa la revisión.
+objetivos: Construir historia (SCD tipo 2) desde una fuente que solo muestra el presente | Bajar una API paginada por partes, sin cortar todo ante un faltante | Limpiar una planilla hecha a mano que cambia de formato | Unir ventas con la versión del producto vigente ese día | Automatizar todo con un DAG diario
 prerrequisitos: proyecto-almacenes-sol-el-dia-a-dia
-autoevaluacion: ¿Sabes qué hace LAG en la dimensión? | ¿Sabes por qué la unión con la dimensión usa un rango de fechas? | ¿Sabes por qué SELECT DISTINCT resuelve el reenvío de Villa Sol?
+autoevaluacion: ¿Sabes por qué hace falta una foto diaria del ERP? | ¿Sabes qué hace LAG en la dimensión? | ¿Sabes por qué la unión con la dimensión usa un rango de fechas? | ¿Sabes qué hacer con un día que una sucursal no mandó?
 ---
 
-:::cuidado Inténtalo primero
-Esta es **una** solución, no la única. Si ya resolviste el proyecto, compárala con la tuya: ¿qué pasa en cada una si un día no se saca la foto?
+:::trabajo Cómo se usa esta guía
+Nada viene hecho: la foto diaria, la descarga de tickets, la limpieza de la planilla, las tablas y el DAG los creas tú. Cada paso tiene **qué tienes que lograr**, **lo que esconden los datos**, **compruébalo tú** y **pistas** (ábrelas de a una). Al final de cada paso hay una **solución de referencia** bloqueada 🔒 que se abre cuando tu entrega pasa la misma revisión que hace el líder técnico en Jira.
 :::
 
-## El plan
+## Antes de empezar: el volumen
 
-| Paso | Qué | Dónde |
+| Fuente | Volumen aproximado | Qué implica |
 |---|---|---|
-| 1 | Mirar el ERP y sacar la foto del día | Terminal (`psql`) |
-| 2 | Bajar los tickets de las cajas | Terminal (`python`) |
-| 3 | Bajar la planilla de metas | Terminal |
-| 4 | Subir todo al lago | Azure |
-| 5 | La dimensión SCD2, las ventas y las metas | Databricks |
-| 6 | Key Vault y el DAG diario | Azure + Airflow |
+| ERP (PostgreSQL) | ~700 productos en 10 categorías, con cambios de precio y costo todas las noches | La historia solo existe si la guardas tú, foto por foto |
+| API de las cajas | 30 sucursales × ~250 tickets por día, páginas de 200: ~8.000 tickets y ~24.000 líneas por día | Dos semanas son ~330.000 líneas: se bajan por día y sucursal, y cada día queda en su archivo |
+| Planilla de metas | Una fila por sucursal y semana, mantenida a mano | Cambia de formato a mitad del proyecto |
+
+Crea el repositorio `almacenes-sol` con `README.md`, `ingesta/` (la foto y la descarga de tickets), `sql/` y `dags/`, y trabaja con una rama por paso.
 
 ## Paso 1 · El ERP y la foto diaria
 
+**Qué tienes que lograr.** Un archivo por día con la tabla de productos **completa** (sku, nombre, categoría, precio, costo) y la fecha en el nombre, por ejemplo `erp/productos_2026-11-16.csv`.
+
+**Lo que esconden los datos.**
+- El proceso de las 03:00 **pisa** precios, costos y categorías sin guardar historia.
+- `ult_modif` parece un atajo para traer solo lo que cambió, pero la reorganización de categorías se cargó a mano y no la actualizó.
+
+**Compruébalo tú.** Saca dos fotos en dos días distintos y compáralas: ¿cuántos productos cambiaron de precio? ¿Y de categoría el día de la reorganización?
+
+<details><summary>Pista 1</summary>
+
+Piénsalo como un álbum de fotos: el ERP es la vista por la ventana (solo el presente). Si quieres saber cómo estaba la semana pasada, tuviste que sacarle una foto la semana pasada.
+</details>
+
+<details><summary>Pista 2</summary>
+
+`sol accesos` te da la cadena de conexión. `psql … -c "\dt"` lista las tablas y `\copy (SELECT …) TO '…csv' WITH CSV HEADER` guarda el resultado de una consulta en un archivo.
+</details>
+
+:::solucion AS:SCD2 | Paso 1, el ERP y la foto diaria
 ```bash
 sol accesos
 mkdir -p ~/sol/erp ~/sol/pos ~/sol/metas
@@ -32,7 +50,6 @@ psql "postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp" -c "\dt
 psql "postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp" -c "SELECT sku, nombre, categoria, precio, costo, ult_modif FROM productos ORDER BY sku LIMIT 5"
 ```
 
-El ERP solo muestra el presente. La foto es la tabla completa, con la **fecha en el nombre del archivo** (de ahí sale `valido_desde`):
 
 ```bash
 HOY=$(date +%F)
@@ -40,15 +57,30 @@ psql "postgresql://consulta_bi:CLAVE@erp-sol.almacenes.example:5432/erp" \
   -c "\copy (SELECT sku, nombre, categoria, precio, costo FROM productos ORDER BY sku) TO '~/sol/erp/productos_$HOY.csv' WITH CSV HEADER"
 ```
 
-:::trabajo Foto completa, no incremental
-`ult_modif` parece un atajo ("traer solo lo que cambió"), pero la reorganización de categorías la cargaron a mano y no la tocó. Una foto completa por día pesa poco (44 filas) y no depende de que todos los procesos actualicen bien esa columna. Y se saca **después de las 03:00**, cuando ya corrió el proceso de precios.
 :::
 
 ## Paso 2 · Los tickets de las cajas
 
-Un archivo por día (los archivos de la terminal tienen un límite de tamaño, y además así queda particionado como en un lago de verdad). La API pagina de a 200 y responde 404 si el cierre de caja todavía no llegó: eso se anota, no se corta todo.
-Guárdalo como `~/sol.py`.
+**Qué tienes que lograr.** Las líneas de todos los tickets desde el lunes de la semana pasada hasta ayer, **un archivo por día** (`pos/lineas_AAAA-MM-DD.csv`).
 
+**Lo que esconden los datos.**
+- La API pagina de a 200 por sucursal y día: son decenas de pedidos por día.
+- Responde **404** si el cierre de caja de una sucursal todavía no llegó. Villa Sol se queda sin conexión y manda un día **dos días después**, con algunos tickets repetidos.
+- Hay tickets anulados.
+
+**Compruébalo tú.** Cuenta tickets por sucursal y día: las grandes tienen el doble que las chicas. ¿Hay algún día de alguna sucursal en cero? Anótalo: no es un error tuyo, es un faltante a reintentar.
+
+<details><summary>Pista 1</summary>
+
+Un 404 por un cierre que todavía no llegó no es una razón para cortar toda la descarga: anótalo en una lista de faltantes y sigue con el resto.
+</details>
+
+<details><summary>Pista 2</summary>
+
+`GET /v1/tickets?sucursal=S01&fecha=…&pagina=1` con `X-Api-Key`; la respuesta trae `paginas`. Escribe cada línea del ticket como una fila del CSV (con el ticket, la sucursal y la fecha repetidos en cada línea).
+</details>
+
+:::solucion AS:Ventas | Paso 2, los tickets
 ```python norun
 import requests, os, csv
 from datetime import date, timedelta
@@ -80,19 +112,36 @@ print("sin cierre todavía:", faltan)
 POS=pos_… DESDE=2026-11-09 HOY=$(date +%F) python ~/sol.py
 ```
 
-`DESDE` arranca el lunes de la semana pasada: hace falta la semana completa para el cumplimiento de metas.
+:::
 
-## Paso 3 · La planilla
+## Paso 3 · La planilla de metas
 
+**Qué tienes que lograr.** Las metas semanales por sucursal en un formato que se pueda unir con las ventas.
+
+**Lo que esconden los datos.** Antes de la reorganización la planilla tiene títulos, `;`, montos con `$` y puntos, porcentajes como texto y una fila de **total**. Después pasa a formato largo con `codigo_sucursal`. El nombre de Centro **cambió**.
+
+**Compruébalo tú.** Ninguna sucursal aparece dos veces en la misma semana y no hay ninguna fila llamada TOTAL.
+
+<details><summary>Pista 1</summary>
+
+Une siempre por **código**, nunca por nombre: los nombres los escriben personas y cambian.
+</details>
+
+:::solucion AS:Ventas | Paso 3, la planilla
 ```bash
 sol metas descargar -o ~/sol/metas/metas.csv
 head -5 ~/sol/metas/metas.csv
 ```
 
-Antes de la reorganización, la planilla tenía títulos, `;` y montos con `$` y puntos: había que saltear filas y limpiar. Después quedó en formato largo (una fila por sucursal y semana) con `codigo_sucursal`. Se une **por código**, nunca por nombre: el nombre de Centro cambió.
+:::
 
 ## Paso 4 · Al lago
 
+**Qué tienes que lograr.** Todo lo anterior en la cuenta de almacenamiento del proyecto, con la estructura `sol/erp`, `sol/pos` y `sol/metas`, y el conector de Unity Catalog con permiso.
+
+**Compruébalo tú.** `az storage blob list` muestra un archivo de productos por cada foto y uno de líneas por cada día.
+
+:::solucion AS:Ventas | Paso 4, al lago
 ```bash
 az login
 az group create -n rg-sol -l eastus2
@@ -103,10 +152,33 @@ az role assignment create --assignee unity-catalog-access-connector --role "Stor
 az storage blob upload-batch --account-name stsol -d landing/sol -s ~/sol
 ```
 
-## Paso 5 · Databricks
+:::
 
-Las fotos, con la fecha sacada del nombre del archivo (`productos_2026-11-16.csv` → posición 11, 10 caracteres):
+## Paso 5 · La dimensión SCD2, las ventas y las metas
 
+**Qué tienes que lograr.**
+- `sol.silver.dim_producto` con una fila por **versión** de cada producto (`valido_desde`, `valido_hasta`, `vigente`).
+- `sol.gold.ventas_diarias` con tickets, ventas netas y margen bruto por sucursal y día.
+- `sol.gold.cumplimiento_semanal` con las metas.
+
+**Lo que esconden los datos.**
+- Una versión nueva empieza cuando cambia precio, costo **o categoría** (Compras divide "Almacén" en "Almacén seco" y "Frescos").
+- El margen tiene que usar el costo **del día de la venta**, no el de hoy.
+- Los tickets reenviados de Villa Sol son copias exactas; los anulados no son venta.
+
+**Compruébalo tú.** Elige un producto que cambió de precio: tiene que tener dos filas en la dimensión, la vieja cerrada y la nueva vigente. El margen de un día pasado no cambia cuando cambia un costo hoy.
+
+<details><summary>Pista 1</summary>
+
+Para saber si una foto trae un cambio, compara cada foto con **la anterior del mismo producto**. Para cerrar una versión, mira cuándo empieza **la siguiente**.
+</details>
+
+<details><summary>Pista 2</summary>
+
+`LAG(...) OVER (PARTITION BY sku ORDER BY fecha)` y `LEAD(...)`. La fecha de cada foto sale del nombre del archivo (`_metadata.file_name`). La unión con la dimensión es por rango: `fecha >= valido_desde AND (valido_hasta IS NULL OR fecha < valido_hasta)`.
+</details>
+
+:::solucion AS:SCD2 | Paso 5a, la dimensión SCD2
 ```sql norun
 CREATE EXTERNAL LOCATION lago_sol URL 'abfss://landing@stsol.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL credencial_lago);
 CREATE CATALOG IF NOT EXISTS sol; CREATE SCHEMA IF NOT EXISTS sol.silver; CREATE SCHEMA IF NOT EXISTS sol.gold;
@@ -117,7 +189,6 @@ SELECT sku, nombre, categoria, CAST(precio AS DOUBLE) AS precio, CAST(costo AS D
 FROM read_files('abfss://landing@stsol.dfs.core.windows.net/sol/erp/', format => 'csv', header => true, inferSchema => false);
 ```
 
-La SCD2: con `LAG` se compara cada foto con la anterior del mismo producto. Una versión nueva empieza cuando cambia precio, costo **o categoría**. Después, `LEAD` cierra cada versión con el inicio de la siguiente.
 
 ```sql norun
 CREATE OR REPLACE TEMP VIEW versiones AS
@@ -135,8 +206,9 @@ SELECT sku, nombre, categoria, precio, costo,
 FROM versiones;
 ```
 
-Los tickets: `SELECT DISTINCT` elimina las líneas repetidas que Villa Sol reenvió al reconectarse (son copias exactas), y los anulados se filtran.
+:::
 
+:::solucion AS:Ventas | Paso 5b, las ventas y las metas
 ```sql norun
 CREATE OR REPLACE TEMP VIEW lineas AS
 SELECT DISTINCT * FROM read_files('abfss://landing@stsol.dfs.core.windows.net/sol/pos/', format => 'csv', header => true, inferSchema => false);
@@ -148,7 +220,6 @@ SELECT ticket_id, sucursal, fecha, medio_pago, sku,
 FROM lineas WHERE anulado = 'False';
 ```
 
-Las ventas diarias: el margen usa el costo de la versión **vigente el día de la venta** (unión por rango), y solo desde el día de la primera foto (antes no hay costos).
 
 ```sql norun
 CREATE OR REPLACE TABLE sol.gold.ventas_diarias AS
@@ -164,7 +235,6 @@ WHERE l.fecha >= '2026-11-16'   -- el día de tu primera foto
 GROUP BY l.fecha, l.sucursal;
 ```
 
-Las metas, con la planilla en formato largo:
 
 ```sql norun
 CREATE OR REPLACE TEMP VIEW metas AS
@@ -180,7 +250,6 @@ JOIN metas m ON m.sucursal = l.sucursal AND l.fecha >= m.semana_desde
 GROUP BY m.semana_desde, m.sucursal, m.meta;
 ```
 
-Y las preguntas del tablero, por ejemplo el margen de Bebidas de un día (con el costo de ese día):
 
 ```sql norun
 SELECT round(sum(l.neta - l.cantidad * d.costo) / sum(l.neta) * 100, 1)
@@ -190,13 +259,23 @@ JOIN sol.silver.dim_producto d ON d.sku = l.sku AND CAST(l.fecha AS DATE) >= d.v
 WHERE l.fecha = '2026-11-18' AND d.categoria = 'BEB';
 ```
 
-## Paso 6 · Key Vault y el DAG
+:::
 
+## Paso 6 · Key Vault y el DAG diario
+
+**Qué tienes que lograr.** La clave del ERP y la de las cajas en un Key Vault, y un DAG que todos los días saque la foto, baje los tickets y recalcule gold.
+
+**Lo que esconden los datos.** El horario importa: después del proceso de precios (03:00) y del cierre de cajas (02:00), y antes de que abran las sucursales (08:00).
+
+**Compruébalo tú.** Deja correr el DAG dos días: tiene que haber una foto nueva por día y la dimensión tiene que crecer solo con los productos que cambiaron.
+
+:::solucion AS:Seguridad | Paso 6, Key Vault y el DAG
 ```bash
 az keyvault create -n kv-sol -g rg-sol -l eastus2
 az keyvault secret set --vault-name kv-sol -n erp-clave --value 'Sol…' -o none
 az keyvault secret set --vault-name kv-sol -n pos-key --value 'pos_…' -o none
 ```
+
 
 ```python norun
 from datetime import datetime
@@ -207,7 +286,7 @@ with DAG("sol_diario", start_date=datetime(2026, 11, 1), schedule="30 5 * * *", 
     DatabricksRunNowOperator(task_id="foto_y_gold", job_name="sol_diario")
 ```
 
-A las 05:30: después del proceso de precios (03:00) y del cierre de cajas (02:00), y antes de que abran las sucursales (08:00).
+:::
 
 :::real En tu computadora y en la web real
 En tu nube: la foto diaria del ERP se baja con una tarea programada; los tickets de las cajas y la planilla van al lago (**Azure Storage**); **Databricks** arma la dimensión SCD2 y las tablas gold; un **DAG de Airflow** coordina todo y lee los secretos del **Key Vault**.

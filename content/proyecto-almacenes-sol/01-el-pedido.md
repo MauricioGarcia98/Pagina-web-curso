@@ -2,14 +2,14 @@
 titulo: El pedido - una cadena de supermercados que no sabe cuánto gana
 nivel: Avanzado
 duracion: 25
-resumen: Almacenes del Sol tiene 8 sucursales, un ERP viejo que pisa los precios todas las noches, cajas que mandan las ventas al día siguiente y una planilla de metas que mantiene una persona a mano. Dirección quiere ventas, margen y cumplimiento de metas. El pedido, sin paso a paso.
+resumen: Almacenes del Sol tiene 30 sucursales y unos 700 productos, un ERP viejo que pisa los precios todas las noches, cajas que mandan las ventas al día siguiente y una planilla de metas que mantiene una persona a mano. Dirección quiere ventas, margen y cumplimiento de metas. El pedido, sin paso a paso.
 objetivos: Entender por qué un sistema sin historia obliga a guardar fotos diarias | Planificar una dimensión lentamente cambiante (SCD tipo 2) | Unir ventas, costos y metas de tres fuentes distintas
 prerrequisitos: proyecto-cuentas-claras-el-pedido
 autoevaluacion: ¿Sabes qué es una SCD tipo 2 y para qué sirve? | ¿Sabes por qué el margen de la semana pasada no se puede calcular con el costo de hoy? | ¿Sabes qué riesgo tiene leer una planilla que edita una persona?
 ---
 
 :::escenario Jueves, 8:30 · Almacenes del Sol
-Almacenes del Sol es una cadena de 8 supermercados en tres ciudades. Las ventas salen de las **cajas** (un sistema de punto de venta en cada sucursal), los productos, precios y costos viven en un **ERP** de hace quince años y las metas de venta las arma **Planeamiento** en una planilla. Hasta hoy, el informe de los lunes lo hacía una persona copiando y pegando.
+Almacenes del Sol es una cadena regional de 30 supermercados en cinco ciudades, con unos 700 productos y cerca de 8.000 tickets por día (unas 24.000 líneas). Las ventas salen de las **cajas** (un sistema de punto de venta en cada sucursal), los productos, precios y costos viven en un **ERP** de hace quince años y las metas de venta las arma **Planeamiento** en una planilla. Hasta hoy, el informe de los lunes lo hacía una persona copiando y pegando.
 :::
 
 ## Los pedidos
