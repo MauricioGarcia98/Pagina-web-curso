@@ -84,6 +84,10 @@ pdftotext ~/conecta/contratos/CTR-4100.pdf -</code></pre>
 <td><code>{&quot;model&quot;, &quot;messages&quot;: [{&quot;role&quot;, &quot;content&quot;}], &quot;temperature&quot;}</code> → <code>salida.contenido</code> y <code>uso</code> (tokens y costo)</td>
 </tr>
 <tr>
+<td><code>POST /v1/lotes</code></td>
+<td><code>{&quot;model&quot;, &quot;temperature&quot;, &quot;pedidos&quot;: [{&quot;id&quot;, &quot;messages&quot;: […]}, …]}</code> (hasta <strong>100 por lote</strong>) → <code>resultados: [{&quot;id&quot;, &quot;salida&quot;, &quot;uso&quot;}]</code>. Cuesta <strong>la mitad</strong> y cuenta como <strong>un</strong> pedido para el límite de 300 por minuto. (En las APIs reales el lote es asíncrono: se envía, se consulta después y puede tardar horas; acá responde en el mismo pedido.)</td>
+</tr>
+<tr>
 <td><code>POST /v1/embeddings</code></td>
 <td><code>{&quot;model&quot;: &quot;lumen-embed&quot;, &quot;input&quot;: [&quot;texto&quot;, …]}</code> (hasta 100) → un vector de 256 números por texto, normalizado</td>
 </tr>

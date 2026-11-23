@@ -89,6 +89,7 @@ curl -s https://api.lumenia.example/v1/chat -H "Authorization: Bearer $LUMEN" \
 | Ruta | Qué hace |
 |---|---|
 | `POST /v1/chat` | `{"model", "messages": [{"role", "content"}], "temperature"}` → `salida.contenido` y `uso` (tokens y costo) |
+| `POST /v1/lotes` | `{"model", "temperature", "pedidos": [{"id", "messages": […]}, …]}` (hasta **100 por lote**) → `resultados: [{"id", "salida", "uso"}]`. Cuesta **la mitad** y cuenta como **un** pedido para el límite de 300 por minuto. (En las APIs reales el lote es asíncrono: se envía, se consulta después y puede tardar horas; acá responde en el mismo pedido.) |
 | `POST /v1/embeddings` | `{"model": "lumen-embed", "input": ["texto", …]}` (hasta 100) → un vector de 256 números por texto, normalizado |
 | `GET /v1/modelos` | Modelos, precios y estado |
 | `GET /v1/uso?desde=&hasta=` | Lo que gastaste por día |
